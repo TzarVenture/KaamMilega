@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000"
+    environment:
+      - PORT=8000
+      - MONGO_URI=mongodb+srv://admin:vqsKpKMzkYI5f2eL@cluster0.wtumbu4.mongodb.net/
+      - JWT_SECRET=Rishu@123
+      - DB_NAME=km
+      - ENVIRONMENT=production
+      - FS_PATH=./static/uploads
+      - FS_URL=/api/files/uploads
+      - HOST=93.127.172.45:8000
+    volumes:
+      - km-statics:/root/static/uploads
+
+volumes:
+  km-statics:

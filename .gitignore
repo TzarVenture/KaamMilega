@@ -1,0 +1,35 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+
+# Project Documentation & Analysis Files
+CODEBASE_ANALYSIS.md
+docs/
+*.pdf
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Dependencies & Build Outputs
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Go Executables & Temporary Files
+bin/
+*.exe
+*.exe.test
+*.out
+tmp/
+
+# Uploaded Files & Static Storage
+km-backend/static/uploads/*
+!km-backend/static/uploads/.gitkeep

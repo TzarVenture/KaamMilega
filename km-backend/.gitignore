@@ -1,0 +1,19 @@
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Binaries & Build artifacts
+bin/
+*.exe
+*.exe.test
+*.out
+tmp/
+
+# Static Uploads
+static/uploads/*
+!static/uploads/.gitkeep
+
+# IDE & OS
+.vscode/
+.DS_Store
