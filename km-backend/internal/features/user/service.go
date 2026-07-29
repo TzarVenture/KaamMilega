@@ -29,7 +29,7 @@ type UserService interface {
 	AddExperience(ctx context.Context, userID string, exp Experience) (*User, error)
 	AddSkill(ctx context.Context, userID string, skillName string) (*User, error)
 	SendEmailOTP(ctx context.Context, email string) error
-	VerifyEmailOTP(ctx context.Context, email, code string) error
+	VerifyEmailOTP(ctx context.Context, email, code string, userID string) error
 	GetAllUsers(ctx context.Context) ([]*User, error)
 	GetExperts(ctx context.Context) ([]*User, error)
 	SearchUsers(ctx context.Context, query string) ([]*User, error)
@@ -202,6 +202,11 @@ func (s *UserServiceImpl) Register(ctx context.Context, userID string, req Regis
 	user.JobCategories = req.JobCategories
 	user.ExperienceDetail = req.ExperienceDetail
 	user.Email = req.Email
+	user.IsEmailVerified = req.IsEmailVerified
+	if req.IsEmailVerified && user.EmailVerifiedAt == nil {
+		now := time.Now()
+		user.EmailVerifiedAt = &now
+	}
 	user.IsConsultant = req.IsConsultant
 
 	updatedUser, err := s.repo.UpdateUser(ctx, user)
@@ -294,6 +299,18 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 			if v, ok := value.(string); ok {
 				user.City = v
 			}
+		case "email":
+			if v, ok := value.(string); ok {
+				user.Email = v
+			}
+		case "is_email_verified":
+			if v, ok := value.(bool); ok {
+				user.IsEmailVerified = v
+				if v {
+					now := time.Now()
+					user.EmailVerifiedAt = &now
+				}
+			}
 		}
 	}
 
@@ -385,22 +402,65 @@ func (s *UserServiceImpl) SendEmailOTP(ctx context.Context, email string) error 
 	// Send live email via AWS SES SMTP if credentials are configured
 	if s.config.SMTPUsername != "" && s.config.SMTPPassword != "" {
 		subject := "KaamMilega Verification Code"
-		htmlBody := fmt.Sprintf(`
-			<div style="font-family: Arial, sans-serif; padding: 24px; max-width: 480px; border: 1px solid #e2e8f0; border-radius: 12px; margin: 0 auto; background-color: #ffffff;">
-				<div style="text-align: center; margin-bottom: 20px;">
-					<h2 style="color: #4b1b54; margin: 0; font-size: 24px;">KaamMilega</h2>
-					<p style="color: #64748b; font-size: 14px; margin-top: 4px;">Verification Code</p>
-				</div>
-				<p style="color: #334155; font-size: 15px; line-height: 1.5;">Hello,</p>
-				<p style="color: #334155; font-size: 15px; line-height: 1.5;">Use the verification code below to confirm your email address:</p>
-				<div style="text-align: center; margin: 28px 0; padding: 16px; background-color: #f8fafc; border-radius: 8px;">
-					<span style="font-size: 36px; font-weight: 800; letter-spacing: 8px; color: #4b1b54; font-family: monospace;">%s</span>
-				</div>
-				<p style="color: #64748b; font-size: 13px; line-height: 1.5; margin-bottom: 0;">This code is valid for 5 minutes. If you did not request this verification code, please ignore this email.</p>
-				<hr style="border: none; border-top: 1px solid #f1f5f9; margin: 24px 0 16px 0;" />
-				<p style="color: #94a3b8; font-size: 12px; text-align: center; margin: 0;">&copy; KaamMilega. All rights reserved.</p>
-			</div>
-		`, code)
+		htmlBody := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(91, 33, 104, 0.08);">
+          <tr>
+            <td style="background-color: #5b2168; height: 6px;"></td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 32px 24px 32px; text-align: center; background-color: #ffffff;">
+              <table role="presentation" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                    <div style="display: inline-block; background-color: #5b2168; color: #ffffff; font-size: 18px; font-weight: 900; width: 44px; height: 44px; line-height: 44px; border-radius: 12px; text-align: center; letter-spacing: -0.5px;">KM</div>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="color: #0f172a; font-size: 22px; font-weight: 800; margin: 16px 0 4px 0; letter-spacing: -0.5px;">KaamMilega</h1>
+              <p style="color: #64748b; font-size: 13px; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Email Verification Code</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 32px 32px 32px; color: #334155; font-size: 15px; line-height: 1.6;">
+              <p style="margin: 0 0 16px 0;">Hello,</p>
+              <p style="margin: 0 0 24px 0; color: #475569;">Please use the 4-digit verification code below to confirm your email address and complete your account setup:</p>
+              <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px 0;">
+                <tr>
+                  <td align="center" style="background-color: #faf5ff; border: 2px dashed #d8b4fe; border-radius: 16px; padding: 20px;">
+                    <div style="font-size: 38px; font-weight: 900; color: #5b2168; letter-spacing: 12px; font-family: 'Courier New', Courier, monospace; margin-left: 12px;">%s</div>
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; border-radius: 12px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 12px 16px; font-size: 13px; color: #64748b;">
+                    ⏱️ <strong>Note:</strong> This verification code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 0; color: #94a3b8; font-size: 13px;">If you did not request this email, please safely ignore it.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 12px;">
+              &copy; 2026 KaamMilega Platform. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`, code)
 
 		err := sendSESEmail(
 			s.config.SMTPHost,
@@ -485,7 +545,7 @@ func sendSESEmail(smtpHost, smtpPort, username, password, fromEmail, fromName, t
 	return client.Quit()
 }
 
-func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string) error {
+func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string, userID string) error {
 	otp, err := s.repo.GetLatestEmailOTP(ctx, email)
 	if err != nil {
 		return err
@@ -498,7 +558,33 @@ func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string
 		return errors.New("Invalid OTP")
 	}
 
-	return s.repo.MarkOTPUsed(ctx, otp.ID)
+	if err := s.repo.MarkOTPUsed(ctx, otp.ID); err != nil {
+		return err
+	}
+
+	now := time.Now()
+
+	// If logged-in user ID is passed, update user directly
+	if userID != "" {
+		user, _ := s.repo.FindUserByID(ctx, userID)
+		if user != nil {
+			user.Email = email
+			user.IsEmailVerified = true
+			user.EmailVerifiedAt = &now
+			_, _ = s.repo.UpdateUser(ctx, user)
+			return nil
+		}
+	}
+
+	// If user exists with this email, mark as verified
+	user, _ := s.repo.FindUserByEmail(ctx, email)
+	if user != nil {
+		user.IsEmailVerified = true
+		user.EmailVerifiedAt = &now
+		_, _ = s.repo.UpdateUser(ctx, user)
+	}
+
+	return nil
 }
 
 func (s *UserServiceImpl) GetAllUsers(ctx context.Context) ([]*User, error) {

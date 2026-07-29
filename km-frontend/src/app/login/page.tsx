@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
+import OtpInput from "@/components/ui/OtpInput";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Download } from "lucide-react";
 
@@ -15,9 +16,7 @@ interface FormCardProps {
     loading: boolean;
     error: string | null;
     onMobileChange: (val: string) => void;
-    onOtpChange: (val: string, index: number) => void;
-    onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>, index: number) => void;
-    onPaste: (e: React.ClipboardEvent<HTMLInputElement>) => void;
+    onOtpChange: (val: string[]) => void;
     onSendOtp: (e: React.FormEvent) => void;
     onVerifyOtp: () => void;
     onChangeNumber: () => void;
@@ -28,7 +27,7 @@ interface FormCardProps {
 // Defining it inside LoginPage would cause remount on every keystroke (losing focus).
 const FormCard = ({
     step, mobile, otp, loading, error,
-    onMobileChange, onOtpChange, onKeyDown, onPaste,
+    onMobileChange, onOtpChange,
     onSendOtp, onVerifyOtp, onChangeNumber, onGoRecruiter,
 }: FormCardProps) => (
     <div className="w-full md:w-[450px] bg-white rounded-[28px] md:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-xl shadow-purple-100/50 z-10">
@@ -64,11 +63,10 @@ const FormCard = ({
                         <button
                             type="submit"
                             disabled={mobile.length < 10 || loading}
-                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
-                                mobile.length >= 10 && !loading
+                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${mobile.length >= 10 && !loading
                                     ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                            }`}
+                                }`}
                         >
                             {loading ? "Sending OTP…" : "Get OTP"}
                         </button>
@@ -103,24 +101,7 @@ const FormCard = ({
                     </div>
 
                     {/* type="tel" + inputMode="numeric" → number keyboard on mobile */}
-                    <div className="flex gap-3 sm:gap-4 justify-between">
-                        {[0, 1, 2, 3].map((i) => (
-                            <input
-                                key={i}
-                                id={`otp-${i}`}
-                                value={otp[i]}
-                                type="tel"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                autoComplete={i === 0 ? "one-time-code" : "off"}
-                                onChange={(e) => onOtpChange(e.target.value, i)}
-                                onKeyDown={(e) => onKeyDown(e, i)}
-                                onPaste={onPaste}
-                                maxLength={1}
-                                className="w-full h-14 sm:h-16 bg-white border-2 border-gray-200 rounded-2xl text-center font-bold text-xl focus:ring-2 focus:ring-purple-400 focus:border-purple-400 focus:outline-none transition-all"
-                            />
-                        ))}
-                    </div>
+                    <OtpInput value={otp} onChange={onOtpChange} />
 
                     <div className="flex items-center justify-between">
                         <button type="button" className="text-xs font-bold text-purple-600 hover:underline">
@@ -138,11 +119,10 @@ const FormCard = ({
                     <button
                         onClick={onVerifyOtp}
                         disabled={otp.join("").length < 4 || loading}
-                        className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
-                            otp.join("").length === 4 && !loading
+                        className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${otp.join("").length === 4 && !loading
                                 ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
                                 : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                        }`}
+                            }`}
                     >
                         {loading ? "Verifying…" : "Verify OTP"}
                     </button>
@@ -161,30 +141,9 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleOtpChange = (value: string, index: number) => {
-        const digit = value.replace(/\D/g, "").slice(-1);
-        const newOtp = [...otp];
-        newOtp[index] = digit;
+    const handleOtpChange = (newOtp: string[]) => {
+        setError(null);
         setOtp(newOtp);
-        if (digit && index < 3) {
-            document.getElementById(`otp-${index + 1}`)?.focus();
-        }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
-        if (e.key === "Backspace" && !otp[index] && index > 0) {
-            document.getElementById(`otp-${index - 1}`)?.focus();
-        }
-    };
-
-    const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const pastedData = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 4);
-        if (!pastedData) return;
-        const newOtp = [...otp];
-        pastedData.split("").forEach((char, i) => { if (i < 4) newOtp[i] = char; });
-        setOtp(newOtp);
-        document.getElementById(`otp-${Math.min(pastedData.length, 3)}`)?.focus();
     };
 
     const handleSendOtp = async (e: React.FormEvent) => {
@@ -229,8 +188,6 @@ export default function LoginPage() {
         step, mobile, otp, loading, error,
         onMobileChange: setMobile,
         onOtpChange: handleOtpChange,
-        onKeyDown: handleKeyDown,
-        onPaste: handlePaste,
         onSendOtp: handleSendOtp,
         onVerifyOtp: handleVerifyOtp,
         onChangeNumber: handleChangeNumber,
