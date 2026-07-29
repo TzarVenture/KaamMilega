@@ -46,8 +46,10 @@ type User struct {
 	City             string   `bson:"city,omitempty" json:"city,omitempty"`
 	JobCategories    []string `bson:"job_categories,omitempty" json:"job_categories,omitempty"`
 	ExperienceDetail string   `bson:"experience_detail,omitempty" json:"experience_detail,omitempty"`
-	Email            string   `bson:"email,omitempty" json:"email,omitempty"`
-	IsConsultant     bool     `bson:"is_consultant,omitempty" json:"is_consultant,omitempty"`
+	Email            string     `bson:"email,omitempty" json:"email,omitempty"`
+	IsEmailVerified  bool       `bson:"is_email_verified" json:"is_email_verified"`
+	EmailVerifiedAt  *time.Time `bson:"email_verified_at,omitempty" json:"email_verified_at,omitempty"`
+	IsConsultant     bool       `bson:"is_consultant,omitempty" json:"is_consultant,omitempty"`
 
 	// New Profile Fields
 	Education  []Education  `bson:"education,omitempty" json:"education,omitempty"`
@@ -137,6 +139,7 @@ type RegisterRequest struct {
 	JobCategories    []string `json:"job_categories"`
 	ExperienceDetail string   `json:"experience_detail"`
 	Email            string   `json:"email"`
+	IsEmailVerified  bool     `json:"is_email_verified"`
 	IsConsultant     bool     `json:"is_consultant"`
 }
 

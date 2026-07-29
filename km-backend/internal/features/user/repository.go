@@ -15,6 +15,7 @@ import (
 
 type UserRepository interface {
 	FindUserByMobile(ctx context.Context, mobile string) (*User, error)
+	FindUserByEmail(ctx context.Context, email string) (*User, error)
 	CreateUser(ctx context.Context, user *User) (*User, error)
 	UpdateUser(ctx context.Context, user *User) (*User, error)
 	FindUserByID(ctx context.Context, id string) (*User, error)
@@ -44,6 +45,21 @@ func NewUserRepository(db *database.MongodbDB) UserRepository {
 func (r *UserRepositoryImpl) FindUserByMobile(ctx context.Context, mobile string) (*User, error) {
 	var user User
 	err := r.userColl.FindOne(ctx, bson.M{"mobile": mobile}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil // Not found
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepositoryImpl) FindUserByEmail(ctx context.Context, email string) (*User, error) {
+	if email == "" {
+		return nil, nil
+	}
+	var user User
+	err := r.userColl.FindOne(ctx, bson.M{"email": email}).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // Not found

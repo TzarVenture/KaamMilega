@@ -16,6 +16,7 @@ import EditAboutModal from './modals/EditAboutModal';
 import ProfilePhotoModal from './modals/ProfilePhotoModal';
 import AddBackgroundModal from './modals/AddBackgroundModal';
 import EditContactInfoModal from './modals/EditContactInfoModal';
+import EmailVerificationModal from './modals/EmailVerificationModal';
 import CustomImage from '@/components/ui/CustomImage';
 import Link from 'next/link';
 
@@ -30,7 +31,8 @@ const ProfilePage = () => {
         about: false,
         photo: false,
         background: false,
-        contact: false
+        contact: false,
+        emailVerify: false
     });
     const router = useRouter();
 
@@ -133,6 +135,25 @@ const ProfilePage = () => {
                                 <span>•</span>
                                 <span className="text-purple-600 font-medium">{user?.connections_count || 0} Connections</span>
                             </p>
+
+                            {/* Email Verification Status Badge */}
+                            <div className="mt-3 inline-flex items-center gap-2">
+                                {user?.is_email_verified ? (
+                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-bold">
+                                        <CheckCircle2 size={14} className="text-emerald-600" /> Email Verified: {user?.email}
+                                    </span>
+                                ) : (
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-semibold">
+                                        <span>Email Unverified ({user?.email || "No email added"})</span>
+                                        <button
+                                            onClick={() => setModals({ ...modals, emailVerify: true })}
+                                            className="px-2.5 py-0.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-full text-[11px] transition-all cursor-pointer"
+                                        >
+                                            Verify Email Now
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
                                 <button className="bg-purple-600 text-white px-4 sm:px-6 py-2 rounded-full font-medium text-sm hover:bg-purple-700">Open To</button>
@@ -513,6 +534,12 @@ const ProfilePage = () => {
                 isOpen={modals.contact}
                 user={user}
                 onClose={() => setModals({ ...modals, contact: false })}
+                onSuccess={(updatedUser) => setUser(updatedUser)}
+            />
+            <EmailVerificationModal
+                isOpen={modals.emailVerify}
+                currentEmail={user.email}
+                onClose={() => setModals({ ...modals, emailVerify: false })}
                 onSuccess={(updatedUser) => setUser(updatedUser)}
             />
         </div>

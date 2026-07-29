@@ -2,10 +2,12 @@ package user
 
 import (
 	"log"
+	"strings"
 
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type UserController struct {
@@ -251,7 +253,25 @@ func (ctrl *UserController) VerifyEmailOTP(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
-	if err := ctrl.service.VerifyEmailOTP(c.Context(), req.Email, req.Code); err != nil {
+	userID, _ := c.Locals("user_id").(string)
+	if userID == "" {
+		authHeader := c.Get("Authorization")
+		if authHeader != "" {
+			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+				return []byte(ctrl.config.JWTSecret), nil
+			})
+			if err == nil && token.Valid {
+				if claims, ok := token.Claims.(jwt.MapClaims); ok {
+					if sub, ok := claims["sub"].(string); ok {
+						userID = sub
+					}
+				}
+			}
+		}
+	}
+
+	if err := ctrl.service.VerifyEmailOTP(c.Context(), req.Email, req.Code, userID); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
