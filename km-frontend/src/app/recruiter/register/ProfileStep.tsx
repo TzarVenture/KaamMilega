@@ -22,9 +22,9 @@ export default function ProfileStep({ data, updateData, onNext, onBack }: Props)
                     <div className="relative">
                         <input
                             type="text"
-                            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition"
+                            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 outline-none transition text-slate-900 font-semibold bg-white placeholder:text-slate-400"
                             placeholder="Your First And Last Name"
-                            value={data.fullName}
+                            value={data.fullName || ""}
                             onChange={(e) => updateData({ fullName: e.target.value })}
                         />
                     </div>
