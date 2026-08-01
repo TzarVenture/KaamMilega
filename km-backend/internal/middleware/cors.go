@@ -8,8 +8,9 @@ import (
 // CORSMiddleware returns Fiber's built-in CORS middleware with custom config
 func CORSMiddleware() fiber.Handler {
 	return cors.New(cors.Config{
-		AllowOrigins: "*",
-		AllowMethods: "GET,POST,PUT,DELETE,OPTIONS,PATCH",
-		AllowHeaders: "Origin,Content-Type,Accept,Authorization,X-Requested-With",
+		AllowOrigins:  "*",
+		AllowMethods:  "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD",
+		AllowHeaders:  "*",
+		ExposeHeaders: "*",
 	})
 }
