@@ -8,20 +8,20 @@ import (
 )
 
 type Config struct {
-	Port        string
-	JWTSecret   string
-	MongoURI    string
-	DBName      string
-	Host        string
-	Environment string
-	FSPath      string // Physical directory for file uploads
-	FSURL       string // URL path prefix for file access
-	SMTPHost     string
-	SMTPPort     string
-	SMTPUsername string
-	SMTPPassword string
+	Port          string
+	JWTSecret     string
+	MongoURI      string
+	DBName        string
+	Host          string
+	Environment   string
+	FSPath        string // Physical directory for file uploads
+	FSURL         string // URL path prefix for file access
+	SMTPHost      string
+	SMTPPort      string
+	SMTPUsername  string
+	SMTPPassword  string
 	SMTPFromEmail string
-	SMTPFromName string
+	SMTPFromName  string
 }
 
 // LoadConfig loads configuration from environment variables
@@ -43,10 +43,10 @@ func LoadConfig() (*Config, error) {
 		Host:          getEnv("HOST", ""),
 		SMTPHost:      getEnv("SMTP_HOST", "email-smtp.ap-south-1.amazonaws.com"),
 		SMTPPort:      getEnv("SMTP_PORT", "587"),
-		SMTPUsername:  getEnv("SMTP_USERNAME", ""),
-		SMTPPassword:  getEnv("SMTP_PASSWORD", ""),
-		SMTPFromEmail: getEnv("SMTP_FROM_EMAIL", ""),
-		SMTPFromName:  getEnv("SMTP_FROM_NAME", "KaamMilega"),
+		SMTPUsername:  getEnv("SMTP_USERNAME", getEnv("SMTP_USER", "")),
+		SMTPPassword:  getEnv("SMTP_PASSWORD", getEnv("SMTP_PASS", "")),
+		SMTPFromEmail: getEnv("SMTP_FROM_EMAIL", "no-reply@kaammilega.com"),
+		SMTPFromName:  getEnv("SMTP_FROM_NAME", "KaamMilega Verification"),
 	}, nil
 }
 
