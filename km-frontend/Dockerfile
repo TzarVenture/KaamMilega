@@ -5,8 +5,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Copy package.json and lock files (safe for both root and subfolder context)
-COPY package.json package-lock.json* ./
-COPY km-frontend/package.json km-frontend/package-lock.json* ./
+COPY package.jso[n] package-lock.jso[n]* km-frontend/package.jso[n] km-frontend/package-lock.jso[n]* ./
 
 # Install dependencies (production & dev required for build)
 RUN npm ci
