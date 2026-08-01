@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ModalWrapper from "@/components/ui/ModalWrapper";
 import OtpInput from "@/components/ui/OtpInput";
 import api from "@/lib/axios";
@@ -20,6 +20,28 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
     const [sending, setSending] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [resendTimer, setResendTimer] = useState(0);
+    const [infoMsg, setInfoMsg] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (isOpen) {
+            setEmail(currentEmail);
+            setOtp(["", "", "", ""]);
+            setStep("email");
+            setError(null);
+            setInfoMsg(null);
+        }
+    }, [isOpen, currentEmail]);
+
+    useEffect(() => {
+        let interval: any;
+        if (resendTimer > 0) {
+            interval = setInterval(() => {
+                setResendTimer((prev) => prev - 1);
+            }, 1000);
+        }
+        return () => clearInterval(interval);
+    }, [resendTimer]);
 
     const validateEmail = (str: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str.trim());
 
@@ -29,12 +51,30 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
             return;
         }
         setError(null);
+        setInfoMsg(null);
         setSending(true);
         try {
             await api.post("/auth/otp/email/send", { email: email.trim() });
             setStep("otp");
+            setResendTimer(30);
         } catch (err: any) {
             setError(err.message || "Failed to send verification code.");
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (resendTimer > 0) return;
+        setError(null);
+        setSending(true);
+        try {
+            await api.post("/auth/otp/email/send", { email: email.trim() });
+            setResendTimer(30);
+            setOtp(["", "", "", ""]);
+            setInfoMsg("Verification code resent to your email.");
+        } catch (err: any) {
+            setError(err.message || "Failed to resend verification code.");
         } finally {
             setSending(false);
         }
@@ -79,6 +119,13 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                     <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl flex items-center gap-2 text-xs font-bold">
                         <AlertCircle className="w-4 h-4 shrink-0" />
                         <span>{error}</span>
+                    </div>
+                )}
+
+                {infoMsg && (
+                    <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-3 rounded-xl flex items-center gap-2 text-xs font-bold">
+                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <span>{infoMsg}</span>
                     </div>
                 )}
 
@@ -131,6 +178,18 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                         </p>
 
                         <OtpInput value={otp} onChange={(val) => { setError(null); setOtp(val); }} />
+
+                        <p className="text-xs font-semibold text-slate-500 pt-2">
+                            Didn't receive email? Check spam or{" "}
+                            <button
+                                type="button"
+                                disabled={resendTimer > 0 || sending}
+                                onClick={handleResendOtp}
+                                className="text-[#5b2168] font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
+                            >
+                                {resendTimer > 0 ? `Resend Code in 00:${resendTimer.toString().padStart(2, '0')}` : "Resend Code"}
+                            </button>
+                        </p>
 
                         <div className="flex justify-between items-center pt-4 border-t border-slate-100">
                             <button
