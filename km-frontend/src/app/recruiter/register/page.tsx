@@ -48,7 +48,7 @@ export default function RegisterPage() {
       };
       const data = await api.post("/user/register", payload);
       localStorage.setItem("user", JSON.stringify(data));
-      router.push("/"); // Redirect to home or recruiter dashboard
+      router.push("/recruiter"); // Redirect to Recruiter Dashboard
     } catch (error: any) {
       console.error("Registration error:", error);
       alert(error.message || "Registration failed");

@@ -109,7 +109,7 @@ export default function KaamMilegaAuth() {
             if (!data.is_registered) {
                 router.push("/recruiter/register");
             } else {
-                router.push("/"); // Or recruiter dashboard if exists
+                router.push("/recruiter"); // Redirect to Recruiter Dashboard
             }
         } catch (err: any) {
             setError(err.message || "Invalid OTP");
