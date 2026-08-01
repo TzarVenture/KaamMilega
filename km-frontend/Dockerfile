@@ -4,14 +4,20 @@ FROM node:20-alpine AS builder
 # Set working directory for the app
 WORKDIR /app
 
-# Copy package.json and lock files
-COPY package.json package-lock.json ./
+# Copy package.json and lock files (safe for both root and subfolder context)
+COPY package.json package-lock.json* ./
+COPY km-frontend/package.json km-frontend/package-lock.json* ./
 
-# Install dependencies (production only to keep image small)
+# Install dependencies (production & dev required for build)
 RUN npm ci
 
 # Copy the rest of the application code
 COPY . .
+
+# Ensure km-frontend files take precedence if built from root
+RUN if [ -d "./km-frontend" ]; then \
+        cp -rf ./km-frontend/* /app/; \
+    fi
 
 # Build the Next.js application
 RUN npm run build
