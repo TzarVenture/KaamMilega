@@ -5,7 +5,8 @@
 
 # Project Documentation & Analysis Files
 CODEBASE_ANALYSIS.md
-docs/
+/docs/
+!km-backend/docs/
 *.pdf
 
 # IDE & Editor files

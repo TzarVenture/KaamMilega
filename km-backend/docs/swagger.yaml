@@ -1,0 +1,563 @@
+basePath: /
+definitions:
+  file.File:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      mime_type:
+        type: string
+      original_filename:
+        type: string
+      path:
+        type: string
+      record_id:
+        type: string
+      size:
+        type: integer
+      uploaded_by:
+        type: string
+      url:
+        type: string
+    type: object
+  setting.SetSettingRequest:
+    properties:
+      value:
+        type: string
+    required:
+    - value
+    type: object
+  sms.SendSMSRequest:
+    properties:
+      params:
+        items:
+          type: string
+        type: array
+      template_name:
+        type: string
+      to:
+        type: string
+    required:
+    - template_name
+    - to
+    type: object
+  user.Document:
+    properties:
+      name:
+        type: string
+      url:
+        type: string
+    type: object
+  user.Education:
+    properties:
+      degree:
+        type: string
+      description:
+        type: string
+      end_date:
+        description: e.g. "2024-06" or empty
+        type: string
+      field_of_study:
+        type: string
+      grade:
+        type: string
+      id:
+        description: Unique ID for the entry
+        type: string
+      school_name:
+        type: string
+      start_date:
+        description: e.g. "2020-09"
+        type: string
+    type: object
+  user.Experience:
+    properties:
+      company_name:
+        type: string
+      description:
+        type: string
+      employment_type:
+        type: string
+      end_date:
+        type: string
+      id:
+        description: Unique ID for the entry
+        type: string
+      location:
+        type: string
+      skills:
+        items:
+          type: string
+        type: array
+      start_date:
+        type: string
+      title:
+        type: string
+    type: object
+  user.RegisterRequest:
+    properties:
+      city:
+        type: string
+      education_level:
+        type: string
+      email:
+        type: string
+      experience_detail:
+        type: string
+      gender:
+        type: string
+      is_consultant:
+        type: boolean
+      job_categories:
+        items:
+          type: string
+        type: array
+      mobile:
+        description: Should match token claim normally
+        type: string
+      name:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      work_experience:
+        type: string
+    type: object
+  user.SendOTPRequest:
+    properties:
+      mobile:
+        type: string
+      role:
+        description: '"user" or "recruiter"'
+        type: string
+    type: object
+  user.User:
+    properties:
+      about:
+        type: string
+      additional_name:
+        type: string
+      address:
+        type: string
+      city:
+        type: string
+      company_documents:
+        items:
+          $ref: '#/definitions/user.Document'
+        type: array
+      company_logo:
+        type: string
+      company_name:
+        description: Recruiter / Company specific fields
+        type: string
+      company_website:
+        type: string
+      cover_image:
+        type: string
+      created_at:
+        type: string
+      education:
+        description: New Profile Fields
+        items:
+          $ref: '#/definitions/user.Education'
+        type: array
+      education_level:
+        type: string
+      email:
+        type: string
+      experience:
+        items:
+          $ref: '#/definitions/user.Experience'
+        type: array
+      experience_detail:
+        type: string
+      first_name:
+        type: string
+      gender:
+        type: string
+      gst:
+        type: string
+      headline:
+        type: string
+      id:
+        type: string
+      is_consultant:
+        type: boolean
+      is_registered:
+        type: boolean
+      job_categories:
+        items:
+          type: string
+        type: array
+      last_active_at:
+        type: string
+      last_name:
+        type: string
+      mobile:
+        type: string
+      name:
+        description: Profile fields
+        type: string
+      otp_verified_at:
+        type: string
+      profile_image:
+        type: string
+      pronouns:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      skills:
+        items:
+          type: string
+        type: array
+      updated_at:
+        type: string
+      verification_status:
+        description: e.g. "verified", "pending", "rejected"
+        type: string
+      work_experience:
+        type: string
+    type: object
+  user.VerifyOTPRequest:
+    properties:
+      code:
+        type: string
+      mobile:
+        type: string
+      role:
+        description: '"user" or "recruiter"'
+        type: string
+    type: object
+  user.VerifyOTPResponse:
+    properties:
+      is_registered:
+        type: boolean
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/user.User'
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+  description: This is a sample server using Fiber, Uber Fx, and GORM.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Microservice Demo API
+  version: "1.0"
+paths:
+  /api/admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Get all users (Admin only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/user.User'
+            type: array
+      summary: Get All Users
+      tags:
+      - user
+  /api/auth/otp/send:
+    post:
+      consumes:
+      - application/json
+      description: Send OTP to mobile
+      parameters:
+      - description: Mobile Number
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.SendOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send OTP
+      tags:
+      - auth
+  /api/auth/otp/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify OTP and login/register
+      parameters:
+      - description: Mobile and Code
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.VerifyOTPRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.VerifyOTPResponse'
+      summary: Verify OTP
+      tags:
+      - auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Complete registration
+      parameters:
+      - description: Profile Details
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/user.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.User'
+      security:
+      - BearerAuth: []
+      summary: Register User
+      tags:
+      - auth
+  /api/files/download/{id}:
+    get:
+      description: Download a file by ID or unique filename (public access)
+      parameters:
+      - description: File ID or unique name
+        in: path
+        name: id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: File content
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Download file
+      tags:
+      - files
+  /api/files/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload a file associated with a module and record
+      parameters:
+      - description: File to upload
+        in: formData
+        name: file
+        required: true
+        type: file
+      - description: Module Name
+        in: formData
+        name: module_name
+        required: true
+        type: string
+      - description: Record ID
+        in: formData
+        name: record_id
+        required: true
+        type: string
+      - description: File Description
+        in: formData
+        name: description
+        type: string
+      - description: Shared status
+        in: formData
+        name: is_shared
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/file.File'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Upload file
+      tags:
+      - files
+  /api/settings/{key}:
+    get:
+      description: Get a setting value by key
+      parameters:
+      - description: Setting Key
+        in: path
+        name: key
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get Setting Value
+      tags:
+      - settings
+    post:
+      consumes:
+      - application/json
+      description: Set or update a setting value by key
+      parameters:
+      - description: Setting Key
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: Setting Value
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/setting.SetSettingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Set Setting Value
+      tags:
+      - settings
+  /api/sms/send:
+    post:
+      consumes:
+      - application/json
+      description: Send an SMS using a template
+      parameters:
+      - description: SMS Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/sms.SendSMSRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Send SMS
+      tags:
+      - sms
+  /api/user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get other user profile by ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.User'
+      summary: Get Other User Profile
+      tags:
+      - user
+  /api/user/profile:
+    get:
+      consumes:
+      - application/json
+      description: Get current user profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.User'
+      security:
+      - BearerAuth: []
+      summary: Get User Profile
+      tags:
+      - auth
+swagger: "2.0"
