@@ -13,12 +13,13 @@ RUN go mod download
 # Copy source files
 COPY . ./
 
-# Build script to handle whether context is root or subfolder
-RUN if [ -f "./cmd/main.go" ]; then \
-        go build -o main ./cmd/main.go; \
-    else \
-        cd km-backend && go build -o /app/main ./cmd/main.go; \
+# Ensure km-backend Go packages and swagger docs take precedence over root non-code docs
+RUN if [ -d "./km-backend" ]; then \
+        cp -rf ./km-backend/* /app/; \
     fi
+
+# Build the Go app
+RUN go build -o main ./cmd/main.go
 
 # Start a new stage from scratch
 FROM alpine:latest  
