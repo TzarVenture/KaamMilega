@@ -1,36 +1,36 @@
-# Start from the latest golang base image
-FROM golang:1.25-alpine AS builder
+# Build stage
+FROM golang:1.23-alpine AS builder
 
 WORKDIR /app
 
-# Copy go mod and sum files if present in root or subfolder
-COPY go.mo[d] go.su[m] ./
-COPY km-backend/go.mo[d] km-backend/go.su[m] ./
+# Install git (needed for some go modules)
+RUN apk --no-cache add git
+
+# Copy dependency files first for layer caching
+COPY go.mod go.sum ./
 
 # Download dependencies
 RUN go mod download
 
-# Copy source files
-COPY . ./
+# Copy all source code
+COPY . .
 
-# Ensure km-backend Go packages and swagger docs take precedence over root non-code docs
-RUN if [ -d "./km-backend" ]; then \
-        cp -rf ./km-backend/* /app/; \
-    fi
-
-# Build the Go app
+# Build the binary
 RUN go build -o main ./cmd/main.go
 
-# Start a new stage from scratch
-FROM alpine:latest  
+# Run stage — minimal image
+FROM alpine:latest
+
+# Add CA certs (needed for HTTPS/TLS calls like MongoDB Atlas, AWS SES)
+RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /root/
 
-# Copy the Pre-built binary file from the previous stage
+# Copy binary from builder
 COPY --from=builder /app/main .
 
-# Expose port 8000 to the outside world
+# Expose port
 EXPOSE 8000
 
-# Command to run the executable
+# Run the server
 CMD ["./main"]
