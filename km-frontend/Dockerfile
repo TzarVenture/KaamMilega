@@ -1,41 +1,36 @@
-# Use Node.js 20 based on project requirement
+# Build stage
 FROM node:20-alpine AS builder
 
-# Set working directory for the app
 WORKDIR /app
 
-# Copy package.json and lock files (safe for both root and subfolder context)
-COPY package.jso[n] package-lock.jso[n]* km-frontend/package.jso[n] km-frontend/package-lock.jso[n]* ./
+# Accept build-time API URL (passed from Dokploy build args)
+ARG NEXT_PUBLIC_API_URL=https://api.kaammilega.com
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
-# Install dependencies (production & dev required for build)
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install dependencies
 RUN npm ci
 
-# Copy the rest of the application code
+# Copy all source code
 COPY . .
 
-# Ensure km-frontend files take precedence if built from root
-RUN if [ -d "./km-frontend" ]; then \
-        cp -rf ./km-frontend/* /app/; \
-    fi
-
-# Build the Next.js application
+# Build Next.js app (NEXT_PUBLIC_ vars are baked in here)
 RUN npm run build
 
-# Start a new stage for a smaller final image
+# Runner stage — minimal image
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Set environment to production
 ENV NODE_ENV=production
 
-# Copy necessary files from builder stage
+# Copy built output
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Expose the port the app runs on
 EXPOSE 3000
 
-# Start the application
 CMD ["node", "server.js"]
