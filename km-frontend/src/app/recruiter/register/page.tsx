@@ -44,6 +44,7 @@ export default function RegisterPage() {
         roles: ["recruiter"],
         name: formData.fullName,
         email: formData.email,
+        is_email_verified: (formData as any).isEmailVerified || false,
         is_consultant: formData.isConsultant,
       };
       const data = await api.post("/user/register", payload);

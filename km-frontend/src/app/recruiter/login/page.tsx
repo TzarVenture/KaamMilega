@@ -163,7 +163,7 @@ export default function KaamMilegaAuth() {
 
                                     <form onSubmit={handleSendOtp} className="space-y-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-gray-400 uppercase">Mobile Number</label>
+                                            <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Mobile Number *</label>
                                             <input
                                                 type="tel"
                                                 placeholder="Enter Mobile Number"
@@ -172,7 +172,7 @@ export default function KaamMilegaAuth() {
                                                 autoFocus
                                                 inputMode="numeric"
                                                 ref={mobileInputRef}
-                                                className="w-full px-6 py-4 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-200 transition-all font-bold"
+                                                className="w-full px-6 py-4 bg-white border border-slate-300 text-slate-900 font-extrabold rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all placeholder:text-slate-400"
                                                 required
                                             />
                                         </div>
@@ -204,7 +204,7 @@ export default function KaamMilegaAuth() {
                                 >
                                     <div className="space-y-2">
                                         <h2 className="text-2xl font-black text-gray-900">Please Enter OTP</h2>
-                                        <p className="text-xs font-bold text-gray-400">Sent to {mobile.replace(/(\d{5})(\d{5})/, '$1*****')}</p>
+                                        <p className="text-xs font-bold text-gray-500">Sent to {mobile.replace(/(\d{5})(\d{5})/, '$1*****')}</p>
                                         {error && <p className="text-red-500 text-xs font-bold bg-red-50 p-2 rounded-lg">{error}</p>}
                                     </div>
 
@@ -223,7 +223,7 @@ export default function KaamMilegaAuth() {
                                                     onChange={(e) => handleOtpChange(e.target.value, i)}
                                                     onKeyDown={(e) => handleKeyDown(e, i)}
                                                     onPaste={handlePaste}
-                                                    className="w-full h-14 md:h-16 bg-gray-50 border border-gray-200 rounded-xl md:rounded-2xl text-center font-black text-xl md:text-2xl focus:ring-2 focus:ring-purple-200 transition-all"
+                                                    className="w-full h-14 md:h-16 bg-white border border-slate-300 text-slate-900 text-center font-black text-xl md:text-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all shadow-sm"
                                                 />
                                             ))}
                                         </div>

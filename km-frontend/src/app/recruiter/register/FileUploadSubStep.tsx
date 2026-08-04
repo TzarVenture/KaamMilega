@@ -74,14 +74,14 @@ export default function FileUploadSubStep({ docType, onBack, onComplete }: Props
       </div>
 
       {/* Dynamic Number Field */}
-      <div className="space-y-2 mb-8">
-        <label className="block text-sm font-bold text-gray-700">
-          {docType?.name} Number
+      <div className="space-y-2 mb-8 text-left">
+        <label className="block text-xs font-extrabold text-slate-900 uppercase tracking-wider">
+          {docType?.name || "Document"} Number *
         </label>
         <input
           type="text"
-          placeholder={`Enter ${docType?.name} Number`}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 outline-none transition"
+          placeholder={`Enter ${docType?.name || "Document"} Number`}
+          className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-600 outline-none text-sm font-extrabold text-slate-900 bg-white placeholder:text-slate-400 shadow-sm transition-all"
           value={docNumber}
           onChange={(e) => setDocNumber(e.target.value)}
         />
