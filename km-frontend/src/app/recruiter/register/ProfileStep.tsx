@@ -18,11 +18,11 @@ export default function ProfileStep({ data, updateData, onNext, onBack }: Props)
 
             <div className="space-y-4">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                    <label className="block text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-2">Full Name *</label>
                     <div className="relative">
                         <input
                             type="text"
-                            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-600 outline-none transition text-slate-900 font-semibold bg-white placeholder:text-slate-400"
+                            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition text-slate-900 font-bold bg-white placeholder:text-slate-400 text-sm shadow-sm"
                             placeholder="Your First And Last Name"
                             value={data.fullName || ""}
                             onChange={(e) => updateData({ fullName: e.target.value })}
@@ -31,15 +31,16 @@ export default function ProfileStep({ data, updateData, onNext, onBack }: Props)
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-3">Are A Consultant?*</label>
+                    <label className="block text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-3">Are You A Consultant? *</label>
                     <div className="flex gap-4">
                         {[true, false].map((val) => (
                             <button
                                 key={String(val)}
+                                type="button"
                                 onClick={() => updateData({ isConsultant: val })}
-                                className={`flex-1 py-2 rounded-full border transition font-medium ${data.isConsultant === val
-                                    ? "bg-indigo-600 border-indigo-600 text-white"
-                                    : "bg-white border-gray-300 text-gray-600 hover:border-indigo-400"
+                                className={`flex-1 py-3 rounded-xl border-2 transition-all font-bold text-sm ${data.isConsultant === val
+                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/20"
+                                    : "bg-white border-slate-300 text-slate-800 hover:border-indigo-400 hover:bg-slate-50"
                                     }`}
                             >
                                 {val ? "Yes" : "No"}

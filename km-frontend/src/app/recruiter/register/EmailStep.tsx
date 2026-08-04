@@ -58,21 +58,21 @@ export default function EmailStep({ data, updateData, onNext, onBack }: Props) {
 
       <div className="text-left space-y-4">
         <div>
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+          <label className="block text-xs font-extrabold text-slate-900 uppercase tracking-wider mb-2">
             Official Work Email ID *
           </label>
           <input
             type="email"
-            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-200 focus:border-indigo-600 outline-none text-sm font-semibold text-slate-900"
+            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-600 outline-none text-sm font-extrabold text-slate-900 bg-white placeholder:text-slate-400 shadow-sm"
             placeholder="Ex: hr@company.com"
-            value={data.email}
+            value={data.email || ""}
             onChange={(e) => {
               setError(null);
               updateData({ email: e.target.value });
             }}
           />
-          <p className="text-xs font-medium text-slate-400 mt-2">
-            We will send a 4-digit verification code to this email address via AWS SES.
+          <p className="text-xs font-semibold text-slate-500 mt-2">
+            We will send a 4-digit verification code to this email address.
           </p>
         </div>
       </div>
