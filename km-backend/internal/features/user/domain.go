@@ -41,9 +41,13 @@ type User struct {
 	ProfileImage     string   `bson:"profile_image,omitempty" json:"profile_image,omitempty"`
 	CoverImage       string   `bson:"cover_image,omitempty" json:"cover_image,omitempty"`
 	Gender           string   `bson:"gender,omitempty" json:"gender,omitempty"`
+	DateOfBirth      string   `bson:"date_of_birth,omitempty" json:"date_of_birth,omitempty"`
+	MaritalStatus    string   `bson:"marital_status,omitempty" json:"marital_status,omitempty"`
 	EducationLevel   string   `bson:"education_level,omitempty" json:"education_level,omitempty"`
 	WorkExperience   string   `bson:"work_experience,omitempty" json:"work_experience,omitempty"`
 	City             string   `bson:"city,omitempty" json:"city,omitempty"`
+	State            string   `bson:"state,omitempty" json:"state,omitempty"`
+	Country          string   `bson:"country,omitempty" json:"country,omitempty"`
 	JobCategories    []string `bson:"job_categories,omitempty" json:"job_categories,omitempty"`
 	ExperienceDetail string   `bson:"experience_detail,omitempty" json:"experience_detail,omitempty"`
 	Email            string     `bson:"email,omitempty" json:"email,omitempty"`
