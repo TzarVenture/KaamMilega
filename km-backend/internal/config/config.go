@@ -41,7 +41,7 @@ func LoadConfig() (*Config, error) {
 		FSPath:        getEnv("FS_PATH", "./static/uploads"),
 		FSURL:         getEnv("FS_URL", "/api/files/uploads"),
 		Host:          getEnv("HOST", ""),
-		SMTPHost:      getEnv("SMTP_HOST", "email-smtp.ap-south-1.amazonaws.com"),
+		SMTPHost:      getEnv("SMTP_HOST", "smtp-relay.brevo.com"),
 		SMTPPort:      getEnv("SMTP_PORT", "587"),
 		SMTPUsername:  getEnv("SMTP_USERNAME", getEnv("SMTP_USER", "")),
 		SMTPPassword:  getEnv("SMTP_PASSWORD", getEnv("SMTP_PASS", "")),
