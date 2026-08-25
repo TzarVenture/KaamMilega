@@ -1,15 +1,25 @@
-# Environment & Secrets
+# Environment & Secrets (Comprehensive rule covering .env and un-dotted env variants)
 .env
 .env.*
+.env.local
+.env.development
+.env.production
+env
+env.*
+env.local
+env.production
+*.env
 !.env.example
 
-# Project Documentation & Analysis Files
-CODEBASE_ANALYSIS.md
+# Project Documentation & Internal Info Files (Ignore root docs folder & spec sheets)
 /docs/
 !km-backend/docs/
+CODEBASE_ANALYSIS.md
 *.pdf
+*.docx
+*.xlsx
 
-# IDE & Editor files
+# IDE & OS Files
 .vscode/
 .idea/
 *.swp

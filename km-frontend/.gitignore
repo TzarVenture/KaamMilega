@@ -1,14 +1,18 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# env files (strict ignore for all env variants)
+# Environment & Secrets (Comprehensive rule covering .env and un-dotted env variants)
 .env
+.env.*
 .env.local
 .env.development
 .env.production
 .env*.local
+env
+env.*
+env.local
+env.production
+*.env
 !.env.example
 
-# dependencies
+# Dependencies
 /node_modules
 /.pnp
 .pnp.*
@@ -18,29 +22,30 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
+# Testing
 /coverage
 
-# next.js
+# Next.js
 /.next/
 /out/
 
-# production
+# Production
 /build
 
-# misc
+# Misc & OS
 .DS_Store
+Thumbs.db
 *.pem
 
-# debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# vercel
+# Vercel
 .vercel
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
