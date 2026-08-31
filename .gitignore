@@ -13,6 +13,7 @@ env.production
 
 # Project Documentation & Internal Info Files (Ignore root docs folder & spec sheets)
 /docs/
+/docMain/
 !km-backend/docs/
 CODEBASE_ANALYSIS.md
 *.pdf
