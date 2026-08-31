@@ -144,7 +144,7 @@ export default function Footer() {
 
                 {/* Bottom */}
                 <div className="mt-16 text-center text-gray-600 text-sm">
-                    All Rights Reserved © 2023 Kaam Milega
+                    All Rights Reserved © {new Date().getFullYear()} Kaam Milega
                 </div>
             </div>
         </footer>
