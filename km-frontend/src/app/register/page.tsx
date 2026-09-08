@@ -40,8 +40,18 @@ export default function RegisterPage() {
         const storedToken = localStorage.getItem("token");
         if (!storedToken) {
             router.push("/login");
+            return;
         }
         setToken(storedToken);
+
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+            try {
+                const parsed = JSON.parse(storedUser);
+                if (parsed.name) setFullName(parsed.name);
+                if (parsed.email) setEmail(parsed.email);
+            } catch (e) {}
+        }
     }, [router]);
 
     // Resend OTP countdown timer

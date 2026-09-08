@@ -365,3 +365,76 @@ func (ctrl *UserController) GetExpertRequests(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
+// LoginWithPassword godoc
+// @Summary Login with Email/Mobile and Password
+// @Description Authenticate user via email/mobile and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body PasswordLoginRequest true "Credentials"
+// @Success 200 {object} PasswordLoginResponse
+// @Router /api/auth/login/password [post]
+func (ctrl *UserController) LoginWithPassword(c *fiber.Ctx) error {
+	var req PasswordLoginRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
+	}
+
+	res, err := ctrl.service.LoginWithPassword(c.Context(), req)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// RegisterWithPassword godoc
+// @Summary Register with Password
+// @Description Register a new account with email/mobile and password
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body PasswordRegisterRequest true "Registration Info"
+// @Success 200 {object} PasswordLoginResponse
+// @Router /api/auth/register/password [post]
+func (ctrl *UserController) RegisterWithPassword(c *fiber.Ctx) error {
+	var req PasswordRegisterRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
+	}
+
+	res, err := ctrl.service.RegisterWithPassword(c.Context(), req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(res)
+}
+
+// SetPassword godoc
+// @Summary Set or Change Password
+// @Description Set or update user password
+// @Tags user
+// @Accept json
+// @Produce json
+// @Param request body SetPasswordRequest true "Password details"
+// @Success 200 {object} map[string]string
+// @Router /api/user/password [put]
+func (ctrl *UserController) SetPassword(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var req SetPasswordRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
+	}
+
+	if err := ctrl.service.SetPassword(c.Context(), userID, req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": "Password updated successfully"})
+}
+

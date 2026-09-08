@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,8 +17,10 @@ import (
 type UserRepository interface {
 	FindUserByMobile(ctx context.Context, mobile string) (*User, error)
 	FindUserByEmail(ctx context.Context, email string) (*User, error)
+	FindUserByEmailOrMobile(ctx context.Context, identifier string) (*User, error)
 	CreateUser(ctx context.Context, user *User) (*User, error)
 	UpdateUser(ctx context.Context, user *User) (*User, error)
+	UpdatePassword(ctx context.Context, userID string, passwordHash string) error
 	FindUserByID(ctx context.Context, id string) (*User, error)
 
 	SaveOTP(ctx context.Context, otp *OTP) error
@@ -42,9 +45,38 @@ func NewUserRepository(db *database.MongodbDB) UserRepository {
 	}
 }
 
+func cleanMobile(mobile string) string {
+	cleaned := strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, mobile)
+	if len(cleaned) == 12 && strings.HasPrefix(cleaned, "91") {
+		cleaned = cleaned[2:]
+	}
+	if len(cleaned) == 11 && strings.HasPrefix(cleaned, "0") {
+		cleaned = cleaned[1:]
+	}
+	return cleaned
+}
+
 func (r *UserRepositoryImpl) FindUserByMobile(ctx context.Context, mobile string) (*User, error) {
+	cMobile := cleanMobile(mobile)
+	var filter bson.M
+	if cMobile != "" && cMobile != mobile {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"mobile": mobile},
+				{"mobile": cMobile},
+			},
+		}
+	} else {
+		filter = bson.M{"mobile": mobile}
+	}
+
 	var user User
-	err := r.userColl.FindOne(ctx, bson.M{"mobile": mobile}).Decode(&user)
+	err := r.userColl.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // Not found
@@ -55,11 +87,40 @@ func (r *UserRepositoryImpl) FindUserByMobile(ctx context.Context, mobile string
 }
 
 func (r *UserRepositoryImpl) FindUserByEmail(ctx context.Context, email string) (*User, error) {
-	if email == "" {
+	normEmail := strings.ToLower(strings.TrimSpace(email))
+	if normEmail == "" {
 		return nil, nil
 	}
 	var user User
-	err := r.userColl.FindOne(ctx, bson.M{"email": email}).Decode(&user)
+	err := r.userColl.FindOne(ctx, bson.M{"email": normEmail}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil // Not found
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepositoryImpl) FindUserByEmailOrMobile(ctx context.Context, identifier string) (*User, error) {
+	trimmed := strings.TrimSpace(identifier)
+	if trimmed == "" {
+		return nil, nil
+	}
+	normEmail := strings.ToLower(trimmed)
+	cMobile := cleanMobile(trimmed)
+
+	conditions := []bson.M{
+		{"email": normEmail},
+		{"mobile": trimmed},
+	}
+	if cMobile != "" && cMobile != trimmed {
+		conditions = append(conditions, bson.M{"mobile": cMobile})
+	}
+
+	filter := bson.M{"$or": conditions}
+	var user User
+	err := r.userColl.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil // Not found
@@ -103,6 +164,21 @@ func (r *UserRepositoryImpl) UpdateUser(ctx context.Context, user *User) (*User,
 		return nil, err
 	}
 	return user, nil
+}
+
+func (r *UserRepositoryImpl) UpdatePassword(ctx context.Context, userID string, passwordHash string) error {
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return err
+	}
+	update := bson.M{
+		"$set": bson.M{
+			"password":   passwordHash,
+			"updated_at": time.Now(),
+		},
+	}
+	_, err = r.userColl.UpdateOne(ctx, bson.M{"_id": oid}, update)
+	return err
 }
 
 func (r *UserRepositoryImpl) SaveOTP(ctx context.Context, otp *OTP) error {

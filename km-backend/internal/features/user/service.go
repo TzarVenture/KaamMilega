@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"math/rand"
 	"net/smtp"
+	"regexp"
 	"slices"
+	"strings"
 	"time"
 
 	"km-backend/internal/config"
@@ -16,11 +18,15 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
 	SendOTP(ctx context.Context, mobile string, role string) error
 	VerifyOTP(ctx context.Context, mobile, code string, role string) (*VerifyOTPResponse, error)
+	LoginWithPassword(ctx context.Context, req PasswordLoginRequest) (*PasswordLoginResponse, error)
+	RegisterWithPassword(ctx context.Context, req PasswordRegisterRequest) (*PasswordLoginResponse, error)
+	SetPassword(ctx context.Context, userID string, req SetPasswordRequest) error
 	Register(ctx context.Context, userID string, req RegisterRequest) (*User, error)
 	GetProfile(ctx context.Context, userID string) (*User, error)
 	GenerateToken(user *User) (string, error)
@@ -232,6 +238,8 @@ func (s *UserServiceImpl) GenerateToken(user *User) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":    user.ID.Hex(),
 		"mobile": user.Mobile,
+		"email":  user.Email,
+		"roles":  user.Roles,
 		"exp":    time.Now().Add(time.Hour * 72).Unix(), // 3 days
 	}
 
@@ -649,4 +657,163 @@ func (s *UserServiceImpl) ApproveExpert(ctx context.Context, adminID string, tar
 func (s *UserServiceImpl) GetExpertRequests(ctx context.Context) ([]*User, error) {
 	users, _, err := s.repo.FindUsers(ctx, UserFilter{ExpertApprovalStatus: "pending"})
 	return users, err
+}
+
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+
+func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLoginRequest) (*PasswordLoginResponse, error) {
+	req.Identifier = strings.TrimSpace(req.Identifier)
+	req.Password = strings.TrimSpace(req.Password)
+	if req.Identifier == "" || req.Password == "" {
+		return nil, errors.New("email/mobile and password are required")
+	}
+
+	user, err := s.repo.FindUserByEmailOrMobile(ctx, req.Identifier)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("invalid email/mobile or password")
+	}
+
+	if user.Password == "" {
+		return nil, errors.New("No password has been set for this account. Please use the 'Login with OTP' tab above to sign in.")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return nil, errors.New("invalid email/mobile or password")
+	}
+
+	// Role enforcement
+	if req.Role != "" {
+		hasTargetRole := slices.Contains(user.Roles, req.Role)
+		if !hasTargetRole {
+			if req.Role == RoleRecruiter {
+				return nil, errors.New("This account is registered as a Candidate. Please sign in via the Candidate portal.")
+			} else if req.Role == RoleUser {
+				return nil, errors.New("This account is registered as a Recruiter. Please sign in via the Recruiter portal.")
+			}
+			return nil, errors.New("access denied: unauthorized role for this portal")
+		}
+	}
+
+	// Update last active
+	user.LastActiveAt = time.Now()
+	_, _ = s.repo.UpdateUser(ctx, user)
+
+	token, err := s.GenerateToken(user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate auth token: %w", err)
+	}
+
+	return &PasswordLoginResponse{
+		Token:        token,
+		User:         user,
+		IsRegistered: user.IsRegistered,
+	}, nil
+}
+
+func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req PasswordRegisterRequest) (*PasswordLoginResponse, error) {
+	req.Name = strings.TrimSpace(req.Name)
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
+	req.Mobile = cleanMobile(strings.TrimSpace(req.Mobile))
+	req.Password = strings.TrimSpace(req.Password)
+
+	if req.Password == "" {
+		return nil, errors.New("password is required")
+	}
+	if len(req.Password) < 6 {
+		return nil, errors.New("password must be at least 6 characters long")
+	}
+	if req.Email == "" && req.Mobile == "" {
+		return nil, errors.New("either email or mobile number is required")
+	}
+
+	if req.Email != "" && !emailRegex.MatchString(req.Email) {
+		return nil, errors.New("please enter a valid email address")
+	}
+
+	if req.Mobile != "" {
+		if len(req.Mobile) != 10 {
+			return nil, errors.New("mobile number must be a valid 10-digit number")
+		}
+		existing, err := s.repo.FindUserByMobile(ctx, req.Mobile)
+		if err == nil && existing != nil {
+			return nil, errors.New("an account with this mobile number already exists")
+		}
+	}
+
+	if req.Email != "" {
+		existing, err := s.repo.FindUserByEmail(ctx, req.Email)
+		if err == nil && existing != nil {
+			return nil, errors.New("an account with this email already exists")
+		}
+	}
+
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	role := req.Role
+	if role == "" {
+		role = RoleUser
+	}
+
+	now := time.Now()
+	newUser := &User{
+		Name:         req.Name,
+		Email:        req.Email,
+		Mobile:       req.Mobile,
+		Password:     string(hashedBytes),
+		Roles:        []string{role},
+		IsRegistered: false,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+		LastActiveAt: now,
+	}
+
+	createdUser, err := s.repo.CreateUser(ctx, newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := s.GenerateToken(createdUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate auth token: %w", err)
+	}
+
+	return &PasswordLoginResponse{
+		Token:        token,
+		User:         createdUser,
+		IsRegistered: createdUser.IsRegistered,
+	}, nil
+}
+
+func (s *UserServiceImpl) SetPassword(ctx context.Context, userID string, req SetPasswordRequest) error {
+	if len(req.NewPassword) < 6 {
+		return errors.New("new password must be at least 6 characters long")
+	}
+
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	// If user already has a password and provided current password, verify it
+	if user.Password != "" && req.CurrentPassword != "" {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.CurrentPassword)); err != nil {
+			return errors.New("incorrect current password")
+		}
+	}
+
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash new password: %w", err)
+	}
+
+	return s.repo.UpdatePassword(ctx, userID, string(hashedBytes))
 }

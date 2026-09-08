@@ -22,12 +22,15 @@ func (api *UserApi) Setup(app *fiber.App) {
 	auth.Post("/otp/verify", api.controller.VerifyOTP)
 	auth.Post("/otp/email/send", api.controller.SendEmailOTP)
 	auth.Post("/otp/email/verify", api.controller.VerifyEmailOTP)
+	auth.Post("/login/password", api.controller.LoginWithPassword)
+	auth.Post("/register/password", api.controller.RegisterWithPassword)
 
 	// Protected routes
 	protected := app.Group("/api/user", middleware.AuthMiddleware(api.controller.config.JWTSecret))
 	protected.Get("/profile", api.controller.GetProfile)
 	protected.Get("/search", api.controller.SearchUsers)
 	protected.Post("/register", api.controller.Register)
+	protected.Put("/password", api.controller.SetPassword)
 	protected.Get("/:id", api.controller.GetOtherUserProfile)
 	protected.Patch("/profile", api.controller.UpdateProfile)
 	protected.Post("/education", api.controller.AddEducation)

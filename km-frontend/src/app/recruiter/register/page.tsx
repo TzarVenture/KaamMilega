@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProfileStep from "./ProfileStep";
 import EmailStep from "./EmailStep";
 import OtpStep from "./OtpStep";
@@ -18,6 +18,22 @@ export default function RegisterPage() {
     isConsultant: null as boolean | null,
     email: "",
   });
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        const u = JSON.parse(stored);
+        setFormData((prev) => ({
+          ...prev,
+          fullName: prev.fullName || u.name || "",
+          email: prev.email || u.email || "",
+        }));
+      }
+    } catch (e) {
+      console.error("Error reading cached user", e);
+    }
+  }, []);
 
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => {

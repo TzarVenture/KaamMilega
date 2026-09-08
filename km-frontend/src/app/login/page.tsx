@@ -6,138 +6,409 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import OtpInput from "@/components/ui/OtpInput";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Download } from "lucide-react";
+import { ChevronDown, Download, Phone, Lock, Eye, EyeOff, User, Mail } from "lucide-react";
 
 // --- Types ---
 interface FormCardProps {
+    authMode: "otp" | "password";
+    onAuthModeChange: (mode: "otp" | "password") => void;
+    passwordMode: "signin" | "signup";
+    onPasswordModeChange: (mode: "signin" | "signup") => void;
     step: "login" | "otp";
     mobile: string;
     otp: string[];
+    identifier: string;
+    password: string;
+    showPassword: boolean;
+    name: string;
+    email: string;
+    signupMobile: string;
     loading: boolean;
     error: string | null;
     onMobileChange: (val: string) => void;
     onOtpChange: (val: string[]) => void;
+    onIdentifierChange: (val: string) => void;
+    onPasswordChange: (val: string) => void;
+    onToggleShowPassword: () => void;
+    onNameChange: (val: string) => void;
+    onEmailChange: (val: string) => void;
+    onSignupMobileChange: (val: string) => void;
     onSendOtp: (e: React.FormEvent) => void;
     onVerifyOtp: () => void;
+    onPasswordLogin: (e: React.FormEvent) => void;
+    onPasswordRegister: (e: React.FormEvent) => void;
     onChangeNumber: () => void;
     onGoRecruiter: () => void;
 }
 
-// ─── FormCard is a TOP-LEVEL component (not nested inside LoginPage) ───────────
-// Defining it inside LoginPage would cause remount on every keystroke (losing focus).
+// ─── FormCard Top-Level Component ───────────────────────────────────────────
 const FormCard = ({
-    step, mobile, otp, loading, error,
+    authMode, onAuthModeChange,
+    passwordMode, onPasswordModeChange,
+    step, mobile, otp,
+    identifier, password, showPassword,
+    name, email, signupMobile,
+    loading, error,
     onMobileChange, onOtpChange,
-    onSendOtp, onVerifyOtp, onChangeNumber, onGoRecruiter,
+    onIdentifierChange, onPasswordChange, onToggleShowPassword,
+    onNameChange, onEmailChange, onSignupMobileChange,
+    onSendOtp, onVerifyOtp, onPasswordLogin, onPasswordRegister,
+    onChangeNumber, onGoRecruiter,
 }: FormCardProps) => (
     <div className="w-full md:w-[450px] bg-white rounded-[28px] md:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-xl shadow-purple-100/50 z-10">
+        {/* Auth Mode Switcher Tab */}
+        <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
+            <button
+                type="button"
+                onClick={() => onAuthModeChange("otp")}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                    authMode === "otp"
+                        ? "bg-white text-purple-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                }`}
+            >
+                <Phone size={16} /> Login with OTP
+            </button>
+            <button
+                type="button"
+                onClick={() => onAuthModeChange("password")}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                    authMode === "password"
+                        ? "bg-white text-purple-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                }`}
+            >
+                <Lock size={16} /> Login with Password
+            </button>
+        </div>
+
+        {error && (
+            <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-xl mb-4"
+            >
+                {error}
+            </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
-            {step === "login" ? (
+            {authMode === "otp" ? (
+                step === "login" ? (
+                    <motion.div
+                        key="phone-step"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-5"
+                    >
+                        <h2 className="text-xl sm:text-2xl font-black text-gray-800">Enter Your Number To Continue</h2>
+                        <form onSubmit={onSendOtp} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Mobile Number
+                                </label>
+                                <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    placeholder="Enter Mobile Number To Get OTP"
+                                    value={mobile}
+                                    onChange={(e) => onMobileChange(e.target.value.replace(/\D/g, ""))}
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    maxLength={10}
+                                    required
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={mobile.length < 10 || loading}
+                                className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                    mobile.length >= 10 && !loading
+                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                                }`}
+                            >
+                                {loading ? "Sending OTP…" : "Get OTP"}
+                            </button>
+                            <div className="text-center pt-1">
+                                <p className="text-sm font-bold text-gray-400 mb-2">Are You Hiring?</p>
+                                <button
+                                    type="button"
+                                    onClick={onGoRecruiter}
+                                    className="w-full py-3 border-2 border-purple-500 text-purple-500 rounded-full font-bold hover:bg-purple-50 transition-all text-sm"
+                                >
+                                    Hire Staff
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="otp-step"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-5"
+                    >
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-black text-gray-800">Please Enter OTP</h2>
+                            <p className="text-xs font-bold text-gray-400 mt-1">
+                                OTP sent to {mobile.replace(/(\d{5})(\d{5})/, "$1*****")}
+                            </p>
+                        </div>
+
+                        <OtpInput value={otp} onChange={onOtpChange} />
+
+                        <div className="flex items-center justify-between">
+                            <button type="button" onClick={onSendOtp} className="text-xs font-bold text-purple-600 hover:underline">
+                                Resend OTP
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onChangeNumber}
+                                className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                            >
+                                Change Number
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={onVerifyOtp}
+                            disabled={otp.join("").length < 4 || loading}
+                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                otp.join("").length === 4 && !loading
+                                    ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                    : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                            }`}
+                        >
+                            {loading ? "Verifying…" : "Verify OTP"}
+                        </button>
+                    </motion.div>
+                )
+            ) : passwordMode === "signin" ? (
                 <motion.div
-                    key="phone-step"
+                    key="password-signin-step"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     className="space-y-5"
                 >
-                    {error && (
-                        <div className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-xl">{error}</div>
-                    )}
-                    <h2 className="text-xl sm:text-2xl font-black text-gray-800">Enter Your Number To Continue</h2>
-                    <form onSubmit={onSendOtp} className="space-y-4">
+                    <div>
+                        <h2 className="text-xl sm:text-2xl font-black text-gray-800">Sign In With Password</h2>
+                        <p className="text-xs text-gray-400 mt-1">Welcome back! Sign in to access your jobs</p>
+                    </div>
+
+                    <form onSubmit={onPasswordLogin} className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                Mobile Number
+                                Email Or Mobile Number
                             </label>
-                            <input
-                                type="tel"
-                                inputMode="numeric"
-                                placeholder="Enter Mobile Number To Get OTP"
-                                value={mobile}
-                                onChange={(e) => onMobileChange(e.target.value.replace(/\D/g, ""))}
-                                className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
-                                maxLength={10}
-                                required
-                            />
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="name@example.com or 10-digit mobile"
+                                    value={identifier}
+                                    onChange={(e) => onIdentifierChange(e.target.value)}
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    required
+                                />
+                            </div>
                         </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Password
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter your password"
+                                    value={password}
+                                    onChange={(e) => onPasswordChange(e.target.value)}
+                                    className="w-full px-5 py-4 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={onToggleShowPassword}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                        </div>
+
                         <button
                             type="submit"
-                            disabled={mobile.length < 10 || loading}
-                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${mobile.length >= 10 && !loading
+                            disabled={!identifier || !password || loading}
+                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                identifier && password && !loading
                                     ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                                }`}
+                            }`}
                         >
-                            {loading ? "Sending OTP…" : "Get OTP"}
+                            {loading ? "Signing In…" : "Sign In"}
                         </button>
-                        <div className="text-center pt-1">
-                            <p className="text-sm font-bold text-gray-400 mb-2">Are You Hiring?</p>
-                            <button
-                                type="button"
-                                onClick={onGoRecruiter}
-                                className="w-full py-3 border-2 border-purple-500 text-purple-500 rounded-full font-bold hover:bg-purple-50 transition-all text-sm"
-                            >
-                                Hire Staff
-                            </button>
+
+                        <div className="text-center pt-2 space-y-1.5">
+                            <p className="text-xs text-gray-500">
+                                Don't have an account yet?{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("signup")}
+                                    className="text-purple-600 font-black hover:underline"
+                                >
+                                    Create Account
+                                </button>
+                            </p>
+                            <p className="text-xs text-gray-400">
+                                Or{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => onAuthModeChange("otp")}
+                                    className="text-purple-600 font-bold hover:underline"
+                                >
+                                    Login with OTP
+                                </button>
+                            </p>
+                            <div className="pt-2">
+                                <p className="text-xs font-bold text-gray-400 mb-1.5">Are You Hiring?</p>
+                                <button
+                                    type="button"
+                                    onClick={onGoRecruiter}
+                                    className="w-full py-3 border-2 border-purple-500 text-purple-500 rounded-full font-bold hover:bg-purple-50 transition-all text-xs"
+                                >
+                                    Hire Staff
+                                </button>
+                            </div>
                         </div>
                     </form>
                 </motion.div>
             ) : (
                 <motion.div
-                    key="otp-step"
+                    key="password-signup-step"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
-                    className="space-y-5"
+                    className="space-y-4"
                 >
-                    {error && (
-                        <div className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-xl">{error}</div>
-                    )}
                     <div>
-                        <h2 className="text-xl sm:text-2xl font-black text-gray-800">Please Enter OTP</h2>
-                        <p className="text-xs font-bold text-gray-400 mt-1">
-                            OTP sent to {mobile.replace(/(\d{5})(\d{5})/, "$1*****")}
-                        </p>
+                        <h2 className="text-xl sm:text-2xl font-black text-gray-800">Create New Account</h2>
+                        <p className="text-xs text-gray-400 mt-1">Quick 10-second registration to start getting jobs</p>
                     </div>
 
-                    {/* type="tel" + inputMode="numeric" → number keyboard on mobile */}
-                    <OtpInput value={otp} onChange={onOtpChange} />
+                    <form onSubmit={onPasswordRegister} className="space-y-3.5">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Full Name *
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Enter your full name"
+                                value={name}
+                                onChange={(e) => onNameChange(e.target.value)}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                required
+                            />
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                        <button type="button" className="text-xs font-bold text-purple-600 hover:underline">
-                            Resend OTP
-                        </button>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Email Address *
+                            </label>
+                            <input
+                                type="email"
+                                placeholder="name@example.com"
+                                value={email}
+                                onChange={(e) => onEmailChange(e.target.value)}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Mobile Number (10 Digits)
+                            </label>
+                            <input
+                                type="tel"
+                                inputMode="numeric"
+                                placeholder="e.g. 9876543210"
+                                value={signupMobile}
+                                onChange={(e) => onSignupMobileChange(e.target.value.replace(/\D/g, "").slice(0, 10))}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Set Password * (Min. 6 characters)
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Create a strong password"
+                                    value={password}
+                                    onChange={(e) => onPasswordChange(e.target.value)}
+                                    className="w-full px-5 py-3.5 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    minLength={6}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={onToggleShowPassword}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                        </div>
+
                         <button
-                            type="button"
-                            onClick={onChangeNumber}
-                            className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
-                        >
-                            Change Number
-                        </button>
-                    </div>
-
-                    <button
-                        onClick={onVerifyOtp}
-                        disabled={otp.join("").length < 4 || loading}
-                        className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${otp.join("").length === 4 && !loading
-                                ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
-                                : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                            type="submit"
+                            disabled={!name.trim() || !email.trim() || password.length < 6 || loading}
+                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm mt-2 ${
+                                name.trim() && email.trim() && password.length >= 6 && !loading
+                                    ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                    : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                             }`}
-                    >
-                        {loading ? "Verifying…" : "Verify OTP"}
-                    </button>
+                        >
+                            {loading ? "Creating Account…" : "Create Account & Continue"}
+                        </button>
+
+                        <div className="text-center pt-2">
+                            <p className="text-xs text-gray-500">
+                                Already have an account?{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("signin")}
+                                    className="text-purple-600 font-black hover:underline"
+                                >
+                                    Sign In
+                                </button>
+                            </p>
+                        </div>
+                    </form>
                 </motion.div>
             )}
         </AnimatePresence>
     </div>
 );
 
-// ─── Main page ─────────────────────────────────────────────────────────────────
+// ─── Main Page ───────────────────────────────────────────────────────────────
 export default function LoginPage() {
     const router = useRouter();
+    const [authMode, setAuthMode] = useState<"otp" | "password">("otp");
+    const [passwordMode, setPasswordMode] = useState<"signin" | "signup">("signin");
     const [step, setStep] = useState<"login" | "otp">("login");
     const [mobile, setMobile] = useState("");
     const [otp, setOtp] = useState(["", "", "", ""]);
+    const [identifier, setIdentifier] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [signupMobile, setSignupMobile] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -148,14 +419,17 @@ export default function LoginPage() {
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (mobile.length !== 10) { setError("Please enter a valid 10-digit mobile number"); return; }
+        if (mobile.length !== 10) {
+            setError("Please enter a valid 10-digit mobile number");
+            return;
+        }
         setError(null);
         setLoading(true);
         try {
             await api.post("/auth/otp/send", { mobile, role: "user" });
             setStep("otp");
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Failed to send OTP");
         } finally {
             setLoading(false);
         }
@@ -163,7 +437,10 @@ export default function LoginPage() {
 
     const handleVerifyOtp = async () => {
         const otpString = otp.join("");
-        if (otpString.length !== 4) { setError("Please enter the complete 4-digit OTP"); return; }
+        if (otpString.length !== 4) {
+            setError("Please enter the complete 4-digit OTP");
+            return;
+        }
         setError(null);
         setLoading(true);
         try {
@@ -172,7 +449,81 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(data.user));
             router.push(data.is_registered ? "/" : "/register");
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Invalid OTP");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePasswordLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanIdentifier = identifier.trim();
+        const cleanPassword = password.trim();
+        if (!cleanIdentifier || !cleanPassword) {
+            setError("Please enter your email/mobile and password");
+            return;
+        }
+        setError(null);
+        setLoading(true);
+        try {
+            const data: any = await api.post("/auth/login/password", {
+                identifier: cleanIdentifier,
+                password: cleanPassword,
+                role: "user",
+            });
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            router.push(data.is_registered ? "/" : "/register");
+        } catch (err: any) {
+            setError(err.message || "Invalid email/mobile or password");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePasswordRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanName = name.trim();
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanPassword = password.trim();
+        const cleanMobile = signupMobile.replace(/\D/g, "").slice(0, 10);
+
+        if (!cleanName) {
+            setError("Please enter your full name");
+            return;
+        }
+        if (!cleanEmail) {
+            setError("Please enter your email address");
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            setError("Please enter a valid email address");
+            return;
+        }
+        if (cleanMobile && cleanMobile.length !== 10) {
+            setError("Mobile number must be exactly 10 digits");
+            return;
+        }
+        if (cleanPassword.length < 6) {
+            setError("Password must be at least 6 characters long");
+            return;
+        }
+        setError(null);
+        setLoading(true);
+        try {
+            const data: any = await api.post("/auth/register/password", {
+                name: cleanName,
+                email: cleanEmail,
+                mobile: cleanMobile,
+                password: cleanPassword,
+                role: "user",
+            });
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            // Direct to profile completion wizard
+            router.push("/register");
+        } catch (err: any) {
+            setError(err.message || "Failed to create account. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -185,18 +536,63 @@ export default function LoginPage() {
     };
 
     const sharedProps: FormCardProps = {
-        step, mobile, otp, loading, error,
-        onMobileChange: setMobile,
+        authMode,
+        onAuthModeChange: (mode) => {
+            setError(null);
+            setAuthMode(mode);
+        },
+        passwordMode,
+        onPasswordModeChange: (mode) => {
+            setError(null);
+            setPasswordMode(mode);
+        },
+        step,
+        mobile,
+        otp,
+        identifier,
+        password,
+        showPassword,
+        name,
+        email,
+        signupMobile,
+        loading,
+        error,
+        onMobileChange: (val) => {
+            setError(null);
+            setMobile(val);
+        },
         onOtpChange: handleOtpChange,
+        onIdentifierChange: (val) => {
+            setError(null);
+            setIdentifier(val);
+        },
+        onPasswordChange: (val) => {
+            setError(null);
+            setPassword(val);
+        },
+        onToggleShowPassword: () => setShowPassword(!showPassword),
+        onNameChange: (val) => {
+            setError(null);
+            setName(val);
+        },
+        onEmailChange: (val) => {
+            setError(null);
+            setEmail(val);
+        },
+        onSignupMobileChange: (val) => {
+            setError(null);
+            setSignupMobile(val);
+        },
         onSendOtp: handleSendOtp,
         onVerifyOtp: handleVerifyOtp,
+        onPasswordLogin: handlePasswordLogin,
+        onPasswordRegister: handlePasswordRegister,
         onChangeNumber: handleChangeNumber,
         onGoRecruiter: () => router.push("/recruiter/login"),
     };
 
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
-
             {/* Header */}
             <header className="flex justify-between items-center px-4 sm:px-6 md:px-12 py-3 md:py-4 border-b border-gray-100 md:border-none shrink-0">
                 <div className="flex items-center gap-2">
@@ -219,7 +615,7 @@ export default function LoginPage() {
                 </div>
             </header>
 
-            {/* ── Mobile layout: form fills screen ── */}
+            {/* Mobile Layout */}
             <div className="flex md:hidden flex-1 flex-col bg-[#fdf4ff] px-4 pt-8 pb-10">
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-black leading-tight text-gray-800">
@@ -238,7 +634,7 @@ export default function LoginPage() {
                 </p>
             </div>
 
-            {/* ── Desktop layout: split card ── */}
+            {/* Desktop Layout */}
             <main className="hidden md:flex flex-1 flex-col">
                 <div className="max-w-6xl mx-auto w-full mt-10 px-6 pb-12">
                     <div className="bg-[#fdf4ff] rounded-[40px] p-10 lg:p-16 flex flex-row items-center justify-between gap-12 min-h-[500px] relative overflow-hidden">

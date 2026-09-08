@@ -23,6 +23,7 @@ type Document struct {
 type User struct {
 	ID            primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	Mobile        string             `bson:"mobile" json:"mobile"`
+	Password      string             `bson:"password,omitempty" json:"-"`
 	Roles         []string           `bson:"roles" json:"roles"`
 	IsRegistered  bool               `bson:"is_registered" json:"is_registered"`
 	OTPVerifiedAt *time.Time         `bson:"otp_verified_at,omitempty" json:"otp_verified_at"`
@@ -180,4 +181,29 @@ type ApplyExpertRequest struct {
 
 type ApproveExpertRequest struct {
 	Status string `json:"status"` // "approved" or "rejected"
+}
+
+type PasswordLoginRequest struct {
+	Identifier string `json:"identifier"` // Email or Mobile
+	Password   string `json:"password"`
+	Role       string `json:"role,omitempty"`
+}
+
+type PasswordRegisterRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Mobile   string `json:"mobile"`
+	Password string `json:"password"`
+	Role     string `json:"role,omitempty"`
+}
+
+type SetPasswordRequest struct {
+	CurrentPassword string `json:"current_password,omitempty"`
+	NewPassword     string `json:"new_password"`
+}
+
+type PasswordLoginResponse struct {
+	Token        string `json:"token"`
+	User         *User  `json:"user"`
+	IsRegistered bool   `json:"is_registered"`
 }
