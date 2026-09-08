@@ -662,18 +662,22 @@ func (s *UserServiceImpl) GetExpertRequests(ctx context.Context) ([]*User, error
 var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
 
 func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLoginRequest) (*PasswordLoginResponse, error) {
-	req.Identifier = strings.TrimSpace(req.Identifier)
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	if email == "" && req.Identifier != "" {
+		email = strings.ToLower(strings.TrimSpace(req.Identifier))
+	}
 	req.Password = strings.TrimSpace(req.Password)
-	if req.Identifier == "" || req.Password == "" {
-		return nil, errors.New("email/mobile and password are required")
+
+	if email == "" || req.Password == "" {
+		return nil, errors.New("email and password are required")
 	}
 
-	user, err := s.repo.FindUserByEmailOrMobile(ctx, req.Identifier)
+	user, err := s.repo.FindUserByEmail(ctx, email)
 	if err != nil {
 		return nil, err
 	}
 	if user == nil {
-		return nil, errors.New("invalid email/mobile or password")
+		return nil, errors.New("invalid email or password")
 	}
 
 	if user.Password == "" {
@@ -681,7 +685,7 @@ func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLog
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, errors.New("invalid email/mobile or password")
+		return nil, errors.New("invalid email or password")
 	}
 
 	// Role enforcement
@@ -716,38 +720,27 @@ func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLog
 func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req PasswordRegisterRequest) (*PasswordLoginResponse, error) {
 	req.Name = strings.TrimSpace(req.Name)
 	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
-	req.Mobile = cleanMobile(strings.TrimSpace(req.Mobile))
 	req.Password = strings.TrimSpace(req.Password)
 
+	if req.Name == "" {
+		return nil, errors.New("full name is required")
+	}
+	if req.Email == "" {
+		return nil, errors.New("email address is required")
+	}
+	if !emailRegex.MatchString(req.Email) {
+		return nil, errors.New("please enter a valid email address")
+	}
 	if req.Password == "" {
 		return nil, errors.New("password is required")
 	}
 	if len(req.Password) < 6 {
 		return nil, errors.New("password must be at least 6 characters long")
 	}
-	if req.Email == "" && req.Mobile == "" {
-		return nil, errors.New("either email or mobile number is required")
-	}
 
-	if req.Email != "" && !emailRegex.MatchString(req.Email) {
-		return nil, errors.New("please enter a valid email address")
-	}
-
-	if req.Mobile != "" {
-		if len(req.Mobile) != 10 {
-			return nil, errors.New("mobile number must be a valid 10-digit number")
-		}
-		existing, err := s.repo.FindUserByMobile(ctx, req.Mobile)
-		if err == nil && existing != nil {
-			return nil, errors.New("an account with this mobile number already exists")
-		}
-	}
-
-	if req.Email != "" {
-		existing, err := s.repo.FindUserByEmail(ctx, req.Email)
-		if err == nil && existing != nil {
-			return nil, errors.New("an account with this email already exists")
-		}
+	existing, err := s.repo.FindUserByEmail(ctx, req.Email)
+	if err == nil && existing != nil {
+		return nil, errors.New("an account with this email already exists")
 	}
 
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -764,7 +757,6 @@ func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req Password
 	newUser := &User{
 		Name:         req.Name,
 		Email:        req.Email,
-		Mobile:       req.Mobile,
 		Password:     string(hashedBytes),
 		Roles:        []string{role},
 		IsRegistered: false,

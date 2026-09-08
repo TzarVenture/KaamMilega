@@ -184,7 +184,8 @@ type ApproveExpertRequest struct {
 }
 
 type PasswordLoginRequest struct {
-	Identifier string `json:"identifier"` // Email or Mobile
+	Email      string `json:"email"`
+	Identifier string `json:"identifier,omitempty"` // Fallback for backwards compatibility
 	Password   string `json:"password"`
 	Role       string `json:"role,omitempty"`
 }
@@ -192,7 +193,6 @@ type PasswordLoginRequest struct {
 type PasswordRegisterRequest struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
-	Mobile   string `json:"mobile"`
 	Password string `json:"password"`
 	Role     string `json:"role,omitempty"`
 }

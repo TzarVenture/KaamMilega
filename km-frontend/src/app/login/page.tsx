@@ -22,7 +22,6 @@ interface FormCardProps {
     showPassword: boolean;
     name: string;
     email: string;
-    signupMobile: string;
     loading: boolean;
     error: string | null;
     onMobileChange: (val: string) => void;
@@ -32,7 +31,6 @@ interface FormCardProps {
     onToggleShowPassword: () => void;
     onNameChange: (val: string) => void;
     onEmailChange: (val: string) => void;
-    onSignupMobileChange: (val: string) => void;
     onSendOtp: (e: React.FormEvent) => void;
     onVerifyOtp: () => void;
     onPasswordLogin: (e: React.FormEvent) => void;
@@ -47,11 +45,11 @@ const FormCard = ({
     passwordMode, onPasswordModeChange,
     step, mobile, otp,
     identifier, password, showPassword,
-    name, email, signupMobile,
+    name, email,
     loading, error,
     onMobileChange, onOtpChange,
     onIdentifierChange, onPasswordChange, onToggleShowPassword,
-    onNameChange, onEmailChange, onSignupMobileChange,
+    onNameChange, onEmailChange,
     onSendOtp, onVerifyOtp, onPasswordLogin, onPasswordRegister,
     onChangeNumber, onGoRecruiter,
 }: FormCardProps) => (
@@ -201,12 +199,12 @@ const FormCard = ({
                     <form onSubmit={onPasswordLogin} className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                Email Or Mobile Number
+                                Email Address
                             </label>
                             <div className="relative">
                                 <input
-                                    type="text"
-                                    placeholder="name@example.com or 10-digit mobile"
+                                    type="email"
+                                    placeholder="name@example.com"
                                     value={identifier}
                                     onChange={(e) => onIdentifierChange(e.target.value)}
                                     className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
@@ -328,20 +326,6 @@ const FormCard = ({
 
                         <div className="space-y-1.5">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                Mobile Number (10 Digits)
-                            </label>
-                            <input
-                                type="tel"
-                                inputMode="numeric"
-                                placeholder="e.g. 9876543210"
-                                value={signupMobile}
-                                onChange={(e) => onSignupMobileChange(e.target.value.replace(/\D/g, "").slice(0, 10))}
-                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                                 Set Password * (Min. 6 characters)
                             </label>
                             <div className="relative">
@@ -408,7 +392,6 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
-    const [signupMobile, setSignupMobile] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -457,17 +440,17 @@ export default function LoginPage() {
 
     const handlePasswordLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        const cleanIdentifier = identifier.trim();
+        const cleanEmail = identifier.trim().toLowerCase();
         const cleanPassword = password.trim();
-        if (!cleanIdentifier || !cleanPassword) {
-            setError("Please enter your email/mobile and password");
+        if (!cleanEmail || !cleanPassword) {
+            setError("Please enter your email and password");
             return;
         }
         setError(null);
         setLoading(true);
         try {
             const data: any = await api.post("/auth/login/password", {
-                identifier: cleanIdentifier,
+                email: cleanEmail,
                 password: cleanPassword,
                 role: "user",
             });
@@ -475,7 +458,7 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(data.user));
             router.push(data.is_registered ? "/" : "/register");
         } catch (err: any) {
-            setError(err.message || "Invalid email/mobile or password");
+            setError(err.message || "Invalid email or password");
         } finally {
             setLoading(false);
         }
@@ -486,7 +469,6 @@ export default function LoginPage() {
         const cleanName = name.trim();
         const cleanEmail = email.trim().toLowerCase();
         const cleanPassword = password.trim();
-        const cleanMobile = signupMobile.replace(/\D/g, "").slice(0, 10);
 
         if (!cleanName) {
             setError("Please enter your full name");
@@ -500,10 +482,6 @@ export default function LoginPage() {
             setError("Please enter a valid email address");
             return;
         }
-        if (cleanMobile && cleanMobile.length !== 10) {
-            setError("Mobile number must be exactly 10 digits");
-            return;
-        }
         if (cleanPassword.length < 6) {
             setError("Password must be at least 6 characters long");
             return;
@@ -514,7 +492,6 @@ export default function LoginPage() {
             const data: any = await api.post("/auth/register/password", {
                 name: cleanName,
                 email: cleanEmail,
-                mobile: cleanMobile,
                 password: cleanPassword,
                 role: "user",
             });
@@ -554,7 +531,6 @@ export default function LoginPage() {
         showPassword,
         name,
         email,
-        signupMobile,
         loading,
         error,
         onMobileChange: (val) => {
@@ -578,10 +554,6 @@ export default function LoginPage() {
         onEmailChange: (val) => {
             setError(null);
             setEmail(val);
-        },
-        onSignupMobileChange: (val) => {
-            setError(null);
-            setSignupMobile(val);
         },
         onSendOtp: handleSendOtp,
         onVerifyOtp: handleVerifyOtp,

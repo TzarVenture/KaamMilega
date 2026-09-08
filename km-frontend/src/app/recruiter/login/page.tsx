@@ -19,7 +19,6 @@ export default function KaamMilegaAuth() {
     const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
-    const [signupMobile, setSignupMobile] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -120,10 +119,10 @@ export default function KaamMilegaAuth() {
 
     const handlePasswordLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        const cleanIdentifier = identifier.trim();
+        const cleanEmail = identifier.trim().toLowerCase();
         const cleanPassword = password.trim();
-        if (!cleanIdentifier || !cleanPassword) {
-            setError("Please enter your company email/mobile and password");
+        if (!cleanEmail || !cleanPassword) {
+            setError("Please enter your company email and password");
             return;
         }
         setError(null);
@@ -131,7 +130,7 @@ export default function KaamMilegaAuth() {
 
         try {
             const data: any = await api.post("/auth/login/password", {
-                identifier: cleanIdentifier,
+                email: cleanEmail,
                 password: cleanPassword,
                 role: "recruiter",
             });
@@ -145,7 +144,7 @@ export default function KaamMilegaAuth() {
                 router.push("/recruiter");
             }
         } catch (err: any) {
-            setError(err.message || "Invalid credentials");
+            setError(err.message || "Invalid company email or password");
         } finally {
             setLoading(false);
         }
@@ -156,7 +155,6 @@ export default function KaamMilegaAuth() {
         const cleanName = name.trim();
         const cleanEmail = email.trim().toLowerCase();
         const cleanPassword = password.trim();
-        const cleanMobile = signupMobile.replace(/\D/g, "").slice(0, 10);
 
         if (!cleanName) {
             setError("Please enter the contact person's name");
@@ -170,10 +168,6 @@ export default function KaamMilegaAuth() {
             setError("Please enter a valid company email address");
             return;
         }
-        if (cleanMobile && cleanMobile.length !== 10) {
-            setError("Mobile number must be exactly 10 digits");
-            return;
-        }
         if (cleanPassword.length < 6) {
             setError("Password must be at least 6 characters long");
             return;
@@ -185,7 +179,6 @@ export default function KaamMilegaAuth() {
             const data: any = await api.post("/auth/register/password", {
                 name: cleanName,
                 email: cleanEmail,
-                mobile: cleanMobile,
                 password: cleanPassword,
                 role: "recruiter",
             });
@@ -373,10 +366,10 @@ export default function KaamMilegaAuth() {
 
                                     <form onSubmit={handlePasswordLogin} className="space-y-4">
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Company Email or Mobile *</label>
+                                            <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Company Email Address *</label>
                                             <input
-                                                type="text"
-                                                placeholder="company@example.com or mobile"
+                                                type="email"
+                                                placeholder="company@example.com"
                                                 value={identifier}
                                                 onChange={(e) => { setError(null); setIdentifier(e.target.value); }}
                                                 className="w-full px-5 py-4 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
@@ -477,18 +470,6 @@ export default function KaamMilegaAuth() {
                                                 onChange={(e) => { setError(null); setEmail(e.target.value); }}
                                                 className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
                                                 required
-                                            />
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Mobile Number (10 Digits)</label>
-                                            <input
-                                                type="tel"
-                                                inputMode="numeric"
-                                                placeholder="e.g. 9876543210"
-                                                value={signupMobile}
-                                                onChange={(e) => { setError(null); setSignupMobile(e.target.value.replace(/\D/g, "").slice(0, 10)); }}
-                                                className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
                                             />
                                         </div>
 
