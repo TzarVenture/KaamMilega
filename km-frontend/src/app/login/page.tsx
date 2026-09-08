@@ -12,8 +12,9 @@ import { ChevronDown, Download, Phone, Lock, Eye, EyeOff, User, Mail } from "luc
 interface FormCardProps {
     authMode: "otp" | "password";
     onAuthModeChange: (mode: "otp" | "password") => void;
-    passwordMode: "signin" | "signup";
-    onPasswordModeChange: (mode: "signin" | "signup") => void;
+    passwordMode: "signin" | "signup" | "forgot";
+    onPasswordModeChange: (mode: "signin" | "signup" | "forgot") => void;
+    forgotStep: "request" | "reset";
     step: "login" | "otp";
     mobile: string;
     otp: string[];
@@ -22,8 +23,11 @@ interface FormCardProps {
     showPassword: boolean;
     name: string;
     email: string;
+    forgotCode: string;
+    forgotNewPassword: string;
     loading: boolean;
     error: string | null;
+    successMessage: string | null;
     onMobileChange: (val: string) => void;
     onOtpChange: (val: string[]) => void;
     onIdentifierChange: (val: string) => void;
@@ -31,10 +35,14 @@ interface FormCardProps {
     onToggleShowPassword: () => void;
     onNameChange: (val: string) => void;
     onEmailChange: (val: string) => void;
+    onForgotCodeChange: (val: string) => void;
+    onForgotNewPasswordChange: (val: string) => void;
     onSendOtp: (e: React.FormEvent) => void;
     onVerifyOtp: () => void;
     onPasswordLogin: (e: React.FormEvent) => void;
     onPasswordRegister: (e: React.FormEvent) => void;
+    onSendForgotCode: (e: React.FormEvent) => void;
+    onResetPassword: (e: React.FormEvent) => void;
     onChangeNumber: () => void;
     onGoRecruiter: () => void;
 }
@@ -43,14 +51,16 @@ interface FormCardProps {
 const FormCard = ({
     authMode, onAuthModeChange,
     passwordMode, onPasswordModeChange,
-    step, mobile, otp,
+    forgotStep, step, mobile, otp,
     identifier, password, showPassword,
-    name, email,
-    loading, error,
+    name, email, forgotCode, forgotNewPassword,
+    loading, error, successMessage,
     onMobileChange, onOtpChange,
     onIdentifierChange, onPasswordChange, onToggleShowPassword,
     onNameChange, onEmailChange,
+    onForgotCodeChange, onForgotNewPasswordChange,
     onSendOtp, onVerifyOtp, onPasswordLogin, onPasswordRegister,
+    onSendForgotCode, onResetPassword,
     onChangeNumber, onGoRecruiter,
 }: FormCardProps) => (
     <div className="w-full md:w-[450px] bg-white rounded-[28px] md:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-xl shadow-purple-100/50 z-10">
@@ -87,6 +97,16 @@ const FormCard = ({
                 className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-xl mb-4"
             >
                 {error}
+            </motion.div>
+        )}
+
+        {successMessage && (
+            <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-emerald-700 text-sm font-medium bg-emerald-50 border border-emerald-200 p-3 rounded-xl mb-4"
+            >
+                {successMessage}
             </motion.div>
         )}
 
@@ -214,9 +234,18 @@ const FormCard = ({
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                Password
-                            </label>
+                            <div className="flex justify-between items-center">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Password
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("forgot")}
+                                    className="text-xs font-bold text-purple-600 hover:underline"
+                                >
+                                    Forgot Password?
+                                </button>
+                            </div>
                             <div className="relative">
                                 <input
                                     type={showPassword ? "text" : "password"}
@@ -282,7 +311,7 @@ const FormCard = ({
                         </div>
                     </form>
                 </motion.div>
-            ) : (
+            ) : passwordMode === "signup" ? (
                 <motion.div
                     key="password-signup-step"
                     initial={{ opacity: 0, x: 20 }}
@@ -374,6 +403,147 @@ const FormCard = ({
                         </div>
                     </form>
                 </motion.div>
+            ) : (
+                forgotStep === "request" ? (
+                    <motion.div
+                        key="password-forgot-request-step"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-5"
+                    >
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-black text-gray-800">Reset Password</h2>
+                            <p className="text-xs text-gray-400 mt-1">Enter your registered email to receive a 4-digit reset code</p>
+                        </div>
+
+                        <form onSubmit={onSendForgotCode} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Email Address
+                                </label>
+                                <input
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    value={identifier}
+                                    onChange={(e) => onIdentifierChange(e.target.value)}
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={!identifier || loading}
+                                className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                    identifier && !loading
+                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                                }`}
+                            >
+                                {loading ? "Sending Reset Code…" : "Send Reset Code"}
+                            </button>
+
+                            <div className="text-center pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("signin")}
+                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                >
+                                    ← Back to Sign In
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="password-forgot-reset-step"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-5"
+                    >
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-black text-gray-800">Set New Password</h2>
+                            <p className="text-xs text-gray-400 mt-1">
+                                Enter the 4-digit code sent to <span className="font-bold text-gray-700">{identifier}</span>
+                            </p>
+                        </div>
+
+                        <form onSubmit={onResetPassword} className="space-y-4">
+                            <div className="space-y-1.5">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                        4-Digit Code
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={onSendForgotCode}
+                                        className="text-xs font-bold text-purple-600 hover:underline"
+                                    >
+                                        Resend Code
+                                    </button>
+                                </div>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={4}
+                                    placeholder="Enter 4-digit code"
+                                    value={forgotCode}
+                                    onChange={(e) => onForgotCodeChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm tracking-widest text-center font-black text-lg"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    New Password * (Min. 6 characters)
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter your new password"
+                                        value={forgotNewPassword}
+                                        onChange={(e) => onForgotNewPasswordChange(e.target.value)}
+                                        className="w-full px-5 py-3.5 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                        minLength={6}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={onToggleShowPassword}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={forgotCode.length !== 4 || forgotNewPassword.length < 6 || loading}
+                                className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm mt-2 ${
+                                    forgotCode.length === 4 && forgotNewPassword.length >= 6 && !loading
+                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                                }`}
+                            >
+                                {loading ? "Resetting Password…" : "Reset Password"}
+                            </button>
+
+                            <div className="text-center pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("signin")}
+                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                >
+                                    ← Back to Sign In
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                )
             )}
         </AnimatePresence>
     </div>
@@ -383,7 +553,8 @@ const FormCard = ({
 export default function LoginPage() {
     const router = useRouter();
     const [authMode, setAuthMode] = useState<"otp" | "password">("otp");
-    const [passwordMode, setPasswordMode] = useState<"signin" | "signup">("signin");
+    const [passwordMode, setPasswordMode] = useState<"signin" | "signup" | "forgot">("signin");
+    const [forgotStep, setForgotStep] = useState<"request" | "reset">("request");
     const [step, setStep] = useState<"login" | "otp">("login");
     const [mobile, setMobile] = useState("");
     const [otp, setOtp] = useState(["", "", "", ""]);
@@ -392,11 +563,15 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
+    const [forgotCode, setForgotCode] = useState("");
+    const [forgotNewPassword, setForgotNewPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const handleOtpChange = (newOtp: string[]) => {
         setError(null);
+        setSuccessMessage(null);
         setOtp(newOtp);
     };
 
@@ -407,6 +582,7 @@ export default function LoginPage() {
             return;
         }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
         try {
             await api.post("/auth/otp/send", { mobile, role: "user" });
@@ -425,6 +601,7 @@ export default function LoginPage() {
             return;
         }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
         try {
             const data: any = await api.post("/auth/otp/verify", { mobile, code: otpString, role: "user" });
@@ -447,6 +624,7 @@ export default function LoginPage() {
             return;
         }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
         try {
             const data: any = await api.post("/auth/login/password", {
@@ -487,6 +665,7 @@ export default function LoginPage() {
             return;
         }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
         try {
             const data: any = await api.post("/auth/register/password", {
@@ -506,23 +685,102 @@ export default function LoginPage() {
         }
     };
 
+    const handleSendForgotCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanEmail = identifier.trim().toLowerCase();
+        if (!cleanEmail) {
+            setError("Please enter your email address");
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            setError("Please enter a valid email address");
+            return;
+        }
+        setError(null);
+        setSuccessMessage(null);
+        setLoading(true);
+        try {
+            await api.post("/auth/password/forgot", {
+                email: cleanEmail,
+                role: "user",
+            });
+            setForgotStep("reset");
+            setSuccessMessage("A 4-digit reset code has been sent to your email.");
+        } catch (err: any) {
+            setError(err.message || "Failed to send reset code. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanEmail = identifier.trim().toLowerCase();
+        const cleanCode = forgotCode.trim();
+        const cleanPassword = forgotNewPassword.trim();
+
+        if (!cleanEmail) {
+            setError("Email is missing. Please start over.");
+            return;
+        }
+        if (cleanCode.length !== 4) {
+            setError("Please enter the complete 4-digit verification code");
+            return;
+        }
+        if (cleanPassword.length < 6) {
+            setError("New password must be at least 6 characters long");
+            return;
+        }
+
+        setError(null);
+        setSuccessMessage(null);
+        setLoading(true);
+        try {
+            await api.post("/auth/password/reset", {
+                email: cleanEmail,
+                code: cleanCode,
+                new_password: cleanPassword,
+                role: "user",
+            });
+            setPasswordMode("signin");
+            setForgotStep("request");
+            setForgotCode("");
+            setForgotNewPassword("");
+            setPassword("");
+            setSuccessMessage("Password reset successfully! Please sign in with your new password.");
+        } catch (err: any) {
+            setError(err.message || "Failed to reset password. Please check the code and try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleChangeNumber = () => {
         setStep("login");
         setOtp(["", "", "", ""]);
         setError(null);
+        setSuccessMessage(null);
     };
 
     const sharedProps: FormCardProps = {
         authMode,
         onAuthModeChange: (mode) => {
             setError(null);
+            setSuccessMessage(null);
             setAuthMode(mode);
         },
         passwordMode,
         onPasswordModeChange: (mode) => {
             setError(null);
+            setSuccessMessage(null);
             setPasswordMode(mode);
+            if (mode === "signin") {
+                setForgotStep("request");
+                setForgotCode("");
+                setForgotNewPassword("");
+            }
         },
+        forgotStep,
         step,
         mobile,
         otp,
@@ -531,34 +789,54 @@ export default function LoginPage() {
         showPassword,
         name,
         email,
+        forgotCode,
+        forgotNewPassword,
         loading,
         error,
+        successMessage,
         onMobileChange: (val) => {
             setError(null);
+            setSuccessMessage(null);
             setMobile(val);
         },
         onOtpChange: handleOtpChange,
         onIdentifierChange: (val) => {
             setError(null);
+            setSuccessMessage(null);
             setIdentifier(val);
         },
         onPasswordChange: (val) => {
             setError(null);
+            setSuccessMessage(null);
             setPassword(val);
         },
         onToggleShowPassword: () => setShowPassword(!showPassword),
         onNameChange: (val) => {
             setError(null);
+            setSuccessMessage(null);
             setName(val);
         },
         onEmailChange: (val) => {
             setError(null);
+            setSuccessMessage(null);
             setEmail(val);
+        },
+        onForgotCodeChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setForgotCode(val);
+        },
+        onForgotNewPasswordChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setForgotNewPassword(val);
         },
         onSendOtp: handleSendOtp,
         onVerifyOtp: handleVerifyOtp,
         onPasswordLogin: handlePasswordLogin,
         onPasswordRegister: handlePasswordRegister,
+        onSendForgotCode: handleSendForgotCode,
+        onResetPassword: handleResetPassword,
         onChangeNumber: handleChangeNumber,
         onGoRecruiter: () => router.push("/recruiter/login"),
     };

@@ -24,6 +24,8 @@ func (api *UserApi) Setup(app *fiber.App) {
 	auth.Post("/otp/email/verify", api.controller.VerifyEmailOTP)
 	auth.Post("/login/password", api.controller.LoginWithPassword)
 	auth.Post("/register/password", api.controller.RegisterWithPassword)
+	auth.Post("/password/forgot", api.controller.ForgotPassword)
+	auth.Post("/password/reset", api.controller.ResetPassword)
 
 	// Protected routes
 	protected := app.Group("/api/user", middleware.AuthMiddleware(api.controller.config.JWTSecret))

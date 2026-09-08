@@ -10,7 +10,8 @@ import api from "@/lib/axios";
 export default function KaamMilegaAuth() {
     const router = useRouter();
     const [authMode, setAuthMode] = useState<"otp" | "password">("otp");
-    const [passwordMode, setPasswordMode] = useState<"signin" | "signup">("signin");
+    const [passwordMode, setPasswordMode] = useState<"signin" | "signup" | "forgot">("signin");
+    const [forgotStep, setForgotStep] = useState<"request" | "reset">("request");
     const [step, setStep] = useState<"login" | "otp">("login");
     const [mobile, setMobile] = useState("");
     const [otp, setOtp] = useState(["", "", "", ""]);
@@ -19,8 +20,11 @@ export default function KaamMilegaAuth() {
     const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
+    const [forgotCode, setForgotCode] = useState("");
+    const [forgotNewPassword, setForgotNewPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const mobileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,6 +61,7 @@ export default function KaamMilegaAuth() {
             return;
         }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
 
         try {
@@ -97,6 +102,7 @@ export default function KaamMilegaAuth() {
             return;
         }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
 
         try {
@@ -126,6 +132,7 @@ export default function KaamMilegaAuth() {
             return;
         }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
 
         try {
@@ -173,6 +180,7 @@ export default function KaamMilegaAuth() {
             return;
         }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
 
         try {
@@ -189,6 +197,78 @@ export default function KaamMilegaAuth() {
             router.push("/recruiter/register");
         } catch (err: any) {
             setError(err.message || "Failed to register recruiter account");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSendForgotCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanEmail = identifier.trim().toLowerCase();
+        if (!cleanEmail) {
+            setError("Please enter your company email address");
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            setError("Please enter a valid company email address");
+            return;
+        }
+        setError(null);
+        setSuccessMessage(null);
+        setLoading(true);
+
+        try {
+            await api.post("/auth/password/forgot", {
+                email: cleanEmail,
+                role: "recruiter",
+            });
+            setForgotStep("reset");
+            setSuccessMessage("A 4-digit reset code has been sent to your company email.");
+        } catch (err: any) {
+            setError(err.message || "Failed to send reset code. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanEmail = identifier.trim().toLowerCase();
+        const cleanCode = forgotCode.trim();
+        const cleanPassword = forgotNewPassword.trim();
+
+        if (!cleanEmail) {
+            setError("Company email is missing. Please start over.");
+            return;
+        }
+        if (cleanCode.length !== 4) {
+            setError("Please enter the complete 4-digit verification code");
+            return;
+        }
+        if (cleanPassword.length < 6) {
+            setError("New password must be at least 6 characters long");
+            return;
+        }
+
+        setError(null);
+        setSuccessMessage(null);
+        setLoading(true);
+
+        try {
+            await api.post("/auth/password/reset", {
+                email: cleanEmail,
+                code: cleanCode,
+                new_password: cleanPassword,
+                role: "recruiter",
+            });
+            setPasswordMode("signin");
+            setForgotStep("request");
+            setForgotCode("");
+            setForgotNewPassword("");
+            setPassword("");
+            setSuccessMessage("Password reset successfully! Please sign in with your new password.");
+        } catch (err: any) {
+            setError(err.message || "Failed to reset password. Please check the code and try again.");
         } finally {
             setLoading(false);
         }
@@ -363,6 +443,7 @@ export default function KaamMilegaAuth() {
                                         <p className="text-xs font-medium text-gray-400 mt-1">Sign in to manage job posts and candidates</p>
                                     </div>
                                     {error && <p className="text-red-500 text-xs font-bold bg-red-50 p-2.5 rounded-xl">{error}</p>}
+                                    {successMessage && <p className="text-emerald-700 text-xs font-bold bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">{successMessage}</p>}
 
                                     <form onSubmit={handlePasswordLogin} className="space-y-4">
                                         <div className="space-y-1.5">
@@ -378,7 +459,16 @@ export default function KaamMilegaAuth() {
                                         </div>
 
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Password *</label>
+                                            <div className="flex justify-between items-center">
+                                                <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Password *</label>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setError(null); setSuccessMessage(null); setPasswordMode("forgot"); }}
+                                                    className="text-xs font-bold text-[#8B7DFF] hover:underline"
+                                                >
+                                                    Forgot Password?
+                                                </button>
+                                            </div>
                                             <div className="relative">
                                                 <input
                                                     type={showPassword ? "text" : "password"}
@@ -434,7 +524,7 @@ export default function KaamMilegaAuth() {
                                         </div>
                                     </form>
                                 </motion.div>
-                            ) : (
+                            ) : passwordMode === "signup" ? (
                                 <motion.div
                                     key="recruiter-password-signup"
                                     initial={{ opacity: 0, x: 20 }}
@@ -521,6 +611,145 @@ export default function KaamMilegaAuth() {
                                         </div>
                                     </form>
                                 </motion.div>
+                            ) : (
+                                forgotStep === "request" ? (
+                                    <motion.div
+                                        key="recruiter-password-forgot-request"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-5"
+                                    >
+                                        <div>
+                                            <h2 className="text-2xl font-black text-gray-900">Reset Password</h2>
+                                            <p className="text-xs font-medium text-gray-400 mt-1">Enter your company email to receive a 4-digit reset code</p>
+                                        </div>
+                                        {error && <p className="text-red-500 text-xs font-bold bg-red-50 p-2.5 rounded-xl">{error}</p>}
+                                        {successMessage && <p className="text-emerald-700 text-xs font-bold bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">{successMessage}</p>}
+
+                                        <form onSubmit={handleSendForgotCode} className="space-y-4">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">Company Email Address *</label>
+                                                <input
+                                                    type="email"
+                                                    placeholder="company@example.com"
+                                                    value={identifier}
+                                                    onChange={(e) => { setError(null); setIdentifier(e.target.value); }}
+                                                    className="w-full px-5 py-4 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={!identifier || loading}
+                                                className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
+                                                    identifier && !loading
+                                                        ? "bg-[#8B7DFF] text-white hover:bg-[#7a6ceb] shadow-purple-100"
+                                                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                                                }`}
+                                            >
+                                                {loading ? "Sending Code..." : "Send Reset Code"}
+                                            </button>
+
+                                            <div className="text-center pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setError(null); setSuccessMessage(null); setPasswordMode("signin"); }}
+                                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                                >
+                                                    ← Back to Sign In
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="recruiter-password-forgot-reset"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-5"
+                                    >
+                                        <div>
+                                            <h2 className="text-2xl font-black text-gray-900">Set New Password</h2>
+                                            <p className="text-xs font-medium text-gray-400 mt-1">
+                                                Enter the 4-digit code sent to <span className="font-bold text-gray-700">{identifier}</span>
+                                            </p>
+                                        </div>
+                                        {error && <p className="text-red-500 text-xs font-bold bg-red-50 p-2.5 rounded-xl">{error}</p>}
+                                        {successMessage && <p className="text-emerald-700 text-xs font-bold bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">{successMessage}</p>}
+
+                                        <form onSubmit={handleResetPassword} className="space-y-4">
+                                            <div className="space-y-1.5">
+                                                <div className="flex justify-between items-center">
+                                                    <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">4-Digit Code *</label>
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleSendForgotCode}
+                                                        className="text-xs font-bold text-[#8B7DFF] hover:underline"
+                                                    >
+                                                        Resend Code
+                                                    </button>
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    inputMode="numeric"
+                                                    maxLength={4}
+                                                    placeholder="Enter 4-digit code"
+                                                    value={forgotCode}
+                                                    onChange={(e) => { setError(null); setForgotCode(e.target.value.replace(/\D/g, "").slice(0, 4)); }}
+                                                    className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-black text-lg tracking-widest text-center rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all"
+                                                    required
+                                                />
+                                            </div>
+
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-extrabold text-slate-900 uppercase tracking-wider">New Password * (Min. 6 chars)</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showPassword ? "text" : "password"}
+                                                        placeholder="Enter your new password"
+                                                        value={forgotNewPassword}
+                                                        onChange={(e) => { setError(null); setForgotNewPassword(e.target.value); }}
+                                                        className="w-full px-5 py-3.5 pr-12 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                        minLength={6}
+                                                        required
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowPassword(!showPassword)}
+                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                                    >
+                                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                type="submit"
+                                                disabled={forgotCode.length !== 4 || forgotNewPassword.length < 6 || loading}
+                                                className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg mt-2 ${
+                                                    forgotCode.length === 4 && forgotNewPassword.length >= 6 && !loading
+                                                        ? "bg-[#8B7DFF] text-white hover:bg-[#7a6ceb] shadow-purple-100"
+                                                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                                                }`}
+                                            >
+                                                {loading ? "Resetting Password..." : "Reset Password"}
+                                            </button>
+
+                                            <div className="text-center pt-2">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { setError(null); setSuccessMessage(null); setPasswordMode("signin"); }}
+                                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                                >
+                                                    ← Back to Sign In
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </motion.div>
+                                )
                             )}
                         </AnimatePresence>
                     </div>

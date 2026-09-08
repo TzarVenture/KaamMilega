@@ -207,3 +207,15 @@ type PasswordLoginResponse struct {
 	User         *User  `json:"user"`
 	IsRegistered bool   `json:"is_registered"`
 }
+
+type ForgotPasswordRequest struct {
+	Email string `json:"email"`
+	Role  string `json:"role,omitempty"`
+}
+
+type ResetPasswordRequest struct {
+	Email       string `json:"email"`
+	Code        string `json:"code"`
+	NewPassword string `json:"new_password"`
+	Role        string `json:"role,omitempty"`
+}
