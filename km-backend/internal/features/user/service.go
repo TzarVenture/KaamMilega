@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/smtp"
 	"slices"
+	"strings"
 	"time"
 
 	"km-backend/internal/config"
@@ -27,6 +28,9 @@ type UserService interface {
 	UpdateProfile(ctx context.Context, userID string, updates map[string]interface{}) (*User, error)
 	AddEducation(ctx context.Context, userID string, edu Education) (*User, error)
 	AddExperience(ctx context.Context, userID string, exp Experience) (*User, error)
+	AddProject(ctx context.Context, userID string, project Project) (*User, error)
+	UpdateProject(ctx context.Context, userID string, projectID string, project Project) (*User, error)
+	DeleteProject(ctx context.Context, userID string, projectID string) (*User, error)
 	AddSkill(ctx context.Context, userID string, skillName string) (*User, error)
 	SendEmailOTP(ctx context.Context, email string) error
 	VerifyEmailOTP(ctx context.Context, email, code string, userID string) error
@@ -311,6 +315,14 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 					user.EmailVerifiedAt = &now
 				}
 			}
+		case "portfolio_url":
+			if v, ok := value.(string); ok {
+				user.PortfolioURL = v
+			}
+		case "portfolio_label":
+			if v, ok := value.(string); ok {
+				user.PortfolioLabel = v
+			}
 		}
 	}
 
@@ -350,6 +362,77 @@ func (s *UserServiceImpl) AddExperience(ctx context.Context, userID string, exp 
 		exp.ID = primitive.NewObjectID().Hex()
 	}
 	user.Experience = append(user.Experience, exp)
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) AddProject(ctx context.Context, userID string, project Project) (*User, error) {
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	project.Title = strings.TrimSpace(project.Title)
+	if project.Title == "" {
+		return nil, errors.New("project title is required")
+	}
+
+	if project.ID == "" {
+		project.ID = primitive.NewObjectID().Hex()
+	}
+	user.Projects = append(user.Projects, project)
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) UpdateProject(ctx context.Context, userID string, projectID string, updated Project) (*User, error) {
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	updated.Title = strings.TrimSpace(updated.Title)
+	if updated.Title == "" {
+		return nil, errors.New("project title is required")
+	}
+
+	found := false
+	for i, p := range user.Projects {
+		if p.ID == projectID {
+			updated.ID = projectID
+			user.Projects[i] = updated
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return nil, errors.New("project not found")
+	}
+
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) DeleteProject(ctx context.Context, userID string, projectID string) (*User, error) {
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	filteredProjects := make([]Project, 0, len(user.Projects))
+	for _, p := range user.Projects {
+		if p.ID != projectID {
+			filteredProjects = append(filteredProjects, p)
+		}
+	}
+	user.Projects = filteredProjects
 	return s.repo.UpdateUser(ctx, user)
 }
 

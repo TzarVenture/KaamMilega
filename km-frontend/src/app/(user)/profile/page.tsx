@@ -2,7 +2,8 @@
 import {
     Camera, Pencil, Eye, BarChart2, Search,
     MessageCircle, Diamond, ChevronRight, Plus, Briefcase,
-    GraduationCap, CheckCircle2
+    GraduationCap, CheckCircle2, FolderGit2, ExternalLink,
+    Trash2, Globe
 } from 'lucide-react';
 import InterestsSection from './InterestSection';
 import { useEffect, useState } from 'react';
@@ -17,6 +18,8 @@ import ProfilePhotoModal from './modals/ProfilePhotoModal';
 import AddBackgroundModal from './modals/AddBackgroundModal';
 import EditContactInfoModal from './modals/EditContactInfoModal';
 import EmailVerificationModal from './modals/EmailVerificationModal';
+import ProjectModal from './modals/ProjectModal';
+import PortfolioLinkModal from './modals/PortfolioLinkModal';
 import CustomImage from '@/components/ui/CustomImage';
 import Link from 'next/link';
 import ProfileStrengthCard from './ProfileStrengthCard';
@@ -33,9 +36,49 @@ const ProfilePage = () => {
         photo: false,
         background: false,
         contact: false,
-        emailVerify: false
+        emailVerify: false,
+        project: false,
+        portfolioLink: false,
     });
+    const [deletingProjectId, setDeletingProjectId] = useState<string | null>(null);
+    const [editingProject, setEditingProject] = useState<any | null>(null);
     const router = useRouter();
+
+    const handleEditProject = (proj: any) => {
+        setEditingProject(proj);
+        setModals((prev) => ({ ...prev, project: true }));
+    };
+
+    const handleAddProject = () => {
+        setEditingProject(null);
+        setModals((prev) => ({ ...prev, project: true }));
+    };
+
+    const formatDisplayDate = (dateStr?: string) => {
+        if (!dateStr) return '';
+        if (dateStr.toLowerCase() === 'present') return 'Present';
+        if (/^\d{4}-\d{2}/.test(dateStr)) {
+            const [y, m] = dateStr.split('-');
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const idx = parseInt(m, 10) - 1;
+            return idx >= 0 && idx < 12 ? `${monthNames[idx]} ${y}` : dateStr;
+        }
+        return dateStr;
+    };
+
+    const handleDeleteProject = async (projectId: string) => {
+        if (!confirm('Are you sure you want to delete this project?')) return;
+        try {
+            setDeletingProjectId(projectId);
+            const response = await api.delete(`/user/project/${projectId}`);
+            setUser(response);
+        } catch (error) {
+            console.error('Failed to delete project:', error);
+            alert('Failed to delete project. Please try again.');
+        } finally {
+            setDeletingProjectId(null);
+        }
+    };
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -136,6 +179,41 @@ const ProfilePage = () => {
                                 <span>•</span>
                                 <span className="text-purple-600 font-medium">{user?.connections_count || 0} Connections</span>
                             </p>
+
+                            {/* Portfolio / Website Link (LinkedIn Style) */}
+                            <div className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm">
+                                {user?.portfolio_url ? (
+                                    <div className="inline-flex items-center gap-1.5 bg-purple-50/70 border border-purple-200/70 px-3 py-1 rounded-full">
+                                        <Globe size={13} className="text-purple-600 shrink-0" />
+                                        <a
+                                            href={user.portfolio_url.startsWith('http') ? user.portfolio_url : `https://${user.portfolio_url}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-purple-700 hover:text-purple-900 font-bold hover:underline inline-flex items-center gap-1"
+                                        >
+                                            <span>{user?.portfolio_label || "Portfolio / Website"}</span>
+                                            <ExternalLink size={12} />
+                                        </a>
+                                        <button
+                                            type="button"
+                                            onClick={() => setModals({ ...modals, portfolioLink: true })}
+                                            title="Edit portfolio link"
+                                            className="text-gray-400 hover:text-purple-600 p-0.5 rounded transition cursor-pointer"
+                                        >
+                                            <Pencil size={11} />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => setModals({ ...modals, portfolioLink: true })}
+                                        className="text-purple-600 hover:text-purple-800 font-semibold hover:underline inline-flex items-center gap-1 text-xs cursor-pointer py-0.5"
+                                    >
+                                        <Globe size={13} />
+                                        <span>+ Add Portfolio / Website Link</span>
+                                    </button>
+                                )}
+                            </div>
 
                             {/* Email Verification Status Badge */}
                             <div className="mt-3 inline-flex items-center gap-2">
@@ -349,6 +427,128 @@ const ProfilePage = () => {
                         </div>
                     </section>
 
+                    {/* Projects Section (F17) */}
+                    <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                        <div className="flex justify-between items-center gap-3 mb-6">
+                            <div className="min-w-0 flex-1">
+                                <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight">Projects</h2>
+                                <p className="text-xs text-gray-400 mt-0.5 line-clamp-1 sm:line-clamp-none">
+                                    Showcase your practical work, assignments, or client projects
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleAddProject}
+                                className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 rounded-full border border-purple-200 transition-colors cursor-pointer"
+                                title="Add Project"
+                            >
+                                <Plus size={15} className="text-purple-600 shrink-0" />
+                                <span>Add Project</span>
+                            </button>
+                        </div>
+
+                        <div className="space-y-4">
+                            {user.projects && user.projects.length > 0 ? (
+                                user.projects.map((proj: any) => (
+                                    <div
+                                        key={proj.id}
+                                        className="p-4 rounded-xl border border-gray-100 bg-gray-50/40 hover:bg-gray-50 hover:border-gray-200 transition-all flex flex-col gap-2.5 group relative"
+                                    >
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 text-base leading-tight">
+                                                    {proj.title}
+                                                </h3>
+                                                {proj.associated_with && (
+                                                    <p className="text-xs text-gray-600 mt-0.5 font-medium">
+                                                        Associated with <span className="text-gray-800 font-semibold">{proj.associated_with}</span>
+                                                    </p>
+                                                )}
+                                                {(proj.start_date || proj.end_date || proj.is_current) && (
+                                                    <p className="text-xs text-gray-400 mt-0.5">
+                                                        {formatDisplayDate(proj.start_date)}
+                                                        {proj.start_date && (proj.end_date || proj.is_current) ? ' – ' : ''}
+                                                        {proj.is_current ? 'Present' : (formatDisplayDate(proj.end_date) || 'Present')}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* Edit & Delete Actions */}
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleEditProject(proj)}
+                                                    title="Edit project"
+                                                    className="p-1.5 text-gray-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                                                >
+                                                    <Pencil size={15} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDeleteProject(proj.id)}
+                                                    disabled={deletingProjectId === proj.id}
+                                                    title="Delete project"
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                                                >
+                                                    <Trash2 size={15} />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {proj.description && (
+                                            <p className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
+                                                {proj.description}
+                                            </p>
+                                        )}
+
+                                        {/* Project Skills */}
+                                        {proj.skills && proj.skills.length > 0 && (
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {proj.skills.map((skill: string, sIdx: number) => (
+                                                    <span
+                                                        key={sIdx}
+                                                        className="px-2.5 py-0.5 bg-purple-50 text-purple-700 border border-purple-200/80 rounded-full text-xs font-medium"
+                                                    >
+                                                        {skill}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* External Link */}
+                                        {proj.project_url && (
+                                            <div className="pt-0.5">
+                                                <a
+                                                    href={proj.project_url.startsWith('http') ? proj.project_url : `https://${proj.project_url}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 hover:text-purple-800 hover:underline border border-purple-200 bg-white px-3 py-1.5 rounded-full shadow-2xs hover:shadow-xs transition-all"
+                                                >
+                                                    <span>Show Project</span>
+                                                    <ExternalLink size={12} />
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-8 px-4 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                                    <h4 className="text-sm font-bold text-gray-800 mb-1">Showcase your projects and assignments</h4>
+                                    <p className="text-xs text-gray-500 max-w-sm mx-auto mb-4">
+                                        Candidates who add projects, practical tasks, or work samples are more likely to be contacted by recruiters.
+                                    </p>
+                                    <button
+                                        type="button"
+                                        onClick={handleAddProject}
+                                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-full text-xs font-bold transition-colors shadow-sm cursor-pointer"
+                                    >
+                                        <Plus size={15} /> Add Your First Project
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    </section>
+
                     {/* Skills Section */}
                     <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
                         <div className="flex justify-between items-center mb-6">
@@ -547,6 +747,24 @@ const ProfilePage = () => {
                 isOpen={modals.emailVerify}
                 currentEmail={user.email}
                 onClose={() => setModals({ ...modals, emailVerify: false })}
+                onSuccess={(updatedUser) => setUser(updatedUser)}
+            />
+            <ProjectModal
+                isOpen={modals.project}
+                projectToEdit={editingProject}
+                onClose={() => {
+                    setModals({ ...modals, project: false });
+                    setEditingProject(null);
+                }}
+                onSuccess={(updatedUser) => {
+                    setUser(updatedUser);
+                    setEditingProject(null);
+                }}
+            />
+            <PortfolioLinkModal
+                isOpen={modals.portfolioLink}
+                user={user}
+                onClose={() => setModals({ ...modals, portfolioLink: false })}
                 onSuccess={(updatedUser) => setUser(updatedUser)}
             />
         </div>

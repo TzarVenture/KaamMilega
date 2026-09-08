@@ -32,6 +32,9 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Patch("/profile", api.controller.UpdateProfile)
 	protected.Post("/education", api.controller.AddEducation)
 	protected.Post("/experience", api.controller.AddExperience)
+	protected.Post("/project", api.controller.AddProject)
+	protected.Put("/project/:id", api.controller.UpdateProject)
+	protected.Delete("/project/:id", api.controller.DeleteProject)
 	protected.Post("/skill", api.controller.AddSkill)
 	protected.Post("/apply-expert", api.controller.ApplyForExpert)
 
