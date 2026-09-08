@@ -19,6 +19,7 @@ import EditContactInfoModal from './modals/EditContactInfoModal';
 import EmailVerificationModal from './modals/EmailVerificationModal';
 import CustomImage from '@/components/ui/CustomImage';
 import Link from 'next/link';
+import ProfileStrengthCard from './ProfileStrengthCard';
 
 const ProfilePage = () => {
     const [user, setUser] = useState<any>(null);
@@ -178,6 +179,12 @@ const ProfilePage = () => {
                             </div>
                         </div>
                     </div>
+
+                    {/* Profile Completeness Strength Bar (F16) */}
+                    <ProfileStrengthCard
+                        user={user}
+                        onOpenModal={(modalKey) => setModals((prev) => ({ ...prev, [modalKey]: true }))}
+                    />
 
                     {/* Analytics Section */}
                     <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
