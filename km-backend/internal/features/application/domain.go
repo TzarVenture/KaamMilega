@@ -1,9 +1,19 @@
 package application
 
 import (
+	"errors"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+var (
+	ErrJobNotFound      = errors.New("job not found")
+	ErrAlreadyApplied   = errors.New("already applied for this job")
+	ErrInvalidJobID     = errors.New("invalid job ID format")
+	ErrInvalidCandidate = errors.New("invalid candidate ID format")
+	ErrJobClosed        = errors.New("job is closed and no longer accepting applications")
+	ErrCannotApplyOwn   = errors.New("recruiters cannot apply to their own job postings")
 )
 
 type Application struct {

@@ -2,7 +2,6 @@ package application
 
 import (
 	"context"
-	"errors"
 
 	"km-backend/internal/features/job"
 
@@ -22,13 +21,37 @@ func NewApplicationService(repo ApplicationRepository, jobRepo job.JobRepository
 }
 
 func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateApplicationRequest, candidateID string) (*Application, error) {
+	if req.JobID == "" {
+		return nil, ErrInvalidJobID
+	}
+
+	jOID, err := primitive.ObjectIDFromHex(req.JobID)
+	if err != nil {
+		return nil, ErrInvalidJobID
+	}
+
+	cOID, err := primitive.ObjectIDFromHex(candidateID)
+	if err != nil {
+		return nil, ErrInvalidCandidate
+	}
+
 	// Check if job exists
 	jobInfo, err := s.jobRepo.FindByID(ctx, req.JobID)
 	if err != nil {
 		return nil, err
 	}
 	if jobInfo == nil {
-		return nil, errors.New("job not found")
+		return nil, ErrJobNotFound
+	}
+
+	// Check if job is closed
+	if jobInfo.Status == "Closed" || jobInfo.Status == "closed" {
+		return nil, ErrJobClosed
+	}
+
+	// Recruiter cannot apply to their own job posting
+	if !jobInfo.RecruiterID.IsZero() && jobInfo.RecruiterID == cOID {
+		return nil, ErrCannotApplyOwn
 	}
 
 	// Check if already applied
@@ -37,17 +60,7 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 		return nil, err
 	}
 	if exists {
-		return nil, errors.New("already applied for this job")
-	}
-
-	cOID, err := primitive.ObjectIDFromHex(candidateID)
-	if err != nil {
-		return nil, err
-	}
-
-	jOID, err := primitive.ObjectIDFromHex(req.JobID)
-	if err != nil {
-		return nil, err
+		return nil, ErrAlreadyApplied
 	}
 
 	app := &Application{
@@ -56,10 +69,20 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 		CandidateID: cOID,
 		Status:      "Applied",
 		CoverLetter: req.CoverLetter,
-		ResumeURL:   req.ResumeURL, // Ideally validate URL or upload if it's a file ID
+		ResumeURL:   req.ResumeURL,
 	}
 
 	return s.repo.Create(ctx, app)
+}
+
+func (s *ApplicationService) HasCandidateApplied(ctx context.Context, candidateID, jobID string) (bool, error) {
+	if _, err := primitive.ObjectIDFromHex(candidateID); err != nil {
+		return false, ErrInvalidCandidate
+	}
+	if _, err := primitive.ObjectIDFromHex(jobID); err != nil {
+		return false, ErrInvalidJobID
+	}
+	return s.repo.HasApplied(ctx, candidateID, jobID)
 }
 
 func (s *ApplicationService) GetApplication(ctx context.Context, id string) (*Application, error) {

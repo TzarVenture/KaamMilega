@@ -41,6 +41,7 @@ const JobDetailPage = () => {
     const [isApplying, setIsApplying] = useState(false);
     const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
     const [coverLetter, setCoverLetter] = useState("");
+    const [hasApplied, setHasApplied] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,6 +52,17 @@ const JobDetailPage = () => {
                 ]);
                 setJob(jobData);
                 setUser(userData);
+
+                if (userData) {
+                    try {
+                        const checkRes = await api.get(`/applications/check/${jobId}`) as { applied?: boolean };
+                        if (checkRes?.applied) {
+                            setHasApplied(true);
+                        }
+                    } catch {
+                        // Gracefully continue if check fails
+                    }
+                }
             } catch (error) {
                 console.error("Failed to fetch job", error);
                 toast.error("Job details not found");
@@ -65,6 +77,11 @@ const JobDetailPage = () => {
     const handleApplyClick = () => {
         if (!user) {
             toast.info("Please login to apply");
+            return;
+        }
+
+        if (hasApplied) {
+            toast.info("You have already applied for this job");
             return;
         }
 
@@ -87,9 +104,16 @@ const JobDetailPage = () => {
                 cover_letter: coverLetter
             });
             toast.success("Applied successfully!");
+            setHasApplied(true);
             setIsApplyModalOpen(false);
         } catch (error: any) {
-            toast.error(error.response?.data?.error || "Failed to apply");
+            if (error.response?.status === 409) {
+                setHasApplied(true);
+                setIsApplyModalOpen(false);
+                toast.info(error.response?.data?.error || "You have already applied for this job");
+            } else {
+                toast.error(error.response?.data?.error || "Failed to apply");
+            }
         } finally {
             setIsApplying(false);
         }
@@ -185,9 +209,20 @@ const JobDetailPage = () => {
                             </div>
                             <button
                                 onClick={handleApplyClick}
-                                className="px-10 py-4 bg-[#A855F7] hover:bg-[#9333EA] text-white rounded-2xl text-xs sm:text-sm font-black uppercase tracking-[0.2em] shadow-2xl shadow-purple-900/50 transition-all active:scale-95 italic"
+                                disabled={hasApplied}
+                                className={`px-10 py-4 text-white rounded-2xl text-xs sm:text-sm font-black uppercase tracking-[0.2em] shadow-2xl transition-all active:scale-95 italic flex items-center justify-center gap-2 ${
+                                    hasApplied
+                                        ? 'bg-emerald-600 cursor-not-allowed shadow-emerald-900/30'
+                                        : 'bg-[#A855F7] hover:bg-[#9333EA] shadow-purple-900/50'
+                                }`}
                             >
-                                Apply Now
+                                {hasApplied ? (
+                                    <>
+                                        <CheckCircle2 size={16} /> Already Applied
+                                    </>
+                                ) : (
+                                    "Apply Now"
+                                )}
                             </button>
                         </div>
 

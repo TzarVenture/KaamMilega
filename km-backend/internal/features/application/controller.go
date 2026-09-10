@@ -1,6 +1,7 @@
 package application
 
 import (
+	"errors"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,16 +22,53 @@ func (c *ApplicationController) CreateApplication(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
+	if req.JobID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "job_id is required"})
+	}
+
 	userID, ok := ctx.Locals("user_id").(string)
-	if !ok {
+	if !ok || userID == "" {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
 	app, err := c.service.CreateApplication(ctx.Context(), &req, userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		switch {
+		case errors.Is(err, ErrJobNotFound):
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		case errors.Is(err, ErrAlreadyApplied):
+			return ctx.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+		case errors.Is(err, ErrInvalidJobID), errors.Is(err, ErrInvalidCandidate):
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		case errors.Is(err, ErrJobClosed), errors.Is(err, ErrCannotApplyOwn):
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		default:
+			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
 	}
 	return ctx.Status(fiber.StatusCreated).JSON(app)
+}
+
+func (c *ApplicationController) CheckApplicationStatus(ctx *fiber.Ctx) error {
+	jobID := ctx.Params("jobId")
+	if jobID == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "jobId is required"})
+	}
+
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	applied, err := c.service.HasCandidateApplied(ctx.Context(), userID, jobID)
+	if err != nil {
+		if errors.Is(err, ErrInvalidCandidate) || errors.Is(err, ErrInvalidJobID) {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(fiber.Map{"applied": applied})
 }
 
 func (c *ApplicationController) GetMyApplications(ctx *fiber.Ctx) error {

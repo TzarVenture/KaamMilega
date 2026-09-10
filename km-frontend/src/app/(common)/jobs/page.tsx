@@ -87,6 +87,7 @@ const JobsPageContent = () => {
     const [user, setUser] = useState<any>(null);
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
+    const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
 
     // Filters from UI
     const [filters, setFilters] = useState<FilterState>({
@@ -147,13 +148,27 @@ const JobsPageContent = () => {
     }, [fetchJobs]);
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const fetchUserAndApplications = async () => {
             try {
                 const userData = await api.get('/user/profile').catch(() => null);
                 setUser(userData);
+
+                if (userData) {
+                    try {
+                        const myApps = await api.get('/applications/my') as any[];
+                        if (Array.isArray(myApps)) {
+                            const ids = new Set<string>(
+                                myApps.map((a: any) => a.job_id || a.job?.id).filter(Boolean)
+                            );
+                            setAppliedJobIds(ids);
+                        }
+                    } catch {
+                        // Gracefully ignore
+                    }
+                }
             } catch { }
         };
-        fetchUser();
+        fetchUserAndApplications();
     }, []);
 
     const handleApply = async (jobId: string) => {
@@ -161,12 +176,31 @@ const JobsPageContent = () => {
             toast.info("Please login to apply");
             return;
         }
+
+        if (appliedJobIds.has(jobId)) {
+            toast.info("You have already applied for this job");
+            return;
+        }
+
+        const roles = Array.isArray(user?.roles) ? user.roles : (user?.role ? [user.role] : []);
+        const isOnlyUser = roles.includes('user') && !roles.includes('recruiter') && !roles.includes('expert');
+        if (!isOnlyUser) {
+            toast.warning("Only candidates are allowed to apply for jobs.");
+            return;
+        }
+
         setApplyingId(jobId);
         try {
             await api.post('/applications', { job_id: jobId });
             toast.success("Applied successfully!");
+            setAppliedJobIds(prev => new Set(prev).add(jobId));
         } catch (error: any) {
-            toast.error(error.response?.data?.error || "Failed to apply");
+            if (error.response?.status === 409) {
+                setAppliedJobIds(prev => new Set(prev).add(jobId));
+                toast.info(error.response?.data?.error || "You have already applied for this job");
+            } else {
+                toast.error(error.response?.data?.error || "Failed to apply");
+            }
         } finally {
             setApplyingId(null);
         }
@@ -411,6 +445,7 @@ const JobsPageContent = () => {
                                                 isTopMatch={currentPage === 1 && idx < 3}
                                                 onApply={() => handleApply(job.id)}
                                                 loading={applyingId === job.id}
+                                                hasApplied={appliedJobIds.has(job.id)}
                                             />
                                             <div className="border-t border-dashed border-gray-200 my-1 last:hidden" />
                                         </React.Fragment>
@@ -521,7 +556,7 @@ const FilterAccordion = ({ title, children, defaultOpen = false }: { title: stri
     );
 };
 
-const JobCard = ({ job, isTopMatch, onApply, loading }: { job: Job, isTopMatch?: boolean, onApply: () => void, loading?: boolean }) => {
+const JobCard = ({ job, isTopMatch, onApply, loading, hasApplied }: { job: Job, isTopMatch?: boolean, onApply: () => void, loading?: boolean, hasApplied?: boolean }) => {
     return (
         <div className="relative group">
             <div className={`p-4 sm:p-8 bg-white transition-all ${isTopMatch ? 'rounded-t-3xl border-t border-x border-gray-50 shadow-sm' : ''}`}>
@@ -585,10 +620,22 @@ const JobCard = ({ job, isTopMatch, onApply, loading }: { job: Job, isTopMatch?:
                         </button>
                         <button
                             onClick={onApply}
-                            disabled={loading}
-                            className="flex-1 xl:flex-none px-8 py-3 bg-[#A855F7] text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-[#9333EA] transition-all shadow-xl shadow-purple-200 disabled:opacity-50 italic"
+                            disabled={loading || hasApplied}
+                            className={`flex-1 xl:flex-none px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-1.5 ${
+                                hasApplied
+                                    ? 'bg-emerald-600 text-white cursor-not-allowed shadow-emerald-200'
+                                    : 'bg-[#A855F7] text-white hover:bg-[#9333EA] shadow-xl shadow-purple-200 disabled:opacity-50'
+                            }`}
                         >
-                            {loading ? '...' : 'Apply Now'}
+                            {loading ? (
+                                '...'
+                            ) : hasApplied ? (
+                                <>
+                                    <CheckCircle2 size={14} /> Already Applied
+                                </>
+                            ) : (
+                                'Apply Now'
+                            )}
                         </button>
                     </div>
                 </div>

@@ -21,6 +21,9 @@ func (api *ApplicationApi) Setup(app *fiber.App) {
 	// Candidate applies for a job
 	protected.Post("/", api.controller.CreateApplication)
 
+	// Candidate checks if already applied for a job
+	protected.Get("/check/:jobId", api.controller.CheckApplicationStatus)
+
 	// Candidate sees their applications
 	protected.Get("/my", api.controller.GetMyApplications)
 
