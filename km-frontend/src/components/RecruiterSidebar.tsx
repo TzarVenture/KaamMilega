@@ -41,12 +41,12 @@ export default function RecruiterSidebar() {
     const companyName = user?.company_name || user?.name || "Company Portal";
 
     return (
-        <aside className="w-64 bg-white border-r border-slate-200/80 h-screen flex-col fixed left-0 top-0 overflow-y-auto z-30 hidden md:flex shadow-xs">
+        <aside className="w-64 bg-white border-r border-slate-200/80 h-[calc(100vh-3.5rem)] flex-col fixed left-0 top-14 overflow-y-auto z-30 hidden md:flex shadow-xs">
             
             {/* Header / Brand */}
             <div className="p-6 border-b border-slate-100">
-                <Link href="/" className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-indigo-600 via-purple-600 to-violet-600 text-white flex items-center justify-center font-black shadow-md shadow-indigo-200">
+                <Link href="/recruiter" className="flex items-center gap-3 group">
+                    <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-indigo-600 via-purple-600 to-violet-600 text-white flex items-center justify-center font-black shadow-md shadow-indigo-200 group-hover:scale-105 transition-transform">
                         <Briefcase className="w-5 h-5" />
                     </div>
                     <div>
@@ -80,17 +80,17 @@ export default function RecruiterSidebar() {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center justify-between px-3.5 py-3 rounded-2xl transition-all font-bold text-xs ${
+                            className={`flex items-center justify-between px-3.5 py-3 rounded-2xl transition-colors duration-150 font-bold text-xs border ${
                                 isActive
-                                    ? "bg-indigo-50/80 text-indigo-700 border border-indigo-100 shadow-xs"
-                                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                    ? "bg-indigo-50/80 text-indigo-700 border-indigo-100 shadow-xs"
+                                    : "text-slate-600 border-transparent hover:bg-slate-50 hover:text-slate-900"
                             }`}
                         >
                             <div className="flex items-center gap-3">
-                                <item.icon className={`w-4 h-4 ${isActive ? "text-indigo-600" : "text-slate-400"}`} />
+                                <item.icon className={`w-4 h-4 transition-colors ${isActive ? "text-indigo-600" : "text-slate-400"}`} />
                                 <span>{item.name}</span>
                             </div>
-                            {isActive && <ChevronRight size={14} className="text-indigo-600" />}
+                            <ChevronRight className={`w-3.5 h-3.5 transition-opacity ${isActive ? "opacity-100 text-indigo-600" : "opacity-0"}`} />
                         </Link>
                     );
                 })}

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import api from "@/lib/axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { KanbanSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
 import {
     FileText,
     Search,
@@ -128,8 +129,9 @@ function ApplicationsContent() {
 
     if (loading) {
         return (
-            <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-purple-600"></div>
+            <div className="space-y-6">
+                <PageHeaderSkeleton />
+                <KanbanSkeleton columns={4} cardsPerColumn={3} />
             </div>
         );
     }
@@ -420,7 +422,7 @@ function ApplicationsContent() {
 
 export default function ApplicationsPage() {
     return (
-        <Suspense fallback={<div className="flex justify-center p-8">Loading applications...</div>}>
+        <Suspense fallback={<KanbanSkeleton columns={4} cardsPerColumn={3} />}>
             <ApplicationsContent />
         </Suspense>
     );
