@@ -464,3 +464,53 @@ func (ctrl *UserController) ResetPassword(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"message": "Password reset successfully. You can now sign in with your new password."})
 }
 
+func (ctrl *UserController) UpdateUserRoles(c *fiber.Ctx) error {
+	targetUserID := c.Params("id")
+	if targetUserID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	var req struct {
+		Roles []string `json:"roles"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	updates := map[string]interface{}{
+		"roles": req.Roles,
+	}
+
+	user, err := ctrl.service.UpdateProfile(c.Context(), targetUserID, updates)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if user == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	return c.JSON(user)
+}
+
+func (ctrl *UserController) AdminUpdateUserProfile(c *fiber.Ctx) error {
+	targetUserID := c.Params("id")
+	if targetUserID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	var req map[string]interface{}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	user, err := ctrl.service.UpdateProfile(c.Context(), targetUserID, req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if user == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	return c.JSON(user)
+}
+

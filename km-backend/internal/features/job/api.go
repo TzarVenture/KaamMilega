@@ -23,6 +23,11 @@ func (api *JobApi) Setup(app *fiber.App) {
 	protected.Patch("/:id", api.controller.UpdateJob)
 	protected.Delete("/:id", api.controller.DeleteJob)
 
+	// Admin Job Moderation Routes
+	adminJobs := app.Group("/api/admin/jobs", middleware.AuthMiddleware(api.controller.config.JWTSecret))
+	adminJobs.Patch("/:id/status", api.controller.AdminUpdateJobStatus)
+	adminJobs.Delete("/:id", api.controller.AdminDeleteJob)
+
 	// Public routes (if any)
 	app.Get("/api/jobs", api.controller.GetJobs)
 	app.Get("/api/jobs/:id", api.controller.GetJob)

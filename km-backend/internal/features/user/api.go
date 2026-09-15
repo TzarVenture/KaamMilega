@@ -43,6 +43,8 @@ func (api *UserApi) Setup(app *fiber.App) {
 	// Admin routes (should add role middleware later)
 	admin := app.Group("/api/admin", middleware.AuthMiddleware(api.controller.config.JWTSecret))
 	admin.Get("/users", api.controller.GetAllUsers)
+	admin.Patch("/users/:id/roles", api.controller.UpdateUserRoles)
+	admin.Patch("/users/:id", api.controller.AdminUpdateUserProfile)
 	admin.Put("/experts/:id/approve", api.controller.ApproveExpert)
 	admin.Get("/expert-requests", api.controller.GetExpertRequests)
 
