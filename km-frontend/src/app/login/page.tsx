@@ -6,156 +6,589 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import OtpInput from "@/components/ui/OtpInput";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronDown, Download } from "lucide-react";
+import { ChevronDown, Download, Phone, Lock, Eye, EyeOff, User, Mail } from "lucide-react";
 
 // --- Types ---
 interface FormCardProps {
+    authMode: "otp" | "password";
+    onAuthModeChange: (mode: "otp" | "password") => void;
+    passwordMode: "signin" | "signup" | "forgot";
+    onPasswordModeChange: (mode: "signin" | "signup" | "forgot") => void;
+    forgotStep: "request" | "reset";
     step: "login" | "otp";
     mobile: string;
     otp: string[];
+    identifier: string;
+    password: string;
+    showPassword: boolean;
+    name: string;
+    email: string;
+    forgotCode: string;
+    forgotNewPassword: string;
     loading: boolean;
     error: string | null;
+    successMessage: string | null;
     onMobileChange: (val: string) => void;
     onOtpChange: (val: string[]) => void;
+    onIdentifierChange: (val: string) => void;
+    onPasswordChange: (val: string) => void;
+    onToggleShowPassword: () => void;
+    onNameChange: (val: string) => void;
+    onEmailChange: (val: string) => void;
+    onForgotCodeChange: (val: string) => void;
+    onForgotNewPasswordChange: (val: string) => void;
     onSendOtp: (e: React.FormEvent) => void;
     onVerifyOtp: () => void;
+    onPasswordLogin: (e: React.FormEvent) => void;
+    onPasswordRegister: (e: React.FormEvent) => void;
+    onSendForgotCode: (e: React.FormEvent) => void;
+    onResetPassword: (e: React.FormEvent) => void;
     onChangeNumber: () => void;
     onGoRecruiter: () => void;
 }
 
-// ─── FormCard is a TOP-LEVEL component (not nested inside LoginPage) ───────────
-// Defining it inside LoginPage would cause remount on every keystroke (losing focus).
+// ─── FormCard Top-Level Component ───────────────────────────────────────────
 const FormCard = ({
-    step, mobile, otp, loading, error,
+    authMode, onAuthModeChange,
+    passwordMode, onPasswordModeChange,
+    forgotStep, step, mobile, otp,
+    identifier, password, showPassword,
+    name, email, forgotCode, forgotNewPassword,
+    loading, error, successMessage,
     onMobileChange, onOtpChange,
-    onSendOtp, onVerifyOtp, onChangeNumber, onGoRecruiter,
+    onIdentifierChange, onPasswordChange, onToggleShowPassword,
+    onNameChange, onEmailChange,
+    onForgotCodeChange, onForgotNewPasswordChange,
+    onSendOtp, onVerifyOtp, onPasswordLogin, onPasswordRegister,
+    onSendForgotCode, onResetPassword,
+    onChangeNumber, onGoRecruiter,
 }: FormCardProps) => (
     <div className="w-full md:w-[450px] bg-white rounded-[28px] md:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-xl shadow-purple-100/50 z-10">
+        {/* Auth Mode Switcher Tab */}
+        <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
+            <button
+                type="button"
+                onClick={() => onAuthModeChange("otp")}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                    authMode === "otp"
+                        ? "bg-white text-purple-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                }`}
+            >
+                <Phone size={16} /> Login with OTP
+            </button>
+            <button
+                type="button"
+                onClick={() => onAuthModeChange("password")}
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
+                    authMode === "password"
+                        ? "bg-white text-purple-600 shadow-sm"
+                        : "text-gray-500 hover:text-gray-700"
+                }`}
+            >
+                <Lock size={16} /> Login with Password
+            </button>
+        </div>
+
+        {error && (
+            <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-xl mb-4"
+            >
+                {error}
+            </motion.div>
+        )}
+
+        {successMessage && (
+            <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-emerald-700 text-sm font-medium bg-emerald-50 border border-emerald-200 p-3 rounded-xl mb-4"
+            >
+                {successMessage}
+            </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
-            {step === "login" ? (
+            {authMode === "otp" ? (
+                step === "login" ? (
+                    <motion.div
+                        key="phone-step"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-5"
+                    >
+                        <h2 className="text-xl sm:text-2xl font-black text-gray-800">Enter Your Number To Continue</h2>
+                        <form onSubmit={onSendOtp} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Mobile Number
+                                </label>
+                                <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    placeholder="Enter Mobile Number To Get OTP"
+                                    value={mobile}
+                                    onChange={(e) => onMobileChange(e.target.value.replace(/\D/g, ""))}
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    maxLength={10}
+                                    required
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={mobile.length < 10 || loading}
+                                className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                    mobile.length >= 10 && !loading
+                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                                }`}
+                            >
+                                {loading ? "Sending OTP…" : "Get OTP"}
+                            </button>
+                            <div className="text-center pt-1">
+                                <p className="text-sm font-bold text-gray-400 mb-2">Are You Hiring?</p>
+                                <button
+                                    type="button"
+                                    onClick={onGoRecruiter}
+                                    className="w-full py-3 border-2 border-purple-500 text-purple-500 rounded-full font-bold hover:bg-purple-50 transition-all text-sm"
+                                >
+                                    Hire Staff
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="otp-step"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-5"
+                    >
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-black text-gray-800">Please Enter OTP</h2>
+                            <p className="text-xs font-bold text-gray-400 mt-1">
+                                OTP sent to {mobile.replace(/(\d{5})(\d{5})/, "$1*****")}
+                            </p>
+                        </div>
+
+                        <OtpInput value={otp} onChange={onOtpChange} />
+
+                        <div className="flex items-center justify-between">
+                            <button type="button" onClick={onSendOtp} className="text-xs font-bold text-purple-600 hover:underline">
+                                Resend OTP
+                            </button>
+                            <button
+                                type="button"
+                                onClick={onChangeNumber}
+                                className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                            >
+                                Change Number
+                            </button>
+                        </div>
+
+                        <button
+                            onClick={onVerifyOtp}
+                            disabled={otp.join("").length < 4 || loading}
+                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                otp.join("").length === 4 && !loading
+                                    ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                    : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                            }`}
+                        >
+                            {loading ? "Verifying…" : "Verify OTP"}
+                        </button>
+                    </motion.div>
+                )
+            ) : passwordMode === "signin" ? (
                 <motion.div
-                    key="phone-step"
+                    key="password-signin-step"
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     className="space-y-5"
                 >
-                    {error && (
-                        <div className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-xl">{error}</div>
-                    )}
-                    <h2 className="text-xl sm:text-2xl font-black text-gray-800">Enter Your Number To Continue</h2>
-                    <form onSubmit={onSendOtp} className="space-y-4">
+                    <div>
+                        <h2 className="text-xl sm:text-2xl font-black text-gray-800">Sign In With Password</h2>
+                        <p className="text-xs text-gray-400 mt-1">Welcome back! Sign in to access your jobs</p>
+                    </div>
+
+                    <form onSubmit={onPasswordLogin} className="space-y-4">
                         <div className="space-y-2">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                Mobile Number
+                                Email Address
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    value={identifier}
+                                    onChange={(e) => onIdentifierChange(e.target.value)}
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex justify-between items-center">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Password
+                                </label>
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("forgot")}
+                                    className="text-xs font-bold text-purple-600 hover:underline"
+                                >
+                                    Forgot Password?
+                                </button>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Enter your password"
+                                    value={password}
+                                    onChange={(e) => onPasswordChange(e.target.value)}
+                                    className="w-full px-5 py-4 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={onToggleShowPassword}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={!identifier || !password || loading}
+                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                identifier && password && !loading
+                                    ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                    : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                            }`}
+                        >
+                            {loading ? "Signing In…" : "Sign In"}
+                        </button>
+
+                        <div className="text-center pt-2 space-y-1.5">
+                            <p className="text-xs text-gray-500">
+                                Don't have an account yet?{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("signup")}
+                                    className="text-purple-600 font-black hover:underline"
+                                >
+                                    Create Account
+                                </button>
+                            </p>
+                            <p className="text-xs text-gray-400">
+                                Or{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => onAuthModeChange("otp")}
+                                    className="text-purple-600 font-bold hover:underline"
+                                >
+                                    Login with OTP
+                                </button>
+                            </p>
+                            <div className="pt-2">
+                                <p className="text-xs font-bold text-gray-400 mb-1.5">Are You Hiring?</p>
+                                <button
+                                    type="button"
+                                    onClick={onGoRecruiter}
+                                    className="w-full py-3 border-2 border-purple-500 text-purple-500 rounded-full font-bold hover:bg-purple-50 transition-all text-xs"
+                                >
+                                    Hire Staff
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </motion.div>
+            ) : passwordMode === "signup" ? (
+                <motion.div
+                    key="password-signup-step"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="space-y-4"
+                >
+                    <div>
+                        <h2 className="text-xl sm:text-2xl font-black text-gray-800">Create New Account</h2>
+                        <p className="text-xs text-gray-400 mt-1">Quick 10-second registration to start getting jobs</p>
+                    </div>
+
+                    <form onSubmit={onPasswordRegister} className="space-y-3.5">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Full Name *
                             </label>
                             <input
-                                type="tel"
-                                inputMode="numeric"
-                                placeholder="Enter Mobile Number To Get OTP"
-                                value={mobile}
-                                onChange={(e) => onMobileChange(e.target.value.replace(/\D/g, ""))}
-                                className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
-                                maxLength={10}
+                                type="text"
+                                placeholder="Enter your full name"
+                                value={name}
+                                onChange={(e) => onNameChange(e.target.value)}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
                                 required
                             />
                         </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Email Address *
+                            </label>
+                            <input
+                                type="email"
+                                placeholder="name@example.com"
+                                value={email}
+                                onChange={(e) => onEmailChange(e.target.value)}
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                required
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Set Password * (Min. 6 characters)
+                            </label>
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Create a strong password"
+                                    value={password}
+                                    onChange={(e) => onPasswordChange(e.target.value)}
+                                    className="w-full px-5 py-3.5 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    minLength={6}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={onToggleShowPassword}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+                        </div>
+
                         <button
                             type="submit"
-                            disabled={mobile.length < 10 || loading}
-                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${mobile.length >= 10 && !loading
+                            disabled={!name.trim() || !email.trim() || password.length < 6 || loading}
+                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm mt-2 ${
+                                name.trim() && email.trim() && password.length >= 6 && !loading
                                     ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                                }`}
+                            }`}
                         >
-                            {loading ? "Sending OTP…" : "Get OTP"}
+                            {loading ? "Creating Account…" : "Create Account & Continue"}
                         </button>
-                        <div className="text-center pt-1">
-                            <p className="text-sm font-bold text-gray-400 mb-2">Are You Hiring?</p>
-                            <button
-                                type="button"
-                                onClick={onGoRecruiter}
-                                className="w-full py-3 border-2 border-purple-500 text-purple-500 rounded-full font-bold hover:bg-purple-50 transition-all text-sm"
-                            >
-                                Hire Staff
-                            </button>
+
+                        <div className="text-center pt-2">
+                            <p className="text-xs text-gray-500">
+                                Already have an account?{" "}
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("signin")}
+                                    className="text-purple-600 font-black hover:underline"
+                                >
+                                    Sign In
+                                </button>
+                            </p>
                         </div>
                     </form>
                 </motion.div>
             ) : (
-                <motion.div
-                    key="otp-step"
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="space-y-5"
-                >
-                    {error && (
-                        <div className="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-xl">{error}</div>
-                    )}
-                    <div>
-                        <h2 className="text-xl sm:text-2xl font-black text-gray-800">Please Enter OTP</h2>
-                        <p className="text-xs font-bold text-gray-400 mt-1">
-                            OTP sent to {mobile.replace(/(\d{5})(\d{5})/, "$1*****")}
-                        </p>
-                    </div>
-
-                    {/* type="tel" + inputMode="numeric" → number keyboard on mobile */}
-                    <OtpInput value={otp} onChange={onOtpChange} />
-
-                    <div className="flex items-center justify-between">
-                        <button type="button" className="text-xs font-bold text-purple-600 hover:underline">
-                            Resend OTP
-                        </button>
-                        <button
-                            type="button"
-                            onClick={onChangeNumber}
-                            className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
-                        >
-                            Change Number
-                        </button>
-                    </div>
-
-                    <button
-                        onClick={onVerifyOtp}
-                        disabled={otp.join("").length < 4 || loading}
-                        className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${otp.join("").length === 4 && !loading
-                                ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
-                                : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                            }`}
+                forgotStep === "request" ? (
+                    <motion.div
+                        key="password-forgot-request-step"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-5"
                     >
-                        {loading ? "Verifying…" : "Verify OTP"}
-                    </button>
-                </motion.div>
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-black text-gray-800">Reset Password</h2>
+                            <p className="text-xs text-gray-400 mt-1">Enter your registered email to receive a 4-digit reset code</p>
+                        </div>
+
+                        <form onSubmit={onSendForgotCode} className="space-y-4">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    Email Address
+                                </label>
+                                <input
+                                    type="email"
+                                    placeholder="name@example.com"
+                                    value={identifier}
+                                    onChange={(e) => onIdentifierChange(e.target.value)}
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={!identifier || loading}
+                                className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                    identifier && !loading
+                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                                }`}
+                            >
+                                {loading ? "Sending Reset Code…" : "Send Reset Code"}
+                            </button>
+
+                            <div className="text-center pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("signin")}
+                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                >
+                                    ← Back to Sign In
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="password-forgot-reset-step"
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20 }}
+                        className="space-y-5"
+                    >
+                        <div>
+                            <h2 className="text-xl sm:text-2xl font-black text-gray-800">Set New Password</h2>
+                            <p className="text-xs text-gray-400 mt-1">
+                                Enter the 4-digit code sent to <span className="font-bold text-gray-700">{identifier}</span>
+                            </p>
+                        </div>
+
+                        <form onSubmit={onResetPassword} className="space-y-4">
+                            <div className="space-y-1.5">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                        4-Digit Code
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={onSendForgotCode}
+                                        className="text-xs font-bold text-purple-600 hover:underline"
+                                    >
+                                        Resend Code
+                                    </button>
+                                </div>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    maxLength={4}
+                                    placeholder="Enter 4-digit code"
+                                    value={forgotCode}
+                                    onChange={(e) => onForgotCodeChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm tracking-widest text-center font-black text-lg"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    New Password * (Min. 6 characters)
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter your new password"
+                                        value={forgotNewPassword}
+                                        onChange={(e) => onForgotNewPasswordChange(e.target.value)}
+                                        className="w-full px-5 py-3.5 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                        minLength={6}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={onToggleShowPassword}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={forgotCode.length !== 4 || forgotNewPassword.length < 6 || loading}
+                                className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm mt-2 ${
+                                    forgotCode.length === 4 && forgotNewPassword.length >= 6 && !loading
+                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                                }`}
+                            >
+                                {loading ? "Resetting Password…" : "Reset Password"}
+                            </button>
+
+                            <div className="text-center pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => onPasswordModeChange("signin")}
+                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                >
+                                    ← Back to Sign In
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                )
             )}
         </AnimatePresence>
     </div>
 );
 
-// ─── Main page ─────────────────────────────────────────────────────────────────
+// ─── Main Page ───────────────────────────────────────────────────────────────
 export default function LoginPage() {
     const router = useRouter();
+    const [authMode, setAuthMode] = useState<"otp" | "password">("otp");
+    const [passwordMode, setPasswordMode] = useState<"signin" | "signup" | "forgot">("signin");
+    const [forgotStep, setForgotStep] = useState<"request" | "reset">("request");
     const [step, setStep] = useState<"login" | "otp">("login");
     const [mobile, setMobile] = useState("");
     const [otp, setOtp] = useState(["", "", "", ""]);
+    const [identifier, setIdentifier] = useState("");
+    const [password, setPassword] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [name, setName] = useState("");
+    const [email, setEmail] = useState("");
+    const [forgotCode, setForgotCode] = useState("");
+    const [forgotNewPassword, setForgotNewPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const handleOtpChange = (newOtp: string[]) => {
         setError(null);
+        setSuccessMessage(null);
         setOtp(newOtp);
     };
 
     const handleSendOtp = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (mobile.length !== 10) { setError("Please enter a valid 10-digit mobile number"); return; }
+        if (mobile.length !== 10) {
+            setError("Please enter a valid 10-digit mobile number");
+            return;
+        }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
         try {
             await api.post("/auth/otp/send", { mobile, role: "user" });
             setStep("otp");
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Failed to send OTP");
         } finally {
             setLoading(false);
         }
@@ -163,8 +596,12 @@ export default function LoginPage() {
 
     const handleVerifyOtp = async () => {
         const otpString = otp.join("");
-        if (otpString.length !== 4) { setError("Please enter the complete 4-digit OTP"); return; }
+        if (otpString.length !== 4) {
+            setError("Please enter the complete 4-digit OTP");
+            return;
+        }
         setError(null);
+        setSuccessMessage(null);
         setLoading(true);
         try {
             const data: any = await api.post("/auth/otp/verify", { mobile, code: otpString, role: "user" });
@@ -172,7 +609,147 @@ export default function LoginPage() {
             localStorage.setItem("user", JSON.stringify(data.user));
             router.push(data.is_registered ? "/" : "/register");
         } catch (err: any) {
-            setError(err.message);
+            setError(err.message || "Invalid OTP");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePasswordLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanEmail = identifier.trim().toLowerCase();
+        const cleanPassword = password.trim();
+        if (!cleanEmail || !cleanPassword) {
+            setError("Please enter your email and password");
+            return;
+        }
+        setError(null);
+        setSuccessMessage(null);
+        setLoading(true);
+        try {
+            const data: any = await api.post("/auth/login/password", {
+                email: cleanEmail,
+                password: cleanPassword,
+                role: "user",
+            });
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            router.push(data.is_registered ? "/" : "/register");
+        } catch (err: any) {
+            setError(err.message || "Invalid email or password");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePasswordRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanName = name.trim();
+        const cleanEmail = email.trim().toLowerCase();
+        const cleanPassword = password.trim();
+
+        if (!cleanName) {
+            setError("Please enter your full name");
+            return;
+        }
+        if (!cleanEmail) {
+            setError("Please enter your email address");
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            setError("Please enter a valid email address");
+            return;
+        }
+        if (cleanPassword.length < 6) {
+            setError("Password must be at least 6 characters long");
+            return;
+        }
+        setError(null);
+        setSuccessMessage(null);
+        setLoading(true);
+        try {
+            const data: any = await api.post("/auth/register/password", {
+                name: cleanName,
+                email: cleanEmail,
+                password: cleanPassword,
+                role: "user",
+            });
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("user", JSON.stringify(data.user));
+            // Direct to profile completion wizard
+            router.push("/register");
+        } catch (err: any) {
+            setError(err.message || "Failed to create account. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSendForgotCode = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanEmail = identifier.trim().toLowerCase();
+        if (!cleanEmail) {
+            setError("Please enter your email address");
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+            setError("Please enter a valid email address");
+            return;
+        }
+        setError(null);
+        setSuccessMessage(null);
+        setLoading(true);
+        try {
+            await api.post("/auth/password/forgot", {
+                email: cleanEmail,
+                role: "user",
+            });
+            setForgotStep("reset");
+            setSuccessMessage("A 4-digit reset code has been sent to your email.");
+        } catch (err: any) {
+            setError(err.message || "Failed to send reset code. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const cleanEmail = identifier.trim().toLowerCase();
+        const cleanCode = forgotCode.trim();
+        const cleanPassword = forgotNewPassword.trim();
+
+        if (!cleanEmail) {
+            setError("Email is missing. Please start over.");
+            return;
+        }
+        if (cleanCode.length !== 4) {
+            setError("Please enter the complete 4-digit verification code");
+            return;
+        }
+        if (cleanPassword.length < 6) {
+            setError("New password must be at least 6 characters long");
+            return;
+        }
+
+        setError(null);
+        setSuccessMessage(null);
+        setLoading(true);
+        try {
+            await api.post("/auth/password/reset", {
+                email: cleanEmail,
+                code: cleanCode,
+                new_password: cleanPassword,
+                role: "user",
+            });
+            setPasswordMode("signin");
+            setForgotStep("request");
+            setForgotCode("");
+            setForgotNewPassword("");
+            setPassword("");
+            setSuccessMessage("Password reset successfully! Please sign in with your new password.");
+        } catch (err: any) {
+            setError(err.message || "Failed to reset password. Please check the code and try again.");
         } finally {
             setLoading(false);
         }
@@ -182,21 +759,90 @@ export default function LoginPage() {
         setStep("login");
         setOtp(["", "", "", ""]);
         setError(null);
+        setSuccessMessage(null);
     };
 
     const sharedProps: FormCardProps = {
-        step, mobile, otp, loading, error,
-        onMobileChange: setMobile,
+        authMode,
+        onAuthModeChange: (mode) => {
+            setError(null);
+            setSuccessMessage(null);
+            setAuthMode(mode);
+        },
+        passwordMode,
+        onPasswordModeChange: (mode) => {
+            setError(null);
+            setSuccessMessage(null);
+            setPasswordMode(mode);
+            if (mode === "signin") {
+                setForgotStep("request");
+                setForgotCode("");
+                setForgotNewPassword("");
+            }
+        },
+        forgotStep,
+        step,
+        mobile,
+        otp,
+        identifier,
+        password,
+        showPassword,
+        name,
+        email,
+        forgotCode,
+        forgotNewPassword,
+        loading,
+        error,
+        successMessage,
+        onMobileChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setMobile(val);
+        },
         onOtpChange: handleOtpChange,
+        onIdentifierChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setIdentifier(val);
+        },
+        onPasswordChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setPassword(val);
+        },
+        onToggleShowPassword: () => setShowPassword(!showPassword),
+        onNameChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setName(val);
+        },
+        onEmailChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setEmail(val);
+        },
+        onForgotCodeChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setForgotCode(val);
+        },
+        onForgotNewPasswordChange: (val) => {
+            setError(null);
+            setSuccessMessage(null);
+            setForgotNewPassword(val);
+        },
         onSendOtp: handleSendOtp,
         onVerifyOtp: handleVerifyOtp,
+        onPasswordLogin: handlePasswordLogin,
+        onPasswordRegister: handlePasswordRegister,
+        onSendForgotCode: handleSendForgotCode,
+        onResetPassword: handleResetPassword,
         onChangeNumber: handleChangeNumber,
         onGoRecruiter: () => router.push("/recruiter/login"),
     };
 
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
-
             {/* Header */}
             <header className="flex justify-between items-center px-4 sm:px-6 md:px-12 py-3 md:py-4 border-b border-gray-100 md:border-none shrink-0">
                 <div className="flex items-center gap-2">
@@ -219,7 +865,7 @@ export default function LoginPage() {
                 </div>
             </header>
 
-            {/* ── Mobile layout: form fills screen ── */}
+            {/* Mobile Layout */}
             <div className="flex md:hidden flex-1 flex-col bg-[#fdf4ff] px-4 pt-8 pb-10">
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-black leading-tight text-gray-800">
@@ -238,7 +884,7 @@ export default function LoginPage() {
                 </p>
             </div>
 
-            {/* ── Desktop layout: split card ── */}
+            {/* Desktop Layout */}
             <main className="hidden md:flex flex-1 flex-col">
                 <div className="max-w-6xl mx-auto w-full mt-10 px-6 pb-12">
                     <div className="bg-[#fdf4ff] rounded-[40px] p-10 lg:p-16 flex flex-row items-center justify-between gap-12 min-h-[500px] relative overflow-hidden">

@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"math/rand"
 	"net/smtp"
+	"regexp"
 	"slices"
+	"strings"
 	"time"
 
 	"km-backend/internal/config"
@@ -16,11 +18,15 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService interface {
 	SendOTP(ctx context.Context, mobile string, role string) error
 	VerifyOTP(ctx context.Context, mobile, code string, role string) (*VerifyOTPResponse, error)
+	LoginWithPassword(ctx context.Context, req PasswordLoginRequest) (*PasswordLoginResponse, error)
+	RegisterWithPassword(ctx context.Context, req PasswordRegisterRequest) (*PasswordLoginResponse, error)
+	SetPassword(ctx context.Context, userID string, req SetPasswordRequest) error
 	Register(ctx context.Context, userID string, req RegisterRequest) (*User, error)
 	GetProfile(ctx context.Context, userID string) (*User, error)
 	GenerateToken(user *User) (string, error)
@@ -30,6 +36,8 @@ type UserService interface {
 	AddSkill(ctx context.Context, userID string, skillName string) (*User, error)
 	SendEmailOTP(ctx context.Context, email string) error
 	VerifyEmailOTP(ctx context.Context, email, code string, userID string) error
+	ForgotPassword(ctx context.Context, req ForgotPasswordRequest) error
+	ResetPassword(ctx context.Context, req ResetPasswordRequest) error
 	GetAllUsers(ctx context.Context) ([]*User, error)
 	GetExperts(ctx context.Context) ([]*User, error)
 	SearchUsers(ctx context.Context, query string) ([]*User, error)
@@ -232,6 +240,8 @@ func (s *UserServiceImpl) GenerateToken(user *User) (string, error) {
 	claims := jwt.MapClaims{
 		"sub":    user.ID.Hex(),
 		"mobile": user.Mobile,
+		"email":  user.Email,
+		"roles":  user.Roles,
 		"exp":    time.Now().Add(time.Hour * 72).Unix(), // 3 days
 	}
 
@@ -650,3 +660,344 @@ func (s *UserServiceImpl) GetExpertRequests(ctx context.Context) ([]*User, error
 	users, _, err := s.repo.FindUsers(ctx, UserFilter{ExpertApprovalStatus: "pending"})
 	return users, err
 }
+
+var emailRegex = regexp.MustCompile(`^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`)
+
+func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLoginRequest) (*PasswordLoginResponse, error) {
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	if email == "" && req.Identifier != "" {
+		email = strings.ToLower(strings.TrimSpace(req.Identifier))
+	}
+	req.Password = strings.TrimSpace(req.Password)
+
+	if email == "" || req.Password == "" {
+		return nil, errors.New("email and password are required")
+	}
+
+	user, err := s.repo.FindUserByEmail(ctx, email)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("invalid email or password")
+	}
+
+	if user.Password == "" {
+		return nil, errors.New("No password has been set for this account. Please use the 'Login with OTP' tab above to sign in.")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+		return nil, errors.New("invalid email or password")
+	}
+
+	// Role enforcement
+	if req.Role != "" {
+		hasTargetRole := slices.Contains(user.Roles, req.Role)
+		if !hasTargetRole {
+			if req.Role == RoleRecruiter {
+				return nil, errors.New("This account is registered as a Candidate. Please sign in via the Candidate portal.")
+			} else if req.Role == RoleUser {
+				return nil, errors.New("This account is registered as a Recruiter. Please sign in via the Recruiter portal.")
+			}
+			return nil, errors.New("access denied: unauthorized role for this portal")
+		}
+	}
+
+	// Update last active
+	user.LastActiveAt = time.Now()
+	_, _ = s.repo.UpdateUser(ctx, user)
+
+	token, err := s.GenerateToken(user)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate auth token: %w", err)
+	}
+
+	return &PasswordLoginResponse{
+		Token:        token,
+		User:         user,
+		IsRegistered: user.IsRegistered,
+	}, nil
+}
+
+func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req PasswordRegisterRequest) (*PasswordLoginResponse, error) {
+	req.Name = strings.TrimSpace(req.Name)
+	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
+	req.Password = strings.TrimSpace(req.Password)
+
+	if req.Name == "" {
+		return nil, errors.New("full name is required")
+	}
+	if req.Email == "" {
+		return nil, errors.New("email address is required")
+	}
+	if !emailRegex.MatchString(req.Email) {
+		return nil, errors.New("please enter a valid email address")
+	}
+	if req.Password == "" {
+		return nil, errors.New("password is required")
+	}
+	if len(req.Password) < 6 {
+		return nil, errors.New("password must be at least 6 characters long")
+	}
+
+	existing, err := s.repo.FindUserByEmail(ctx, req.Email)
+	if err == nil && existing != nil {
+		return nil, errors.New("an account with this email already exists")
+	}
+
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	role := req.Role
+	if role == "" {
+		role = RoleUser
+	}
+
+	now := time.Now()
+	newUser := &User{
+		Name:         req.Name,
+		Email:        req.Email,
+		Password:     string(hashedBytes),
+		Roles:        []string{role},
+		IsRegistered: false,
+		CreatedAt:    now,
+		UpdatedAt:    now,
+		LastActiveAt: now,
+	}
+
+	createdUser, err := s.repo.CreateUser(ctx, newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := s.GenerateToken(createdUser)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate auth token: %w", err)
+	}
+
+	return &PasswordLoginResponse{
+		Token:        token,
+		User:         createdUser,
+		IsRegistered: createdUser.IsRegistered,
+	}, nil
+}
+
+func (s *UserServiceImpl) SetPassword(ctx context.Context, userID string, req SetPasswordRequest) error {
+	if len(req.NewPassword) < 6 {
+		return errors.New("new password must be at least 6 characters long")
+	}
+
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("user not found")
+	}
+
+	// If user already has a password and provided current password, verify it
+	if user.Password != "" && req.CurrentPassword != "" {
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.CurrentPassword)); err != nil {
+			return errors.New("incorrect current password")
+		}
+	}
+
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(req.NewPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash new password: %w", err)
+	}
+
+	return s.repo.UpdatePassword(ctx, userID, string(hashedBytes))
+}
+
+func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPasswordRequest) error {
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	if email == "" {
+		return errors.New("email address is required")
+	}
+	if !emailRegex.MatchString(email) {
+		return errors.New("please enter a valid email address")
+	}
+
+	user, err := s.repo.FindUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("no account found with this email address")
+	}
+
+	// Check if this is an OTP-only account with no password set
+	if user.Password == "" {
+		return errors.New("no password has been set for this account. Please use 'Login with OTP' to sign in.")
+	}
+
+	// Role enforcement if role provided
+	if req.Role != "" && !slices.Contains(user.Roles, req.Role) {
+		if req.Role == "recruiter" && slices.Contains(user.Roles, "user") {
+			return errors.New("This account is registered as a Candidate. Please use the Candidate portal to reset your password.")
+		}
+		if req.Role == "user" && slices.Contains(user.Roles, "recruiter") {
+			return errors.New("This account is registered as a Recruiter. Please use the Recruiter portal to reset your password.")
+		}
+		return fmt.Errorf("this account does not have the %s role", req.Role)
+	}
+
+	// Generate 4-digit OTP
+	code := fmt.Sprintf("%04d", rand.Intn(10000))
+
+	otp := &OTP{
+		Email: email,
+		Code:  code,
+	}
+
+	if err := s.repo.SaveOTP(ctx, otp); err != nil {
+		return err
+	}
+
+	fmt.Printf("Password reset OTP generated for %s: %s\n", email, code)
+
+	// Send live email via SMTP if credentials are configured
+	if s.config.SMTPUsername != "" && s.config.SMTPPassword != "" {
+		subject := "KaamMilega Password Reset Code"
+		htmlBody := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%%%%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 16px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%%%%" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(91, 33, 104, 0.08);">
+          <tr>
+            <td style="background-color: #5b2168; height: 6px;"></td>
+          </tr>
+          <tr>
+            <td style="padding: 32px 32px 24px 32px; text-align: center; background-color: #ffffff;">
+              <table role="presentation" align="center" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                    <div style="display: inline-block; background-color: #5b2168; color: #ffffff; font-size: 18px; font-weight: 900; width: 44px; height: 44px; line-height: 44px; border-radius: 12px; text-align: center; letter-spacing: -0.5px;">KM</div>
+                  </td>
+                </tr>
+              </table>
+              <h1 style="color: #0f172a; font-size: 22px; font-weight: 800; margin: 16px 0 4px 0; letter-spacing: -0.5px;">KaamMilega</h1>
+              <p style="color: #64748b; font-size: 13px; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Password Reset Code</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 0 32px 32px 32px; color: #334155; font-size: 15px; line-height: 1.6;">
+              <p style="margin: 0 0 16px 0;">Hello,</p>
+              <p style="margin: 0 0 24px 0; color: #475569;">We received a request to reset your password. Use the 4-digit verification code below to proceed with setting a new password:</p>
+              <table role="presentation" width="100%%%%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px 0;">
+                <tr>
+                  <td align="center" style="background-color: #faf5ff; border: 2px dashed #d8b4fe; border-radius: 16px; padding: 20px;">
+                    <div style="font-size: 38px; font-weight: 900; color: #5b2168; letter-spacing: 12px; font-family: 'Courier New', Courier, monospace; margin-left: 12px;">%s</div>
+                  </td>
+                </tr>
+              </table>
+              <table role="presentation" width="100%%%%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; border-radius: 12px; margin-bottom: 24px;">
+                <tr>
+                  <td style="padding: 12px 16px; font-size: 13px; color: #64748b;">
+                    ⏱️ <strong>Note:</strong> This reset code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 0; color: #94a3b8; font-size: 13px;">If you did not request a password reset, you can safely ignore this email.</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 12px;">
+              &copy; 2026 KaamMilega Platform. All rights reserved.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`, code)
+
+		err := sendSESEmail(
+			s.config.SMTPHost,
+			s.config.SMTPPort,
+			s.config.SMTPUsername,
+			s.config.SMTPPassword,
+			s.config.SMTPFromEmail,
+			s.config.SMTPFromName,
+			email,
+			subject,
+			htmlBody,
+		)
+		if err != nil {
+			fmt.Printf("Error sending password reset email: %v\n", err)
+			return fmt.Errorf("failed to send reset email: %w", err)
+		}
+		fmt.Printf("Successfully sent password reset email to %s\n", email)
+	}
+
+	return nil
+}
+
+func (s *UserServiceImpl) ResetPassword(ctx context.Context, req ResetPasswordRequest) error {
+	email := strings.ToLower(strings.TrimSpace(req.Email))
+	code := strings.TrimSpace(req.Code)
+	newPassword := strings.TrimSpace(req.NewPassword)
+
+	if email == "" || code == "" || newPassword == "" {
+		return errors.New("email, verification code, and new password are required")
+	}
+	if len(code) != 4 {
+		return errors.New("please enter a valid 4-digit verification code")
+	}
+	if len(newPassword) < 6 {
+		return errors.New("new password must be at least 6 characters long")
+	}
+
+	user, err := s.repo.FindUserByEmail(ctx, email)
+	if err != nil {
+		return err
+	}
+	if user == nil {
+		return errors.New("no account found with this email address")
+	}
+
+	// Role enforcement if role provided
+	if req.Role != "" && !slices.Contains(user.Roles, req.Role) {
+		if req.Role == "recruiter" && slices.Contains(user.Roles, "user") {
+			return errors.New("This account is registered as a Candidate. Please use the Candidate portal to reset your password.")
+		}
+		if req.Role == "user" && slices.Contains(user.Roles, "recruiter") {
+			return errors.New("This account is registered as a Recruiter. Please use the Recruiter portal to reset your password.")
+		}
+		return fmt.Errorf("this account does not have the %s role", req.Role)
+	}
+
+	otp, err := s.repo.GetLatestEmailOTP(ctx, email)
+	if err != nil {
+		return err
+	}
+	if otp == nil {
+		return errors.New("verification code has expired or is invalid. Please request a new code.")
+	}
+
+	if otp.Code != code {
+		return errors.New("invalid verification code")
+	}
+
+	if err := s.repo.MarkOTPUsed(ctx, otp.ID); err != nil {
+		return err
+	}
+
+	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	return s.repo.UpdatePassword(ctx, user.ID.Hex(), string(hashedBytes))
+}
+
