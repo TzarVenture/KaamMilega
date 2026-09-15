@@ -311,6 +311,18 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 					user.EmailVerifiedAt = &now
 				}
 			}
+		case "roles":
+			if v, ok := value.([]string); ok {
+				user.Roles = v
+			} else if v, ok := value.([]interface{}); ok {
+				var strRoles []string
+				for _, item := range v {
+					if strItem, ok := item.(string); ok {
+						strRoles = append(strRoles, strItem)
+					}
+				}
+				user.Roles = strRoles
+			}
 		}
 	}
 

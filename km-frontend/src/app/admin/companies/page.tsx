@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, MoreVertical, Eye, Building2, ShieldCheck, FileCheck } from 'lucide-react';
+import { Search, Filter, Plus, MoreVertical, Eye, Building2, ShieldCheck, FileCheck, CheckCircle2, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { toast } from 'react-toastify';
 import DocumentsListModal from '@/components/modals/admin/DocumentsListModal';
 import DocumentViewerModal from '@/components/modals/admin/DocumentViewerModal';
-import api from '@/lib/axios'; // Make sure this path is correct based on your aliases
+import api from '@/lib/axios';
 
 interface Document {
     name: string;
@@ -21,6 +22,9 @@ interface RecruiterInfo {
 interface Company {
     id: string;
     name: string; // Company Name
+    gst?: string;
+    logo?: string;
+    website?: string;
     recruiter: RecruiterInfo;
     documents: Document[];
     status: string;
@@ -37,7 +41,7 @@ export default function CompaniesPage() {
 
     const [isDocsListOpen, setIsDocsListOpen] = useState(false);
     const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
-    const [selectedCompany, setSelectedCompany] = useState<Company | null>(null); // Use Company interface
+    const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
     const [selectedDoc, setSelectedDoc] = useState<any>(null);
 
     // Debounce search
@@ -59,8 +63,6 @@ export default function CompaniesPage() {
                     search: debouncedSearch
                 }
             });
-            // The API returns { data: [], total: num, page: num, limit: num }
-            // Assuming response interceptor returns `response.data` so `res` is the object directly
             if (res.data) {
                 setCompanies(res.data);
                 setTotalPages(Math.ceil(res.total / 10)); // limit is 10
@@ -75,6 +77,28 @@ export default function CompaniesPage() {
     useEffect(() => {
         fetchCompanies();
     }, [page, debouncedSearch]);
+
+    const handleUpdateStatus = async (companyId: string, newStatus: 'verified' | 'rejected') => {
+        try {
+            await api.patch(`/admin/companies/${companyId}`, { status: newStatus });
+            // Update local state immediately
+            setCompanies((prev) =>
+                prev.map((c) => (c.id === companyId ? { ...c, status: newStatus } : c))
+            );
+            if (selectedCompany && selectedCompany.id === companyId) {
+                setSelectedCompany((prev) => (prev ? { ...prev, status: newStatus } : null));
+            }
+            if (newStatus === 'verified') {
+                toast.success('Company approved & verified successfully!');
+            } else {
+                toast.info('Company verification status set to rejected.');
+            }
+        } catch (error: any) {
+            console.error('Failed to update company verification status:', error);
+            toast.error(error.response?.data?.error || 'Failed to update company status');
+            throw error;
+        }
+    };
 
     const handleAccessDocuments = (company: Company) => {
         setSelectedCompany(company);
@@ -102,9 +126,13 @@ export default function CompaniesPage() {
             <DocumentsListModal
                 isOpen={isDocsListOpen}
                 onClose={() => setIsDocsListOpen(false)}
+                companyId={selectedCompany?.id}
                 companyName={selectedCompany?.name || ''}
+                companyGst={selectedCompany?.gst}
+                status={selectedCompany?.status}
                 documents={getCompanyDocs(selectedCompany)}
                 onViewDocument={handleViewDocument}
+                onUpdateStatus={handleUpdateStatus}
             />
 
             <DocumentViewerModal
@@ -167,7 +195,7 @@ export default function CompaniesPage() {
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200"
+                        className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold hover:bg-purple-700 transition-all"
                     >
                         <Plus size={18} />
                         <span>Add Profile</span>
@@ -267,9 +295,9 @@ export default function CompaniesPage() {
                                 <button
                                     key={p}
                                     onClick={() => setPage(p)}
-                                    className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold shadow-lg transition-colors text-xs ${p === page
-                                            ? 'bg-purple-600 text-white shadow-purple-600/20'
-                                            : 'text-slate-600 hover:bg-purple-50 bg-white'
+                                    className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-colors text-xs border ${p === page
+                                            ? 'bg-purple-600 text-white border-purple-600'
+                                            : 'text-slate-600 hover:bg-purple-50 bg-white border-purple-100'
                                         }`}
                                 >
                                     {p}

@@ -145,12 +145,12 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                     />
                 </div>
 
-                <div className="flex justify-end pt-4">
+                <div className="flex justify-end pt-4 border-t border-slate-100">
                     <button
                         type="submit"
-                        className="px-8 py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-full transition-all shadow-lg shadow-purple-200 active:scale-95"
+                        className="px-8 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition-all active:scale-95"
                     >
-                        Save
+                        Save Profile Changes
                     </button>
                 </div>
             </form>

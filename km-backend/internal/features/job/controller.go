@@ -213,3 +213,40 @@ func (c *JobController) DeleteJob(ctx *fiber.Ctx) error {
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
+
+func (c *JobController) AdminUpdateJobStatus(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	var req struct {
+		Status string `json:"status"`
+	}
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if req.Status == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Status is required"})
+	}
+
+	updateReq := UpdateJobRequest{
+		Status: req.Status,
+	}
+
+	job, err := c.service.UpdateJob(ctx.Context(), id, &updateReq)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if job == nil {
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Job not found"})
+	}
+
+	return ctx.JSON(job)
+}
+
+func (c *JobController) AdminDeleteJob(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	if err := c.service.DeleteJob(ctx.Context(), id); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.SendStatus(fiber.StatusNoContent)
+}
+
