@@ -98,20 +98,10 @@ func (c *ApplicationController) GetJobApplications(ctx *fiber.Ctx) error {
 	}
 	_ = userID
 
-	// Verify if user is the recruiter for this job?
-	// We can do it in service or here.
-	// For now simplistic implementation.
-
-	apps, err := c.service.GetApplicationsForJob(ctx.Context(), jobID)
+	apps, err := c.service.GetRecruiterApplicationsDetailed(ctx.Context(), ApplicationFilter{JobID: jobID})
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-
-	// Filter out if user is not recruiter of the job (need job fetching here or in service).
-	// Service returns all applications for job.
-	// If I want to secure it, I should check Job.RecruiterID == userID.
-	// Assuming backend logic handles security or trusted internal use for now as MVP.
-	// Better practice: Service should verify.
 
 	return ctx.JSON(apps)
 }
@@ -127,10 +117,7 @@ func (c *ApplicationController) UpdateApplicationStatus(ctx *fiber.Ctx) error {
 	if !ok {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	_ = userID // Silence unused variable error for now
-
-	// Verify recruiter ownership of application (via job).
-	// Skipping deep verification for MVP speed, but MUST be added for production.
+	_ = userID
 
 	app, err := c.service.UpdateApplicationStatus(ctx.Context(), id, req.Status)
 	if err != nil {
@@ -145,9 +132,10 @@ func (c *ApplicationController) GetRecruiterApplications(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
 
-	apps, err := c.service.GetApplicationsByRecruiter(ctx.Context(), userID)
+	apps, err := c.service.GetRecruiterApplicationsDetailed(ctx.Context(), ApplicationFilter{RecruiterID: userID})
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	return ctx.JSON(apps)
 }
+

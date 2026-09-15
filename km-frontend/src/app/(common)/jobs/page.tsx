@@ -1,12 +1,15 @@
-'use client'
+'use client';
+
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import {
     ChevronDown, MapPin, Search, Phone, MessageCircle,
-    CheckCircle2, Star, Download, Globe, LogIn, ChevronRight,
-    ChevronLeft
+    CheckCircle2, Star, ChevronRight, ChevronLeft, Bookmark, BookmarkCheck,
+    Briefcase, SlidersHorizontal, Sparkles, Building2, TrendingUp, Zap, RotateCcw,
+    ArrowUpDown, Clock, Users, ArrowUpRight
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -48,35 +51,232 @@ interface JobsResponse {
 }
 
 const JOBS_PER_PAGE = 10;
-
 const JOB_TYPES = ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship'];
 
 const SALARY_RANGES = [
-    { label: 'All', value: 'all' },
-    { label: 'More Than ₹ 5000', value: '5000' },
-    { label: 'More Than ₹ 10000', value: '10000' },
-    { label: 'More Than ₹ 20000', value: '20000' },
-    { label: 'More Than ₹ 30000', value: '30000' },
+    { label: 'All Salaries', value: 'all' },
+    { label: '₹ 5,000+ / mo', value: '5000' },
+    { label: '₹ 10,000+ / mo', value: '10000' },
+    { label: '₹ 20,000+ / mo', value: '20000' },
+    { label: '₹ 30,000+ / mo', value: '30000' },
 ];
 
 const EXPERIENCE_LEVELS = [
-    { label: 'All', value: 'all' },
-    { label: 'Fresher', value: '0' },
+    { label: 'All Levels', value: 'all' },
+    { label: 'Fresher (0 yrs)', value: '0' },
     { label: '1 Year', value: '1' },
-    { label: '2-4 Years', value: '4' },
-    { label: '5 Years', value: '5' },
-    { label: '> 5 Years', value: '30' },
+    { label: '2 - 4 Years', value: '4' },
+    { label: '5+ Years', value: '5' },
 ];
 
 const GENDER_OPTIONS = ['Male', 'Female'];
+const QUALIFICATION_OPTIONS = ['10th Pass', '12th Pass', 'Diploma', 'Graduation', 'Post Graduation'];
+const POPULAR_SEARCH_SUGGESTIONS = ['Software Engineer', 'Sales Executive', 'Driver', 'Delivery Representative', 'Telecaller', 'Accountant'];
 
-const QUALIFICATION_OPTIONS = [
-    '10th Pass',
-    '12th Pass',
-    'Diploma',
-    'Graduation',
-    'Post Graduation'
-];
+// --- Shimmer Skeleton Loader ---
+const JobCardSkeleton = () => (
+    <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/70 shadow-sm space-y-4">
+        <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4 flex-1">
+                <div className="w-12 h-12 rounded-2xl animate-shimmer shrink-0" />
+                <div className="space-y-2 flex-1">
+                    <div className="h-5 bg-slate-200 rounded-lg w-2/3 animate-shimmer" />
+                    <div className="h-3 bg-slate-100 rounded-md w-1/3 animate-shimmer" />
+                </div>
+            </div>
+            <div className="w-8 h-8 rounded-full animate-shimmer shrink-0" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div className="h-12 rounded-2xl animate-shimmer" />
+            <div className="h-12 rounded-2xl animate-shimmer" />
+        </div>
+        <div className="flex items-center gap-2 pt-2">
+            <div className="h-6 w-16 rounded-full animate-shimmer" />
+            <div className="h-6 w-20 rounded-full animate-shimmer" />
+            <div className="h-6 w-24 rounded-full animate-shimmer" />
+        </div>
+    </div>
+);
+
+// --- Top-Level Sub-Component for Filter Panel ---
+const FilterPanelContent = ({
+    filters,
+    handleFilterChange,
+    setFilters,
+    activeFilterCount,
+    handlePageChange
+}: {
+    filters: FilterState;
+    handleFilterChange: (category: keyof FilterState, value: string, isCheckbox?: boolean) => void;
+    setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
+    activeFilterCount: number;
+    handlePageChange: (page: number) => void;
+}) => (
+    <div className="space-y-5">
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
+                <h2 className="text-xs font-black text-slate-900 uppercase tracking-wider">Refine Filters</h2>
+            </div>
+            {activeFilterCount > 0 && (
+                <span className="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[11px] font-bold border border-indigo-100">
+                    {activeFilterCount} Active
+                </span>
+            )}
+        </div>
+
+        <FilterAccordion title="Job Type" defaultOpen={true}>
+            <div className="space-y-1.5 pt-2">
+                {JOB_TYPES.map(type => {
+                    const isSelected = filters.jobType.includes(type);
+                    return (
+                        <label
+                            key={type}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs font-semibold ${
+                                isSelected
+                                    ? 'bg-indigo-50/80 border-indigo-200 text-indigo-900 font-bold'
+                                    : 'border-transparent hover:bg-slate-50 text-slate-600'
+                            }`}
+                        >
+                            <span>{type}</span>
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleFilterChange('jobType', type)}
+                                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                        </label>
+                    );
+                })}
+            </div>
+        </FilterAccordion>
+
+        <FilterAccordion title="Monthly Salary" defaultOpen={true}>
+            <div className="space-y-1.5 pt-2">
+                {SALARY_RANGES.map(range => {
+                    const isSelected = filters.salaryRange === range.value;
+                    return (
+                        <label
+                            key={range.value}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs font-semibold ${
+                                isSelected
+                                    ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900 font-bold'
+                                    : 'border-transparent hover:bg-slate-50 text-slate-600'
+                            }`}
+                        >
+                            <span>{range.label}</span>
+                            <input
+                                type="radio"
+                                name="salaryRange"
+                                checked={isSelected}
+                                onChange={() => handleFilterChange('salaryRange', range.value, false)}
+                                className="w-4 h-4 border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                            />
+                        </label>
+                    );
+                })}
+            </div>
+        </FilterAccordion>
+
+        <FilterAccordion title="Experience Required" defaultOpen={false}>
+            <div className="space-y-1.5 pt-2">
+                {EXPERIENCE_LEVELS.map(exp => {
+                    const isSelected = filters.experience === exp.value;
+                    return (
+                        <label
+                            key={exp.value}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs font-semibold ${
+                                isSelected
+                                    ? 'bg-indigo-50/80 border-indigo-200 text-indigo-900 font-bold'
+                                    : 'border-transparent hover:bg-slate-50 text-slate-600'
+                            }`}
+                        >
+                            <span>{exp.label}</span>
+                            <input
+                                type="radio"
+                                name="experience"
+                                checked={isSelected}
+                                onChange={() => handleFilterChange('experience', exp.value, false)}
+                                className="w-4 h-4 border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                        </label>
+                    );
+                })}
+            </div>
+        </FilterAccordion>
+
+        <FilterAccordion title="Gender Preference" defaultOpen={false}>
+            <div className="space-y-1.5 pt-2">
+                {GENDER_OPTIONS.map(g => {
+                    const isSelected = filters.gender.includes(g);
+                    return (
+                        <label
+                            key={g}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs font-semibold ${
+                                isSelected
+                                    ? 'bg-indigo-50/80 border-indigo-200 text-indigo-900 font-bold'
+                                    : 'border-transparent hover:bg-slate-50 text-slate-600'
+                            }`}
+                        >
+                            <span>{g}</span>
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleFilterChange('gender', g)}
+                                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                        </label>
+                    );
+                })}
+            </div>
+        </FilterAccordion>
+
+        <FilterAccordion title="Qualification" defaultOpen={false}>
+            <div className="space-y-1.5 pt-2">
+                {QUALIFICATION_OPTIONS.map(q => {
+                    const isSelected = filters.qualification.includes(q);
+                    return (
+                        <label
+                            key={q}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs font-semibold ${
+                                isSelected
+                                    ? 'bg-indigo-50/80 border-indigo-200 text-indigo-900 font-bold'
+                                    : 'border-transparent hover:bg-slate-50 text-slate-600'
+                            }`}
+                        >
+                            <span>{q}</span>
+                            <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => handleFilterChange('qualification', q)}
+                                className="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                            />
+                        </label>
+                    );
+                })}
+            </div>
+        </FilterAccordion>
+
+        {activeFilterCount > 0 && (
+            <button
+                onClick={() => {
+                    setFilters({
+                        jobType: [],
+                        jobRole: [],
+                        salaryRange: "all",
+                        experience: "all",
+                        gender: [],
+                        qualification: []
+                    });
+                    handlePageChange(1);
+                }}
+                className="w-full mt-4 py-2.5 border border-indigo-200 bg-indigo-50/50 text-indigo-700 rounded-2xl text-xs font-black hover:bg-indigo-600 hover:text-white hover:border-indigo-600 transition-all flex items-center justify-center gap-2 uppercase tracking-wider"
+            >
+                <RotateCcw size={14} /> Clear All Filters
+            </button>
+        )}
+    </div>
+);
 
 const JobsPageContent = () => {
     const searchParams = useSearchParams();
@@ -88,8 +288,9 @@ const JobsPageContent = () => {
     const [applyingId, setApplyingId] = useState<string | null>(null);
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
+    const [bookmarkedJobIds, setBookmarkedJobIds] = useState<Set<string>>(new Set());
+    const [sortBy, setSortBy] = useState<"newest" | "salary" | "openings">("newest");
 
-    // Filters from UI
     const [filters, setFilters] = useState<FilterState>({
         jobType: [],
         jobRole: [],
@@ -114,26 +315,23 @@ const JobsPageContent = () => {
             if (searchTerm) params.search = searchTerm;
             if (cityFilter !== 'All') params.city_ids = cityFilter;
 
-            // Map UI filters to API params
-
-            if (filters.jobType.length > 0) {
-                params.job_types = filters.jobType.join(',');
-            }
-            if (filters.salaryRange && filters.salaryRange !== 'all') {
-                params.salary_min = parseInt(filters.salaryRange);
-            }
-            if (filters.experience && filters.experience !== 'all') {
-                params.experience_max = parseInt(filters.experience);
-            }
-            if (filters.gender.length > 0) {
-                params.genders = filters.gender.join(',');
-            }
-            if (filters.qualification.length > 0) {
-                params.education = filters.qualification.join(',');
-            }
+            if (filters.jobType.length > 0) params.job_types = filters.jobType.join(',');
+            if (filters.salaryRange && filters.salaryRange !== 'all') params.salary_min = parseInt(filters.salaryRange);
+            if (filters.experience && filters.experience !== 'all') params.experience_max = parseInt(filters.experience);
+            if (filters.gender.length > 0) params.genders = filters.gender.join(',');
+            if (filters.qualification.length > 0) params.education = filters.qualification.join(',');
 
             const res = await api.get('/jobs', { params }) as unknown as JobsResponse;
-            setJobs(res.jobs || []);
+            let fetchedJobs = res.jobs || [];
+
+            // Client-side Sorting
+            if (sortBy === 'salary') {
+                fetchedJobs = [...fetchedJobs].sort((a, b) => b.salary_max - a.salary_max);
+            } else if (sortBy === 'openings') {
+                fetchedJobs = [...fetchedJobs].sort((a, b) => (b.vacancies || 0) - (a.vacancies || 0));
+            }
+
+            setJobs(fetchedJobs);
             setTotalJobs(res.total || 0);
         } catch (error) {
             console.error("Failed to fetch jobs", error);
@@ -141,7 +339,7 @@ const JobsPageContent = () => {
         } finally {
             setLoading(false);
         }
-    }, [searchTerm, cityFilter, currentPage, filters]);
+    }, [searchTerm, cityFilter, currentPage, filters, sortBy]);
 
     useEffect(() => {
         fetchJobs();
@@ -150,10 +348,13 @@ const JobsPageContent = () => {
     useEffect(() => {
         const fetchUserAndApplications = async () => {
             try {
-                const userData = await api.get('/user/profile').catch(() => null);
+                const userData: any = await api.get('/user/profile').catch(() => null);
                 setUser(userData);
 
                 if (userData) {
+                    if (Array.isArray(userData.bookmarked_jobs)) {
+                        setBookmarkedJobIds(new Set(userData.bookmarked_jobs));
+                    }
                     try {
                         const myApps = await api.get('/applications/my') as any[];
                         if (Array.isArray(myApps)) {
@@ -163,13 +364,52 @@ const JobsPageContent = () => {
                             setAppliedJobIds(ids);
                         }
                     } catch {
-                        // Gracefully ignore
+                        // Ignore
                     }
                 }
             } catch { }
         };
         fetchUserAndApplications();
     }, []);
+
+    const handleToggleBookmark = async (jobId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (!user) {
+            toast.info("Please login to save jobs");
+            return;
+        }
+
+        const isBookmarked = bookmarkedJobIds.has(jobId);
+        setBookmarkedJobIds(prev => {
+            const next = new Set(prev);
+            if (isBookmarked) {
+                next.delete(jobId);
+            } else {
+                next.add(jobId);
+            }
+            return next;
+        });
+
+        try {
+            const res: any = await api.post(`/user/bookmark/${jobId}`).catch(() => api.post(`/user/bookmarks/${jobId}`));
+            if (res?.bookmarked_jobs && Array.isArray(res.bookmarked_jobs)) {
+                setBookmarkedJobIds(new Set(res.bookmarked_jobs));
+            }
+            toast.success(isBookmarked ? "Job removed from saved items" : "Job saved to your bookmarks!");
+        } catch (error) {
+            setBookmarkedJobIds(prev => {
+                const next = new Set(prev);
+                if (isBookmarked) {
+                    next.add(jobId);
+                } else {
+                    next.delete(jobId);
+                }
+                return next;
+            });
+            toast.error("Failed to update saved job");
+        }
+    };
 
     const handleApply = async (jobId: string) => {
         if (!user) {
@@ -218,10 +458,6 @@ const JobsPageContent = () => {
         } else {
             setFilters(prev => ({ ...prev, [category]: value }));
         }
-        // Reset to page 1 on filter change
-        const params = new URLSearchParams(searchParams.toString());
-        params.set('page', '1');
-        router.push(`/jobs?${params.toString()}`);
     };
 
     const handlePageChange = (newPage: number) => {
@@ -232,119 +468,15 @@ const JobsPageContent = () => {
     };
 
     const totalPages = Math.ceil(totalJobs / JOBS_PER_PAGE);
-
     const activeFilterCount = filters.jobType.length + filters.jobRole.length +
         (filters.salaryRange !== 'all' ? 1 : 0) + (filters.experience !== 'all' ? 1 : 0) +
         filters.gender.length + filters.qualification.length;
 
-    const FilterPanelContent = () => (
-        <>
-            <h2 className="text-lg font-bold mb-6">Filters ({activeFilterCount})</h2>
-
-            <FilterAccordion title="Job Type" defaultOpen={false}>
-                                <div className="space-y-3 pt-2">
-                                    {JOB_TYPES.map(type => (
-                                        <label key={type} className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={filters.jobType.includes(type)}
-                                                onChange={() => handleFilterChange('jobType', type)}
-                                                className="w-4 h-4 rounded border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6]"
-                                            />
-                                            <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">{type}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </FilterAccordion>
-
-                            <FilterAccordion title="Monthly Salary" defaultOpen={true}>
-                                <div className="space-y-3 pt-2">
-                                    {SALARY_RANGES.map(sal => (
-                                        <label key={sal.value} className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="radio"
-                                                name="salary"
-                                                checked={filters.salaryRange === sal.value}
-                                                onChange={() => handleFilterChange('salaryRange', sal.value, false)}
-                                                className="w-4 h-4 border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6]"
-                                            />
-                                            <span className="text-sm text-gray-600 group-hover:text-gray-900">{sal.label}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </FilterAccordion>
-
-                            <FilterAccordion title="Experience" defaultOpen={true}>
-                                <div className="space-y-3 pt-2">
-                                    {EXPERIENCE_LEVELS.map(exp => (
-                                        <label key={exp.value} className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="radio"
-                                                name="experience"
-                                                checked={filters.experience === exp.value}
-                                                onChange={() => handleFilterChange('experience', exp.value, false)}
-                                                className="w-4 h-4 border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6]"
-                                            />
-                                            <span className="text-sm text-gray-600 group-hover:text-gray-900">{exp.label}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </FilterAccordion>
-
-                            <FilterAccordion title="Gender" defaultOpen={false}>
-                                <div className="space-y-3 pt-2">
-                                    {GENDER_OPTIONS.map(g => (
-                                        <label key={g} className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={filters.gender.includes(g)}
-                                                onChange={() => handleFilterChange('gender', g)}
-                                                className="w-4 h-4 rounded border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6]"
-                                            />
-                                            <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">{g}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </FilterAccordion>
-
-                            <FilterAccordion title="Qualification" defaultOpen={false}>
-                                <div className="space-y-3 pt-2">
-                                    {QUALIFICATION_OPTIONS.map(q => (
-                                        <label key={q} className="flex items-center gap-3 cursor-pointer group">
-                                            <input
-                                                type="checkbox"
-                                                checked={filters.qualification.includes(q)}
-                                                onChange={() => handleFilterChange('qualification', q)}
-                                                className="w-4 h-4 rounded border-gray-300 text-[#8B5CF6] focus:ring-[#8B5CF6]"
-                                            />
-                                            <span className="text-sm text-gray-600 group-hover:text-gray-900 transition-colors">{q}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </FilterAccordion>
-
-            <button
-                onClick={() => {
-                    setFilters({
-                        jobType: [],
-                        jobRole: [],
-                        salaryRange: "all",
-                        experience: "all",
-                        gender: [],
-                        qualification: []
-                    });
-                    handlePageChange(1);
-                }}
-                className="w-full mt-8 py-2.5 border border-[#8B5CF6] text-[#8B5CF6] rounded-full text-sm font-bold hover:bg-[#8B5CF6] hover:text-white transition-all"
-            >
-                Clear All
-            </button>
-        </>
-    );
-
     return (
-        <div className="bg-[#FBFBFF] min-h-screen font-sans text-[#1A1A1A]">
-            {/* ── Mobile Filter Drawer ── */}
+        <div className="bg-[#F8FAFC] min-h-screen font-sans text-slate-900 pb-20">
+            <ToastContainer />
+
+            {/* Mobile Filter Drawer */}
             <AnimatePresence>
                 {isMobileFilterOpen && (
                     <>
@@ -353,7 +485,7 @@ const JobsPageContent = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsMobileFilterOpen(false)}
-                            className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+                            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 lg:hidden"
                         />
                         <motion.div
                             initial={{ x: '-100%' }}
@@ -362,93 +494,171 @@ const JobsPageContent = () => {
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                             className="fixed inset-y-0 left-0 w-80 max-w-[90vw] bg-white z-50 shadow-2xl flex flex-col lg:hidden"
                         >
-                            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                                <h2 className="text-lg font-bold">Filters</h2>
-                                <button onClick={() => setIsMobileFilterOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                                <h2 className="text-base font-black text-slate-900">Filters</h2>
+                                <button onClick={() => setIsMobileFilterOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
                                     <ChevronLeft size={20} />
                                 </button>
                             </div>
                             <div className="flex-1 overflow-y-auto p-6">
-                                <FilterPanelContent />
+                                <FilterPanelContent
+                                    filters={filters}
+                                    handleFilterChange={handleFilterChange}
+                                    setFilters={setFilters}
+                                    activeFilterCount={activeFilterCount}
+                                    handlePageChange={handlePageChange}
+                                />
                             </div>
                         </motion.div>
                     </>
                 )}
             </AnimatePresence>
 
-            <div className="max-w-7xl mx-auto py-6 sm:py-8 px-4 sm:px-6 md:px-12">
-                <div className="flex gap-8 lg:gap-10">
-                    {/* ── Desktop Sidebar Filter ── */}
+            <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 md:px-12">
+                
+                {/* HERO BANNER */}
+                <div className="mb-10 bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-10 text-white shadow-2xl shadow-indigo-950/20 relative overflow-hidden border border-slate-800">
+                    <div className="absolute -right-16 -top-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute left-1/3 -bottom-16 w-60 h-60 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                    <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                        <div className="max-w-2xl">
+                            <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 backdrop-blur-md text-indigo-200 text-xs font-bold px-3.5 py-1.5 rounded-full mb-4">
+                                <Sparkles size={14} className="text-amber-400" />
+                                <span>Verified Indian Employment Portal</span>
+                            </div>
+                            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
+                                Find Jobs & Connect Direct
+                            </h1>
+                            <p className="text-slate-300 text-xs sm:text-sm mt-2 font-medium">
+                                Direct candidate-to-recruiter hiring with 1-click apply and real-time interview management.
+                            </p>
+
+                            <div className="flex flex-wrap gap-4 mt-6 text-xs text-slate-300 font-semibold">
+                                <span className="flex items-center gap-1.5"><TrendingUp size={14} className="text-emerald-400" /> 1,250+ Active Listings</span>
+                                <span className="flex items-center gap-1.5"><Building2 size={14} className="text-indigo-400" /> 450+ Verified Companies</span>
+                                <span className="flex items-center gap-1.5"><Zap size={14} className="text-amber-400" /> Instant Application</span>
+                            </div>
+                        </div>
+
+                        <div className="relative z-10 shrink-0">
+                            <Link
+                                href="/jobs/saved"
+                                className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl text-xs font-bold text-white transition-all shadow-lg hover:scale-[1.02]"
+                            >
+                                <BookmarkCheck size={18} className="text-amber-400 fill-amber-400" />
+                                <span>Saved Jobs ({bookmarkedJobIds.size})</span>
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex gap-8 lg:gap-10 items-start">
+                    {/* DESKTOP SIDEBAR FILTER */}
                     <aside className="hidden lg:block w-72 shrink-0">
-                        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-50 sticky top-24">
-                            <FilterPanelContent />
+                        <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200/80 sticky top-24">
+                            <FilterPanelContent
+                                filters={filters}
+                                handleFilterChange={handleFilterChange}
+                                setFilters={setFilters}
+                                activeFilterCount={activeFilterCount}
+                                handlePageChange={handlePageChange}
+                            />
                         </div>
                     </aside>
 
-                    {/* ── Main Content ── */}
+                    {/* MAIN JOB LISTING AREA */}
                     <div className="flex-1 min-w-0">
-                        <div className="mb-4 sm:mb-6 flex items-center justify-between gap-4">
+                        {/* Status & Sorting Control Bar */}
+                        <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
                             <div>
-                                <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                                    Showing <span className="text-[#A855F7]">{loading ? '...' : totalJobs} Jobs</span>
-                                </h1>
+                                <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
+                                    Showing <span className="text-indigo-600 font-black">{loading ? '...' : totalJobs} Available Positions</span>
+                                </h2>
                                 {(searchTerm || cityFilter !== 'All') && (
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Results for {searchTerm && <span className="font-bold">"{searchTerm}"</span>}
+                                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                                        Filtered by {searchTerm && <span className="font-bold text-slate-900">"{searchTerm}"</span>}
                                         {searchTerm && cityFilter !== 'All' && ' in '}
-                                        {cityFilter !== 'All' && <span className="font-bold">{cityFilter}</span>}
+                                        {cityFilter !== 'All' && <span className="font-bold text-slate-900">{cityFilter}</span>}
                                     </p>
                                 )}
                             </div>
-                            {/* Mobile filter toggle */}
-                            <button
-                                onClick={() => setIsMobileFilterOpen(true)}
-                                className="lg:hidden flex items-center gap-2 px-4 py-2 bg-white border border-[#8B5CF6] text-[#8B5CF6] rounded-full text-xs font-bold shadow-md hover:bg-[#F5F3FF] transition-all active:scale-95 shrink-0"
-                            >
-                                <Search size={14} /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-                            </button>
-                        </div>
 
-                        {/* Top Match Summary Card */}
-                        <div className="bg-[#FFFDF2] border border-[#FDE68A] rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                            <div className="w-10 h-10 bg-[#FBBF24] rounded-lg flex items-center justify-center text-white shrink-0">
-                                <Star size={20} fill="currentColor" />
-                            </div>
-                            <div className="flex-1">
-                                <h3 className="font-bold text-gray-900 text-sm sm:text-base">Top Match Jobs For You</h3>
-                                <div className="flex flex-wrap gap-x-4 gap-y-2 mt-2 sm:mt-1">
-                                    <span className="text-[10px] sm:text-[11px] text-gray-500 font-medium flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Near You</span>
-                                    <span className="text-[10px] sm:text-[11px] text-gray-500 font-medium flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Good Salary</span>
-                                    <span className="text-[10px] sm:text-[11px] text-gray-500 font-medium flex items-center gap-1"><CheckCircle2 size={12} className="text-green-500" /> Matching Experience</span>
+                            <div className="flex items-center gap-3">
+                                {/* Sorting Control */}
+                                <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700">
+                                    <ArrowUpDown size={14} className="text-indigo-600" />
+                                    <span>Sort:</span>
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e: any) => setSortBy(e.target.value)}
+                                        className="bg-transparent outline-none font-bold text-slate-900 cursor-pointer"
+                                    >
+                                        <option value="newest">Newest First</option>
+                                        <option value="salary">Highest Salary</option>
+                                        <option value="openings">Most Vacancies</option>
+                                    </select>
                                 </div>
+
+                                {/* Mobile filter button */}
+                                <button
+                                    onClick={() => setIsMobileFilterOpen(true)}
+                                    className="lg:hidden flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-2xl text-xs font-bold shadow-sm hover:bg-indigo-100 transition-all shrink-0"
+                                >
+                                    <SlidersHorizontal size={14} /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+                                </button>
                             </div>
                         </div>
 
-                        {/* JobList */}
-                        <div className="space-y-1">
+                        {/* Job List Container */}
+                        <div className="space-y-4">
                             {loading ? (
-                                <div className="space-y-6">
-                                    {[1, 2, 3].map(n => <div key={n} className="h-48 bg-gray-100 rounded-3xl animate-pulse" />)}
+                                <div className="space-y-4">
+                                    {[1, 2, 3].map(n => <JobCardSkeleton key={n} />)}
                                 </div>
                             ) : jobs.length === 0 ? (
-                                <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
-                                    <Search className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                                    <h3 className="text-lg font-bold text-gray-900">No jobs found</h3>
-                                    <p className="text-gray-500">Try adjusting your search or filters</p>
+                                <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8 shadow-sm">
+                                    <div className="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <Search className="w-8 h-8" />
+                                    </div>
+                                    <h3 className="text-lg font-black text-slate-900">No Matching Jobs Found</h3>
+                                    <p className="text-slate-500 text-xs mt-1 max-w-sm mx-auto font-medium mb-6">
+                                        We couldn't find any active job postings matching your current search parameters.
+                                    </p>
+                                    
+                                    {/* Popular Suggestions */}
+                                    <div className="pt-4 border-t border-slate-100 max-w-md mx-auto">
+                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Popular Roles to Explore:</p>
+                                        <div className="flex flex-wrap justify-center gap-2">
+                                            {POPULAR_SEARCH_SUGGESTIONS.map((term) => (
+                                                <button
+                                                    key={term}
+                                                    onClick={() => {
+                                                        const params = new URLSearchParams(searchParams.toString());
+                                                        params.set('q', term);
+                                                        router.push(`/jobs?${params.toString()}`);
+                                                    }}
+                                                    className="px-3 py-1.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-xl text-xs font-bold transition-all border border-slate-200/60"
+                                                >
+                                                    {term}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <>
                                     {jobs.map((job, idx) => (
-                                        <React.Fragment key={job.id}>
-                                            <JobCard
-                                                job={job}
-                                                isTopMatch={currentPage === 1 && idx < 3}
-                                                onApply={() => handleApply(job.id)}
-                                                loading={applyingId === job.id}
-                                                hasApplied={appliedJobIds.has(job.id)}
-                                            />
-                                            <div className="border-t border-dashed border-gray-200 my-1 last:hidden" />
-                                        </React.Fragment>
+                                        <JobCard
+                                            key={job.id}
+                                            job={job}
+                                            isTopMatch={currentPage === 1 && idx < 3}
+                                            onApply={() => handleApply(job.id)}
+                                            loading={applyingId === job.id}
+                                            hasApplied={appliedJobIds.has(job.id)}
+                                            isBookmarked={bookmarkedJobIds.has(job.id)}
+                                            onToggleBookmark={(e) => handleToggleBookmark(job.id, e)}
+                                        />
                                     ))}
 
                                     {/* Pagination Controls */}
@@ -457,14 +667,13 @@ const JobsPageContent = () => {
                                             <button
                                                 onClick={() => handlePageChange(currentPage - 1)}
                                                 disabled={currentPage === 1}
-                                                className="p-2 rounded-full hover:bg-white border border-transparent hover:border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                                className="p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
                                             >
-                                                <ChevronLeft size={20} />
+                                                <ChevronLeft size={18} />
                                             </button>
 
                                             {[...Array(totalPages)].map((_, i) => {
                                                 const pageNum = i + 1;
-                                                // Simplified pagination: only show current, 2 neighbors, first and last
                                                 if (
                                                     pageNum === 1 ||
                                                     pageNum === totalPages ||
@@ -474,16 +683,17 @@ const JobsPageContent = () => {
                                                         <button
                                                             key={pageNum}
                                                             onClick={() => handlePageChange(pageNum)}
-                                                            className={`w-10 h-10 rounded-full font-bold text-sm transition-all ${currentPage === pageNum
-                                                                ? 'bg-[#8B5CF6] text-white shadow-lg shadow-purple-100'
-                                                                : 'text-gray-500 hover:bg-white border border-transparent hover:border-gray-200'
-                                                                }`}
+                                                            className={`w-10 h-10 rounded-2xl font-black text-xs transition-all ${
+                                                                currentPage === pageNum
+                                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 shadow-sm'
+                                                            }`}
                                                         >
                                                             {pageNum}
                                                         </button>
                                                     );
                                                 } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
-                                                    return <span key={pageNum} className="text-gray-400">...</span>;
+                                                    return <span key={pageNum} className="text-slate-400 font-bold">...</span>;
                                                 }
                                                 return null;
                                             })}
@@ -491,25 +701,14 @@ const JobsPageContent = () => {
                                             <button
                                                 onClick={() => handlePageChange(currentPage + 1)}
                                                 disabled={currentPage === totalPages}
-                                                className="p-2 rounded-full hover:bg-white border border-transparent hover:border-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                                className="p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
                                             >
-                                                <ChevronRight size={20} />
+                                                <ChevronRight size={18} />
                                             </button>
                                         </div>
                                     )}
                                 </>
                             )}
-                        </div>
-
-                        {/* Promo Banner */}
-                        <div className="mt-10 sm:mt-12 bg-[#FFFDF2] border border-[#FDE68A] rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
-                            <div className="flex-1">
-                                <h2 className="text-xl sm:text-2xl font-black text-gray-900 mb-2 leading-tight">Waiting To Get A Job?</h2>
-                                <p className="text-sm sm:text-base text-gray-500 font-bold italic">Get Faster HR Response By Applying To More Jobs Now</p>
-                            </div>
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-white rounded-full flex items-center justify-center shadow-xl shadow-yellow-100/50 shrink-0 border-4 border-white">
-                                <HandshakeIcon className="w-10 h-10 sm:w-12 sm:h-12 text-[#2D1B4E]" />
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -520,7 +719,7 @@ const JobsPageContent = () => {
 
 const JobsPage = () => {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading Jobs...</div>}>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center font-bold text-slate-500">Loading Jobs...</div>}>
             <JobsPageContent />
         </Suspense>
     );
@@ -532,13 +731,13 @@ const FilterAccordion = ({ title, children, defaultOpen = false }: { title: stri
     const [isOpen, setIsOpen] = useState(defaultOpen);
 
     return (
-        <div className="border-b border-gray-50 last:border-0 py-4">
+        <div className="border-b border-slate-100 py-3">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between w-full font-bold text-sm text-gray-800"
+                className="flex items-center justify-between w-full font-bold text-xs uppercase tracking-wider text-slate-700 hover:text-indigo-600 transition-colors"
             >
                 {title}
-                <ChevronDown size={18} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : 'text-slate-400'}`} />
             </button>
             <AnimatePresence>
                 {isOpen && (
@@ -556,113 +755,152 @@ const FilterAccordion = ({ title, children, defaultOpen = false }: { title: stri
     );
 };
 
-const JobCard = ({ job, isTopMatch, onApply, loading, hasApplied }: { job: Job, isTopMatch?: boolean, onApply: () => void, loading?: boolean, hasApplied?: boolean }) => {
+const JobCard = ({
+    job,
+    isTopMatch,
+    onApply,
+    loading,
+    hasApplied,
+    isBookmarked,
+    onToggleBookmark
+}: {
+    job: Job,
+    isTopMatch?: boolean,
+    onApply: () => void,
+    loading?: boolean,
+    hasApplied?: boolean,
+    isBookmarked?: boolean,
+    onToggleBookmark?: (e: React.MouseEvent) => void
+}) => {
+    const companyInitial = job.company ? job.company.charAt(0).toUpperCase() : 'C';
+
     return (
-        <div className="relative group">
-            <div className={`p-4 sm:p-8 bg-white transition-all ${isTopMatch ? 'rounded-t-3xl border-t border-x border-gray-50 shadow-sm' : ''}`}>
-                {isTopMatch && (
-                    <div className="inline-flex items-center gap-1.5 bg-[#FBBF24] text-white text-[10px] font-black px-2 py-1 rounded-sm mb-4 uppercase tracking-tighter shadow-sm animate-pulse-slow">
-                        <Star size={12} fill="currentColor" /> Top Match
-                    </div>
-                )}
+        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-0.5 transition-all duration-300 group relative">
+            {isTopMatch && (
+                <div className="inline-flex items-center gap-1.5 bg-linear-to-r from-amber-500 to-amber-400 text-white text-[10px] font-black px-3 py-1 rounded-full mb-4 uppercase tracking-wider shadow-sm">
+                    <Star size={12} fill="currentColor" /> Top Recommended Match
+                </div>
+            )}
 
-                <div className="flex flex-col xl:flex-row justify-between items-start gap-6">
-                    <div className="flex-1 min-w-0 w-full">
-                        <Link href={`/jobs/${job.id}`}>
-                            <h3 className="text-lg sm:text-2xl font-black text-[#1A1A1A] mb-1 group-hover:text-[#8B5CF6] transition-colors cursor-pointer hover:underline underline-offset-4 line-clamp-2">
-                                {job.title}
-                            </h3>
-                        </Link>
-                        <p className="text-gray-400 font-black text-[10px] sm:text-xs uppercase tracking-widest mb-6 flex items-center gap-2">
-                            <span>{job.company}</span>
-                            <span className="w-1 h-1 rounded-full bg-gray-300" />
-                            <span className="text-[#8B5CF6] italic">Hiring Now</span>
-                        </p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-sm">
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F5F3FF] flex items-center justify-center text-[#8B5CF6] shrink-0">
-                                    <span className="font-black text-sm">₹</span>
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">Monthly Salary</p>
-                                    <p className="font-black text-[#1A1A1A] truncate text-xs sm:text-sm">₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()}</p>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-[#F5F3FF] flex items-center justify-center text-[#8B5CF6] shrink-0">
-                                    <MapPin size={16} />
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-tighter">Location</p>
-                                    <p className="font-black text-[#1A1A1A] truncate text-xs sm:text-sm">{job.location || 'N/A'}, {job.city_name}</p>
-                                </div>
-                            </div>
+            <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
+                <div className="flex-1 min-w-0 w-full">
+                    
+                    {/* Company Logo Avatar & Job Title */}
+                    <div className="flex items-start gap-4 mb-4">
+                        <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 border border-slate-700 text-white font-black text-lg flex items-center justify-center shrink-0 shadow-sm">
+                            {companyInitial}
                         </div>
-
-                        <div className="flex flex-wrap items-center gap-2 mt-8">
-                            <span className="px-3 py-1 bg-rose-50 text-rose-600 text-[9px] font-black rounded-full uppercase italic border border-rose-100">Hot</span>
-                            <span className="px-3 py-1 bg-gray-50 text-gray-500 text-[9px] font-black rounded-md uppercase border border-gray-100">{job.job_type}</span>
-                            <span className="px-3 py-1 bg-gray-50 text-gray-500 text-[9px] font-black rounded-md uppercase border border-gray-100">{job.vacancies || 0} Openings</span>
-                            <span className="px-3 py-1 bg-blue-50 text-[#2563EB] text-[9px] font-black rounded-md uppercase flex items-center gap-1.5 border border-blue-100">
-                                <CheckCircle2 size={12} fill="currentColor" /> KM Verified
-                            </span>
+                        <div className="min-w-0 flex-1">
+                            <Link href={`/jobs/${job.id}`}>
+                                <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 cursor-pointer">
+                                    {job.title}
+                                </h3>
+                            </Link>
+                            <p className="text-slate-400 font-semibold text-xs uppercase tracking-wider mt-0.5 flex items-center gap-2">
+                                <span>{job.company}</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                                <span className="text-indigo-600 italic font-bold">Hiring Now</span>
+                            </p>
                         </div>
                     </div>
 
-                    <div className="flex flex-row xl:flex-col items-center gap-3 w-full xl:w-auto pt-4 xl:pt-0 border-t xl:border-0 border-gray-50">
-                        <button className="w-12 h-12 rounded-2xl bg-gray-50 text-gray-400 flex items-center justify-center hover:bg-[#8B5CF6] hover:text-white transition-all shadow-sm shrink-0 border border-gray-100">
-                            <Phone size={20} />
-                        </button>
-                        <button className="flex-1 xl:flex-none px-6 py-3 bg-white border-2 border-[#8B5CF6] text-[#8B5CF6] rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-[#F5F3FF] transition-all flex items-center justify-center gap-2">
-                            <MessageCircle size={18} /> Chat
-                        </button>
+                    {/* Key Metrics Chips */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs my-4">
+                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-emerald-50/60 border border-emerald-100 text-emerald-900">
+                            <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white font-black flex items-center justify-center text-xs shrink-0 shadow-xs">
+                                ₹
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[10px] text-emerald-600 font-black uppercase tracking-wider">Monthly Salary</p>
+                                <p className="font-extrabold text-xs sm:text-sm truncate">
+                                    ₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-indigo-900">
+                            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <MapPin size={16} />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-[10px] text-indigo-600 font-black uppercase tracking-wider">Location</p>
+                                <p className="font-extrabold text-xs sm:text-sm truncate">
+                                    {job.location || 'Flexible'}, {job.city_name}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Pill Tags */}
+                    <div className="flex flex-wrap items-center gap-2 mt-4">
+                        <span className="px-3 py-1 bg-rose-50 text-rose-700 text-[10px] font-bold rounded-full uppercase border border-rose-100">
+                            🔥 Hot Listing
+                        </span>
+                        <span className="px-3 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-full uppercase border border-slate-200/60">
+                            {job.job_type}
+                        </span>
+                        <span className="px-3 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-full uppercase border border-slate-200/60">
+                            {job.vacancies || 1} Openings
+                        </span>
+                        <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-full uppercase flex items-center gap-1 border border-indigo-100">
+                            <CheckCircle2 size={12} className="fill-indigo-600 text-white" /> KM Verified
+                        </span>
+                    </div>
+                </div>
+
+                {/* Right Action Column */}
+                <div className="flex flex-row lg:flex-col items-center gap-2.5 w-full lg:w-auto pt-4 lg:pt-0 border-t lg:border-0 border-slate-100">
+                    <div className="flex items-center gap-2">
                         <button
-                            onClick={onApply}
-                            disabled={loading || hasApplied}
-                            className={`flex-1 xl:flex-none px-8 py-3 rounded-2xl text-xs font-black uppercase tracking-widest transition-all italic flex items-center justify-center gap-1.5 ${
-                                hasApplied
-                                    ? 'bg-emerald-600 text-white cursor-not-allowed shadow-emerald-200'
-                                    : 'bg-[#A855F7] text-white hover:bg-[#9333EA] shadow-xl shadow-purple-200 disabled:opacity-50'
+                            onClick={onToggleBookmark}
+                            title={isBookmarked ? "Remove Bookmark" : "Save / Bookmark Job"}
+                            className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all shadow-xs shrink-0 border ${
+                                isBookmarked
+                                    ? 'bg-purple-100 text-purple-700 border-purple-300 ring-2 ring-purple-400/20'
+                                    : 'bg-slate-50 text-slate-400 hover:bg-indigo-600 hover:text-white border-slate-200'
                             }`}
                         >
-                            {loading ? (
-                                '...'
-                            ) : hasApplied ? (
-                                <>
-                                    <CheckCircle2 size={14} /> Already Applied
-                                </>
-                            ) : (
-                                'Apply Now'
-                            )}
+                            {isBookmarked ? <BookmarkCheck size={18} className="fill-purple-600 text-purple-700" /> : <Bookmark size={18} />}
+                        </button>
+                        <button
+                            title="Call Recruiter"
+                            className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all shadow-xs shrink-0 border border-slate-200 flex items-center justify-center"
+                        >
+                            <Phone size={18} />
+                        </button>
+                        <button
+                            title="Chat with Recruiter"
+                            className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all shadow-xs shrink-0 border border-slate-200 flex items-center justify-center"
+                        >
+                            <MessageCircle size={18} />
                         </button>
                     </div>
+
+                    <button
+                        onClick={onApply}
+                        disabled={loading || hasApplied}
+                        className={`w-full lg:w-44 px-6 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                            hasApplied
+                                ? 'bg-emerald-600 text-white cursor-not-allowed shadow-sm'
+                                : 'bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-200 active:scale-[0.98] disabled:opacity-50'
+                        }`}
+                    >
+                        {loading ? (
+                            '...'
+                        ) : hasApplied ? (
+                            <>
+                                <CheckCircle2 size={15} /> Applied
+                            </>
+                        ) : (
+                            <>
+                                Apply Now <ArrowUpRight size={14} />
+                            </>
+                        )}
+                    </button>
                 </div>
             </div>
         </div>
     );
 };
-
-const HandshakeIcon = ({ className }: { className?: string }) => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className={className}
-    >
-        <path d="m11 17 2 2 6-7" />
-        <path d="m18 18 2 2" />
-        <path d="m20 14 2 2" />
-        <path d="M10 10 5 7a3.3 3.3 0 0 0-5 3v9a2 2 0 0 0 2 2h14c1.1 0 2-0.9 2-2V10a2 2 0 0 0-2-2h-5.93" />
-        <path d="m12 18-2-2" />
-    </svg>
-);
 
 export default JobsPage;

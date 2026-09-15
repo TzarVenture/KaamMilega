@@ -57,9 +57,10 @@ type User struct {
 	IsConsultant     bool       `bson:"is_consultant,omitempty" json:"is_consultant,omitempty"`
 
 	// New Profile Fields
-	Education  []Education  `bson:"education,omitempty" json:"education,omitempty"`
-	Experience []Experience `bson:"experience,omitempty" json:"experience,omitempty"`
-	Skills     []string     `bson:"skills,omitempty" json:"skills,omitempty"`
+	Education      []Education  `bson:"education,omitempty" json:"education,omitempty"`
+	Experience     []Experience `bson:"experience,omitempty" json:"experience,omitempty"`
+	Skills         []string     `bson:"skills,omitempty" json:"skills,omitempty"`
+	BookmarkedJobs []string     `bson:"bookmarked_jobs,omitempty" json:"bookmarked_jobs,omitempty"`
 
 	// Recruiter / Company specific fields
 	CompanyName        string     `bson:"company_name,omitempty" json:"company_name,omitempty"`

@@ -44,6 +44,7 @@ type UserService interface {
 	ApplyForExpert(ctx context.Context, userID string, req ApplyExpertRequest) (*User, error)
 	ApproveExpert(ctx context.Context, adminID string, targetUserID string, status string) (*User, error)
 	GetExpertRequests(ctx context.Context) ([]*User, error)
+	ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error)
 }
 
 type UserServiceImpl struct {
@@ -1011,5 +1012,15 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, req ResetPasswordRe
 	}
 
 	return s.repo.UpdatePassword(ctx, user.ID.Hex(), string(hashedBytes))
+}
+
+func (s *UserServiceImpl) ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized: missing user ID")
+	}
+	if jobID == "" {
+		return nil, errors.New("job ID is required")
+	}
+	return s.repo.ToggleBookmark(ctx, userID, jobID)
 }
 

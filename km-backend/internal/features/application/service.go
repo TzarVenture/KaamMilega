@@ -4,19 +4,22 @@ import (
 	"context"
 
 	"km-backend/internal/features/job"
+	"km-backend/internal/features/user"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type ApplicationService struct {
-	repo    ApplicationRepository
-	jobRepo job.JobRepository
+	repo     ApplicationRepository
+	jobRepo  job.JobRepository
+	userRepo user.UserRepository
 }
 
-func NewApplicationService(repo ApplicationRepository, jobRepo job.JobRepository) *ApplicationService {
+func NewApplicationService(repo ApplicationRepository, jobRepo job.JobRepository, userRepo user.UserRepository) *ApplicationService {
 	return &ApplicationService{
-		repo:    repo,
-		jobRepo: jobRepo,
+		repo:     repo,
+		jobRepo:  jobRepo,
+		userRepo: userRepo,
 	}
 }
 
@@ -135,6 +138,63 @@ func (s *ApplicationService) GetApplicationsByCandidateDetailed(ctx context.Cont
 				Reviews:       "4.4K+ Reviews", // Mocked
 				StatusText:    "Resume viewed 7 week ago",
 				LastActive:    "Recruiter last active 5w ago",
+			}
+		}
+
+		details = append(details, detail)
+	}
+
+	return details, nil
+}
+
+func (s *ApplicationService) GetRecruiterApplicationsDetailed(ctx context.Context, filter ApplicationFilter) ([]ApplicationDetail, error) {
+	apps, err := s.repo.FindAll(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	details := make([]ApplicationDetail, 0, len(apps))
+	for _, app := range apps {
+		jobInfo, _ := s.jobRepo.FindByID(ctx, app.JobID.Hex())
+		var candidateInfo *CandidateInfo
+		if candidateUser, _ := s.userRepo.FindUserByID(ctx, app.CandidateID.Hex()); candidateUser != nil {
+			candidateInfo = &CandidateInfo{
+				ID:           candidateUser.ID.Hex(),
+				Name:         candidateUser.Name,
+				Email:        candidateUser.Email,
+				Mobile:       candidateUser.Mobile,
+				ProfileImage: candidateUser.ProfileImage,
+				Headline:     candidateUser.Headline,
+				City:         candidateUser.City,
+				Skills:       candidateUser.Skills,
+			}
+		}
+
+		detail := ApplicationDetail{
+			ID:          app.ID.Hex(),
+			JobID:       app.JobID.Hex(),
+			RecruiterID: app.RecruiterID.Hex(),
+			CandidateID: app.CandidateID.Hex(),
+			Status:      app.Status,
+			CoverLetter: app.CoverLetter,
+			ResumeURL:   app.ResumeURL,
+			CreatedAt:   app.CreatedAt,
+			UpdatedAt:   app.UpdatedAt,
+			Candidate:   candidateInfo,
+		}
+
+		if jobInfo != nil {
+			detail.Job = &JobInfo{
+				ID:            jobInfo.ID.Hex(),
+				Title:         jobInfo.Title,
+				Company:       jobInfo.Company,
+				Location:      jobInfo.Location,
+				CityName:      jobInfo.CityName,
+				SalaryMin:     jobInfo.SalaryMin,
+				SalaryMax:     jobInfo.SalaryMax,
+				JobType:       jobInfo.JobType,
+				ExperienceMin: jobInfo.ExperienceMin,
+				ExperienceMax: jobInfo.ExperienceMax,
 			}
 		}
 

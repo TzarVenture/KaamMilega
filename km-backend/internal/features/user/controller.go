@@ -514,3 +514,42 @@ func (ctrl *UserController) AdminUpdateUserProfile(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+func (ctrl *UserController) ToggleBookmark(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	jobID := c.Params("jobId")
+	if jobID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "jobId parameter is required"})
+	}
+
+	bookmarks, err := ctrl.service.ToggleBookmark(c.Context(), userID, jobID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":         "Bookmark updated",
+		"bookmarked_jobs": bookmarks,
+	})
+}
+
+func (ctrl *UserController) GetBookmarkedJobs(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	user, err := ctrl.service.GetProfile(c.Context(), userID)
+	if err != nil || user == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	return c.JSON(fiber.Map{
+		"bookmarked_jobs": user.BookmarkedJobs,
+	})
+}
+
+

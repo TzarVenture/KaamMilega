@@ -39,6 +39,10 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Post("/experience", api.controller.AddExperience)
 	protected.Post("/skill", api.controller.AddSkill)
 	protected.Post("/apply-expert", api.controller.ApplyForExpert)
+	protected.Post("/bookmark/:jobId", api.controller.ToggleBookmark)
+	protected.Post("/bookmarks/:jobId", api.controller.ToggleBookmark)
+	protected.Get("/bookmarks", api.controller.GetBookmarkedJobs)
+
 
 	// Admin routes (should add role middleware later)
 	admin := app.Group("/api/admin", middleware.AuthMiddleware(api.controller.config.JWTSecret))

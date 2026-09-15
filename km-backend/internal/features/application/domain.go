@@ -46,16 +46,28 @@ type ApplicationFilter struct {
 }
 
 type ApplicationDetail struct {
-	ID          string    `json:"id"`
-	JobID       string    `json:"job_id"`
-	RecruiterID string    `json:"recruiter_id"`
-	CandidateID string    `json:"candidate_id"`
-	Status      string    `json:"status"`
-	CoverLetter string    `json:"cover_letter"`
-	ResumeURL   string    `json:"resume_url"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	Job         *JobInfo  `json:"job"`
+	ID          string         `json:"id"`
+	JobID       string         `json:"job_id"`
+	RecruiterID string         `json:"recruiter_id"`
+	CandidateID string         `json:"candidate_id"`
+	Status      string         `json:"status"`
+	CoverLetter string         `json:"cover_letter"`
+	ResumeURL   string         `json:"resume_url"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+	Job         *JobInfo       `json:"job,omitempty"`
+	Candidate   *CandidateInfo `json:"candidate,omitempty"`
+}
+
+type CandidateInfo struct {
+	ID           string   `json:"id"`
+	Name         string   `json:"name"`
+	Email        string   `json:"email"`
+	Mobile       string   `json:"mobile"`
+	ProfileImage string   `json:"profile_image"`
+	Headline     string   `json:"headline"`
+	City         string   `json:"city"`
+	Skills       []string `json:"skills"`
 }
 
 type JobInfo struct {
