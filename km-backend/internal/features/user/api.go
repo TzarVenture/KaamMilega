@@ -42,6 +42,15 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Post("/bookmark/:jobId", api.controller.ToggleBookmark)
 	protected.Post("/bookmarks/:jobId", api.controller.ToggleBookmark)
 	protected.Get("/bookmarks", api.controller.GetBookmarkedJobs)
+	protected.Get("/settings", api.controller.GetSettings)
+	protected.Put("/settings", api.controller.UpdateSettings)
+	protected.Post("/settings", api.controller.UpdateSettings)
+
+	// Settings alias route group
+	settings := app.Group("/api/settings", middleware.AuthMiddleware(api.controller.config.JWTSecret))
+	settings.Get("/me", api.controller.GetSettings)
+	settings.Put("/me", api.controller.UpdateSettings)
+	settings.Post("/me", api.controller.UpdateSettings)
 
 
 	// Admin routes (should add role middleware later)

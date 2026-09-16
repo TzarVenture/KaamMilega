@@ -45,6 +45,8 @@ type UserService interface {
 	ApproveExpert(ctx context.Context, adminID string, targetUserID string, status string) (*User, error)
 	GetExpertRequests(ctx context.Context) ([]*User, error)
 	ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error)
+	GetUserSettings(ctx context.Context, userID string) (*UserSettings, error)
+	UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error)
 }
 
 type UserServiceImpl struct {
@@ -75,9 +77,10 @@ func (s *UserServiceImpl) SendOTP(ctx context.Context, mobile string, role strin
 			}
 		}
 		if !hasTargetRole {
-			if role == RoleRecruiter {
+			switch role {
+			case RoleRecruiter:
 				return errors.New("this mobile number is already registered as a user")
-			} else if role == RoleUser {
+			case RoleUser:
 				return errors.New("this mobile number is already registered as a recruiter")
 			}
 		}
@@ -707,12 +710,14 @@ func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLog
 	if req.Role != "" {
 		hasTargetRole := slices.Contains(user.Roles, req.Role)
 		if !hasTargetRole {
-			if req.Role == RoleRecruiter {
+			switch req.Role {
+			case RoleRecruiter:
 				return nil, errors.New("This account is registered as a Candidate. Please sign in via the Candidate portal.")
-			} else if req.Role == RoleUser {
+			case RoleUser:
 				return nil, errors.New("This account is registered as a Recruiter. Please sign in via the Recruiter portal.")
+			default:
+				return nil, errors.New("access denied: unauthorized role for this portal")
 			}
-			return nil, errors.New("access denied: unauthorized role for this portal")
 		}
 	}
 
@@ -1022,5 +1027,19 @@ func (s *UserServiceImpl) ToggleBookmark(ctx context.Context, userID string, job
 		return nil, errors.New("job ID is required")
 	}
 	return s.repo.ToggleBookmark(ctx, userID, jobID)
+}
+
+func (s *UserServiceImpl) GetUserSettings(ctx context.Context, userID string) (*UserSettings, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized: missing user ID")
+	}
+	return s.repo.GetUserSettings(ctx, userID)
+}
+
+func (s *UserServiceImpl) UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized: missing user ID")
+	}
+	return s.repo.UpdateUserSettings(ctx, userID, settings)
 }
 
