@@ -63,7 +63,7 @@ const FormCard = ({
     onSendForgotCode, onResetPassword,
     onChangeNumber, onGoRecruiter,
 }: FormCardProps) => (
-    <div className="w-full md:w-[450px] bg-white rounded-[28px] md:rounded-[32px] p-6 sm:p-8 md:p-10 shadow-xl shadow-purple-100/50 z-10">
+    <div className="w-full md:w-112.5 bg-white rounded-[28px] md:rounded-4xl p-6 sm:p-8 md:p-10 shadow-xl shadow-slate-200/50 border border-slate-100 z-10">
         {/* Auth Mode Switcher Tab */}
         <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
             <button
@@ -71,7 +71,7 @@ const FormCard = ({
                 onClick={() => onAuthModeChange("otp")}
                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
                     authMode === "otp"
-                        ? "bg-white text-purple-600 shadow-sm"
+                        ? "bg-white text-km-primary shadow-sm"
                         : "text-gray-500 hover:text-gray-700"
                 }`}
             >
@@ -82,7 +82,7 @@ const FormCard = ({
                 onClick={() => onAuthModeChange("password")}
                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
                     authMode === "password"
-                        ? "bg-white text-purple-600 shadow-sm"
+                        ? "bg-white text-km-primary shadow-sm"
                         : "text-gray-500 hover:text-gray-700"
                 }`}
             >
@@ -132,7 +132,7 @@ const FormCard = ({
                                     placeholder="Enter Mobile Number To Get OTP"
                                     value={mobile}
                                     onChange={(e) => onMobileChange(e.target.value.replace(/\D/g, ""))}
-                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                     maxLength={10}
                                     required
                                 />
@@ -142,7 +142,7 @@ const FormCard = ({
                                 disabled={mobile.length < 10 || loading}
                                 className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
                                     mobile.length >= 10 && !loading
-                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                         : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                                 }`}
                             >
@@ -153,7 +153,7 @@ const FormCard = ({
                                 <button
                                     type="button"
                                     onClick={onGoRecruiter}
-                                    className="w-full py-3 border-2 border-purple-500 text-purple-500 rounded-full font-bold hover:bg-purple-50 transition-all text-sm"
+                                    className="w-full py-3 border-2 border-km-primary text-km-primary rounded-full font-bold hover:bg-blue-50 transition-all text-sm"
                                 >
                                     Hire Staff
                                 </button>
@@ -178,13 +178,13 @@ const FormCard = ({
                         <OtpInput value={otp} onChange={onOtpChange} />
 
                         <div className="flex items-center justify-between">
-                            <button type="button" onClick={onSendOtp} className="text-xs font-bold text-purple-600 hover:underline">
+                            <button type="button" onClick={onSendOtp} className="text-xs font-bold text-km-primary hover:underline">
                                 Resend OTP
                             </button>
                             <button
                                 type="button"
                                 onClick={onChangeNumber}
-                                className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                className="text-xs font-bold text-gray-400 hover:text-km-primary transition-colors"
                             >
                                 Change Number
                             </button>
@@ -195,7 +195,7 @@ const FormCard = ({
                             disabled={otp.join("").length < 4 || loading}
                             className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
                                 otp.join("").length === 4 && !loading
-                                    ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                    ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                             }`}
                         >
@@ -227,7 +227,7 @@ const FormCard = ({
                                     placeholder="name@example.com"
                                     value={identifier}
                                     onChange={(e) => onIdentifierChange(e.target.value)}
-                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                     required
                                 />
                             </div>
@@ -241,7 +241,7 @@ const FormCard = ({
                                 <button
                                     type="button"
                                     onClick={() => onPasswordModeChange("forgot")}
-                                    className="text-xs font-bold text-purple-600 hover:underline"
+                                    className="text-xs font-bold text-km-primary hover:underline"
                                 >
                                     Forgot Password?
                                 </button>
@@ -252,7 +252,7 @@ const FormCard = ({
                                     placeholder="Enter your password"
                                     value={password}
                                     onChange={(e) => onPasswordChange(e.target.value)}
-                                    className="w-full px-5 py-4 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    className="w-full px-5 py-4 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                     required
                                 />
                                 <button
@@ -268,9 +268,9 @@ const FormCard = ({
                         <button
                             type="submit"
                             disabled={!identifier || !password || loading}
-                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                            className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg text-sm ${
                                 identifier && password && !loading
-                                    ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                    ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                             }`}
                         >
@@ -283,7 +283,7 @@ const FormCard = ({
                                 <button
                                     type="button"
                                     onClick={() => onPasswordModeChange("signup")}
-                                    className="text-purple-600 font-black hover:underline"
+                                    className="text-km-primary font-black hover:underline"
                                 >
                                     Create Account
                                 </button>
@@ -293,7 +293,7 @@ const FormCard = ({
                                 <button
                                     type="button"
                                     onClick={() => onAuthModeChange("otp")}
-                                    className="text-purple-600 font-bold hover:underline"
+                                    className="text-km-primary font-bold hover:underline"
                                 >
                                     Login with OTP
                                 </button>
@@ -303,7 +303,7 @@ const FormCard = ({
                                 <button
                                     type="button"
                                     onClick={onGoRecruiter}
-                                    className="w-full py-3 border-2 border-purple-500 text-purple-500 rounded-full font-bold hover:bg-purple-50 transition-all text-xs"
+                                    className="w-full py-3 border-2 border-km-primary text-km-primary rounded-xl font-bold hover:bg-blue-50 transition-all text-xs"
                                 >
                                     Hire Staff
                                 </button>
@@ -334,7 +334,7 @@ const FormCard = ({
                                 placeholder="Enter your full name"
                                 value={name}
                                 onChange={(e) => onNameChange(e.target.value)}
-                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                 required
                             />
                         </div>
@@ -348,7 +348,7 @@ const FormCard = ({
                                 placeholder="name@example.com"
                                 value={email}
                                 onChange={(e) => onEmailChange(e.target.value)}
-                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                 required
                             />
                         </div>
@@ -363,7 +363,7 @@ const FormCard = ({
                                     placeholder="Create a strong password"
                                     value={password}
                                     onChange={(e) => onPasswordChange(e.target.value)}
-                                    className="w-full px-5 py-3.5 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    className="w-full px-5 py-3.5 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                     minLength={6}
                                     required
                                 />
@@ -380,9 +380,9 @@ const FormCard = ({
                         <button
                             type="submit"
                             disabled={!name.trim() || !email.trim() || password.length < 6 || loading}
-                            className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm mt-2 ${
+                            className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg text-sm mt-2 ${
                                 name.trim() && email.trim() && password.length >= 6 && !loading
-                                    ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                    ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                             }`}
                         >
@@ -395,7 +395,7 @@ const FormCard = ({
                                 <button
                                     type="button"
                                     onClick={() => onPasswordModeChange("signin")}
-                                    className="text-purple-600 font-black hover:underline"
+                                    className="text-km-primary font-black hover:underline"
                                 >
                                     Sign In
                                 </button>
@@ -427,7 +427,7 @@ const FormCard = ({
                                     placeholder="name@example.com"
                                     value={identifier}
                                     onChange={(e) => onIdentifierChange(e.target.value)}
-                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                     required
                                 />
                             </div>
@@ -435,9 +435,9 @@ const FormCard = ({
                             <button
                                 type="submit"
                                 disabled={!identifier || loading}
-                                className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm ${
+                                className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg text-sm ${
                                     identifier && !loading
-                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                         : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                                 }`}
                             >
@@ -448,7 +448,7 @@ const FormCard = ({
                                 <button
                                     type="button"
                                     onClick={() => onPasswordModeChange("signin")}
-                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                    className="text-xs font-bold text-gray-400 hover:text-km-primary transition-colors"
                                 >
                                     ← Back to Sign In
                                 </button>
@@ -479,7 +479,7 @@ const FormCard = ({
                                     <button
                                         type="button"
                                         onClick={onSendForgotCode}
-                                        className="text-xs font-bold text-purple-600 hover:underline"
+                                        className="text-xs font-bold text-km-primary hover:underline"
                                     >
                                         Resend Code
                                     </button>
@@ -491,7 +491,7 @@ const FormCard = ({
                                     placeholder="Enter 4-digit code"
                                     value={forgotCode}
                                     onChange={(e) => onForgotCodeChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm tracking-widest text-center font-black text-lg"
+                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all tracking-widest text-center font-black text-lg"
                                     required
                                 />
                             </div>
@@ -506,7 +506,7 @@ const FormCard = ({
                                         placeholder="Enter your new password"
                                         value={forgotNewPassword}
                                         onChange={(e) => onForgotNewPasswordChange(e.target.value)}
-                                        className="w-full px-5 py-3.5 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-200 transition-all text-sm"
+                                        className="w-full px-5 py-3.5 pr-12 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                         minLength={6}
                                         required
                                     />
@@ -523,9 +523,9 @@ const FormCard = ({
                             <button
                                 type="submit"
                                 disabled={forgotCode.length !== 4 || forgotNewPassword.length < 6 || loading}
-                                className={`w-full py-4 rounded-full font-bold transition-all shadow-lg text-sm mt-2 ${
+                                className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg text-sm mt-2 ${
                                     forgotCode.length === 4 && forgotNewPassword.length >= 6 && !loading
-                                        ? "bg-purple-500 text-white hover:bg-purple-600 shadow-purple-200"
+                                        ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                         : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                                 }`}
                             >
@@ -536,7 +536,7 @@ const FormCard = ({
                                 <button
                                     type="button"
                                     onClick={() => onPasswordModeChange("signin")}
-                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                    className="text-xs font-bold text-gray-400 hover:text-km-primary transition-colors"
                                 >
                                     ← Back to Sign In
                                 </button>
@@ -856,21 +856,21 @@ export default function LoginPage() {
                     />
                 </div>
                 <div className="flex items-center gap-3 sm:gap-6 text-sm font-semibold text-gray-600">
-                    <button className="hidden sm:flex items-center gap-1 hover:text-purple-800 transition-colors">
+                    <button className="hidden sm:flex items-center gap-1 hover:text-km-primary transition-colors">
                         <Download size={16} /> Download App
                     </button>
-                    <button className="flex items-center gap-1 hover:text-purple-800 transition-colors text-xs sm:text-sm">
+                    <button className="flex items-center gap-1 hover:text-km-primary transition-colors text-xs sm:text-sm">
                         English <ChevronDown size={14} />
                     </button>
                 </div>
             </header>
 
             {/* Mobile Layout */}
-            <div className="flex md:hidden flex-1 flex-col bg-[#fdf4ff] px-4 pt-8 pb-10">
+            <div className="flex md:hidden flex-1 flex-col bg-linear-to-b from-blue-50/40 to-slate-50 px-4 pt-8 pb-10">
                 <div className="mb-6 text-center">
                     <h1 className="text-2xl font-black leading-tight text-gray-800">
-                        <span className="text-purple-500">Call</span> Or{" "}
-                        <span className="text-purple-500">Talk</span> To HR &amp; Get A Job!
+                        <span className="text-km-primary">Call</span> Or{" "}
+                        <span className="text-km-accent">Talk</span> To HR &amp; Get A Job!
                     </h1>
                     <p className="text-sm font-bold text-gray-500 mt-1">Get Local Jobs In Your City! 👉</p>
                 </div>
@@ -887,11 +887,11 @@ export default function LoginPage() {
             {/* Desktop Layout */}
             <main className="hidden md:flex flex-1 flex-col">
                 <div className="max-w-6xl mx-auto w-full mt-10 px-6 pb-12">
-                    <div className="bg-[#fdf4ff] rounded-[40px] p-10 lg:p-16 flex flex-row items-center justify-between gap-12 min-h-[500px] relative overflow-hidden">
+                    <div className="bg-linear-to-br from-blue-50/50 via-slate-50 to-orange-50/30 border border-slate-200/80 rounded-[40px] p-10 lg:p-16 flex flex-row items-center justify-between gap-12 min-h-125 relative overflow-hidden shadow-sm">
                         <div className="flex-1 space-y-6 z-10">
                             <h1 className="text-4xl lg:text-5xl font-black leading-tight text-gray-800">
-                                <span className="text-purple-500">Call</span> Or{" "}
-                                <span className="text-purple-500">Talk</span> To HR Directly &amp; Get A Job With Better Salary!
+                                <span className="text-km-primary">Call</span> Or{" "}
+                                <span className="text-km-accent">Talk</span> To HR Directly &amp; Get A Job With Better Salary!
                             </h1>
                             <p className="text-lg font-bold text-gray-500">Get Local Jobs In Your City! 👉</p>
                         </div>

@@ -1,23 +1,134 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
+  --font-inter: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --background: #F8FAFC;
-  --foreground: #0f172a;
+  --foreground: #0F172A;
+
+  /* Brand Primary: Blue #1a2b8c */
+  --km-primary: #1a2b8c;
+  --km-primary-dark: #0D1B5E;
+  --km-primary-light: #2A3FB0;
+
+  /* Brand Accent: Orange #F97316 */
+  --km-accent: #F97316;
+  --km-accent-dark: #EA580C;
+  --km-accent-light: #FB923C;
+
+  /* Surfaces & Borders */
+  --km-surface: #F8FAFC;
+  --km-surface-card: #FFFFFF;
+  --km-border: #E2E8F0;
+
+  /* Text Semantic */
+  --km-text-primary: #0F172A;
+  --km-text-secondary: #64748B;
+  --km-text-muted: #94A3B8;
+
+  /* Per-Module Identity */
+  --km-jobs: #1a2b8c;
+  --km-instant: #F97316;
+  --km-skills: #16A34A;
+  --km-mentors: #7C3AED;
+  --km-services: #EC4899;
+  --km-p2p: #0D9488;
+  --km-events: #EA580C;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@theme {
+  --color-km-primary: var(--km-primary);
+  --color-km-primary-dark: var(--km-primary-dark);
+  --color-km-primary-light: var(--km-primary-light);
+  --color-km-accent: var(--km-accent);
+  --color-km-accent-dark: var(--km-accent-dark);
+  --color-km-accent-light: var(--km-accent-light);
+  --color-km-surface: var(--km-surface);
+  --color-km-surface-card: var(--km-surface-card);
+  --color-km-border: var(--km-border);
+  --color-km-text-primary: var(--km-text-primary);
+  --color-km-text-secondary: var(--km-text-secondary);
+  --color-km-text-muted: var(--km-text-muted);
+
+  --color-km-jobs: var(--km-jobs);
+  --color-km-instant: var(--km-instant);
+  --color-km-skills: var(--km-skills);
+  --color-km-mentors: var(--km-mentors);
+  --color-km-services: var(--km-services);
+  --color-km-p2p: var(--km-p2p);
+  --color-km-events: var(--km-events);
+
+  --font-inter: var(--font-inter);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Base utility classes for consistent UI */
+.btn-primary {
+  background-color: var(--km-primary);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.15s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-primary:hover {
+  background-color: var(--km-primary-dark);
+  box-shadow: 0 4px 12px rgba(26, 43, 140, 0.2);
+}
+
+.btn-accent {
+  background-color: var(--km-accent);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.15s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-accent:hover {
+  background-color: var(--km-accent-dark);
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+
+.btn-outline {
+  border: 1.5px solid var(--km-primary);
+  color: var(--km-primary);
+  background-color: transparent;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.625rem 1.25rem;
+  transition: all 0.15s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.btn-outline:hover {
+  background-color: #EFF6FF;
+}
+
+.km-card {
+  background-color: #ffffff;
+  border: 1px solid var(--km-border);
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.km-card:hover {
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+}
 
 @keyframes shimmer {
   0% {
@@ -33,4 +144,3 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.8s infinite linear;
 }
-

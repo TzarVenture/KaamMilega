@@ -19,9 +19,9 @@ export interface Event {
 
 export const EventCard = ({ event }: { event: Event }) => {
     return (
-        <div className="flex flex-col md:flex-row gap-6 p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors group">
+        <div className="flex flex-col md:flex-row gap-6 p-4 border-b border-slate-100 hover:bg-orange-50/30 transition-colors group rounded-2xl">
             {/* Event Image Placeholder */}
-            <div className="w-full md:w-48 h-32 bg-indigo-950 rounded-lg flex items-center justify-center relative overflow-hidden flex-shrink-0">
+            <div className="w-full md:w-48 h-32 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 rounded-xl flex items-center justify-center relative overflow-hidden shrink-0 border border-slate-800">
                 {event.image_url ? (
                     <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
                 ) : (
@@ -35,16 +35,16 @@ export const EventCard = ({ event }: { event: Event }) => {
             {/* Content */}
             <div className="flex-1 flex flex-col justify-between">
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-900 leading-tight">{event.title}</h3>
-                    <p className="text-sm text-gray-500 mt-1">Event By <span className="text-purple-600 font-medium cursor-pointer">{event.organizer}</span></p>
+                    <h3 className="text-lg font-bold text-slate-900 leading-tight">{event.title}</h3>
+                    <p className="text-xs text-slate-500 font-medium mt-1">Event By <span className="text-orange-600 font-bold cursor-pointer hover:underline">{event.organizer}</span></p>
 
-                    <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-600">
+                    <div className="mt-3 flex flex-wrap gap-4 text-xs font-semibold text-slate-600">
                         <div className="flex items-center gap-1.5">
-                            <Calendar size={16} className="text-gray-400" />
+                            <Calendar size={16} className="text-orange-500" />
                             <span>{event.date}, {event.time}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <Video size={16} className="text-gray-400" />
+                            <Video size={16} className="text-orange-500" />
                             <span>{event.location}</span>
                         </div>
                     </div>
@@ -53,11 +53,11 @@ export const EventCard = ({ event }: { event: Event }) => {
 
             {/* Action */}
             <div className="flex flex-col justify-between items-end">
-                <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
-                    <MoreHorizontal size={20} className="text-gray-600" />
+                <button className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
+                    <MoreHorizontal size={20} className="text-slate-600" />
                 </button>
-                <button className="px-6 py-2 bg-white border border-purple-600 text-purple-600 font-medium rounded-lg hover:bg-purple-50 transition-all text-sm">
-                    Register
+                <button className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition-all text-xs shadow-xs">
+                    Register Now
                 </button>
             </div>
         </div>
@@ -119,36 +119,36 @@ export default function EventsPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto p-6 bg-white min-h-screen shadow-sm flex gap-8">
+        <div className="max-w-6xl mx-auto p-6 bg-white min-h-screen shadow-xs flex gap-8">
             {/* Left Column: Events */}
             <div className="flex-1 overflow-hidden">
                 <header className="mb-6">
                     <div className="flex items-center gap-4 mb-6">
-                        <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" onClick={() => router.back()}>
-                            <ArrowLeft size={20} className="text-gray-600" />
+                        <button className="p-2 hover:bg-slate-100 rounded-xl transition-colors" onClick={() => router.back()}>
+                            <ArrowLeft size={20} className="text-slate-600" />
                         </button>
-                        <h1 className="text-2xl font-bold text-gray-900">Events</h1>
+                        <h1 className="text-2xl font-black text-slate-900">Events</h1>
                     </div>
 
                     <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-                        <h2 className="text-lg font-semibold text-gray-800">{totalEvents} Events Found</h2>
+                        <h2 className="text-sm font-black text-slate-800 uppercase tracking-wider">{totalEvents} Events Found</h2>
                         <div className="relative w-full md:w-72">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                             <input
                                 type="text"
                                 placeholder="Search events..."
                                 value={searchQuery}
                                 onChange={handleSearchChange}
-                                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500"
                             />
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
                         <span>Sort by:</span>
                         <select 
                             value={sortOrder}
                             onChange={handleSortChange}
-                            className="font-semibold bg-transparent cursor-pointer outline-none hover:text-purple-600"
+                            className="font-bold bg-transparent cursor-pointer outline-none text-orange-600"
                         >
                             <option>Recently added</option>
                             <option>Upcoming</option>
@@ -157,7 +157,7 @@ export default function EventsPage() {
                 </header>
 
                 {/* Events List */}
-                <div className="space-y-2 min-h-[400px]">
+                <div className="space-y-2 min-h-100">
                     {isLoading ? (
                         <div className="flex justify-center items-center h-48 text-gray-500">
                             Loading events...
@@ -186,7 +186,7 @@ export default function EventsPage() {
             </div>
 
             {/* Right Column: Sidebar Ad */}
-            <aside className="hidden lg:block w-72 flex-shrink-0">
+            <aside className="hidden lg:block w-72 shrink-0">
                 <div className="sticky top-6 h-64 w-full bg-gray-50 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-400">
                     <span className="text-sm font-semibold uppercase tracking-widest">Ad Banner</span>
                     <p className="text-xs mt-2 px-8 text-center leading-relaxed">Promote your brand here</p>

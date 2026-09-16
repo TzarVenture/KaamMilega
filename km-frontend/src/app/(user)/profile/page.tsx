@@ -99,7 +99,7 @@ const ProfilePage = () => {
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-km-primary"></div>
             </div>
         );
     }
@@ -111,7 +111,7 @@ const ProfilePage = () => {
                     <h2 className="text-xl font-bold text-gray-700">Failed to load profile</h2>
                     <button
                         onClick={() => window.location.reload()}
-                        className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-full hover:bg-purple-700"
+                        className="mt-4 px-6 py-2.5 bg-km-primary text-white font-bold rounded-xl hover:bg-km-primary-dark shadow-sm transition-colors"
                     >
                         Retry
                     </button>
@@ -133,19 +133,19 @@ const ProfilePage = () => {
                     {/* Header Card */}
                     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
                         {/* Banner */}
-                        <div className="h-32 sm:h-48 bg-purple-200 relative group">
+                        <div className="h-32 sm:h-48 bg-linear-to-r from-km-primary-dark via-km-primary to-blue-700 relative group">
                             {user.cover_image ? (
                                 <CustomImage src={user.cover_image} alt="Cover" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                    <div className="w-24 h-24 bg-gray-400 rotate-45"></div>
+                                    <div className="w-24 h-24 bg-white/20 rotate-45"></div>
                                 </div>
                             )}
                             <button
                                 onClick={() => setModals({ ...modals, background: true })}
                                 className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-gray-50 transition-colors"
                             >
-                                <Camera size={20} className="text-purple-600" />
+                                <Camera size={20} className="text-km-primary" />
                             </button>
                         </div>
 
@@ -154,7 +154,7 @@ const ProfilePage = () => {
                             <div className="relative flex justify-between items-end -mt-12 sm:-mt-16 mb-4">
                                 <div
                                     onClick={() => setModals({ ...modals, photo: true })}
-                                    className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-900 rounded-full border-4 border-white flex items-center justify-center overflow-hidden cursor-pointer group"
+                                    className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-900 rounded-full border-4 border-white flex items-center justify-center overflow-hidden cursor-pointer group shadow-md"
                                 >
                                     {user?.profile_image ? (
                                         <CustomImage src={user?.profile_image} alt={user?.name} className="w-full h-full object-cover group-hover:opacity-80 transition-opacity" />
@@ -175,9 +175,9 @@ const ProfilePage = () => {
                             <p className="text-xs sm:text-sm text-gray-400 mt-1 flex flex-wrap gap-x-1 items-center">
                                 <span>{locationString || "Location not set"}</span>
                                 <span>•</span>
-                                <button onClick={() => setModals({ ...modals, contact: true })} className="text-purple-600 font-medium hover:underline">Contact Info</button>
+                                <button onClick={() => setModals({ ...modals, contact: true })} className="text-km-primary font-medium hover:underline">Contact Info</button>
                                 <span>•</span>
-                                <span className="text-purple-600 font-medium">{user?.connections_count || 0} Connections</span>
+                                <span className="text-km-primary font-medium">{user?.connections_count || 0} Connections</span>
                             </p>
 
                             {/* Portfolio / Website Link (LinkedIn Style) */}
@@ -235,24 +235,24 @@ const ProfilePage = () => {
                             </div>
 
                             <div className="mt-4 sm:mt-6 flex flex-wrap gap-2 sm:gap-3">
-                                <button className="bg-purple-600 text-white px-4 sm:px-6 py-2 rounded-full font-medium text-sm hover:bg-purple-700">Open To</button>
-                                <button className="border border-purple-600 text-purple-600 px-4 sm:px-6 py-2 rounded-full font-medium text-sm hover:bg-purple-50">Add Profile Section</button>
-                                <button className="border border-gray-400 text-gray-600 px-4 sm:px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-50">More</button>
+                                <button className="bg-km-primary text-white px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-km-primary-dark shadow-sm transition-colors">Open To</button>
+                                <button className="border border-km-primary text-km-primary px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors">Add Profile Section</button>
+                                <button className="border border-gray-400 text-gray-600 px-5 sm:px-6 py-2 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors">More</button>
                             </div>
 
                             {/* Status Cards */}
                             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-4 bg-purple-50 rounded-lg border border-purple-100 relative">
+                                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 relative">
                                     <Pencil size={14} className="absolute top-3 right-3 text-gray-400" />
-                                    <p className="font-semibold text-sm">Open To Work</p>
+                                    <p className="font-semibold text-sm text-slate-900">Open To Work</p>
                                     <p className="text-xs text-gray-500 line-clamp-2 mt-1">Computer Science roles, Software Engineering Internships...</p>
-                                    <button className="text-xs text-purple-600 font-bold mt-2">Read More</button>
+                                    <button className="text-xs text-km-primary font-bold mt-2 hover:underline">Read More</button>
                                 </div>
-                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 relative">
+                                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 relative">
                                     <Pencil size={14} className="absolute top-3 right-3 text-gray-400" />
-                                    <p className="font-semibold text-sm">Providing Services</p>
+                                    <p className="font-semibold text-sm text-slate-900">Providing Services</p>
                                     <p className="text-xs text-gray-500 line-clamp-2 mt-1">Web Development, Technical Writing, and Go Microservices...</p>
-                                    <button className="text-xs text-purple-600 font-bold mt-2">Read More</button>
+                                    <button className="text-xs text-km-primary font-bold mt-2 hover:underline">Read More</button>
                                 </div>
                             </div>
                         </div>
@@ -310,14 +310,14 @@ const ProfilePage = () => {
                             {user.about || "Add a summary to highlight your personality and work history."}
                         </p>
                         {user.top_skills && user.top_skills.length > 0 && (
-                            <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                            <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Diamond size={16} className="text-purple-600" />
-                                    <span className="font-bold text-sm text-purple-900">Top Skills</span>
+                                    <Diamond size={16} className="text-km-primary" />
+                                    <span className="font-bold text-sm text-km-primary">Top Skills</span>
                                 </div>
-                                <div className="flex flex-wrap gap-2 text-xs text-purple-700">
+                                <div className="flex flex-wrap gap-2 text-xs text-slate-700">
                                     {user.top_skills.map((skill: string) => (
-                                        <span key={skill} className="bg-white px-2 py-1 rounded border border-purple-200">• {skill}</span>
+                                        <span key={skill} className="bg-white px-2.5 py-1 rounded-lg border border-blue-200 font-medium">• {skill}</span>
                                     ))}
                                 </div>
                             </div>
@@ -329,10 +329,10 @@ const ProfilePage = () => {
                         <h2 className="text-xl font-bold mb-4">Jobs Based On Your Profile</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             {['Fintech', 'Internet', 'Fortune 500'].map((category) => (
-                                <div key={category} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 group cursor-pointer hover:border-purple-300 transition-colors">
+                                <div key={category} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 group cursor-pointer hover:border-km-primary transition-colors">
                                     <div className="flex justify-between items-start mb-4">
                                         <h3 className="font-bold">{category}</h3>
-                                        <ChevronRight size={18} className="text-gray-400 group-hover:text-purple-600" />
+                                        <ChevronRight size={18} className="text-gray-400 group-hover:text-km-primary" />
                                     </div>
                                     <p className="text-[10px] text-gray-400 mb-3">1.4K+ Are Actively Hiring</p>
                                     <div className="flex -space-x-2">
@@ -345,7 +345,7 @@ const ProfilePage = () => {
                                 </div>
                             ))}
                         </div>
-                        <button className="w-full text-center text-purple-600 font-bold text-sm mt-6 hover:underline">See All Jobs</button>
+                        <button className="w-full text-center text-km-primary font-bold text-sm mt-6 hover:underline">See All Jobs</button>
                     </section>
 
                     {/* Experience Section */}
@@ -355,7 +355,7 @@ const ProfilePage = () => {
                             <div className="flex gap-4">
                                 <Plus
                                     size={22}
-                                    className="text-gray-500 cursor-pointer hover:text-purple-600 transition-colors"
+                                    className="text-gray-500 cursor-pointer hover:text-km-primary transition-colors"
                                     onClick={() => setModals({ ...modals, experience: true })}
                                 />
                                 <Pencil size={18} className="text-gray-500 cursor-pointer" />
@@ -366,7 +366,7 @@ const ProfilePage = () => {
                             {user.experience && user.experience.length > 0 ? (
                                 user.experience.map((exp: any, index: number) => (
                                     <div key={index} className="flex gap-4">
-                                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center shrink-0">
+                                        <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center shrink-0">
                                             <Briefcase size={24} className="text-gray-400" />
                                         </div>
                                         <div className="space-y-2">
@@ -398,7 +398,7 @@ const ProfilePage = () => {
                             <div className="flex gap-4">
                                 <Plus
                                     size={22}
-                                    className="text-gray-500 cursor-pointer hover:text-purple-600 transition-colors"
+                                    className="text-gray-500 cursor-pointer hover:text-km-primary transition-colors"
                                     onClick={() => setModals({ ...modals, education: true })}
                                 />
                                 <Pencil size={18} className="text-gray-500 cursor-pointer" />
@@ -409,7 +409,7 @@ const ProfilePage = () => {
                             {user.education && user.education.length > 0 ? (
                                 user.education.map((edu: any, index: number) => (
                                     <div key={index} className="flex gap-4">
-                                        <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center shrink-0">
+                                        <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
                                             <GraduationCap size={24} className="text-gray-400" />
                                         </div>
                                         <div>
@@ -554,12 +554,12 @@ const ProfilePage = () => {
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-xl font-bold">Skills</h2>
                             <div className="flex items-center gap-4">
-                                <button className="text-purple-600 border border-purple-600 px-4 py-1 rounded-full text-sm font-bold hover:bg-purple-50">
+                                <button className="text-km-primary border border-km-primary px-4 py-1.5 rounded-xl text-sm font-bold hover:bg-blue-50 transition-colors">
                                     Test Skill
                                 </button>
                                 <Plus
                                     size={22}
-                                    className="text-gray-500 cursor-pointer hover:text-purple-600 transition-colors"
+                                    className="text-gray-500 cursor-pointer hover:text-km-primary transition-colors"
                                     onClick={() => setModals({ ...modals, skill: true })}
                                 />
                                 <Pencil size={18} className="text-gray-500 cursor-pointer" />
@@ -569,8 +569,8 @@ const ProfilePage = () => {
                         <div className="flex flex-wrap gap-3">
                             {user.skills && user.skills.length > 0 ? (
                                 user.skills.map((skill: string) => (
-                                    <div key={skill} className="flex items-center gap-2 px-4 py-1.5 bg-white border border-purple-200 rounded-full text-sm font-medium text-purple-700 shadow-sm">
-                                        <CheckCircle2 size={14} className="text-purple-600" />
+                                    <div key={skill} className="flex items-center gap-2 px-4 py-1.5 bg-blue-50/50 border border-blue-200 rounded-xl text-sm font-bold text-km-primary shadow-sm">
+                                        <CheckCircle2 size={14} className="text-km-primary" />
                                         {skill}
                                     </div>
                                 ))
@@ -587,12 +587,12 @@ const ProfilePage = () => {
                 <div className="lg:col-span-4 space-y-6">
 
                     {/* Wallet Card */}
-                    <div className="bg-[#2d1b36] rounded-xl p-6 text-white flex justify-between items-center shadow-lg">
+                    <div className="bg-linear-to-br from-km-primary-dark via-[#0D1B5E] to-slate-900 rounded-xl p-6 text-white flex justify-between items-center shadow-lg border border-blue-900/40">
                         <div>
                             <p className="text-sm opacity-80">Wallet Credits</p>
                             <p className="text-2xl font-bold">₹{user.wallet_balance || "0"}</p>
                         </div>
-                        <button className="bg-purple-500/30 border border-purple-400 px-4 py-2 rounded-full text-sm font-semibold hover:bg-purple-500/50 transition">
+                        <button className="bg-km-accent/20 border border-km-accent/40 text-km-accent px-4 py-2 rounded-xl text-sm font-bold hover:bg-km-accent/30 transition-colors">
                             ₹ Refill Wallet
                         </button>
                     </div>
@@ -619,7 +619,7 @@ const ProfilePage = () => {
                     {/* People Who View Section */}
                     <div className="bg-white rounded-xl p-6 border border-gray-200">
                         <h3 className="font-bold text-gray-900 mb-4 flex justify-between items-center">
-                            People Who <span className="text-purple-600">View</span>
+                            People Who <span className="text-km-primary">Viewed</span>
                         </h3>
 
                         <div className="space-y-6">
@@ -637,11 +637,11 @@ const ProfilePage = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <Link href="/chat" className="flex-1">
-                                            <button className="w-full border border-gray-300 rounded-full py-1 text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-50">
+                                            <button className="w-full border border-gray-300 rounded-xl py-1.5 text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors">
                                                 <MessageCircle size={14} /> Chat
                                             </button>
                                         </Link>
-                                        <button className="flex-1 bg-purple-600 text-white rounded-full py-1 text-sm font-medium hover:bg-purple-700">
+                                        <button className="flex-1 bg-km-primary text-white rounded-xl py-1.5 text-sm font-bold hover:bg-km-primary-dark transition-colors shadow-sm">
                                             Follow
                                         </button>
                                     </div>
@@ -652,7 +652,7 @@ const ProfilePage = () => {
 
                     {/* Our Experts Widget */}
                     <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                        <h3 className="font-bold text-gray-900 mb-4">Our <span className="text-purple-600">Experts</span></h3>
+                        <h3 className="font-bold text-gray-900 mb-4">Our <span className="text-[#7C3AED]">Experts</span></h3>
                         <div className="space-y-4">
                             {[1, 2, 3].map(i => (
                                 <div key={i} className="flex flex-col gap-2">
@@ -666,7 +666,7 @@ const ProfilePage = () => {
                                         </div>
                                     </div>
                                     <Link href="/chat">
-                                        <button className="w-full py-1 border border-purple-600 text-purple-600 rounded-full text-xs font-bold hover:bg-purple-50 flex items-center justify-center gap-1">
+                                        <button className="w-full py-1.5 border border-[#7C3AED] text-[#7C3AED] rounded-xl text-xs font-bold hover:bg-purple-50 flex items-center justify-center gap-1 transition-colors">
                                             <MessageCircle size={12} /> Chat
                                         </button>
                                     </Link>
@@ -687,7 +687,7 @@ const ProfilePage = () => {
                                     <div className="w-full">
                                         <p className="font-bold text-sm">Technova</p>
                                         <p className="text-[10px] text-gray-500">Software Solutions • IT Services</p>
-                                        <button className="mt-2 w-full py-1 bg-purple-600 text-white rounded-full text-xs font-bold hover:bg-purple-700">
+                                        <button className="mt-2 w-full py-1.5 bg-km-primary text-white rounded-xl text-xs font-bold hover:bg-km-primary-dark transition-colors shadow-sm">
                                             Follow
                                         </button>
                                     </div>

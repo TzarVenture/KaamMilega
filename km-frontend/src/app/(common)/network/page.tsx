@@ -163,10 +163,10 @@ const NetworkPage = () => {
 
                     {/* Invitations Section */}
                     {invitations.length > 0 && (
-                        <section className="bg-white rounded-xl shadow-sm p-6 overflow-hidden">
+                        <section className="bg-white rounded-2xl shadow-xs p-6 overflow-hidden border border-slate-200/80">
                             <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-lg font-bold">Invitations</h2>
-                                <button className="text-purple-600 font-medium text-sm hover:underline">See All</button>
+                                <h2 className="text-lg font-bold text-slate-900">Invitations</h2>
+                                <button className="text-km-primary font-bold text-sm hover:underline">See All</button>
                             </div>
                             <div className="space-y-4">
                                 {invitations.map((inv) => (
@@ -182,14 +182,14 @@ const NetworkPage = () => {
                     )}
 
                     {/* People You May Know (Grid) */}
-                    <section className="bg-white rounded-xl shadow-sm p-6">
+                    <section className="bg-white rounded-2xl shadow-xs p-6 border border-slate-200/80">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-lg font-bold">People You May Know</h2>
-                            <button className="text-purple-600 font-medium text-sm hover:underline">See All</button>
+                            <h2 className="text-lg font-bold text-slate-900">People You May Know</h2>
+                            <button className="text-km-primary font-bold text-sm hover:underline">See All</button>
                         </div>
                         
                         {suggestions.length === 0 ? (
-                            <p className="text-gray-500 text-sm py-8 text-center bg-gray-50 rounded-lg">No suggestions right now. Invite more people!</p>
+                            <p className="text-slate-500 text-xs py-8 text-center bg-slate-50 rounded-xl font-medium">No suggestions right now. Invite more people!</p>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                                 {suggestions.map((user) => (
@@ -213,21 +213,21 @@ const NetworkPage = () => {
 // --- Sub-Components ---
 
 const SidebarItem = ({ icon, label, count, href }: { icon: React.ReactNode, label: string, count: number, href: string }) => (
-    <Link href={href} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors">
-        <div className="flex items-center gap-3 text-gray-600">
+    <Link href={href} className="flex items-center justify-between p-2.5 hover:bg-blue-50/60 rounded-xl cursor-pointer transition-colors group">
+        <div className="flex items-center gap-3 text-slate-600 group-hover:text-km-primary">
             {icon}
-            <span className="text-sm font-medium">{label}</span>
+            <span className="text-xs font-bold">{label}</span>
         </div>
-        <span className="text-xs text-gray-400 font-semibold">{count}</span>
+        <span className="text-xs text-slate-400 font-bold group-hover:text-km-primary">{count}</span>
     </Link>
 );
 
 const InvitationRow = ({ invitation, onAccept, onIgnore }: { invitation: EnrichedInvitation, onAccept: () => void, onIgnore: () => void }) => {
     const { senderInfo } = invitation;
     return (
-        <div className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0 hover:bg-gray-50 px-2 rounded-lg transition-colors">
+        <div className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/80 px-3 rounded-xl transition-colors">
             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-purple-100 text-purple-700 font-bold rounded-full overflow-hidden flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 text-white font-bold rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-slate-700 shadow-xs">
                     {senderInfo.profile_image ? (
                         <img src={senderInfo.profile_image} alt={senderInfo.name} className="w-full h-full object-cover" />
                     ) : (
@@ -235,13 +235,13 @@ const InvitationRow = ({ invitation, onAccept, onIgnore }: { invitation: Enriche
                     )}
                 </div>
                 <div>
-                    <h4 className="font-bold text-sm text-gray-900">{senderInfo.name || 'Unknown User'}</h4>
-                    <p className="text-xs text-gray-500">{senderInfo.headline || senderInfo.roles?.[0] || 'Member'}</p>
+                    <h4 className="font-bold text-sm text-slate-900">{senderInfo.name || 'Unknown User'}</h4>
+                    <p className="text-xs text-slate-500 font-medium">{senderInfo.headline || senderInfo.roles?.[0] || 'Member'}</p>
                 </div>
             </div>
             <div className="flex items-center gap-3">
-                <button onClick={onIgnore} className="text-gray-500 text-sm font-medium hover:text-gray-800 transition-colors">Ignore</button>
-                <button onClick={onAccept} className="bg-purple-600 text-white px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-purple-700 transition-colors shadow-sm">
+                <button onClick={onIgnore} className="text-slate-500 text-xs font-bold hover:text-slate-900 transition-colors">Ignore</button>
+                <button onClick={onAccept} className="bg-km-primary hover:bg-km-primary-dark text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs">
                     Accept
                 </button>
             </div>
@@ -250,20 +250,20 @@ const InvitationRow = ({ invitation, onAccept, onIgnore }: { invitation: Enriche
 };
 
 const ProfileCard = ({ person, onConnect, onChat }: { person: User, onConnect: () => void, onChat: () => void }) => (
-    <div className="relative border border-gray-100 rounded-xl p-4 flex flex-col items-center text-center group hover:shadow-md transition-shadow bg-white">
-        <button className="absolute top-3 right-3 text-gray-300 hover:text-gray-500 transition-colors">
+    <div className="relative border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center text-center group hover:shadow-md hover:border-blue-200 transition-all bg-white">
+        <button className="absolute top-3 right-3 text-slate-300 hover:text-slate-500 transition-colors">
             <X size={16} />
         </button>
-        <div className="w-16 h-16 bg-purple-100 text-purple-700 font-bold rounded-full mb-3 overflow-hidden flex items-center justify-center shadow-sm">
+        <div className="w-16 h-16 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 text-white font-bold rounded-2xl mb-3 overflow-hidden flex items-center justify-center shadow-xs border border-slate-700">
             {person.profile_image ? (
                     <img src={person.profile_image} alt={person.name} className="w-full h-full object-cover" />
                 ) : (
                     person.name?.[0] || 'U'
             )}
         </div>
-        <h4 className="font-bold text-sm text-gray-900 line-clamp-1 h-5">{person.name || 'Unknown User'}</h4>
-        <p className="text-[11px] text-gray-500 mb-1 line-clamp-2 h-7">{person.headline || person.roles?.join(', ') || 'Member'}</p>
-        <p className="text-[10px] text-gray-400 mb-4 h-4">{person.city ? `📍 ${person.city}` : ''}</p>
+        <h4 className="font-bold text-sm text-slate-900 line-clamp-1 h-5">{person.name || 'Unknown User'}</h4>
+        <p className="text-[11px] text-slate-500 font-medium mb-1 line-clamp-2 h-7">{person.headline || person.roles?.join(', ') || 'Member'}</p>
+        <p className="text-[10px] text-slate-400 font-semibold mb-4 h-4">{person.city ? `📍 ${person.city}` : ''}</p>
 
         <div className="w-full space-y-2 mt-auto">
             {(() => {
@@ -281,12 +281,12 @@ const ProfileCard = ({ person, onConnect, onChat }: { person: User, onConnect: (
                     <>
                         <button 
                             onClick={onConnect}
-                            className="w-full flex items-center justify-center gap-2 bg-purple-600 text-white py-1.5 rounded-lg text-xs font-semibold hover:bg-purple-700 transition-colors shadow-sm">
+                            className="w-full flex items-center justify-center gap-2 bg-km-primary hover:bg-km-primary-dark text-white py-2 rounded-xl text-xs font-bold transition-all shadow-xs">
                             <UserPlus size={14} /> Connect
                         </button>
                         <button 
                             onClick={onChat}
-                            className="w-full flex items-center justify-center gap-2 border border-purple-200 text-purple-700 py-1.5 rounded-lg text-xs font-semibold hover:bg-purple-50 transition-colors">
+                            className="w-full flex items-center justify-center gap-2 border border-km-primary text-km-primary py-2 rounded-xl text-xs font-bold hover:bg-blue-50 transition-colors">
                             <MessageSquare size={14} /> Message
                         </button>
                     </>

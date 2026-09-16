@@ -58,7 +58,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                             type="text"
                             required
                             value={formData.first_name}
-                            className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                            className="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all"
                             onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
                         />
                     </div>
@@ -68,7 +68,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                             type="text"
                             required
                             value={formData.last_name}
-                            className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all"
+                            className="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all"
                             onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
                         />
                     </div>
@@ -80,7 +80,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                     <input
                         type="text"
                         value={formData.additional_name}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500 outline-none transition-all"
+                        className="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all"
                         onChange={(e) => setFormData({ ...formData, additional_name: e.target.value })}
                     />
                 </div>
@@ -89,7 +89,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                 <div className="space-y-1">
                     <label className="text-sm text-gray-600">Pronouns</label>
                     <select
-                        className="w-full border border-gray-300 rounded-lg p-2.5 bg-white focus:ring-2 focus:ring-purple-500 outline-none appearance-none cursor-pointer"
+                        className="w-full border border-gray-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none appearance-none cursor-pointer"
                         value={formData.pronouns}
                         onChange={(e) => setFormData({ ...formData, pronouns: e.target.value })}
                     >
@@ -99,7 +99,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                         <option value="they/them">They/Them</option>
                     </select>
                     <p className="text-xs text-gray-500 pt-1">
-                        Let others know how to refer to you. <span className="text-purple-700 font-semibold cursor-pointer hover:underline">Learn More About Gender Pronouns.</span>
+                        Let others know how to refer to you. <span className="text-km-primary font-semibold cursor-pointer hover:underline">Learn More About Gender Pronouns.</span>
                     </p>
                 </div>
 
@@ -110,7 +110,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                         required
                         rows={2}
                         value={formData.headline}
-                        className="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-2 focus:ring-purple-500 outline-none transition-all resize-none"
+                        className="w-full border border-gray-300 rounded-xl p-2.5 focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all resize-none"
                         onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
                     />
                 </div>
@@ -120,7 +120,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                     <button
                         type="submit"
                         disabled={loading}
-                        className="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-6 rounded-full transition-colors shadow-md disabled:opacity-50"
+                        className="bg-km-primary hover:bg-km-primary-dark text-white font-semibold py-2.5 px-6 rounded-xl transition-colors shadow-sm disabled:opacity-50"
                     >
                         {loading ? 'Saving...' : 'Save'}
                     </button>

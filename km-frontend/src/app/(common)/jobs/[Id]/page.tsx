@@ -131,66 +131,67 @@ const JobDetailPage = () => {
     if (!job) return null;
 
     return (
-        <div className="bg-[#F8F9FC] min-h-screen pb-20 font-sans">
-            {/* Dark Purple Header Section */}
-            <div className="bg-[#2D1B4E] pt-6 sm:pt-12 pb-10 sm:pb-16 px-4 sm:px-6 relative rounded-b-[2.5rem] sm:rounded-b-[40px] md:mx-4 md:mt-4 shadow-2xl overflow-hidden">
+        <div className="bg-[#F8FAFC] min-h-screen pb-20 font-sans text-slate-900">
+            {/* Brand Navy Header Section */}
+            <div className="bg-linear-to-r from-slate-950 via-km-primary-dark to-slate-950 pt-6 sm:pt-12 pb-10 sm:pb-16 px-4 sm:px-6 relative rounded-b-[2.5rem] sm:rounded-b-[40px] md:mx-4 md:mt-4 shadow-2xl overflow-hidden border border-slate-800">
                 {/* Decorative Pattern */}
-                <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -mr-32 -mt-32" />
+                <div className="absolute top-0 right-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+                <div className="absolute left-1/3 bottom-0 w-64 h-64 bg-amber-500/10 rounded-full blur-2xl -ml-32 pointer-events-none" />
                 
                 <div className="max-w-7xl mx-auto relative z-10 flex flex-col lg:flex-row justify-between items-start gap-10">
                     {/* Left: Job Info */}
                     <div className="flex-1 space-y-4 sm:space-y-6">
-                        <Link href="/jobs" className="inline-flex items-center gap-2 text-purple-300 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.2em] mb-2 sm:mb-4">
+                        <Link href="/jobs" className="inline-flex items-center gap-2 text-blue-200 hover:text-white transition-colors text-xs font-bold uppercase tracking-wider mb-2 sm:mb-4 bg-white/10 px-3.5 py-1.5 rounded-full border border-white/10 backdrop-blur-md">
                             <ArrowLeft className="w-4 h-4" />
                             Back to Search
                         </Link>
 
                         <div className="space-y-2">
-                            <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white leading-[1.1] tracking-tighter">
+                            <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
                                 {job.title}
                             </h1>
-                            <p className="text-purple-300 font-black text-xs sm:text-sm uppercase tracking-widest flex items-center gap-2 italic">
+                            <p className="text-blue-200 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
                                 <span>{job.company}</span>
-                                <span className="w-1.5 h-1.5 rounded-full bg-purple-500/30" />
-                                <span className="text-white/50 lowercase font-bold tracking-normal">Direct Hiring</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-km-primary animate-pulse" />
+                                <span className="text-amber-400 font-bold">Direct Hiring</span>
                             </p>
                         </div>
 
                         <div className="flex flex-col sm:flex-row flex-wrap gap-4 sm:gap-8 mt-8">
-                            <div className="flex items-center gap-3 text-white/90">
-                                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                                    <span className="text-purple-400 text-lg font-black">₹</span>
+                            <div className="flex items-center gap-3 text-white">
+                                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white/10 border border-white/15 rounded-xl flex items-center justify-center backdrop-blur-md text-emerald-400 font-black text-lg">
+                                    ₹
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-purple-300/50 font-black uppercase tracking-tighter">Budget / Month</p>
-                                    <p className="text-sm sm:text-base font-black tracking-tight italic">₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()}</p>
+                                    <p className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Monthly Salary</p>
+                                    <p className="text-sm sm:text-base font-extrabold">₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 text-white/90">
-                                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                                    <MapPin size={18} className="text-purple-400" />
+                            <div className="flex items-center gap-3 text-white">
+                                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white/10 border border-white/15 rounded-xl flex items-center justify-center backdrop-blur-md text-blue-400">
+                                    <MapPin size={18} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-purple-300/50 font-black uppercase tracking-tighter">Location</p>
-                                    <p className="text-sm sm:text-base font-black tracking-tight italic">{job.location || 'N/A'}, {job.city_name}</p>
+                                    <p className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Location</p>
+                                    <p className="text-sm sm:text-base font-extrabold">{job.location || 'Flexible'}, {job.city_name}</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3 text-white/90">
-                                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md">
-                                    <Clock size={18} className="text-purple-400" />
+                            <div className="flex items-center gap-3 text-white">
+                                <div className="w-10 h-10 sm:w-11 sm:h-11 bg-white/10 border border-white/15 rounded-xl flex items-center justify-center backdrop-blur-md text-amber-400">
+                                    <Clock size={18} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] text-purple-300/50 font-black uppercase tracking-tighter">Experience</p>
-                                    <p className="text-sm sm:text-base font-black tracking-tight italic">{job.experience_min}-{job.experience_max} Yrs</p>
+                                    <p className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Experience</p>
+                                    <p className="text-sm sm:text-base font-extrabold">{job.experience_min}-{job.experience_max} Yrs</p>
                                 </div>
                             </div>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2 mt-8">
-                            <Badge text="New" className="bg-rose-500 text-white border-0" />
-                            <Badge text={job.job_type} className="bg-white/10 text-white/90 border border-white/10" />
-                            <Badge text={`${job.vacancies || 0} Openings`} className="bg-white/10 text-white/90 border border-white/10" />
-                            <Badge text="KM Verified" className="bg-blue-500 text-white border-0 font-black flex items-center gap-1.5 pr-4 shadow-lg shadow-blue-500/20">
+                            <Badge text="🔥 Hot Listing" className="bg-rose-500 text-white border-0 font-bold" />
+                            <Badge text={job.job_type} className="bg-white/10 text-white border border-white/20 font-bold" />
+                            <Badge text={`${job.vacancies || 1} Openings`} className="bg-white/10 text-white border border-white/20 font-bold" />
+                            <Badge text="KM Verified" className="bg-blue-600 text-white border-0 font-bold flex items-center gap-1.5 pr-4 shadow-md">
                                 <CheckCircle2 size={12} fill="currentColor" /> KM Verified
                             </Badge>
                         </div>
@@ -200,20 +201,20 @@ const JobDetailPage = () => {
                     <div className="lg:text-right space-y-8 flex flex-col items-stretch sm:items-start lg:items-end w-full lg:w-auto pt-8 lg:pt-0 border-t lg:border-0 border-white/10">
                         <div className="flex flex-col sm:flex-row items-stretch gap-3">
                             <div className="flex gap-3">
-                                <button className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 text-white flex items-center justify-center hover:bg-white/10 transition-all shrink-0 active:scale-95">
-                                    <Phone size={24} />
+                                <button className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 text-white flex items-center justify-center hover:bg-white/20 transition-all shrink-0 active:scale-95">
+                                    <Phone size={20} />
                                 </button>
-                                <button className="flex-1 sm:px-8 py-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl text-xs sm:text-sm font-black uppercase tracking-widest border border-white/10 transition-all flex items-center justify-center gap-3 active:scale-95">
-                                    <MessageCircle size={20} /> Chat With HR
+                                <button className="flex-1 sm:px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold uppercase tracking-wider border border-white/20 transition-all flex items-center justify-center gap-2 active:scale-95">
+                                    <MessageCircle size={18} /> Chat With HR
                                 </button>
                             </div>
                             <button
                                 onClick={handleApplyClick}
                                 disabled={hasApplied}
-                                className={`px-10 py-4 text-white rounded-2xl text-xs sm:text-sm font-black uppercase tracking-[0.2em] shadow-2xl transition-all active:scale-95 italic flex items-center justify-center gap-2 ${
+                                className={`px-8 py-3.5 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider shadow-xl transition-all active:scale-95 flex items-center justify-center gap-2 ${
                                     hasApplied
                                         ? 'bg-emerald-600 cursor-not-allowed shadow-emerald-900/30'
-                                        : 'bg-[#A855F7] hover:bg-[#9333EA] shadow-purple-900/50'
+                                        : 'bg-km-primary hover:bg-km-primary-dark shadow-blue-950/50'
                                 }`}
                             >
                                 {hasApplied ? (
@@ -226,17 +227,17 @@ const JobDetailPage = () => {
                             </button>
                         </div>
 
-                        <div className="flex items-center gap-4 bg-white/5 p-3 pr-5 rounded-2xl border border-white/5 self-start lg:self-end">
+                        <div className="flex items-center gap-4 bg-white/10 p-3 pr-5 rounded-2xl border border-white/10 backdrop-blur-md self-start lg:self-end">
                             <div className="flex -space-x-3">
                                 {[1, 2, 3].map(i => (
-                                    <div key={i} className="w-9 h-9 rounded-full border-2 border-[#2D1B4E] bg-gray-300 overflow-hidden ring-2 ring-purple-500/20">
+                                    <div key={i} className="w-9 h-9 rounded-full border-2 border-slate-900 bg-slate-700 overflow-hidden ring-2 ring-blue-500/20">
                                         <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="avatar" className="w-full h-full object-cover" />
                                     </div>
                                 ))}
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] text-purple-300 font-black uppercase tracking-tighter">Candidates Applied</span>
-                                <span className="text-xs text-white font-black italic">90+ People Interested</span>
+                                <span className="text-[10px] text-slate-300 font-extrabold uppercase tracking-wider">Candidates Applied</span>
+                                <span className="text-xs text-white font-bold">90+ People Interested</span>
                             </div>
                         </div>
                     </div>
@@ -261,11 +262,11 @@ const JobDetailPage = () => {
 
                     {/* Skill Required */}
                     {job.requirements?.length > 0 ? (
-                        <SectionCard title="Skill Required">
+                        <SectionCard title="Skills Required">
                             <div className="flex flex-wrap gap-2">
                                 {job.requirements.map(skill => (
-                                    <span key={skill} className="px-4 py-1.5 bg-purple-50 text-purple-600 rounded-full text-xs font-bold border border-purple-100 flex items-center gap-2">
-                                        <CheckCircle2 size={12} className="text-purple-500" /> {skill}
+                                    <span key={skill} className="px-4 py-2 bg-blue-50 text-km-primary rounded-xl text-xs font-bold border border-blue-100 flex items-center gap-2">
+                                        <CheckCircle2 size={14} className="text-km-primary fill-blue-100" /> {skill}
                                     </span>
                                 ))}
                             </div>
@@ -274,22 +275,22 @@ const JobDetailPage = () => {
 
                     {/* Job Description */}
                     <SectionCard title="Job Description">
-                        <div className="space-y-6 text-sm text-gray-700 leading-relaxed font-medium">
+                        <div className="space-y-6 text-sm text-slate-700 leading-relaxed font-medium">
                             <div className="whitespace-pre-wrap">{job.description}</div>
 
-                            <p className="mt-8 font-bold text-gray-500 italic">Candidates Can Call HR For More Info.</p>
+                            <p className="mt-8 font-bold text-slate-500 italic">Candidates Can Call HR For More Info.</p>
                         </div>
                     </SectionCard>
 
                     {/* Contact Person */}
                     <SectionCard title="Contact Person">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                                <User className="text-gray-400" />
+                            <div className="w-12 h-12 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 text-white rounded-2xl flex items-center justify-center border border-slate-700 shadow-xs">
+                                <User className="text-white" />
                             </div>
                             <div>
-                                <h4 className="font-black text-gray-900">{job.company} HR</h4>
-                                <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Hiring Manager</p>
+                                <h4 className="font-bold text-slate-900">{job.company} HR</h4>
+                                <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Hiring Manager</p>
                             </div>
                         </div>
                     </SectionCard>
@@ -298,15 +299,15 @@ const JobDetailPage = () => {
                 {/* Right Column (Sidebar) */}
                 <aside className="w-full lg:w-96 space-y-8">
                     {/* Steps Card */}
-                    <div className="bg-[#FFFDF2] border border-[#FDE68A] rounded-[2.5rem] p-8 sm:p-10 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-400/5 rounded-full blur-2xl -mr-16 -mt-16" />
+                    <div className="bg-white border border-slate-200/80 rounded-3xl p-8 sm:p-10 shadow-sm relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-2xl -mr-16 -mt-16 pointer-events-none" />
                         
-                        <h3 className="text-xl font-black text-gray-900 mb-10 leading-tight relative z-10">
-                            Just <span className="text-[#A855F7]">3 Step</span><br/>To Get Your Dream Job
+                        <h3 className="text-xl font-black text-slate-900 mb-10 leading-tight relative z-10">
+                            Just <span className="text-km-primary">3 Steps</span><br/>To Get Your Dream Job
                         </h3>
                         <div className="space-y-0 relative z-10">
                             {/* Vertical Line */}
-                            <div className="absolute left-6 top-8 bottom-8 w-px border-l-2 border-dashed border-purple-200" />
+                            <div className="absolute left-6 top-8 bottom-8 w-px border-l-2 border-dashed border-blue-200" />
 
                             <StepItem number="01" title="Create Profile" desc="Complete Your KM Profile" />
                             <StepItem number="02" title="Fix Interview" desc="Connect with HR Directly" />
@@ -315,42 +316,42 @@ const JobDetailPage = () => {
                     </div>
 
                     {/* Just Like You Card */}
-                    <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 sm:p-10 shadow-sm">
-                        <h3 className="text-xl font-black text-gray-900 mb-10 leading-tight">
-                            Just <span className="text-[#A855F7]">Like You</span>
+                    <div className="bg-white border border-slate-200/80 rounded-3xl p-8 sm:p-10 shadow-sm">
+                        <h3 className="text-xl font-black text-slate-900 mb-10 leading-tight">
+                            People <span className="text-km-primary">Like You</span>
                         </h3>
-                        <div className="space-y-10">
+                        <div className="space-y-8">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="space-y-5 group/item">
+                                <div key={i} className="space-y-4 group/item">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 bg-purple-900 rounded-2xl flex items-center justify-center text-white overflow-hidden shadow-lg shadow-purple-200 group-hover/item:scale-110 transition-transform">
+                                        <div className="w-14 h-14 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 rounded-2xl flex items-center justify-center text-white overflow-hidden shadow-xs border border-slate-700 group-hover/item:scale-105 transition-transform">
                                             <img src={`https://i.pravatar.cc/100?img=${i + 20}`} alt="Person" className="w-full h-full object-cover" />
                                         </div>
                                         <div>
-                                            <h4 className="font-black text-gray-900 text-sm">Professional Name</h4>
-                                            <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">UI/UX Designer</p>
-                                            <div className="flex items-center gap-1 text-[10px] text-[#A855F7] font-black mt-2 italic">
+                                            <h4 className="font-bold text-slate-900 text-sm">Professional Candidate</h4>
+                                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Software / Sales Specialist</p>
+                                            <div className="flex items-center gap-1 text-[10px] text-km-primary font-bold mt-1">
                                                 <MapPin size={10} /> Bangalore, India
                                             </div>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
-                                        <button className="flex-1 py-3 border-2 border-purple-50 text-purple-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-50 hover:border-purple-100 transition-all flex items-center justify-center gap-2">
+                                        <button className="flex-1 py-2.5 border border-km-primary text-km-primary rounded-xl text-xs font-bold hover:bg-blue-50 transition-all flex items-center justify-center gap-2">
                                             <MessageCircle size={14} /> Chat
                                         </button>
-                                        <button className="flex-1 py-3 bg-purple-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-xl shadow-purple-100 flex items-center justify-center">
-                                            Follow
+                                        <button className="flex-1 py-2.5 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center">
+                                            Connect
                                         </button>
                                     </div>
                                 </div>
                             ))}
                         </div>
-                        <button className="w-full mt-10 text-[#A855F7] font-black text-xs uppercase tracking-[0.2em] hover:underline underline-offset-8">Show All Members</button>
+                        <button className="w-full mt-8 text-km-primary font-bold text-xs uppercase tracking-wider hover:underline">Show All Members</button>
                     </div>
 
                     {/* Ad Banner Placeholder */}
-                    <div className="bg-gray-50 border border-dashed border-gray-200 rounded-[32px] h-48 flex items-center justify-center">
-                        <span className="text-gray-400 font-black uppercase tracking-widest text-sm">Ad Banner</span>
+                    <div className="bg-slate-50 border border-dashed border-slate-200 rounded-3xl h-44 flex items-center justify-center">
+                        <span className="text-slate-400 font-bold uppercase tracking-wider text-xs">Ad Banner</span>
                     </div>
                 </aside>
             </div>
@@ -364,32 +365,32 @@ const JobDetailPage = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsApplyModalOpen(false)}
-                            className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
+                            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
                         />
                         <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
+                            initial={{ scale: 0.95, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            className="bg-white w-full max-w-xl rounded-[2rem] sm:rounded-[2.5rem] p-6 sm:p-10 relative z-10 shadow-2xl"
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white w-full max-w-xl rounded-3xl p-6 sm:p-10 relative z-10 shadow-2xl border border-slate-200/80"
                         >
                             <button
                                 onClick={() => setIsApplyModalOpen(false)}
-                                className="absolute top-8 right-8 p-2 text-gray-400 hover:text-gray-900 transition-colors"
+                                className="absolute top-6 right-6 p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-100"
                             >
                                 <X className="w-6 h-6" />
                             </button>
 
-                            <div className="mb-10">
-                                <span className="bg-purple-50 text-purple-600 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 inline-block italic">Send Application</span>
-                                <h2 className="text-3xl font-black text-gray-900 leading-tight uppercase tracking-tighter italic">Roll Into Your New Job</h2>
-                                <p className="text-gray-500 font-bold text-sm mt-2">Applying to <span className="text-purple-600">{job.title}</span> at {job.company}</p>
+                            <div className="mb-8">
+                                <span className="bg-blue-50 text-km-primary px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-3 inline-block">Send Application</span>
+                                <h2 className="text-2xl sm:text-3xl font-black text-slate-900 leading-tight tracking-tight">Apply for Position</h2>
+                                <p className="text-slate-500 font-bold text-xs sm:text-sm mt-1">Applying to <span className="text-km-primary">{job.title}</span> at {job.company}</p>
                             </div>
 
-                            <div className="space-y-8">
-                                <div className="space-y-3">
-                                    <label className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Cover Letter (Optional)</label>
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Cover Letter (Optional)</label>
                                     <textarea
-                                        className="w-full bg-gray-50 border border-gray-100 rounded-3xl p-6 min-h-[160px] outline-none focus:ring-4 focus:ring-purple-100 transition-all font-bold text-gray-700 placeholder:text-gray-300"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl p-4 min-h-35 outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all font-semibold text-xs text-slate-900 placeholder:text-slate-400"
                                         placeholder="Pitch yourself in a few sentences..."
                                         value={coverLetter}
                                         onChange={(e) => setCoverLetter(e.target.value)}
@@ -399,7 +400,7 @@ const JobDetailPage = () => {
                                 <button
                                     onClick={submitApplication}
                                     disabled={isApplying}
-                                    className="w-full bg-purple-600 hover:bg-purple-700 text-white py-6 rounded-3xl font-black text-sm uppercase tracking-widest shadow-2xl shadow-purple-200 transition-all flex items-center justify-center gap-2"
+                                    className="w-full bg-km-primary hover:bg-km-primary-dark text-white py-4 rounded-xl font-bold text-xs uppercase tracking-wider shadow-lg shadow-blue-900/10 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                                 >
                                     {isApplying ? (
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -408,7 +409,7 @@ const JobDetailPage = () => {
                                     )}
                                 </button>
 
-                                <p className="text-center text-[10px] text-gray-400 font-bold uppercase tracking-widest">By clicking submit, your profile details will be shared with the Hiring team.</p>
+                                <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-wider">By clicking submit, your candidate profile will be shared directly with the Hiring team.</p>
                             </div>
                         </motion.div>
                     </div>
@@ -421,41 +422,41 @@ const JobDetailPage = () => {
 // --- Sub Components ---
 
 const Badge = ({ text, className, children }: { text?: string, className?: string, children?: React.ReactNode }) => (
-    <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${className}`}>
+    <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all ${className}`}>
         {children || text}
     </span>
 );
 
 const HighlightItem = ({ text }: { text: string }) => (
-    <div className="flex items-center gap-3 text-gray-600 font-bold text-sm">
-        <CheckCircle2 size={16} className="text-gray-300 shrink-0" />
+    <div className="flex items-center gap-3 text-slate-700 font-bold text-xs">
+        <CheckCircle2 size={16} className="text-km-primary shrink-0" />
         {text}
     </div>
 );
 
 const FAQItem = ({ q, a }: { q: string, a: string }) => (
-    <div className="space-y-2">
-        <h5 className="font-black text-gray-900 text-sm leading-snug">{q}</h5>
-        <p className="text-gray-500 text-sm italic">{a}</p>
+    <div className="space-y-1">
+        <h5 className="font-bold text-slate-900 text-xs leading-snug">{q}</h5>
+        <p className="text-slate-500 text-xs font-medium">{a}</p>
     </div>
 );
 
 const StepItem = ({ number, title, desc, last }: { number: string, title: string, desc: string, last?: boolean }) => (
-    <div className="flex gap-6 items-start pb-10 relative last:pb-0">
-        <div className={`w-12 h-12 rounded-2xl bg-white border border-gray-100 shadow-sm flex items-center justify-center text-purple-600 text-xs font-black relative z-10 italic`}>
+    <div className="flex gap-5 items-start pb-8 relative last:pb-0">
+        <div className={`w-11 h-11 rounded-xl bg-blue-50 border border-blue-100 shadow-xs flex items-center justify-center text-km-primary text-xs font-black relative z-10`}>
             {number}
         </div>
         <div>
-            <h4 className="text-sm font-black text-[#A855F7] uppercase tracking-widest mb-1">{title}</h4>
-            <p className="text-xs text-gray-400 font-bold">{desc}</p>
+            <h4 className="text-xs font-bold text-km-primary uppercase tracking-wider mb-0.5">{title}</h4>
+            <p className="text-xs text-slate-500 font-semibold">{desc}</p>
         </div>
     </div>
 );
 
 const SectionCard = ({ title, children }: { title: string, children: React.ReactNode }) => (
-    <div className="bg-white rounded-[2.5rem] p-6 sm:p-10 shadow-sm border border-gray-100 overflow-hidden group">
-        <h3 className="text-base sm:text-lg font-black text-gray-900 mb-8 pb-4 border-b border-gray-50 uppercase tracking-widest flex items-center gap-3">
-            <span className="w-1.5 h-6 bg-[#A855F7] rounded-full" />
+    <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xs border border-slate-200/80 overflow-hidden">
+        <h3 className="text-sm sm:text-base font-black text-slate-900 mb-6 pb-3 border-b border-slate-100 uppercase tracking-wider flex items-center gap-3">
+            <span className="w-1.5 h-5 bg-km-primary rounded-full" />
             {title}
         </h3>
         {children}

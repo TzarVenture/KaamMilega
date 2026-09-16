@@ -19,35 +19,35 @@ export interface ExpertUser {
 
 export const ExpertCard = ({ expert, onChat, onDelete }: { expert: ExpertUser, onChat: () => void, onDelete: () => void }) => {
     return (
-        <div className="flex items-center justify-between py-5 border-b border-gray-100 last:border-0 hover:bg-gray-50/50 transition-colors px-2">
+        <div className="flex items-center justify-between py-5 border-b border-slate-100 last:border-0 hover:bg-purple-50/30 transition-colors px-2 rounded-xl">
             <div className="flex items-center gap-4">
                 <div className="relative">
-                    <div className="w-14 h-14 rounded-full bg-indigo-950 flex items-center justify-center overflow-hidden">
+                    <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-purple-900 to-indigo-950 flex items-center justify-center overflow-hidden border border-purple-800 shadow-xs">
                         {expert.profile_image ? (
                             <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-white font-bold">{expert.name?.[0]?.toUpperCase() || 'E'}</span>
+                            <span className="text-white font-black text-lg">{expert.name?.[0]?.toUpperCase() || 'E'}</span>
                         )}
                     </div>
                 </div>
 
                 <div>
-                    <h3 className="font-bold text-gray-900 leading-tight">{expert.name || 'Unknown Expert'}</h3>
-                    <p className="text-xs text-gray-500">{expert.headline || expert.roles?.join(', ')}</p>
-                    {expert.city && <p className="text-xs text-gray-400 mt-1">📍 {expert.city}</p>}
+                    <h3 className="font-bold text-slate-900 leading-tight">{expert.name || 'Unknown Expert'}</h3>
+                    <p className="text-xs text-slate-500 font-medium">{expert.headline || expert.roles?.join(', ')}</p>
+                    {expert.city && <p className="text-xs text-slate-400 font-semibold mt-1">📍 {expert.city}</p>}
                 </div>
             </div>
 
             <div className="flex items-center gap-3">
                 <button 
                     onClick={onChat}
-                    className="flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-200 text-purple-600 text-sm font-medium hover:bg-purple-50 transition-all">
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-purple-300 text-purple-700 text-xs font-bold hover:bg-purple-50 transition-all shadow-xs">
                     <MessageSquare size={16} />
                     Chat
                 </button>
                 <button 
                     onClick={onDelete}
-                    className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors">
+                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
                     <Trash2 size={18} />
                 </button>
             </div>
@@ -190,7 +190,7 @@ export default function ExpertsPage() {
                         </div>
                         <button 
                             onClick={() => router.push('/expert/apply')}
-                            className="px-6 py-2 rounded-full border border-purple-600 text-purple-600 text-sm font-semibold hover:bg-purple-50 transition-colors"
+                            className="px-6 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold transition-all shadow-xs"
                         >
                             Become An Expert
                         </button>
@@ -218,7 +218,7 @@ export default function ExpertsPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-1 min-h-[400px]">
+                    <div className="space-y-1 min-h-100">
                         {currentList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400">
                                 {searchQuery ? "No experts found matching your search." : "You are not following any experts yet."}
@@ -247,7 +247,7 @@ export default function ExpertsPage() {
                 </main>
 
                 <aside className="w-full lg:w-80 space-y-6">
-                    <div className="bg-white rounded-2xl p-8 border border-gray-100 flex flex-col items-center justify-center min-h-[250px]">
+                    <div className="bg-white rounded-2xl p-8 border border-gray-100 flex flex-col items-center justify-center min-h-62.5">
                         <span className="text-gray-400 font-bold text-lg">Ad Banner</span>
                     </div>
 
@@ -292,7 +292,7 @@ export const SidebarExpert = ({ expert, onChat }: { expert: ExpertUser, onChat: 
         <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
                 <div className="relative">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center overflow-hidden bg-indigo-950">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-linear-to-br from-purple-900 to-indigo-950 border border-purple-800">
                         {expert.profile_image ? (
                             <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
                         ) : (
@@ -302,22 +302,22 @@ export const SidebarExpert = ({ expert, onChat }: { expert: ExpertUser, onChat: 
                 </div>
 
                 <div>
-                    <h4 className="text-sm font-bold text-gray-900 leading-tight">{expert.name || 'Expert'}</h4>
-                    <p className="text-[10px] text-gray-500 uppercase tracking-wider line-clamp-1">{expert.headline || expert.roles?.join(', ')}</p>
-                    {expert.city && <p className="text-[10px] text-gray-400 mt-0.5">📍 {expert.city}</p>}
+                    <h4 className="text-sm font-bold text-slate-900 leading-tight">{expert.name || 'Expert'}</h4>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-wider line-clamp-1">{expert.headline || expert.roles?.join(', ')}</p>
+                    {expert.city && <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">📍 {expert.city}</p>}
                 </div>
             </div>
 
             <div className="flex gap-2">
                 <button 
                     onClick={onChat}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-1.5 border border-purple-200 rounded-full text-purple-600 text-xs font-semibold hover:bg-purple-50 transition-colors">
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-purple-300 rounded-xl text-purple-700 text-xs font-bold hover:bg-purple-50 transition-colors">
                     <MessageSquare size={14} />
                     Chat
                 </button>
                 <button 
                     onClick={handleConnect}
-                    className="flex-1 py-1.5 bg-purple-500 border border-purple-500 rounded-full text-white text-xs font-semibold hover:bg-purple-600 transition-colors shadow-sm shadow-purple-200">
+                    className="flex-1 py-2 bg-purple-700 hover:bg-purple-800 rounded-xl text-white text-xs font-bold transition-all shadow-xs">
                     Follow
                 </button>
             </div>

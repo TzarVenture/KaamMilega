@@ -61,12 +61,12 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
       <div className="flex flex-col items-center justify-center py-4 relative">
         {loading && (
           <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center rounded-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-km-primary"></div>
           </div>
         )}
 
         {/* Profile Image Container */}
-        <div className="relative w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden bg-[#1D0A1C] flex items-center justify-center shadow-inner">
+        <div className="relative w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden bg-[#0D1B5E] flex items-center justify-center shadow-inner">
           {imageUrl ? (
             <CustomImage
               src={imageUrl}
@@ -76,8 +76,8 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
           ) : (
             /* Placeholder Logo from your image */
             <div className="relative flex items-center justify-center">
-              <div className="w-32 h-32 bg-gradient-to-br from-purple-400 to-purple-700 clip-path-triangle transform rotate-12 absolute -translate-x-4" />
-              <div className="w-24 h-24 bg-gradient-to-br from-purple-300 to-purple-500 clip-path-triangle translate-x-6 translate-y-4" />
+              <div className="w-32 h-32 bg-linear-to-br from-blue-400 to-km-primary clip-path-triangle transform rotate-12 absolute -translate-x-4" />
+              <div className="w-24 h-24 bg-linear-to-br from-blue-300 to-blue-500 clip-path-triangle translate-x-6 translate-y-4" />
             </div>
           )}
         </div>
@@ -95,7 +95,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
             {/* Edit Button - Trigger same file pick for now */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 border border-purple-300 rounded-full text-purple-700 hover:bg-purple-50 transition-colors group"
+              className="p-3 border border-blue-200 rounded-full text-km-primary hover:bg-blue-50 transition-colors group"
             >
               <Pencil size={20} className="group-hover:scale-110 transition-transform" />
             </button>
@@ -103,7 +103,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
             {/* Camera Button */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 border border-purple-300 rounded-full text-purple-700 hover:bg-purple-50 transition-colors group"
+              className="p-3 border border-blue-200 rounded-full text-km-primary hover:bg-blue-50 transition-colors group"
             >
               <Camera size={20} className="group-hover:scale-110 transition-transform" />
             </button>
@@ -112,7 +112,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
           {/* Delete Button */}
           <button
             onClick={handleDelete}
-            className="p-3 bg-purple-200 text-purple-800 rounded-lg hover:bg-red-100 hover:text-red-600 transition-all group"
+            className="p-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group"
           >
             <Trash2 size={20} className="group-hover:shake" />
           </button>

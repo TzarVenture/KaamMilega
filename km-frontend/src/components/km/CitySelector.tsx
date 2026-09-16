@@ -67,7 +67,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar' }: CitySe
             <div className="relative" ref={dropdownRef}>
                 <div
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors min-w-[140px]"
+                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors min-w-35"
                 >
                     <MapPin size={18} className="text-gray-500" />
                     <span className="text-sm text-gray-400">City-</span>
@@ -91,7 +91,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar' }: CitySe
                                         placeholder="Search city..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                                        className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-km-primary"
                                         autoFocus
                                     />
                                 </div>
@@ -100,20 +100,20 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar' }: CitySe
                             <div className="max-h-60 overflow-y-auto py-2 px-1">
                                 <div
                                     onClick={() => handleSelect('All')}
-                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-purple-50 text-purple-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-primary font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                                 >
                                     All Cities
                                 </div>
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-4">
-                                        <Loader2 size={18} className="animate-spin text-purple-500" />
+                                        <Loader2 size={18} className="animate-spin text-km-primary" />
                                     </div>
                                 ) : (
                                     displayCities.map(city => (
                                         <div
                                             key={city.id}
                                             onClick={() => handleSelect(city.name)}
-                                            className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-purple-50 text-purple-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                            className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-primary font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                                         >
                                             {city.name}
                                         </div>
@@ -136,7 +136,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar' }: CitySe
         <div className="relative" ref={dropdownRef}>
             <div
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full border border-gray-100 min-w-[140px] cursor-pointer"
+                className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full border border-gray-100 min-w-35 cursor-pointer"
             >
                 <MapPin size={16} className="text-gray-500" />
                 <span className="text-sm font-medium text-gray-700">City- <span className="font-bold">{selectedCity}</span></span>

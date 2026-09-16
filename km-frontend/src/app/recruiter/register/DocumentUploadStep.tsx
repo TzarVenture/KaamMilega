@@ -25,26 +25,26 @@ export default function DocumentUploadStep({ onSelect, onVerifyLater }: any) {
             <div className="flex justify-end mb-4">
                 <button
                     onClick={onVerifyLater}
-                    className="text-indigo-500 text-xs font-semibold hover:underline"
+                    className="text-km-primary text-xs font-semibold hover:underline"
                 >
                     Verify Later
                 </button>
             </div>
 
             {/* Hero Section */}
-            <div className="text-center bg-indigo-50/50 rounded-2xl p-6 mb-8">
+            <div className="text-center bg-blue-50/50 rounded-2xl p-6 mb-8 border border-blue-100/60">
                 <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                    <span className="text-indigo-600">Upload Any 1 Company Document</span> To Verify <br />
+                    <span className="text-km-primary">Upload Any 1 Company Document</span> To Verify <br />
                     And Earn A Badge On Your Job
                 </h2>
 
                 <div className="relative inline-block mt-6">
-                    <div className="bg-indigo-900 w-32 h-20 rounded-xl flex flex-col justify-center px-3 space-y-2 shadow-2xl">
-                        <div className="h-1.5 w-full bg-indigo-800 rounded" />
-                        <div className="h-1.5 w-2/3 bg-indigo-800 rounded" />
+                    <div className="bg-km-primary-dark w-32 h-20 rounded-xl flex flex-col justify-center px-3 space-y-2 shadow-2xl">
+                        <div className="h-1.5 w-full bg-km-primary rounded" />
+                        <div className="h-1.5 w-2/3 bg-km-primary rounded" />
                     </div>
                     <div className="absolute -bottom-2 -right-2 bg-white rounded-full p-0.5">
-                        <ShieldCheck className="w-8 h-8 text-blue-500 fill-blue-500 text-white" />
+                        <ShieldCheck className="w-8 h-8 text-blue-500 fill-blue-500" />
                     </div>
                 </div>
 
@@ -68,19 +68,19 @@ export default function DocumentUploadStep({ onSelect, onVerifyLater }: any) {
                     >
                         <div className="flex items-center gap-4">
                             <span className="text-xl">{doc.icon}</span>
-                            <span className="text-sm font-semibold text-gray-700 group-hover:text-indigo-600">
+                            <span className="text-sm font-semibold text-gray-700 group-hover:text-km-primary">
                                 {doc.name}
                             </span>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-indigo-500 transition-transform group-hover:translate-x-1" />
+                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-km-primary transition-transform group-hover:translate-x-1" />
                     </button>
                 ))}
             </div>
 
             {/* View More Button */}
-            <button className="w-full flex items-center justify-center gap-2 mt-6 py-2 text-indigo-500 hover:text-indigo-700 transition">
+            <button className="w-full flex items-center justify-center gap-2 mt-6 py-2 text-km-primary hover:text-km-primary-dark transition font-bold text-sm">
                 <PlusCircle className="w-5 h-5" />
-                <span className="text-sm font-bold">View More Document Options</span>
+                <span>View More Document Options</span>
             </button>
         </div>
     );

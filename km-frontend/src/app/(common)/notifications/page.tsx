@@ -37,7 +37,7 @@ const NotificationsPage = () => {
                         <h2 className="text-lg font-bold text-gray-900 mb-1">Manage Your Notifications</h2>
                         <button
                             onClick={() => setIsModalOpen(true)}
-                            className="text-purple-600 text-sm font-semibold hover:underline flex items-center gap-1">
+                            className="text-km-primary text-sm font-bold hover:underline flex items-center gap-1">
                             View Settings
                         </button>
                     </div>
@@ -79,25 +79,25 @@ const NotificationsPage = () => {
 // --- Sub-Components ---
 
 const FilterChip = ({ label, active }: { label: string; active?: boolean }) => (
-    <button className={`px-5 py-1.5 rounded-full text-xs font-medium transition-all border ${active
-        ? 'bg-purple-100 text-purple-600 border-purple-200'
-        : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
+    <button className={`px-5 py-2 rounded-xl text-xs font-bold transition-all border ${active
+        ? 'bg-km-primary text-white border-km-primary shadow-sm'
+        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
         }`}>
         {label}
     </button>
 );
 
 const NotificationRow = ({ item }: { item: NotificationItem }) => (
-    <div className="p-5 flex gap-4 hover:bg-gray-50/50 transition-colors group cursor-pointer">
+    <div className="p-5 flex gap-4 hover:bg-slate-50/80 transition-colors group cursor-pointer">
         {/* Avatar / Icon Container */}
-        <div className="relative flex-shrink-0">
+        <div className="relative shrink-0">
             {item.type === 'job' ? (
                 <div className="flex -space-x-3">
-                    <div className="w-10 h-10 bg-purple-900 rounded-full border-2 border-white flex items-center justify-center text-white" />
-                    <div className="w-10 h-10 bg-purple-800 rounded-full border-2 border-white flex items-center justify-center text-white" />
+                    <div className="w-10 h-10 bg-km-primary-dark rounded-full border-2 border-white flex items-center justify-center text-white font-bold" />
+                    <div className="w-10 h-10 bg-km-primary rounded-full border-2 border-white flex items-center justify-center text-white font-bold" />
                 </div>
             ) : (
-                <div className="w-12 h-12 bg-purple-900 rounded-full flex-shrink-0" />
+                <div className="w-12 h-12 bg-km-primary-dark rounded-full shrink-0 shadow-inner" />
             )}
         </div>
 
@@ -108,11 +108,11 @@ const NotificationRow = ({ item }: { item: NotificationItem }) => (
                     {item.user && <span className="font-bold text-gray-900">{item.user}, </span>}
                     {item.content}
                 </p>
-                <span className="text-[11px] text-gray-400 whitespace-nowrap mt-1">{item.time}</span>
+                <span className="text-[11px] text-gray-400 whitespace-nowrap mt-1 font-medium">{item.time}</span>
             </div>
 
             {item.actionLabel && (
-                <button className="mt-3 px-6 py-1.5 border border-purple-500 text-purple-600 rounded-full text-xs font-bold hover:bg-purple-50 transition-all">
+                <button className="mt-3 px-6 py-1.5 border border-km-primary text-km-primary rounded-xl text-xs font-bold hover:bg-blue-50 transition-all">
                     {item.actionLabel}
                 </button>
             )}

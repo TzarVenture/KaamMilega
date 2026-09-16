@@ -28,8 +28,8 @@ import ScheduleInterviewModal from "@/components/recruiter/ScheduleInterviewModa
 
 const KANBAN_COLUMNS = [
     { id: "Applied", title: "Applied", color: "blue", headerBg: "bg-blue-50 text-blue-700 border-blue-200", colBg: "bg-blue-50/30 border-blue-100" },
-    { id: "Shortlisted", title: "Shortlisted", color: "purple", headerBg: "bg-purple-50 text-purple-700 border-purple-200", colBg: "bg-purple-50/30 border-purple-100" },
-    { id: "Interviewing", title: "Interview", color: "amber", headerBg: "bg-amber-50 text-amber-700 border-amber-200", colBg: "bg-amber-50/30 border-amber-100" },
+    { id: "Shortlisted", title: "Shortlisted", color: "amber", headerBg: "bg-amber-50 text-amber-700 border-amber-200", colBg: "bg-amber-50/30 border-amber-100" },
+    { id: "Interviewing", title: "Interview", color: "purple", headerBg: "bg-purple-50 text-purple-700 border-purple-200", colBg: "bg-purple-50/30 border-purple-100" },
     { id: "Hired", title: "Hired", color: "emerald", headerBg: "bg-emerald-50 text-emerald-700 border-emerald-200", colBg: "bg-emerald-50/30 border-emerald-100" },
     { id: "Rejected", title: "Rejected", color: "rose", headerBg: "bg-rose-50 text-rose-700 border-rose-200", colBg: "bg-rose-50/30 border-rose-100" }
 ];
@@ -156,7 +156,7 @@ function ApplicationsContent() {
                             onClick={() => setViewMode("kanban")}
                             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                 viewMode === "kanban"
-                                    ? "bg-purple-600 text-white shadow-md shadow-purple-200"
+                                    ? "bg-km-primary text-white shadow-md shadow-blue-900/10"
                                     : "text-gray-600 hover:text-gray-900"
                             }`}
                         >
@@ -166,7 +166,7 @@ function ApplicationsContent() {
                             onClick={() => setViewMode("list")}
                             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                 viewMode === "list"
-                                    ? "bg-purple-600 text-white shadow-md shadow-purple-200"
+                                    ? "bg-km-primary text-white shadow-md shadow-blue-900/10"
                                     : "text-gray-600 hover:text-gray-900"
                             }`}
                         >
@@ -183,7 +183,7 @@ function ApplicationsContent() {
                     <input
                         type="text"
                         placeholder="Filter by candidate name, email, headline, or job title..."
-                        className="w-full pl-10 pr-4 py-2 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full pl-10 pr-4 py-2 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -213,7 +213,7 @@ function ApplicationsContent() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={(e) => handleDrop(e, col.id)}
                                 className={`rounded-3xl border p-3 min-h-137.5 transition-all flex flex-col ${col.colBg} ${
-                                    isOver ? "ring-2 ring-purple-500 scale-[1.01] bg-purple-50/50" : ""
+                                    isOver ? "ring-2 ring-km-primary scale-[1.01] bg-blue-50/40" : ""
                                 }`}
                             >
                                 {/* Column Header */}
@@ -237,16 +237,16 @@ function ApplicationsContent() {
                                                 key={app.id}
                                                 draggable={true}
                                                 onDragStart={(e) => handleDragStart(e, app.id)}
-                                                className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing hover:border-purple-300 group relative"
+                                                className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing hover:border-km-primary group relative"
                                             >
                                                 {/* Candidate Header */}
                                                 <div className="flex items-start justify-between gap-2 mb-2">
                                                     <div className="flex items-center gap-2 min-w-0">
-                                                        <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-black text-xs shrink-0 uppercase">
+                                                        <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary flex items-center justify-center font-black text-xs shrink-0 uppercase border border-blue-100">
                                                             {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <h4 className="font-bold text-gray-900 text-sm truncate group-hover:text-purple-600 transition-colors">
+                                                            <h4 className="font-bold text-gray-900 text-sm truncate group-hover:text-km-primary transition-colors">
                                                                 {app.candidate?.name || `Candidate #${app.candidate_id.substring(0, 6)}`}
                                                             </h4>
                                                             <p className="text-[11px] text-gray-500 truncate">
@@ -259,14 +259,14 @@ function ApplicationsContent() {
                                                 {/* Job Applied */}
                                                 {app.job && (
                                                     <div className="my-2 p-2 bg-gray-50 rounded-xl text-[11px] text-gray-600 font-medium flex items-center gap-1.5 border border-gray-100">
-                                                        <Briefcase size={12} className="text-purple-600 shrink-0" />
+                                                        <Briefcase size={12} className="text-km-primary shrink-0" />
                                                         <span className="truncate">{app.job.title}</span>
                                                     </div>
                                                 )}
 
                                                 {/* Cover Letter Snippet */}
                                                 {app.cover_letter && (
-                                                    <p className="text-[11px] text-gray-500 italic line-clamp-2 my-2 bg-purple-50/40 p-2 rounded-lg border border-purple-50">
+                                                    <p className="text-[11px] text-gray-500 italic line-clamp-2 my-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
                                                         "{app.cover_letter}"
                                                     </p>
                                                 )}
@@ -282,7 +282,7 @@ function ApplicationsContent() {
                                                             href={app.resume_url}
                                                             target="_blank"
                                                             rel="noreferrer"
-                                                            className="text-purple-600 hover:underline font-bold flex items-center gap-1"
+                                                            className="text-km-primary hover:underline font-bold flex items-center gap-1"
                                                         >
                                                             <FileText size={11} /> Resume
                                                         </a>
@@ -294,7 +294,7 @@ function ApplicationsContent() {
                                                     <select
                                                         value={app.status}
                                                         onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                                                        className="w-full text-[10px] font-bold bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-gray-700 outline-none focus:ring-1 focus:ring-purple-500"
+                                                        className="w-full text-[10px] font-bold bg-gray-50 border border-gray-200 rounded-lg p-1.5 text-gray-700 outline-none focus:ring-1 focus:ring-km-primary/40"
                                                     >
                                                         <option value="Applied">Move to Applied</option>
                                                         <option value="Shortlisted">Move to Shortlisted</option>
@@ -335,10 +335,10 @@ function ApplicationsContent() {
                                     </tr>
                                 ) : (
                                     filteredApps.map((app) => (
-                                        <tr key={app.id} className="hover:bg-purple-50/20 transition-colors">
+                                        <tr key={app.id} className="hover:bg-blue-50/20 transition-colors">
                                             <td className="py-4 px-6">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center uppercase shrink-0">
+                                                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary font-bold flex items-center justify-center uppercase shrink-0 border border-blue-100">
                                                         {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
                                                     </div>
                                                     <div>
@@ -357,8 +357,8 @@ function ApplicationsContent() {
                                             <td className="py-4 px-6">
                                                 <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
                                                     app.status === 'Applied' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                    app.status === 'Shortlisted' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                                                    app.status === 'Interviewing' || app.status === 'Interview' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                    app.status === 'Shortlisted' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                    app.status === 'Interviewing' || app.status === 'Interview' ? 'bg-purple-50 text-purple-700 border-purple-200' :
                                                     app.status === 'Hired' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
                                                     'bg-rose-50 text-rose-700 border-rose-200'
                                                 }`}>
@@ -371,7 +371,7 @@ function ApplicationsContent() {
                                                         href={app.resume_url}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="text-purple-600 hover:underline font-bold text-xs flex items-center gap-1"
+                                                        className="text-km-primary hover:underline font-bold text-xs flex items-center gap-1"
                                                     >
                                                         <FileText size={14} /> Resume
                                                     </a>
@@ -383,7 +383,7 @@ function ApplicationsContent() {
                                                 <select
                                                     value={app.status}
                                                     onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                                                    className="text-xs font-bold bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-gray-700 outline-none focus:ring-2 focus:ring-purple-500"
+                                                    className="text-xs font-bold bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-gray-700 outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
                                                 >
                                                     <option value="Applied">Applied</option>
                                                     <option value="Shortlisted">Shortlisted</option>

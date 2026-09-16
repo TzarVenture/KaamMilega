@@ -85,12 +85,12 @@ export default function OtpStep({ data, updateData, onBack, onNext }: Props) {
     return (
         <div className="space-y-6 text-center animate-in fade-in duration-300">
             <header className="space-y-2">
-                <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto">
                     <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <h2 className="text-2xl font-black text-slate-900">Enter Verification Code</h2>
                 <p className="text-xs font-bold text-slate-500">
-                    We sent a 4-digit code to <span className="text-indigo-600 font-extrabold">{data?.email}</span>
+                    We sent a 4-digit code to <span className="text-km-primary font-extrabold">{data?.email}</span>
                 </p>
             </header>
 
@@ -114,7 +114,7 @@ export default function OtpStep({ data, updateData, onBack, onNext }: Props) {
                 <button
                     disabled={!isComplete || verifying}
                     onClick={onVerify}
-                    className="flex-1 py-3.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-xl transition-all text-sm shadow-md shadow-indigo-600/20 cursor-pointer"
+                    className="flex-1 py-3.5 bg-km-primary hover:bg-km-primary-dark disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold rounded-xl transition-all text-sm shadow-md shadow-blue-900/20 cursor-pointer"
                 >
                     {verifying ? "Verifying..." : "Verify & Continue"}
                 </button>
@@ -127,7 +127,7 @@ export default function OtpStep({ data, updateData, onBack, onNext }: Props) {
                         type="button"
                         disabled={timer > 0}
                         onClick={handleResend}
-                        className="text-indigo-600 font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
+                        className="text-km-primary font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
                     >
                         {timer > 0 ? `Resend Code in 00:${timer.toString().padStart(2, '0')}` : "Resend Code"}
                     </button>

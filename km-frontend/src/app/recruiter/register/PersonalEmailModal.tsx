@@ -28,7 +28,7 @@ export default function PersonalEmailModal({ isOpen, email, onClose, onContinue 
           <header className="space-y-2">
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">
               This Looks Like A <br />
-              <span className="text-indigo-400">Personal Email ID!</span>
+              <span className="text-km-accent">Personal Email ID!</span>
             </h2>
             <p className="text-lg font-bold text-gray-800">
               It Might Delay Your Job Activation
@@ -40,13 +40,13 @@ export default function PersonalEmailModal({ isOpen, email, onClose, onContinue 
           <div className="flex items-center justify-center gap-4 pt-4">
             <button
               onClick={onClose}
-              className="px-8 py-2 border-2 border-indigo-500 text-indigo-500 font-bold rounded-full hover:bg-indigo-50 transition"
+              className="px-8 py-2.5 border-2 border-km-primary text-km-primary font-bold rounded-xl hover:bg-blue-50 transition"
             >
               Edit
             </button>
             <button
               onClick={onContinue}
-              className="px-8 py-2 bg-indigo-400 text-white font-bold rounded-full hover:bg-indigo-500 shadow-lg shadow-indigo-200 transition"
+              className="px-8 py-2.5 bg-km-primary text-white font-bold rounded-xl hover:bg-km-primary-dark shadow-lg shadow-blue-900/20 transition"
             >
               Continue
             </button>

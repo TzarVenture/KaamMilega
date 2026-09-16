@@ -1,20 +1,33 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Kaam Milega",
-  description: "Find your next opportunity",
+  metadataBase: new URL('https://kaammilega.com'),
+  title: "KaamMilega™ — Kaam Bhi. Skill Bhi. Kamaai Bhi.",
+  description: "Find jobs, instant gigs, skills training, expert mentorship, P2P services, and local events across India. India's #1 direct candidate-to-recruiter hiring portal.",
+  keywords: ["jobs in India", "blue collar jobs", "white collar jobs", "instant hire", "skill development", "KaamMilega", "recruiter platform"],
+  authors: [{ name: "KaamMilega Team" }],
+  openGraph: {
+    title: "KaamMilega™ — Kaam Bhi. Skill Bhi. Kamaai Bhi.",
+    description: "Direct candidate-to-recruiter hiring with 1-click apply, verified profiles, instant gigs, and skill development.",
+    url: "https://kaammilega.com",
+    siteName: "KaamMilega",
+    images: [
+      {
+        url: "/asset/icons/header_logo.png",
+        width: 800,
+        height: 600,
+        alt: "KaamMilega Logo",
+      },
+    ],
+    locale: "en_IN",
+    type: "website",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/asset/icons/header_logo.png",
+    apple: "/asset/icons/header_logo.png",
+  },
 };
 
 export default function RootLayout({
@@ -24,9 +37,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="font-sans antialiased bg-[#F8FAFC]">
         {children}
       </body>
     </html>

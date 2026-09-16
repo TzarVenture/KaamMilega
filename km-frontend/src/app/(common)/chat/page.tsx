@@ -319,39 +319,39 @@ const ChatPage = () => {
 
                     {/* Search */}
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input
                             value={searchQuery}
                             onChange={(e) => handleSearchUsers(e.target.value)}
-                            className="w-full bg-gray-50 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:ring-2 focus:ring-purple-200 outline-none border border-gray-100"
+                            className="w-full bg-slate-50 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none border border-slate-200 transition"
                             placeholder="Search people..."
                         />
 
                         {/* Search Results Dropdown */}
                         {searchQuery && (
-                            <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-white shadow-xl rounded-xl border border-gray-100 max-h-56 overflow-y-auto">
+                            <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-white shadow-xl rounded-xl border border-slate-100 max-h-56 overflow-y-auto">
                                 {isSearchingUsers ? (
-                                    <div className="p-4 text-center text-sm text-gray-400">Searching…</div>
+                                    <div className="p-4 text-center text-sm text-slate-400">Searching…</div>
                                 ) : userSearchResults.length > 0 ? (
                                     userSearchResults.map(u => (
                                         <div
                                             key={u.id}
                                             onClick={() => startConversation(u)}
-                                            className="p-3 hover:bg-purple-50 cursor-pointer flex items-center gap-3"
+                                            className="p-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3"
                                         >
-                                            <div className="w-9 h-9 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-bold text-xs shrink-0 overflow-hidden">
+                                            <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-km-primary font-bold text-xs shrink-0 overflow-hidden">
                                                 {u.profile_image
                                                     ? <img src={u.profile_image} className="w-full h-full object-cover" alt={u.name} />
                                                     : u.name[0]}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className="text-sm font-semibold truncate">{u.name}</p>
-                                                <p className="text-xs text-gray-400 truncate">{u.roles?.join(', ')}</p>
+                                                <p className="text-sm font-semibold truncate text-slate-900">{u.name}</p>
+                                                <p className="text-xs text-slate-400 truncate">{u.roles?.join(', ')}</p>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="p-4 text-center text-sm text-gray-400">No users found</div>
+                                    <div className="p-4 text-center text-sm text-slate-400">No users found</div>
                                 )}
                             </div>
                         )}
@@ -361,7 +361,7 @@ const ChatPage = () => {
                 {/* Conversation list */}
                 <div className="flex-1 overflow-y-auto">
                     <div className="p-3">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Recent Chats</h3>
+                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Recent Chats</h3>
                         <div className="space-y-0.5">
                             {conversations.map(chat => (
                                 <ChatListItem
@@ -375,7 +375,7 @@ const ChatPage = () => {
                                 />
                             ))}
                             {conversations.length === 0 && (
-                                <p className="text-center text-xs text-gray-400 py-8">No conversations yet.<br />Search above to start one.</p>
+                                <p className="text-center text-xs text-slate-400 py-8">No conversations yet.<br />Search above to start one.</p>
                             )}
                         </div>
                     </div>
@@ -388,7 +388,7 @@ const ChatPage = () => {
                 className={`
                     absolute inset-0 z-20 md:static md:z-auto
                     flex-1 flex flex-col bg-white md:m-3 md:rounded-2xl
-                    md:shadow-sm md:border md:border-gray-100 overflow-hidden
+                    md:shadow-sm md:border md:border-slate-100 overflow-hidden
                     transition-transform duration-300 ease-in-out
                     ${mobileChatOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
                 `}
@@ -411,7 +411,7 @@ const ChatPage = () => {
                                 return (
                                     <React.Fragment key={msg.id}>
                                         {showDate && (
-                                            <div className="text-center text-xs text-gray-400 my-2">
+                                            <div className="text-center text-xs text-slate-400 font-medium my-2">
                                                 {new Date(msg.created_at).toLocaleDateString()}
                                             </div>
                                         )}
@@ -429,8 +429,8 @@ const ChatPage = () => {
                         </div>
 
                         {/* Input */}
-                        <div className="p-3 md:p-4 bg-white border-t border-gray-100">
-                            <div className="flex items-end gap-2 bg-gray-100 rounded-2xl px-4 py-2 border border-transparent focus-within:bg-white focus-within:border-purple-200 transition-all">
+                        <div className="p-3 md:p-4 bg-white border-t border-slate-100">
+                            <div className="flex items-end gap-2 bg-slate-100 rounded-2xl px-4 py-2 border border-transparent focus-within:bg-white focus-within:border-km-primary/30 transition-all">
                                 <textarea
                                     rows={1}
                                     value={inputText}
@@ -442,13 +442,13 @@ const ChatPage = () => {
                                         }
                                     }}
                                     placeholder="Write a message..."
-                                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-1.5 outline-none max-h-32"
+                                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-1.5 outline-none max-h-32 text-slate-800"
                                     style={{ scrollbarWidth: 'none' }}
                                 />
                                 <button
                                     onClick={handleSendMessage}
                                     disabled={!inputText.trim()}
-                                    className={`p-2 rounded-full transition-colors shrink-0 mb-0.5 ${inputText.trim() ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-gray-200 text-gray-400'}`}
+                                    className={`p-2.5 rounded-xl transition-all shrink-0 mb-0.5 ${inputText.trim() ? 'bg-km-primary text-white hover:bg-km-primary-dark shadow-md shadow-blue-900/10' : 'bg-slate-200 text-slate-400'}`}
                                 >
                                     <Send size={18} />
                                 </button>
@@ -457,12 +457,12 @@ const ChatPage = () => {
                     </>
                 ) : (
                     // Empty state — only visible on desktop since mobile shows sidebar
-                    <div className="hidden md:flex flex-1 flex-col items-center justify-center text-gray-400">
-                        <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                            <Send size={36} className="text-gray-300 ml-1 mt-1" />
+                    <div className="hidden md:flex flex-1 flex-col items-center justify-center text-slate-400">
+                        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+                            <Send size={36} className="text-km-primary ml-1 mt-1" />
                         </div>
-                        <h2 className="text-lg font-bold text-gray-600">Your Messages</h2>
-                        <p className="text-sm text-center mt-1 max-w-xs">
+                        <h2 className="text-lg font-bold text-slate-700">Your Messages</h2>
+                        <p className="text-sm text-center mt-1 max-w-xs text-slate-500">
                             Select a chat or search for someone to start a conversation.
                         </p>
                     </div>
@@ -477,47 +477,47 @@ const ChatPage = () => {
 const ChatListItem = ({ name, message, date, active, onClick, user }: any) => (
     <div
         onClick={onClick}
-        className={`p-3 rounded-xl flex gap-3 cursor-pointer transition-all ${active ? 'bg-purple-50 border border-purple-100' : 'hover:bg-gray-50 border border-transparent'}`}
+        className={`p-3 rounded-xl flex gap-3 cursor-pointer transition-all ${active ? 'bg-blue-50/80 border border-blue-200' : 'hover:bg-slate-50 border border-transparent'}`}
     >
-        <div className="relative w-11 h-11 bg-purple-100 rounded-full shrink-0 flex items-center justify-center text-purple-700 font-bold overflow-hidden">
+        <div className="relative w-11 h-11 bg-km-primary-dark rounded-full shrink-0 flex items-center justify-center text-white font-bold overflow-hidden shadow-inner">
             {user?.profile_image
                 ? <img src={user.profile_image} className="w-full h-full object-cover" alt={name} />
                 : name[0]}
         </div>
         <div className="flex-1 min-w-0">
             <div className="flex justify-between items-start">
-                <h4 className={`text-sm font-bold truncate ${active ? 'text-purple-900' : 'text-gray-800'}`}>{name}</h4>
-                <span className="text-[10px] text-gray-400 whitespace-nowrap ml-2 mt-0.5">{date}</span>
+                <h4 className={`text-sm font-bold truncate ${active ? 'text-km-primary' : 'text-slate-800'}`}>{name}</h4>
+                <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2 mt-0.5 font-medium">{date}</span>
             </div>
-            <p className={`text-xs truncate mt-0.5 ${active ? 'text-purple-600' : 'text-gray-500'}`}>{message}</p>
+            <p className={`text-xs truncate mt-0.5 ${active ? 'text-km-primary font-medium' : 'text-slate-500'}`}>{message}</p>
         </div>
     </div>
 );
 
 const ChatHeader = ({ name, designation, avatar, onBack }: any) => (
-    <div className="p-3 md:p-4 border-b border-gray-100 flex justify-between items-center bg-white">
+    <div className="p-3 md:p-4 border-b border-slate-100 flex justify-between items-center bg-white">
         <div className="flex items-center gap-3">
             {/* Back button — mobile only */}
             <button
                 onClick={onBack}
-                className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
+                className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
                 aria-label="Back to conversations"
             >
                 <ChevronLeft size={22} />
             </button>
 
-            <div className="relative w-9 h-9 md:w-10 md:h-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-700 font-bold overflow-hidden shrink-0">
+            <div className="relative w-9 h-9 md:w-10 md:h-10 bg-km-primary-dark rounded-full flex items-center justify-center text-white font-bold overflow-hidden shrink-0 shadow-inner">
                 {avatar
                     ? <img src={avatar} className="w-full h-full object-cover" alt={name} />
                     : name[0]}
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full" />
+                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
             </div>
             <div>
-                <h3 className="text-sm font-bold text-gray-900 leading-tight">{name}</h3>
-                <p className="text-[10px] text-gray-400">{designation}</p>
+                <h3 className="text-sm font-bold text-slate-900 leading-tight">{name}</h3>
+                <p className="text-[10px] text-slate-400 font-medium">{designation}</p>
             </div>
         </div>
-        <button className="p-2 rounded-full hover:bg-gray-100 text-gray-400 transition-colors">
+        <button className="p-2 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
             <MoreHorizontal size={20} />
         </button>
     </div>
@@ -525,17 +525,17 @@ const ChatHeader = ({ name, designation, avatar, onBack }: any) => (
 
 const MessageBubble = ({ name, text, time, isMe, avatar }: any) => (
     <div className={`flex gap-2 md:gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold overflow-hidden ${isMe ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-600'}`}>
+        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold overflow-hidden ${isMe ? 'bg-km-primary text-white' : 'bg-slate-200 text-slate-600'}`}>
             {avatar
                 ? <img src={avatar} className="w-full h-full object-cover" alt={name} />
                 : name[0]}
         </div>
         <div className={`flex flex-col max-w-[75%] md:max-w-sm ${isMe ? 'items-end' : 'items-start'}`}>
             <div className={`flex items-center gap-2 mb-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                <span className="text-xs font-bold text-gray-700">{name}</span>
-                <span className="text-[10px] text-gray-400">{time}</span>
+                <span className="text-xs font-bold text-slate-700">{name}</span>
+                <span className="text-[10px] text-slate-400">{time}</span>
             </div>
-            <div className={`px-3 md:px-4 py-2 rounded-2xl text-sm leading-relaxed ${isMe ? 'bg-purple-600 text-white rounded-tr-none' : 'bg-white border border-gray-100 text-gray-700 rounded-tl-none shadow-sm'}`}>
+            <div className={`px-3 md:px-4 py-2 rounded-2xl text-sm leading-relaxed ${isMe ? 'bg-km-primary text-white rounded-tr-none shadow-sm' : 'bg-white border border-slate-100 text-slate-700 rounded-tl-none shadow-sm'}`}>
                 {text}
             </div>
         </div>

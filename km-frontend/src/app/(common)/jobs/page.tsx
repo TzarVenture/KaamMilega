@@ -517,13 +517,13 @@ const JobsPageContent = () => {
             <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 md:px-12">
                 
                 {/* HERO BANNER */}
-                <div className="mb-10 bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 sm:p-10 text-white shadow-2xl shadow-indigo-950/20 relative overflow-hidden border border-slate-800">
-                    <div className="absolute -right-16 -top-16 w-80 h-80 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute left-1/3 -bottom-16 w-60 h-60 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+                <div className="mb-10 bg-linear-to-r from-slate-950 via-km-primary-dark to-slate-950 rounded-3xl p-6 sm:p-10 text-white shadow-2xl shadow-blue-950/20 relative overflow-hidden border border-slate-800">
+                    <div className="absolute -right-16 -top-16 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute left-1/3 -bottom-16 w-60 h-60 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
 
                     <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div className="max-w-2xl">
-                            <div className="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-400/30 backdrop-blur-md text-indigo-200 text-xs font-bold px-3.5 py-1.5 rounded-full mb-4">
+                            <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 backdrop-blur-md text-blue-200 text-xs font-bold px-3.5 py-1.5 rounded-full mb-4">
                                 <Sparkles size={14} className="text-amber-400" />
                                 <span>Verified Indian Employment Portal</span>
                             </div>
@@ -536,7 +536,7 @@ const JobsPageContent = () => {
 
                             <div className="flex flex-wrap gap-4 mt-6 text-xs text-slate-300 font-semibold">
                                 <span className="flex items-center gap-1.5"><TrendingUp size={14} className="text-emerald-400" /> 1,250+ Active Listings</span>
-                                <span className="flex items-center gap-1.5"><Building2 size={14} className="text-indigo-400" /> 450+ Verified Companies</span>
+                                <span className="flex items-center gap-1.5"><Building2 size={14} className="text-blue-400" /> 450+ Verified Companies</span>
                                 <span className="flex items-center gap-1.5"><Zap size={14} className="text-amber-400" /> Instant Application</span>
                             </div>
                         </div>
@@ -544,7 +544,7 @@ const JobsPageContent = () => {
                         <div className="relative z-10 shrink-0">
                             <Link
                                 href="/jobs/saved"
-                                className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-2xl text-xs font-bold text-white transition-all shadow-lg hover:scale-[1.02]"
+                                className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl text-xs font-bold text-white transition-all shadow-lg hover:scale-[1.02]"
                             >
                                 <BookmarkCheck size={18} className="text-amber-400 fill-amber-400" />
                                 <span>Saved Jobs ({bookmarkedJobIds.size})</span>
@@ -573,7 +573,7 @@ const JobsPageContent = () => {
                         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
                             <div>
                                 <h2 className="text-base sm:text-lg font-black text-slate-900 flex items-center gap-2">
-                                    Showing <span className="text-indigo-600 font-black">{loading ? '...' : totalJobs} Available Positions</span>
+                                    Showing <span className="text-km-primary font-black">{loading ? '...' : totalJobs} Available Positions</span>
                                 </h2>
                                 {(searchTerm || cityFilter !== 'All') && (
                                     <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -587,7 +587,7 @@ const JobsPageContent = () => {
                             <div className="flex items-center gap-3">
                                 {/* Sorting Control */}
                                 <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-700">
-                                    <ArrowUpDown size={14} className="text-indigo-600" />
+                                    <ArrowUpDown size={14} className="text-km-primary" />
                                     <span>Sort:</span>
                                     <select
                                         value={sortBy}
@@ -603,7 +603,7 @@ const JobsPageContent = () => {
                                 {/* Mobile filter button */}
                                 <button
                                     onClick={() => setIsMobileFilterOpen(true)}
-                                    className="lg:hidden flex items-center gap-2 px-4 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 rounded-2xl text-xs font-bold shadow-sm hover:bg-indigo-100 transition-all shrink-0"
+                                    className="lg:hidden flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 text-km-primary rounded-xl text-xs font-bold shadow-sm hover:bg-blue-100 transition-all shrink-0"
                                 >
                                     <SlidersHorizontal size={14} /> Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
                                 </button>
@@ -618,7 +618,7 @@ const JobsPageContent = () => {
                                 </div>
                             ) : jobs.length === 0 ? (
                                 <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8 shadow-sm">
-                                    <div className="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <div className="w-16 h-16 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Search className="w-8 h-8" />
                                     </div>
                                     <h3 className="text-lg font-black text-slate-900">No Matching Jobs Found</h3>
@@ -638,7 +638,7 @@ const JobsPageContent = () => {
                                                         params.set('q', term);
                                                         router.push(`/jobs?${params.toString()}`);
                                                     }}
-                                                    className="px-3 py-1.5 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 rounded-xl text-xs font-bold transition-all border border-slate-200/60"
+                                                    className="px-3 py-1.5 bg-slate-50 hover:bg-blue-50 hover:text-km-primary text-slate-600 rounded-xl text-xs font-bold transition-all border border-slate-200/60"
                                                 >
                                                     {term}
                                                 </button>
@@ -667,7 +667,7 @@ const JobsPageContent = () => {
                                             <button
                                                 onClick={() => handlePageChange(currentPage - 1)}
                                                 disabled={currentPage === 1}
-                                                className="p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                                                className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-km-primary text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
                                             >
                                                 <ChevronLeft size={18} />
                                             </button>
@@ -683,10 +683,10 @@ const JobsPageContent = () => {
                                                         <button
                                                             key={pageNum}
                                                             onClick={() => handlePageChange(pageNum)}
-                                                            className={`w-10 h-10 rounded-2xl font-black text-xs transition-all ${
+                                                            className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${
                                                                 currentPage === pageNum
-                                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-indigo-300 shadow-sm'
+                                                                    ? 'bg-km-primary text-white shadow-md shadow-blue-900/10'
+                                                                    : 'bg-white text-slate-600 border border-slate-200 hover:border-km-primary shadow-sm'
                                                             }`}
                                                         >
                                                             {pageNum}
@@ -701,7 +701,7 @@ const JobsPageContent = () => {
                                             <button
                                                 onClick={() => handlePageChange(currentPage + 1)}
                                                 disabled={currentPage === totalPages}
-                                                className="p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                                                className="p-2.5 rounded-xl bg-white border border-slate-200 hover:border-km-primary text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
                                             >
                                                 <ChevronRight size={18} />
                                             </button>
@@ -734,10 +734,10 @@ const FilterAccordion = ({ title, children, defaultOpen = false }: { title: stri
         <div className="border-b border-slate-100 py-3">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center justify-between w-full font-bold text-xs uppercase tracking-wider text-slate-700 hover:text-indigo-600 transition-colors"
+                className="flex items-center justify-between w-full font-bold text-xs uppercase tracking-wider text-slate-700 hover:text-km-primary transition-colors"
             >
                 {title}
-                <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-indigo-600' : 'text-slate-400'}`} />
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-km-primary' : 'text-slate-400'}`} />
             </button>
             <AnimatePresence>
                 {isOpen && (
@@ -775,7 +775,7 @@ const JobCard = ({
     const companyInitial = job.company ? job.company.charAt(0).toUpperCase() : 'C';
 
     return (
-        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-0.5 transition-all duration-300 group relative">
+        <div className="bg-white p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] hover:shadow-xl hover:shadow-blue-900/5 hover:-translate-y-0.5 transition-all duration-300 group relative">
             {isTopMatch && (
                 <div className="inline-flex items-center gap-1.5 bg-linear-to-r from-amber-500 to-amber-400 text-white text-[10px] font-black px-3 py-1 rounded-full mb-4 uppercase tracking-wider shadow-sm">
                     <Star size={12} fill="currentColor" /> Top Recommended Match
@@ -787,19 +787,19 @@ const JobCard = ({
                     
                     {/* Company Logo Avatar & Job Title */}
                     <div className="flex items-start gap-4 mb-4">
-                        <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-slate-900 via-indigo-950 to-slate-900 border border-slate-700 text-white font-black text-lg flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 border border-slate-700 text-white font-black text-lg flex items-center justify-center shrink-0 shadow-sm">
                             {companyInitial}
                         </div>
                         <div className="min-w-0 flex-1">
                             <Link href={`/jobs/${job.id}`}>
-                                <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-indigo-600 transition-colors line-clamp-1 cursor-pointer">
+                                <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-km-primary transition-colors line-clamp-1 cursor-pointer">
                                     {job.title}
                                 </h3>
                             </Link>
                             <p className="text-slate-400 font-semibold text-xs uppercase tracking-wider mt-0.5 flex items-center gap-2">
                                 <span>{job.company}</span>
-                                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
-                                <span className="text-indigo-600 italic font-bold">Hiring Now</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-km-primary animate-pulse" />
+                                <span className="text-km-primary italic font-bold">Hiring Now</span>
                             </p>
                         </div>
                     </div>
@@ -818,12 +818,12 @@ const JobCard = ({
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-indigo-50/60 border border-indigo-100 text-indigo-900">
-                            <div className="w-8 h-8 rounded-xl bg-indigo-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                        <div className="flex items-center gap-3 p-3 rounded-2xl bg-blue-50/60 border border-blue-100 text-slate-900">
+                            <div className="w-8 h-8 rounded-xl bg-km-primary text-white flex items-center justify-center shrink-0 shadow-xs">
                                 <MapPin size={16} />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-[10px] text-indigo-600 font-black uppercase tracking-wider">Location</p>
+                                <p className="text-[10px] text-km-primary font-black uppercase tracking-wider">Location</p>
                                 <p className="font-extrabold text-xs sm:text-sm truncate">
                                     {job.location || 'Flexible'}, {job.city_name}
                                 </p>
@@ -842,8 +842,8 @@ const JobCard = ({
                         <span className="px-3 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-full uppercase border border-slate-200/60">
                             {job.vacancies || 1} Openings
                         </span>
-                        <span className="px-3 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-full uppercase flex items-center gap-1 border border-indigo-100">
-                            <CheckCircle2 size={12} className="fill-indigo-600 text-white" /> KM Verified
+                        <span className="px-3 py-1 bg-blue-50 text-km-primary text-[10px] font-bold rounded-full uppercase flex items-center gap-1 border border-blue-100">
+                            <CheckCircle2 size={12} className="fill-km-primary text-white" /> KM Verified
                         </span>
                     </div>
                 </div>
@@ -856,21 +856,21 @@ const JobCard = ({
                             title={isBookmarked ? "Remove Bookmark" : "Save / Bookmark Job"}
                             className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-all shadow-xs shrink-0 border ${
                                 isBookmarked
-                                    ? 'bg-purple-100 text-purple-700 border-purple-300 ring-2 ring-purple-400/20'
-                                    : 'bg-slate-50 text-slate-400 hover:bg-indigo-600 hover:text-white border-slate-200'
+                                    ? 'bg-blue-50 text-km-primary border-blue-200 ring-2 ring-km-primary/20'
+                                    : 'bg-slate-50 text-slate-400 hover:bg-km-primary hover:text-white border-slate-200'
                             }`}
                         >
-                            {isBookmarked ? <BookmarkCheck size={18} className="fill-purple-600 text-purple-700" /> : <Bookmark size={18} />}
+                            {isBookmarked ? <BookmarkCheck size={18} className="fill-km-primary text-km-primary" /> : <Bookmark size={18} />}
                         </button>
                         <button
                             title="Call Recruiter"
-                            className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all shadow-xs shrink-0 border border-slate-200 flex items-center justify-center"
+                            className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-500 hover:bg-km-primary hover:text-white transition-all shadow-xs shrink-0 border border-slate-200 flex items-center justify-center"
                         >
                             <Phone size={18} />
                         </button>
                         <button
                             title="Chat with Recruiter"
-                            className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-500 hover:bg-indigo-600 hover:text-white transition-all shadow-xs shrink-0 border border-slate-200 flex items-center justify-center"
+                            className="w-11 h-11 rounded-2xl bg-slate-50 text-slate-500 hover:bg-km-primary hover:text-white transition-all shadow-xs shrink-0 border border-slate-200 flex items-center justify-center"
                         >
                             <MessageCircle size={18} />
                         </button>
@@ -879,10 +879,10 @@ const JobCard = ({
                     <button
                         onClick={onApply}
                         disabled={loading || hasApplied}
-                        className={`w-full lg:w-44 px-6 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
+                        className={`w-full lg:w-44 px-6 py-3.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-2 ${
                             hasApplied
                                 ? 'bg-emerald-600 text-white cursor-not-allowed shadow-sm'
-                                : 'bg-linear-to-r from-indigo-600 via-purple-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-md shadow-indigo-200 active:scale-[0.98] disabled:opacity-50'
+                                : 'bg-km-primary hover:bg-km-primary-dark text-white shadow-md shadow-blue-900/10 active:scale-[0.98] disabled:opacity-50'
                         }`}
                     >
                         {loading ? (

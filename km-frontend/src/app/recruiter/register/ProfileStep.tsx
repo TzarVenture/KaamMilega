@@ -22,7 +22,7 @@ export default function ProfileStep({ data, updateData, onNext, onBack }: Props)
                     <div className="relative">
                         <input
                             type="text"
-                            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-600 outline-none transition text-slate-900 font-bold bg-white placeholder:text-slate-400 text-sm shadow-sm"
+                            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition text-slate-900 font-bold bg-white placeholder:text-slate-400 text-sm shadow-sm"
                             placeholder="Your First And Last Name"
                             value={data.fullName || ""}
                             onChange={(e) => updateData({ fullName: e.target.value })}
@@ -39,8 +39,8 @@ export default function ProfileStep({ data, updateData, onNext, onBack }: Props)
                                 type="button"
                                 onClick={() => updateData({ isConsultant: val })}
                                 className={`flex-1 py-3 rounded-xl border-2 transition-all font-bold text-sm ${data.isConsultant === val
-                                    ? "bg-indigo-600 border-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                                    : "bg-white border-slate-300 text-slate-800 hover:border-indigo-400 hover:bg-slate-50"
+                                    ? "bg-km-primary border-km-primary text-white shadow-md shadow-blue-900/20"
+                                    : "bg-white border-slate-300 text-slate-800 hover:border-km-primary hover:bg-slate-50"
                                     }`}
                             >
                                 {val ? "Yes" : "No"}
@@ -53,7 +53,7 @@ export default function ProfileStep({ data, updateData, onNext, onBack }: Props)
             <button
                 disabled={!data.fullName || data.isConsultant === null}
                 onClick={onNext}
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white font-bold py-3 rounded-full transition-all mt-4"
+                className="w-full bg-km-primary hover:bg-km-primary-dark disabled:bg-gray-300 text-white font-bold py-3.5 rounded-xl transition-all shadow-md shadow-blue-900/20 mt-4"
             >
                 Next
             </button>

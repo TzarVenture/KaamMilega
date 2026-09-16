@@ -6,8 +6,8 @@ const PeopleSection: React.FC = () => {
         <div className="flex w-full gap-6 bg-gray-50 p-6">
             {/* Consistent Sidebar */}
             <aside className="w-1/4">
-                <div className="sticky top-6 bg-[#FDF4FF] rounded-2xl border border-purple-100 p-8 flex flex-col items-center text-center">
-                    <div className="w-20 h-20 bg-[#3B124D] rounded-full flex items-center justify-center mb-4">
+                <div className="sticky top-6 bg-blue-50/40 rounded-2xl border border-blue-100 p-8 flex flex-col items-center text-center">
+                    <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center mb-4">
                         <span className="text-white text-2xl">▲</span>
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">Company Name</h2>
@@ -27,8 +27,8 @@ const PeopleSection: React.FC = () => {
                 {/* Popular People Section */}
                 <div>
                     <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-gray-900">Popular People To Follow Across Kaam Milega</h2>
-                        <button className="text-purple-600 font-semibold text-sm hover:underline">See All</button>
+                        <h2 className="text-xl font-bold text-gray-900">Popular People To Follow Across KaamMilega</h2>
+                        <button className="text-km-primary font-semibold text-sm hover:underline">See All</button>
                     </div>
                     <div className="grid grid-cols-3 gap-6">
                         {[...Array(6)].map((_, i) => (
@@ -51,8 +51,8 @@ const PersonCard = () => (
         </button>
 
         <div className="relative mb-3">
-            <div className="w-20 h-20 bg-[#3B124D] rounded-full flex items-center justify-center text-white">▲</div>
-            <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div>
+            <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center text-white">▲</div>
+            <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
         </div>
 
         <h3 className="font-bold text-gray-900 text-sm">Person Name</h3>
@@ -65,11 +65,11 @@ const PersonCard = () => (
         <p className="text-[10px] text-gray-400 mb-4 cursor-default">10 Mutual Connects</p>
 
         <div className="w-full space-y-2">
-            <button className="w-full py-1.5 border border-purple-600 text-purple-600 rounded-full text-xs font-semibold flex items-center justify-center space-x-1 hover:bg-purple-50">
+            <button className="w-full py-2 border border-km-primary text-km-primary rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
                 <MessageCircle size={12} />
                 <span>Chat</span>
             </button>
-            <button className="w-full py-1.5 bg-[#A872B3] text-white rounded-full text-xs font-semibold hover:bg-purple-500">
+            <button className="w-full py-2 bg-km-primary text-white rounded-xl text-xs font-semibold hover:bg-km-primary-dark transition-colors shadow-sm">
                 Follow
             </button>
         </div>
@@ -82,9 +82,9 @@ const PopularPersonRow = () => (
             <X size={14} />
         </button>
 
-        <div className="relative flex-shrink-0">
-            <div className="w-14 h-14 bg-[#3B124D] rounded-full flex items-center justify-center text-white text-xs">▲</div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
+        <div className="relative shrink-0">
+            <div className="w-14 h-14 bg-km-primary-dark rounded-full flex items-center justify-center text-white text-xs">▲</div>
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
         </div>
 
         <div className="flex-1 min-w-0">
@@ -97,11 +97,11 @@ const PopularPersonRow = () => (
             <p className="text-[9px] text-gray-400 mt-1">10 Mutual Connects</p>
 
             <div className="flex space-x-2 mt-3">
-                <button className="flex-1 py-1 border border-purple-600 text-purple-600 rounded-full text-[10px] font-bold flex items-center justify-center space-x-1">
+                <button className="flex-1 py-1.5 border border-km-primary text-km-primary rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
                     <MessageCircle size={10} />
                     <span>Chat</span>
                 </button>
-                <button className="flex-1 py-1 bg-[#A872B3] text-white rounded-full text-[10px] font-bold">
+                <button className="flex-1 py-1.5 bg-km-primary text-white rounded-xl text-[10px] font-bold hover:bg-km-primary-dark transition-colors shadow-sm">
                     Follow
                 </button>
             </div>

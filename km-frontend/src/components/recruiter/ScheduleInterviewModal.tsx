@@ -60,7 +60,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                         <input
                             type="date"
                             required
-                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all"
                             value={formData.scheduled_at_date}
                             onChange={(e) => setFormData({ ...formData, scheduled_at_date: e.target.value })}
                         />
@@ -73,7 +73,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                         <input
                             type="time"
                             required
-                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                            className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all"
                             value={formData.scheduled_at_time}
                             onChange={(e) => setFormData({ ...formData, scheduled_at_time: e.target.value })}
                         />
@@ -93,7 +93,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                                 type="button"
                                 onClick={() => setFormData({ ...formData, type: item.value })}
                                 className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${formData.type === item.value
-                                    ? "bg-blue-50 border-blue-500 text-blue-700 shadow-sm"
+                                    ? "bg-blue-50 border-km-primary text-km-primary shadow-sm"
                                     : "bg-white border-gray-100 text-gray-500 hover:border-gray-200"
                                     }`}
                             >
@@ -113,7 +113,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                         type="text"
                         required
                         placeholder={formData.type === 'Video' ? 'https://zoom.us/j/...' : formData.type === 'Phone' ? '+91 ...' : 'Office address...'}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all"
                         value={formData.location}
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     />
@@ -127,7 +127,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                     <textarea
                         rows={3}
                         placeholder="Any preparation tips or details..."
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all resize-none"
                         value={formData.notes}
                         onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     />
@@ -144,7 +144,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-8 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-100"
+                        className="px-8 py-2.5 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark disabled:opacity-50 transition-all shadow-md shadow-blue-900/10"
                     >
                         {loading ? 'Scheduling...' : 'Schedule Interview'}
                     </button>
