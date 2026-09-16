@@ -141,12 +141,12 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                             <div className="relative">
                                 <Mail className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
                                 <input
-                                    type="email"
-                                    placeholder="yourname@gmail.com"
-                                    value={email}
-                                    onChange={(e) => { setError(null); setEmail(e.target.value); }}
-                                    className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-600"
-                                />
+                                     type="email"
+                                     placeholder="yourname@gmail.com"
+                                     value={email}
+                                     onChange={(e) => { setError(null); setEmail(e.target.value); }}
+                                     className="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
+                                 />
                             </div>
                         </div>
 
@@ -162,7 +162,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                                 type="button"
                                 disabled={sending || !email.trim()}
                                 onClick={handleSendOtp}
-                                className="px-6 py-2.5 rounded-xl bg-[#5b2168] hover:bg-[#4a1b55] disabled:bg-slate-300 text-white text-xs font-bold transition-all shadow-md shadow-purple-900/10 cursor-pointer"
+                                className="px-6 py-2.5 rounded-xl bg-km-primary hover:bg-km-primary-dark disabled:bg-slate-300 text-white text-xs font-bold transition-all shadow-md shadow-blue-900/10 cursor-pointer"
                             >
                                 {sending ? "Sending Code..." : "Send Verification Code →"}
                             </button>
@@ -170,11 +170,11 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                     </div>
                 ) : (
                     <div className="space-y-4 text-center">
-                        <div className="w-10 h-10 bg-purple-50 text-purple-700 rounded-full flex items-center justify-center mx-auto">
+                        <div className="w-10 h-10 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto">
                             <CheckCircle2 className="w-5 h-5" />
                         </div>
                         <p className="text-xs font-bold text-slate-600">
-                            Enter the 4-digit code sent to <span className="text-[#5b2168] font-extrabold">{email}</span>
+                            Enter the 4-digit code sent to <span className="text-km-primary font-extrabold">{email}</span>
                         </p>
 
                         <OtpInput value={otp} onChange={(val) => { setError(null); setOtp(val); }} />
@@ -185,7 +185,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                                 type="button"
                                 disabled={resendTimer > 0 || sending}
                                 onClick={handleResendOtp}
-                                className="text-[#5b2168] font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
+                                className="text-km-primary font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
                             >
                                 {resendTimer > 0 ? `Resend Code in 00:${resendTimer.toString().padStart(2, '0')}` : "Resend Code"}
                             </button>

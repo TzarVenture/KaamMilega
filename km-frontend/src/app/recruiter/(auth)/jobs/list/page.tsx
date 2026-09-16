@@ -79,7 +79,7 @@ export default function ManageJobsPage() {
                 </div>
                 <Link
                     href="/recruiter/jobs/create"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg flex items-center gap-2 shadow-sm transition-all"
+                    className="bg-km-primary hover:bg-km-primary-dark text-white px-5 py-2.5 rounded-xl font-bold flex items-center gap-2 shadow-sm transition-all text-sm"
                 >
                     <Briefcase className="w-5 h-5" />
                     Post New Job
@@ -87,39 +87,39 @@ export default function ManageJobsPage() {
             </header>
 
             {/* Search and Filter Bar */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex gap-4">
+            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4">
                 <div className="flex-1 relative">
                     <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Search jobs by title or company..."
-                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <button className="px-4 py-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 flex items-center gap-2">
+                <button className="px-4 py-2.5 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-50 flex items-center gap-2 text-sm font-medium">
                     <Filter className="w-5 h-5" />
                     Filters
                 </button>
             </div>
 
             {filteredJobs.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-xl border border-gray-100">
-                    <div className="inline-block p-4 rounded-full bg-gray-50 mb-4">
-                        <Briefcase className="w-8 h-8 text-gray-400" />
+                <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+                    <div className="inline-block p-4 rounded-full bg-blue-50 text-km-primary mb-4">
+                        <Briefcase className="w-8 h-8" />
                     </div>
                     <h3 className="text-lg font-medium text-gray-900">No jobs found</h3>
                     <p className="text-gray-500 mt-1 mb-6">You haven't posted any jobs matching your search.</p>
                     <Link
                         href="/recruiter/jobs/create"
-                        className="text-blue-600 font-medium hover:underline"
+                        className="text-km-primary font-bold hover:underline"
                     >
                         Post a new job
                     </Link>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-gray-600">
                             <thead className="bg-gray-50 text-gray-900 font-semibold border-b border-gray-200">
@@ -140,9 +140,9 @@ export default function ManageJobsPage() {
                                             <div className="text-xs text-gray-500">{job.company}</div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${job.status === 'Open'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-gray-100 text-gray-600'
+                                            <span className={`px-2.5 py-1 rounded-full text-xs font-semibold border ${job.status === 'Open'
+                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                                : 'bg-slate-100 text-slate-600 border-slate-200'
                                                 }`}>
                                                 {job.status}
                                             </span>
@@ -158,7 +158,7 @@ export default function ManageJobsPage() {
                                         </td>
 
                                         <td className="px-6 py-4 text-center">
-                                            <Link href={`/recruiter/applications?jobId=${job.id}`} className="inline-flex items-center justify-center px-2.5 py-1 bg-blue-50 text-blue-700 rounded-md font-medium hover:bg-blue-100 transition-colors">
+                                            <Link href={`/recruiter/applications?jobId=${job.id}`} className="inline-flex items-center justify-center px-3 py-1 bg-blue-50 text-km-primary border border-blue-100 rounded-xl font-bold text-xs hover:bg-blue-100 transition-colors">
                                                 {job.applicant_count || 0}
                                             </Link>
                                         </td>
@@ -166,21 +166,21 @@ export default function ManageJobsPage() {
                                             <div className="flex items-center justify-end gap-2">
                                                 <Link
                                                     href={`/recruiter/jobs/${job.id}`}
-                                                    className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    className="p-1.5 text-gray-500 hover:text-km-primary hover:bg-blue-50 rounded-xl transition-colors"
                                                     title="View Details"
                                                 >
                                                     <Eye className="w-4 h-4" />
                                                 </Link>
                                                 <Link
                                                     href={`/recruiter/jobs/${job.id}/edit`}
-                                                    className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                                                    className="p-1.5 text-gray-500 hover:text-km-primary hover:bg-blue-50 rounded-xl transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit className="w-4 h-4" />
                                                 </Link>
                                                 <button
                                                     onClick={() => handleDelete(job.id)}
-                                                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
                                                     title="Delete"
                                                 >
                                                     <Trash2 className="w-4 h-4" />

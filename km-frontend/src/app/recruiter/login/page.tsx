@@ -278,25 +278,25 @@ export default function KaamMilegaAuth() {
         <div className="min-h-screen bg-white font-sans text-gray-900">
             {/* Navbar */}
             <header className="flex justify-between items-center px-4 md:px-12 py-4 md:py-6 max-w-7xl mx-auto">
-                <Image src="/asset/icons/header_logo.png" alt="Kaam Milega" width={120} height={35} priority className="md:w-[140px] md:h-[40px]" />
+                <Image src="/asset/icons/header_logo.png" alt="Kaam Milega" width={120} height={35} priority className="md:w-35 md:h-10" />
                 <div className="flex items-center gap-3 md:gap-6 text-[10px] md:text-sm font-bold text-gray-600">
-                    <button className="flex items-center gap-1.5 hover:text-purple-600 transition-colors">
-                        <Download size={16} className="md:w-[18px]" /> <span className="hidden xs:inline">Download</span> App
+                    <button className="flex items-center gap-1.5 hover:text-km-primary transition-colors">
+                        <Download size={16} className="md:w-4.5" /> <span className="hidden xs:inline">Download</span> App
                     </button>
-                    <button className="flex items-center gap-1 hover:text-purple-600 transition-colors">
-                        English <ChevronDown size={14} className="md:w-[16px]" />
+                    <button className="flex items-center gap-1 hover:text-km-primary transition-colors">
+                        English <ChevronDown size={14} className="md:w-4" />
                     </button>
                 </div>
             </header>
 
             {/* Main Hero Container */}
             <main className="max-w-7xl mx-auto px-4 md:px-6 mt-4 md:mt-12 pb-12">
-                <div className="bg-[#F9F7FF] rounded-[24px] md:rounded-[40px] p-6 md:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-12 min-h-0 lg:min-h-[550px] border border-purple-50 shadow-sm">
+                <div className="bg-linear-to-br from-blue-50/50 via-slate-50 to-orange-50/20 rounded-3xl md:rounded-[40px] p-6 md:p-16 flex flex-col lg:flex-row items-center justify-between gap-8 md:gap-12 min-h-0 lg:min-h-137.5 border border-slate-200/80 shadow-sm">
 
                     {/* Left Hero Content */}
                     <div className="flex-1 space-y-4 md:space-y-6 text-center lg:text-left pt-4 lg:pt-0">
                         <h1 className="text-3xl sm:text-4xl md:text-6xl font-black leading-tight text-gray-900">
-                            <span className="text-[#8B7DFF]">Hire</span> Local Staff Now!
+                            <span className="text-km-primary">Hire</span> Local Staff Now!
                         </h1>
                         <p className="text-lg md:text-xl font-bold text-gray-500 flex items-center justify-center lg:justify-start gap-2">
                             Get Started From Here 👉
@@ -304,7 +304,7 @@ export default function KaamMilegaAuth() {
                     </div>
 
                     {/* Right Side: Auth Card */}
-                    <div className="w-full max-w-md bg-white rounded-[24px] md:rounded-[32px] p-6 md:p-10 shadow-2xl shadow-purple-200/40 relative overflow-hidden min-h-0 md:min-h-[400px]">
+                    <div className="w-full max-w-md bg-white rounded-3xl md:rounded-4xl p-6 md:p-10 shadow-2xl shadow-blue-950/10 relative overflow-hidden min-h-0 md:min-h-100 border border-slate-100">
                         {/* Auth Mode Switcher Tab */}
                         <div className="flex bg-gray-100 p-1 rounded-2xl mb-6">
                             <button
@@ -312,7 +312,7 @@ export default function KaamMilegaAuth() {
                                 onClick={() => { setError(null); setAuthMode("otp"); }}
                                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
                                     authMode === "otp"
-                                        ? "bg-white text-purple-600 shadow-sm"
+                                        ? "bg-white text-km-primary shadow-sm"
                                         : "text-gray-500 hover:text-gray-700"
                                 }`}
                             >
@@ -323,7 +323,7 @@ export default function KaamMilegaAuth() {
                                 onClick={() => { setError(null); setAuthMode("password"); }}
                                 className={`flex-1 py-2.5 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all ${
                                     authMode === "password"
-                                        ? "bg-white text-purple-600 shadow-sm"
+                                        ? "bg-white text-km-primary shadow-sm"
                                         : "text-gray-500 hover:text-gray-700"
                                 }`}
                             >
@@ -355,7 +355,7 @@ export default function KaamMilegaAuth() {
                                                     autoFocus
                                                     inputMode="numeric"
                                                     ref={mobileInputRef}
-                                                    className="w-full px-5 py-4 bg-white border border-slate-300 text-slate-900 font-extrabold rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all placeholder:text-slate-400 text-sm"
+                                                    className="w-full px-5 py-4 bg-white border border-slate-300 text-slate-900 font-extrabold rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all placeholder:text-slate-400 text-sm"
                                                     required
                                                 />
                                             </div>
@@ -363,9 +363,9 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     type="submit"
                                                     disabled={loading || mobile.length < 10}
-                                                    className={`flex-1 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
+                                                    className={`flex-1 text-white py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
                                                         mobile.length === 10 && !loading
-                                                            ? "bg-[#8B7DFF] hover:bg-[#7a6ceb] shadow-purple-100"
+                                                            ? "bg-km-primary hover:bg-km-primary-dark shadow-blue-900/20"
                                                             : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                                                     }`}
                                                 >
@@ -374,7 +374,7 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     type="button"
                                                     onClick={() => router.push("/login")}
-                                                    className="flex-1 bg-[#A685B6] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#9674a5] transition-all"
+                                                    className="flex-1 border-2 border-km-primary text-km-primary py-4 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all"
                                                 >
                                                     I Want A Job
                                                 </button>
@@ -410,11 +410,11 @@ export default function KaamMilegaAuth() {
                                                         onChange={(e) => handleOtpChange(e.target.value, i)}
                                                         onKeyDown={(e) => handleKeyDown(e, i)}
                                                         onPaste={handlePaste}
-                                                        className="w-full h-14 md:h-16 bg-white border border-slate-300 text-slate-900 text-center font-black text-xl md:text-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all shadow-sm rounded-xl"
+                                                        className="w-full h-14 md:h-16 bg-white border border-slate-300 text-slate-900 text-center font-black text-xl md:text-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all shadow-sm rounded-xl"
                                                     />
                                                 ))}
                                             </div>
-                                            <button onClick={handleSendOtp} type="button" className="text-[10px] font-black text-[#8B7DFF] uppercase hover:underline">Resend OTP</button>
+                                            <button onClick={handleSendOtp} type="button" className="text-[10px] font-black text-km-primary uppercase hover:underline">Resend OTP</button>
                                             <div className="flex justify-between items-center pt-2">
                                                 <button onClick={() => setStep('login')} className="flex items-center gap-1 text-xs font-bold text-gray-400 hover:text-gray-600">
                                                     <ArrowLeft size={14} /> Back
@@ -422,7 +422,7 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     onClick={handleVerifyOtp}
                                                     disabled={otp.join("").length < 4 || loading}
-                                                    className={`px-8 py-3.5 rounded-full font-black text-xs uppercase transition-all ${otp.join("").length === 4 && !loading ? 'bg-[#8B7DFF] text-white shadow-xl hover:bg-[#7a6ceb]' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+                                                    className={`px-8 py-3.5 rounded-xl font-black text-xs uppercase transition-all ${otp.join("").length === 4 && !loading ? 'bg-km-primary text-white shadow-xl hover:bg-km-primary-dark shadow-blue-900/20' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                                                 >
                                                     {loading ? "Verifying..." : "Sign In"}
                                                 </button>
@@ -453,7 +453,7 @@ export default function KaamMilegaAuth() {
                                                 placeholder="company@example.com"
                                                 value={identifier}
                                                 onChange={(e) => { setError(null); setIdentifier(e.target.value); }}
-                                                className="w-full px-5 py-4 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                className="w-full px-5 py-4 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                                 required
                                             />
                                         </div>
@@ -464,7 +464,7 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     type="button"
                                                     onClick={() => { setError(null); setSuccessMessage(null); setPasswordMode("forgot"); }}
-                                                    className="text-xs font-bold text-[#8B7DFF] hover:underline"
+                                                    className="text-xs font-bold text-km-primary hover:underline"
                                                 >
                                                     Forgot Password?
                                                 </button>
@@ -475,7 +475,7 @@ export default function KaamMilegaAuth() {
                                                     placeholder="Enter your password"
                                                     value={password}
                                                     onChange={(e) => { setError(null); setPassword(e.target.value); }}
-                                                    className="w-full px-5 py-4 pr-12 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                    className="w-full px-5 py-4 pr-12 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                                     required
                                                 />
                                                 <button
@@ -491,9 +491,9 @@ export default function KaamMilegaAuth() {
                                         <button
                                             type="submit"
                                             disabled={!identifier || !password || loading}
-                                            className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
+                                            className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
                                                 identifier && password && !loading
-                                                    ? "bg-[#8B7DFF] text-white hover:bg-[#7a6ceb] shadow-purple-100"
+                                                    ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                                             }`}
                                         >
@@ -506,7 +506,7 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     type="button"
                                                     onClick={() => { setError(null); setPasswordMode("signup"); }}
-                                                    className="text-purple-600 font-black hover:underline"
+                                                    className="text-km-primary font-black hover:underline"
                                                 >
                                                     Register Company / Hire Staff
                                                 </button>
@@ -516,7 +516,7 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     type="button"
                                                     onClick={() => router.push("/login")}
-                                                    className="text-purple-600 font-bold hover:underline"
+                                                    className="text-km-primary font-bold hover:underline"
                                                 >
                                                     Candidate Login
                                                 </button>
@@ -546,7 +546,7 @@ export default function KaamMilegaAuth() {
                                                 placeholder="e.g. John Doe / HR Manager"
                                                 value={name}
                                                 onChange={(e) => { setError(null); setName(e.target.value); }}
-                                                className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                                 required
                                             />
                                         </div>
@@ -558,7 +558,7 @@ export default function KaamMilegaAuth() {
                                                 placeholder="hr@company.com"
                                                 value={email}
                                                 onChange={(e) => { setError(null); setEmail(e.target.value); }}
-                                                className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                                 required
                                             />
                                         </div>
@@ -571,7 +571,7 @@ export default function KaamMilegaAuth() {
                                                     placeholder="Create strong password"
                                                     value={password}
                                                     onChange={(e) => { setError(null); setPassword(e.target.value); }}
-                                                    className="w-full px-5 py-3.5 pr-12 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                    className="w-full px-5 py-3.5 pr-12 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                                     minLength={6}
                                                     required
                                                 />
@@ -588,9 +588,9 @@ export default function KaamMilegaAuth() {
                                         <button
                                             type="submit"
                                             disabled={!name.trim() || !email.trim() || password.length < 6 || loading}
-                                            className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg mt-2 ${
+                                            className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg mt-2 ${
                                                 name.trim() && email.trim() && password.length >= 6 && !loading
-                                                    ? "bg-[#8B7DFF] text-white hover:bg-[#7a6ceb] shadow-purple-100"
+                                                    ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                                     : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                                             }`}
                                         >
@@ -603,7 +603,7 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     type="button"
                                                     onClick={() => { setError(null); setPasswordMode("signin"); }}
-                                                    className="text-purple-600 font-black hover:underline"
+                                                    className="text-km-primary font-black hover:underline"
                                                 >
                                                     Sign In
                                                 </button>
@@ -635,7 +635,7 @@ export default function KaamMilegaAuth() {
                                                     placeholder="company@example.com"
                                                     value={identifier}
                                                     onChange={(e) => { setError(null); setIdentifier(e.target.value); }}
-                                                    className="w-full px-5 py-4 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                    className="w-full px-5 py-4 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                                     required
                                                 />
                                             </div>
@@ -643,9 +643,9 @@ export default function KaamMilegaAuth() {
                                             <button
                                                 type="submit"
                                                 disabled={!identifier || loading}
-                                                className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
+                                                className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg ${
                                                     identifier && !loading
-                                                        ? "bg-[#8B7DFF] text-white hover:bg-[#7a6ceb] shadow-purple-100"
+                                                        ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                                         : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                                                 }`}
                                             >
@@ -656,7 +656,7 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     type="button"
                                                     onClick={() => { setError(null); setSuccessMessage(null); setPasswordMode("signin"); }}
-                                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                                    className="text-xs font-bold text-gray-400 hover:text-km-primary transition-colors"
                                                 >
                                                     ← Back to Sign In
                                                 </button>
@@ -687,7 +687,7 @@ export default function KaamMilegaAuth() {
                                                     <button
                                                         type="button"
                                                         onClick={handleSendForgotCode}
-                                                        className="text-xs font-bold text-[#8B7DFF] hover:underline"
+                                                        className="text-xs font-bold text-km-primary hover:underline"
                                                     >
                                                         Resend Code
                                                     </button>
@@ -699,7 +699,7 @@ export default function KaamMilegaAuth() {
                                                     placeholder="Enter 4-digit code"
                                                     value={forgotCode}
                                                     onChange={(e) => { setError(null); setForgotCode(e.target.value.replace(/\D/g, "").slice(0, 4)); }}
-                                                    className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-black text-lg tracking-widest text-center rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all"
+                                                    className="w-full px-5 py-3.5 bg-white border border-slate-300 text-slate-900 font-black text-lg tracking-widest text-center rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all"
                                                     required
                                                 />
                                             </div>
@@ -712,7 +712,7 @@ export default function KaamMilegaAuth() {
                                                         placeholder="Enter your new password"
                                                         value={forgotNewPassword}
                                                         onChange={(e) => { setError(null); setForgotNewPassword(e.target.value); }}
-                                                        className="w-full px-5 py-3.5 pr-12 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-purple-200 focus:border-purple-600 transition-all text-sm"
+                                                        className="w-full px-5 py-3.5 pr-12 bg-white border border-slate-300 text-slate-900 font-medium rounded-2xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary transition-all text-sm"
                                                         minLength={6}
                                                         required
                                                     />
@@ -729,9 +729,9 @@ export default function KaamMilegaAuth() {
                                             <button
                                                 type="submit"
                                                 disabled={forgotCode.length !== 4 || forgotNewPassword.length < 6 || loading}
-                                                className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg mt-2 ${
+                                                className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg mt-2 ${
                                                     forgotCode.length === 4 && forgotNewPassword.length >= 6 && !loading
-                                                        ? "bg-[#8B7DFF] text-white hover:bg-[#7a6ceb] shadow-purple-100"
+                                                        ? "bg-km-primary text-white hover:bg-km-primary-dark shadow-blue-900/20"
                                                         : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
                                                 }`}
                                             >
@@ -742,7 +742,7 @@ export default function KaamMilegaAuth() {
                                                 <button
                                                     type="button"
                                                     onClick={() => { setError(null); setSuccessMessage(null); setPasswordMode("signin"); }}
-                                                    className="text-xs font-bold text-gray-400 hover:text-purple-600 transition-colors"
+                                                    className="text-xs font-bold text-gray-400 hover:text-km-primary transition-colors"
                                                 >
                                                     ← Back to Sign In
                                                 </button>

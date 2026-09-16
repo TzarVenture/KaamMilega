@@ -102,12 +102,12 @@ export default function RecruiterDashboard() {
             <ToastContainer />
 
             {/* ── RECRUITER WELCOME BANNER ── */}
-            <div className="bg-linear-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+            <div className="bg-linear-to-r from-slate-950 via-km-primary-dark to-slate-950 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <span className="px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                <Building2 size={13} className="text-indigo-400" /> {companyName}
+                            <span className="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                                <Building2 size={13} className="text-blue-400" /> {companyName}
                             </span>
 
                             {verificationStatus === 'verified' ? (
@@ -133,13 +133,13 @@ export default function RecruiterDashboard() {
                     <div className="flex items-center gap-3 shrink-0">
                         <Link
                             href="/recruiter/jobs/create"
-                            className="px-6 py-3.5 bg-linear-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold text-xs rounded-2xl shadow-lg shadow-indigo-500/30 flex items-center gap-2 uppercase tracking-wider transition-all hover:scale-[1.02]"
+                            className="px-6 py-3.5 bg-km-primary hover:bg-km-primary-dark text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-950/20 flex items-center gap-2 uppercase tracking-wider transition-all hover:scale-[1.02]"
                         >
                             <PlusCircle size={16} /> Post New Job
                         </Link>
                         <Link
                             href="/recruiter/applications"
-                            className="px-5 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold text-xs rounded-2xl transition-all flex items-center gap-2"
+                            className="px-5 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-2"
                         >
                             <Kanban size={16} /> Kanban Board
                         </Link>
@@ -155,7 +155,7 @@ export default function RecruiterDashboard() {
                         <h3 className="text-3xl font-black text-slate-900">{activeJobsCount}</h3>
                         <p className="text-[11px] text-slate-500 font-semibold mt-1">Out of {jobs.length} total posts</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0 border border-indigo-100">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-km-primary flex items-center justify-center font-bold shrink-0 border border-blue-100">
                         <Briefcase size={22} />
                     </div>
                 </div>
@@ -163,12 +163,12 @@ export default function RecruiterDashboard() {
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Applications</p>
-                        <h3 className="text-3xl font-black text-indigo-600">{totalApplications}</h3>
+                        <h3 className="text-3xl font-black text-km-primary">{totalApplications}</h3>
                         <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
                             <TrendingUp size={12} /> Active candidates
                         </p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0 border border-indigo-100">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-km-primary flex items-center justify-center font-bold shrink-0 border border-blue-100">
                         <Users size={22} />
                     </div>
                 </div>
@@ -205,7 +205,7 @@ export default function RecruiterDashboard() {
                     </div>
                     <Link
                         href="/recruiter/jobs/list"
-                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 group"
+                        className="text-xs font-bold text-km-primary hover:text-km-primary-dark flex items-center gap-1 group"
                     >
                         View All Jobs ({jobs.length})
                         <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -214,7 +214,7 @@ export default function RecruiterDashboard() {
 
                 {recentJobs.length === 0 ? (
                     <div className="p-12 text-center">
-                        <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <div className="w-14 h-14 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-3">
                             <Briefcase size={24} />
                         </div>
                         <h3 className="text-base font-bold text-slate-900">No Job Posts Found</h3>
@@ -223,7 +223,7 @@ export default function RecruiterDashboard() {
                         </p>
                         <Link
                             href="/recruiter/jobs/create"
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-2xl text-xs font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-km-primary text-white rounded-xl text-xs font-bold hover:bg-km-primary-dark transition-all shadow-md shadow-blue-900/10"
                         >
                             <PlusCircle size={15} /> Create Job Post
                         </Link>
@@ -242,7 +242,7 @@ export default function RecruiterDashboard() {
                             </thead>
                             <tbody className="divide-y divide-slate-100 font-semibold">
                                 {recentJobs.map((job) => (
-                                    <tr key={job.id} className="hover:bg-slate-50/50 transition-colors">
+                                     <tr key={job.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="py-4 px-6">
                                             <p className="font-bold text-slate-900 text-sm">{job.title}</p>
                                             <p className="text-slate-400 text-xs">{job.company}</p>
@@ -262,7 +262,7 @@ export default function RecruiterDashboard() {
                                         <td className="py-4 px-6 text-center">
                                             <Link
                                                 href={`/recruiter/applications?jobId=${job.id}`}
-                                                className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100 font-extrabold text-xs hover:bg-indigo-100 transition-colors"
+                                                className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-blue-50 text-km-primary border border-blue-100 font-extrabold text-xs hover:bg-blue-100 transition-colors"
                                             >
                                                 {applications.filter(a => a.job_id === job.id || a.job?.id === job.id).length} Applicants
                                             </Link>
@@ -270,7 +270,7 @@ export default function RecruiterDashboard() {
                                         <td className="py-4 px-6 text-right">
                                             <Link
                                                 href={`/recruiter/applications?jobId=${job.id}`}
-                                                className="inline-flex items-center gap-1 px-3.5 py-1.5 bg-slate-100 hover:bg-indigo-600 hover:text-white text-slate-700 rounded-xl text-xs font-bold transition-all"
+                                                className="inline-flex items-center gap-1 px-3.5 py-1.5 bg-slate-100 hover:bg-km-primary hover:text-white text-slate-700 rounded-xl text-xs font-bold transition-all"
                                             >
                                                 Pipeline <ArrowUpRight size={13} />
                                             </Link>
@@ -292,7 +292,7 @@ export default function RecruiterDashboard() {
                     </div>
                     <Link
                         href="/recruiter/applications"
-                        className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 group"
+                        className="text-xs font-bold text-km-primary hover:text-km-primary-dark flex items-center gap-1 group"
                     >
                         Kanban Pipeline Board
                         <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -301,7 +301,7 @@ export default function RecruiterDashboard() {
 
                 {recentApplications.length === 0 ? (
                     <div className="p-12 text-center text-slate-500">
-                        <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <div className="w-14 h-14 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-3">
                             <Users size={24} />
                         </div>
                         <h3 className="text-base font-bold text-slate-900">No Applications Received Yet</h3>
@@ -314,7 +314,7 @@ export default function RecruiterDashboard() {
                         {recentApplications.map((app) => (
                             <div key={app.id} className="p-6 hover:bg-slate-50/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                                    <div className="w-10 h-10 rounded-2xl bg-indigo-100 text-indigo-700 font-black flex items-center justify-center shrink-0 uppercase">
+                                    <div className="w-10 h-10 rounded-2xl bg-blue-50 text-km-primary font-black flex items-center justify-center shrink-0 uppercase border border-blue-100">
                                         {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
                                     </div>
                                     <div className="min-w-0">
@@ -352,7 +352,7 @@ export default function RecruiterDashboard() {
                                     <select
                                         value={app.status}
                                         onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                                        className="text-xs font-bold bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500"
+                                        className="text-xs font-bold bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
                                     >
                                         <option value="Applied">Applied</option>
                                         <option value="Shortlisted">Shortlisted</option>

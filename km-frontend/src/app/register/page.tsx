@@ -175,7 +175,7 @@ export default function RegisterPage() {
             {/* HEADER */}
             <header className="flex justify-between items-center px-6 sm:px-12 py-4 bg-white border-b border-slate-200">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#5b2168] rounded-xl flex items-center justify-center text-white font-black text-base shadow-md">
+                    <div className="w-10 h-10 bg-km-primary rounded-xl flex items-center justify-center text-white font-black text-base shadow-md">
                         KM
                     </div>
                     <span className="font-extrabold text-lg tracking-tight text-slate-900">
@@ -184,7 +184,7 @@ export default function RegisterPage() {
                 </div>
                 <div className="flex items-center gap-6 text-xs sm:text-sm font-semibold text-slate-600">
                     <span>📱 App Available</span>
-                    <span className="cursor-pointer hover:text-[#5b2168]">English ▾</span>
+                    <span className="cursor-pointer hover:text-km-primary">English ▾</span>
                 </div>
             </header>
 
@@ -198,7 +198,7 @@ export default function RegisterPage() {
                     <StepLabel active={step >= 5} done={step >= 5}>5. Complete</StepLabel>
                 </div>
 
-                <div className="sm:hidden text-xs font-bold text-[#5b2168] mb-2 uppercase tracking-wider">
+                <div className="sm:hidden text-xs font-bold text-km-primary mb-2 uppercase tracking-wider">
                     Step {step} of 5
                 </div>
 
@@ -208,7 +208,7 @@ export default function RegisterPage() {
                             <div
                                 className={`w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs ${
                                     step >= num
-                                        ? "bg-[#5b2168] text-white ring-4 ring-purple-100"
+                                        ? "bg-km-primary text-white ring-4 ring-blue-100"
                                         : "bg-slate-200 text-slate-500"
                                 }`}
                             >
@@ -217,7 +217,7 @@ export default function RegisterPage() {
                             {num !== 5 && (
                                 <div
                                     className={`flex-1 h-1 transition-all ${
-                                        step > num ? "bg-[#5b2168]" : "bg-slate-200"
+                                        step > num ? "bg-km-primary" : "bg-slate-200"
                                     }`}
                                 />
                             )}
@@ -238,7 +238,7 @@ export default function RegisterPage() {
 
             {/* CARD CONTAINER */}
             <div className="flex justify-center flex-1 px-4 sm:px-6 pb-12">
-                <div className="bg-white w-full max-w-3xl rounded-3xl p-6 sm:p-10 shadow-xl shadow-purple-900/5 border border-slate-100">
+                <div className="bg-white w-full max-w-3xl rounded-3xl p-6 sm:p-10 shadow-xl shadow-blue-950/5 border border-slate-100">
                     
                     {/* STEP 1: Personal Info */}
                     {step === 1 && (
@@ -282,14 +282,14 @@ export default function RegisterPage() {
                                         "Post Graduate",
                                     ].map((item) => (
                                         <label key={item} className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
-                                            education === item ? "border-[#5b2168] bg-purple-50/50 text-[#5b2168] font-bold" : "border-slate-200 hover:border-slate-300"
+                                            education === item ? "border-km-primary bg-blue-50/50 text-km-primary font-bold" : "border-slate-200 hover:border-slate-300"
                                         }`}>
                                             <input
                                                 type="radio"
                                                 name="education"
                                                 checked={education === item}
                                                 onChange={() => setEducation(item)}
-                                                className="accent-[#5b2168]"
+                                                className="accent-km-primary"
                                             />
                                             {item}
                                         </label>
@@ -305,14 +305,14 @@ export default function RegisterPage() {
                                         "I am Experienced"
                                     ].map((item) => (
                                         <label key={item} className={`flex-1 flex items-center gap-3 p-3.5 rounded-xl border transition-all cursor-pointer text-sm ${
-                                            workExperienceType === item ? "border-[#5b2168] bg-purple-50/50 text-[#5b2168] font-bold" : "border-slate-200 hover:border-slate-300"
+                                            workExperienceType === item ? "border-km-primary bg-blue-50/50 text-km-primary font-bold" : "border-slate-200 hover:border-slate-300"
                                         }`}>
                                             <input
                                                 type="radio"
                                                 name="work_experience"
                                                 checked={workExperienceType === item}
                                                 onChange={() => setWorkExperienceType(item)}
-                                                className="accent-[#5b2168]"
+                                                className="accent-km-primary"
                                             />
                                             {item}
                                         </label>
@@ -325,7 +325,7 @@ export default function RegisterPage() {
                                 <select
                                     value={city}
                                     onChange={(e) => setCity(e.target.value)}
-                                    className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-[#5b2168] text-slate-900"
+                                    className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary text-slate-900"
                                 >
                                     <option value="">Select City</option>
                                     <option>Mumbai</option>
@@ -342,7 +342,7 @@ export default function RegisterPage() {
                                     onClick={() => {
                                         if (validateStep1()) setStep(2);
                                     }}
-                                    className="bg-[#5b2168] hover:bg-[#4a1b55] text-white px-8 py-3.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-purple-900/20 transition-all cursor-pointer"
+                                    className="bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-900/20 transition-all cursor-pointer"
                                 >
                                     Continue to Email <ArrowRight size={16} />
                                 </button>
@@ -355,7 +355,7 @@ export default function RegisterPage() {
                         <div className="space-y-6">
                             <div>
                                 <h2 className="text-2xl sm:text-3xl font-black text-slate-900 flex items-center gap-3">
-                                    <Mail className="w-8 h-8 text-[#5b2168]" /> Verify Your Email Address
+                                    <Mail className="w-8 h-8 text-km-primary" /> Verify Your Email Address
                                 </h2>
                                 <p className="text-sm font-medium text-slate-500 mt-1">
                                     Add your email to receive direct interview invites and job alerts from top recruiters.
@@ -379,13 +379,13 @@ export default function RegisterPage() {
                                                 value={email}
                                                 disabled={otpSent}
                                                 onChange={(e) => setEmail(e.target.value)}
-                                                className="flex-1 px-4 py-3.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-[#5b2168] disabled:bg-slate-100"
+                                                className="flex-1 px-4 py-3.5 border border-slate-300 rounded-xl text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary disabled:bg-slate-100"
                                             />
                                             {!otpSent && (
                                                 <button
                                                     onClick={handleSendEmailOtp}
                                                     disabled={sendingOtp || !email.trim()}
-                                                    className="bg-[#5b2168] hover:bg-[#4a1b55] disabled:bg-slate-300 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition-all"
+                                                    className="bg-km-primary hover:bg-km-primary-dark disabled:bg-slate-300 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition-all"
                                                 >
                                                     {sendingOtp ? "Sending..." : "Send Verification Code"}
                                                 </button>
@@ -394,15 +394,15 @@ export default function RegisterPage() {
                                     </div>
 
                                     {otpSent && (
-                                        <div className="bg-purple-50/60 border border-purple-100 rounded-2xl p-6 space-y-4">
+                                        <div className="bg-blue-50/60 border border-blue-100 rounded-2xl p-6 space-y-4">
                                             <div className="flex justify-between items-center">
                                                 <p className="text-xs font-bold text-slate-600">
-                                                    Enter 4-digit code sent to <span className="text-[#5b2168] font-extrabold">{email}</span>:
+                                                    Enter 4-digit code sent to <span className="text-km-primary font-extrabold">{email}</span>:
                                                 </p>
                                                 <button
                                                     type="button"
                                                     onClick={() => { setOtpSent(false); setEmailOtp(["", "", "", ""]); }}
-                                                    className="text-xs font-bold text-[#5b2168] underline"
+                                                    className="text-xs font-bold text-km-primary underline"
                                                 >
                                                     Change Email
                                                 </button>
@@ -415,7 +415,7 @@ export default function RegisterPage() {
                                                     type="button"
                                                     disabled={resendTimer > 0 || sendingOtp}
                                                     onClick={handleSendEmailOtp}
-                                                    className="text-xs font-bold text-[#5b2168] disabled:text-slate-400 hover:underline"
+                                                    className="text-xs font-bold text-km-primary disabled:text-slate-400 hover:underline"
                                                 >
                                                     {resendTimer > 0 ? `Resend code in 00:${resendTimer.toString().padStart(2, '0')}` : "Resend Code"}
                                                 </button>
@@ -450,7 +450,7 @@ export default function RegisterPage() {
                                     )}
                                     <button
                                         onClick={() => setStep(3)}
-                                        className="bg-[#5b2168] hover:bg-[#4a1b55] text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-purple-900/20 transition-all"
+                                        className="bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-900/20 transition-all"
                                     >
                                         Next <ArrowRight size={16} />
                                     </button>
@@ -491,7 +491,7 @@ export default function RegisterPage() {
                                             onClick={() => toggleJob(job)}
                                             className={`flex items-center justify-between p-4 rounded-xl border cursor-pointer transition-all ${
                                                 isSelected
-                                                    ? "border-[#5b2168] bg-purple-50/50 text-[#5b2168] font-bold shadow-sm"
+                                                    ? "border-km-primary bg-blue-50/50 text-km-primary font-bold shadow-sm"
                                                     : "border-slate-200 hover:border-slate-300 text-slate-700"
                                             }`}
                                         >
@@ -500,7 +500,7 @@ export default function RegisterPage() {
                                                 type="checkbox"
                                                 checked={isSelected}
                                                 readOnly
-                                                className="accent-[#5b2168] w-4 h-4"
+                                                className="accent-km-primary w-4 h-4"
                                             />
                                         </div>
                                     );
@@ -520,7 +520,7 @@ export default function RegisterPage() {
                                         setValidationError(null);
                                         setStep(4);
                                     }}
-                                    className="bg-[#5b2168] hover:bg-[#4a1b55] text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-purple-900/20"
+                                    className="bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-blue-900/20"
                                 >
                                     Next <ArrowRight size={16} />
                                 </button>
@@ -559,7 +559,7 @@ export default function RegisterPage() {
                                 <button
                                     onClick={handleRegister}
                                     disabled={loading || !experience}
-                                    className="bg-[#5b2168] hover:bg-[#4a1b55] disabled:bg-slate-300 text-white px-10 py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-purple-900/20 transition-all cursor-pointer"
+                                    className="bg-km-primary hover:bg-km-primary-dark disabled:bg-slate-300 text-white px-10 py-3.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-900/20 transition-all cursor-pointer"
                                 >
                                     {loading ? "Completing Setup..." : "Complete Registration →"}
                                 </button>
@@ -583,7 +583,7 @@ export default function RegisterPage() {
                             </div>
                             <button
                                 onClick={() => router.push("/")}
-                                className="bg-[#5b2168] hover:bg-[#4a1b55] text-white px-10 py-4 rounded-xl font-bold text-base shadow-xl shadow-purple-900/20 transition-all"
+                                className="bg-km-primary hover:bg-km-primary-dark text-white px-10 py-4 rounded-xl font-bold text-base shadow-xl shadow-blue-900/20 transition-all"
                             >
                                 Explore Matching Jobs
                             </button>
@@ -599,7 +599,7 @@ export default function RegisterPage() {
 
 function StepLabel({ children, active, done }: any) {
     return (
-        <span className={done ? "text-emerald-700 font-extrabold" : active ? "text-[#5b2168] font-black" : "text-slate-400 font-semibold"}>
+        <span className={done ? "text-emerald-700 font-extrabold" : active ? "text-km-primary font-black" : "text-slate-400 font-semibold"}>
             {children}
         </span>
     );
@@ -613,7 +613,7 @@ function Input({ label, placeholder, value, onChange }: any) {
                 value={value}
                 onChange={onChange}
                 placeholder={placeholder}
-                className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-[#5b2168]"
+                className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
             />
         </div>
     );
@@ -626,7 +626,7 @@ function Pill({ children, active, onClick }: any) {
             onClick={onClick}
             className={`px-6 py-3 rounded-xl border text-sm font-bold transition-all cursor-pointer ${
                 active
-                    ? "bg-[#5b2168] text-white border-[#5b2168] shadow-md shadow-purple-900/10"
+                    ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/10"
                     : "border-slate-300 text-slate-700 bg-white hover:border-slate-400 hover:bg-slate-50"
             }`}
         >

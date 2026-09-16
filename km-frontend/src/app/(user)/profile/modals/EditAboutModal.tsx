@@ -44,7 +44,7 @@ const EditAboutModal = ({ isOpen, onClose, user, onSuccess }: EditAboutModalProp
 
           <div className="relative">
             <textarea
-              className="w-full min-h-[180px] p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition-all resize-none text-gray-600 text-sm"
+              className="w-full min-h-45 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none transition-all resize-none text-gray-600 text-sm"
               placeholder="Write your about section here..."
               value={aboutText}
               onChange={(e) => setAboutText(e.target.value)}
@@ -61,7 +61,7 @@ const EditAboutModal = ({ isOpen, onClose, user, onSuccess }: EditAboutModalProp
           <button
             onClick={handleSave}
             disabled={loading}
-            className="bg-[#A67DB0] hover:bg-[#9669A0] text-white font-semibold py-2 px-8 rounded-full transition-all shadow-sm disabled:opacity-50"
+            className="bg-km-primary hover:bg-km-primary-dark text-white font-semibold py-2.5 px-8 rounded-xl transition-all shadow-sm disabled:opacity-50"
           >
             {loading ? 'Saving...' : 'Save'}
           </button>

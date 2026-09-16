@@ -56,8 +56,8 @@ const OtherUserProfilePage = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
                 <div className="text-center max-w-sm mx-auto p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
-                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Lock size={28} className="text-purple-600" />
+                    <div className="w-16 h-16 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
+                        <Lock size={28} className="text-km-primary" />
                     </div>
                     <h2 className="text-xl font-bold text-gray-800 mb-2">This Profile is Private</h2>
                     <p className="text-gray-500 text-sm">This user has chosen to keep their profile private. Only they can view it.</p>
@@ -103,12 +103,12 @@ const OtherUserProfilePage = () => {
                     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
 
                         {/* Banner */}
-                        <div className="h-32 sm:h-48 bg-purple-200 relative group">
+                        <div className="h-32 sm:h-48 bg-linear-to-r from-km-primary-dark via-km-primary to-blue-700 relative group">
                             {user.cover_image ? (
                                 <CustomImage src={user.cover_image} alt="Cover" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                    <div className="w-24 h-24 bg-gray-400 rotate-45"></div>
+                                    <div className="w-24 h-24 bg-white/20 rotate-45"></div>
                                 </div>
                             )}
                         </div>
@@ -116,7 +116,7 @@ const OtherUserProfilePage = () => {
                         {/* Profile Info */}
                         <div className="px-4 sm:px-8 pb-6 sm:pb-8">
                             <div className="relative flex justify-between items-end -mt-12 sm:-mt-16 mb-4">
-                                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-900 rounded-full border-4 border-white flex items-center justify-center overflow-hidden">
+                                <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-900 rounded-full border-4 border-white flex items-center justify-center overflow-hidden shadow-md">
                                     {user?.profile_image ? (
                                         <CustomImage src={user?.profile_image} alt={user?.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -124,10 +124,10 @@ const OtherUserProfilePage = () => {
                                     )}
                                 </div>
                                 <div className="flex flex-wrap gap-2 mb-2">
-                                    <button className="bg-purple-600 text-white px-4 sm:px-6 py-2 rounded-full font-medium text-sm hover:bg-purple-700 transition-colors">
+                                    <button className="bg-km-primary text-white px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-km-primary-dark shadow-sm transition-colors">
                                         Connect
                                     </button>
-                                    <button className="border border-gray-400 text-gray-600 px-4 sm:px-6 py-2 rounded-full font-medium text-sm hover:bg-gray-50 transition-colors">
+                                    <button className="border border-km-primary text-km-primary px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors">
                                         Message
                                     </button>
                                 </div>
@@ -138,20 +138,20 @@ const OtherUserProfilePage = () => {
                             <p className="text-xs sm:text-sm text-gray-400 mt-1 flex flex-wrap gap-x-1 items-center">
                                 <span>{locationString || "Location not set"}</span>
                                 <span>•</span>
-                                <span className="text-purple-600 font-medium">{user?.connections_count || 0} Connections</span>
+                                <span className="text-km-primary font-medium">{user?.connections_count || 0} Connections</span>
                             </p>
 
                             {/* Status Cards (Optional for public view, keeping read-only state) */}
                             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="p-4 bg-purple-50 rounded-lg border border-purple-100 relative">
-                                    <p className="font-semibold text-sm">Open To Work</p>
+                                <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100 relative">
+                                    <p className="font-semibold text-sm text-slate-900">Open To Work</p>
                                     <p className="text-xs text-gray-500 line-clamp-2 mt-1">Computer Science roles, Software Engineering Internships...</p>
-                                    <button className="text-xs text-purple-600 font-bold mt-2">Read More</button>
+                                    <button className="text-xs text-km-primary font-bold mt-2 hover:underline">Read More</button>
                                 </div>
-                                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 relative">
-                                    <p className="font-semibold text-sm">Providing Services</p>
+                                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 relative">
+                                    <p className="font-semibold text-sm text-slate-900">Providing Services</p>
                                     <p className="text-xs text-gray-500 line-clamp-2 mt-1">Web Development, Technical Writing, and Go Microservices...</p>
-                                    <button className="text-xs text-purple-600 font-bold mt-2">Read More</button>
+                                    <button className="text-xs text-km-primary font-bold mt-2 hover:underline">Read More</button>
                                 </div>
                             </div>
                         </div>
@@ -164,14 +164,14 @@ const OtherUserProfilePage = () => {
                             {user.about || "No summary provided."}
                         </p>
                         {user.top_skills && user.top_skills.length > 0 && (
-                            <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                            <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Diamond size={16} className="text-purple-600" />
-                                    <span className="font-bold text-sm text-purple-900">Top Skills</span>
+                                    <Diamond size={16} className="text-km-primary" />
+                                    <span className="font-bold text-sm text-km-primary">Top Skills</span>
                                 </div>
-                                <div className="flex flex-wrap gap-2 text-xs text-purple-700">
+                                <div className="flex flex-wrap gap-2 text-xs text-slate-700">
                                     {user.top_skills.map((skill: string) => (
-                                        <span key={skill} className="bg-white px-2 py-1 rounded border border-purple-200">• {skill}</span>
+                                        <span key={skill} className="bg-white px-2.5 py-1 rounded-lg border border-blue-200 font-medium">• {skill}</span>
                                     ))}
                                 </div>
                             </div>
@@ -183,10 +183,10 @@ const OtherUserProfilePage = () => {
                         <h2 className="text-xl font-bold mb-4">Similar Profiles</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             {['Fintech', 'Internet', 'Fortune 500'].map((category) => (
-                                <div key={category} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 group cursor-pointer hover:border-purple-300 transition-colors">
+                                <div key={category} className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 group cursor-pointer hover:border-km-primary transition-colors">
                                     <div className="flex justify-between items-start mb-4">
                                         <h3 className="font-bold">{category}</h3>
-                                        <ChevronRight size={18} className="text-gray-400 group-hover:text-purple-600" />
+                                        <ChevronRight size={18} className="text-gray-400 group-hover:text-km-primary" />
                                     </div>
                                     <p className="text-[10px] text-gray-400 mb-3">1.4K+ Are Actively Hiring</p>
                                     <div className="flex -space-x-2">
@@ -199,7 +199,7 @@ const OtherUserProfilePage = () => {
                                 </div>
                             ))}
                         </div>
-                        <button className="w-full text-center text-purple-600 font-bold text-sm mt-6 hover:underline">See All</button>
+                        <button className="w-full text-center text-km-primary font-bold text-sm mt-6 hover:underline">See All</button>
                     </section>
 
                     {/* Experience Section */}
@@ -209,7 +209,7 @@ const OtherUserProfilePage = () => {
                             {user.experience && user.experience.length > 0 ? (
                                 user.experience.map((exp: any, index: number) => (
                                     <div key={index} className="flex gap-4">
-                                        <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center shrink-0">
+                                        <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center shrink-0">
                                             <Briefcase size={24} className="text-gray-400" />
                                         </div>
                                         <div className="space-y-2">
@@ -241,7 +241,7 @@ const OtherUserProfilePage = () => {
                             {user.education && user.education.length > 0 ? (
                                 user.education.map((edu: any, index: number) => (
                                     <div key={index} className="flex gap-4">
-                                        <div className="w-12 h-12 bg-gray-100 rounded flex items-center justify-center shrink-0">
+                                        <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center shrink-0">
                                             <GraduationCap size={24} className="text-gray-400" />
                                         </div>
                                         <div>
@@ -268,8 +268,8 @@ const OtherUserProfilePage = () => {
                         <div className="flex flex-wrap gap-3">
                             {user.skills && user.skills.length > 0 ? (
                                 user.skills.map((skill: string) => (
-                                    <div key={skill} className="flex items-center gap-2 px-4 py-1.5 bg-white border border-purple-200 rounded-full text-sm font-medium text-purple-700 shadow-sm">
-                                        <CheckCircle2 size={14} className="text-purple-600" />
+                                    <div key={skill} className="flex items-center gap-2 px-4 py-1.5 bg-blue-50/50 border border-blue-200 rounded-xl text-sm font-bold text-km-primary shadow-sm">
+                                        <CheckCircle2 size={14} className="text-km-primary" />
                                         {skill}
                                     </div>
                                 ))
@@ -289,7 +289,7 @@ const OtherUserProfilePage = () => {
                     {/* People Also Viewed (Previously "People Who View") */}
                     <div className="bg-white rounded-xl p-6 border border-gray-200">
                         <h3 className="font-bold text-gray-900 mb-4 flex justify-between items-center">
-                            People Also <span className="text-purple-600">Viewed</span>
+                            People Also <span className="text-km-primary">Viewed</span>
                         </h3>
 
                         <div className="space-y-6">
@@ -307,11 +307,11 @@ const OtherUserProfilePage = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <Link href="/chat" className="flex-1">
-                                            <button className="w-full border border-gray-300 rounded-full py-1 text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-50">
+                                            <button className="w-full border border-gray-300 rounded-xl py-1.5 text-sm font-medium flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors">
                                                 <MessageCircle size={14} /> Chat
                                             </button>
                                         </Link>
-                                        <button className="flex-1 bg-purple-600 text-white rounded-full py-1 text-sm font-medium hover:bg-purple-700">
+                                        <button className="flex-1 bg-km-primary text-white rounded-xl py-1.5 text-sm font-bold hover:bg-km-primary-dark transition-colors shadow-sm">
                                             Follow
                                         </button>
                                     </div>
@@ -322,7 +322,7 @@ const OtherUserProfilePage = () => {
 
                     {/* Our Experts Widget */}
                     <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                        <h3 className="font-bold text-gray-900 mb-4">Our <span className="text-purple-600">Experts</span></h3>
+                        <h3 className="font-bold text-gray-900 mb-4">Our <span className="text-[#7C3AED]">Experts</span></h3>
                         <div className="space-y-4">
                             {[1, 2, 3].map(i => (
                                 <div key={i} className="flex flex-col gap-2">
@@ -336,7 +336,7 @@ const OtherUserProfilePage = () => {
                                         </div>
                                     </div>
                                     <Link href="/chat">
-                                        <button className="w-full py-1 border border-purple-600 text-purple-600 rounded-full text-xs font-bold hover:bg-purple-50 flex items-center justify-center gap-1">
+                                        <button className="w-full py-1.5 border border-[#7C3AED] text-[#7C3AED] rounded-xl text-xs font-bold hover:bg-purple-50 flex items-center justify-center gap-1 transition-colors">
                                             <MessageCircle size={12} /> Chat
                                         </button>
                                     </Link>
@@ -357,7 +357,7 @@ const OtherUserProfilePage = () => {
                                     <div className="w-full">
                                         <p className="font-bold text-sm">Technova</p>
                                         <p className="text-[10px] text-gray-500">Software Solutions • IT Services</p>
-                                        <button className="mt-2 w-full py-1 bg-purple-600 text-white rounded-full text-xs font-bold hover:bg-purple-700">
+                                        <button className="mt-2 w-full py-1.5 bg-km-primary text-white rounded-xl text-xs font-bold hover:bg-km-primary-dark transition-colors shadow-sm">
                                             Follow
                                         </button>
                                     </div>

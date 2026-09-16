@@ -73,23 +73,23 @@ const GuestNavbar = () => {
 
                 {/* Right: Actions — desktop */}
                 <div className="hidden md:flex items-center gap-4 ml-4">
-                    <button className="hidden lg:flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-indigo-600">
+                    <button className="hidden lg:flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-km-primary transition-colors">
                         <Smartphone size={18} />
                         Download App
                     </button>
 
-                    <div className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer">
+                    <div className="flex items-center gap-1 text-sm font-medium text-gray-700 cursor-pointer hover:text-km-primary transition-colors">
                         English <ChevronDown size={16} />
                     </div>
 
-                    <Link href="/login" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-indigo-600">
+                    <Link href="/login" className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-km-primary transition-colors">
                         <LogIn size={18} />
                         Login
                     </Link>
 
                     <Link
                         href="/recruiter/login"
-                        className="bg-[#8B7EF8] hover:bg-[#7a6df0] text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2 transition-all shadow-sm"
+                        className="bg-km-primary hover:bg-km-primary-dark text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition-all shadow-sm hover:shadow-md"
                     >
                         Hire Local Staff
                         <ExternalLink size={14} />
@@ -128,7 +128,7 @@ const GuestNavbar = () => {
                             onChange={(e) => setSearchValue(e.target.value)}
                             className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder:text-gray-400"
                         />
-                        <button type="submit" className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shrink-0">
+                        <button type="submit" className="bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold px-3 py-1 rounded-full shrink-0 transition-colors">
                             Go
                         </button>
                     </form>
@@ -141,18 +141,18 @@ const GuestNavbar = () => {
                     <Link
                         href="/login"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 border-b border-gray-50"
+                        className="flex items-center gap-3 py-2 text-sm font-semibold text-gray-700 hover:text-km-primary border-b border-gray-50"
                     >
                         <LogIn size={18} /> Login
                     </Link>
                     <Link
                         href="/recruiter/login"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 border-b border-gray-50"
+                        className="flex items-center gap-3 py-2 text-sm font-semibold text-gray-700 hover:text-km-primary border-b border-gray-50"
                     >
                         <ExternalLink size={18} /> Hire Local Staff
                     </Link>
-                    <button className="flex items-center gap-3 py-2 text-sm font-semibold text-gray-700 hover:text-purple-600 border-b border-gray-50">
+                    <button className="flex items-center gap-3 py-2 text-sm font-semibold text-gray-700 hover:text-km-primary border-b border-gray-50">
                         <Smartphone size={18} /> Download App
                     </button>
                     <div className="flex items-center gap-2 py-2 text-sm font-semibold text-gray-700">
@@ -161,7 +161,7 @@ const GuestNavbar = () => {
                     <Link
                         href="/recruiter/login"
                         onClick={() => setMobileMenuOpen(false)}
-                        className="mt-1 bg-[#8B7EF8] hover:bg-[#7a6df0] text-white px-5 py-2.5 rounded-full text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm"
+                        className="mt-1 bg-km-primary hover:bg-km-primary-dark text-white px-5 py-2.5 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm"
                     >
                         Hire Local Staff <ExternalLink size={14} />
                     </Link>

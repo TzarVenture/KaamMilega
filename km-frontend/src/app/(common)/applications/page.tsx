@@ -84,6 +84,25 @@ function getStatusDisplay(status: string) {
     return map[status] || status;
 }
 
+function getStatusBadgeClass(status: string) {
+    switch (status) {
+        case "Applied":
+            return "bg-blue-50 text-blue-700 border-blue-200";
+        case "Viewed":
+            return "bg-indigo-50 text-indigo-700 border-indigo-200";
+        case "Shortlisted":
+            return "bg-amber-50 text-amber-700 border-amber-200";
+        case "Interviewing":
+            return "bg-purple-50 text-purple-700 border-purple-200";
+        case "Hired":
+            return "bg-emerald-50 text-emerald-700 border-emerald-200";
+        case "Rejected":
+            return "bg-rose-50 text-rose-700 border-rose-200";
+        default:
+            return "bg-slate-50 text-slate-700 border-slate-200";
+    }
+}
+
 export default function ApplicationsPage() {
     const [applications, setApplications] = useState<ApplicationDetail[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -115,7 +134,7 @@ export default function ApplicationsPage() {
         return (
             <div className="flex h-[80vh] items-center justify-center">
                 <div className="text-center space-y-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-purple-600 mx-auto" />
+                    <Loader2 className="w-10 h-10 animate-spin text-km-primary mx-auto" />
                     <p className="text-slate-500 font-medium">Crunching your career moves...</p>
                 </div>
             </div>
@@ -130,7 +149,7 @@ export default function ApplicationsPage() {
                 <p className="text-red-700">{error}</p>
                 <button
                     onClick={() => window.location.reload()}
-                    className="mt-6 px-6 py-2 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition"
+                    className="mt-6 px-6 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition"
                 >
                     Try Again
                 </button>
@@ -150,7 +169,7 @@ export default function ApplicationsPage() {
                 </p>
                 <a
                     href="/jobs"
-                    className="inline-flex items-center gap-2 px-8 py-3 bg-purple-600 text-white rounded-full font-bold hover:bg-purple-700 transition shadow-lg shadow-purple-200"
+                    className="inline-flex items-center gap-2 px-8 py-3 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-lg shadow-blue-900/10"
                 >
                     Explore Jobs
                     <ChevronRight className="w-4 h-4" />
@@ -161,15 +180,15 @@ export default function ApplicationsPage() {
 
     return (
         <div className="bg-[#fcfcff] min-h-screen">
-            <div className="max-w-[1400px] mx-auto p-4 md:p-10">
+            <div className="max-w-350 mx-auto p-4 md:p-10">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar: Application List */}
-                    <div className="w-full lg:w-[400px] shrink-0 space-y-6">
+                    <div className="w-full lg:w-100 shrink-0 space-y-6">
                         <div className="flex gap-2">
-                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-medium text-slate-500 hover:border-purple-300 hover:text-purple-600 transition">
+                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-primary transition">
                                 Recruiter Action (7)
                             </button>
-                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-full text-sm font-medium text-slate-500 hover:border-purple-300 hover:text-purple-600 transition">
+                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-primary transition">
                                 Applied On KM (12)
                             </button>
                         </div>
@@ -182,8 +201,8 @@ export default function ApplicationsPage() {
                                     className={cn(
                                         "w-full text-left p-5 rounded-2xl transition-all duration-300 border",
                                         selectedId === app.id
-                                            ? "bg-[#fff7fa] border-[#ffdbe9] shadow-md shadow-pink-50"
-                                            : "bg-white border-slate-100 hover:border-purple-100 hover:bg-slate-50/50"
+                                            ? "bg-blue-50/40 border-blue-200 shadow-sm ring-1 ring-km-primary/30"
+                                            : "bg-white border-slate-100 hover:border-blue-100 hover:bg-slate-50/50"
                                     )}
                                 >
                                     <h3 className="font-bold text-slate-900 truncate pr-4 text-[17px]">
@@ -200,7 +219,7 @@ export default function ApplicationsPage() {
                                     </div>
 
                                     <div className="mt-4 flex items-center justify-between">
-                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded-full text-[11px] font-bold border border-green-100">
+                                        <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border", getStatusBadgeClass(app.status))}>
                                             <CheckCircle2 className="w-3 h-3" />
                                             {getStatusDisplay(app.status)} {formatTimeAgo(app.updated_at)}
                                         </div>
@@ -214,12 +233,12 @@ export default function ApplicationsPage() {
                     </div>
 
                     {/* Main Content: Application Detail */}
-                    <div className="flex-1 bg-white border border-slate-100 rounded-[32px] p-8 md:p-12 shadow-sm min-h-[700px]">
+                    <div className="flex-1 bg-white border border-slate-100 rounded-4xl p-8 md:p-12 shadow-sm min-h-175">
                         {selectedApp ? (
                             <div className="space-y-10">
                                 {/* Job Header */}
                                 <div className="space-y-2">
-                                    <h1 className="text-3xl font-black text-[#2d2d4d]">
+                                    <h1 className="text-3xl font-black text-slate-900">
                                         {selectedApp?.job?.title} | {selectedApp?.job?.location}
                                     </h1>
                                     <div className="flex items-center gap-3 text-slate-500 font-medium">
@@ -231,7 +250,7 @@ export default function ApplicationsPage() {
                                         <span className="text-slate-300">|</span>
                                         <span>{selectedApp?.job?.reviews_count}</span>
                                     </div>
-                                    <button className="mt-4 text-purple-600 font-bold text-sm hover:underline flex items-center gap-1">
+                                    <button className="mt-4 text-km-primary font-bold text-sm hover:underline flex items-center gap-1">
                                         View Similar Jobs
                                         <ExternalLink className="w-3 h-3" />
                                     </button>
@@ -241,10 +260,10 @@ export default function ApplicationsPage() {
 
                                 {/* Status Stepper */}
                                 <div className="space-y-8">
-                                    <h2 className="text-xl font-black text-[#2d2d4d]">Application Status</h2>
+                                    <h2 className="text-xl font-black text-slate-900">Application Status</h2>
                                     <div className="relative pt-4 px-4">
                                         {/* Background Trace */}
-                                        <div className="absolute top-[18px] left-[5%] right-[5%] h-[4px] bg-slate-100 rounded-full" />
+                                        <div className="absolute top-4.5 left-[5%] right-[5%] h-1 bg-slate-100 rounded-full" />
 
                                         {(() => {
                                             const statusMap: Record<string, number> = {
@@ -262,7 +281,7 @@ export default function ApplicationsPage() {
                                                 <>
                                                     {/* Progress Trace */}
                                                     <div
-                                                        className="absolute top-[18px] left-[5%] h-[4px] bg-[#b1679a] rounded-full transition-all duration-1000"
+                                                        className="absolute top-4.5 left-[5%] h-1 bg-km-primary rounded-full transition-all duration-1000"
                                                         style={{ width: `${progressWidth}%` }}
                                                     />
 
@@ -274,12 +293,12 @@ export default function ApplicationsPage() {
                                                                     <div className={cn(
                                                                         "w-4 h-4 rounded-full border-4 z-10 transition-all duration-300 ring-4",
                                                                         isActive
-                                                                            ? "bg-white border-[#b1679a] ring-[#f8eef6]"
+                                                                            ? "bg-white border-km-primary ring-blue-100"
                                                                             : "bg-white border-slate-200 ring-transparent"
                                                                     )} />
                                                                     <span className={cn(
-                                                                        "mt-4 text-[11px] font-black uppercase tracking-wider text-center max-w-[100px]",
-                                                                        isActive ? "text-[#b1679a]" : "text-slate-400"
+                                                                        "mt-4 text-[11px] font-black uppercase tracking-wider text-center max-w-25",
+                                                                        isActive ? "text-km-primary font-bold" : "text-slate-400"
                                                                     )}>
                                                                         {step.label}
                                                                     </span>
@@ -298,7 +317,7 @@ export default function ApplicationsPage() {
                                 {/* Matching Criteria */}
                                 <div className="space-y-6">
                                     <div className="space-y-1">
-                                        <h2 className="text-xl font-black text-[#2d2d4d]">What may work for you?</h2>
+                                        <h2 className="text-xl font-black text-slate-900">What may work for you?</h2>
                                         <p className="text-slate-500 font-medium">Following criteria suggests how well you match with the job.</p>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
@@ -313,7 +332,7 @@ export default function ApplicationsPage() {
                                             <div key={idx} className="flex items-center gap-3">
                                                 <div className={cn(
                                                     "w-5 h-5 rounded-full flex items-center justify-center transition-colors",
-                                                    item.match ? "bg-green-500" : "bg-slate-200"
+                                                    item.match ? "bg-emerald-500" : "bg-slate-200"
                                                 )}>
                                                     <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                                                 </div>
@@ -331,11 +350,11 @@ export default function ApplicationsPage() {
                                 <div className="h-px bg-slate-100 w-full" />
 
                                 {/* Company Footer */}
-                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 rounded-[24px] bg-slate-50/50 border border-slate-100 mt-auto">
+                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-6 rounded-3xl bg-slate-50/50 border border-slate-100 mt-auto">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-[#2d1b38] rounded-full flex items-center justify-center text-white overflow-hidden">
+                                        <div className="w-16 h-16 bg-km-primary-dark rounded-full flex items-center justify-center text-white overflow-hidden shadow-sm">
                                             <div className="relative">
-                                                <Zap className="w-8 h-8 fill-purple-400 text-purple-400 transform rotate-12" />
+                                                <Zap className="w-8 h-8 fill-km-accent text-km-accent transform rotate-12" />
                                             </div>
                                         </div>
                                         <div>
@@ -347,14 +366,14 @@ export default function ApplicationsPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <button className="p-3 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition">
+                                        <button className="p-3 bg-blue-50 text-km-primary rounded-xl hover:bg-blue-100 transition">
                                             <PhoneCall className="w-5 h-5" />
                                         </button>
-                                        <button className="px-6 py-2.5 bg-white border border-slate-200 rounded-full font-bold text-slate-700 hover:border-purple-300 hover:text-purple-600 transition flex items-center gap-2 text-sm">
+                                        <button className="px-6 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:border-km-primary hover:text-km-primary transition flex items-center gap-2 text-sm">
                                             <MessageSquare className="w-4 h-4" />
                                             Chat With HR
                                         </button>
-                                        <button className="px-8 py-2.5 bg-[#b1679a] text-white rounded-full font-bold hover:bg-[#9a5183] transition shadow-lg shadow-pink-100 text-sm">
+                                        <button className="px-8 py-2.5 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-sm text-sm">
                                             Connect
                                         </button>
                                     </div>
@@ -366,19 +385,12 @@ export default function ApplicationsPage() {
                                     <Clock className="w-10 h-10 text-slate-200" />
                                 </div>
                                 <h3 className="text-xl font-bold text-slate-900">Select an application</h3>
-                                <p className="text-slate-500 max-w-[250px]">Choose an application from the left to see its detailed status and next steps.</p>
+                                <p className="text-slate-500 max-w-62.5">Choose an application from the left to see its detailed status and next steps.</p>
                             </div>
                         )}
                     </div>
                 </div>
             </div>
-
-            <style jsx>{`
-                @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap');
-                div {
-                    font-family: 'Montserrat', sans-serif;
-                }
-            `}</style>
         </div>
     );
 }

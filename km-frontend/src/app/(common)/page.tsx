@@ -155,28 +155,35 @@ export default function LandingPage() {
 // --- Components ---
 
 const HeroSection = () => (
-  <section className="relative bg-[#3b1641] rounded-[24px] md:rounded-[40px] mx-3 md:mx-4 py-12 md:py-20 px-4 md:px-6 overflow-hidden text-center text-white">
+  <section className="relative bg-linear-to-r from-[#0D1B5E] via-[#1a2b8c] to-[#0A1647] rounded-3xl md:rounded-[40px] mx-3 md:mx-4 py-12 md:py-20 px-4 md:px-6 overflow-hidden text-center text-white shadow-xl">
     {/* Background Pattern Mockup */}
     <div className="absolute inset-0 opacity-10 pointer-events-none">
       <div className="absolute top-10 left-10 w-20 h-20 border border-white rounded-full" />
       <div className="absolute bottom-10 right-20 w-32 h-32 border border-white rounded-full" />
     </div>
 
+    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-white border border-white/20 text-xs font-semibold mb-5 backdrop-blur-sm">
+      <span className="w-2 h-2 rounded-full bg-km-accent animate-pulse" />
+      India&apos;s Most Trusted Work &amp; Skill Platform
+    </div>
+
     <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
-      Find <span className="text-[#c084fc]">Local Jobs</span><br />
-      With Better Salary!
+      Kaam Dhoondo. <span className="text-km-accent">Milega Yahin!</span><br />
+      <span className="text-xl sm:text-2xl md:text-3xl font-bold opacity-90">Find Local Jobs With Better Salary</span>
     </h1>
-    <p className="text-base md:text-lg opacity-90 mb-8">Call HR Directly To Fix Interview For FREE</p>
+    <p className="text-base md:text-lg text-slate-200 mb-8 max-w-xl mx-auto">
+      Connect Directly With Verified Recruiters &amp; Fix Interviews Instantly
+    </p>
 
     <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-      <Link href="/login">
-        <button className="bg-[#a855f7] hover:bg-[#9333ea] px-8 py-3 rounded-full font-bold flex items-center justify-center gap-2 transition-all w-full sm:w-auto">
-          <MessageCircle size={20} /> Chat With HR
+      <Link href="/jobs">
+        <button className="bg-km-accent hover:bg-km-accent-dark text-white px-8 py-3.5 rounded-full font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-950/20 w-full sm:w-auto hover:scale-105">
+          <Briefcase size={20} /> Explore Jobs Now
         </button>
       </Link>
-      <Link href="/jobs">
-        <button className="bg-transparent border-2 border-white hover:bg-white hover:text-[#3b1641] px-8 py-3 rounded-full font-bold transition-all w-full sm:w-auto">
-          Get A Job Now
+      <Link href="/login">
+        <button className="bg-white/10 border-2 border-white/60 text-white hover:bg-white hover:text-[#0D1B5E] px-8 py-3.5 rounded-full font-bold flex items-center justify-center gap-2 transition-all w-full sm:w-auto backdrop-blur-sm">
+          <MessageCircle size={20} /> Chat With HR
         </button>
       </Link>
     </div>
@@ -188,15 +195,15 @@ const AutoMovingSlider = () => {
   const testimonials = Array(10).fill({ name: "Dharmender", status: "Has Fixed An Interview" });
 
   return (
-    <div className="bg-[#fdf4ff] py-6 overflow-hidden whitespace-nowrap border-y border-purple-50">
+    <div className="bg-slate-50 py-6 overflow-hidden whitespace-nowrap border-y border-slate-100">
       <motion.div
         className="flex gap-12"
         animate={{ x: [0, -1000] }}
         transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
       >
         {[...testimonials, ...testimonials].map((item, idx) => (
-          <div key={idx} className="flex items-center gap-3 min-w-[250px]">
-            <div className="w-12 h-12 bg-[#3b1641] rounded-full flex items-center justify-center text-white">
+          <div key={idx} className="flex items-center gap-3 min-w-62.5">
+            <div className="w-12 h-12 bg-km-primary rounded-full flex items-center justify-center text-white">
               <span className="rotate-45 text-xl">▲</span>
             </div>
             <div>
@@ -214,7 +221,6 @@ const AutoMovingSlider = () => {
 
 const LocationSection = ({ cities }: { cities: any[] }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-
 
   const displayCities = cities.length > 0 ? cities : [
     { name: "Mumbai", count: "Wait..." },
@@ -235,13 +241,13 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
   return (
     <section className="py-12 md:py-20 px-4 md:px-6 text-center max-w-7xl mx-auto">
       <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-800 mb-8 md:mb-12">
-        Where Do You Want To <span className="text-[#a855f7]">Work?</span>
+        Where Do You Want To <span className="text-km-primary">Work?</span>
       </h2>
 
       <div className="relative flex items-center group">
         <button
           onClick={() => scroll('left')}
-          className="hidden sm:flex absolute -left-4 z-10 p-3 bg-white rounded-full shadow-xl text-gray-400 hover:text-[#a855f7] hover:scale-110 transition-all border border-gray-50 active:scale-95"
+          className="hidden sm:flex absolute -left-4 z-10 p-3 bg-white rounded-full shadow-xl text-gray-400 hover:text-km-primary hover:scale-110 transition-all border border-gray-50 active:scale-95"
         >
           <ChevronLeft size={28} />
         </button>
@@ -254,7 +260,7 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
           {displayCities.map((city, idx) => (
             <Link key={idx} href={`/jobs?city=${city.id || city.name}`}>
               <div
-                className="min-w-[160px] sm:min-w-[200px] md:min-w-[220px] bg-white p-5 md:p-8 rounded-[24px] md:rounded-[32px] shadow-[0_15px_40px_-12px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(168,85,247,0.15)] transition-all cursor-pointer border border-gray-50 snap-center"
+                className="min-w-40 sm:min-w-50 md:min-w-55 bg-white p-5 md:p-8 rounded-3xl md:rounded-4xl shadow-[0_15px_40px_-12px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_50px_-12px_rgba(26,43,140,0.15)] transition-all cursor-pointer border border-gray-50 snap-center"
               >
                 <h3 className="text-lg md:text-2xl font-black text-gray-800 mb-2">{city.name}</h3>
                 <p className="text-xs md:text-sm text-gray-400 font-semibold tracking-wide uppercase">
@@ -267,7 +273,7 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
 
         <button
           onClick={() => scroll('right')}
-          className="hidden sm:flex absolute -right-4 z-10 p-3 bg-white rounded-full shadow-xl text-gray-400 hover:text-[#a855f7] hover:scale-110 transition-all border border-gray-50 active:scale-95"
+          className="hidden sm:flex absolute -right-4 z-10 p-3 bg-white rounded-full shadow-xl text-gray-400 hover:text-km-primary hover:scale-110 transition-all border border-gray-50 active:scale-95"
         >
           <ChevronRight size={28} />
         </button>
@@ -277,18 +283,18 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
 };
 
 const TrustCard = () => (
-  <div className="bg-white p-6 md:p-10 rounded-[28px] md:rounded-[40px] shadow-2xl flex flex-col items-center md:items-start max-w-2xl mx-3 md:mx-auto -mt-10 relative z-20 border border-purple-50">
+  <div className="bg-white p-6 md:p-10 rounded-[28px] md:rounded-[40px] shadow-2xl flex flex-col items-center md:items-start max-w-2xl mx-3 md:mx-auto -mt-10 relative z-20 border border-slate-100">
     <h3 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 mb-4 md:mb-6 leading-tight text-center md:text-left">
-      More Than <span className="text-[#a855f7]">10 Lakh Indians</span> Trust Job Hai 🤝
+      More Than <span className="text-km-primary">10 Lakh Indians</span> Trust KaamMilega™ 🤝
     </h3>
     <div className="flex flex-col sm:flex-row flex-wrap gap-3 md:gap-4 w-full sm:w-auto">
       <Link href="/register" className="w-full sm:w-auto">
-        <button className="w-full sm:w-auto bg-[#a855f7] hover:bg-[#9333ea] text-white px-8 py-3 rounded-full font-bold transition-all shadow-lg shadow-purple-200">
+        <button className="w-full sm:w-auto bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3 rounded-full font-bold transition-all shadow-lg shadow-blue-900/20">
           Register Now
         </button>
       </Link>
       <Link href="/jobs" className="w-full sm:w-auto">
-        <button className="w-full sm:w-auto border-2 border-[#a855f7] text-[#a855f7] hover:bg-purple-50 px-6 py-3 rounded-full font-bold transition-all text-sm">
+        <button className="w-full sm:w-auto border-2 border-km-primary text-km-primary hover:bg-blue-50 px-6 py-3 rounded-full font-bold transition-all text-sm">
           Chat With HR & Similar Profile
         </button>
       </Link>
@@ -356,7 +362,7 @@ const JobRolesGrid = () => {
       </div>
       <div className="text-center mt-6 md:mt-8">
         <Link href="/jobs">
-          <button className="px-6 py-2 border border-purple-300 text-purple-600 rounded-full text-sm font-bold hover:bg-purple-50">
+          <button className="px-6 py-2 border border-km-primary text-km-primary rounded-full text-sm font-bold hover:bg-blue-50 transition-colors">
             See All Job Roles
           </button>
         </Link>
@@ -372,22 +378,22 @@ const CompaniesSlider = ({ companies }: { companies: any[] }) => {
   return (
     <section className="py-16 bg-white overflow-hidden">
       <h2 className="text-center text-3xl font-black mb-10">
-        <span className="text-purple-500">Companies</span> Hiring With Us
+        <span className="text-km-primary">Companies</span> Hiring With Us
       </h2>
       <div className="relative max-w-7xl mx-auto px-6">
         <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x">
           {displayCompanies.map((co, i) => (
             <Link key={i} href={`/jobs?company=${co.name === 'Company' ? '' : co.name}`}>
-              <div className="min-w-[280px] bg-white p-6 rounded-3xl border border-gray-100 shadow-sm snap-start hover:border-purple-200 transition-colors cursor-pointer">
+              <div className="min-w-70 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm snap-start hover:border-blue-200 transition-colors cursor-pointer">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="font-bold text-gray-800 truncate max-w-[180px]" title={co.name}>{co.name} <ChevronRight size={16} className="inline" /></h4>
+                  <h4 className="font-bold text-gray-800 truncate max-w-45" title={co.name}>{co.name} <ChevronRight size={16} className="inline" /></h4>
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
                 </div>
                 <p className="text-xs text-gray-400 mb-4">Actively Hiring</p>
                 <div className="flex -space-x-2">
                   {[1, 2, 3, 4].map(n => (
-                    <div key={n} className="w-10 h-10 rounded-full bg-purple-50 border-2 border-white flex items-center justify-center">
-                      <div className="w-5 h-5 bg-purple-200 rounded-sm rotate-45" />
+                    <div key={n} className="w-10 h-10 rounded-full bg-blue-50 border-2 border-white flex items-center justify-center">
+                      <div className="w-5 h-5 bg-blue-200 rounded-sm rotate-45" />
                     </div>
                   ))}
                 </div>
@@ -411,13 +417,13 @@ const FeaturedCompanies = ({ companies }: { companies: any[] }) => {
   return (
     <section className="py-16 bg-white overflow-hidden">
       <h2 className="text-center text-4xl font-black mb-12">
-        Featured Companies <span className="text-purple-500">Actively Hiring</span>
+        Featured Companies <span className="text-km-primary">Actively Hiring</span>
       </h2>
       <div className="relative max-w-7xl mx-auto px-6">
         <div className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide snap-x">
           {displayCompanies.map((co, i) => (
-            <div key={i} className="min-w-[300px] bg-white rounded-[32px] p-8 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] border border-gray-50 snap-center text-center">
-              <div className="w-24 h-12 bg-gradient-to-r from-blue-400 to-purple-400 rounded-lg mx-auto mb-6 opacity-60 flex items-center justify-center text-white font-bold italic">LOGO</div>
+            <div key={i} className="min-w-75 bg-white rounded-4xl p-8 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.08)] border border-gray-50 snap-center text-center">
+              <div className="w-24 h-12 bg-linear-to-r from-blue-500 to-indigo-600 rounded-lg mx-auto mb-6 opacity-80 flex items-center justify-center text-white font-bold italic">LOGO</div>
               <h4 className="font-bold text-gray-800 mb-1">{co.name}</h4>
               <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mb-4">
                 <span className="flex items-center gap-1"><Star size={12} className="fill-yellow-400 text-yellow-400" /> {co.rating}</span>
@@ -426,14 +432,14 @@ const FeaturedCompanies = ({ companies }: { companies: any[] }) => {
               </div>
               <p className="text-[11px] text-gray-400 leading-relaxed mb-6 line-clamp-3">{co.desc}</p>
               <Link href={`/jobs?company=${co.name}`}>
-                <button className="text-purple-600 font-bold text-sm hover:underline">View Jobs</button>
+                <button className="text-km-primary font-bold text-sm hover:underline">View Jobs</button>
               </Link>
             </div>
           ))}
         </div>
         <div className="text-center mt-8">
           <Link href="/jobs">
-            <button className="px-8 py-2 border border-purple-200 text-purple-600 rounded-full text-sm font-bold hover:bg-purple-50">
+            <button className="px-8 py-2 border border-km-primary text-km-primary rounded-full text-sm font-bold hover:bg-blue-50 transition-colors">
               View All Companies
             </button>
           </Link>
@@ -458,13 +464,13 @@ const QualificationSearch = () => {
     <section className="py-12 md:py-20 bg-gray-50 px-4 md:px-6">
       <div className="max-w-7xl mx-auto text-center">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-6 md:mb-8">
-          Search Job Based On Your <span className="text-purple-500">Qualification</span>
+          Search Job Based On Your <span className="text-km-primary">Qualification</span>
         </h2>
 
         {/* Toggle Switch */}
-        <div className="inline-flex bg-white border border-purple-100 rounded-full p-1 mb-8 md:mb-12 shadow-sm">
-          <button className="px-5 md:px-8 py-2 bg-purple-500 text-white rounded-full text-sm font-bold">Qualification</button>
-          <button className="px-5 md:px-8 py-2 text-gray-400 text-sm font-bold">Skill</button>
+        <div className="inline-flex bg-white border border-slate-200 rounded-full p-1 mb-8 md:mb-12 shadow-sm">
+          <button className="px-5 md:px-8 py-2 bg-km-primary text-white rounded-full text-sm font-bold shadow-xs">Qualification</button>
+          <button className="px-5 md:px-8 py-2 text-gray-400 text-sm font-bold hover:text-gray-700">Skill</button>
         </div>
 
         <div className="grid grid-cols-3 md:grid-cols-6 gap-3 md:gap-4">
@@ -500,13 +506,13 @@ const JobTypeSection = () => {
     <section className="py-12 md:py-20 bg-white px-4 md:px-6">
       <div className="max-w-5xl mx-auto text-center">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-8 md:mb-12">
-          What <span className="text-purple-500">Type Of Job</span> Do You Want?
+          What <span className="text-km-primary">Type Of Job</span> Do You Want?
         </h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
           {types.map((t, i) => (
             <Link key={i} href={`/jobs?job_type=${t.label}`}>
-              <div className="flex items-center gap-3 md:gap-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl p-4 md:p-6 hover:border-purple-200 transition-colors cursor-pointer">
+              <div className="flex items-center gap-3 md:gap-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl p-4 md:p-6 hover:border-blue-200 transition-colors cursor-pointer">
                 <div className="p-2 md:p-3 bg-gray-50 rounded-xl md:rounded-2xl shrink-0">{t.icon}</div>
                 <div className="text-left">
                   <h4 className="font-bold text-gray-800 text-sm">{t.label} <ChevronRight size={14} className="inline ml-1 opacity-40" /></h4>
@@ -520,7 +526,7 @@ const JobTypeSection = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
           {secondaryTypes.map((t, i) => (
             <Link key={i} href={`/jobs?job_type=${t.label}`}>
-              <div className="flex items-center gap-3 md:gap-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl p-4 md:p-6 hover:border-purple-200 transition-colors cursor-pointer">
+              <div className="flex items-center gap-3 md:gap-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl p-4 md:p-6 hover:border-blue-200 transition-colors cursor-pointer">
                 <div className="p-2 md:p-3 bg-gray-50 rounded-xl md:rounded-2xl shrink-0">{t.icon}</div>
                 <div className="text-left">
                   <h4 className="font-bold text-gray-800 text-sm">{t.label}</h4>
@@ -539,22 +545,22 @@ const JobTypeSection = () => {
 // --- Diversity & Inclusion Banner ---
 const DiversityBanner = () => (
   <section className="px-3 md:px-6 py-6 md:py-10 max-w-7xl mx-auto">
-    <div className="relative min-h-[280px] md:h-[300px] rounded-[24px] md:rounded-[40px] overflow-hidden flex items-center px-6 md:px-12 text-white py-8 md:py-0">
-      <div className="absolute inset-0 bg-gradient-to-r from-[#3b1641] via-[#4a1d52] to-[#250d29] z-10" />
+    <div className="relative min-h-70 md:h-75 rounded-3xl md:rounded-[40px] overflow-hidden flex items-center px-6 md:px-12 text-white py-8 md:py-0">
+      <div className="absolute inset-0 bg-linear-to-r from-[#0D1B5E] via-[#1a2b8c] to-[#0A1647] z-10" />
 
       <div className="relative z-20 max-w-lg">
         <div className="flex items-center gap-2 mb-3 md:mb-4">
           <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">▲</div>
-          <span className="text-xs font-bold">Company Name <Star size={10} className="inline fill-yellow-400 border-none" /> 4.2</span>
+          <span className="text-xs font-bold">KaamMilega™ Verified Partner <Star size={10} className="inline fill-yellow-400 border-none" /> 4.8</span>
         </div>
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight mb-4">
-          Our Diversity And Inclusion At Workplace
+          Diversity And Inclusion At Every Workplace
         </h2>
-        <button className="text-sm font-bold underline hover:text-purple-300">Learn More</button>
+        <button className="text-sm font-bold underline hover:text-km-accent-light transition-colors">Learn More</button>
       </div>
 
       <div className="hidden md:flex absolute right-12 z-20 w-72 h-44 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl items-center justify-center">
-        <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
+        <div className="w-12 h-12 bg-km-accent hover:bg-km-accent-dark rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg shadow-orange-950/30">
           <Play fill="white" size={20} className="ml-1" />
         </div>
       </div>
@@ -565,32 +571,32 @@ const DiversityBanner = () => (
 // --- Video Learning Section ---
 const LearnSection = () => {
   const playlist = [
-    { title: "Lorem Ipsum Dolor Sit Amet Consectetur.", time: "2min 20sec", active: true },
-    { title: "Lorem Ipsum Dolor Sit Amet Consectetur.", time: "2min 22sec", active: false },
-    { title: "Lorem Ipsum Dolor Sit Amet Consectetur.", time: "2min 36sec", active: false },
+    { title: "How to prepare an interview-winning resume in 5 minutes.", time: "2min 20sec", active: true },
+    { title: "Crack your local HR call interview with high confidence.", time: "2min 22sec", active: false },
+    { title: "Salary negotiation secrets for freshers and experienced staff.", time: "2min 36sec", active: false },
   ];
 
   return (
     <section className="py-12 md:py-20 px-4 md:px-6 max-w-7xl mx-auto">
       <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-black mb-8 md:mb-12">
-        Learn With <span className="text-purple-500">Kaam Milega</span>
+        Learn With <span className="text-km-primary">KaamMilega™</span>
       </h2>
       <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
         {/* Main Video Player */}
-        <div className="w-full md:flex-1 aspect-video bg-[#1a0b1d] rounded-[24px] md:rounded-[40px] flex items-center justify-center relative group cursor-pointer overflow-hidden">
+        <div className="w-full md:flex-1 aspect-video bg-[#0D1B5E] rounded-3xl md:rounded-[40px] flex items-center justify-center relative group cursor-pointer overflow-hidden shadow-md">
           <Play size={50} className="text-white opacity-80 group-hover:scale-110 transition-transform" />
         </div>
 
         {/* Playlist */}
-        <div className="w-full md:w-[400px] space-y-3 md:space-y-4">
+        <div className="w-full md:w-100 space-y-3 md:space-y-4">
           {playlist.map((video, i) => (
             <div
               key={i}
-              className={`p-3 md:p-4 rounded-2xl md:rounded-3xl border transition-all cursor-pointer ${video.active ? 'bg-purple-50 border-purple-200' : 'bg-white border-gray-100 hover:bg-gray-50'
+              className={`p-3 md:p-4 rounded-2xl md:rounded-3xl border transition-all cursor-pointer ${video.active ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100 hover:bg-gray-50'
                 }`}
             >
               <div className="flex gap-3 md:gap-4">
-                <div className={`w-16 md:w-20 h-10 md:h-12 rounded-lg md:rounded-xl shrink-0 flex items-center justify-center ${video.active ? 'bg-purple-400' : 'bg-gray-200'}`}>
+                <div className={`w-16 md:w-20 h-10 md:h-12 rounded-lg md:rounded-xl shrink-0 flex items-center justify-center ${video.active ? 'bg-km-primary' : 'bg-gray-200'}`}>
                   <Play size={14} className="text-white" fill="white" />
                 </div>
                 <div>
@@ -611,13 +617,13 @@ const ExpertSlider = ({ experts }: { experts: any[] }) => {
   return (
     <section className="py-12 md:py-20 bg-white overflow-hidden">
       <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-black mb-8 md:mb-12">
-        Connect With Our <span className="text-purple-500">Experts</span>
+        Connect With Our <span className="text-km-primary">Experts</span>
       </h2>
       <div className="flex gap-4 md:gap-6 px-4 md:px-6 overflow-x-auto scrollbar-hide max-w-7xl mx-auto snap-x" style={{ scrollbarWidth: 'none' }}>
         {experts.map((expert, i) => (
-          <div key={i} className="min-w-[200px] sm:min-w-[220px] md:min-w-[240px] bg-white rounded-[24px] md:rounded-[32px] p-5 md:p-8 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] border border-gray-50 text-center snap-center">
+          <div key={i} className="min-w-50 sm:min-w-55 md:min-w-60 bg-white rounded-3xl md:rounded-4xl p-5 md:p-8 shadow-[0_15px_40px_-10px_rgba(0,0,0,0.06)] border border-gray-50 text-center snap-center">
             <div className="relative w-20 h-20 mx-auto mb-6">
-              <div className="w-full h-full bg-indigo-950 rounded-full flex items-center justify-center overflow-hidden">
+              <div className="w-full h-full bg-km-primary rounded-full flex items-center justify-center overflow-hidden">
                 {expert.profile_image ? (
                     <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
                 ) : (
@@ -629,7 +635,7 @@ const ExpertSlider = ({ experts }: { experts: any[] }) => {
             <h4 className="font-bold text-gray-900 text-lg">{expert.name || 'Expert'}</h4>
             <p className="text-[10px] text-gray-400 italic font-medium mb-3 tracking-wide">{expert.headline || expert.roles?.join(', ') || 'Expert'}</p>
             <div className="flex items-center justify-center gap-1 text-[11px] text-gray-500 font-bold mb-4 uppercase">
-              <MapPin size={12} className="text-purple-400" /> {expert.city || 'Location'}
+              <MapPin size={12} className="text-km-primary" /> {expert.city || 'Location'}
             </div>
             <p className="text-[11px] font-bold text-gray-400 mb-6">0 Mutual Connects</p>
             <div className="space-y-3">
@@ -647,7 +653,7 @@ const ExpertSlider = ({ experts }: { experts: any[] }) => {
                 return !isSelf && (
                   <>
                     <Link href={`/chat?userId=${expert.id || expert._id}`}>
-                      <button className="w-full py-2.5 border border-purple-200 rounded-full text-purple-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors">
+                      <button className="w-full py-2.5 border border-km-primary rounded-full text-km-primary text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors">
                         <MessageCircle size={14} /> Chat
                       </button>
                     </Link>
@@ -662,7 +668,7 @@ const ExpertSlider = ({ experts }: { experts: any[] }) => {
                               alert(e.message || "Could not send invitation");
                           }
                       }}
-                      className="w-full py-2.5 bg-purple-500 text-white rounded-full text-xs font-bold hover:bg-purple-600 shadow-lg shadow-purple-100 transition-all mt-3">
+                      className="w-full py-2.5 bg-km-primary text-white rounded-full text-xs font-bold hover:bg-km-primary-dark shadow-lg shadow-blue-900/10 transition-all mt-3">
                       Follow
                     </button>
                   </>
@@ -674,7 +680,7 @@ const ExpertSlider = ({ experts }: { experts: any[] }) => {
       </div>
       {/* Indicator */}
       <div className="flex justify-center gap-2 mt-10">
-        <div className="w-6 h-2 bg-purple-900 rounded-full" />
+        <div className="w-6 h-2 bg-km-primary rounded-full" />
         <div className="w-2 h-2 bg-gray-300 rounded-full" />
         <div className="w-2 h-2 bg-gray-300 rounded-full" />
       </div>
@@ -694,14 +700,13 @@ const EventsSection = ({ events }: { events: any[] }) => {
         {/* Left Side: Content */}
         <div className="lg:w-1/3 text-left">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-4 md:mb-6 leading-tight">
-            Upcoming <span className="text-purple-500">Events And Challenges</span>
+            Upcoming <span className="text-km-primary">Events And Challenges</span>
           </h2>
           <p className="text-sm text-gray-400 leading-relaxed mb-6 md:mb-8">
-            Lorem ipsum dolor sit amet consectetur. Viverra scelerisque leo cursus facilisis dui.
-            A bibendum commodo id at id integer.
+            Connect with peer learners, attend hiring workshops, and gain certified skills in community-driven events.
           </p>
           <Link href="/events">
-            <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 md:px-8 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all">
+            <button className="bg-km-primary hover:bg-km-primary-dark text-white px-6 md:px-8 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-md">
               View All Events <ChevronRight size={18} />
             </button>
           </Link>
@@ -715,15 +720,15 @@ const EventsSection = ({ events }: { events: any[] }) => {
             transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
           >
             {displayEvents.map((event, i) => (
-              <Link href={`/events/${event.id}`} key={i} className="min-w-[280px] sm:min-w-[320px] md:min-w-[340px] bg-white rounded-[24px] md:rounded-[32px] overflow-hidden shadow-lg border border-gray-50 flex flex-col group transition-all hover:shadow-xl">
+              <Link href={`/events/${event.id}`} key={i} className="min-w-70 sm:min-w-80 md:min-w-85 bg-white rounded-3xl md:rounded-4xl overflow-hidden shadow-lg border border-gray-50 flex flex-col group transition-all hover:shadow-xl">
                 <div className="h-40 bg-gray-200 relative overflow-hidden">
                   {event.image_url ? (
                       <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                      <div className="w-full h-full bg-[#1D0A1C] flex items-center justify-center relative overflow-hidden">
+                      <div className="w-full h-full bg-[#0D1B5E] flex items-center justify-center relative overflow-hidden">
                           <div className="flex items-center justify-center opacity-60">
-                              <div className="w-10 h-10 bg-purple-400 clip-path-triangle transform -rotate-12 -translate-x-2" />
-                              <div className="w-8 h-8 bg-purple-300 clip-path-triangle translate-x-2 translate-y-2" />
+                              <div className="w-10 h-10 bg-blue-400 clip-path-triangle transform -rotate-12 -translate-x-2" />
+                              <div className="w-8 h-8 bg-blue-300 clip-path-triangle translate-x-2 translate-y-2" />
                           </div>
                       </div>
                   )}
@@ -738,12 +743,12 @@ const EventsSection = ({ events }: { events: any[] }) => {
                     </div>
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-gray-400 font-bold mb-6 border-b border-gray-50 pb-4">
-                    <span className="flex items-center gap-1"><Calendar size={12} className="text-purple-500" /> {event.date}</span>
-                    <span className="flex items-center gap-1"><Users size={12} className="text-purple-500" /> 1K+ Joined</span>
+                    <span className="flex items-center gap-1"><Calendar size={12} className="text-km-primary" /> {event.date}</span>
+                    <span className="flex items-center gap-1"><Users size={12} className="text-km-primary" /> 1K+ Joined</span>
                   </div>
                   <div className="flex justify-between items-center text-xs font-black mt-auto">
-                    <span className="text-pink-500">🔥 Selling Fast</span>
-                    <span className="text-purple-600 bg-purple-50 px-4 py-2 rounded-full hover:bg-purple-100 transition-colors">Register</span>
+                    <span className="text-km-accent">🔥 Selling Fast</span>
+                    <span className="text-km-primary bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-colors">Register</span>
                   </div>
                 </div>
               </Link>
@@ -758,13 +763,13 @@ const EventsSection = ({ events }: { events: any[] }) => {
 // --- Wallet Recharge Banner ---
 const WalletBanner = () => (
   <section className="px-3 md:px-6 py-6 md:py-10 max-w-7xl mx-auto">
-    <div className="bg-gradient-to-r from-purple-400 via-purple-600 to-[#2d0a31] rounded-[24px] md:rounded-[40px] p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-center md:justify-between text-white">
-      <div className="absolute left-10 opacity-10 text-4xl font-black uppercase tracking-widest pointer-events-none hidden md:block">Graphic Pending</div>
+    <div className="bg-linear-to-r from-orange-500 via-orange-600 to-amber-700 rounded-3xl md:rounded-[40px] p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-center md:justify-between text-white shadow-lg">
+      <div className="absolute left-10 opacity-10 text-4xl font-black uppercase tracking-widest pointer-events-none hidden md:block">KaamMilega Wallet</div>
 
       <div className="relative z-10 text-center md:text-left">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2">Recharge Your <span className="text-purple-300">Wallet</span> And<br />Get Faster Job</h2>
-        <p className="text-sm opacity-80 mb-5 md:mb-6">Nothing Casual About This Job App</p>
-        <button className="bg-white text-purple-900 px-6 md:px-8 py-3 rounded-2xl font-bold flex items-center gap-2 mx-auto md:mx-0 shadow-xl">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-2">Recharge Your <span className="text-amber-200">Wallet</span> And<br />Get Hired Faster</h2>
+        <p className="text-sm opacity-90 mb-5 md:mb-6">Kaam Bhi. Skill Bhi. Kamaai Bhi.</p>
+        <button className="bg-white text-orange-700 hover:bg-orange-50 px-6 md:px-8 py-3 rounded-2xl font-bold flex items-center gap-2 mx-auto md:mx-0 shadow-xl transition-colors">
           <Wallet size={18} /> Recharge Now
         </button>
       </div>
@@ -783,37 +788,37 @@ const TestimonialsSection = () => {
   return (
     <section className="py-16 md:py-24 bg-gray-50 overflow-hidden relative">
       <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-black mb-10 md:mb-16 px-4">
-        What People Are Saying About <span className="text-purple-500">Kaam Milega</span>
+        What People Are Saying About <span className="text-km-primary">KaamMilega™</span>
       </h2>
 
       <div className="relative max-w-7xl mx-auto px-4 md:px-6 flex items-center">
         {/* Navigation */}
-        <button className="hidden sm:flex absolute left-2 z-20 p-3 bg-white rounded-full shadow-lg text-gray-300 hover:text-purple-600 transition-all">
+        <button className="hidden sm:flex absolute left-2 z-20 p-3 bg-white rounded-full shadow-lg text-gray-300 hover:text-km-primary transition-all">
           <ChevronLeft size={24} />
         </button>
 
         <div className="flex gap-4 md:gap-8 overflow-x-auto scrollbar-hide snap-x px-0 sm:px-12 pb-6 md:pb-10 w-full" style={{ scrollbarWidth: 'none' }}>
           {testimonials.map((t, i) => (
-            <div key={i} className="min-w-[300px] sm:min-w-[480px] md:min-w-[600px] bg-white rounded-[24px] md:rounded-[40px] p-6 md:p-12 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-gray-50 flex flex-col sm:flex-row gap-4 md:gap-8 snap-center">
+            <div key={i} className="min-w-75 sm:min-w-120 md:min-w-150 bg-white rounded-3xl md:rounded-[40px] p-6 md:p-12 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] border border-gray-50 flex flex-col sm:flex-row gap-4 md:gap-8 snap-center">
               <div className="w-16 h-16 sm:w-24 sm:h-24 bg-gray-100 rounded-full flex items-center justify-center shrink-0 relative overflow-hidden mx-auto sm:mx-0">
                 <Play fill="#cbd5e1" className="text-gray-300" />
-                <div className="absolute inset-0 bg-purple-900/10" />
+                <div className="absolute inset-0 bg-blue-900/10" />
               </div>
               <div className="text-left">
-                <h4 className="text-lg md:text-2xl font-black text-purple-600 mb-1">{t.name}</h4>
+                <h4 className="text-lg md:text-2xl font-black text-km-primary mb-1">{t.name}</h4>
                 <div className="flex items-center gap-2 mb-3 md:mb-4">
                   <span className="text-sm font-bold text-gray-700">{t.rating}</span>
                   <div className="flex gap-0.5">
                     {[1, 2, 3, 4, 5].map(s => <Star key={s} size={12} className="fill-yellow-400 text-yellow-400" />)}
                   </div>
                 </div>
-                <p className="text-xs md:text-sm text-gray-400 leading-relaxed italic line-clamp-4 md:line-clamp-none">"{t.text}"</p>
+                <p className="text-xs md:text-sm text-gray-400 leading-relaxed italic line-clamp-4 md:line-clamp-none">&ldquo;{t.text}&rdquo;</p>
               </div>
             </div>
           ))}
         </div>
 
-        <button className="hidden sm:flex absolute right-2 z-20 p-3 bg-white rounded-full shadow-lg text-gray-300 hover:text-purple-600 transition-all">
+        <button className="hidden sm:flex absolute right-2 z-20 p-3 bg-white rounded-full shadow-lg text-gray-300 hover:text-km-primary transition-all">
           <ChevronRight size={24} />
         </button>
       </div>
@@ -825,10 +830,10 @@ const TestimonialsSection = () => {
 const PremiumServicesBanner = () => {
   return (
     <section className="px-3 md:px-6 py-6 md:py-10 max-w-7xl mx-auto">
-      <div className="bg-white border-2 border-purple-100 rounded-[24px] md:rounded-[40px] p-6 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative overflow-hidden">
+      <div className="bg-white border-2 border-slate-200 rounded-3xl md:rounded-[40px] p-6 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative overflow-hidden shadow-sm">
         {/* Placeholder for Graphic */}
-        <div className="w-full md:w-1/3 aspect-video bg-gray-50 rounded-2xl md:rounded-3xl flex items-center justify-center border-2 border-dashed border-gray-200">
-          <span className="text-gray-400 font-black uppercase tracking-widest text-xs md:text-sm">Graphic Pending</span>
+        <div className="w-full md:w-1/3 aspect-video bg-blue-50 rounded-2xl md:rounded-3xl flex items-center justify-center border-2 border-dashed border-blue-200">
+          <span className="text-km-primary font-black uppercase tracking-widest text-xs md:text-sm">InstantMilega &amp; ATS</span>
         </div>
 
         <div className="flex-1 text-center md:text-left">
@@ -836,21 +841,21 @@ const PremiumServicesBanner = () => {
             Accelerate Your Job Search With Premium Services
           </h2>
           <p className="text-sm text-gray-400 leading-relaxed mb-5 md:mb-8 max-w-xl">
-            Service to help you get hired, faster: from preparing your CV, getting recruiter attention,
-            finding the right jobs, and more!
+            Services designed to get you hired faster: resume optimization, verified priority applicant status,
+            direct recruiter connection, and instant skill certifications!
           </p>
 
           <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-3 mb-5 md:mb-8">
             {['Resume Writing', 'Priority Applicant', 'Resume Display'].map((service) => (
-              <button key={service} className="px-4 md:px-5 py-2 border border-purple-200 rounded-full text-[10px] md:text-[11px] font-bold text-gray-700 hover:bg-purple-50 transition-colors flex items-center gap-2">
-                {service} <ChevronRight size={12} className="text-purple-400" />
+              <button key={service} className="px-4 md:px-5 py-2 border border-slate-200 rounded-full text-[10px] md:text-[11px] font-bold text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors flex items-center gap-2">
+                {service} <ChevronRight size={12} className="text-km-primary" />
               </button>
             ))}
           </div>
         </div>
 
         <Link href="/resources/premium">
-          <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 md:px-8 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-purple-100">
+          <button className="bg-km-primary hover:bg-km-primary-dark text-white px-6 md:px-8 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/15">
             Learn More
           </button>
         </Link>
@@ -869,9 +874,9 @@ const PopularQuestions = ({ questions }: { questions: any[] }) => {
 
   return (
     <section className="py-12 md:py-20 px-3 md:px-6 max-w-5xl mx-auto">
-      <div className="bg-white rounded-[24px] md:rounded-[40px] p-6 md:p-16 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] border border-gray-50">
+      <div className="bg-white rounded-3xl md:rounded-[40px] p-6 md:p-16 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] border border-gray-50">
         <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-black mb-8 md:mb-16">
-          Popular <span className="text-purple-500">Questions</span>
+          Popular <span className="text-km-primary">Questions</span>
         </h2>
 
         <div className="space-y-4">
@@ -881,13 +886,13 @@ const PopularQuestions = ({ questions }: { questions: any[] }) => {
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                 className="w-full flex justify-between items-center py-4 text-left group"
               >
-                <span className={`font-bold transition-colors ${openIndex === i ? 'text-purple-600' : 'text-gray-800 hover:text-purple-500'}`}>
+                <span className={`font-bold transition-colors ${openIndex === i ? 'text-km-primary' : 'text-gray-800 hover:text-km-primary'}`}>
                   {faq.question}
                 </span>
                 {openIndex === i ? (
-                  <ChevronUp className="text-purple-500" size={20} />
+                  <ChevronUp className="text-km-primary" size={20} />
                 ) : (
-                  <ChevronDown className="text-gray-400 group-hover:text-purple-500" size={20} />
+                  <ChevronDown className="text-gray-400 group-hover:text-km-primary" size={20} />
                 )}
               </button>
 

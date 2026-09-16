@@ -50,12 +50,12 @@ const PeopleSection: React.FC = () => {
         <div className="flex w-full gap-6">
             {/* Consistent Sidebar */}
             <aside className="w-full lg:w-1/4 hidden lg:block">
-                <div className="sticky top-6 bg-[#FDF4FF] rounded-2xl border border-purple-100 p-8 flex flex-col items-center text-center">
-                    <div className="w-20 h-20 bg-[#3B124D] rounded-full flex items-center justify-center mb-4 overflow-hidden">
+                <div className="sticky top-6 bg-blue-50/50 rounded-2xl border border-blue-100 p-8 flex flex-col items-center text-center">
+                    <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center mb-4 overflow-hidden shadow-inner">
                         {company?.logo ? (
                             <img src={company.logo} alt={company?.name} className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-white text-2xl uppercase">{company?.name?.charAt(0) || 'C'}</span>
+                            <span className="text-white text-2xl uppercase font-black">{company?.name?.charAt(0) || 'C'}</span>
                         )}
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">{company?.name || "Company Name"}</h2>
@@ -85,9 +85,6 @@ const PeopleSection: React.FC = () => {
                         </div>
                     )}
                 </div>
-
-                {/* Popular People Section (Placeholder or Global Fetch) */}
-                {/* Keeping static for now as requested "people should show peoples working in that company" is the main task */}
             </section>
         </div>
     );
@@ -98,26 +95,21 @@ export default PeopleSection;
 
 const PersonCard = ({ person }: { person: Person }) => (
     <div className="bg-white border border-gray-100 rounded-3xl p-5 flex flex-col items-center relative shadow-sm hover:shadow-md transition">
-        {/* <button className="absolute top-3 right-3 text-gray-300 hover:text-gray-500">
-            <X size={16} />
-        </button> */}
-
         <div className="relative mb-3">
-            <div className="w-20 h-20 bg-[#3B124D] rounded-full flex items-center justify-center overflow-hidden">
+            <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center overflow-hidden shadow-inner">
                 {person.avatar ? (
                     <img src={person.avatar} alt={person.name} className="w-full h-full object-cover" />
                 ) : (
-                    <span className="text-white text-2xl uppercase">{person.name.charAt(0)}</span>
+                    <span className="text-white text-2xl uppercase font-black">{person.name.charAt(0)}</span>
                 )}
             </div>
-            {/* <div className="absolute bottom-1 right-1 w-4 h-4 bg-green-500 border-2 border-white rounded-full"></div> */}
         </div>
 
         <h3 className="font-bold text-gray-900 text-sm text-center truncate w-full">{person.name}</h3>
-        <p className="text-[10px] text-gray-400 uppercase mb-2 text-center w-full truncate">{person.designation || 'Member'}</p>
+        <p className="text-[10px] text-gray-400 uppercase mb-2 text-center w-full truncate font-semibold">{person.designation || 'Member'}</p>
 
-        <div className="flex items-center text-gray-500 text-[10px] mb-1">
-            <MapPin size={10} className="mr-1" />
+        <div className="flex items-center text-gray-500 text-[10px] mb-1 font-medium">
+            <MapPin size={10} className="mr-1 text-km-primary" />
             <span>{person.location || 'Location N/A'}</span>
         </div>
         <p className="text-[10px] text-gray-400 mb-4 cursor-default">{person.mutual_connects || 0} Mutual Connects</p>
@@ -137,12 +129,12 @@ const PersonCard = ({ person }: { person: Person }) => (
                 return !isSelf && (
                     <>
                         <Link href={`/chat?userId=${person.id}`}>
-                            <button className="w-full py-1.5 border border-purple-600 text-purple-600 rounded-full text-xs font-semibold flex items-center justify-center space-x-1 hover:bg-purple-50 transition-colors">
+                            <button className="w-full py-2 border border-km-primary text-km-primary rounded-xl text-xs font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
                                 <MessageCircle size={12} />
                                 <span>Chat</span>
                             </button>
                         </Link>
-                        <button className="w-full py-1.5 bg-[#A872B3] text-white rounded-full text-xs font-semibold hover:bg-purple-500 transition-colors">
+                        <button className="w-full py-2 bg-km-primary text-white rounded-xl text-xs font-bold hover:bg-km-primary-dark transition-colors shadow-sm">
                             Follow
                         </button>
                     </>

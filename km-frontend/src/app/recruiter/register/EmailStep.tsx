@@ -39,9 +39,9 @@ export default function EmailStep({ data, updateData, onNext, onBack }: Props) {
   return (
     <div className="space-y-6 text-center">
       <div className="flex flex-col items-center">
-        <div className="bg-indigo-50 p-4 rounded-2xl mb-4 relative">
-          <Mail className="w-10 h-10 text-indigo-600" />
-          <CheckCircle2 className="w-5 h-5 text-indigo-600 bg-white rounded-full absolute -top-1 -right-1" />
+        <div className="bg-blue-50 p-4 rounded-2xl mb-4 relative">
+          <Mail className="w-10 h-10 text-km-primary" />
+          <CheckCircle2 className="w-5 h-5 text-km-primary bg-white rounded-full absolute -top-1 -right-1" />
         </div>
         <h2 className="text-2xl font-black text-slate-900">Verify Your Official Email ID</h2>
         <p className="text-sm font-medium text-slate-500 mt-1">
@@ -63,7 +63,7 @@ export default function EmailStep({ data, updateData, onNext, onBack }: Props) {
           </label>
           <input
             type="email"
-            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-600 outline-none text-sm font-extrabold text-slate-900 bg-white placeholder:text-slate-400 shadow-sm"
+            className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm font-extrabold text-slate-900 bg-white placeholder:text-slate-400 shadow-sm"
             placeholder="Ex: hr@company.com"
             value={data.email || ""}
             onChange={(e) => {
@@ -80,7 +80,7 @@ export default function EmailStep({ data, updateData, onNext, onBack }: Props) {
       <div className="space-y-3 pt-4">
         <button
           onClick={handleNextValidation}
-          className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-indigo-600/20 cursor-pointer"
+          className="w-full bg-km-primary hover:bg-km-primary-dark text-white font-bold py-3.5 rounded-xl text-sm transition-all shadow-md shadow-blue-900/20 cursor-pointer"
         >
           Send Verification Code →
         </button>

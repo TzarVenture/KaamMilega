@@ -47,7 +47,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
                         type="text"
                         required
                         placeholder="Ex: Retail Sales Manager"
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     />
@@ -56,7 +56,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type</label>
                     <select
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none bg-white font-medium"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none bg-white font-medium"
                         value={formData.employment_type}
                         onChange={(e) => setFormData({ ...formData, employment_type: e.target.value })}
                     >
@@ -70,7 +70,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
                         type="text"
                         required
                         placeholder="Ex: Microsoft"
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                         value={formData.company_name}
                         onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
                     />
@@ -81,7 +81,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
                     <input
                         type="text"
                         placeholder="Ex: Bangalore, India"
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                         value={formData.location}
                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                     />
@@ -93,7 +93,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
                         <input
                             type="month"
                             required
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                             value={formData.start_date}
                             onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                         />
@@ -102,7 +102,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
                         <label className="block text-sm font-medium text-gray-700 mb-1">End Date (or Present)</label>
                         <input
                             type="month"
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                             value={formData.end_date}
                             onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                         />
@@ -114,7 +114,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
                     <textarea
                         rows={3}
                         placeholder="Describe your responsibilities and achievements."
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none resize-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none resize-none"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
@@ -124,14 +124,14 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 transition-colors"
+                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                        className="px-6 py-2 bg-km-primary text-white rounded-xl font-medium hover:bg-km-primary-dark disabled:opacity-50 transition-colors shadow-sm"
                     >
                         {loading ? 'Saving...' : 'Save'}
                     </button>

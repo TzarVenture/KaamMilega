@@ -4,7 +4,7 @@ interface Props {
 
 export default function FooterLink({ children }: Props) {
     return (
-        <p className="text-gray-700 text-sm sm:text-base cursor-pointer hover:text-black transition">
+        <p className="text-slate-300 text-sm cursor-pointer hover:text-white hover:translate-x-1 transition-all">
             {children}
         </p>
     );

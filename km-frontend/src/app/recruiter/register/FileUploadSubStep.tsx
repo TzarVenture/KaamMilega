@@ -42,7 +42,7 @@ export default function FileUploadSubStep({ docType, onBack, onComplete }: Props
       </header>
 
       {/* Upload Area */}
-      <div className="border-2 border-dashed border-indigo-200 rounded-2xl bg-indigo-50/30 p-8 mb-4 text-center">
+      <div className="border-2 border-dashed border-blue-200 rounded-2xl bg-blue-50/30 p-8 mb-4 text-center">
         <input
           type="file"
           id="fileUpload"
@@ -55,9 +55,9 @@ export default function FileUploadSubStep({ docType, onBack, onComplete }: Props
           className="cursor-pointer flex flex-col items-center"
         >
           <div className="bg-white p-3 rounded-full shadow-md mb-3">
-            <Upload className="w-6 h-6 text-indigo-500" />
+            <Upload className="w-6 h-6 text-km-primary" />
           </div>
-          <span className="bg-indigo-100 text-indigo-600 px-6 py-2 rounded-full font-bold text-sm mb-2 hover:bg-indigo-200 transition">
+          <span className="bg-blue-100 text-km-primary px-6 py-2 rounded-full font-bold text-sm mb-2 hover:bg-blue-200 transition">
             {file ? file.name : "Choose A File"}
           </span>
           <p className="text-[10px] text-gray-400">
@@ -81,7 +81,7 @@ export default function FileUploadSubStep({ docType, onBack, onComplete }: Props
         <input
           type="text"
           placeholder={`Enter ${docType?.name || "Document"} Number`}
-          className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-100 focus:border-indigo-600 outline-none text-sm font-extrabold text-slate-900 bg-white placeholder:text-slate-400 shadow-sm transition-all"
+          className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm font-extrabold text-slate-900 bg-white placeholder:text-slate-400 shadow-sm transition-all"
           value={docNumber}
           onChange={(e) => setDocNumber(e.target.value)}
         />
@@ -90,7 +90,7 @@ export default function FileUploadSubStep({ docType, onBack, onComplete }: Props
       <button
         disabled={!file || !docNumber}
         onClick={() => onComplete({ file, docNumber })}
-        className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-300 text-white font-bold rounded-2xl shadow-lg shadow-indigo-100 transition-all text-lg"
+        className="w-full py-4 bg-km-primary hover:bg-km-primary-dark disabled:bg-slate-300 text-white font-bold rounded-2xl shadow-lg shadow-blue-900/20 transition-all text-lg"
       >
         Verify Account
       </button>

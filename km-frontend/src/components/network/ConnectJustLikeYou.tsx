@@ -42,52 +42,51 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, onChat, onFollow })
     if (!users || users.length === 0) return null;
 
     return (
-        <div className="w-full py-12 px-6 overflow-hidden">
+        <div className="w-full py-10 px-6 overflow-hidden">
             <div className="max-w-7xl mx-auto">
-                <h2 className="text-3xl font-extrabold text-center mb-10">
-                    <span className="text-purple-600">Connect</span> Just Like You
+                <h2 className="text-2xl sm:text-3xl font-black text-center text-slate-900 mb-8 tracking-tight">
+                    <span className="text-km-primary">Connect</span> Just Like You
                 </h2>
                 
                 <div 
                     ref={scrollContainerRef}
                     onScroll={handleScroll}
-                    className="flex gap-6 overflow-x-auto pb-8 snap-x snap-mandatory scrollbar-hide"
+                    className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                     {users.map((user, idx) => (
                         <div 
                             key={user.id || user._id || idx}
-                            className="w-[260px] bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 snap-center"
-                            style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.06)' }}
+                            className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 snap-center border border-slate-200/80 shadow-xs hover:shadow-md transition-all"
                         >
-                            <div className="relative mb-5">
-                                <div className="w-[72px] h-[72px] rounded-full bg-[#290d4f] flex items-center justify-center overflow-hidden">
+                            <div className="relative mb-4">
+                                <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 flex items-center justify-center overflow-hidden border border-slate-700 shadow-xs">
                                     {user.profile_image ? (
                                         <img src={user.profile_image} alt={user.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-0 h-0 border-l-12 border-l-white border-t-8 border-t-transparent border-b-8 border-b-transparent transform -rotate-45 ml-1"></div>
+                                        <span className="text-white font-bold text-lg">{user.name?.[0]?.toUpperCase() || 'U'}</span>
                                     )}
                                 </div>
-                                <div className="absolute bottom-1 right-0 w-4 h-4 rounded-full bg-[#10B981] border-2 border-white"></div>
+                                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white"></div>
                             </div>
                             
-                            <h3 className="text-lg font-bold text-gray-900 leading-tight mb-1">
+                            <h3 className="text-sm font-bold text-slate-900 leading-tight mb-0.5 text-center">
                                 {user.name || 'Person Name'}
                             </h3>
-                            <p className="text-[11px] text-gray-400 italic mb-2 font-medium">
-                                {user.headline || 'Person Designation'}
+                            <p className="text-[11px] text-slate-500 mb-2 font-medium text-center line-clamp-1">
+                                {user.headline || 'Member'}
                             </p>
                             
-                            <div className="flex items-center gap-1 text-gray-400 text-[11px] mb-3">
-                                <MapPin size={10} />
-                                <span>{user.city || 'Location'}</span>
+                            <div className="flex items-center gap-1 text-slate-400 text-[10px] mb-2 font-semibold">
+                                <MapPin size={10} className="text-km-primary" />
+                                <span>{user.city || 'India'}</span>
                             </div>
                             
-                            <p className="text-[11px] text-gray-400 mb-6 font-medium">
-                                {user.mutual_connects || 10} Mutual Connects
+                            <p className="text-[10px] text-slate-400 mb-4 font-bold uppercase tracking-wider">
+                                {user.mutual_connects || 5} Mutual Connects
                             </p>
                             
-                            <div className="w-full flex gap-3 mt-auto flex-col">
+                            <div className="w-full flex gap-2 mt-auto flex-col">
                                 {(() => {
                                     const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
                                     let currentUserId = '';
@@ -103,16 +102,16 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, onChat, onFollow })
                                         <>
                                             <button 
                                                 onClick={() => onChat(user.id || user._id || '')}
-                                                className="w-full py-2 rounded-full border border-purple-100 text-[#A855F7] text-sm font-semibold flex items-center justify-center gap-2 hover:bg-purple-50 transition-colors"
+                                                className="w-full py-2 rounded-xl border border-km-primary text-km-primary text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors"
                                             >
                                                 <MessageSquare size={14} />
                                                 Chat
                                             </button>
                                             <button 
                                                 onClick={() => onFollow(user.id || user._id || '')}
-                                                className="w-full py-2.5 rounded-full bg-[#A855F7] text-white text-sm font-bold hover:bg-purple-600 transition-colors shadow-sm shadow-[#A855F7]/30"
+                                                className="w-full py-2 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-bold transition-all shadow-xs"
                                             >
-                                                Follow
+                                                Connect
                                             </button>
                                         </>
                                     );
@@ -124,12 +123,12 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, onChat, onFollow })
 
                 {/* Custom Scrollbar Simulator */}
                 <div className="max-w-4xl mx-auto mt-2">
-                    <div className="h-1.5 bg-gray-200 rounded-full w-full overflow-hidden relative">
+                    <div className="h-1.5 bg-slate-200 rounded-full w-full overflow-hidden relative">
                         <div 
-                            className="h-full bg-gray-400 rounded-full absolute top-0 left-0 transition-all duration-150"
+                            className="h-full bg-km-primary rounded-full absolute top-0 left-0 transition-all duration-150"
                             style={{ 
                                 width: '25%', 
-                                transform: `translateX(${scrollProgress * 3}%)` // simplistic visual translation
+                                transform: `translateX(${scrollProgress * 3}%)`
                             }} 
                         />
                     </div>
@@ -137,8 +136,8 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, onChat, onFollow })
 
                 {/* Pagination Dots */}
                 <div className="flex gap-1.5 justify-center mt-6">
-                    <div className="w-6 h-1.5 rounded-full bg-[#5B21B6]"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                    <div className="w-6 h-1.5 rounded-full bg-km-primary"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
                 </div>
             </div>
             

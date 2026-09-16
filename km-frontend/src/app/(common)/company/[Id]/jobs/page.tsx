@@ -59,12 +59,12 @@ const JobsSection: React.FC = () => {
         <div className="flex w-full gap-6">
             {/* Sidebar (Consistent with Posts view) */}
             <aside className="w-full lg:w-1/4 hidden lg:block">
-                <div className="sticky top-6 bg-[#FDF4FF] rounded-2xl border border-purple-100 p-8 flex flex-col items-center text-center">
-                    <div className="w-20 h-20 bg-[#3B124D] rounded-full flex items-center justify-center mb-4 overflow-hidden">
+                <div className="sticky top-6 bg-blue-50/50 rounded-2xl border border-blue-100 p-8 flex flex-col items-center text-center">
+                    <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center mb-4 overflow-hidden shadow-inner">
                         {company?.logo ? (
                             <img src={company.logo} alt={company?.name} className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-white text-2xl uppercase">{company?.name?.charAt(0) || 'C'}</span>
+                            <span className="text-white text-2xl uppercase font-black">{company?.name?.charAt(0) || 'C'}</span>
                         )}
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">{company?.name || "Company Name"}</h2>
@@ -95,26 +95,26 @@ const JobsSection: React.FC = () => {
 
 const JobCard = ({ job }: { job: Job }) => {
     return (
-        <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl p-6 transition-shadow hover:shadow-md">
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 transition-all hover:shadow-md hover:border-blue-200">
             <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                 {/* Job Title & Company */}
                 <div>
                     <Link href={`/jobs/${job.id}`}>
-                        <h3 className="text-xl font-bold text-gray-900 hover:text-purple-600 transition-colors cursor-pointer">{job.title}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 hover:text-km-primary transition-colors cursor-pointer">{job.title}</h3>
                     </Link>
                     <p className="text-sm text-gray-500 mt-1">{job.company}</p>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-3 w-full md:w-auto">
-                    <button className="p-2 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition">
+                    <button className="p-2.5 bg-blue-50 text-km-primary rounded-xl hover:bg-blue-100 transition">
                         <Phone size={18} />
                     </button>
-                    <button className="flex items-center space-x-2 px-4 py-2 border border-purple-700 text-purple-700 rounded-full text-sm font-medium hover:bg-purple-50 transition whitespace-nowrap">
+                    <button className="flex items-center space-x-2 px-4 py-2 border border-km-primary text-km-primary rounded-xl text-sm font-bold hover:bg-blue-50 transition whitespace-nowrap">
                         <MessageCircle size={16} />
                         <span className="hidden sm:inline">Chat With HR</span>
                     </button>
-                    <Link href={`/jobs/${job.id}`} className="px-6 py-2 bg-purple-600 text-white rounded-full text-sm font-medium hover:bg-purple-700 transition whitespace-nowrap">
+                    <Link href={`/jobs/${job.id}`} className="px-6 py-2 bg-km-primary text-white rounded-xl text-sm font-bold hover:bg-km-primary-dark transition whitespace-nowrap shadow-md shadow-blue-900/10">
                         Apply Now
                     </Link>
                 </div>
@@ -128,25 +128,25 @@ const JobCard = ({ job }: { job: Job }) => {
                     <span className="text-gray-400 font-normal text-sm ml-1">/Month</span>
                 </div>
 
-                <div className="flex items-center text-gray-500 text-sm">
-                    <MapPin size={16} className="mr-1" />
+                <div className="flex items-center text-gray-500 text-sm font-medium">
+                    <MapPin size={16} className="mr-1 text-km-primary" />
                     <span>{job.location || 'Location N/A'}, {job.city_name}</span>
                 </div>
             </div>
 
             {/* Badges Row */}
             <div className="flex flex-wrap items-center gap-3 mt-4">
-                <span className="px-4 py-1 bg-purple-50 text-purple-600 text-xs font-medium rounded-full border border-purple-100">
+                <span className="px-3.5 py-1 bg-blue-50 text-km-primary text-xs font-bold rounded-xl border border-blue-100">
                     New
                 </span>
-                <span className="px-4 py-1 bg-gray-50 text-gray-500 text-xs font-medium rounded-full border border-gray-100">
+                <span className="px-3.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl">
                     {job.job_type}
                 </span>
-                <span className="px-4 py-1 bg-gray-50 text-gray-500 text-xs font-medium rounded-full border border-gray-100">
+                <span className="px-3.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl">
                     {job.vacancies} Vacancies
                 </span>
-                <div className="flex items-center space-x-1 px-3 py-1 bg-blue-50 text-blue-600 text-xs font-bold rounded-full border border-blue-100">
-                    <CheckCircle size={12} fill="currentColor" className="text-white" />
+                <div className="flex items-center space-x-1 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200">
+                    <CheckCircle size={12} fill="currentColor" className="text-emerald-500" />
                     <span>KM Verified</span>
                 </div>
             </div>

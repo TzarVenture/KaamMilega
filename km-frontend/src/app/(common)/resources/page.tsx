@@ -13,19 +13,19 @@ const ResourcePage = () => {
     });
 
     return (
-        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen">
+        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-slate-50 min-h-screen">
 
             {/* Left: Video Feed */}
             <div className="flex-1 space-y-4">
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 px-2">
-                    <h1 className="text-3xl font-bold text-gray-900">
-                        Learn With <span className="text-purple-600">Kaam Milega</span>
+                    <h1 className="text-3xl font-black text-slate-900">
+                        Learn With <span className="text-km-primary">Kaam Milega</span>
                     </h1>
 
-                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium bg-white px-4 py-2 rounded-full shadow-sm">
+                    <div className="flex items-center gap-2 text-sm text-slate-600 font-medium bg-white px-4 py-2 rounded-xl shadow-sm border border-slate-100">
                         <span>Sort by:</span>
-                        <button className="flex items-center gap-1 font-bold text-gray-800 hover:text-purple-700">
+                        <button className="flex items-center gap-1 font-bold text-slate-800 hover:text-km-primary transition">
                             Recently added <ChevronDown size={16} />
                         </button>
                     </div>
@@ -34,46 +34,46 @@ const ResourcePage = () => {
                 {/* Video List */}
                 <div className="space-y-4">
                     {videos.map((video, idx) => (
-                        <div key={idx} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 hover:shadow-md transition-shadow">
+                        <div key={idx} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex flex-col md:flex-row gap-6 hover:shadow-md hover:border-blue-100 transition-all">
 
                             {/* Video Thumbnail Placeholder */}
-                            <div className="relative w-full md:w-64 h-36 bg-gray-200 rounded-xl flex items-center justify-center overflow-hidden flex-shrink-0">
+                            <div className="relative w-full md:w-64 h-36 bg-slate-200 rounded-xl flex items-center justify-center overflow-hidden shrink-0">
                                 {video.isRecommended && (
-                                    <span className="absolute top-0 left-0 bg-purple-500 text-white text-[10px] font-bold px-3 py-1 rounded-br-lg z-10">
+                                    <span className="absolute top-0 left-0 bg-km-primary text-white text-[10px] font-bold px-3 py-1 rounded-br-lg z-10">
                                         Recommended
                                     </span>
                                 )}
                                 <div className="w-12 h-12 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
-                                    <Play className="text-gray-400 fill-gray-400 ml-1" size={20} />
+                                    <Play className="text-slate-400 fill-slate-400 ml-1" size={20} />
                                 </div>
                             </div>
 
                             {/* Content Info */}
                             <div className="flex-1 flex flex-col justify-between py-1">
                                 <div className="flex justify-between items-start">
-                                    <h2 className="text-xl font-bold text-gray-800 leading-tight">
+                                    <h2 className="text-xl font-bold text-slate-800 leading-tight">
                                         {video.title}
                                     </h2>
-                                    <button className="p-2 bg-purple-100 text-purple-600 rounded-lg hover:bg-purple-600 hover:text-white transition-colors">
+                                    <button className="p-2 bg-blue-50 text-km-primary rounded-xl hover:bg-km-primary hover:text-white transition-colors">
                                         <Bookmark size={18} fill="currentColor" className="opacity-70" />
                                     </button>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-y-3 mt-4">
-                                    <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                                        <span className="text-gray-400">Video Duration:</span>
-                                        <span className="text-gray-700 font-bold">{video.duration}</span>
+                                    <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
+                                        <span className="text-slate-400">Video Duration:</span>
+                                        <span className="text-slate-700 font-bold">{video.duration}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <User size={14} className="text-purple-400" />
+                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                        <User size={14} className="text-km-primary" />
                                         <span>{video.expert}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <Eye size={14} className="text-purple-400" />
+                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                        <Eye size={14} className="text-km-primary" />
                                         <span className="font-bold">{video.viewers}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <Calendar size={14} className="text-purple-400" />
+                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                        <Calendar size={14} className="text-km-primary" />
                                         <span>Released {video.releaseDate}</span>
                                     </div>
                                 </div>
@@ -84,7 +84,7 @@ const ResourcePage = () => {
 
                 {/* Load More Button */}
                 <div className="flex justify-center pt-8 pb-12">
-                    <button className="px-10 py-2.5 border-2 border-purple-300 rounded-full text-purple-700 font-bold hover:bg-purple-50 transition-colors">
+                    <button className="px-10 py-3 border-2 border-km-primary rounded-xl text-km-primary font-bold hover:bg-blue-50 transition-all shadow-sm">
                         Show More
                     </button>
                 </div>
@@ -92,7 +92,7 @@ const ResourcePage = () => {
 
             {/* Right: Sidebar */}
             <div className="hidden lg:block w-80">
-                <div className="sticky top-6 bg-white rounded-3xl p-6 h-[400px] border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 font-bold text-lg">
+                <div className="sticky top-6 bg-white rounded-3xl p-6 h-100 border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 font-bold text-lg">
                     Ad Banner
                 </div>
             </div>

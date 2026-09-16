@@ -112,14 +112,14 @@ export default function SavedJobsPage() {
                 {/* Header */}
                 <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <Link href="/jobs" className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 hover:text-purple-700 mb-2">
+                        <Link href="/jobs" className="inline-flex items-center gap-1.5 text-xs font-bold text-km-primary hover:underline mb-2">
                             <ArrowLeft size={14} /> Back to All Jobs
                         </Link>
-                        <h1 className="text-2xl sm:text-4xl font-black text-gray-900 tracking-tight flex items-center gap-3">
-                            <BookmarkCheck className="w-8 h-8 text-purple-600 fill-purple-100" />
+                        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                            <BookmarkCheck className="w-8 h-8 text-km-primary fill-blue-50" />
                             Saved Jobs
                         </h1>
-                        <p className="text-gray-500 font-medium text-sm mt-1">
+                        <p className="text-slate-500 font-medium text-sm mt-1">
                             {savedJobs.length} {savedJobs.length === 1 ? 'job' : 'jobs'} saved for later
                         </p>
                     </div>
@@ -128,11 +128,11 @@ export default function SavedJobsPage() {
                     {savedJobs.length > 0 && (
                         <div className="relative min-w-72">
 
-                            <Search className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
+                            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
                             <input
                                 type="text"
                                 placeholder="Search saved jobs..."
-                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary shadow-xs"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -144,23 +144,23 @@ export default function SavedJobsPage() {
                 {loading ? (
                     <div className="space-y-4">
                         {[1, 2, 3].map(n => (
-                            <div key={n} className="h-44 bg-white rounded-3xl animate-pulse shadow-sm border border-gray-100" />
+                            <div key={n} className="h-44 bg-white rounded-3xl animate-shimmer shadow-xs border border-slate-200/80" />
                         ))}
                     </div>
                 ) : filteredJobs.length === 0 ? (
-                    <div className="bg-white rounded-3xl border border-gray-100 p-12 text-center shadow-sm">
-                        <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="bg-white rounded-3xl border border-slate-200/80 p-12 text-center shadow-xs">
+                        <div className="w-16 h-16 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-4">
                             <BookmarkCheck className="w-8 h-8" />
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">No Saved Jobs Found</h3>
-                        <p className="text-gray-500 max-w-md mx-auto text-sm mb-6">
+                        <h3 className="text-xl font-black text-slate-900 mb-2">No Saved Jobs Found</h3>
+                        <p className="text-slate-500 max-w-md mx-auto text-xs font-medium mb-6">
                             {savedJobs.length === 0
                                 ? "You haven't bookmarked any jobs yet. Browse job listings and click the bookmark icon to save them for later."
                                 : "No saved jobs matched your search query."}
                         </p>
                         <Link
                             href="/jobs"
-                            className="inline-flex items-center justify-center px-6 py-3 bg-purple-600 text-white rounded-2xl font-bold text-sm hover:bg-purple-700 transition-all shadow-md shadow-purple-200"
+                            className="inline-flex items-center justify-center px-6 py-3 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl font-bold text-xs shadow-md shadow-blue-900/10 transition-all"
                         >
                             Browse Jobs
                         </Link>
@@ -168,44 +168,44 @@ export default function SavedJobsPage() {
                 ) : (
                     <div className="space-y-4">
                         {filteredJobs.map((job) => (
-                            <div key={job.id} className="bg-white p-6 sm:p-8 rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex flex-col xl:flex-row justify-between items-start gap-6">
+                            <div key={job.id} className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col xl:flex-row justify-between items-start gap-6">
                                 <div className="flex-1 min-w-0">
                                     <Link href={`/jobs/${job.id}`}>
-                                        <h3 className="text-xl font-black text-gray-900 hover:text-purple-600 transition-colors line-clamp-1 mb-1">
+                                        <h3 className="text-xl font-bold text-slate-900 hover:text-km-primary transition-colors line-clamp-1 mb-1">
                                             {job.title}
                                         </h3>
                                     </Link>
-                                    <p className="text-gray-400 font-bold text-xs uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-4 flex items-center gap-2">
                                         <span>{job.company}</span>
-                                        <span className="w-1 h-1 rounded-full bg-gray-300" />
-                                        <span className="text-purple-600 italic">Saved Job</span>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-km-primary animate-pulse" />
+                                        <span className="text-km-primary italic font-bold">Saved Job</span>
                                     </p>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold text-slate-700">
                                         <div className="flex items-center gap-2">
-                                            <span className="font-bold text-purple-600">₹</span>
+                                            <span className="font-bold text-emerald-600">₹</span>
                                             <span>₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()} / mo</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <MapPin size={16} className="text-gray-400" />
-                                            <span>{job.location || 'N/A'}, {job.city_name}</span>
+                                            <MapPin size={16} className="text-km-primary" />
+                                            <span>{job.location || 'Flexible'}, {job.city_name}</span>
                                         </div>
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 mt-4">
-                                        <span className="px-3 py-1 bg-gray-50 text-gray-600 text-[10px] font-bold rounded-full uppercase border border-gray-100">
+                                        <span className="px-3 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-full uppercase border border-slate-200/60">
                                             {job.job_type}
                                         </span>
-                                        <span className="px-3 py-1 bg-purple-50 text-purple-700 text-[10px] font-bold rounded-full uppercase border border-purple-100">
+                                        <span className="px-3 py-1 bg-blue-50 text-km-primary text-[10px] font-bold rounded-full uppercase border border-blue-100">
                                             {job.vacancies || 1} Openings
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-row xl:flex-col items-center gap-3 w-full xl:w-auto pt-4 xl:pt-0 border-t xl:border-0 border-gray-50">
+                                <div className="flex flex-row xl:flex-col items-center gap-3 w-full xl:w-auto pt-4 xl:pt-0 border-t xl:border-0 border-slate-100">
                                     <button
                                         onClick={() => handleRemoveBookmark(job.id)}
-                                        className="p-3 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-colors flex items-center justify-center text-xs font-bold gap-1.5"
+                                        className="p-3 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center text-xs font-bold gap-1.5 border border-rose-100"
                                         title="Remove from saved"
                                     >
                                         <Trash2 size={16} />
@@ -215,10 +215,10 @@ export default function SavedJobsPage() {
                                     <button
                                         onClick={() => handleApply(job.id)}
                                         disabled={appliedJobIds.has(job.id)}
-                                        className={`flex-1 xl:flex-none px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                                        className={`flex-1 xl:flex-none px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
                                             appliedJobIds.has(job.id)
-                                                ? 'bg-emerald-600 text-white cursor-not-allowed'
-                                                : 'bg-purple-600 text-white hover:bg-purple-700 shadow-lg shadow-purple-200'
+                                                ? 'bg-emerald-600 text-white cursor-not-allowed shadow-xs'
+                                                : 'bg-km-primary hover:bg-km-primary-dark text-white shadow-md shadow-blue-900/10'
                                         }`}
                                     >
                                         {appliedJobIds.has(job.id) ? (

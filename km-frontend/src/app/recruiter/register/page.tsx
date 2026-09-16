@@ -77,11 +77,11 @@ export default function RegisterPage() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         {/* Simple Progress Indicator */}
         <div className="flex gap-2 mb-8">
-          <div className={`h-1 flex-1 rounded-full ${step >= 1 ? 'bg-indigo-600' : 'bg-gray-200'}`} />
-          <div className={`h-1 flex-1 rounded-full ${step >= 2 ? 'bg-indigo-600' : 'bg-gray-200'}`} />
-          <div className={`h-1 flex-1 rounded-full ${step >= 3 ? 'bg-indigo-600' : 'bg-gray-200'}`} />
-          <div className={`h-1 flex-1 rounded-full ${step >= 4 ? 'bg-indigo-600' : 'bg-gray-200'}`} />
-          <div className={`h-1 flex-1 rounded-full ${step >= 5 ? 'bg-indigo-600' : 'bg-gray-200'}`} />
+          <div className={`h-1 flex-1 rounded-full ${step >= 1 ? 'bg-km-primary' : 'bg-gray-200'}`} />
+          <div className={`h-1 flex-1 rounded-full ${step >= 2 ? 'bg-km-primary' : 'bg-gray-200'}`} />
+          <div className={`h-1 flex-1 rounded-full ${step >= 3 ? 'bg-km-primary' : 'bg-gray-200'}`} />
+          <div className={`h-1 flex-1 rounded-full ${step >= 4 ? 'bg-km-primary' : 'bg-gray-200'}`} />
+          <div className={`h-1 flex-1 rounded-full ${step >= 5 ? 'bg-km-primary' : 'bg-gray-200'}`} />
         </div>
 
         {step === 1 && (

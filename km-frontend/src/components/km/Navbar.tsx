@@ -110,7 +110,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                                 placeholder="Job Title/Category"
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
-                                className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-purple-900 transition-all focus:bg-white"
+                                className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-km-primary transition-all focus:bg-white"
                             />
                         </form>
                     </div>
@@ -121,12 +121,12 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     <div className="flex items-center gap-4 text-gray-700 border-r border-gray-200 pr-4">
                         {navLinks.map((link) => (
                             <Link key={link.href} href={link.href} title={link.label}>
-                                <span className="cursor-pointer hover:text-purple-900 block transition-colors">{link.icon}</span>
+                                <span className="cursor-pointer hover:text-km-primary block transition-colors">{link.icon}</span>
                             </Link>
                         ))}
                         <div className="relative">
                             <Link href="/notifications" title="Notifications">
-                                <Bell size={18} className="cursor-pointer hover:text-purple-900" />
+                                <Bell size={18} className="cursor-pointer hover:text-km-primary transition-colors" />
                             </Link>
                             <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
                         </div>
@@ -138,7 +138,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className="flex items-center gap-2 hover:bg-gray-50 p-1 rounded-lg transition-colors"
                         >
-                            <div className="w-7 h-7 bg-purple-950 rounded-full flex items-center justify-center overflow-hidden">
+                            <div className="w-7 h-7 bg-km-primary rounded-full flex items-center justify-center overflow-hidden">
                                 {user?.profile_image ? (
                                     <CustomImage src={user.profile_image} alt={displayName} className="w-full h-full object-cover" />
                                 ) : (
@@ -154,7 +154,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                             <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-4 z-50">
                                 {/* User Identity */}
                                 <div className="px-4 pb-3 flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-purple-950 rounded-full flex items-center justify-center overflow-hidden text-white font-bold">
+                                    <div className="w-12 h-12 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold">
                                         {user?.profile_image ? (
                                             <CustomImage src={user.profile_image} alt={displayName} className="w-full h-full object-cover" />
                                         ) : (
@@ -169,7 +169,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
                                 <div className="px-4 mb-4">
                                     <Link href="/profile">
-                                        <button className="w-full py-1.5 border border-purple-800 text-purple-800 rounded-full text-xs font-bold hover:bg-purple-50 transition-colors">
+                                        <button className="w-full py-1.5 border border-km-primary text-km-primary rounded-full text-xs font-bold hover:bg-blue-50 transition-colors">
                                             View Profile
                                         </button>
                                     </Link>
@@ -206,7 +206,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                                     {isExpert && (
                                         <>
                                             <hr className="border-gray-100 my-2" />
-                                            <h5 className="px-4 text-[13px] font-bold text-purple-900 mt-2">Expert Portal</h5>
+                                            <h5 className="px-4 text-[13px] font-bold text-km-primary mt-2">Expert Portal</h5>
                                             <MenuItem label="Create Event" href="/user/events/create" />
                                             <MenuItem label="My Courses" href="/courses" />
                                             <MenuItem label="Manage Mentorships" href="/expert/mentorship" />
@@ -226,11 +226,11 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
                                 {!isRecruiter && (
                                     <div className="px-4 pt-4 flex flex-col gap-2">
-                                        <Link href="/recruiter/register" className="flex items-center text-purple-800 text-xs font-bold hover:underline">
+                                        <Link href="/recruiter/register" className="flex items-center text-km-primary text-xs font-bold hover:underline">
                                             Create Company Page <ArrowUpRight size={14} className="ml-1" />
                                         </Link>
                                         {!isExpert && (
-                                            <Link href="/expert/apply" className="flex items-center text-purple-800 text-xs font-bold hover:underline">
+                                            <Link href="/expert/apply" className="flex items-center text-km-primary text-xs font-bold hover:underline">
                                                 Apply to be an Expert <ArrowUpRight size={14} className="ml-1" />
                                             </Link>
                                         )}
@@ -279,7 +279,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                             onChange={(e) => setSearchValue(e.target.value)}
                             className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder:text-gray-400"
                         />
-                        <button type="submit" className="bg-purple-500 text-white text-xs font-bold px-3 py-1 rounded-full shrink-0">
+                        <button type="submit" className="bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold px-3 py-1 rounded-full shrink-0 transition-colors">
                             Go
                         </button>
                     </form>
@@ -291,7 +291,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 <div className="md:hidden bg-white border-b border-gray-100 shadow-lg z-40">
                     {/* User identity */}
                     <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-                        <div className="w-10 h-10 bg-purple-950 rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
+                        <div className="w-10 h-10 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
                             {user?.profile_image ? (
                                 <CustomImage src={user.profile_image} alt={displayName} className="w-full h-full object-cover" />
                             ) : (
@@ -303,7 +303,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                             <p className="text-xs text-gray-500 italic">{roleLabel}</p>
                         </div>
                         <Link href="/profile" className="ml-auto" onClick={() => setMobileNavOpen(false)}>
-                            <span className="text-xs font-bold text-purple-700 border border-purple-200 px-3 py-1 rounded-full">Profile</span>
+                            <span className="text-xs font-bold text-km-primary border border-blue-200 px-3 py-1 rounded-full hover:bg-blue-50 transition-colors">Profile</span>
                         </Link>
                     </div>
 
@@ -314,7 +314,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                                 key={link.href}
                                 href={link.href}
                                 onClick={() => setMobileNavOpen(false)}
-                                className="flex items-center gap-4 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                                className="flex items-center gap-4 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary transition-colors"
                             >
                                 {link.icon} {link.label}
                             </Link>
@@ -326,30 +326,30 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     {/* Account actions */}
                     <div className="py-2 px-4 flex flex-col gap-1">
                         {!isRecruiter && (
-                            <Link href="/settings" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">
+                            <Link href="/settings" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">
                                 Setting & Privacy
                             </Link>
                         )}
                         {isRecruiter ? (
                             <>
-                                <Link href="/recruiter/jobs/list" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">My Jobs</Link>
-                                <Link href="/recruiter/applications" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">Active Applications</Link>
-                                <Link href="/recruiter/interviews" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">Interviews</Link>
+                                <Link href="/recruiter/jobs/list" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">My Jobs</Link>
+                                <Link href="/recruiter/applications" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Active Applications</Link>
+                                <Link href="/recruiter/interviews" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Interviews</Link>
                             </>
                         ) : (
                             <>
-                                <Link href="/applications" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">Applied Jobs Status</Link>
-                                <Link href="/interviews" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">Interviews</Link>
+                                <Link href="/applications" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Applied Jobs Status</Link>
+                                <Link href="/interviews" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Interviews</Link>
                                 {!isExpert && (
-                                    <Link href="/expert/apply" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">Apply to be an Expert</Link>
+                                    <Link href="/expert/apply" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Apply to be an Expert</Link>
                                 )}
                                 {isExpert && (
                                     <>
                                         <hr className="border-gray-100 my-2" />
-                                        <h5 className="px-4 text-[13px] font-bold text-purple-900">Expert Portal</h5>
-                                        <Link href="/events/create" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">Create Event</Link>
-                                        <Link href="/courses" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">My Courses</Link>
-                                        <Link href="/expert/mentorship" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">Manage Mentorships</Link>
+                                        <h5 className="px-4 text-[13px] font-bold text-km-primary">Expert Portal</h5>
+                                        <Link href="/events/create" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Create Event</Link>
+                                        <Link href="/courses" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">My Courses</Link>
+                                        <Link href="/expert/mentorship" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Manage Mentorships</Link>
                                     </>
                                 )}
                             </>

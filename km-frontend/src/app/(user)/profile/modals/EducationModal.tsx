@@ -44,7 +44,7 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
                         type="text"
                         required
                         placeholder="Ex: Indian Institute of Technology"
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                         value={formData.school_name}
                         onChange={(e) => setFormData({ ...formData, school_name: e.target.value })}
                     />
@@ -56,7 +56,7 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
                         type="text"
                         required
                         placeholder="Ex: Bachelor of Computer Science"
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                         value={formData.degree}
                         onChange={(e) => setFormData({ ...formData, degree: e.target.value })}
                     />
@@ -68,7 +68,7 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
                         type="text"
                         required
                         placeholder="Ex: Computer Science"
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                         value={formData.field_of_study}
                         onChange={(e) => setFormData({ ...formData, field_of_study: e.target.value })}
                     />
@@ -80,7 +80,7 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
                         <input
                             type="month"
                             required
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                             value={formData.start_date}
                             onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
                         />
@@ -89,7 +89,7 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
                         <label className="block text-sm font-medium text-gray-700 mb-1">End Date (or expected)</label>
                         <input
                             type="month"
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                             value={formData.end_date}
                             onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
                         />
@@ -101,7 +101,7 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
                     <input
                         type="text"
                         placeholder="Ex: 8.5 CGPA"
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none"
                         value={formData.grade}
                         onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
                     />
@@ -112,7 +112,7 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
                     <textarea
                         rows={3}
                         placeholder="Describe your achievements, societies, etc."
-                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none resize-none"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none resize-none"
                         value={formData.description}
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
@@ -122,14 +122,14 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-full font-medium hover:bg-gray-50 transition-colors"
+                        className="px-6 py-2 border border-gray-300 text-gray-700 rounded-xl font-medium hover:bg-gray-50 transition-colors"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 disabled:opacity-50 transition-colors"
+                        className="px-6 py-2 bg-km-primary text-white rounded-xl font-medium hover:bg-km-primary-dark disabled:opacity-50 transition-colors shadow-sm"
                     >
                         {loading ? 'Saving...' : 'Save'}
                     </button>

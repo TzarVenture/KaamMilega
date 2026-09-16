@@ -156,7 +156,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <SlidersHorizontal className="w-8 h-8 text-indigo-600" />
+                        <SlidersHorizontal className="w-8 h-8 text-km-primary" />
                         Account & Preference Settings
                     </h1>
                     <p className="text-sm font-semibold text-slate-500 mt-1">
@@ -164,7 +164,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     </p>
                 </div>
                 {saving && (
-                    <div className="flex items-center gap-2 text-xs font-extrabold text-indigo-600 bg-indigo-50 px-3.5 py-2 rounded-xl border border-indigo-100 animate-pulse">
+                    <div className="flex items-center gap-2 text-xs font-extrabold text-km-primary bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-100 animate-pulse">
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Saving changes...
                     </div>
                 )}
@@ -176,7 +176,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     onClick={() => setActiveTab("notifications")}
                     className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                         activeTab === "notifications"
-                            ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                            ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
@@ -186,7 +186,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     onClick={() => setActiveTab("privacy")}
                     className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                         activeTab === "privacy"
-                            ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                            ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
@@ -196,7 +196,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     onClick={() => setActiveTab("security")}
                     className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                         activeTab === "security"
-                            ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                            ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
@@ -206,7 +206,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     onClick={() => setActiveTab("preferences")}
                     className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                         activeTab === "preferences"
-                            ? "bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-200"
+                            ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
@@ -232,7 +232,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             <button
                                 onClick={() => handleToggle("email_job_alerts")}
                                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.email_job_alerts ? "bg-indigo-600" : "bg-slate-300"
+                                    settings.email_job_alerts ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.email_job_alerts ? "translate-x-6" : "translate-x-0"}`} />
@@ -248,7 +248,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             <button
                                 onClick={() => handleToggle("email_application_updates")}
                                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.email_application_updates ? "bg-indigo-600" : "bg-slate-300"
+                                    settings.email_application_updates ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.email_application_updates ? "translate-x-6" : "translate-x-0"}`} />
@@ -264,7 +264,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             <button
                                 onClick={() => handleToggle("sms_alerts")}
                                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.sms_alerts ? "bg-indigo-600" : "bg-slate-300"
+                                    settings.sms_alerts ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.sms_alerts ? "translate-x-6" : "translate-x-0"}`} />
@@ -280,7 +280,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             <button
                                 onClick={() => handleToggle("push_notifications")}
                                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.push_notifications ? "bg-indigo-600" : "bg-slate-300"
+                                    settings.push_notifications ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.push_notifications ? "translate-x-6" : "translate-x-0"}`} />
@@ -296,7 +296,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             <button
                                 onClick={() => handleToggle("email_marketing")}
                                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.email_marketing ? "bg-indigo-600" : "bg-slate-300"
+                                    settings.email_marketing ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.email_marketing ? "translate-x-6" : "translate-x-0"}`} />
@@ -327,13 +327,13 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     onClick={() => handleSelectChange("profile_visibility", opt.id)}
                                     className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-2 ${
                                         settings.profile_visibility === opt.id
-                                            ? "bg-indigo-50/70 border-indigo-600 ring-2 ring-indigo-600/20"
+                                            ? "bg-blue-50/70 border-km-primary ring-2 ring-km-primary/20"
                                             : "bg-slate-50/50 border-slate-200 hover:border-slate-300"
                                     }`}
                                 >
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-bold text-slate-900">{opt.title}</p>
-                                        {settings.profile_visibility === opt.id && <CheckCircle2 className="w-5 h-5 text-indigo-600" />}
+                                        {settings.profile_visibility === opt.id && <CheckCircle2 className="w-5 h-5 text-km-primary" />}
                                     </div>
                                     <p className="text-xs text-slate-500 font-medium leading-relaxed">{opt.desc}</p>
                                 </div>
@@ -346,14 +346,14 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div className="py-4 flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-purple-600" /> AI Job Matching & Recommendations
+                                    <Sparkles className="w-4 h-4 text-km-accent" /> AI Job Matching & Recommendations
                                 </p>
                                 <p className="text-xs text-slate-500 font-medium mt-0.5">Allow automated algorithms to match your resume skills with recruiter searches.</p>
                             </div>
                             <button
                                 onClick={() => handleToggle("enable_ai_recommendations")}
                                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.enable_ai_recommendations ? "bg-indigo-600" : "bg-slate-300"
+                                    settings.enable_ai_recommendations ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.enable_ai_recommendations ? "translate-x-6" : "translate-x-0"}`} />
@@ -369,7 +369,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             <button
                                 onClick={() => handleToggle("search_engine_indexing")}
                                 className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.search_engine_indexing ? "bg-indigo-600" : "bg-slate-300"
+                                    settings.search_engine_indexing ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
                                 <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.search_engine_indexing ? "translate-x-6" : "translate-x-0"}`} />
@@ -392,7 +392,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+                                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-km-primary flex items-center justify-center font-bold">
                                         <Smartphone className="w-5 h-5" />
                                     </div>
                                     <div>
@@ -407,7 +407,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
                             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center font-bold">
+                                    <div className="w-10 h-10 rounded-xl bg-orange-100 text-km-accent-dark flex items-center justify-center font-bold">
                                         <Mail className="w-5 h-5" />
                                     </div>
                                     <div>
@@ -427,7 +427,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     {/* Change Password Form */}
                     <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold border border-indigo-100">
+                            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-km-primary flex items-center justify-center font-bold border border-blue-100">
                                 <Key className="w-5 h-5" />
                             </div>
                             <div>
@@ -443,7 +443,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     type="password"
                                     required
                                     placeholder="Enter current password"
-                                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+                                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
                                     value={passwordData.current_password}
                                     onChange={e => setPasswordData({ ...passwordData, current_password: e.target.value })}
                                 />
@@ -455,7 +455,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                         type="password"
                                         required
                                         placeholder="Min 6 characters"
-                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
                                         value={passwordData.new_password}
                                         onChange={e => setPasswordData({ ...passwordData, new_password: e.target.value })}
                                     />
@@ -466,7 +466,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                         type="password"
                                         required
                                         placeholder="Re-type new password"
-                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
                                         value={passwordData.confirm_password}
                                         onChange={e => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
                                     />
@@ -476,7 +476,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             <button
                                 type="submit"
                                 disabled={updatingPassword}
-                                className="px-6 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md shadow-indigo-200 transition-all active:scale-[0.98] disabled:opacity-50"
+                                className="px-6 py-3 rounded-2xl bg-km-primary hover:bg-km-primary-dark text-white font-bold text-xs shadow-md shadow-blue-900/20 transition-all active:scale-[0.98] disabled:opacity-50"
                             >
                                 {updatingPassword ? "Updating Password..." : "Update Password"}
                             </button>
@@ -497,7 +497,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-2">Display Language</label>
                             <select
-                                className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-900 bg-white focus:ring-2 focus:ring-indigo-600 outline-none transition-all"
+                                className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-900 bg-white focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
                                 value={settings.language}
                                 onChange={e => handleSelectChange("language", e.target.value)}
                             >
@@ -510,9 +510,9 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-bold text-slate-900">Color Theme Canvas</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">High-contrast slate light mode canvas (#F8FAFC) enabled.</p>
+                                <p className="text-xs text-slate-500 font-medium mt-0.5">High-contrast brand canvas (#F8FAFC) enabled.</p>
                             </div>
-                            <span className="px-3 py-1.5 bg-indigo-100 text-indigo-700 text-xs font-black rounded-xl">Light Mode</span>
+                            <span className="px-3 py-1.5 bg-blue-100 text-km-primary text-xs font-black rounded-xl">Light Mode</span>
                         </div>
                     </div>
                 </div>

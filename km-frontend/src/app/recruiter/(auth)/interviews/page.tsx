@@ -84,7 +84,7 @@ export default function InterviewsPage() {
                     </p>
                     <Link
                         href="/recruiter/applications"
-                        className="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100"
+                        className="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition-all shadow-lg shadow-blue-900/10"
                     >
                         Go to Applications
                         <ChevronRight className="w-4 h-4" />
@@ -93,22 +93,22 @@ export default function InterviewsPage() {
             ) : (
                 <div className="grid grid-cols-1 gap-6">
                     {interviews.map((inview) => (
-                        <div key={inview.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:border-blue-200 transition-colors">
+                        <div key={inview.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:border-km-primary/30 transition-colors">
                             <div className="p-6 md:p-8 flex flex-col md:flex-row gap-8">
                                 {/* Date & Time Badge */}
                                 <div className="md:w-48 shrink-0 flex flex-row md:flex-col gap-4 items-center md:items-start justify-between md:justify-center border-b md:border-b-0 md:border-r border-gray-100 pb-6 md:pb-0 md:pr-8">
                                     <div className="text-center md:text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-blue-600 mb-1">Date</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-km-primary mb-1">Date</p>
                                         <p className="text-lg font-bold text-gray-900">{new Date(inview.scheduled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                                     </div>
                                     <div className="text-center md:text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-blue-600 mb-1">Time</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-km-primary mb-1">Time</p>
                                         <p className="text-lg font-bold text-gray-900">{new Date(inview.scheduled_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
                                     </div>
-                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter
-                                        ${inview.status === 'Scheduled' ? 'bg-blue-50 text-blue-600' : ''}
-                                        ${inview.status === 'Completed' ? 'bg-green-50 text-green-600' : ''}
-                                        ${inview.status === 'Cancelled' ? 'bg-red-50 text-red-600' : ''}
+                                    <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border
+                                        ${inview.status === 'Scheduled' ? 'bg-blue-50 text-km-primary border-blue-200' : ''}
+                                        ${inview.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ''}
+                                        ${inview.status === 'Cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200' : ''}
                                     `}>
                                         {inview.status}
                                     </div>
@@ -126,8 +126,8 @@ export default function InterviewsPage() {
                                         </div>
                                         <div className="flex items-center gap-2">
                                             {inview.type === 'Video' && <Video className="w-5 h-5 text-purple-500" />}
-                                            {inview.type === 'Phone' && <Phone className="w-5 h-5 text-green-500" />}
-                                            {inview.type === 'In-person' && <MapPin className="w-5 h-5 text-red-500" />}
+                                            {inview.type === 'Phone' && <Phone className="w-5 h-5 text-emerald-500" />}
+                                            {inview.type === 'In-person' && <MapPin className="w-5 h-5 text-rose-500" />}
                                             <span className="font-bold text-gray-700">{inview.type} Interview</span>
                                         </div>
                                     </div>
@@ -158,14 +158,14 @@ export default function InterviewsPage() {
                                         <>
                                             <button
                                                 onClick={() => handleUpdateStatus(inview.id, 'Completed')}
-                                                className="flex-1 px-4 py-2.5 bg-green-600 text-white rounded-xl text-xs font-bold hover:bg-green-700 transition-all flex items-center justify-center gap-2"
+                                                className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
                                             >
                                                 <CheckCircle className="w-4 h-4" />
                                                 Finish
                                             </button>
                                             <button
                                                 onClick={() => handleUpdateStatus(inview.id, 'Cancelled')}
-                                                className="flex-1 px-4 py-2.5 bg-white border border-red-100 text-red-600 rounded-xl text-xs font-bold hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                                                className="flex-1 px-4 py-2.5 bg-white border border-rose-200 text-rose-700 rounded-xl text-xs font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
                                             >
                                                 <XCircle className="w-4 h-4" />
                                                 Cancel

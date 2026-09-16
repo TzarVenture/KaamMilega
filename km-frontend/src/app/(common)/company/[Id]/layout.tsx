@@ -45,7 +45,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
 
                     {/* Company Hero Card */}
                     <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="h-44 bg-[#a87fb4] relative">
+                        <div className="h-44 bg-linear-to-r from-slate-950 via-km-primary-dark to-slate-950 relative">
                             {/* Banner Placeholder Icon or Image */}
                             {company.cover_image ? (
                                 <img src={company.cover_image} alt="Cover" className="w-full h-full object-cover" />
@@ -57,7 +57,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
 
                             {/* Profile Logo */}
                             <div className="absolute -bottom-14 left-8 p-1.5 bg-white rounded-full shadow-md">
-                                <div className="w-28 h-28 bg-[#3d1d42] rounded-full flex items-center justify-center overflow-hidden">
+                                <div className="w-28 h-28 bg-km-primary-dark rounded-full flex items-center justify-center overflow-hidden">
                                     {company.logo ? (
                                         <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
                                     ) : (
@@ -79,10 +79,10 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                             </div>
 
                             <div className="mt-6 flex gap-4">
-                                <button className="bg-[#a87fb4] text-white px-8 py-2 rounded-full text-sm font-semibold hover:bg-[#946ba0] transition-all">
+                                <button className="bg-km-primary text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-km-primary-dark transition-all shadow-md shadow-blue-900/10">
                                     Follow
                                 </button>
-                                <a href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'} target="_blank" rel="noopener noreferrer" className="border-2 border-[#a87fb4] text-[#a87fb4] px-8 py-2 rounded-full text-sm font-semibold hover:bg-purple-50 transition-all text-center">
+                                <a href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'} target="_blank" rel="noopener noreferrer" className="border-2 border-km-primary text-km-primary px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-50 transition-all text-center">
                                     Visit Website
                                 </a>
                             </div>
@@ -97,7 +97,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                     <Link
                                         href={dynamicPath}
                                         key={tab.id}
-                                        className={`py-4 text-sm font-bold transition-colors whitespace-nowrap ${isActive ? 'text-[#a87fb4] border-b-2 border-[#a87fb4]' : 'text-gray-500 hover:text-gray-700'
+                                        className={`py-4 text-sm font-bold transition-colors whitespace-nowrap ${isActive ? 'text-km-primary border-b-2 border-km-primary' : 'text-gray-500 hover:text-gray-700'
                                             }`}
                                     >
                                         {tab.label}
@@ -124,29 +124,29 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
 
                         {[1, 2, 3].map((i) => (
                             <div key={i} className="flex items-center gap-3 py-4 border-b border-gray-50 last:border-0">
-                                <div className="w-12 h-12 bg-[#3d1d42] rounded-full shrink-0 flex items-center justify-center">
+                                <div className="w-12 h-12 bg-km-primary-dark rounded-full shrink-0 flex items-center justify-center">
                                     <Users className="text-white w-6 h-6" />
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm font-bold text-gray-900">Person Name</p>
                                     <p className="text-[11px] text-gray-400 font-medium">Person Designation</p>
                                     <div className="flex items-center text-[11px] text-gray-400 mt-0.5 font-medium">
-                                        <MapPin size={10} className="mr-1 text-[#a87fb4]" /> Location
+                                        <MapPin size={10} className="mr-1 text-km-primary" /> Location
                                     </div>
                                     <p className="text-[10px] text-gray-300 mt-1">10 Mutual Connects</p>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <button className="p-1.5 rounded-full border border-gray-200 text-[#a87fb4] hover:bg-gray-50">
+                                    <button className="p-1.5 rounded-xl border border-gray-200 text-km-primary hover:bg-gray-50">
                                         <MessageCircle size={16} />
                                     </button>
-                                    <button className="p-1.5 rounded-full bg-[#a87fb4] text-white shadow-sm">
+                                    <button className="p-1.5 rounded-xl bg-km-primary text-white shadow-sm hover:bg-km-primary-dark">
                                         <Plus size={16} />
                                     </button>
                                 </div>
                             </div>
                         ))}
 
-                        <button className="w-full text-center py-3 text-[#a87fb4] text-sm font-bold hover:underline">
+                        <button className="w-full text-center py-3 text-km-primary text-sm font-bold hover:underline">
                             Show All
                         </button>
                     </section>
@@ -158,7 +158,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                         {[1, 2].map((i) => (
                             <div key={i} className="mb-6 last:mb-0">
                                 <div className="flex gap-4">
-                                    <div className="w-12 h-12 bg-[#3d1d42] rounded-lg flex items-center justify-center shrink-0">
+                                    <div className="w-12 h-12 bg-km-primary-dark rounded-xl flex items-center justify-center shrink-0">
                                         <Briefcase className="text-white w-6 h-6" />
                                     </div>
                                     <div>
@@ -176,13 +176,13 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                     <p className="text-[10px] text-gray-500 font-medium">44 Connections Follow This Page</p>
                                 </div>
 
-                                <button className="w-full mt-4 py-1.5 rounded-full bg-[#a87fb4] text-white text-xs font-bold shadow-sm">
+                                <button className="w-full mt-4 py-2 rounded-xl bg-km-primary text-white text-xs font-bold shadow-sm hover:bg-km-primary-dark">
                                     Follow
                                 </button>
                             </div>
                         ))}
 
-                        <button className="w-full text-center mt-4 text-[#a87fb4] text-sm font-bold hover:underline">
+                        <button className="w-full text-center mt-4 text-km-primary text-sm font-bold hover:underline">
                             Show All
                         </button>
                     </section>
