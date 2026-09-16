@@ -13,7 +13,8 @@ import {
     Building2,
     ShieldCheck,
     ChevronRight,
-    Settings
+    Settings,
+    Wallet
 } from "lucide-react";
 import api from "@/lib/axios";
 
@@ -23,6 +24,7 @@ const sidebarItems = [
     { name: "Manage Job Posts", href: "/recruiter/jobs/list", icon: Briefcase },
     { name: "Applicant Kanban", href: "/recruiter/applications", icon: FileText },
     { name: "Interviews", href: "/recruiter/interviews", icon: Users },
+    { name: "Billing & Wallet", href: "/wallet", icon: Wallet },
     { name: "Account Settings", href: "/recruiter/settings", icon: Settings },
 ];
 
