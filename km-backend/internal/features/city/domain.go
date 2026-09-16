@@ -7,13 +7,16 @@ import (
 )
 
 type City struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name      string             `bson:"name" json:"name"`
-	State     string             `bson:"state" json:"state"`
-	Country   string             `bson:"country" json:"country"`
-	Active    bool               `bson:"active" json:"active"`
-	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
-	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
+	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name           string             `bson:"name" json:"name"`
+	State          string             `bson:"state" json:"state"`
+	Country        string             `bson:"country" json:"country"`
+	Active         bool               `bson:"active" json:"active"`
+	Vacancies      string             `bson:"vacancies,omitempty" json:"vacancies"`
+	JobsCount      int                `bson:"jobs_count,omitempty" json:"jobs_count"`
+	TotalVacancies int                `bson:"total_vacancies,omitempty" json:"total_vacancies"`
+	CreatedAt      time.Time          `bson:"created_at" json:"created_at"`
+	UpdatedAt      time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
 type CreateCityRequest struct {

@@ -3,12 +3,13 @@ package city
 import (
 	"context"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"km-backend/internal/database"
 )
@@ -37,6 +38,10 @@ func (r *CityRepositoryImpl) Create(ctx context.Context, city *City) (*City, err
 	city.CreatedAt = time.Now()
 	city.UpdatedAt = time.Now()
 	city.Active = true
+	city.Name = strings.TrimSpace(city.Name)
+	city.State = strings.TrimSpace(city.State)
+	city.Country = strings.TrimSpace(city.Country)
+
 	res, err := r.cityColl.InsertOne(ctx, city)
 	if err != nil {
 		return nil, err
@@ -58,43 +63,116 @@ func (r *CityRepositoryImpl) FindByID(ctx context.Context, id string) (*City, er
 		}
 		return nil, err
 	}
+	city.Name = strings.TrimSpace(city.Name)
+	city.State = strings.TrimSpace(city.State)
+	city.Country = strings.TrimSpace(city.Country)
 	return &city, nil
 }
 
 func (r *CityRepositoryImpl) FindCities(ctx context.Context, filter CityFilter) ([]City, int64, error) {
-	query := bson.M{}
+	matchStage := bson.M{}
 
 	if filter.ActiveOnly {
-		query["active"] = true
+		matchStage["active"] = true
 	}
 
 	if filter.Search != "" {
-		query["$or"] = []bson.M{
-			{"name": bson.M{"$regex": filter.Search, "$options": "i"}},
-			{"state": bson.M{"$regex": filter.Search, "$options": "i"}},
-			{"country": bson.M{"$regex": filter.Search, "$options": "i"}},
+		trimmedSearch := strings.TrimSpace(filter.Search)
+		matchStage["$or"] = []bson.M{
+			{"name": bson.M{"$regex": trimmedSearch, "$options": "i"}},
+			{"state": bson.M{"$regex": trimmedSearch, "$options": "i"}},
+			{"country": bson.M{"$regex": trimmedSearch, "$options": "i"}},
 		}
 	}
 
-	total, _ := r.cityColl.CountDocuments(ctx, query)
+	total, _ := r.cityColl.CountDocuments(ctx, matchStage)
 
-	opts := options.Find().SetSort(bson.M{"name": 1})
-	if filter.Limit > 0 {
-		opts.SetLimit(int64(filter.Limit))
-		opts.SetSkip(int64((filter.Page - 1) * filter.Limit))
+	// Build aggregation pipeline to lookup jobs for each city
+	pipeline := mongo.Pipeline{
+		bson.D{{Key: "$match", Value: matchStage}},
+		bson.D{{Key: "$sort", Value: bson.D{{Key: "name", Value: 1}}}},
 	}
 
-	cursor, err := r.cityColl.Find(ctx, query, opts)
+	if filter.Limit > 0 {
+		skip := int64((filter.Page - 1) * filter.Limit)
+		if skip > 0 {
+			pipeline = append(pipeline, bson.D{{Key: "$skip", Value: skip}})
+		}
+		pipeline = append(pipeline, bson.D{{Key: "$limit", Value: int64(filter.Limit)}})
+	}
+
+	// Lookup active jobs matching city_id OR city_name
+	pipeline = append(pipeline,
+		bson.D{{Key: "$lookup", Value: bson.M{
+			"from": "jobs",
+			"let":  bson.M{"cId": "$_id", "cName": "$name"},
+			"pipeline": mongo.Pipeline{
+				bson.D{{Key: "$match", Value: bson.M{
+					"$expr": bson.M{
+						"$and": []bson.M{
+							{
+								"$or": []bson.M{
+									{"$eq": []any{"$city_id", "$$cId"}},
+									{"$eq": []any{"$city_name", "$$cName"}},
+									{"$regexMatch": bson.M{"input": "$city_name", "regex": "$$cName", "options": "i"}},
+								},
+							},
+							{"$ne": []any{"$status", "Deleted"}},
+							{"$ne": []any{"$status", "Closed"}},
+						},
+					},
+				}}},
+			},
+			"as": "matched_jobs",
+		}}},
+		bson.D{{Key: "$addFields", Value: bson.M{
+			"jobs_count": bson.M{"$size": "$matched_jobs"},
+		}}},
+	)
+
+	cursor, err := r.cityColl.Aggregate(ctx, pipeline)
 	if err != nil {
 		return nil, 0, err
 	}
 	defer cursor.Close(ctx)
 
-	var cities []City
-	if err = cursor.All(ctx, &cities); err != nil {
+	var rawCities []struct {
+		ID        primitive.ObjectID `bson:"_id,omitempty"`
+		Name      string             `bson:"name"`
+		State     string             `bson:"state"`
+		Country   string             `bson:"country"`
+		Active    bool               `bson:"active"`
+		JobsCount int                `bson:"jobs_count"`
+		CreatedAt time.Time          `bson:"created_at"`
+		UpdatedAt time.Time          `bson:"updated_at"`
+	}
+
+	if err = cursor.All(ctx, &rawCities); err != nil {
 		return nil, 0, err
 	}
-	// Avoid nil slice
+
+	var cities []City
+	for _, rc := range rawCities {
+		cName := strings.TrimSpace(rc.Name)
+		vacanciesStr := "0 Vacancies"
+		if rc.JobsCount > 0 {
+			vacanciesStr = fmt.Sprintf("%d Active Vacancies", rc.JobsCount)
+		}
+
+		cities = append(cities, City{
+			ID:             rc.ID,
+			Name:           cName,
+			State:          strings.TrimSpace(rc.State),
+			Country:        strings.TrimSpace(rc.Country),
+			Active:         rc.Active,
+			Vacancies:      vacanciesStr,
+			JobsCount:      rc.JobsCount,
+			TotalVacancies: rc.JobsCount,
+			CreatedAt:      rc.CreatedAt,
+			UpdatedAt:      rc.UpdatedAt,
+		})
+	}
+
 	if cities == nil {
 		cities = []City{}
 	}
@@ -111,9 +189,9 @@ func (r *CityRepositoryImpl) Update(ctx context.Context, id string, city *City) 
 
 	update := bson.M{
 		"$set": bson.M{
-			"name":       city.Name,
-			"state":      city.State,
-			"country":    city.Country,
+			"name":       strings.TrimSpace(city.Name),
+			"state":      strings.TrimSpace(city.State),
+			"country":    strings.TrimSpace(city.Country),
 			"active":     city.Active,
 			"updated_at": city.UpdatedAt,
 		},

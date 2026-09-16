@@ -80,10 +80,16 @@ func (c *JobController) GetJobs(ctx *fiber.Ctx) error {
 		return strings.Split(val, ",")
 	}
 
-	// Support both singular and plural keys
+	// Support both singular, plural, and city/cityName keys
 	cityIDs := parseList("city_ids")
 	if len(cityIDs) == 0 {
 		cityIDs = parseList("city_id")
+	}
+	if len(cityIDs) == 0 && ctx.Query("city") != "" {
+		cityIDs = append(cityIDs, ctx.Query("city"))
+	}
+	if len(cityIDs) == 0 && ctx.Query("cityName") != "" {
+		cityIDs = append(cityIDs, ctx.Query("cityName"))
 	}
 
 	jobTypes := parseList("job_types")

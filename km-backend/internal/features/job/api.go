@@ -18,20 +18,22 @@ func NewJobApi(controller *JobController) api.Route {
 func (api *JobApi) Setup(app *fiber.App) {
 	jwtAuth := middleware.AuthMiddleware(api.controller.config.JWTSecret)
 
-	// Public job search listing (accessible to guests & candidates)
+	// Public job search listing
 	app.Get("/api/jobs", api.controller.GetJobs)
 
-	// Protected job management routes
-	app.Post("/api/jobs", jwtAuth, api.controller.CreateJob)
-	app.Get("/api/jobs/my", jwtAuth, api.controller.GetMyJobs) // /api/jobs/my must be defined before /api/jobs/:id
-	app.Patch("/api/jobs/:id", jwtAuth, api.controller.UpdateJob)
-	app.Delete("/api/jobs/:id", jwtAuth, api.controller.DeleteJob)
+	// Protected recruiter routes (/api/jobs/my must be defined before /api/jobs/:id)
+	protected := app.Group("/api/jobs", jwtAuth)
+	protected.Post("/", api.controller.CreateJob)
+	protected.Get("/my", api.controller.GetMyJobs)
+	protected.Patch("/:id", api.controller.UpdateJob)
+	protected.Delete("/:id", api.controller.DeleteJob)
 
 	// Public job detail view
 	app.Get("/api/jobs/:id", api.controller.GetJob)
 
 	// Admin Job Moderation Routes
 	adminJobs := app.Group("/api/admin/jobs", jwtAuth)
+	adminJobs.Get("/", api.controller.GetJobs)
 	adminJobs.Patch("/:id/status", api.controller.AdminUpdateJobStatus)
 	adminJobs.Delete("/:id", api.controller.AdminDeleteJob)
 }

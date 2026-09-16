@@ -60,6 +60,9 @@ type User struct {
 	Education      []Education  `bson:"education,omitempty" json:"education,omitempty"`
 	Experience     []Experience `bson:"experience,omitempty" json:"experience,omitempty"`
 	Skills         []string     `bson:"skills,omitempty" json:"skills,omitempty"`
+	Projects       []Project    `bson:"projects,omitempty" json:"projects,omitempty"`
+	PortfolioURL   string       `bson:"portfolio_url,omitempty" json:"portfolio_url,omitempty"`
+	PortfolioLabel string       `bson:"portfolio_label,omitempty" json:"portfolio_label,omitempty"`
 	BookmarkedJobs []string     `bson:"bookmarked_jobs,omitempty" json:"bookmarked_jobs,omitempty"`
 	Settings       UserSettings `bson:"settings,omitempty" json:"settings,omitempty"`
 
@@ -103,6 +106,18 @@ type Experience struct {
 	EndDate        string   `bson:"end_date" json:"end_date"`
 	Description    string   `bson:"description" json:"description"`
 	Skills         []string `bson:"skills" json:"skills"`
+}
+
+type Project struct {
+	ID             string   `bson:"id" json:"id"`
+	Title          string   `bson:"title" json:"title"`
+	AssociatedWith string   `bson:"associated_with,omitempty" json:"associated_with,omitempty"`
+	StartDate      string   `bson:"start_date,omitempty" json:"start_date,omitempty"`
+	EndDate        string   `bson:"end_date,omitempty" json:"end_date,omitempty"`
+	IsCurrent      bool     `bson:"is_current,omitempty" json:"is_current,omitempty"`
+	ProjectURL     string   `bson:"project_url,omitempty" json:"project_url,omitempty"`
+	Description    string   `bson:"description,omitempty" json:"description,omitempty"`
+	Skills         []string `bson:"skills,omitempty" json:"skills,omitempty"`
 }
 
 // OTP represents an OTP entry
