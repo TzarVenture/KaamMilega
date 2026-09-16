@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -136,10 +137,11 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 		var oids []primitive.ObjectID
 		var names []string
 		for _, id := range filter.CityIDs {
-			if oid, err := primitive.ObjectIDFromHex(id); err == nil {
+			trimmed := strings.TrimSpace(id)
+			if oid, err := primitive.ObjectIDFromHex(trimmed); err == nil {
 				oids = append(oids, oid)
-			} else {
-				names = append(names, id)
+			} else if trimmed != "" {
+				names = append(names, trimmed)
 			}
 		}
 
@@ -149,6 +151,7 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 		}
 		for _, n := range names {
 			cityOr = append(cityOr, bson.M{"city_name": bson.M{"$regex": n, "$options": "i"}})
+			cityOr = append(cityOr, bson.M{"location": bson.M{"$regex": n, "$options": "i"}})
 		}
 
 		if len(cityOr) > 0 {
