@@ -194,6 +194,68 @@ func (ctrl *UserController) AddExperience(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+func (ctrl *UserController) AddProject(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var project Project
+	if err := c.BodyParser(&project); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	user, err := ctrl.service.AddProject(c.Context(), userID, project)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
+func (ctrl *UserController) UpdateProject(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	projectID := c.Params("id")
+	if projectID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Project ID is required"})
+	}
+
+	var project Project
+	if err := c.BodyParser(&project); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	user, err := ctrl.service.UpdateProject(c.Context(), userID, projectID, project)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
+func (ctrl *UserController) DeleteProject(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	projectID := c.Params("id")
+	if projectID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Project ID is required"})
+	}
+
+	user, err := ctrl.service.DeleteProject(c.Context(), userID, projectID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
 func (ctrl *UserController) AddSkill(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	if userID == "" {
