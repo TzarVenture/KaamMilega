@@ -30,6 +30,8 @@ type UserRepository interface {
 
 	FindUsers(ctx context.Context, filter UserFilter) ([]*User, int64, error)
 	ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error)
+	GetUserSettings(ctx context.Context, userID string) (*UserSettings, error)
+	UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error)
 }
 
 type UserRepositoryImpl struct {
@@ -263,6 +265,20 @@ func (r *UserRepositoryImpl) FindUsers(ctx context.Context, filter UserFilter) (
 		andConditions = append(andConditions, bson.M{"expert_approval_status": filter.ExpertApprovalStatus})
 	}
 
+	// Enforce profile visibility: exclude "private" profiles from candidate search results.
+	// This ensures that users who set their profile to private are not discoverable
+	// by recruiters or other users via the search/listing endpoints.
+	if filter.Role == RoleUser || filter.Role == RoleExpert {
+		andConditions = append(andConditions, bson.M{
+			"$or": []bson.M{
+				{"settings.profile_visibility": bson.M{"$exists": false}},
+				{"settings.profile_visibility": ""},
+				{"settings.profile_visibility": "public"},
+				{"settings.profile_visibility": "connections"},
+			},
+		})
+	}
+
 	if len(andConditions) > 0 {
 		bsonFilter["$and"] = andConditions
 	}
@@ -328,4 +344,35 @@ func (r *UserRepositoryImpl) ToggleBookmark(ctx context.Context, userID string, 
 	}
 
 	return updatedUser.BookmarkedJobs, nil
+}
+
+func (r *UserRepositoryImpl) GetUserSettings(ctx context.Context, userID string) (*UserSettings, error) {
+	user, err := r.FindUserByID(ctx, userID)
+	if err != nil || user == nil {
+		return nil, errors.New("user not found")
+	}
+	return &user.Settings, nil
+}
+
+func (r *UserRepositoryImpl) UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error) {
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user ID")
+	}
+
+	update := bson.M{
+		"$set": bson.M{
+			"settings":   settings,
+			"updated_at": time.Now(),
+		},
+	}
+
+	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
+	var updatedUser User
+	err = r.userColl.FindOneAndUpdate(ctx, bson.M{"_id": objID}, update, opts).Decode(&updatedUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updatedUser.Settings, nil
 }

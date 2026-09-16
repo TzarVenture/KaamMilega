@@ -12,7 +12,8 @@ import {
     LogOut,
     Building2,
     ShieldCheck,
-    ChevronRight
+    ChevronRight,
+    Settings
 } from "lucide-react";
 import api from "@/lib/axios";
 
@@ -22,6 +23,7 @@ const sidebarItems = [
     { name: "Manage Job Posts", href: "/recruiter/jobs/list", icon: Briefcase },
     { name: "Applicant Kanban", href: "/recruiter/applications", icon: FileText },
     { name: "Interviews", href: "/recruiter/interviews", icon: Users },
+    { name: "Account Settings", href: "/recruiter/settings", icon: Settings },
 ];
 
 export default function RecruiterSidebar() {
