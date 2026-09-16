@@ -19,24 +19,25 @@ import {
     MessageSquare
 } from "lucide-react";
 import Link from "next/link";
+import { CardGridSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
 
 export default function InterviewsPage() {
     const [interviews, setInterviews] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchInterviews = async () => {
-            try {
-                const data = await api.get("/interviews/my") as any[];
-                setInterviews(data);
-            } catch (error) {
-                console.error("Failed to fetch interviews:", error);
-                toast.error("Failed to load interviews");
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchInterviews = async () => {
+        try {
+            const data = await api.get("/interviews/my") as any[];
+            setInterviews(data);
+        } catch (error) {
+            console.error("Failed to fetch interviews:", error);
+            toast.error("Failed to load interviews");
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchInterviews();
     }, []);
 
@@ -54,8 +55,9 @@ export default function InterviewsPage() {
 
     if (loading) {
         return (
-            <div className="flex h-[60vh] items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            <div className="space-y-6">
+                <PageHeaderSkeleton />
+                <CardGridSkeleton count={6} />
             </div>
         );
     }

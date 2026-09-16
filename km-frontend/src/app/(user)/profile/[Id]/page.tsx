@@ -2,7 +2,7 @@
 import {
     Briefcase,
     GraduationCap, CheckCircle2,
-    MessageCircle, ChevronRight, Diamond
+    MessageCircle, ChevronRight, Diamond, Lock
 } from 'lucide-react';
 import InterestsSection from '../InterestSection'; // Verify path
 import { useEffect, useState } from 'react';
@@ -10,21 +10,29 @@ import api from '@/lib/axios';
 import { useParams } from 'next/navigation';
 import CustomImage from '@/components/ui/CustomImage';
 import Link from 'next/link';
+import Head from 'next/head';
+import { PageHeaderSkeleton, CardGridSkeleton } from '@/components/ui/LoadingSkeleton';
+
 
 const OtherUserProfilePage = () => {
     const params = useParams();
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [isPrivate, setIsPrivate] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
             if (!params.Id) return;
             try {
-                // Fetching other user's profile by ID
                 const response = await api.get(`/user/${params.Id}`);
                 setUser(response);
-            } catch (error) {
-                console.error("Failed to fetch user profile:", error);
+            } catch (error: any) {
+                // 403 means the profile is set to private by the user
+                if (error?.response?.status === 403 || error?.status === 403) {
+                    setIsPrivate(true);
+                } else {
+                    console.error("Failed to fetch user profile:", error);
+                }
             } finally {
                 setLoading(false);
             }
@@ -35,8 +43,25 @@ const OtherUserProfilePage = () => {
 
     if (loading) {
         return (
+            <div className="min-h-screen bg-gray-100 py-4">
+                <div className="max-w-6xl mx-auto px-4 space-y-4">
+                    <PageHeaderSkeleton />
+                    <CardGridSkeleton count={3} />
+                </div>
+            </div>
+        );
+    }
+
+    if (isPrivate) {
+        return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-600"></div>
+                <div className="text-center max-w-sm mx-auto p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
+                    <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Lock size={28} className="text-purple-600" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">This Profile is Private</h2>
+                    <p className="text-gray-500 text-sm">This user has chosen to keep their profile private. Only they can view it.</p>
+                </div>
             </div>
         );
     }
@@ -52,11 +77,23 @@ const OtherUserProfilePage = () => {
         );
     }
 
+    // SEO: respect search_engine_indexing preference
+    const allowIndexing = user?.settings?.search_engine_indexing !== false;
+
+
+
     // Helper to format location
     const locationString = [user.city, user.state, user.country].filter(Boolean).join(', ');
 
     return (
-        <div className="min-h-screen bg-gray-100 py-4">
+        <>
+            <Head>
+                <meta
+                    name="robots"
+                    content={allowIndexing ? 'index,follow' : 'noindex,nofollow'}
+                />
+            </Head>
+            <div className="min-h-screen bg-gray-100 py-4">
             <div className="max-w-6xl mx-auto px-3 sm:px-4 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
                 {/* LEFT COLUMN (8 Units) */}
@@ -64,6 +101,7 @@ const OtherUserProfilePage = () => {
 
                     {/* Header Card */}
                     <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+
                         {/* Banner */}
                         <div className="h-32 sm:h-48 bg-purple-200 relative group">
                             {user.cover_image ? (
@@ -331,6 +369,7 @@ const OtherUserProfilePage = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

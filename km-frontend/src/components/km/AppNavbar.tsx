@@ -1,10 +1,10 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import Navbar from './Navbar';
 import GuestNavbar from './GuestNavbar';
 import api from '@/lib/axios';
 
-export default function AppNavbar() {
+function AppNavbarContent() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
@@ -43,4 +43,16 @@ export default function AppNavbar() {
     // 2. Effect: Token found -> true -> Navbar (Optimistic)
     // 3. API Fail: -> false -> GuestNavbar (Correction)
     return isLoggedIn ? <Navbar user={user} /> : <GuestNavbar />;
+}
+
+export default function AppNavbar() {
+    return (
+        <Suspense fallback={
+            <div className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6">
+                <div className="h-7 w-20 bg-slate-200 animate-pulse rounded" />
+            </div>
+        }>
+            <AppNavbarContent />
+        </Suspense>
+    );
 }

@@ -5,6 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import RecruiterSidebar from '@/components/RecruiterSidebar';
+import { FullPageSkeleton } from '@/components/ui/LoadingSkeleton';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     const router = useRouter();
@@ -34,9 +35,6 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                 }
             } catch (error) {
                 console.error("Failed to verify recruiter access", error);
-                // On error (e.g. 401), allow the axios interceptor or standard flow to handle it
-                // But if it's just a fetch error, we might want to redirect to login
-                // However, let's play safe and redirect to login if we can't verify
                 router.push('/recruiter/login');
             }
         };
@@ -46,8 +44,16 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+            <div>
+                <Navbar />
+                <div className="flex">
+                    <RecruiterSidebar />
+                    <div className="flex-1 min-w-0 md:ml-64">
+                        <main className="container mx-auto px-4 py-8">
+                            <FullPageSkeleton />
+                        </main>
+                    </div>
+                </div>
             </div>
         );
     }

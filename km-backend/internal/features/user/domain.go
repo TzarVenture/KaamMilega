@@ -63,6 +63,8 @@ type User struct {
 	Projects       []Project    `bson:"projects,omitempty" json:"projects,omitempty"`
 	PortfolioURL   string       `bson:"portfolio_url,omitempty" json:"portfolio_url,omitempty"`
 	PortfolioLabel string       `bson:"portfolio_label,omitempty" json:"portfolio_label,omitempty"`
+	BookmarkedJobs []string     `bson:"bookmarked_jobs,omitempty" json:"bookmarked_jobs,omitempty"`
+	Settings       UserSettings `bson:"settings,omitempty" json:"settings,omitempty"`
 
 	// Recruiter / Company specific fields
 	CompanyName        string     `bson:"company_name,omitempty" json:"company_name,omitempty"`
@@ -233,4 +235,16 @@ type ResetPasswordRequest struct {
 	Code        string `json:"code"`
 	NewPassword string `json:"new_password"`
 	Role        string `json:"role,omitempty"`
+}
+
+type UserSettings struct {
+	EmailJobAlerts          bool   `bson:"email_job_alerts" json:"email_job_alerts"`
+	EmailApplicationUpdates bool   `bson:"email_application_updates" json:"email_application_updates"`
+	EmailMarketing          bool   `bson:"email_marketing" json:"email_marketing"`
+	SMSAlerts               bool   `bson:"sms_alerts" json:"sms_alerts"`
+	PushNotifications       bool   `bson:"push_notifications" json:"push_notifications"`
+	ProfileVisibility       string `bson:"profile_visibility" json:"profile_visibility"` // "public", "connections", "private"
+	Language                string `bson:"language" json:"language"`                     // "en", "hi", "hinglish"
+	EnableAIRecommendations bool   `bson:"enable_ai_recommendations" json:"enable_ai_recommendations"`
+	SearchEngineIndexing    bool   `bson:"search_engine_indexing" json:"search_engine_indexing"`
 }

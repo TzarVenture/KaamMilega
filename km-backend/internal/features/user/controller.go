@@ -132,7 +132,7 @@ func (ctrl *UserController) GetProfile(c *fiber.Ctx) error {
 
 // GetOtherUserProfile godoc
 // @Summary Get Other User Profile
-// @Description Get other user profile by ID
+// @Description Get other user profile by ID. Enforces profile_visibility settings.
 // @Tags user
 // @Accept json
 // @Produce json
@@ -140,17 +140,33 @@ func (ctrl *UserController) GetProfile(c *fiber.Ctx) error {
 // @Success 200 {object} User
 // @Router /api/user/{id} [get]
 func (ctrl *UserController) GetOtherUserProfile(c *fiber.Ctx) error {
-	userID := c.Params("id")
-	if userID == "" {
+	targetUserID := c.Params("id")
+	if targetUserID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User ID is required"})
 	}
 
-	user, err := ctrl.service.GetProfile(c.Context(), userID)
+	// Determine who is requesting
+	requesterID, _ := c.Locals("user_id").(string)
+
+	user, err := ctrl.service.GetProfile(c.Context(), targetUserID)
 	if err != nil {
 		if err.Error() == "user not found" {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Enforce profile_visibility — owners always bypass
+	if requesterID != targetUserID {
+		visibility := user.Settings.ProfileVisibility
+		if visibility == "private" {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+				"error":   "This profile is private",
+				"visible": false,
+			})
+		}
+		// "connections" visibility: in future, check connection status.
+		// For now we allow it as semi-public so the platform stays discoverable.
 	}
 
 	return c.JSON(user)
@@ -575,4 +591,79 @@ func (ctrl *UserController) AdminUpdateUserProfile(c *fiber.Ctx) error {
 
 	return c.JSON(user)
 }
+
+func (ctrl *UserController) ToggleBookmark(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	jobID := c.Params("jobId")
+	if jobID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "jobId parameter is required"})
+	}
+
+	bookmarks, err := ctrl.service.ToggleBookmark(c.Context(), userID, jobID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":         "Bookmark updated",
+		"bookmarked_jobs": bookmarks,
+	})
+}
+
+func (ctrl *UserController) GetBookmarkedJobs(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	user, err := ctrl.service.GetProfile(c.Context(), userID)
+	if err != nil || user == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	return c.JSON(fiber.Map{
+		"bookmarked_jobs": user.BookmarkedJobs,
+	})
+}
+
+func (ctrl *UserController) GetSettings(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	settings, err := ctrl.service.GetUserSettings(c.Context(), userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(settings)
+}
+
+func (ctrl *UserController) UpdateSettings(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var req UserSettings
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid settings payload"})
+	}
+
+	updated, err := ctrl.service.UpdateUserSettings(c.Context(), userID, req)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":  "Settings updated successfully",
+		"settings": updated,
+	})
+}
+
 
