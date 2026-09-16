@@ -179,6 +179,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
                                 <div className="py-2">
                                     <h5 className="px-4 text-[13px] font-bold text-gray-900 mt-2">Account</h5>
+                                    <MenuItem label="Digital Wallet" href="/wallet" />
                                     {!isRecruiter && <MenuItem label="Try Premium" />}
                                     <MenuItem label="Setting & Privacy" href={isRecruiter ? '/recruiter/settings' : '/settings'} />
                                     <MenuItem label="Help" />
@@ -325,6 +326,9 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
                     {/* Account actions */}
                     <div className="py-2 px-4 flex flex-col gap-1">
+                        <Link href="/wallet" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">
+                            Digital Wallet & Ledger
+                        </Link>
                         {!isRecruiter && (
                             <Link href="/settings" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">
                                 Setting & Privacy

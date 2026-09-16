@@ -23,6 +23,7 @@ import (
 	"km-backend/internal/features/sms"
 	"km-backend/internal/features/system"
 	"km-backend/internal/features/user"
+	"km-backend/internal/features/wallet"
 
 	"km-backend/internal/logger"
 	"km-backend/internal/middleware"
@@ -135,6 +136,7 @@ func main() {
 			setting.NewSettingRepository,
 			file.NewFileRepository,
 			user.NewUserRepository,
+			wallet.NewWalletRepository,
 			skill.NewSkillRepository,
 			job.NewJobRepository,
 			fx.Annotate(
@@ -155,6 +157,7 @@ func main() {
 			file.NewFileService,
 			sms.NewSMSService,
 			user.NewUserService,
+			wallet.NewWalletService,
 			skill.NewSkillService,
 			job.NewJobService,
 			application.NewApplicationService,
@@ -172,6 +175,7 @@ func main() {
 			sms.NewSMSController,
 			setting.NewSettingController,
 			user.NewUserController,
+			wallet.NewWalletController,
 			skill.NewSkillController,
 			job.NewJobController,
 			application.NewApplicationController,
@@ -190,6 +194,7 @@ func main() {
 			AsRoute(sms.NewSMSApi),
 			AsRoute(setting.NewSettingApi),
 			AsRoute(user.NewUserApi),
+			AsRoute(wallet.NewWalletApi),
 			AsRoute(skill.NewSkillApi),
 			AsRoute(job.NewJobApi),
 			AsRoute(application.NewApplicationApi),
