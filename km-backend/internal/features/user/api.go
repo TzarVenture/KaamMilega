@@ -64,7 +64,7 @@ func (api *UserApi) Setup(app *fiber.App) {
 	admin.Put("/experts/:id/approve", api.controller.ApproveExpert)
 	admin.Get("/expert-requests", api.controller.GetExpertRequests)
 
-	// Public-ish user listing
-	users := app.Group("/api/users", middleware.AuthMiddleware(api.controller.config.JWTSecret))
-	users.Get("/experts", api.controller.GetExperts)
+	// Public user discovery endpoints (distinct prefixes to avoid /api/user middleware)
+	app.Get("/api/experts", api.controller.GetExperts)
+	app.Get("/api/community/users", api.controller.GetCommunityUsers)
 }

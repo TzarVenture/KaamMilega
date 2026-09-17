@@ -8,10 +8,11 @@ import {
   ChevronUp, ChevronDown
 } from 'lucide-react';
 
-
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 
 export default function LandingPage() {
@@ -22,7 +23,41 @@ export default function LandingPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [experts, setExperts] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+  const [pendingConnectIds, setPendingConnectIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const handleChat = (id: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      toast.info("Please sign in to chat with professionals", { position: "top-center" });
+      router.push(`/login?redirect=${encodeURIComponent(`/chat?userId=${id}`)}`);
+      return;
+    }
+    router.push(`/chat?userId=${id}`);
+  };
+
+  const handleConnect = async (id: string, name?: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (!token) {
+      toast.info("Please sign in to connect with professionals", { position: "top-center" });
+      router.push('/login?redirect=/');
+      return;
+    }
+
+    try {
+      await api.post('/network/connect', { receiver_id: id });
+      toast.success(`Invitation sent to ${name || 'member'}!`);
+      setPendingConnectIds(prev => [...prev, id]);
+    } catch (e: any) {
+      const msg = e.message || '';
+      if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending') || msg.toLowerCase().includes('duplicate')) {
+        toast.info("Invitation already sent.");
+        setPendingConnectIds(prev => [...prev, id]);
+      } else {
+        toast.error(msg || "Could not send invitation. Please try again.");
+      }
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,8 +66,8 @@ export default function LandingPage() {
           api.get('/cities'),
           api.get('/admin/questions').catch(() => []), // Fallback if regular endpoint fails
           api.get('/jobs?limit=50'), // Get some jobs to extract companies
-          api.get('/admin/users').catch(() => []),
-          api.get('/users/experts').catch(() => []),
+          api.get('/community/users').catch(() => []),
+          api.get('/experts').catch(() => []),
           api.get('/events?limit=5').catch(() => [])
         ]);
 
@@ -113,6 +148,7 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen bg-white font-sans antialiased">
+      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
       <HeroSection />
       <AutoMovingSlider />
       <LocationSection cities={cities} />
@@ -125,16 +161,9 @@ export default function LandingPage() {
       {users.length > 0 && (
         <ConnectJustLikeYou 
           users={users} 
-          onChat={(id) => router.push(`/chat?userId=${id}`)} 
-          onFollow={async (id) => {
-            try {
-                await api.post('/network/connect', { receiver_id: id });
-                alert("Connection request sent!");
-            } catch (e: any) {
-                console.error("Failed to connect", e);
-                alert(e.message || "Could not send connection request");
-            }
-          }} 
+          pendingIds={pendingConnectIds}
+          onChat={handleChat} 
+          onFollow={handleConnect} 
         />
       )}
       <FeaturedCompanies companies={companies} />
@@ -142,7 +171,14 @@ export default function LandingPage() {
       <JobTypeSection />
       <DiversityBanner />
       <LearnSection />
-      {experts.length > 0 && <ExpertSlider experts={experts} />}
+      {experts.length > 0 && (
+        <ExpertSlider 
+          experts={experts} 
+          pendingIds={pendingConnectIds}
+          onChat={handleChat} 
+          onFollow={handleConnect} 
+        />
+      )}
       <EventsSection events={events} />
       <WalletBanner />
       <TestimonialsSection />
@@ -613,7 +649,17 @@ const LearnSection = () => {
 };
 
 // --- Expert Slider Section ---
-const ExpertSlider = ({ experts }: { experts: any[] }) => {
+const ExpertSlider = ({
+  experts,
+  pendingIds = [],
+  onChat,
+  onFollow,
+}: {
+  experts: any[];
+  pendingIds?: string[];
+  onChat: (id: string) => void;
+  onFollow: (id: string, name?: string) => void;
+}) => {
   return (
     <section className="py-12 md:py-20 bg-white overflow-hidden">
       <h2 className="text-center text-2xl sm:text-3xl md:text-4xl font-black mb-8 md:mb-12">
@@ -648,29 +694,33 @@ const ExpertSlider = ({ experts }: { experts: any[] }) => {
                         currentUserId = parsed.id || parsed._id;
                     } catch (e) {}
                 }
-                const isSelf = (expert.id === currentUserId || expert._id === currentUserId);
+                const expertId = expert.id || expert._id || '';
+                const isSelf = (expertId && expertId === currentUserId);
+                const isPending = pendingIds.includes(expertId);
                 
                 return !isSelf && (
                   <>
-                    <Link href={`/chat?userId=${expert.id || expert._id}`}>
-                      <button className="w-full py-2.5 border border-km-primary rounded-full text-km-primary text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors">
-                        <MessageCircle size={14} /> Chat
-                      </button>
-                    </Link>
                     <button 
-                      onClick={async () => {
-                          try {
-                              let id = expert.id || expert._id;
-                              await api.post('/network/connect', { receiver_id: id });
-                              alert("Invitation sent to expert!");
-                          } catch (e: any) {
-                              console.error("Failed to connect", e);
-                              alert(e.message || "Could not send invitation");
-                          }
-                      }}
-                      className="w-full py-2.5 bg-km-primary text-white rounded-full text-xs font-bold hover:bg-km-primary-dark shadow-lg shadow-blue-900/10 transition-all mt-3">
-                      Follow
+                      onClick={() => onChat(expertId)}
+                      className="w-full py-2.5 border border-km-primary rounded-full text-km-primary text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors"
+                    >
+                      <MessageCircle size={14} /> Chat
                     </button>
+                    {isPending ? (
+                      <button 
+                        disabled
+                        className="w-full py-2.5 bg-slate-100 text-slate-500 rounded-full text-xs font-bold transition-all mt-3 flex items-center justify-center gap-1.5 cursor-default border border-slate-200"
+                      >
+                        <CheckCircle size={14} className="text-emerald-500" /> Pending
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => onFollow(expertId, expert.name)}
+                        className="w-full py-2.5 bg-km-primary text-white rounded-full text-xs font-bold hover:bg-km-primary-dark shadow-lg shadow-blue-900/10 transition-all mt-3"
+                      >
+                        Follow
+                      </button>
+                    )}
                   </>
                 );
               })()}
