@@ -594,6 +594,17 @@ export default function LoginPage() {
         }
     };
 
+    const getRedirectUrl = (isRegistered: boolean) => {
+        if (typeof window !== "undefined") {
+            const params = new URLSearchParams(window.location.search);
+            const redirectParam = params.get("redirect");
+            if (redirectParam && redirectParam.startsWith("/")) {
+                return redirectParam;
+            }
+        }
+        return isRegistered ? "/" : "/register";
+    };
+
     const handleVerifyOtp = async () => {
         const otpString = otp.join("");
         if (otpString.length !== 4) {
@@ -607,7 +618,7 @@ export default function LoginPage() {
             const data: any = await api.post("/auth/otp/verify", { mobile, code: otpString, role: "user" });
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user));
-            router.push(data.is_registered ? "/" : "/register");
+            router.push(getRedirectUrl(data.is_registered));
         } catch (err: any) {
             setError(err.message || "Invalid OTP");
         } finally {
@@ -634,7 +645,7 @@ export default function LoginPage() {
             });
             localStorage.setItem("token", data.token);
             localStorage.setItem("user", JSON.stringify(data.user));
-            router.push(data.is_registered ? "/" : "/register");
+            router.push(getRedirectUrl(data.is_registered));
         } catch (err: any) {
             setError(err.message || "Invalid email or password");
         } finally {

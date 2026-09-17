@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { MessageSquare, MapPin } from 'lucide-react';
+import { MessageSquare, MapPin, CheckCircle2 } from 'lucide-react';
 
 export interface RecommendedUser {
     id?: string;
@@ -14,11 +14,12 @@ export interface RecommendedUser {
 
 interface Props {
     users: RecommendedUser[];
+    pendingIds?: string[];
     onChat: (id: string) => void;
-    onFollow: (id: string) => void;
+    onFollow: (id: string, name?: string) => void;
 }
 
-export const ConnectJustLikeYou: React.FC<Props> = ({ users, onChat, onFollow }) => {
+export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], onChat, onFollow }) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -97,22 +98,34 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, onChat, onFollow })
                                         } catch (e) {}
                                     }
                                     const isSelf = (user.id === currentUserId || user._id === currentUserId);
+                                    const userId = user.id || user._id || '';
+                                    const isPending = pendingIds.includes(userId);
                                     
                                     return !isSelf && (
                                         <>
                                             <button 
-                                                onClick={() => onChat(user.id || user._id || '')}
+                                                onClick={() => onChat(userId)}
                                                 className="w-full py-2 rounded-xl border border-km-primary text-km-primary text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors"
                                             >
                                                 <MessageSquare size={14} />
                                                 Chat
                                             </button>
-                                            <button 
-                                                onClick={() => onFollow(user.id || user._id || '')}
-                                                className="w-full py-2 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-bold transition-all shadow-xs"
-                                            >
-                                                Connect
-                                            </button>
+                                            {isPending ? (
+                                                <button 
+                                                    disabled
+                                                    className="w-full py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-default border border-slate-200"
+                                                >
+                                                    <CheckCircle2 size={13} className="text-emerald-500" />
+                                                    Pending
+                                                </button>
+                                            ) : (
+                                                <button 
+                                                    onClick={() => onFollow(userId, user.name)}
+                                                    className="w-full py-2 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                                                >
+                                                    Connect
+                                                </button>
+                                            )}
                                         </>
                                     );
                                 })()}

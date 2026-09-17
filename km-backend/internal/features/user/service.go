@@ -42,6 +42,7 @@ type UserService interface {
 	ForgotPassword(ctx context.Context, req ForgotPasswordRequest) error
 	ResetPassword(ctx context.Context, req ResetPasswordRequest) error
 	GetAllUsers(ctx context.Context) ([]*User, error)
+	GetCommunityUsers(ctx context.Context) ([]*User, error)
 	GetExperts(ctx context.Context) ([]*User, error)
 	SearchUsers(ctx context.Context, query string) ([]*User, error)
 	ApplyForExpert(ctx context.Context, userID string, req ApplyExpertRequest) (*User, error)
@@ -697,6 +698,11 @@ func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string
 
 func (s *UserServiceImpl) GetAllUsers(ctx context.Context) ([]*User, error) {
 	users, _, err := s.repo.FindUsers(ctx, UserFilter{Role: RoleUser})
+	return users, err
+}
+
+func (s *UserServiceImpl) GetCommunityUsers(ctx context.Context) ([]*User, error) {
+	users, _, err := s.repo.FindUsers(ctx, UserFilter{Role: RoleUser, Limit: 12})
 	return users, err
 }
 

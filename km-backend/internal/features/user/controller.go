@@ -384,6 +384,15 @@ func (ctrl *UserController) GetExperts(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
+func (ctrl *UserController) GetCommunityUsers(c *fiber.Ctx) error {
+	users, err := ctrl.service.GetCommunityUsers(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(users)
+}
+
+
 func (ctrl *UserController) SearchUsers(c *fiber.Ctx) error {
 	query := c.Query("q")
 	users, err := ctrl.service.SearchUsers(c.Context(), query)
