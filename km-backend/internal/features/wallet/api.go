@@ -25,4 +25,5 @@ func (api *WalletApi) Setup(app *fiber.App) {
 
 	walletGroup.Get("/balance", api.controller.GetBalance)
 	walletGroup.Get("/summary", api.controller.GetBalance)
+	walletGroup.Get("/transactions", api.controller.GetTransactions)
 }
