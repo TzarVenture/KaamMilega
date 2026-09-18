@@ -14,9 +14,9 @@ export const metadata: Metadata = {
     siteName: "KaamMilega",
     images: [
       {
-        url: "/asset/icons/header_logo.png",
-        width: 800,
-        height: 600,
+        url: "/kaammilega-logo-text.png",
+        width: 1200,
+        height: 630,
         alt: "KaamMilega Logo",
       },
     ],
@@ -24,9 +24,12 @@ export const metadata: Metadata = {
     type: "website",
   },
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/asset/icons/header_logo.png",
-    apple: "/asset/icons/header_logo.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/kaammilega-logo-icon.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/kaammilega-logo-icon.png",
   },
 };
 

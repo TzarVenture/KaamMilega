@@ -144,3 +144,22 @@ body {
   background-size: 200% 100%;
   animation: shimmer 1.8s infinite linear;
 }
+
+@keyframes kmMarquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-km-marquee {
+  display: flex;
+  width: max-content;
+  animation: kmMarquee 45s linear infinite;
+}
+
+.animate-km-marquee:hover {
+  animation-play-state: paused;
+}

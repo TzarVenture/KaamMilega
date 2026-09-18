@@ -64,7 +64,9 @@ func (api *UserApi) Setup(app *fiber.App) {
 	admin.Put("/experts/:id/approve", api.controller.ApproveExpert)
 	admin.Get("/expert-requests", api.controller.GetExpertRequests)
 
-	// Public user discovery endpoints (distinct prefixes to avoid /api/user middleware)
+	// Public user discovery & platform activity endpoints
 	app.Get("/api/experts", api.controller.GetExperts)
 	app.Get("/api/community/users", api.controller.GetCommunityUsers)
+	app.Get("/api/platform/stats", api.controller.GetPlatformStats)
+	app.Get("/api/platform/live-activity", api.controller.GetPlatformLiveActivity)
 }

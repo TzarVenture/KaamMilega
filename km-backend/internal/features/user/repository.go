@@ -32,6 +32,8 @@ type UserRepository interface {
 	ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error)
 	GetUserSettings(ctx context.Context, userID string) (*UserSettings, error)
 	UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error)
+	GetPlatformStats(ctx context.Context) (map[string]interface{}, error)
+	GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error)
 }
 
 type UserRepositoryImpl struct {
@@ -376,3 +378,109 @@ func (r *UserRepositoryImpl) UpdateUserSettings(ctx context.Context, userID stri
 
 	return &updatedUser.Settings, nil
 }
+
+func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]interface{}, error) {
+	totalUsers, _ := r.userColl.CountDocuments(ctx, bson.M{})
+	jobseekers, _ := r.userColl.CountDocuments(ctx, bson.M{"roles": "user"})
+	recruiters, _ := r.userColl.CountDocuments(ctx, bson.M{"roles": "recruiter"})
+	experts, _ := r.userColl.CountDocuments(ctx, bson.M{"roles": "expert"})
+	cities, _ := r.db.DB.Collection("cities").CountDocuments(ctx, bson.M{})
+	skills, _ := r.db.DB.Collection("skills").CountDocuments(ctx, bson.M{})
+	jobs, _ := r.db.DB.Collection("jobs").CountDocuments(ctx, bson.M{})
+	applications, _ := r.db.DB.Collection("applications").CountDocuments(ctx, bson.M{})
+	interviews, _ := r.db.DB.Collection("interviews").CountDocuments(ctx, bson.M{})
+
+	return map[string]interface{}{
+		"total_users":  totalUsers,
+		"jobseekers":   jobseekers,
+		"recruiters":   recruiters,
+		"experts":      experts,
+		"cities":       cities,
+		"skills":       skills,
+		"jobs":         jobs,
+		"applications": applications,
+		"interviews":   interviews,
+	}, nil
+}
+
+func (r *UserRepositoryImpl) GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error) {
+	var activities []map[string]interface{}
+
+	// 1. Fetch real interviews
+	intCursor, err := r.db.DB.Collection("interviews").Find(ctx, bson.M{}, options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(5))
+	if err == nil {
+		var interviews []bson.M
+		if err := intCursor.All(ctx, &interviews); err == nil {
+			for _, item := range interviews {
+				loc := "Online Video"
+				if l, ok := item["location"].(string); ok && l != "" && !strings.Contains(l, "ret") {
+					loc = l
+				}
+				activities = append(activities, map[string]interface{}{
+					"id":          item["_id"],
+					"type":        "interview",
+					"tag":         "Interview Fixed",
+					"title":       "Direct HR Interview Scheduled",
+					"description": "Verified candidate interview confirmed (" + loc + ") with zero brokerage.",
+					"badge":       "Live Milestone",
+					"time":        "Recently Scheduled",
+				})
+			}
+		}
+	}
+
+	// 2. Fetch real applications
+	appCursor, err := r.db.DB.Collection("applications").Find(ctx, bson.M{}, options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(5))
+	if err == nil {
+		var applications []bson.M
+		if err := appCursor.All(ctx, &applications); err == nil {
+			for _, item := range applications {
+				activities = append(activities, map[string]interface{}{
+					"id":          item["_id"],
+					"type":        "application",
+					"tag":         "Direct Application",
+					"title":       "New Candidate Applied",
+					"description": "Direct application submitted for employer review with contact privileges.",
+					"badge":       "Application Placed",
+					"time":        "Verified Application",
+				})
+			}
+		}
+	}
+
+	// 3. Fetch real newly registered candidates
+	userCursor, err := r.userColl.Find(ctx, bson.M{"roles": "user"}, options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(6))
+	if err == nil {
+		var users []bson.M
+		if err := userCursor.All(ctx, &users); err == nil {
+			for _, item := range users {
+				name := "Verified Candidate"
+				if n, ok := item["name"].(string); ok && n != "" {
+					name = strings.TrimSpace(strings.TrimSuffix(n, "."))
+				}
+				city := "India"
+				if c, ok := item["city"].(string); ok && c != "" {
+					city = c
+				}
+				trade := "General Trade"
+				if cats, ok := item["job_categories"].(primitive.A); ok && len(cats) > 0 {
+					if t, ok := cats[0].(string); ok && t != "" {
+						trade = t
+					}
+				}
+				activities = append(activities, map[string]interface{}{
+					"id":          item["_id"],
+					"type":        "member",
+					"tag":         "Talent Network",
+					"title":       name + " joined from " + city,
+					"description": "Verified profile active in " + trade + " with zero-brokerage contact.",
+					"badge":       "New Candidate",
+					"time":        city,
+				})
+			}
+		}
+	}
+
+	return activities, nil
+}
+

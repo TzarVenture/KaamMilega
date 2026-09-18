@@ -392,6 +392,23 @@ func (ctrl *UserController) GetCommunityUsers(c *fiber.Ctx) error {
 	return c.JSON(users)
 }
 
+func (ctrl *UserController) GetPlatformStats(c *fiber.Ctx) error {
+	stats, err := ctrl.service.GetPlatformStats(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"success": true, "stats": stats})
+}
+
+func (ctrl *UserController) GetPlatformLiveActivity(c *fiber.Ctx) error {
+	activity, err := ctrl.service.GetLiveActivity(c.Context())
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return c.JSON(fiber.Map{"success": true, "events": activity})
+}
+
+
 
 func (ctrl *UserController) SearchUsers(c *fiber.Ctx) error {
 	query := c.Query("q")

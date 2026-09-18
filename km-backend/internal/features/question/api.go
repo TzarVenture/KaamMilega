@@ -18,6 +18,8 @@ func NewQuestionApi(controller *QuestionController, config *config.Config) api.R
 }
 
 func (api *QuestionApi) Setup(app *fiber.App) {
+	// Public FAQ endpoint for all visitors (logged in or logged out)
+	app.Get("/api/questions", api.controller.GetQuestions)
 	app.Get("/api/admin/questions", api.controller.GetQuestions)
 
 	protected := app.Group("/api/admin/questions", middleware.AuthMiddleware(api.config.JWTSecret))

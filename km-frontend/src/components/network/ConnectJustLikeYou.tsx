@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { MessageSquare, MapPin, CheckCircle2 } from 'lucide-react';
+import DefaultAvatar from '@/components/ui/DefaultAvatar';
 
 export interface RecommendedUser {
     id?: string;
@@ -58,24 +59,24 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], on
                     {users.map((user, idx) => (
                         <div 
                             key={user.id || user._id || idx}
-                            className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 snap-center border border-slate-200/80 shadow-xs hover:shadow-md transition-all"
+                            className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 snap-center border border-slate-200/90 shadow-xs hover:shadow-md transition-all"
                         >
                             <div className="relative mb-4">
-                                <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 flex items-center justify-center overflow-hidden border border-slate-700 shadow-xs">
+                                <div className="w-18 h-18 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center overflow-hidden shadow-2xs">
                                     {user.profile_image ? (
                                         <img src={user.profile_image} alt={user.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <span className="text-white font-bold text-lg">{user.name?.[0]?.toUpperCase() || 'U'}</span>
+                                        <DefaultAvatar />
                                     )}
                                 </div>
-                                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white"></div>
+                                <div className="absolute bottom-0 right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white"></div>
                             </div>
                             
                             <h3 className="text-sm font-bold text-slate-900 leading-tight mb-0.5 text-center">
-                                {user.name || 'Person Name'}
+                                {user.name?.replace(/\s*\.+$/, '') || 'Candidate'}
                             </h3>
                             <p className="text-[11px] text-slate-500 mb-2 font-medium text-center line-clamp-1">
-                                {user.headline || 'Member'}
+                                {user.headline || (user as any).job_categories?.[0] || 'Verified Member'}
                             </p>
                             
                             <div className="flex items-center gap-1 text-slate-400 text-[10px] mb-2 font-semibold">

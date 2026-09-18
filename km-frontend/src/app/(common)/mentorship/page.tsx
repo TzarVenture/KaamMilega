@@ -34,17 +34,19 @@ export default function MentorshipPage() {
       setLoading(true);
       const categoryParam = selectedCategory === "All" ? "" : selectedCategory;
       const res: any = await api.get(`/mentorships?category=${categoryParam}`);
-      setMentorships(Array.isArray(res) ? res : res.data || []);
+      const data = Array.isArray(res) ? res : (res?.data || []);
+      setMentorships(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch mentorships", error);
+      setMentorships([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredMentorships = mentorships.filter(m => 
-    m.mentorship.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    m.expert.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredMentorships = (mentorships || []).filter(m => 
+    (m?.mentorship?.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (m?.expert?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (

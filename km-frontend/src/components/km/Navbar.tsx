@@ -6,10 +6,11 @@ import {
     Calendar
 } from 'lucide-react';
 import CitySelector from './CitySelector';
+import BrandLogo from './BrandLogo';
 import CustomImage from '@/components/ui/CustomImage';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 
 interface NavbarProps {
     showCitySelector?: boolean;
@@ -22,6 +23,10 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParams = useSearchParams();
+
     // Close profile dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -33,6 +38,24 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Lock body scroll when mobile drawer or mobile search is open
+    useEffect(() => {
+        if (mobileNavOpen || mobileSearchOpen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [mobileNavOpen, mobileSearchOpen]);
+
+    // Close mobile drawers on route change
+    useEffect(() => {
+        setMobileNavOpen(false);
+        setMobileSearchOpen(false);
+    }, [pathname]);
+
     const displayName = user?.name || "User";
 
     // Determine Role
@@ -41,11 +64,13 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
     const isExpert = roles.includes('expert');
     const roleLabel = isRecruiter ? 'Recruiter' : isExpert ? 'Expert' : 'User';
 
-    const router = useRouter();
-    const searchParams = useSearchParams();
-
     const [searchValue, setSearchValue] = useState(searchParams.get('q') || '');
     const [selectedCity, setSelectedCity] = useState(searchParams.get('city') || 'All');
+
+    const isLinkActive = (href: string) => {
+        if (href === '/') return pathname === '/';
+        return pathname === href || pathname.startsWith(href + '/');
+    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,18 +108,16 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
     return (
         <>
-            <nav className="bg-white border-b border-gray-100 px-4 md:px-6 py-1.5 flex items-center justify-between sticky top-0 z-50">
+            <nav className="bg-white border-b border-slate-200 px-4 md:px-6 h-16 flex items-center justify-between sticky top-0 z-50 shadow-xs font-sans">
 
                 {/* Left Section: Logo & Search */}
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <div className="flex items-center gap-2 shrink-0">
-                        <Link href="/">
-                            <Image src="/asset/icons/header_logo.png" alt="Logo" width={70} height={30} className="w-auto h-7" />
-                        </Link>
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                    <div className="shrink-0 flex items-center">
+                        <BrandLogo size="sm" showTextOnMobile={false} />
                     </div>
 
                     {/* Desktop: City selector + Search */}
-                    <div className="hidden md:flex items-center gap-3 flex-1 min-w-0">
+                    <div className="hidden md:flex items-center gap-3 flex-1 min-w-0 max-w-md">
                         {showCitySelector && (
                             <CitySelector
                                 selectedCity={selectedCity}
@@ -103,73 +126,134 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                             />
                         )}
 
-                        <form onSubmit={handleSearch} className="relative w-full max-w-sm">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                        <form onSubmit={handleSearch} className="relative w-full">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
                             <input
                                 type="text"
-                                placeholder="Job Title/Category"
+                                placeholder="Job Title, Skills or Category..."
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
-                                className="w-full pl-9 pr-4 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs focus:outline-none focus:ring-1 focus:ring-km-primary transition-all focus:bg-white"
+                                className="w-full pl-9 pr-7 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-km-primary focus:bg-white focus:ring-2 focus:ring-km-primary/15 transition-all"
                             />
+                            {searchValue && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearchValue('')}
+                                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                                >
+                                    <X size={13} />
+                                </button>
+                            )}
                         </form>
                     </div>
                 </div>
 
-                {/* Right Section: Desktop Icons & Profile */}
-                <div className="hidden md:flex items-center gap-4 ml-4 shrink-0">
-                    <div className="flex items-center gap-4 text-gray-700 border-r border-gray-200 pr-4">
-                        {navLinks.map((link) => (
-                            <Link key={link.href} href={link.href} title={link.label}>
-                                <span className="cursor-pointer hover:text-km-primary block transition-colors">{link.icon}</span>
+                {/* Right Section: Desktop Icons with Custom Tooltips & Profile */}
+                <div className="hidden md:flex items-center gap-3 ml-4 shrink-0">
+                    <div className="flex items-center gap-1.5 text-slate-600 border-r border-slate-200 pr-3">
+                        {navLinks.map((link) => {
+                            const isActive = isLinkActive(link.href);
+                            return (
+                                <div key={link.href} className="relative group flex items-center justify-center">
+                                    <Link
+                                        href={link.href}
+                                        className={`relative p-2 rounded-xl flex items-center justify-center transition-all duration-150 ${
+                                            isActive
+                                                ? 'text-km-primary bg-blue-50/90 font-bold shadow-xs'
+                                                : 'text-slate-600 hover:text-km-primary hover:bg-slate-50'
+                                        }`}
+                                        aria-label={link.label}
+                                    >
+                                        {link.icon}
+                                        {isActive && (
+                                            <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-km-primary rounded-full" />
+                                        )}
+                                    </Link>
+
+                                    {/* Custom Floating Tooltip */}
+                                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 translate-y-1 group-hover:translate-y-0 z-50">
+                                        <div className="bg-slate-900 text-white text-[10px] font-semibold py-0.5 px-2 rounded-md shadow-md whitespace-nowrap">
+                                            {link.label}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Notifications Icon with Custom Tooltip */}
+                        <div className="relative group flex items-center justify-center">
+                            <Link
+                                href="/notifications"
+                                className={`relative p-2 rounded-xl flex items-center justify-center transition-all duration-150 ${
+                                    pathname === '/notifications'
+                                        ? 'text-km-primary bg-blue-50/90 font-bold shadow-xs'
+                                        : 'text-slate-600 hover:text-km-primary hover:bg-slate-50'
+                                    }`}
+                                aria-label="Notifications"
+                            >
+                                <Bell size={18} />
+                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
+                                {pathname === '/notifications' && (
+                                    <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-km-primary rounded-full" />
+                                )}
                             </Link>
-                        ))}
-                        <div className="relative">
-                            <Link href="/notifications" title="Notifications">
-                                <Bell size={18} className="cursor-pointer hover:text-km-primary transition-colors" />
-                            </Link>
-                            <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full border border-white"></span>
+
+                            {/* Custom Tooltip */}
+                            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 translate-y-1 group-hover:translate-y-0 z-50">
+                                <div className="bg-slate-900 text-white text-[10px] font-semibold py-0.5 px-2 rounded-md shadow-md whitespace-nowrap">
+                                    Notifications
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     {/* Profile Dropdown */}
-                    <div className="relative" ref={menuRef}>
+                    <div className="relative group" ref={menuRef}>
                         <button
                             onClick={() => setIsMenuOpen(!isMenuOpen)}
-                            className="flex items-center gap-2 hover:bg-gray-50 p-1 rounded-lg transition-colors"
+                            className="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-xl transition-colors border border-transparent hover:border-slate-200"
                         >
-                            <div className="w-7 h-7 bg-km-primary rounded-full flex items-center justify-center overflow-hidden">
+                            <div className="w-8 h-8 bg-km-primary rounded-full flex items-center justify-center overflow-hidden shrink-0">
                                 {user?.profile_image ? (
                                     <CustomImage src={user.profile_image} alt={displayName} className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="text-white scale-[0.6] rotate-45 font-bold">▲▲</div>
+                                    <span className="text-white text-xs font-bold">{displayName?.[0]?.toUpperCase() || 'U'}</span>
                                 )}
                             </div>
-                            <span className="text-xs font-semibold text-gray-800 hidden lg:inline">{displayName}</span>
-                            <ChevronDown size={14} className={`text-gray-500 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`} />
+                            <span className="text-xs font-semibold text-slate-800 hidden lg:inline">{displayName}</span>
+                            <ChevronDown size={14} className={`text-slate-500 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
                         </button>
+
+                        {/* Profile Tooltip */}
+                        {!isMenuOpen && (
+                            <div className="absolute -bottom-8 right-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 translate-y-1 group-hover:translate-y-0 z-50">
+                                <div className="bg-slate-900 text-white text-[10px] font-semibold py-0.5 px-2 rounded-md shadow-md whitespace-nowrap">
+                                    Account &amp; Settings
+                                </div>
+                            </div>
+                        )}
 
                         {/* Context Menu (Dropdown) */}
                         {isMenuOpen && (
-                            <div className="absolute right-0 mt-3 w-64 bg-white rounded-2xl shadow-xl border border-gray-100 py-4 z-50">
+                            <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-4 z-50 animate-in fade-in zoom-in-95 duration-150">
                                 {/* User Identity */}
                                 <div className="px-4 pb-3 flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold">
+                                    <div className="w-11 h-11 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
                                         {user?.profile_image ? (
                                             <CustomImage src={user.profile_image} alt={displayName} className="w-full h-full object-cover" />
                                         ) : (
-                                            <span className="rotate-45">▲▲</span>
+                                            <span className="text-sm font-bold">{displayName?.[0]?.toUpperCase() || 'U'}</span>
                                         )}
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-900 leading-tight">{displayName}</h4>
-                                        <p className="text-xs text-gray-500 italic">{roleLabel}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="font-bold text-slate-900 leading-tight truncate">{displayName}</h4>
+                                        <span className="inline-block mt-0.5 px-2 py-0.5 bg-blue-50 text-km-primary rounded-full text-[10px] font-bold">{roleLabel}</span>
                                     </div>
                                 </div>
 
-                                <div className="px-4 mb-4">
+                                <div className="px-4 mb-3">
                                     <Link href="/profile">
-                                        <button className="w-full py-1.5 border border-km-primary text-km-primary rounded-full text-xs font-bold hover:bg-blue-50 transition-colors">
+                                        <button className="w-full py-1.5 border border-km-primary text-km-primary hover:bg-blue-50 rounded-xl text-xs font-bold transition-colors">
                                             View Profile
                                         </button>
                                     </Link>
@@ -245,8 +329,13 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 {/* Mobile Right: Search + Avatar + Hamburger */}
                 <div className="flex md:hidden items-center gap-2 ml-2 shrink-0">
                     <button
-                        onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
-                        className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+                        onClick={() => {
+                            setMobileSearchOpen(!mobileSearchOpen);
+                            if (mobileNavOpen) setMobileNavOpen(false);
+                        }}
+                        className={`p-2 rounded-full transition-colors cursor-pointer ${
+                            mobileSearchOpen ? 'bg-blue-50 text-km-primary' : 'hover:bg-gray-100 text-gray-600'
+                        }`}
                         aria-label="Search"
                     >
                         <Search size={20} />
@@ -258,8 +347,13 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                         <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
                     </div>
                     <button
-                        onClick={() => setMobileNavOpen(!mobileNavOpen)}
-                        className="p-2 rounded-full hover:bg-gray-100 text-gray-600 transition-colors"
+                        onClick={() => {
+                            setMobileNavOpen(!mobileNavOpen);
+                            if (mobileSearchOpen) setMobileSearchOpen(false);
+                        }}
+                        className={`p-2 rounded-full transition-colors cursor-pointer ${
+                            mobileNavOpen ? 'bg-slate-100 text-slate-900' : 'hover:bg-gray-100 text-gray-600'
+                        }`}
                         aria-label="Menu"
                     >
                         {mobileNavOpen ? <X size={22} /> : <Menu size={22} />}
@@ -267,114 +361,128 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 </div>
             </nav>
 
-            {/* Mobile Search */}
+            {/* Mobile Search Overlay */}
             {mobileSearchOpen && (
-                <div className="md:hidden bg-white border-b border-gray-100 px-4 py-3 shadow-sm z-40">
-                    <form onSubmit={handleSearch} className="flex items-center bg-gray-50 rounded-full border border-gray-200 px-4 py-2 gap-2">
-                        <Search size={16} className="text-gray-400 shrink-0" />
-                        <input
-                            type="text"
-                            placeholder="Job Title/Category"
-                            value={searchValue}
-                            autoFocus
-                            onChange={(e) => setSearchValue(e.target.value)}
-                            className="bg-transparent text-sm outline-none w-full text-gray-700 placeholder:text-gray-400"
-                        />
-                        <button type="submit" className="bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold px-3 py-1 rounded-full shrink-0 transition-colors">
-                            Go
-                        </button>
-                    </form>
-                </div>
+                <>
+                    <div
+                        onClick={() => setMobileSearchOpen(false)}
+                        className="md:hidden fixed inset-0 top-16 z-40 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
+                        aria-hidden="true"
+                    />
+                    <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 px-4 py-3 shadow-xl animate-in slide-in-from-top-2 duration-150">
+                        <form onSubmit={handleSearch} className="flex items-center bg-slate-50 rounded-xl border border-slate-200 px-3.5 py-2 gap-2 focus-within:border-km-primary focus-within:bg-white focus-within:ring-1 focus-within:ring-km-primary transition-all">
+                            <Search size={16} className="text-slate-400 shrink-0" />
+                            <input
+                                type="text"
+                                placeholder="Job Title, Skills or Category..."
+                                value={searchValue}
+                                autoFocus
+                                onChange={(e) => setSearchValue(e.target.value)}
+                                className="bg-transparent text-sm outline-none w-full text-slate-800 placeholder:text-slate-400"
+                            />
+                            <button type="submit" className="bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shrink-0 transition-colors cursor-pointer shadow-2xs">
+                                Go
+                            </button>
+                        </form>
+                    </div>
+                </>
             )}
 
             {/* Mobile Nav Drawer */}
             {mobileNavOpen && (
-                <div className="md:hidden bg-white border-b border-gray-100 shadow-lg z-40">
-                    {/* User identity */}
-                    <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-                        <div className="w-10 h-10 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
-                            {user?.profile_image ? (
-                                <CustomImage src={user.profile_image} alt={displayName} className="w-full h-full object-cover" />
+                <>
+                    <div
+                        onClick={() => setMobileNavOpen(false)}
+                        className="md:hidden fixed inset-0 top-16 z-40 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
+                        aria-hidden="true"
+                    />
+                    <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
+                        {/* User identity */}
+                        <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
+                            <div className="w-10 h-10 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
+                                {user?.profile_image ? (
+                                    <CustomImage src={user.profile_image} alt={displayName} className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="rotate-45 text-sm">▲▲</span>
+                                )}
+                            </div>
+                            <div>
+                                <p className="font-bold text-gray-900 text-sm">{displayName}</p>
+                                <p className="text-xs text-gray-500 italic">{roleLabel}</p>
+                            </div>
+                            <Link href="/profile" className="ml-auto" onClick={() => setMobileNavOpen(false)}>
+                                <span className="text-xs font-bold text-km-primary border border-blue-200 px-3 py-1 rounded-full hover:bg-blue-50 transition-colors">Profile</span>
+                            </Link>
+                        </div>
+
+                        {/* Nav links */}
+                        <div className="py-2">
+                            {navLinks.map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    onClick={() => setMobileNavOpen(false)}
+                                    className="flex items-center gap-4 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary transition-colors"
+                                >
+                                    {link.icon} {link.label}
+                                </Link>
+                            ))}
+                        </div>
+
+                        <hr className="border-gray-100" />
+
+                        {/* Account actions */}
+                        <div className="py-2 px-4 flex flex-col gap-1">
+                            <Link href="/wallet" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium">
+                                Digital Wallet & Ledger
+                            </Link>
+                            {!isRecruiter && (
+                                <Link href="/settings" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">
+                                    Setting & Privacy
+                                </Link>
+                            )}
+                            {isRecruiter ? (
+                                <>
+                                    <Link href="/recruiter/jobs/list" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">My Jobs</Link>
+                                    <Link href="/recruiter/applications" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Active Applications</Link>
+                                    <Link href="/recruiter/interviews" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Interviews</Link>
+                                </>
                             ) : (
-                                <span className="rotate-45 text-sm">▲▲</span>
+                                <>
+                                    <Link href="/applications" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Applied Jobs Status</Link>
+                                    <Link href="/interviews" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Interviews</Link>
+                                    {!isExpert && (
+                                        <Link href="/expert/apply" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Apply to be an Expert</Link>
+                                    )}
+                                    {isExpert && (
+                                        <>
+                                            <hr className="border-gray-100 my-2" />
+                                            <h5 className="px-4 text-[13px] font-bold text-km-primary">Expert Portal</h5>
+                                            <Link href="/events/create" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Create Event</Link>
+                                            <Link href="/courses" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">My Courses</Link>
+                                            <Link href="/expert/mentorship" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Manage Mentorships</Link>
+                                        </>
+                                    )}
+                                </>
                             )}
                         </div>
-                        <div>
-                            <p className="font-bold text-gray-900 text-sm">{displayName}</p>
-                            <p className="text-xs text-gray-500 italic">{roleLabel}</p>
-                        </div>
-                        <Link href="/profile" className="ml-auto" onClick={() => setMobileNavOpen(false)}>
-                            <span className="text-xs font-bold text-km-primary border border-blue-200 px-3 py-1 rounded-full hover:bg-blue-50 transition-colors">Profile</span>
-                        </Link>
-                    </div>
 
-                    {/* Nav links */}
-                    <div className="py-2">
-                        {navLinks.map((link) => (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                onClick={() => setMobileNavOpen(false)}
-                                className="flex items-center gap-4 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary transition-colors"
+                        <hr className="border-gray-100" />
+
+                        <div className="px-4 py-3">
+                            <button
+                                onClick={() => {
+                                    localStorage.removeItem('token');
+                                    localStorage.removeItem('user');
+                                    window.location.href = '/login';
+                                }}
+                                className="w-full text-center py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                             >
-                                {link.icon} {link.label}
-                            </Link>
-                        ))}
+                                Sign Out
+                            </button>
+                        </div>
                     </div>
-
-                    <hr className="border-gray-100" />
-
-                    {/* Account actions */}
-                    <div className="py-2 px-4 flex flex-col gap-1">
-                        <Link href="/wallet" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-purple-700 font-medium">
-                            Digital Wallet & Ledger
-                        </Link>
-                        {!isRecruiter && (
-                            <Link href="/settings" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">
-                                Setting & Privacy
-                            </Link>
-                        )}
-                        {isRecruiter ? (
-                            <>
-                                <Link href="/recruiter/jobs/list" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">My Jobs</Link>
-                                <Link href="/recruiter/applications" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Active Applications</Link>
-                                <Link href="/recruiter/interviews" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Interviews</Link>
-                            </>
-                        ) : (
-                            <>
-                                <Link href="/applications" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Applied Jobs Status</Link>
-                                <Link href="/interviews" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Interviews</Link>
-                                {!isExpert && (
-                                    <Link href="/expert/apply" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Apply to be an Expert</Link>
-                                )}
-                                {isExpert && (
-                                    <>
-                                        <hr className="border-gray-100 my-2" />
-                                        <h5 className="px-4 text-[13px] font-bold text-km-primary">Expert Portal</h5>
-                                        <Link href="/events/create" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Create Event</Link>
-                                        <Link href="/courses" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">My Courses</Link>
-                                        <Link href="/expert/mentorship" onClick={() => setMobileNavOpen(false)} className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors">Manage Mentorships</Link>
-                                    </>
-                                )}
-                            </>
-                        )}
-                    </div>
-
-                    <hr className="border-gray-100" />
-
-                    <div className="px-4 py-3">
-                        <button
-                            onClick={() => {
-                                localStorage.removeItem('token');
-                                localStorage.removeItem('user');
-                                window.location.href = '/login';
-                            }}
-                            className="w-full text-center py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                        >
-                            Sign Out
-                        </button>
-                    </div>
-                </div>
+                </>
             )}
         </>
     );

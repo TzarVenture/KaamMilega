@@ -51,6 +51,8 @@ type UserService interface {
 	ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error)
 	GetUserSettings(ctx context.Context, userID string) (*UserSettings, error)
 	UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error)
+	GetPlatformStats(ctx context.Context) (map[string]interface{}, error)
+	GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error)
 }
 
 type UserServiceImpl struct {
@@ -1130,4 +1132,13 @@ func (s *UserServiceImpl) UpdateUserSettings(ctx context.Context, userID string,
 	}
 	return s.repo.UpdateUserSettings(ctx, userID, settings)
 }
+
+func (s *UserServiceImpl) GetPlatformStats(ctx context.Context) (map[string]interface{}, error) {
+	return s.repo.GetPlatformStats(ctx)
+}
+
+func (s *UserServiceImpl) GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error) {
+	return s.repo.GetLiveActivity(ctx)
+}
+
 

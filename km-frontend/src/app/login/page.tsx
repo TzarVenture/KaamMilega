@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import BrandLogo from "@/components/km/BrandLogo";
+import DownloadAppModal from "@/components/km/DownloadAppModal";
 import api from "@/lib/axios";
 import OtpInput from "@/components/ui/OtpInput";
 import { AnimatePresence, motion } from "framer-motion";
@@ -569,6 +571,22 @@ export default function LoginPage() {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    // Header modal & language switcher states
+    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+    const [isLangOpen, setIsLangOpen] = useState(false);
+    const [selectedLang, setSelectedLang] = useState("English");
+    const langRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (langRef.current && !langRef.current.contains(event.target as Node)) {
+                setIsLangOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     const handleOtpChange = (newOtp: string[]) => {
         setError(null);
         setSuccessMessage(null);
@@ -855,24 +873,49 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen bg-white font-sans text-gray-900 flex flex-col">
             {/* Header */}
-            <header className="flex justify-between items-center px-4 sm:px-6 md:px-12 py-3 md:py-4 border-b border-gray-100 md:border-none shrink-0">
-                <div className="flex items-center gap-2">
-                    <Image
-                        src="/asset/icons/header_logo.png"
-                        alt="Kaam Milega"
-                        width={110}
-                        height={45}
-                        priority
-                        className="object-contain"
-                    />
+            <header className="flex justify-between items-center px-4 sm:px-6 md:px-12 py-3.5 bg-white border-b border-slate-200 shadow-2xs shrink-0">
+                <div className="flex items-center">
+                    <BrandLogo size="md" />
                 </div>
-                <div className="flex items-center gap-3 sm:gap-6 text-sm font-semibold text-gray-600">
-                    <button className="hidden sm:flex items-center gap-1 hover:text-km-primary transition-colors">
-                        <Download size={16} /> Download App
+                <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold text-slate-700">
+                    <button
+                        type="button"
+                        onClick={() => setIsDownloadModalOpen(true)}
+                        className="flex items-center gap-1.5 hover:text-km-primary transition-colors cursor-pointer py-1.5 px-2.5 rounded-lg hover:bg-slate-50"
+                    >
+                        <Download size={16} className="text-slate-500" />
+                        <span>Download App</span>
                     </button>
-                    <button className="flex items-center gap-1 hover:text-km-primary transition-colors text-xs sm:text-sm">
-                        English <ChevronDown size={14} />
-                    </button>
+                    
+                    {/* Language Switcher */}
+                    <div className="relative" ref={langRef}>
+                        <button
+                            type="button"
+                            onClick={() => setIsLangOpen(!isLangOpen)}
+                            className="flex items-center gap-1 hover:text-km-primary transition-colors py-1.5 px-2.5 rounded-lg hover:bg-slate-50 cursor-pointer"
+                        >
+                            <span>{selectedLang}</span>
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isLangOpen && (
+                            <div className="absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                <button
+                                    type="button"
+                                    onClick={() => { setSelectedLang('English'); setIsLangOpen(false); }}
+                                    className={`w-full text-left px-3 py-1.5 text-xs transition-colors cursor-pointer ${selectedLang === 'English' ? 'font-bold text-km-primary bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                >
+                                    English
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setSelectedLang('हिन्दी'); setIsLangOpen(false); }}
+                                    className={`w-full text-left px-3 py-1.5 text-xs transition-colors cursor-pointer ${selectedLang === 'हिन्दी' ? 'font-bold text-km-primary bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                >
+                                    हिन्दी
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </header>
 
@@ -917,6 +960,7 @@ export default function LoginPage() {
                     </p>
                 </div>
             </main>
+            <DownloadAppModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} />
         </div>
     );
 }

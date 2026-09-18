@@ -1,10 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import BrandLogo from "@/components/km/BrandLogo";
+import DownloadAppModal from "@/components/km/DownloadAppModal";
 import api from "@/lib/axios";
 import OtpInput from "@/components/ui/OtpInput";
-import { CheckCircle2, Mail, AlertCircle, ArrowRight, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Mail, AlertCircle, ArrowRight, ShieldCheck, Download, ChevronDown, HelpCircle, ArrowLeft } from "lucide-react";
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -36,6 +39,22 @@ export default function RegisterPage() {
     const [token, setToken] = useState<string | null>(null);
     const [validationError, setValidationError] = useState<string | null>(null);
 
+    // Header modal & language switcher states
+    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+    const [isLangOpen, setIsLangOpen] = useState(false);
+    const [selectedLang, setSelectedLang] = useState("English");
+    const langRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (langRef.current && !langRef.current.contains(event.target as Node)) {
+                setIsLangOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
     useEffect(() => {
         const storedToken = localStorage.getItem("token");
         if (!storedToken) {
@@ -48,6 +67,11 @@ export default function RegisterPage() {
         if (storedUser) {
             try {
                 const parsed = JSON.parse(storedUser);
+                // Redirect if user has already completed registration / profile setup
+                if (parsed.is_registered || (parsed.education_level && parsed.city) || parsed.roles?.includes("recruiter") || parsed.roles?.includes("admin")) {
+                    router.replace("/");
+                    return;
+                }
                 if (parsed.name) setFullName(parsed.name);
                 if (parsed.email) setEmail(parsed.email);
             } catch (e) {}
@@ -173,18 +197,56 @@ export default function RegisterPage() {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800 font-sans">
             {/* HEADER */}
-            <header className="flex justify-between items-center px-6 sm:px-12 py-4 bg-white border-b border-slate-200">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-km-primary rounded-xl flex items-center justify-center text-white font-black text-base shadow-md">
-                        KM
-                    </div>
-                    <span className="font-extrabold text-lg tracking-tight text-slate-900">
-                        KaamMilega
-                    </span>
+            <header className="flex justify-between items-center px-4 sm:px-8 md:px-12 py-3.5 bg-white border-b border-slate-200 shadow-2xs shrink-0">
+                <div className="flex items-center">
+                    <BrandLogo size="md" />
                 </div>
-                <div className="flex items-center gap-6 text-xs sm:text-sm font-semibold text-slate-600">
-                    <span>📱 App Available</span>
-                    <span className="cursor-pointer hover:text-km-primary">English ▾</span>
+                <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold text-slate-700">
+                    <button
+                        type="button"
+                        onClick={() => setIsDownloadModalOpen(true)}
+                        className="flex items-center gap-1.5 hover:text-km-primary transition-colors cursor-pointer py-1.5 px-2.5 rounded-lg hover:bg-slate-50"
+                    >
+                        <Download size={16} className="text-slate-500" />
+                        <span>Download App</span>
+                    </button>
+
+                    {/* Language Switcher */}
+                    <div className="relative" ref={langRef}>
+                        <button
+                            type="button"
+                            onClick={() => setIsLangOpen(!isLangOpen)}
+                            className="flex items-center gap-1 hover:text-km-primary transition-colors py-1.5 px-2.5 rounded-lg hover:bg-slate-50 cursor-pointer"
+                        >
+                            <span>{selectedLang}</span>
+                            <ChevronDown size={14} className={`transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        {isLangOpen && (
+                            <div className="absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                <button
+                                    type="button"
+                                    onClick={() => { setSelectedLang('English'); setIsLangOpen(false); }}
+                                    className={`w-full text-left px-3 py-1.5 text-xs transition-colors cursor-pointer ${selectedLang === 'English' ? 'font-bold text-km-primary bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                >
+                                    English
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setSelectedLang('हिन्दी'); setIsLangOpen(false); }}
+                                    className={`w-full text-left px-3 py-1.5 text-xs transition-colors cursor-pointer ${selectedLang === 'हिन्दी' ? 'font-bold text-km-primary bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                >
+                                    हिन्दी
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-km-primary transition-colors px-3 py-1.5 rounded-lg border border-slate-200 hover:border-km-primary/40 bg-slate-50 hover:bg-slate-100"
+                    >
+                        <ArrowLeft size={14} /> Back to Home
+                    </Link>
                 </div>
             </header>
 
@@ -591,6 +653,7 @@ export default function RegisterPage() {
                     )}
                 </div>
             </div>
+            <DownloadAppModal isOpen={isDownloadModalOpen} onClose={() => setIsDownloadModalOpen(false)} />
         </div>
     );
 }

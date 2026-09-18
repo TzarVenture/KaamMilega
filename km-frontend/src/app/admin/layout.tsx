@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import BrandLogo from '@/components/km/BrandLogo';
 import {
     Users,
     Building2,
@@ -209,11 +210,7 @@ export default function AdminLayout({
                 className="bg-white border-r border-purple-50 flex-col fixed inset-y-0 z-50 shadow-sm overflow-hidden hidden lg:flex"
             >
                 <div className="p-6 flex items-center justify-between">
-                    <Link href="/admin" className="flex items-center gap-2 overflow-hidden min-w-[120px]">
-                        <motion.div animate={{ scale: isSidebarOpen ? 1 : 0.8 }}>
-                            <Image src="/asset/icons/header_logo.png" alt="Logo" width={100} height={45} className="object-contain" />
-                        </motion.div>
-                    </Link>
+                    <BrandLogo size="md" href="/admin" />
                     <button
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                         className="p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors"
@@ -246,9 +243,7 @@ export default function AdminLayout({
                         >
                             {/* Drawer header */}
                             <div className="p-6 flex items-center justify-between">
-                                <Link href="/admin" className="flex items-center gap-2">
-                                    <Image src="/asset/icons/header_logo.png" alt="Logo" width={100} height={45} className="object-contain" />
-                                </Link>
+                                <BrandLogo size="md" href="/admin" />
                                 <button
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className="p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors"

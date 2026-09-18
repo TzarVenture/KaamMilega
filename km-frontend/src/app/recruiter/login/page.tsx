@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import BrandLogo from "@/components/km/BrandLogo";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Download, ArrowLeft, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import api from "@/lib/axios";
@@ -278,7 +279,9 @@ export default function KaamMilegaAuth() {
         <div className="min-h-screen bg-white font-sans text-gray-900">
             {/* Navbar */}
             <header className="flex justify-between items-center px-4 md:px-12 py-4 md:py-6 max-w-7xl mx-auto">
-                <Image src="/asset/icons/header_logo.png" alt="Kaam Milega" width={120} height={35} priority className="md:w-35 md:h-10" />
+                <div className="flex items-center">
+                    <BrandLogo size="md" />
+                </div>
                 <div className="flex items-center gap-3 md:gap-6 text-[10px] md:text-sm font-bold text-gray-600">
                     <button className="flex items-center gap-1.5 hover:text-km-primary transition-colors">
                         <Download size={16} className="md:w-4.5" /> <span className="hidden xs:inline">Download</span> App

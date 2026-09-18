@@ -159,7 +159,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar' }: CitySe
                                     placeholder="Search city..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-purple-700"
+                                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-km-primary"
                                     autoFocus
                                 />
                             </div>
@@ -168,20 +168,20 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar' }: CitySe
                         <div className="max-h-60 overflow-y-auto py-2 px-1">
                             <div
                                 onClick={() => handleSelect('All')}
-                                className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-purple-50 text-purple-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-primary font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                             >
                                 All Cities
                             </div>
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-4">
-                                    <Loader2 size={18} className="animate-spin text-purple-500" />
+                                    <Loader2 size={18} className="animate-spin text-km-primary" />
                                 </div>
                             ) : (
                                 displayCities.map(city => (
                                     <div
                                         key={city.id}
                                         onClick={() => handleSelect(city.name)}
-                                        className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-purple-50 text-purple-700 font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                        className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-primary font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                                     >
                                         {city.name}
                                     </div>
