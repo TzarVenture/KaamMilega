@@ -19,6 +19,7 @@ import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
+import WalletTransactionsList from '@/components/km/WalletTransactionsList';
 
 interface WalletSummary {
     wallet_id: string;
@@ -40,9 +41,11 @@ export default function WalletPage() {
     const [isTopupModalOpen, setIsTopupModalOpen] = useState(false);
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [topupAmount, setTopupAmount] = useState("500");
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const fetchWallet = useCallback(async () => {
         setLoading(true);
+        setRefreshKey(prev => prev + 1);
         try {
             const res: any = await api.get('/wallet/balance');
             setWallet(res);
@@ -311,6 +314,9 @@ export default function WalletPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Ledger & Transactions History Section (F72) */}
+                <WalletTransactionsList refreshKey={refreshKey} />
             </div>
 
             {/* Add Money Modal */}

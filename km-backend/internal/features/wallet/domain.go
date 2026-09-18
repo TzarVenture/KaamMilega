@@ -6,6 +6,36 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// Transaction enums
+type TransactionType string
+type TargetBalance string
+type TransactionCategory string
+type TransactionStatus string
+
+const (
+	TypeCredit TransactionType = "credit"
+	TypeDebit  TransactionType = "debit"
+
+	BalanceMain     TargetBalance = "main"
+	BalanceEarnings TargetBalance = "earnings"
+	BalanceLocked   TargetBalance = "locked"
+	BalanceBonus    TargetBalance = "bonus"
+
+	CategoryTopup          TransactionCategory = "topup"
+	CategoryPassPurchase   TransactionCategory = "pass_purchase"
+	CategorySessionBooking TransactionCategory = "session_booking"
+	CategorySessionPayout  TransactionCategory = "session_payout"
+	CategoryGigPayout      TransactionCategory = "gig_payout"
+	CategoryWithdrawal     TransactionCategory = "withdrawal"
+	CategoryBonusReward    TransactionCategory = "bonus_reward"
+	CategoryRefund         TransactionCategory = "refund"
+
+	StatusCompleted TransactionStatus = "completed"
+	StatusPending   TransactionStatus = "pending"
+	StatusFailed    TransactionStatus = "failed"
+	StatusReversed  TransactionStatus = "reversed"
+)
+
 // Wallet represents the multi-type user balance ledger document
 type Wallet struct {
 	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
@@ -33,4 +63,67 @@ type WalletSummaryResponse struct {
 	Currency            string    `json:"currency"`
 	Status              string    `json:"status"`
 	UpdatedAt           time.Time `json:"updated_at"`
+}
+
+// WalletTransaction represents an immutable financial ledger entry in MongoDB
+type WalletTransaction struct {
+	ID            primitive.ObjectID     `bson:"_id,omitempty" json:"id"`
+	WalletID      primitive.ObjectID     `bson:"wallet_id" json:"wallet_id"`
+	UserID        primitive.ObjectID     `bson:"user_id" json:"user_id"`
+	Type          TransactionType        `bson:"type" json:"type"`                     // "credit" or "debit"
+	TargetBalance TargetBalance          `bson:"target_balance" json:"target_balance"` // "main", "earnings", "locked", "bonus"
+	Category      TransactionCategory    `bson:"category" json:"category"`             // "topup", "pass_purchase", etc.
+	Amount        float64                `bson:"amount" json:"amount"`
+	BalanceAfter  float64                `bson:"balance_after" json:"balance_after"`
+	Status        TransactionStatus      `bson:"status" json:"status"`
+	ReferenceID   string                 `bson:"reference_id,omitempty" json:"reference_id,omitempty"`
+	Description   string                 `bson:"description" json:"description"`
+	Metadata      map[string]interface{} `bson:"metadata,omitempty" json:"metadata,omitempty"`
+	CreatedAt     time.Time              `bson:"created_at" json:"created_at"`
+}
+
+// TransactionItemResponse represents a formatted ledger row for frontend display
+type TransactionItemResponse struct {
+	ID            string                 `json:"id"`
+	WalletID      string                 `json:"wallet_id"`
+	Type          TransactionType        `json:"type"`
+	TargetBalance TargetBalance          `json:"target_balance"`
+	Category      TransactionCategory    `json:"category"`
+	Amount        float64                `json:"amount"`
+	BalanceAfter  float64                `json:"balance_after"`
+	Status        TransactionStatus      `json:"status"`
+	ReferenceID   string                 `json:"reference_id,omitempty"`
+	Description   string                 `json:"description"`
+	Metadata      map[string]interface{} `json:"metadata,omitempty"`
+	CreatedAt     time.Time              `json:"created_at"`
+}
+
+// TransactionQuery provides pagination and filtering options
+type TransactionQuery struct {
+	Page          int                 `json:"page"`
+	Limit         int                 `json:"limit"`
+	Type          TransactionType     `json:"type,omitempty"`
+	Category      TransactionCategory `json:"category,omitempty"`
+	TargetBalance TargetBalance       `json:"target_balance,omitempty"`
+}
+
+// TransactionListResponse represents the paginated response for transactions
+type TransactionListResponse struct {
+	Transactions []TransactionItemResponse `json:"transactions"`
+	Total        int64                     `json:"total"`
+	Page         int                       `json:"page"`
+	Limit        int                       `json:"limit"`
+	TotalPages   int                       `json:"total_pages"`
+}
+
+// RecordTransactionInput provides input for recording an atomic transaction
+type RecordTransactionInput struct {
+	UserID        primitive.ObjectID
+	Type          TransactionType
+	TargetBalance TargetBalance
+	Category      TransactionCategory
+	Amount        float64
+	ReferenceID   string
+	Description   string
+	Metadata      map[string]interface{}
 }

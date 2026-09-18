@@ -36,3 +36,37 @@ func (ctrl *WalletController) GetBalance(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(summary)
 }
+
+// GetTransactions returns paginated ledger logs for the authenticated user
+func (ctrl *WalletController) GetTransactions(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized: valid authentication token required",
+		})
+	}
+
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 20)
+	txType := TransactionType(c.Query("type"))
+	category := TransactionCategory(c.Query("category"))
+	targetBalance := TargetBalance(c.Query("target_balance"))
+
+	query := TransactionQuery{
+		Page:          page,
+		Limit:         limit,
+		Type:          txType,
+		Category:      category,
+		TargetBalance: targetBalance,
+	}
+
+	result, err := ctrl.service.GetTransactions(c.Context(), userID, query)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(result)
+}
+
