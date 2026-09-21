@@ -1,6 +1,8 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { MessageSquare, MapPin, CheckCircle2 } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { MessageSquare, MapPin, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
 import DefaultAvatar from '@/components/ui/DefaultAvatar';
+import CustomImage from '@/components/ui/CustomImage';
+import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 
 export interface RecommendedUser {
     id?: string;
@@ -20,54 +22,76 @@ interface Props {
     onFollow: (id: string, name?: string) => void;
 }
 
+const UserAvatar = ({ src, name }: { src?: string; name?: string }) => {
+    const [failed, setFailed] = useState(false);
+    if (!src || failed) {
+        return <DefaultAvatar />;
+    }
+    return (
+        <CustomImage
+            src={src}
+            alt={name || 'Candidate'}
+            className="w-full h-full object-cover"
+            onError={() => setFailed(true)}
+        />
+    );
+};
+
 export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], onChat, onFollow }) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const [scrollProgress, setScrollProgress] = useState(0);
 
-    const handleScroll = () => {
-        if (!scrollContainerRef.current) return;
-        const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-        const maxScroll = scrollWidth - clientWidth;
-        if (maxScroll <= 0) {
-            setScrollProgress(0);
-        } else {
-            setScrollProgress((scrollLeft / maxScroll) * 100);
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollContainerRef.current) {
+            const { scrollLeft, clientWidth } = scrollContainerRef.current;
+            const step = clientWidth > 640 ? 540 : 270;
+            scrollContainerRef.current.scrollTo({
+                left: direction === 'left' ? scrollLeft - step : scrollLeft + step,
+                behavior: 'smooth'
+            });
         }
     };
-
-    useEffect(() => {
-        handleScroll();
-        window.addEventListener('resize', handleScroll);
-        return () => window.removeEventListener('resize', handleScroll);
-    }, [users]);
 
     if (!users || users.length === 0) return null;
 
     return (
-        <div className="w-full py-10 px-6 overflow-hidden">
+        <div className="w-full py-10 px-4 sm:px-6">
             <div className="max-w-7xl mx-auto">
-                <h2 className="text-2xl sm:text-3xl font-black text-center text-slate-900 mb-8 tracking-tight">
-                    <span className="text-km-primary">Connect</span> Just Like You
-                </h2>
+                <div className="relative mb-8 text-center">
+                    <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+                        <span className="text-km-primary">Connect</span> Just Like You
+                    </h2>
+
+                    {/* Smooth Prev / Next Paging Buttons */}
+                    <div className="hidden sm:flex items-center gap-2 absolute right-0 top-1/2 -translate-y-1/2">
+                        <button
+                            onClick={() => scroll('left')}
+                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-km-primary hover:border-km-primary flex items-center justify-center transition-all shadow-2xs cursor-pointer active:scale-95"
+                            aria-label="Previous profiles"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+                        <button
+                            onClick={() => scroll('right')}
+                            className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-km-primary hover:border-km-primary flex items-center justify-center transition-all shadow-2xs cursor-pointer active:scale-95"
+                            aria-label="Next profiles"
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
+                </div>
                 
                 <div 
                     ref={scrollContainerRef}
-                    onScroll={handleScroll}
-                    className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide"
-                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                    className="flex gap-5 sm:gap-6 overflow-x-auto pb-4 scrollbar-hide"
                 >
                     {users.map((user, idx) => (
                         <div 
                             key={user.id || user._id || idx}
-                            className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 snap-center border border-slate-200/90 shadow-xs hover:shadow-md transition-all"
+                            className="w-60 sm:w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 border border-slate-200/90 shadow-xs hover:shadow-md transition-all"
                         >
                             <div className="relative mb-4">
                                 <div className="w-18 h-18 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center overflow-hidden shadow-2xs">
-                                    {user.profile_image ? (
-                                        <img src={user.profile_image} alt={user.name} className="w-full h-full object-cover" />
-                                    ) : (
-                                        <DefaultAvatar />
-                                    )}
+                                    <UserAvatar src={user.profile_image} name={user.name} />
                                 </div>
                                 <div className="absolute bottom-0 right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white"></div>
                             </div>
@@ -104,9 +128,9 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], on
                                     
                                     return !isSelf && (
                                         <>
-                                            <button 
+                                             <button 
                                                 onClick={() => onChat(userId)}
-                                                className="w-full py-2 rounded-xl border border-km-primary text-km-primary text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors"
+                                                className="w-full py-2 rounded-xl border border-km-primary text-km-primary text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors cursor-pointer"
                                             >
                                                 <MessageSquare size={14} />
                                                 Chat
@@ -122,7 +146,7 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], on
                                             ) : (
                                                 <button 
                                                     onClick={() => onFollow(userId, user.name)}
-                                                    className="w-full py-2 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-bold transition-all shadow-xs"
+                                                    className="w-full py-2 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
                                                 >
                                                     Connect
                                                 </button>
@@ -135,31 +159,9 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], on
                     ))}
                 </div>
 
-                {/* Custom Scrollbar Simulator */}
-                <div className="max-w-4xl mx-auto mt-2">
-                    <div className="h-1.5 bg-slate-200 rounded-full w-full overflow-hidden relative">
-                        <div 
-                            className="h-full bg-km-primary rounded-full absolute top-0 left-0 transition-all duration-150"
-                            style={{ 
-                                width: '25%', 
-                                transform: `translateX(${scrollProgress * 3}%)`
-                            }} 
-                        />
-                    </div>
-                </div>
-
-                {/* Pagination Dots */}
-                <div className="flex gap-1.5 justify-center mt-6">
-                    <div className="w-6 h-1.5 rounded-full bg-km-primary"></div>
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-                </div>
+                {/* Custom Interactive Scrollbar */}
+                <InteractiveScrollbar scrollRef={scrollContainerRef} className="max-w-4xl mx-auto mt-4 px-4 sm:px-0" />
             </div>
-            
-            <style>{`
-                .scrollbar-hide::-webkit-scrollbar {
-                    display: none;
-                }
-            `}</style>
         </div>
     );
 };

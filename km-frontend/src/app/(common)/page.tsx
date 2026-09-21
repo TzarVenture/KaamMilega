@@ -21,6 +21,7 @@ import HeroSection from '@/components/home/HeroSection';
 import SevenServicesSection from '@/components/home/SevenServicesSection';
 import SuccessTicker from '@/components/home/SuccessTicker';
 import DefaultAvatar from '@/components/ui/DefaultAvatar';
+import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
 
 export default function LandingPage() {
@@ -987,24 +988,6 @@ const ExpertSlider = ({
   onFollow: (id: string, name?: string) => void;
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-
-  const handleScroll = () => {
-    if (!scrollContainerRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
-    const maxScroll = scrollWidth - clientWidth;
-    if (maxScroll <= 0) {
-      setScrollProgress(0);
-    } else {
-      setScrollProgress((scrollLeft / maxScroll) * 100);
-    }
-  };
-
-  useEffect(() => {
-    handleScroll();
-    window.addEventListener('resize', handleScroll);
-    return () => window.removeEventListener('resize', handleScroll);
-  }, [experts]);
 
   if (!experts || experts.length === 0) return null;
 
@@ -1016,14 +999,12 @@ const ExpertSlider = ({
         </h2>
         <div 
           ref={scrollContainerRef}
-          onScroll={handleScroll}
-          className="flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-hide" 
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" 
         >
           {experts.map((expert, i) => (
             <div 
               key={expert.id || expert._id || i} 
-              className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 snap-center border border-slate-200/90 shadow-xs hover:shadow-md transition-all text-center"
+              className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 border border-slate-200/90 shadow-xs hover:shadow-md transition-all text-center"
             >
               <div className="relative mb-4">
                 <div className="w-18 h-18 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center overflow-hidden shadow-2xs">
@@ -1099,24 +1080,8 @@ const ExpertSlider = ({
           ))}
         </div>
 
-        {/* Custom Scrollbar Simulator */}
-        <div className="max-w-4xl mx-auto mt-2">
-          <div className="h-1.5 bg-slate-200 rounded-full w-full overflow-hidden relative">
-            <div 
-              className="h-full bg-km-primary rounded-full absolute top-0 left-0 transition-all duration-150"
-              style={{ 
-                width: '25%', 
-                transform: `translateX(${scrollProgress * 3}%)`
-              }} 
-            />
-          </div>
-        </div>
-
-        {/* Pagination Dots */}
-        <div className="flex gap-1.5 justify-center mt-6">
-          <div className="w-6 h-1.5 rounded-full bg-km-primary"></div>
-          <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-        </div>
+        {/* Custom Interactive Scrollbar */}
+        <InteractiveScrollbar scrollRef={scrollContainerRef} className="max-w-4xl mx-auto mt-4 px-4 sm:px-0" />
       </div>
     </section>
   );
