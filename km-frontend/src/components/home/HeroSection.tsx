@@ -19,6 +19,8 @@ import {
     Clock,
 } from 'lucide-react';
 
+import CitySelector from '@/components/km/CitySelector';
+
 interface HeroSectionProps {
     cities?: any[];
     stats?: any;
@@ -163,21 +165,12 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                             className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
                                         />
                                     </div>
-                                    <div className="sm:w-44 flex items-center bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 focus-within:bg-white focus-within:border-km-primary focus-within:ring-1 focus-within:ring-km-primary transition-all">
-                                        <MapPin size={17} className="text-slate-400 mr-2 shrink-0" />
-                                        <select
-                                            value={selectedCity}
-                                            onChange={(e) => setSelectedCity(e.target.value)}
-                                            className="w-full bg-transparent text-xs sm:text-sm text-slate-700 focus:outline-none cursor-pointer"
-                                        >
-                                            <option value="">All India</option>
-                                            {cities.map((c) => (
-                                                <option key={c.id || c.name} value={c.name}>
-                                                    {c.name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
+                                    <CitySelector
+                                        selectedCity={selectedCity}
+                                        onCityChange={(city) => setSelectedCity(city === 'All' ? '' : city)}
+                                        variant="hero"
+                                        cities={cities}
+                                    />
                                     <button
                                         type="submit"
                                         className="bg-km-primary hover:bg-km-primary-dark text-white text-xs sm:text-sm font-bold px-6 py-3 rounded-xl transition-all shadow-sm hover:shadow-md shrink-0 flex items-center justify-center gap-1.5"

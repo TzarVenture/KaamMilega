@@ -6,7 +6,8 @@ import {
   PhoneCall, Users, ChevronLeft, ChevronRight, Star,
   Home, Clock, UserRound, Play, Calendar, Gift, Wallet,
   ChevronUp, ChevronDown, ShieldCheck, Zap, Building2, X,
-  GraduationCap, Award, BookOpen, Scroll, CheckCircle2
+  GraduationCap, Award, BookOpen, Scroll, CheckCircle2,
+  Landmark, ArrowUpRight
 } from 'lucide-react';
 
 import Link from 'next/link';
@@ -20,6 +21,7 @@ import HeroSection from '@/components/home/HeroSection';
 import SevenServicesSection from '@/components/home/SevenServicesSection';
 import SuccessTicker from '@/components/home/SuccessTicker';
 import DefaultAvatar from '@/components/ui/DefaultAvatar';
+import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -231,32 +233,75 @@ export default function LandingPage() {
 const LocationSection = ({ cities }: { cities: any[] }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const defaultHubs = [
-    { id: "mumbai", name: "Mumbai MMR", vacancies: "45,000+ Openings", tag: "Logistics & Retail" },
-    { id: "delhi", name: "Delhi NCR", vacancies: "52,000+ Openings", tag: "Tech & Services" },
-    { id: "bengaluru", name: "Bengaluru", vacancies: "38,000+ Openings", tag: "Quick Commerce" },
-    { id: "hyderabad", name: "Hyderabad", vacancies: "28,000+ Openings", tag: "Pharma & IT" },
-    { id: "pune", name: "Pune", vacancies: "24,000+ Openings", tag: "Manufacturing" },
-    { id: "ahmedabad", name: "Ahmedabad", vacancies: "20,000+ Openings", tag: "Industrial Belt" },
-    { id: "surat", name: "Surat", vacancies: "18,000+ Openings", tag: "Textile & Trade" },
-    { id: "chennai", name: "Chennai", vacancies: "22,000+ Openings", tag: "Automotive" },
+  const PRIORITY_SLUGS = [
+    "mumbai", "delhi", "bengaluru", "hyderabad", "pune",
+    "ahmedabad", "chennai", "kolkata", "surat", "jaipur",
+    "lucknow", "indore"
   ];
 
-  const displayCities = cities.length > 0 
-    ? cities.map((c: any) => ({
-        name: c.name,
-        vacancies: c.vacancies || `${c.count || '15,000+'} Openings`,
-        tag: 'Verified Hub',
-        id: c.id || c.name
-      }))
-    : defaultHubs;
+  // Map and strictly deduplicate by normalized city slug so no city is repeated
+  const seenSlugs = new Set<string>();
+  const rawList = (cities && cities.length > 0) ? cities : [
+    { name: "Mumbai" }, { name: "Delhi NCR" }, { name: "Bengaluru" },
+    { name: "Hyderabad" }, { name: "Pune" }, { name: "Ahmedabad" },
+    { name: "Chennai" }, { name: "Kolkata" }, { name: "Surat" },
+    { name: "Jaipur" }, { name: "Lucknow" }, { name: "Indore" }
+  ];
+
+  const resolvedHubs = rawList
+    .map(c => getCityHubMetadata(c))
+    .filter(hub => {
+      const slug = normalizeCitySlug(hub.name);
+      if (!slug || seenSlugs.has(slug)) return false;
+      seenSlugs.add(slug);
+      return true;
+    })
+    .sort((a, b) => {
+      const slugA = normalizeCitySlug(a.name);
+      const slugB = normalizeCitySlug(b.name);
+      const indexA = PRIORITY_SLUGS.indexOf(slugA);
+      const indexB = PRIORITY_SLUGS.indexOf(slugB);
+
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+  const featuredHubs = resolvedHubs.filter(hub => !hub.isProcedural);
+  const otherHubs = resolvedHubs.filter(hub => hub.isProcedural);
+
+  const displayFeatured = featuredHubs.length > 0 ? featuredHubs : resolvedHubs;
+  const displayOther = featuredHubs.length > 0 ? otherHubs : [];
+
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const checkScrollability = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
+  };
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    checkScrollability();
+    el.addEventListener('scroll', checkScrollability, { passive: true });
+    window.addEventListener('resize', checkScrollability);
+    return () => {
+      el.removeEventListener('scroll', checkScrollability);
+      window.removeEventListener('resize', checkScrollability);
+    };
+  }, [displayFeatured]);
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
-      const scrollTo = direction === 'left'
-        ? scrollLeft - clientWidth / 2
-        : scrollLeft + clientWidth / 2;
+      const step = clientWidth > 640 ? Math.min(clientWidth * 0.75, 560) : 260;
+      const scrollTo = direction === 'left' ? scrollLeft - step : scrollLeft + step;
 
       scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
     }
@@ -264,58 +309,138 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
 
   return (
     <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
-      <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
+      {/* Section Header */}
+      <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
         <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
           Find Jobs by <span className="text-km-primary">Top Hubs</span>
         </h2>
-        <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+        <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-700 leading-relaxed max-w-2xl mx-auto font-normal">
           Explore verified openings and on-demand gig clusters across India&apos;s largest employment districts.
         </p>
       </div>
 
-      <div className="relative flex items-center group">
-        <button
-          onClick={() => scroll('left')}
-          className="hidden sm:flex absolute -left-4 z-10 p-3 bg-white rounded-full shadow-md text-slate-500 hover:text-km-primary hover:scale-105 transition-all border border-slate-200"
-          aria-label="Scroll left"
-        >
-          <ChevronLeft size={24} />
-        </button>
+      {/* Unified Cohesive Container */}
+      <div className="bg-slate-50/90 rounded-3xl border border-slate-200/90 p-4 sm:p-6 lg:p-8 shadow-xs">
+        {/* Sub-header with Title & Responsive Prev/Next Controls */}
+        <div className="flex items-center justify-between mb-4 sm:mb-5 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
+              Major Employment Metros
+            </span>
+            <span className="text-[11px] sm:text-xs font-semibold text-slate-600 bg-white px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">
+              {displayFeatured.length} Hubs
+            </span>
+          </div>
 
+          {/* Prev / Next Controls - Responsive on All Devices */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-km-primary hover:border-km-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs cursor-pointer active:scale-95"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft size={18} />
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-km-primary hover:border-km-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs cursor-pointer active:scale-95"
+              aria-label="Scroll right"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable Track */}
         <div
           ref={scrollRef}
-          className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 sm:pb-6 scroll-smooth scrollbar-hide w-full snap-x snap-mandatory"
+          className="flex gap-4 sm:gap-5 overflow-x-auto pb-3 scroll-smooth scrollbar-hide w-full snap-x snap-mandatory"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
-          {displayCities.map((city, idx) => (
-            <Link key={idx} href={`/jobs?city=${encodeURIComponent(city.id || city.name)}`}>
-              <div
-                className="min-w-44 sm:min-w-56 bg-white p-6 sm:p-7 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-500/40 transition-all cursor-pointer snap-center text-center group/card"
-              >
-                <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-100/60 flex items-center justify-center mx-auto mb-3 text-km-primary group-hover/card:scale-110 transition-transform">
-                  <MapPin size={20} />
+          {displayFeatured.map((hub, idx) => (
+            <Link 
+              key={idx} 
+              href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
+              className="snap-start shrink-0"
+            >
+              <div className="w-56 sm:w-64 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-km-primary/50 transition-all overflow-hidden cursor-pointer group/card flex flex-col h-full">
+                
+                {/* Landmark Photo Header */}
+                <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-slate-900 shrink-0">
+                  <img
+                    src={hub.image}
+                    alt={`${hub.name} landmark`}
+                    className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500 ease-out"
+                    loading="lazy"
+                  />
+                  
+                  {/* Subtle Gradient Scrim */}
+                  <div className="absolute inset-0 bg-linear-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
+
+                  {/* Clean Landmark Label */}
+                  {hub.landmark && (
+                    <span className="absolute bottom-2.5 left-3 text-[11px] font-medium text-white drop-shadow-xs truncate max-w-[90%]">
+                      {hub.landmark}
+                    </span>
+                  )}
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover/card:text-km-primary transition-colors">
-                  {city.name}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-500 font-semibold mt-1">
-                  {city.vacancies}
-                </p>
-                <span className="inline-block mt-3 text-[11px] font-semibold text-km-primary bg-blue-50/80 px-2.5 py-0.5 rounded-md">
-                  {city.tag || 'Verified Hub'}
-                </span>
+
+                {/* Card Content Body - High Contrast Readable Text */}
+                <div className="p-4 sm:p-5 text-center flex flex-col items-center justify-between flex-1">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover/card:text-km-primary transition-colors tracking-tight">
+                      {hub.name}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-800 font-semibold mt-1">
+                      {hub.vacancies}
+                    </p>
+                  </div>
+
+                  <p className="text-xs text-slate-600 font-medium mt-3">
+                    {hub.sector}
+                  </p>
+                </div>
+
               </div>
             </Link>
           ))}
         </div>
 
-        <button
-          onClick={() => scroll('right')}
-          className="hidden sm:flex absolute -right-4 z-10 p-3 bg-white rounded-full shadow-md text-slate-500 hover:text-km-primary hover:scale-105 transition-all border border-slate-200"
-          aria-label="Scroll right"
-        >
-          <ChevronRight size={24} />
-        </button>
+        {/* Connected Lower Shelf: More Regional Hubs */}
+        {displayOther.length > 0 && (
+          <div className="mt-6 sm:mt-7 pt-5 sm:pt-6 border-t border-slate-200/90">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-km-primary shrink-0" />
+                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900">
+                  More Employment Hubs & Regional Zones ({displayOther.length})
+                </h3>
+              </div>
+              <Link
+                href="/jobs"
+                className="text-xs sm:text-sm font-bold text-km-primary hover:text-km-primary-dark transition-colors inline-flex items-center gap-1 group"
+              >
+                <span>View all locations</span>
+                <span className="group-hover:translate-x-0.5 transition-transform" aria-hidden="true">&rarr;</span>
+              </Link>
+            </div>
+
+            {/* High-Contrast Connected Directory Links */}
+            <div className="flex flex-wrap items-center gap-x-5 sm:gap-x-6 gap-y-2.5 text-sm">
+              {displayOther.map((hub) => (
+                <Link
+                  key={hub.id || hub.name}
+                  href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
+                  className="text-slate-700 hover:text-km-primary font-medium hover:underline transition-colors"
+                >
+                  {hub.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );
