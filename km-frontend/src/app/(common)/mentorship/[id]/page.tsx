@@ -1,14 +1,24 @@
 "use client";
+
 import { useEffect, useState, use } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
   Star, Clock, Calendar, CheckCircle, ChevronLeft, 
-  MapPin, Award, BookOpen, Users, Play, CalendarDays,
-  ShieldCheck, Info, MessageCircle, AlertCircle
+  Award, Users, CalendarDays, ShieldCheck, 
+  MessageCircle, AlertCircle, Sparkles, Check
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+interface AvailabilitySlot {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_active?: boolean;
+}
 
 export default function MentorshipDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -18,7 +28,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-  const [availability, setAvailability] = useState<any[]>([]);
+  const [availability, setAvailability] = useState<AvailabilitySlot[]>([]);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [notes, setNotes] = useState("");
 
@@ -33,20 +43,52 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
       setData(res);
       
       // Fetch availability for the expert
-      if (res.expert.id) {
+      if (res?.expert?.id) {
           const availRes: any = await api.get(`/mentorships/expert/${res.expert.id}/availability`);
-          setAvailability(Array.isArray(availRes) ? availRes : availRes.data || []);
+          const availList: AvailabilitySlot[] = Array.isArray(availRes) ? availRes : (availRes?.data || []);
+          setAvailability(availList);
+
+          // Auto-select the first available working day within next 14 days
+          for (let i = 0; i < 14; i++) {
+              const d = new Date();
+              d.setDate(d.getDate() + i);
+              const dayOfWeek = d.getDay();
+              const match = availList.find(a => a.day_of_week === dayOfWeek && a.is_active !== false);
+              if (match) {
+                  setSelectedDate(d);
+                  setSelectedSlot(match.start_time);
+                  break;
+              }
+          }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to fetch details", error);
+      toast.error(error.message || "Failed to load mentorship details");
     } finally {
       setLoading(false);
     }
   };
 
+  // Helper to check if expert is available on given date
+  const getDayAvailability = (date: Date | null): AvailabilitySlot | null => {
+    if (!date || !availability || availability.length === 0) return null;
+    const day = date.getDay();
+    return availability.find(a => a.day_of_week === day && a.is_active !== false) || null;
+  };
+
+  const handleDateSelect = (d: Date) => {
+    setSelectedDate(d);
+    const dayAvail = getDayAvailability(d);
+    if (dayAvail) {
+      setSelectedSlot(dayAvail.start_time);
+    } else {
+      setSelectedSlot(null);
+    }
+  };
+
   const handleBooking = async () => {
     if (!selectedDate || !selectedSlot) {
-        alert("Please select a date and time slot");
+        toast.warn("Please select an available date and time slot");
         return;
     }
 
@@ -54,7 +96,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
         setBookingLoading(true);
         const scheduledAt = new Date(selectedDate);
         const [hours, minutes] = selectedSlot.split(':');
-        scheduledAt.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        scheduledAt.setHours(parseInt(hours || "10"), parseInt(minutes || "0"), 0, 0);
 
         await api.post('/mentorships/book', {
             mentorship_id: id,
@@ -62,10 +104,12 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             notes: notes
         });
 
-        alert("Booking successful! Redirecting to your bookings...");
-        router.push('/applications'); // Or wherever bookings are shown
+        toast.success("Booking successful! Redirecting to your bookings...");
+        setTimeout(() => {
+            router.push('/applications');
+        }, 1500);
     } catch (error: any) {
-        alert(error.message || "Failed to book session. Please try again.");
+        toast.error(error.message || "Failed to book session. Please try again.");
     } finally {
         setBookingLoading(false);
     }
@@ -73,100 +117,141 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-[#1a2b8c] border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (!data) return <div className="p-20 text-center">Mentorship not found</div>;
+  if (!data || !data.mentorship) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
+          <AlertCircle size={32} />
+        </div>
+        <h2 className="text-xl font-bold text-slate-800 mb-2">Mentorship Not Found</h2>
+        <p className="text-sm text-slate-500 mb-6">This mentorship session may be inactive or unavailable.</p>
+        <Link 
+          href="/mentorship" 
+          className="px-5 py-2.5 bg-[#1a2b8c] text-white text-xs font-bold rounded-xl hover:bg-[#152370] transition shadow-xs"
+        >
+          ← Back to Mentorships
+        </Link>
+      </div>
+    );
+  }
 
   const { mentorship, expert } = data;
+  const currentDayAvail = getDayAvailability(selectedDate);
+  const expertNameClean = (expert?.name || "Industry Expert").replace(/\s*\.+$/, "");
+  const expertInitial = (expertNameClean[0] || "E").toUpperCase();
 
   return (
     <main className="min-h-screen bg-[#fafafa] pb-10 md:pb-20">
+      <ToastContainer position="top-right" autoClose={3000} />
+
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-10">
-        <Link href="/mentorship" className="inline-flex items-center gap-2 text-gray-500 hover:text-purple-600 font-bold mb-6 md:mb-8 transition-all text-sm md:text-base">
-          <ChevronLeft size={18} className="md:w-5 md:h-5" /> Back to Mentorships
+        <Link 
+          href="/mentorship" 
+          className="inline-flex items-center gap-2 text-slate-500 hover:text-[#1a2b8c] font-bold mb-6 md:mb-8 transition-all text-sm md:text-base"
+        >
+          <ChevronLeft size={18} className="md:w-5 md:h-5" /> 
+          <span>Back to Mentorships</span>
         </Link>
         
         <div className="flex flex-col lg:flex-row gap-6 md:gap-8 lg:gap-12">
           {/* Main Content */}
-          <div className="lg:flex-1 space-y-6 md:space-y-10">
+          <div className="lg:flex-1 space-y-6 md:space-y-8">
             {/* Header Card */}
-            <div className="bg-white rounded-2xl md:rounded-[40px] p-6 md:p-12 shadow-sm border border-gray-50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-6 md:p-12 opacity-5 pointer-events-none">
-                    <AwardsBackground />
-                </div>
-                
-                <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-6 md:mb-8">
-                   <div className="bg-purple-100 text-purple-600 text-[9px] md:text-[10px] font-black uppercase tracking-widest px-3 md:px-4 py-1 md:py-1.5 rounded-full">
-                     {mentorship.category}
-                   </div>
-                   <div className="flex items-center gap-1 text-yellow-500">
-                     <Star size={12} className="md:w-3.5 md:h-3.5 fill-yellow-500" />
-                     <span className="text-[10px] md:text-xs font-black">4.9 (120+ Reviews)</span>
+            <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xs border border-slate-200/80 relative overflow-hidden">
+                <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-4 md:mb-6">
+                   <span className="bg-blue-50 text-[#1a2b8c] text-[10px] md:text-xs font-extrabold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-blue-100">
+                     {mentorship.category || "Mentorship"}
+                   </span>
+                   <div className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
+                     <Star size={13} className="fill-amber-400 text-amber-400" />
+                     <span className="text-xs font-bold text-amber-800">
+                       {mentorship.rating || 4.9} ({mentorship.reviews || 24}+ reviews)
+                     </span>
                    </div>
                 </div>
 
-                <h1 className="text-2xl md:text-5xl font-black text-gray-900 mb-4 md:mb-6 leading-tight">
+                <h1 className="text-2xl md:text-4xl font-black text-slate-900 mb-4 md:mb-6 leading-tight">
                   {mentorship.title}
                 </h1>
 
-                <div className="flex flex-wrap gap-4 md:gap-10">
-                    <InfoItem icon={<Clock className="text-purple-500" size={18} />} label="Duration" value={`${mentorship.duration} Mins`} />
-                    <InfoItem icon={<Users className="text-blue-500" size={18} />} label="Type" value="1-on-1 Session" />
-                    <InfoItem icon={<MessageCircle className="text-green-500" size={18} />} label="Language" value="Hindi / English" />
+                <div className="flex flex-wrap gap-4 md:gap-8 pt-2 border-t border-slate-100">
+                    <InfoItem icon={<Clock className="text-[#1a2b8c]" size={18} />} label="Duration" value={`${mentorship.duration || 45} Mins`} />
+                    <InfoItem icon={<Users className="text-emerald-600" size={18} />} label="Session Format" value="1-on-1 Dedicated" />
+                    <InfoItem icon={<MessageCircle className="text-orange-500" size={18} />} label="Languages" value="Hindi / English" />
                 </div>
             </div>
 
             {/* About the Session */}
-            <div className="bg-white rounded-2xl md:rounded-[40px] p-6 md:p-12 shadow-sm border border-gray-50">
-               <h2 className="text-xl md:text-2xl font-black text-gray-900 mb-6 md:mb-8">About the Mentorship Session</h2>
-               <div className="prose prose-purple prose-sm md:prose-base max-w-none text-gray-500 font-medium leading-relaxed">
+            <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xs border border-slate-200/80">
+               <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-4 md:mb-6 flex items-center gap-2">
+                  <Sparkles size={18} className="text-orange-500" />
+                  <span>About this Mentorship Session</span>
+               </h2>
+               <div className="text-slate-600 text-sm md:text-base leading-relaxed space-y-4">
                   <p>{mentorship.description}</p>
-                  <h4 className="text-gray-900 font-black mt-6 md:mt-8 mb-3 md:mb-4">What you will learn:</h4>
-                  <ul className="space-y-3 md:space-y-4">
+                  
+                  <h4 className="text-slate-900 font-bold pt-4">Key Takeaways from this session:</h4>
+                  <ul className="space-y-3">
                      {[
-                        "Personalized career roadmap and strategy",
-                        "In-depth industry insights and best practices",
-                        "Preparation tips for interviews and challenges",
-                        "Direct feedback on your profile and skills"
+                        "Personalized career roadmap and tailored action items",
+                        "Tactical industry insights and direct feedback on your profile",
+                        "Practical interview questions and proven answer frameworks",
+                        "Direct 1-on-1 Q&A addressing your specific career hurdles"
                      ].map((item, i) => (
-                        <li key={i} className="flex gap-2 md:gap-3 items-start">
-                           <CheckCircle size={16} className="text-green-500 shrink-0 mt-1 md:w-4.5 md:h-4.5" />
-                           <span className="text-sm md:text-base">{item}</span>
+                        <li key={i} className="flex gap-2.5 items-start text-xs md:text-sm text-slate-700">
+                           <CheckCircle size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                           <span>{item}</span>
                         </li>
                      ))}
                   </ul>
                </div>
             </div>
 
-            {/* About the Mentor */}
-            <div className="bg-[#1e1b4b] text-white rounded-2xl md:rounded-[40px] p-6 md:p-12 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+            {/* Meet Your Mentor Card */}
+            <div className="bg-linear-to-br from-slate-950 via-[#0f1d5e] to-[#1a2b8c] text-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xl shadow-blue-950/20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
                 
-                <h2 className="text-xl md:text-2xl font-black mb-6 md:mb-10 relative z-10">Meet Your Mentor</h2>
-                <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start relative z-10">
-                    <div className="w-20 h-20 md:w-32 md:h-32 bg-white rounded-2xl md:rounded-3xl overflow-hidden shrink-0 border-4 border-white/10 shadow-xl">
-                       {expert.profile_image ? (
-                           <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
+                <h2 className="text-lg md:text-xl font-bold mb-6 text-white flex items-center gap-2">
+                   <Award size={18} className="text-orange-400" />
+                   <span>Meet Your Mentor</span>
+                </h2>
+                <div className="flex flex-col sm:flex-row gap-5 md:gap-6 items-start relative z-10">
+                    <div className="w-18 h-18 md:w-22 md:h-22 rounded-2xl bg-white/10 border-2 border-white/20 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
+                       {expert?.profile_image ? (
+                           <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
                        ) : (
-                           <div className="w-full h-full bg-indigo-900 flex items-center justify-center text-2xl md:text-3xl font-black">{expert.name[0]}</div>
+                           <div className="w-full h-full bg-[#1a2b8c] flex items-center justify-center text-2xl font-black text-white">
+                             {expertInitial}
+                           </div>
                        )}
                     </div>
-                    <div>
-                        <h3 className="text-xl md:text-2xl font-black mb-1 md:mb-2">{expert.name}</h3>
-                        <p className="text-indigo-200 font-bold mb-4 md:mb-6 italic text-sm md:text-base">{expert.headline || "Industry Professional"}</p>
-                        <p className="text-indigo-100 opacity-80 leading-relaxed mb-4 md:mb-6 text-sm md:text-base">
-                            {expert.bio || "An experienced professional dedicated to helping others navigate their career paths and achieve professional excellence."}
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-lg md:text-xl font-extrabold text-white">{expertNameClean}</h3>
+                          <span className="p-0.5 rounded-full bg-emerald-500 text-white">
+                            <Check size={10} strokeWidth={3} />
+                          </span>
+                        </div>
+                        <p className="text-blue-200 text-xs md:text-sm font-semibold">
+                          {expert?.headline || "Verified Industry Professional & Career Mentor"}
                         </p>
-                        <div className="flex flex-wrap gap-2 md:gap-4">
-                            <span className="flex items-center gap-1.5 md:gap-2 bg-white/10 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold border border-white/10">
-                                <Award size={12} className="text-yellow-400 md:w-3.5 md:h-3.5" /> Top Mentor 2024
+                        <p className="text-slate-300 text-xs md:text-sm leading-relaxed max-w-2xl">
+                          {expert?.bio || "An experienced professional committed to guiding candidates, sharing practical insights, and helping you achieve your career aspirations."}
+                        </p>
+                        <div className="flex flex-wrap gap-2 pt-2">
+                            <span className="inline-flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full text-[11px] font-semibold border border-white/10 text-emerald-300">
+                                <ShieldCheck size={13} />
+                                <span>Verified Expert</span>
                             </span>
-                            <span className="flex items-center gap-1.5 md:gap-2 bg-white/10 px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[10px] md:text-xs font-bold border border-white/10">
-                                <ShieldCheck size={12} className="text-blue-400 md:w-3.5 md:h-3.5" /> Verified Expert
+                            <span className="inline-flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full text-[11px] font-semibold border border-white/10 text-amber-300">
+                                <Star size={13} className="fill-amber-300" />
+                                <span>Top Rated Mentor</span>
                             </span>
                         </div>
                     </div>
@@ -175,109 +260,151 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
           </div>
 
           {/* Sidebar - Booking */}
-          <div className="lg:w-[400px] space-y-6 md:space-y-8">
-            <div className="bg-white rounded-2xl md:rounded-[40px] p-6 md:p-8 shadow-2xl shadow-purple-900/10 border border-purple-50 lg:sticky lg:top-10">
-                <div className="mb-6 md:mb-8">
-                    <span className="text-[10px] md:text-xs text-gray-400 font-black uppercase block mb-1">Session Fee</span>
-                    <div className="flex items-baseline gap-1.5 md:gap-2">
-                        <span className="text-3xl md:text-4xl font-black text-gray-900">₹{mentorship.price}</span>
-                        <span className="text-gray-400 font-bold text-sm md:text-base">/ session</span>
+          <div className="lg:w-[420px] space-y-6">
+            <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-lg shadow-slate-200/50 border border-slate-200/80 lg:sticky lg:top-8">
+                {/* Session Fee Header */}
+                <div className="mb-6 pb-5 border-b border-slate-100">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                      Session Fee
+                    </span>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-3xl md:text-4xl font-black text-slate-900 font-mono">
+                          ₹{mentorship.price || 499}
+                        </span>
+                        <span className="text-slate-400 font-semibold text-xs md:text-sm">
+                          / 1-on-1 session
+                        </span>
                     </div>
                 </div>
 
-                <div className="space-y-5 md:space-y-6">
+                <div className="space-y-6">
+                    {/* Select Date */}
                     <div>
-                        <label className="text-[10px] md:text-xs font-black text-gray-900 uppercase mb-2 md:mb-3 flex items-center gap-2">
-                           <CalendarDays size={14} className="text-purple-600" /> Select Date
-                        </label>
-                        <div className="grid grid-cols-4 gap-1.5 md:gap-2">
-                            {/* Simple Date Mock - typically you'd use a calendar library */}
-                            {[0, 1, 2, 3, 4, 5, 6, 7].map(i => {
+                        <div className="flex items-center justify-between mb-3">
+                          <label className="text-xs font-bold text-slate-900 uppercase flex items-center gap-1.5">
+                             <CalendarDays size={15} className="text-[#1a2b8c]" />
+                             <span>Select Date</span>
+                          </label>
+                          <span className="text-[11px] text-slate-400 font-medium">Next 7 Days</span>
+                        </div>
+
+                        <div className="grid grid-cols-4 gap-2">
+                            {[0, 1, 2, 3, 4, 5, 6].map(i => {
                                 const d = new Date();
                                 d.setDate(d.getDate() + i);
                                 const isSelected = selectedDate?.toDateString() === d.toDateString();
+                                const isAvail = !!getDayAvailability(d);
+
                                 return (
                                     <button 
                                         key={i}
-                                        onClick={() => setSelectedDate(d)}
-                                        className={`flex flex-col items-center p-1.5 md:p-2 rounded-xl md:rounded-2xl border transition-all ${
-                                            isSelected ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-200' : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-purple-200'
+                                        type="button"
+                                        onClick={() => handleDateSelect(d)}
+                                        className={`flex flex-col items-center p-2 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
+                                            isSelected 
+                                              ? 'bg-[#1a2b8c] border-[#1a2b8c] text-white shadow-md shadow-blue-900/20' 
+                                              : isAvail
+                                                ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
+                                                : 'bg-slate-100/50 border-slate-100 text-slate-400 opacity-60'
                                         }`}
                                     >
-                                        <span className="text-[8px] md:text-[10px] font-bold uppercase">{d.toLocaleDateString('en-US', { weekday: 'short' })}</span>
-                                        <span className="text-base md:text-lg font-black">{d.getDate()}</span>
+                                        <span className="text-[9px] font-bold uppercase tracking-wider">
+                                          {i === 0 ? "Today" : d.toLocaleDateString('en-US', { weekday: 'short' })}
+                                        </span>
+                                        <span className="text-base font-black mt-0.5">
+                                          {d.getDate()}
+                                        </span>
+                                        {!isAvail && (
+                                          <span className="text-[8px] font-semibold text-rose-400 mt-0.5">Off</span>
+                                        )}
                                     </button>
                                 );
                             })}
                         </div>
                     </div>
 
+                    {/* Time Slot Display based on Expert's Own Timing */}
                     <div>
-                        <label className="text-[10px] md:text-xs font-black text-gray-900 uppercase mb-2 md:mb-3 flex items-center gap-2">
-                           <Clock size={14} className="text-purple-600" /> Select Time Slot
+                        <label className="text-xs font-bold text-slate-900 uppercase mb-2 flex items-center gap-1.5">
+                           <Clock size={15} className="text-[#1a2b8c]" />
+                           <span>Expert's Available Time</span>
                         </label>
-                        <div className="grid grid-cols-3 gap-1.5 md:gap-2">
-                            {availability.length > 0 ? availability.map((a, i) => (
-                                <button 
-                                    key={i}
-                                    onClick={() => setSelectedSlot(a.start_time)}
-                                    className={`py-1.5 md:py-2 px-1 rounded-lg md:rounded-xl text-center text-[10px] md:text-xs font-bold border transition-all ${
-                                        selectedSlot === a.start_time ? 'bg-purple-600 border-purple-600 text-white' : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-purple-200'
+
+                        {currentDayAvail ? (
+                            <div className="space-y-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedSlot(currentDayAvail.start_time)}
+                                    className={`w-full py-3 px-4 rounded-xl text-center text-xs font-bold border transition-all cursor-pointer flex items-center justify-between ${
+                                        selectedSlot === currentDayAvail.start_time
+                                            ? 'bg-blue-50 border-[#1a2b8c] text-[#1a2b8c] ring-2 ring-[#1a2b8c]/20'
+                                            : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                                     }`}
                                 >
-                                    {a.start_time}
+                                    <span className="flex items-center gap-2">
+                                      <Clock size={14} className="text-[#1a2b8c]" />
+                                      <span>Session Window: {currentDayAvail.start_time} – {currentDayAvail.end_time}</span>
+                                    </span>
+                                    <span className="text-[10px] font-black uppercase bg-[#1a2b8c] text-white px-2 py-0.5 rounded-md">
+                                      Active Slot
+                                    </span>
                                 </button>
-                            )) : (
-                                ["10:00", "11:00", "14:00", "15:00", "16:00", "17:00"].map(t => (
-                                    <button 
-                                        key={t}
-                                        onClick={() => setSelectedSlot(t)}
-                                        className={`py-1.5 md:py-2 px-1 rounded-lg md:rounded-xl text-center text-[10px] md:text-xs font-bold border transition-all ${
-                                            selectedSlot === t ? 'bg-purple-600 border-purple-600 text-white' : 'bg-gray-50 border-gray-100 text-gray-500 hover:border-purple-200'
-                                        }`}
-                                    >
-                                        {t}
-                                    </button>
-                                ))
-                            )}
-                        </div>
+                                <p className="text-[11px] text-slate-400 pl-1 font-medium">
+                                  Configured directly by the mentor for this day.
+                                </p>
+                            </div>
+                        ) : (
+                            <div className="p-3.5 bg-rose-50 rounded-xl border border-rose-100 text-xs text-rose-700 flex items-start gap-2">
+                                <AlertCircle size={15} className="shrink-0 mt-0.5" />
+                                <span>The mentor is unavailable on this day. Please pick another day above.</span>
+                            </div>
+                        )}
                     </div>
 
+                    {/* Notes Field */}
                     <div>
-                        <label className="text-[10px] md:text-xs font-black text-gray-900 uppercase mb-2 md:mb-3">
-                           Add Notes <span className="text-gray-400 font-medium">(Optional)</span>
+                        <label className="text-xs font-bold text-slate-900 uppercase mb-1.5 block">
+                           Topics to Discuss <span className="text-slate-400 font-medium">(Optional)</span>
                         </label>
                         <textarea 
-                            className="w-full bg-gray-50 border border-gray-100 rounded-xl md:rounded-2xl p-3 md:p-4 text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium min-h-[80px] md:min-h-[100px]"
-                            placeholder="What do you want to discuss?"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs md:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1a2b8c] transition-all font-medium min-h-[80px]"
+                            placeholder="Share your goals, challenges, or questions for this session..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                         />
                     </div>
 
+                    {/* Book Session CTA */}
                     <button 
+                        type="button"
                         onClick={handleBooking}
-                        disabled={bookingLoading}
-                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 md:py-5 rounded-2xl md:rounded-3xl font-black transition-all shadow-xl shadow-purple-900/10 active:scale-95 disabled:opacity-50 disabled:pointer-events-none mt-2 md:mt-4 text-sm md:text-base"
+                        disabled={bookingLoading || !currentDayAvail}
+                        className="w-full bg-[#1a2b8c] hover:bg-[#152370] text-white py-3.5 md:py-4 rounded-xl font-bold transition-all shadow-md shadow-blue-900/20 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer text-xs md:text-sm flex items-center justify-center gap-2"
                     >
-                        {bookingLoading ? "Booking..." : "Book Session Now"}
+                        {bookingLoading ? (
+                           <>
+                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                             <span>Confirming Booking...</span>
+                           </>
+                        ) : (
+                           <span>Book Session (₹{mentorship.price || 499})</span>
+                        )}
                     </button>
                     
-                    <p className="text-[9px] md:text-[10px] text-gray-400 font-bold text-center">
-                        <AlertCircle size={10} className="inline mr-1" /> No hidden charges, cancel anytime before 24h.
+                    <p className="text-[10px] text-slate-400 font-semibold text-center flex items-center justify-center gap-1">
+                        <ShieldCheck size={13} className="text-emerald-500" />
+                        <span>Protected by KaamMilega Escrow Guarantee</span>
                     </p>
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl md:rounded-[40px] p-6 shadow-sm border border-gray-50 overflow-hidden relative">
-                <div className="flex items-center gap-3 md:gap-4">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0">
-                        <ShieldCheck size={20} className="text-blue-600 md:w-6 md:h-6" />
-                    </div>
-                    <div>
-                        <h4 className="font-black text-gray-900 text-xs md:text-sm">Safe & Secure</h4>
-                        <p className="text-[10px] md:text-xs text-gray-500 font-medium tracking-tight">Your payments and data are always protected.</p>
-                    </div>
+            <div className="bg-blue-50/60 rounded-2xl p-5 border border-blue-100/80 flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-100 text-[#1a2b8c] rounded-xl flex items-center justify-center shrink-0">
+                    <ShieldCheck size={20} />
+                </div>
+                <div>
+                    <h4 className="font-bold text-slate-900 text-xs">Safe & Verified</h4>
+                    <p className="text-[11px] text-slate-500 font-medium">All mentors are screened and verified before sessions.</p>
                 </div>
             </div>
           </div>
@@ -289,22 +416,14 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
 function InfoItem({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) {
     return (
-        <div className="flex gap-3 md:gap-4">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-50 rounded-lg md:rounded-xl flex items-center justify-center shrink-0">
+        <div className="flex gap-2.5 items-center">
+            <div className="w-9 h-9 bg-slate-50 rounded-xl flex items-center justify-center shrink-0 border border-slate-100">
                 {icon}
             </div>
             <div>
-                <p className="text-[8px] md:text-[10px] text-gray-400 font-black uppercase tracking-widest leading-none mb-1">{label}</p>
-                <p className="text-xs md:text-sm font-black text-gray-900">{value}</p>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">{label}</p>
+                <p className="text-xs font-bold text-slate-900">{value}</p>
             </div>
         </div>
-    );
-}
-
-function AwardsBackground() {
-    return (
-        <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 0L122.451 69.0983H195.106L136.327 111.803L158.779 180.902L100 138.197L41.2215 180.902L63.6733 111.803L4.89435 69.0983H77.5486L100 0Z" fill="white"/>
-        </svg>
     );
 }
