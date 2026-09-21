@@ -42,6 +42,7 @@ export default function WalletPage() {
     const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
     const [topupAmount, setTopupAmount] = useState("500");
     const [refreshKey, setRefreshKey] = useState(0);
+    const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
 
     const fetchWallet = useCallback(async () => {
         setLoading(true);
@@ -81,6 +82,107 @@ export default function WalletPage() {
             currency: 'INR',
             maximumFractionDigits: 2,
         }).format(num);
+    };
+
+    // Dynamically load official Razorpay Checkout SDK
+    const loadRazorpayScript = () => {
+        return new Promise<boolean>((resolve) => {
+            if (typeof window === 'undefined') return resolve(false);
+            if ((window as any).Razorpay) return resolve(true);
+
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.async = true;
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
+    // Initiate Razorpay checkout order and payment verification flow
+    const handleInitiatePayment = async () => {
+        const amt = parseFloat(topupAmount);
+        if (isNaN(amt) || amt < 10) {
+            toast.error("Please enter a valid amount of at least ₹10");
+            return;
+        }
+        if (amt > 100000) {
+            toast.error("Maximum single recharge amount is ₹1,00,000");
+            return;
+        }
+
+        setIsPaymentProcessing(true);
+        try {
+            const scriptLoaded = await loadRazorpayScript();
+            if (!scriptLoaded) {
+                toast.error("Failed to load Razorpay checkout gateway. Please check your internet connection.");
+                setIsPaymentProcessing(false);
+                return;
+            }
+
+            // 1. Create order on backend
+            const orderRes: any = await api.post('/wallet/topup/create-order', {
+                amount: amt
+            });
+
+            if (!orderRes || !orderRes.order_id) {
+                toast.error(orderRes?.error || "Failed to initiate recharge order");
+                setIsPaymentProcessing(false);
+                return;
+            }
+
+            const rzpKey = orderRes.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+
+            // 2. Open Razorpay Checkout Modal
+            const options = {
+                key: rzpKey,
+                amount: orderRes.amount_paise,
+                currency: orderRes.currency || 'INR',
+                name: 'KaamMilega™',
+                description: `Recharge Main Balance - ₹${amt}`,
+                order_id: orderRes.order_id,
+                handler: async function (response: any) {
+                    try {
+                        toast.info("Verifying payment with secure ledger...");
+                        // 3. Verify payment signature with backend and record into immutable ledger
+                        await api.post('/wallet/topup/verify', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            amount: amt
+                        });
+
+                        toast.success(`₹${amt} successfully added to your Main Balance!`);
+                        setIsTopupModalOpen(false);
+                        fetchWallet(); // Refreshes balance cards and F72 transaction ledger
+                    } catch (verifyErr: any) {
+                        console.error("Payment verification failed", verifyErr);
+                        toast.error(verifyErr?.response?.data?.error || "Payment verification failed. Please contact support.");
+                    } finally {
+                        setIsPaymentProcessing(false);
+                    }
+                },
+                theme: {
+                    color: '#1a2b8c', // Brand Blue from DESIGN_SYSTEM.md
+                },
+                modal: {
+                    ondismiss: function () {
+                        setIsPaymentProcessing(false);
+                    }
+                }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.on('payment.failed', function (resp: any) {
+                toast.error(`Payment failed: ${resp.error?.description || 'Transaction cancelled'}`);
+                setIsPaymentProcessing(false);
+            });
+            rzp.open();
+        } catch (err: any) {
+            console.error("Payment initiation error", err);
+            toast.error(err?.response?.data?.error || "Failed to initiate payment. Please try again.");
+            setIsPaymentProcessing(false);
+        }
     };
 
     return (
@@ -383,19 +485,30 @@ export default function WalletPage() {
 
                         <div className="flex gap-3">
                             <button
+                                type="button"
                                 onClick={() => setIsTopupModalOpen(false)}
-                                className="flex-1 py-3 rounded-2xl border border-slate-200 font-bold text-xs text-slate-700 hover:bg-slate-50 cursor-pointer"
+                                disabled={isPaymentProcessing}
+                                className="flex-1 py-3 rounded-2xl border border-slate-200 font-bold text-xs text-slate-700 hover:bg-slate-50 cursor-pointer disabled:opacity-50"
                             >
                                 Cancel
                             </button>
                             <button
-                                onClick={() => {
-                                    toast.info("Payment gateway checkout will open here.");
-                                    setIsTopupModalOpen(false);
-                                }}
-                                className="flex-1 py-3 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md shadow-purple-600/20 cursor-pointer active:scale-95"
+                                type="button"
+                                onClick={handleInitiatePayment}
+                                disabled={isPaymentProcessing}
+                                className="flex-1 py-3 rounded-2xl bg-blue-900 hover:bg-blue-800 text-white font-bold text-xs shadow-md shadow-blue-900/20 cursor-pointer active:scale-95 disabled:opacity-70 flex items-center justify-center gap-2"
                             >
-                                Pay ₹{topupAmount}
+                                {isPaymentProcessing ? (
+                                    <>
+                                        <RefreshCw size={14} className="animate-spin" />
+                                        <span>Processing...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <CreditCard size={14} />
+                                        <span>Pay ₹{topupAmount}</span>
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

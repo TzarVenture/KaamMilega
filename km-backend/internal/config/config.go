@@ -22,6 +22,8 @@ type Config struct {
 	SMTPPassword  string
 	SMTPFromEmail string
 	SMTPFromName  string
+	RazorpayKeyID     string
+	RazorpayKeySecret string
 }
 
 // LoadConfig loads configuration from environment variables
@@ -33,20 +35,22 @@ func LoadConfig() (*Config, error) {
 	}
 
 	return &Config{
-		Port:          getEnv("PORT", "8080"),
-		JWTSecret:     getEnv("JWT_SECRET", "secret"),
-		MongoURI:      getEnv("MONGO_URI", "mongodb://localhost:27017"),
-		DBName:        getEnv("DB_NAME", "km-backend"),
-		Environment:   getEnv("ENVIRONMENT", "development"),
-		FSPath:        getEnv("FS_PATH", "./static/uploads"),
-		FSURL:         getEnv("FS_URL", "/api/files/uploads"),
-		Host:          getEnv("HOST", ""),
-		SMTPHost:      getEnv("SMTP_HOST", "smtp-relay.brevo.com"),
-		SMTPPort:      getEnv("SMTP_PORT", "587"),
-		SMTPUsername:  getEnv("SMTP_USERNAME", getEnv("SMTP_USER", "")),
-		SMTPPassword:  getEnv("SMTP_PASSWORD", getEnv("SMTP_PASS", "")),
-		SMTPFromEmail: getEnv("SMTP_FROM_EMAIL", "no-reply@kaammilega.com"),
-		SMTPFromName:  getEnv("SMTP_FROM_NAME", "KaamMilega Verification"),
+		Port:              getEnv("PORT", "8080"),
+		JWTSecret:         getEnv("JWT_SECRET", "secret"),
+		MongoURI:          getEnv("MONGO_URI", "mongodb://localhost:27017"),
+		DBName:            getEnv("DB_NAME", "km-backend"),
+		Environment:       getEnv("ENVIRONMENT", "development"),
+		FSPath:            getEnv("FS_PATH", "./static/uploads"),
+		FSURL:             getEnv("FS_URL", "/api/files/uploads"),
+		Host:              getEnv("HOST", ""),
+		SMTPHost:          getEnv("SMTP_HOST", "smtp-relay.brevo.com"),
+		SMTPPort:          getEnv("SMTP_PORT", "587"),
+		SMTPUsername:      getEnv("SMTP_USERNAME", getEnv("SMTP_USER", "")),
+		SMTPPassword:      getEnv("SMTP_PASSWORD", getEnv("SMTP_PASS", "")),
+		SMTPFromEmail:     getEnv("SMTP_FROM_EMAIL", "no-reply@kaammilega.com"),
+		SMTPFromName:      getEnv("SMTP_FROM_NAME", "KaamMilega Verification"),
+		RazorpayKeyID:     getEnv("RAZORPAY_KEY_ID", ""),
+		RazorpayKeySecret: getEnv("RAZORPAY_KEY_SECRET", ""),
 	}, nil
 }
 

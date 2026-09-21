@@ -127,3 +127,26 @@ type RecordTransactionInput struct {
 	Description   string
 	Metadata      map[string]interface{}
 }
+
+// CreateTopupOrderRequest represents client input for initiating a recharge
+type CreateTopupOrderRequest struct {
+	Amount float64 `json:"amount"` // in INR (e.g. 100, 500)
+}
+
+// CreateTopupOrderResponse represents the generated Razorpay order details returned to client
+type CreateTopupOrderResponse struct {
+	OrderID     string  `json:"order_id"`
+	Amount      float64 `json:"amount"`       // in INR
+	AmountPaise int64   `json:"amount_paise"` // in paise (e.g. 50000)
+	Currency    string  `json:"currency"`     // "INR"
+	KeyID       string  `json:"key_id"`       // Razorpay Key ID for client checkout
+}
+
+// VerifyTopupPaymentRequest represents the client payload after Razorpay checkout finishes
+type VerifyTopupPaymentRequest struct {
+	RazorpayOrderID   string  `json:"razorpay_order_id"`
+	RazorpayPaymentID string  `json:"razorpay_payment_id"`
+	RazorpaySignature string  `json:"razorpay_signature"`
+	Amount            float64 `json:"amount"` // in INR
+}
+
