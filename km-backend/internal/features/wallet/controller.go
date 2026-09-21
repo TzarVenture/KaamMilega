@@ -70,3 +70,60 @@ func (ctrl *WalletController) GetTransactions(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(result)
 }
 
+// CreateTopupOrder initiates a Razorpay recharge order
+func (ctrl *WalletController) CreateTopupOrder(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized: valid authentication token required",
+		})
+	}
+
+	var req CreateTopupOrderRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body format",
+		})
+	}
+
+	order, err := ctrl.service.CreateTopupOrder(c.Context(), userID, req.Amount)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(order)
+}
+
+// VerifyTopupPayment verifies the Razorpay payment signature and credits the user's wallet
+func (ctrl *WalletController) VerifyTopupPayment(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized: valid authentication token required",
+		})
+	}
+
+	var req VerifyTopupPaymentRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body format",
+		})
+	}
+
+	summary, tx, err := ctrl.service.VerifyTopupPayment(c.Context(), userID, req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":     "Wallet recharged successfully",
+		"wallet":      summary,
+		"transaction": tx,
+	})
+}
+
+
