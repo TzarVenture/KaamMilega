@@ -26,6 +26,7 @@ type MentorshipRepository interface {
 	ListBookingsByUser(ctx context.Context, userID string) ([]Booking, error)
 	ListBookingsByExpert(ctx context.Context, expertID string) ([]Booking, error)
 	UpdateBookingStatus(ctx context.Context, id string, status string) error
+	UpdateBookingPayment(ctx context.Context, id string, paymentStatus string, paymentMethod string, rzpPaymentID string, status string) error
 
 	UpdateAvailability(ctx context.Context, expertID string, availabilities []Availability) error
 	GetAvailabilityByExpert(ctx context.Context, expertID string) ([]Availability, error)
@@ -196,6 +197,28 @@ func (r *MentorshipRepositoryImpl) UpdateBookingStatus(ctx context.Context, id s
 		return err
 	}
 	_, err = r.bookingColl.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": bson.M{"status": status, "updated_at": time.Now()}})
+	return err
+}
+
+func (r *MentorshipRepositoryImpl) UpdateBookingPayment(ctx context.Context, id string, paymentStatus string, paymentMethod string, rzpPaymentID string, status string) error {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	update := bson.M{
+		"payment_status": paymentStatus,
+		"updated_at":     time.Now(),
+	}
+	if paymentMethod != "" {
+		update["payment_method"] = paymentMethod
+	}
+	if rzpPaymentID != "" {
+		update["razorpay_payment_id"] = rzpPaymentID
+	}
+	if status != "" {
+		update["status"] = status
+	}
+	_, err = r.bookingColl.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": update})
 	return err
 }
 

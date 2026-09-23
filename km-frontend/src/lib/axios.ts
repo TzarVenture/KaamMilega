@@ -40,7 +40,7 @@ api.interceptors.response.use(
                     localStorage.removeItem("user");
 
                     const currentPath = window.location.pathname;
-                    const isPublicRoute = currentPath === "/" || currentPath.startsWith("/jobs");
+                    const isPublicRoute = currentPath === "/" || currentPath.startsWith("/jobs") || currentPath.startsWith("/mentorship");
 
                     // Redirect to login only if not already there AND not on a public route
                     if (!currentPath.includes("/login") && !isPublicRoute) {

@@ -96,6 +96,76 @@ func (c *MentorshipController) BookSession(ctx *fiber.Ctx) error {
 	return ctx.Status(fiber.StatusCreated).JSON(booking)
 }
 
+// BookWithWallet godoc
+// @Summary Book 1-on-1 mentorship session with wallet balance
+// @Tags mentorship
+// @Accept json
+// @Produce json
+// @Router /api/mentorships/book-wallet [post]
+func (c *MentorshipController) BookWithWallet(ctx *fiber.Ctx) error {
+	var req BookWithWalletRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	userID := ctx.Locals("user_id").(string)
+	booking, walletSummary, err := c.service.BookWithWallet(ctx.Context(), userID, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Session booked successfully via wallet",
+		"booking": booking,
+		"wallet":  walletSummary,
+	})
+}
+
+// CreateBookingOrder godoc
+// @Summary Create a Razorpay order for mentorship session checkout
+// @Tags mentorship
+// @Accept json
+// @Produce json
+// @Router /api/mentorships/create-order [post]
+func (c *MentorshipController) CreateBookingOrder(ctx *fiber.Ctx) error {
+	var req CreateMentorshipOrderRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	userID := ctx.Locals("user_id").(string)
+	orderRes, err := c.service.CreateBookingOrder(ctx.Context(), userID, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(orderRes)
+}
+
+// VerifyBookingPayment godoc
+// @Summary Verify Razorpay payment and confirm mentorship booking
+// @Tags mentorship
+// @Accept json
+// @Produce json
+// @Router /api/mentorships/verify-payment [post]
+func (c *MentorshipController) VerifyBookingPayment(ctx *fiber.Ctx) error {
+	var req VerifyMentorshipPaymentRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	userID := ctx.Locals("user_id").(string)
+	booking, err := c.service.VerifyBookingPayment(ctx.Context(), userID, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "Payment verified and session booked successfully",
+		"booking": booking,
+	})
+}
+
 func (c *MentorshipController) GetMyBookings(ctx *fiber.Ctx) error {
 	userID := ctx.Locals("user_id").(string)
 	bookings, err := c.service.GetUserBookings(ctx.Context(), userID)

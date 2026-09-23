@@ -16,14 +16,14 @@ func NewMentorshipApi(controller *MentorshipController) api.Route {
 }
 
 func (api *MentorshipApi) Setup(app *fiber.App) {
-	mentorships := app.Group("/api/mentorships")
-	
-	// Public routes
-	mentorships.Get("/", api.controller.ListMentorships)
-	mentorships.Get("/expert/:expert_id/availability", api.controller.GetAvailability)
+	jwtAuth := middleware.AuthMiddleware(api.controller.config.JWTSecret)
 
-	// Protected routes
-	protected := mentorships.Group("/", middleware.AuthMiddleware(api.controller.config.JWTSecret))
+	// Public routes
+	app.Get("/api/mentorships", api.controller.ListMentorships)
+	app.Get("/api/mentorships/expert/:expert_id/availability", api.controller.GetAvailability)
+
+	// Protected routes (Must register specific sub-paths before dynamic /:id)
+	protected := app.Group("/api/mentorships", jwtAuth)
 	
 	// Availability routes
 	protected.Put("/availability", api.controller.UpdateAvailability)
@@ -33,14 +33,17 @@ func (api *MentorshipApi) Setup(app *fiber.App) {
 	protected.Post("/", api.controller.CreateMentorship)
 	protected.Get("/expert/my", api.controller.GetMyMentorships)
 	
-	// Booking routes
+	// Booking & Payment routes (F76)
 	protected.Post("/book", api.controller.BookSession)
+	protected.Post("/book-wallet", api.controller.BookWithWallet)
+	protected.Post("/create-order", api.controller.CreateBookingOrder)
+	protected.Post("/verify-payment", api.controller.VerifyBookingPayment)
 	protected.Get("/bookings/my", api.controller.GetMyBookings)
 	protected.Get("/bookings/expert", api.controller.GetExpertBookings)
 	protected.Patch("/bookings/:id/status", api.controller.UpdateBookingStatus)
 	
-	// Dynamic ID routes should be last to avoid catching sub-paths as IDs
-	mentorships.Get("/:id", api.controller.GetMentorship)
+	// Dynamic ID routes must be defined last
+	app.Get("/api/mentorships/:id", api.controller.GetMentorship)
 	protected.Patch("/:id", api.controller.UpdateMentorship)
 	protected.Delete("/:id", api.controller.DeleteMentorship)
 }

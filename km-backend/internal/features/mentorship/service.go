@@ -1,10 +1,21 @@
 package mentorship
 
 import (
+	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"time"
 
+	"km-backend/internal/config"
 	"km-backend/internal/features/user"
+	"km-backend/internal/features/wallet"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -22,19 +33,35 @@ type MentorshipService interface {
 	GetExpertBookings(ctx context.Context, expertID string) ([]Booking, error)
 	UpdateBookingStatus(ctx context.Context, expertID string, bookingID string, status string) error
 
+	// Payment & Checkout methods for F76
+	BookWithWallet(ctx context.Context, userID string, req BookWithWalletRequest) (*Booking, *wallet.WalletSummaryResponse, error)
+	CreateBookingOrder(ctx context.Context, userID string, req CreateMentorshipOrderRequest) (*CreateMentorshipOrderResponse, error)
+	VerifyBookingPayment(ctx context.Context, userID string, req VerifyMentorshipPaymentRequest) (*Booking, error)
+
 	UpdateAvailability(ctx context.Context, expertID string, req []AvailabilityRequest) error
 	GetAvailability(ctx context.Context, expertID string) ([]Availability, error)
 }
 
 type MentorshipServiceImpl struct {
-	repo     MentorshipRepository
-	userRepo user.UserRepository
+	repo          MentorshipRepository
+	userRepo      user.UserRepository
+	walletService wallet.WalletService
+	cfg           *config.Config
+	httpClient    *http.Client
 }
 
-func NewMentorshipService(repo MentorshipRepository, userRepo user.UserRepository) MentorshipService {
+func NewMentorshipService(
+	repo MentorshipRepository, 
+	userRepo user.UserRepository, 
+	walletService wallet.WalletService, 
+	cfg *config.Config,
+) MentorshipService {
 	return &MentorshipServiceImpl{
-		repo:     repo,
-		userRepo: userRepo,
+		repo:          repo,
+		userRepo:      userRepo,
+		walletService: walletService,
+		cfg:           cfg,
+		httpClient:    &http.Client{Timeout: 15 * time.Second},
 	}
 }
 
@@ -141,15 +168,278 @@ func (s *MentorshipServiceImpl) BookSession(ctx context.Context, userID string, 
 
 	uid, _ := primitive.ObjectIDFromHex(userID)
 	booking := &Booking{
-		MentorshipID: m.ID,
-		ExpertID:     m.ExpertID,
-		UserID:       uid,
-		ScheduledAt:  req.ScheduledAt,
-		Status:       "pending",
-		Notes:        req.Notes,
+		MentorshipID:  m.ID,
+		ExpertID:      m.ExpertID,
+		UserID:        uid,
+		ScheduledAt:   req.ScheduledAt,
+		Status:        "pending",
+		Amount:        m.Price,
+		PaymentStatus: "pending",
+		Notes:         req.Notes,
 	}
 
 	return s.repo.CreateBooking(ctx, booking)
+}
+
+// BookWithWallet handles instant 1-click booking via wallet main balance with escrow hold
+func (s *MentorshipServiceImpl) BookWithWallet(ctx context.Context, userID string, req BookWithWalletRequest) (*Booking, *wallet.WalletSummaryResponse, error) {
+	if userID == "" {
+		return nil, nil, errors.New("unauthorized: missing user id")
+	}
+	uid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, nil, errors.New("invalid user id format")
+	}
+
+	m, err := s.repo.GetMentorshipByID(ctx, req.MentorshipID)
+	if err != nil || m == nil {
+		return nil, nil, errors.New("mentorship not found")
+	}
+
+	price := m.Price
+	if price <= 0 {
+		price = 100 // fallback
+	}
+
+	// 1. Verify user's wallet main balance
+	walletSummary, err := s.walletService.GetWalletSummary(ctx, userID)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to retrieve wallet: %w", err)
+	}
+
+	if walletSummary.MainBalance < price {
+		return nil, nil, fmt.Errorf("insufficient wallet balance: required ₹%.2f, available ₹%.2f", price, walletSummary.MainBalance)
+	}
+
+	// 2. Create the confirmed booking
+	booking := &Booking{
+		MentorshipID:  m.ID,
+		ExpertID:      m.ExpertID,
+		UserID:        uid,
+		ScheduledAt:   req.ScheduledAt,
+		Status:        "confirmed",
+		Amount:        price,
+		PaymentStatus: "paid",
+		PaymentMethod: "wallet",
+		Notes:         req.Notes,
+	}
+
+	createdBooking, err := s.repo.CreateBooking(ctx, booking)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create booking record: %w", err)
+	}
+
+	// 3. Atomically debit user's main balance via ledger
+	debitInput := wallet.RecordTransactionInput{
+		UserID:        uid,
+		Type:          wallet.TypeDebit,
+		TargetBalance: wallet.BalanceMain,
+		Category:      wallet.CategorySessionBooking,
+		Amount:        price,
+		ReferenceID:   createdBooking.ID.Hex() + "_pay",
+		Description:   fmt.Sprintf("1-on-1 Mentorship Booking: %s", m.Title),
+		Metadata: map[string]interface{}{
+			"mentorship_id":  m.ID.Hex(),
+			"expert_id":      m.ExpertID.Hex(),
+			"booking_id":     createdBooking.ID.Hex(),
+			"payment_method": "wallet",
+		},
+	}
+	_, _, err = s.walletService.RecordTransaction(ctx, debitInput)
+	if err != nil {
+		return nil, nil, fmt.Errorf("insufficient wallet balance: %w", err)
+	}
+
+	// 4. Atomically credit locked escrow balance via ledger
+	escrowInput := wallet.RecordTransactionInput{
+		UserID:        uid,
+		Type:          wallet.TypeCredit,
+		TargetBalance: wallet.BalanceLocked,
+		Category:      wallet.CategorySessionBooking,
+		Amount:        price,
+		ReferenceID:   createdBooking.ID.Hex() + "_escrow",
+		Description:   fmt.Sprintf("Mentorship Session Escrow Hold: %s", m.Title),
+		Metadata: map[string]interface{}{
+			"mentorship_id":  m.ID.Hex(),
+			"expert_id":      m.ExpertID.Hex(),
+			"booking_id":     createdBooking.ID.Hex(),
+			"payment_method": "wallet",
+		},
+	}
+	_, updatedWallet, _ := s.walletService.RecordTransaction(ctx, escrowInput)
+
+	return createdBooking, updatedWallet, nil
+}
+
+// CreateBookingOrder initiates a Razorpay checkout order for booking a mentorship session
+func (s *MentorshipServiceImpl) CreateBookingOrder(ctx context.Context, userID string, req CreateMentorshipOrderRequest) (*CreateMentorshipOrderResponse, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized: missing user id")
+	}
+	uid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user id format")
+	}
+
+	m, err := s.repo.GetMentorshipByID(ctx, req.MentorshipID)
+	if err != nil || m == nil {
+		return nil, errors.New("mentorship not found")
+	}
+
+	price := m.Price
+	if price <= 0 {
+		price = 100
+	}
+	amountPaise := int64(price * 100)
+
+	keyID := s.cfg.RazorpayKeyID
+	keySecret := s.cfg.RazorpayKeySecret
+	if keyID == "" || keySecret == "" {
+		return nil, errors.New("razorpay gateway credentials not configured")
+	}
+
+	receiptID := fmt.Sprintf("ms_%s_%d", userID[:min(6, len(userID))], time.Now().Unix())
+
+	// Request order from Razorpay API
+	payload := map[string]interface{}{
+		"amount":   amountPaise,
+		"currency": "INR",
+		"receipt":  receiptID,
+		"notes": map[string]interface{}{
+			"user_id":       userID,
+			"mentorship_id": req.MentorshipID,
+			"purpose":       "mentorship_booking",
+		},
+	}
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal order request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", "https://api.razorpay.com/v1/orders", bytes.NewBuffer(bodyBytes))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create http request: %w", err)
+	}
+	httpReq.SetBasicAuth(keyID, keySecret)
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	resp, err := s.httpClient.Do(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to reach razorpay api: %w", err)
+	}
+	defer resp.Body.Close()
+
+	respBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read razorpay response: %w", err)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("razorpay order creation failed (status %d): %s", resp.StatusCode, string(respBytes))
+	}
+
+	var rzpOrder struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(respBytes, &rzpOrder); err != nil {
+		return nil, fmt.Errorf("failed to decode razorpay response: %w", err)
+	}
+
+	// Create pending booking
+	booking := &Booking{
+		MentorshipID:    m.ID,
+		ExpertID:        m.ExpertID,
+		UserID:          uid,
+		ScheduledAt:     req.ScheduledAt,
+		Status:          "pending",
+		Amount:          price,
+		PaymentStatus:   "pending",
+		PaymentMethod:   "razorpay",
+		RazorpayOrderID: rzpOrder.ID,
+		Notes:           req.Notes,
+	}
+
+	createdBooking, err := s.repo.CreateBooking(ctx, booking)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create booking record: %w", err)
+	}
+
+	return &CreateMentorshipOrderResponse{
+		BookingID:   createdBooking.ID.Hex(),
+		OrderID:     rzpOrder.ID,
+		Amount:      price,
+		AmountPaise: amountPaise,
+		Currency:    "INR",
+		KeyID:       keyID,
+	}, nil
+}
+
+// VerifyBookingPayment validates HMAC signature and confirms session booking into escrow
+func (s *MentorshipServiceImpl) VerifyBookingPayment(ctx context.Context, userID string, req VerifyMentorshipPaymentRequest) (*Booking, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized: missing user id")
+	}
+	if req.BookingID == "" || req.RazorpayOrderID == "" || req.RazorpayPaymentID == "" || req.RazorpaySignature == "" {
+		return nil, errors.New("missing razorpay payment verification parameters")
+	}
+
+	keySecret := s.cfg.RazorpayKeySecret
+	if keySecret == "" {
+		return nil, errors.New("razorpay gateway credentials not configured")
+	}
+
+	// Verify HMAC-SHA256 signature
+	data := req.RazorpayOrderID + "|" + req.RazorpayPaymentID
+	h := hmac.New(sha256.New, []byte(keySecret))
+	h.Write([]byte(data))
+	expectedSignature := hex.EncodeToString(h.Sum(nil))
+
+	if !hmac.Equal([]byte(expectedSignature), []byte(req.RazorpaySignature)) {
+		return nil, errors.New("invalid razorpay payment signature: verification failed")
+	}
+
+	// Retrieve booking
+	booking, err := s.repo.GetBookingByID(ctx, req.BookingID)
+	if err != nil || booking == nil {
+		return nil, errors.New("booking record not found")
+	}
+
+	// Idempotency guard: prevent duplicate escrow crediting on duplicate callbacks/refreshes
+	if booking.PaymentStatus == "paid" {
+		return booking, nil
+	}
+
+	// Update booking status
+	err = s.repo.UpdateBookingPayment(ctx, req.BookingID, "paid", "razorpay", req.RazorpayPaymentID, "confirmed")
+	if err != nil {
+		return nil, fmt.Errorf("failed to update booking: %w", err)
+	}
+
+	booking.Status = "confirmed"
+	booking.PaymentStatus = "paid"
+	booking.PaymentMethod = "razorpay"
+	booking.RazorpayPaymentID = req.RazorpayPaymentID
+
+	// Credit locked escrow and record in ledger
+	uid, _ := primitive.ObjectIDFromHex(userID)
+	input := wallet.RecordTransactionInput{
+		UserID:        uid,
+		Type:          wallet.TypeCredit,
+		TargetBalance: wallet.BalanceLocked,
+		Category:      wallet.CategorySessionBooking,
+		Amount:        booking.Amount,
+		ReferenceID:   req.RazorpayPaymentID,
+		Description:   "Mentorship Booking Escrow (Razorpay)",
+		Metadata: map[string]interface{}{
+			"booking_id":          req.BookingID,
+			"razorpay_order_id":   req.RazorpayOrderID,
+			"razorpay_payment_id": req.RazorpayPaymentID,
+			"payment_channel":     "razorpay",
+		},
+	}
+	_, _, _ = s.walletService.RecordTransaction(ctx, input)
+
+	return booking, nil
 }
 
 func (s *MentorshipServiceImpl) GetUserBookings(ctx context.Context, userID string) ([]Booking, error) {
