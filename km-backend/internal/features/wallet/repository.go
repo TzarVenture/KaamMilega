@@ -3,6 +3,7 @@ package wallet
 import (
 	"context"
 	"errors"
+	"strings"
 	"time"
 
 	"km-backend/internal/database"
@@ -20,6 +21,7 @@ type WalletRepository interface {
 	CreateTransaction(ctx context.Context, tx *WalletTransaction) error
 	GetTransactionsByWalletID(ctx context.Context, walletID primitive.ObjectID, query TransactionQuery) ([]WalletTransaction, int64, error)
 	RecordAtomicTransaction(ctx context.Context, input RecordTransactionInput) (*WalletTransaction, *Wallet, error)
+	GetUserContact(ctx context.Context, userID primitive.ObjectID) (string, string, error)
 }
 
 type WalletRepositoryImpl struct {
@@ -324,5 +326,27 @@ func (r *WalletRepositoryImpl) RecordAtomicTransaction(ctx context.Context, inpu
 	}
 
 	return tx, &updatedWallet, nil
+}
+
+// GetUserContact retrieves the registered email and display name for a given user ID
+func (r *WalletRepositoryImpl) GetUserContact(ctx context.Context, userID primitive.ObjectID) (string, string, error) {
+	var u struct {
+		Email     string `bson:"email"`
+		Name      string `bson:"name"`
+		FirstName string `bson:"first_name"`
+		LastName  string `bson:"last_name"`
+	}
+	err := r.db.DB.Collection("users").FindOne(ctx, bson.M{"_id": userID}).Decode(&u)
+	if err != nil {
+		return "", "", err
+	}
+	fullName := strings.TrimSpace(u.Name)
+	if fullName == "" {
+		fullName = strings.TrimSpace(u.FirstName + " " + u.LastName)
+	}
+	if fullName == "" {
+		fullName = "Valued Expert"
+	}
+	return u.Email, fullName, nil
 }
 

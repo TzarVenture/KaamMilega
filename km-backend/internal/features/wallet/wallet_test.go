@@ -103,6 +103,10 @@ func (m *mockWalletRepository) RecordAtomicTransaction(ctx context.Context, inpu
 	return tx, m.wallet, nil
 }
 
+func (m *mockWalletRepository) GetUserContact(ctx context.Context, userID primitive.ObjectID) (string, string, error) {
+	return "expert@example.com", "John Doe", nil
+}
+
 func TestRequestWithdrawal_Validations(t *testing.T) {
 	cfg := &config.Config{
 		Port: "8000",

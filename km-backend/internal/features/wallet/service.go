@@ -426,8 +426,11 @@ func (s *WalletServiceImpl) RequestWithdrawal(ctx context.Context, userID string
 		return nil, fmt.Errorf("failed to process withdrawal: %w", err)
 	}
 
+	// Look up user contact details for personalized confirmation email
+	userEmail, userName, _ := s.repo.GetUserContact(ctx, oid)
+
 	// Asynchronously notify admin and user via SMTP
-	go s.sendWithdrawalNotificationEmail(req, refID, walletDoc.EarningsBalance-req.Amount)
+	go s.sendWithdrawalNotificationEmails(req, refID, walletDoc.EarningsBalance-req.Amount, userEmail, userName)
 
 	return &WithdrawalResponse{
 		Transaction: txItem,
@@ -436,31 +439,40 @@ func (s *WalletServiceImpl) RequestWithdrawal(ctx context.Context, userID string
 	}, nil
 }
 
-// sendWithdrawalNotificationEmail dispatches a payout notification email to admin
-func (s *WalletServiceImpl) sendWithdrawalNotificationEmail(req WithdrawalRequest, refID string, remaining float64) {
+// sendWithdrawalNotificationEmails dispatches payout alerts to admin and confirmation to expert
+func (s *WalletServiceImpl) sendWithdrawalNotificationEmails(req WithdrawalRequest, refID string, remaining float64, userEmail, userName string) {
 	if s.cfg.SMTPHost == "" || s.cfg.SMTPUsername == "" {
 		return
 	}
 
-	adminEmail := s.cfg.SMTPFromEmail
-	if adminEmail == "" {
-		return
-	}
-
-	subject := fmt.Sprintf("[KaamMilega Payout Alert] New Withdrawal Request: ₹%.2f (%s)", req.Amount, refID)
 	destDetails := fmt.Sprintf("UPI ID: %s", req.UPIID)
+	maskedDest := fmt.Sprintf("UPI (%s)", req.UPIID)
 	if req.PayoutMethod == "bank" {
 		destDetails = fmt.Sprintf("Bank: %s | A/C: %s | IFSC: %s | Holder: %s", req.BankName, req.AccountNumber, req.IFSCCode, req.AccountHolder)
+		maskedAcc := req.AccountNumber
+		if len(maskedAcc) > 4 {
+			maskedAcc = "••••" + maskedAcc[len(maskedAcc)-4:]
+		}
+		bankName := req.BankName
+		if bankName == "" {
+			bankName = "Bank Transfer"
+		}
+		maskedDest = fmt.Sprintf("%s (%s, IFSC: %s)", bankName, maskedAcc, req.IFSCCode)
 	}
 
-	body := fmt.Sprintf(`<!DOCTYPE html>
+	// 1. Dispatch Alert Email to Platform Admin
+	adminEmail := s.cfg.SMTPFromEmail
+	if adminEmail != "" {
+		adminSubject := fmt.Sprintf("[KaamMilega Payout Alert] New Withdrawal Request: ₹%.2f (%s)", req.Amount, refID)
+		adminBody := fmt.Sprintf(`<!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; background: #f8fafc; padding: 20px;">
   <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0;">
     <h2 style="color: #1a2b8c; margin-top: 0;">New Payout Request Received</h2>
-    <p>An expert has requested a bank payout from their earnings balance:</p>
+    <p>An expert has requested a payout from their earnings balance:</p>
     <table style="width: 100%%; border-collapse: collapse; margin: 16px 0;">
-      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Reference ID:</td><td style="padding: 8px 0; font-weight: bold;">%s</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Reference ID:</td><td style="padding: 8px 0; font-weight: bold; font-family: monospace;">%s</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Expert Name:</td><td style="padding: 8px 0; font-weight: bold;">%s</td></tr>
       <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Amount:</td><td style="padding: 8px 0; font-weight: bold; color: #10b981;">₹%.2f</td></tr>
       <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Payout Method:</td><td style="padding: 8px 0; font-weight: bold; text-transform: uppercase;">%s</td></tr>
       <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Destination:</td><td style="padding: 8px 0; font-weight: bold;">%s</td></tr>
@@ -470,39 +482,109 @@ func (s *WalletServiceImpl) sendWithdrawalNotificationEmail(req WithdrawalReques
     <p style="color: #64748b; font-size: 13px;">Please verify account details, disburse funds via IMPS/NEFT/UPI, and confirm with the expert.</p>
   </div>
 </body>
-</html>`, refID, req.Amount, req.PayoutMethod, destDetails, req.PhoneNumber, remaining)
+</html>`, refID, userName, req.Amount, req.PayoutMethod, destDetails, req.PhoneNumber, remaining)
 
-	addr := fmt.Sprintf("%s:%s", s.cfg.SMTPHost, s.cfg.SMTPPort)
-	auth := smtp.PlainAuth("", s.cfg.SMTPUsername, s.cfg.SMTPPassword, s.cfg.SMTPHost)
+		_ = sendSMTPMail(s.cfg, adminEmail, adminSubject, adminBody)
+	}
+
+	// 2. Dispatch Confirmation Receipt Email to the Withdrawing Expert
+	if userEmail != "" {
+		if userName == "" {
+			userName = "Valued Expert"
+		}
+		userSubject := fmt.Sprintf("[KaamMilega] Withdrawal Request Received - ₹%.2f (%s)", req.Amount, refID)
+		userBody := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #f8fafc; padding: 24px;">
+  <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 16px; padding: 32px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+    <div style="text-align: center; margin-bottom: 24px;">
+      <h1 style="color: #1a2b8c; margin: 0; font-size: 24px; font-weight: 800;">KaamMilega™</h1>
+      <p style="color: #64748b; font-size: 13px; margin-top: 4px; font-weight: 500;">Withdrawal Request Confirmation</p>
+    </div>
+
+    <p style="color: #334155; font-size: 15px; line-height: 1.6;">Hi <strong>%s</strong>,</p>
+    <p style="color: #334155; font-size: 14px; line-height: 1.6;">We have received your request to withdraw earnings from your KaamMilega wallet. The requested amount has been deducted from your earnings balance and queued for transfer.</p>
+
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin: 24px 0;">
+      <table style="width: 100%%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Withdrawal Amount:</td>
+          <td style="padding: 10px 0; font-weight: 800; color: #10b981; font-size: 18px; text-align: right;">₹%.2f</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Reference ID:</td>
+          <td style="padding: 10px 0; font-weight: bold; color: #1e293b; font-family: monospace; text-align: right;">%s</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Payout Method:</td>
+          <td style="padding: 10px 0; font-weight: bold; color: #1e293b; text-transform: uppercase; text-align: right;">%s</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #f1f5f9;">
+          <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Destination:</td>
+          <td style="padding: 10px 0; font-weight: bold; color: #1e293b; text-align: right;">%s</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px 0; color: #64748b; font-size: 13px;">Remaining Earnings:</td>
+          <td style="padding: 10px 0; font-weight: bold; color: #1e293b; text-align: right;">₹%.2f</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="background: #eff6ff; border-left: 4px solid #1a2b8c; padding: 14px 16px; border-radius: 0 8px 8px 0; margin: 20px 0;">
+      <p style="color: #1e3a8a; font-size: 13px; line-height: 1.5; margin: 0;">
+        <strong>What's Next?</strong><br>
+        Our accounts team is reviewing your request and will disburse funds directly via IMPS or UPI. You can track this withdrawal in your Wallet Transaction History.
+      </p>
+    </div>
+
+    <p style="color: #64748b; font-size: 12px; margin-top: 28px; border-top: 1px solid #f1f5f9; padding-top: 16px; line-height: 1.5;">
+      If you did not initiate this withdrawal request, please reach out to us immediately at support@kaammilega.com quoting your Reference ID (<strong>%s</strong>).
+    </p>
+  </div>
+</body>
+</html>`, userName, req.Amount, refID, req.PayoutMethod, maskedDest, remaining, refID)
+
+		_ = sendSMTPMail(s.cfg, userEmail, userSubject, userBody)
+	}
+}
+
+// sendSMTPMail helper dispatches an HTML email via Brevo / SMTP configuration
+func sendSMTPMail(cfg *config.Config, to, subject, htmlBody string) error {
+	if cfg.SMTPHost == "" || cfg.SMTPUsername == "" || to == "" {
+		return errors.New("missing smtp configuration or recipient")
+	}
+
+	addr := fmt.Sprintf("%s:%s", cfg.SMTPHost, cfg.SMTPPort)
+	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost)
 
 	header := fmt.Sprintf("From: %s <%s>\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n",
-		s.cfg.SMTPFromName, s.cfg.SMTPFromEmail, adminEmail, subject)
+		cfg.SMTPFromName, cfg.SMTPFromEmail, to, subject)
 
 	client, err := smtp.Dial(addr)
 	if err != nil {
-		return
+		return err
 	}
 	defer client.Close()
 
-	if err = client.StartTLS(&tls.Config{ServerName: s.cfg.SMTPHost}); err != nil {
-		return
+	if err = client.StartTLS(&tls.Config{ServerName: cfg.SMTPHost}); err != nil {
+		return err
 	}
 	if err = client.Auth(auth); err != nil {
-		return
+		return err
 	}
-	if err = client.Mail(s.cfg.SMTPFromEmail); err != nil {
-		return
+	if err = client.Mail(cfg.SMTPFromEmail); err != nil {
+		return err
 	}
-	if err = client.Rcpt(adminEmail); err != nil {
-		return
+	if err = client.Rcpt(to); err != nil {
+		return err
 	}
 	w, err := client.Data()
 	if err != nil {
-		return
+		return err
 	}
-	_, _ = w.Write([]byte(header + body))
+	_, _ = w.Write([]byte(header + htmlBody))
 	_ = w.Close()
-	_ = client.Quit()
+	return client.Quit()
 }
 
 
