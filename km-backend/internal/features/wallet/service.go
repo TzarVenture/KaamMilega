@@ -385,7 +385,7 @@ func (s *WalletServiceImpl) RequestWithdrawal(ctx context.Context, userID string
 		return nil, fmt.Errorf("insufficient withdrawable earnings (available: ₹%.2f, requested: ₹%.2f)", walletDoc.EarningsBalance, req.Amount)
 	}
 
-	refID := fmt.Sprintf("WTH_%s_%d", userID[:min(6, len(userID))], time.Now().Unix())
+	refID := fmt.Sprintf("WTH_%s_%d", userID[:min(6, len(userID))], time.Now().UnixNano())
 
 	metadata := map[string]interface{}{
 		"payout_method":  req.PayoutMethod,
