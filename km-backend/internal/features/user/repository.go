@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -34,6 +35,9 @@ type UserRepository interface {
 	UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error)
 	GetPlatformStats(ctx context.Context) (map[string]interface{}, error)
 	GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error)
+	IncrementPostImpressions(ctx context.Context, authorCounts map[string]int) error
+	FindUserByUsername(ctx context.Context, username string) (*User, error)
+	BackfillUsernames(ctx context.Context) error
 }
 
 type UserRepositoryImpl struct {
@@ -43,9 +47,21 @@ type UserRepositoryImpl struct {
 }
 
 func NewUserRepository(db *database.MongodbDB) UserRepository {
+	userColl := db.DB.Collection("users")
+	// Ensure unique sparse index on username
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		opts := options.Index().SetUnique(true).SetSparse(true)
+		_, _ = userColl.Indexes().CreateOne(ctx, mongo.IndexModel{
+			Keys:    bson.M{"username": 1},
+			Options: opts,
+		})
+	}()
+
 	return &UserRepositoryImpl{
 		db:       db,
-		userColl: db.DB.Collection("users"),
+		userColl: userColl,
 		otpColl:  db.DB.Collection("otps"),
 	}
 }
@@ -136,12 +152,25 @@ func (r *UserRepositoryImpl) FindUserByEmailOrMobile(ctx context.Context, identi
 }
 
 func (r *UserRepositoryImpl) FindUserByID(ctx context.Context, id string) (*User, error) {
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return nil, errors.New("empty user identifier")
 	}
+
+	var filter bson.M
+	if oid, err := primitive.ObjectIDFromHex(id); err == nil {
+		filter = bson.M{
+			"$or": []bson.M{
+				{"_id": oid},
+				{"username": strings.ToLower(id)},
+			},
+		}
+	} else {
+		filter = bson.M{"username": strings.ToLower(id)}
+	}
+
 	var user User
-	err = r.userColl.FindOne(ctx, bson.M{"_id": oid}).Decode(&user)
+	err := r.userColl.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
@@ -484,3 +513,118 @@ func (r *UserRepositoryImpl) GetLiveActivity(ctx context.Context) ([]map[string]
 	return activities, nil
 }
 
+func (r *UserRepositoryImpl) IncrementPostImpressions(ctx context.Context, authorCounts map[string]int) error {
+	if len(authorCounts) == 0 {
+		return nil
+	}
+
+	var writes []mongo.WriteModel
+	for idStr, count := range authorCounts {
+		if count <= 0 {
+			continue
+		}
+		oid, err := primitive.ObjectIDFromHex(idStr)
+		if err != nil {
+			continue
+		}
+		model := mongo.NewUpdateOneModel().
+			SetFilter(bson.M{"_id": oid}).
+			SetUpdate(bson.M{
+				"$inc": bson.M{"post_impressions": count},
+			})
+		writes = append(writes, model)
+	}
+
+	if len(writes) == 0 {
+		return nil
+	}
+
+	_, err := r.userColl.BulkWrite(ctx, writes)
+	return err
+}
+
+func (r *UserRepositoryImpl) FindUserByUsername(ctx context.Context, username string) (*User, error) {
+	username = strings.ToLower(strings.TrimSpace(username))
+	if username == "" {
+		return nil, errors.New("empty username")
+	}
+
+	var user User
+	err := r.userColl.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (r *UserRepositoryImpl) BackfillUsernames(ctx context.Context) error {
+	cursor, err := r.userColl.Find(ctx, bson.M{
+		"$or": []bson.M{
+			{"username": bson.M{"$exists": false}},
+			{"username": ""},
+			{"username": nil},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	defer cursor.Close(ctx)
+
+	var users []*User
+	if err := cursor.All(ctx, &users); err != nil {
+		return err
+	}
+
+	if len(users) == 0 {
+		return nil
+	}
+
+	var writes []mongo.WriteModel
+	for _, u := range users {
+		if u.Username != "" {
+			continue
+		}
+		slug := GenerateDefaultUsername(u.Name, u.ID.Hex())
+		model := mongo.NewUpdateOneModel().
+			SetFilter(bson.M{"_id": u.ID}).
+			SetUpdate(bson.M{"$set": bson.M{"username": slug}})
+		writes = append(writes, model)
+	}
+
+	if len(writes) > 0 {
+		_, err = r.userColl.BulkWrite(ctx, writes)
+		return err
+	}
+	return nil
+}
+
+func GenerateDefaultUsername(name, idHex string) string {
+	cleaned := strings.ToLower(strings.TrimSpace(name))
+	var sb strings.Builder
+	lastDash := false
+	for _, r := range cleaned {
+		if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
+			sb.WriteRune(r)
+			lastDash = false
+		} else if !lastDash && sb.Len() > 0 {
+			sb.WriteRune('-')
+			lastDash = true
+		}
+	}
+	base := strings.Trim(sb.String(), "-")
+	if base == "" {
+		base = "user"
+	}
+
+	suffix := ""
+	if len(idHex) >= 4 {
+		suffix = idHex[len(idHex)-4:]
+	} else {
+		suffix = "km"
+	}
+
+	return fmt.Sprintf("%s-%s", base, suffix)
+}

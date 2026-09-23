@@ -31,40 +31,43 @@ type User struct {
 	UpdatedAt     time.Time          `bson:"updated_at" json:"updated_at"`
 
 	// Profile fields
-	Name             string   `bson:"name,omitempty" json:"name,omitempty"`
-	FirstName        string   `bson:"first_name,omitempty" json:"first_name,omitempty"`
-	LastName         string   `bson:"last_name,omitempty" json:"last_name,omitempty"`
-	Headline         string   `bson:"headline,omitempty" json:"headline,omitempty"`
-	About            string   `bson:"about,omitempty" json:"about,omitempty"`
-	AdditionalName   string   `bson:"additional_name,omitempty" json:"additional_name,omitempty"`
-	Pronouns         string   `bson:"pronouns,omitempty" json:"pronouns,omitempty"`
-	Address          string   `bson:"address,omitempty" json:"address,omitempty"`
-	ProfileImage     string   `bson:"profile_image,omitempty" json:"profile_image,omitempty"`
-	CoverImage       string   `bson:"cover_image,omitempty" json:"cover_image,omitempty"`
-	Gender           string   `bson:"gender,omitempty" json:"gender,omitempty"`
-	DateOfBirth      string   `bson:"date_of_birth,omitempty" json:"date_of_birth,omitempty"`
-	MaritalStatus    string   `bson:"marital_status,omitempty" json:"marital_status,omitempty"`
-	EducationLevel   string   `bson:"education_level,omitempty" json:"education_level,omitempty"`
-	WorkExperience   string   `bson:"work_experience,omitempty" json:"work_experience,omitempty"`
-	City             string   `bson:"city,omitempty" json:"city,omitempty"`
-	State            string   `bson:"state,omitempty" json:"state,omitempty"`
-	Country          string   `bson:"country,omitempty" json:"country,omitempty"`
-	JobCategories    []string `bson:"job_categories,omitempty" json:"job_categories,omitempty"`
-	ExperienceDetail string   `bson:"experience_detail,omitempty" json:"experience_detail,omitempty"`
+	Name             string     `bson:"name,omitempty" json:"name,omitempty"`
+	Username         string     `bson:"username,omitempty" json:"username,omitempty"`
+	FirstName        string     `bson:"first_name,omitempty" json:"first_name,omitempty"`
+	LastName         string     `bson:"last_name,omitempty" json:"last_name,omitempty"`
+	Headline         string     `bson:"headline,omitempty" json:"headline,omitempty"`
+	About            string     `bson:"about,omitempty" json:"about,omitempty"`
+	AdditionalName   string     `bson:"additional_name,omitempty" json:"additional_name,omitempty"`
+	Pronouns         string     `bson:"pronouns,omitempty" json:"pronouns,omitempty"`
+	Address          string     `bson:"address,omitempty" json:"address,omitempty"`
+	ProfileImage     string     `bson:"profile_image,omitempty" json:"profile_image,omitempty"`
+	CoverImage       string     `bson:"cover_image,omitempty" json:"cover_image,omitempty"`
+	Gender           string     `bson:"gender,omitempty" json:"gender,omitempty"`
+	DateOfBirth      string     `bson:"date_of_birth,omitempty" json:"date_of_birth,omitempty"`
+	MaritalStatus    string     `bson:"marital_status,omitempty" json:"marital_status,omitempty"`
+	EducationLevel   string     `bson:"education_level,omitempty" json:"education_level,omitempty"`
+	WorkExperience   string     `bson:"work_experience,omitempty" json:"work_experience,omitempty"`
+	City             string     `bson:"city,omitempty" json:"city,omitempty"`
+	State            string     `bson:"state,omitempty" json:"state,omitempty"`
+	Country          string     `bson:"country,omitempty" json:"country,omitempty"`
+	JobCategories    []string   `bson:"job_categories,omitempty" json:"job_categories,omitempty"`
+	ExperienceDetail string     `bson:"experience_detail,omitempty" json:"experience_detail,omitempty"`
 	Email            string     `bson:"email,omitempty" json:"email,omitempty"`
 	IsEmailVerified  bool       `bson:"is_email_verified" json:"is_email_verified"`
 	EmailVerifiedAt  *time.Time `bson:"email_verified_at,omitempty" json:"email_verified_at,omitempty"`
 	IsConsultant     bool       `bson:"is_consultant,omitempty" json:"is_consultant,omitempty"`
 
 	// New Profile Fields
-	Education      []Education  `bson:"education,omitempty" json:"education,omitempty"`
-	Experience     []Experience `bson:"experience,omitempty" json:"experience,omitempty"`
-	Skills         []string     `bson:"skills,omitempty" json:"skills,omitempty"`
-	Projects       []Project    `bson:"projects,omitempty" json:"projects,omitempty"`
-	PortfolioURL   string       `bson:"portfolio_url,omitempty" json:"portfolio_url,omitempty"`
-	PortfolioLabel string       `bson:"portfolio_label,omitempty" json:"portfolio_label,omitempty"`
-	BookmarkedJobs []string     `bson:"bookmarked_jobs,omitempty" json:"bookmarked_jobs,omitempty"`
-	Settings       UserSettings `bson:"settings,omitempty" json:"settings,omitempty"`
+	Education         []Education                   `bson:"education,omitempty" json:"education,omitempty"`
+	Experience        []Experience                  `bson:"experience,omitempty" json:"experience,omitempty"`
+	Skills            []string                      `bson:"skills,omitempty" json:"skills,omitempty"`
+	Projects          []Project                     `bson:"projects,omitempty" json:"projects,omitempty"`
+	PortfolioURL      string                        `bson:"portfolio_url,omitempty" json:"portfolio_url,omitempty"`
+	PortfolioLabel    string                        `bson:"portfolio_label,omitempty" json:"portfolio_label,omitempty"`
+	BookmarkedJobs    []string                      `bson:"bookmarked_jobs,omitempty" json:"bookmarked_jobs,omitempty"`
+	Settings          UserSettings                  `bson:"settings,omitempty" json:"settings,omitempty"`
+	OpenToWork        *OpenToWorkPreferences        `bson:"open_to_work,omitempty" json:"open_to_work,omitempty"`
+	ProvidingServices *ProvidingServicesPreferences `bson:"providing_services,omitempty" json:"providing_services,omitempty"`
 
 	// Recruiter / Company specific fields
 	CompanyName        string     `bson:"company_name,omitempty" json:"company_name,omitempty"`
@@ -76,13 +79,18 @@ type User struct {
 	LastActiveAt       time.Time  `bson:"last_active_at,omitempty" json:"last_active_at,omitempty"`
 	LastLoginLat       float64    `bson:"last_login_lat,omitempty" json:"last_login_lat,omitempty"`
 	LastLoginLng       float64    `bson:"last_login_lng,omitempty" json:"last_login_lng,omitempty"`
-	
 	// Expert Profile specific fields
 	ExpertCategory       string     `bson:"expert_category,omitempty" json:"expert_category,omitempty"`
 	ExpertBio            string     `bson:"expert_bio,omitempty" json:"expert_bio,omitempty"`
 	ExpertPricing        float64    `bson:"expert_pricing,omitempty" json:"expert_pricing,omitempty"`
 	ExpertDocuments      []Document `bson:"expert_documents,omitempty" json:"expert_documents,omitempty"`
 	ExpertApprovalStatus string     `bson:"expert_approval_status,omitempty" json:"expert_approval_status,omitempty"` // "pending", "approved", "rejected"
+
+	// Analytics & Views
+	ProfileViews      int      `bson:"profile_views,omitempty" json:"profile_views"`
+	PostImpressions   int      `bson:"post_impressions,omitempty" json:"post_impressions"`
+	SearchAppearances int      `bson:"search_appearances,omitempty" json:"search_appearances"`
+	ProfileViewers    []string `bson:"profile_viewers,omitempty" json:"profile_viewers,omitempty"`
 }
 
 type Education struct {
@@ -247,4 +255,24 @@ type UserSettings struct {
 	Language                string `bson:"language" json:"language"`                     // "en", "hi", "hinglish"
 	EnableAIRecommendations bool   `bson:"enable_ai_recommendations" json:"enable_ai_recommendations"`
 	SearchEngineIndexing    bool   `bson:"search_engine_indexing" json:"search_engine_indexing"`
+}
+
+type UpdateUsernameRequest struct {
+	Username string `json:"username" validate:"required"`
+}
+
+type OpenToWorkPreferences struct {
+	IsOpen     bool     `bson:"is_open" json:"is_open"`
+	JobTitles  []string `bson:"job_titles,omitempty" json:"job_titles,omitempty"`
+	JobTypes   []string `bson:"job_types,omitempty" json:"job_types,omitempty"`
+	Locations  []string `bson:"locations,omitempty" json:"locations,omitempty"`
+	Visibility string   `bson:"visibility,omitempty" json:"visibility,omitempty"` // "all", "recruiters"
+}
+
+type ProvidingServicesPreferences struct {
+	IsProviding bool     `bson:"is_providing" json:"is_providing"`
+	Services    []string `bson:"services,omitempty" json:"services,omitempty"`
+	HourlyRate  float64  `bson:"hourly_rate,omitempty" json:"hourly_rate,omitempty"`
+	Currency    string   `bson:"currency,omitempty" json:"currency,omitempty"`
+	Description string   `bson:"description,omitempty" json:"description,omitempty"`
 }

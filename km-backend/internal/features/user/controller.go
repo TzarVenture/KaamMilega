@@ -157,7 +157,8 @@ func (ctrl *UserController) GetOtherUserProfile(c *fiber.Ctx) error {
 	}
 
 	// Enforce profile_visibility — owners always bypass
-	if requesterID != targetUserID {
+	targetIDHex := user.ID.Hex()
+	if requesterID != targetIDHex {
 		visibility := user.Settings.ProfileVisibility
 		if visibility == "private" {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
@@ -165,11 +166,27 @@ func (ctrl *UserController) GetOtherUserProfile(c *fiber.Ctx) error {
 				"visible": false,
 			})
 		}
-		// "connections" visibility: in future, check connection status.
-		// For now we allow it as semi-public so the platform stays discoverable.
+		// Record view only for authentic other-user visits
+		if requesterID != "" {
+			_ = ctrl.service.RecordProfileView(c.Context(), targetIDHex, requesterID)
+		}
 	}
 
 	return c.JSON(user)
+}
+
+func (ctrl *UserController) GetProfileViewers(c *fiber.Ctx) error {
+	userID, _ := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	viewers, err := ctrl.service.GetProfileViewers(c.Context(), userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(viewers)
 }
 
 func (ctrl *UserController) AddEducation(c *fiber.Ctx) error {
@@ -191,6 +208,49 @@ func (ctrl *UserController) AddEducation(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+func (ctrl *UserController) UpdateEducation(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	eduID := c.Params("id")
+	if eduID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Education ID is required"})
+	}
+
+	var edu Education
+	if err := c.BodyParser(&edu); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	user, err := ctrl.service.UpdateEducation(c.Context(), userID, eduID, edu)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
+func (ctrl *UserController) DeleteEducation(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	eduID := c.Params("id")
+	if eduID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Education ID is required"})
+	}
+
+	user, err := ctrl.service.DeleteEducation(c.Context(), userID, eduID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
 func (ctrl *UserController) AddExperience(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	if userID == "" {
@@ -203,6 +263,49 @@ func (ctrl *UserController) AddExperience(c *fiber.Ctx) error {
 	}
 
 	user, err := ctrl.service.AddExperience(c.Context(), userID, exp)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
+func (ctrl *UserController) UpdateExperience(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	expID := c.Params("id")
+	if expID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Experience ID is required"})
+	}
+
+	var exp Experience
+	if err := c.BodyParser(&exp); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	user, err := ctrl.service.UpdateExperience(c.Context(), userID, expID, exp)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
+func (ctrl *UserController) DeleteExperience(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	expID := c.Params("id")
+	if expID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Experience ID is required"})
+	}
+
+	user, err := ctrl.service.DeleteExperience(c.Context(), userID, expID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -286,6 +389,25 @@ func (ctrl *UserController) AddSkill(c *fiber.Ctx) error {
 	}
 
 	user, err := ctrl.service.AddSkill(c.Context(), userID, req.SkillName)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(user)
+}
+
+func (ctrl *UserController) DeleteSkill(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	skillName := c.Params("skillName")
+	if skillName == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Skill name is required"})
+	}
+
+	user, err := ctrl.service.DeleteSkill(c.Context(), userID, skillName)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -407,8 +529,6 @@ func (ctrl *UserController) GetPlatformLiveActivity(c *fiber.Ctx) error {
 	}
 	return c.JSON(fiber.Map{"success": true, "events": activity})
 }
-
-
 
 func (ctrl *UserController) SearchUsers(c *fiber.Ctx) error {
 	query := c.Query("q")
@@ -692,4 +812,115 @@ func (ctrl *UserController) UpdateSettings(c *fiber.Ctx) error {
 	})
 }
 
+type RecordImpressionsRequest struct {
+	AuthorIDs []string `json:"author_ids"`
+}
 
+func (ctrl *UserController) RecordPostImpressions(c *fiber.Ctx) error {
+	userID, _ := c.Locals("user_id").(string)
+
+	var req RecordImpressionsRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request payload"})
+	}
+
+	if len(req.AuthorIDs) == 0 {
+		return c.JSON(fiber.Map{"status": "ok", "recorded": 0})
+	}
+
+	// Restrict max batch size to 100
+	if len(req.AuthorIDs) > 100 {
+		req.AuthorIDs = req.AuthorIDs[:100]
+	}
+
+	if err := ctrl.service.RecordPostImpressions(c.Context(), userID, req.AuthorIDs); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to record impressions"})
+	}
+
+	return c.JSON(fiber.Map{"status": "ok", "recorded": len(req.AuthorIDs)})
+}
+
+func (ctrl *UserController) UpdateUsername(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var req UpdateUsernameRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request payload"})
+	}
+
+	updated, err := ctrl.service.UpdateUsername(c.Context(), userID, req.Username)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":  "Custom URL updated successfully",
+		"username": updated.Username,
+		"user":     updated,
+	})
+}
+
+func (ctrl *UserController) CheckUsernameAvailability(c *fiber.Ctx) error {
+	username := c.Query("username")
+	currentUserID, _ := c.Locals("user_id").(string)
+
+	available, message, err := ctrl.service.CheckUsernameAvailability(c.Context(), currentUserID, username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"available": available,
+		"message":   message,
+		"username":  strings.ToLower(strings.TrimSpace(username)),
+	})
+}
+
+func (ctrl *UserController) UpdateOpenToWork(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var req OpenToWorkPreferences
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request payload"})
+	}
+
+	updated, err := ctrl.service.UpdateOpenToWork(c.Context(), userID, req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":      "Open to work preferences updated",
+		"open_to_work": updated.OpenToWork,
+		"user":         updated,
+	})
+}
+
+func (ctrl *UserController) UpdateProvidingServices(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var req ProvidingServicesPreferences
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request payload"})
+	}
+
+	updated, err := ctrl.service.UpdateProvidingServices(c.Context(), userID, req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message":            "Providing services preferences updated",
+		"providing_services": updated.ProvidingServices,
+		"user":               updated,
+	})
+}

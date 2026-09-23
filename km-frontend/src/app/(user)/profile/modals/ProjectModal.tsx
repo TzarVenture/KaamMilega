@@ -208,7 +208,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                         type="text"
                         required
                         placeholder="Ex: KaamMilega Mobile App, Modular Kitchen Woodwork, Brand Campaign"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-800"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm text-gray-800"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                     />
@@ -222,7 +222,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                     <input
                         type="text"
                         placeholder="Ex: Freelance, TCS, Self-employed, or Client Name"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-800"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm text-gray-800"
                         value={associatedWith}
                         onChange={(e) => setAssociatedWith(e.target.value)}
                     />
@@ -239,7 +239,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                             <select
                                 value={startMonth}
                                 onChange={(e) => setStartMonth(e.target.value)}
-                                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-xs sm:text-sm text-gray-800 bg-white"
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-white"
                             >
                                 <option value="">Month</option>
                                 {MONTHS.map((m) => (
@@ -251,7 +251,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                             <select
                                 value={startYear}
                                 onChange={(e) => setStartYear(e.target.value)}
-                                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-xs sm:text-sm text-gray-800 bg-white"
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-white"
                             >
                                 <option value="">Year</option>
                                 {YEARS.map((y) => (
@@ -269,9 +269,9 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                             End Date
                         </label>
                         {isCurrent ? (
-                            <div className="w-full px-3.5 py-2.5 bg-purple-50 border border-purple-200 rounded-xl text-purple-700 font-bold text-xs sm:text-sm flex items-center justify-between">
+                            <div className="w-full px-3.5 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-km-primary font-bold text-xs sm:text-sm flex items-center justify-between">
                                 <span>Present</span>
-                                <span className="text-[10px] bg-purple-200 text-purple-800 px-2 py-0.5 rounded-full font-semibold">
+                                <span className="text-[10px] bg-blue-200 text-km-primary px-2 py-0.5 rounded-full font-semibold">
                                     Ongoing
                                 </span>
                             </div>
@@ -280,7 +280,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                                 <select
                                     value={endMonth}
                                     onChange={(e) => setEndMonth(e.target.value)}
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-xs sm:text-sm text-gray-800 bg-white"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-white"
                                 >
                                     <option value="">Month</option>
                                     {MONTHS.map((m) => (
@@ -292,7 +292,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                                 <select
                                     value={endYear}
                                     onChange={(e) => setEndYear(e.target.value)}
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-xs sm:text-sm text-gray-800 bg-white"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-white"
                                 >
                                     <option value="">Year</option>
                                     {YEARS.map((y) => (
@@ -312,7 +312,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                         type="checkbox"
                         checked={isCurrent}
                         onChange={(e) => handleToggleCurrent(e.target.checked)}
-                        className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-gray-300 cursor-pointer"
+                        className="w-4 h-4 rounded text-km-primary focus:ring-km-primary/20 border-gray-300 cursor-pointer"
                     />
                     <span>I am currently working on this project</span>
                 </label>
@@ -325,7 +325,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                     <input
                         type="url"
                         placeholder="https://example.com, GitHub, Google Drive, or Demo link"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-800"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm text-gray-800"
                         value={projectUrl}
                         onChange={(e) => setProjectUrl(e.target.value)}
                     />
@@ -339,7 +339,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                     <textarea
                         rows={3}
                         placeholder="Describe your role, responsibilities, tools used, or client results..."
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-800"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm text-gray-800"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                     />
@@ -353,7 +353,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                     <input
                         type="text"
                         placeholder="Ex: React, Go, MongoDB, Carpentry, Customer Handling"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-800"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm text-gray-800"
                         value={skills}
                         onChange={(e) => setSkills(e.target.value)}
                     />
@@ -371,7 +371,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                     <button
                         type="submit"
                         disabled={loading || !title.trim()}
-                        className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-full text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer"
+                        className="px-6 py-2 bg-km-primary hover:bg-km-primary-dark disabled:bg-gray-300 text-white rounded-full text-sm font-semibold transition-colors flex items-center gap-2 cursor-pointer shadow-sm"
                     >
                         {loading
                             ? 'Saving...'

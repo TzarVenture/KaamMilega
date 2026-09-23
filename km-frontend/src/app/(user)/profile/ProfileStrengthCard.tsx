@@ -14,8 +14,22 @@ export type ProfileModalKey =
     | 'contact'
     | 'emailVerify';
 
+interface UserProfileData {
+    experience?: unknown[];
+    profile_image?: string;
+    education?: unknown[];
+    skills?: unknown[];
+    about?: string;
+    headline?: string;
+    designation?: string;
+    city?: string;
+    state?: string;
+    location?: string;
+    is_email_verified?: boolean;
+}
+
 interface ProfileStrengthCardProps {
-    user: any;
+    user: UserProfileData | null | undefined;
     onOpenModal: (modalKey: ProfileModalKey) => void;
 }
 
@@ -147,7 +161,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
 
                 {/* Score Number Display */}
                 <div className="flex items-baseline sm:items-center gap-1.5 shrink-0">
-                    <span className="text-2xl sm:text-3xl font-black text-purple-700 tracking-tight">
+                    <span className="text-2xl sm:text-3xl font-black text-km-primary tracking-tight">
                         {score}%
                     </span>
                     <span className="text-xs font-semibold text-gray-400">completed</span>
@@ -159,8 +173,8 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                 <div
                     className={`h-full rounded-full transition-all duration-700 ease-out ${
                         isFullyComplete
-                            ? 'bg-gradient-to-r from-emerald-500 to-teal-500'
-                            : 'bg-gradient-to-r from-purple-600 to-indigo-600'
+                            ? 'bg-linear-to-r from-emerald-500 to-teal-500'
+                            : 'bg-linear-to-r from-km-primary to-blue-600'
                     }`}
                     style={{ width: `${Math.max(score, 4)}%` }}
                 />
@@ -176,7 +190,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                         <button
                             type="button"
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-[11px] font-bold text-purple-600 hover:text-purple-800 transition-colors flex items-center gap-1 cursor-pointer"
+                            className="text-[11px] font-bold text-km-primary hover:text-km-primary-dark transition-colors flex items-center gap-1 cursor-pointer"
                         >
                             {isExpanded ? (
                                 <>
@@ -197,10 +211,10 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                                 key={item.id}
                                 type="button"
                                 onClick={() => onOpenModal(item.modalKey)}
-                                className="group inline-flex items-center gap-1.5 px-3.5 py-2 bg-purple-50 hover:bg-purple-100 border border-purple-200/80 hover:border-purple-300 rounded-xl text-xs font-bold text-purple-900 transition-all duration-200 shadow-xs hover:shadow cursor-pointer active:scale-98"
+                                className="group inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 hover:border-blue-300 rounded-xl text-xs font-bold text-km-primary transition-all duration-200 shadow-xs hover:shadow cursor-pointer active:scale-98"
                             >
                                 <span>Add {item.title}</span>
-                                <Plus size={14} className="text-purple-500 group-hover:text-purple-700 transition-colors" />
+                                <Plus size={14} className="text-km-primary group-hover:text-km-primary-dark transition-colors" />
                             </button>
                         ))}
                     </div>
@@ -234,7 +248,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                                 className={`flex items-center sm:items-start gap-1.5 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl border transition-all ${
                                     item.isCompleted
                                         ? 'bg-gray-50/70 border-gray-200 text-gray-700'
-                                        : 'bg-purple-50/40 border-purple-100 text-purple-950 hover:bg-purple-50 hover:border-purple-200 cursor-pointer'
+                                        : 'bg-blue-50/40 border-blue-100 text-slate-800 hover:bg-blue-50 hover:border-blue-200 cursor-pointer'
                                 }`}
                             >
                                 {item.isCompleted ? (

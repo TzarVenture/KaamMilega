@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 
@@ -7,9 +7,10 @@ interface ExperienceModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: (updatedUser: any) => void;
+    experienceToEdit?: any;
 }
 
-const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) => {
+const ExperienceModal = ({ isOpen, onClose, onSuccess, experienceToEdit }: ExperienceModalProps) => {
     const [formData, setFormData] = useState({
         title: '',
         employment_type: 'Full-time',
@@ -22,15 +23,46 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
     });
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        if (experienceToEdit) {
+            setFormData({
+                title: experienceToEdit.title || '',
+                employment_type: experienceToEdit.employment_type || 'Full-time',
+                company_name: experienceToEdit.company_name || '',
+                location: experienceToEdit.location || '',
+                start_date: experienceToEdit.start_date || '',
+                end_date: experienceToEdit.end_date || '',
+                description: experienceToEdit.description || '',
+                skills: Array.isArray(experienceToEdit.skills) ? experienceToEdit.skills : []
+            });
+        } else {
+            setFormData({
+                title: '',
+                employment_type: 'Full-time',
+                company_name: '',
+                location: '',
+                start_date: '',
+                end_date: '',
+                description: '',
+                skills: []
+            });
+        }
+    }, [experienceToEdit, isOpen]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await api.post('/user/experience', formData);
+            let response;
+            if (experienceToEdit?.id) {
+                response = await api.put(`/user/experience/${experienceToEdit.id}`, formData);
+            } else {
+                response = await api.post('/user/experience', formData);
+            }
             onSuccess(response);
             onClose();
         } catch (error) {
-            console.error("Failed to add experience:", error);
+            console.error("Failed to save experience:", error);
         } finally {
             setLoading(false);
         }
@@ -39,7 +71,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess }: ExperienceModalProps) =
     const empTypes = ['Full-time', 'Part-time', 'Self-employed', 'Freelance', 'Internship', 'Contract'];
 
     return (
-        <ModalWrapper isOpen={isOpen} onClose={onClose} title="Add Experience">
+        <ModalWrapper isOpen={isOpen} onClose={onClose} title={experienceToEdit ? "Edit Experience" : "Add Experience"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
