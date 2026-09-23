@@ -23,6 +23,7 @@ import SuccessTicker from '@/components/home/SuccessTicker';
 import DefaultAvatar from '@/components/ui/DefaultAvatar';
 import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
+import { ImpressionWrapper } from '@/lib/telemetry';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -577,7 +578,7 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                 className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent z-10" />
+              <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-slate-950/30 to-transparent z-10" />
               <div className="absolute bottom-3.5 left-3.5 right-3.5 z-20 text-white">
                 <h4 className="font-bold text-sm sm:text-base leading-snug group-hover:text-amber-300 transition-colors">
                   {role.title}
@@ -1001,37 +1002,49 @@ const ExpertSlider = ({
           ref={scrollContainerRef}
           className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" 
         >
-          {experts.map((expert, i) => (
-            <div 
-              key={expert.id || expert._id || i} 
-              className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 border border-slate-200/90 shadow-xs hover:shadow-md transition-all text-center"
-            >
-              <div className="relative mb-4">
-                <div className="w-18 h-18 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center overflow-hidden shadow-2xs">
-                  {expert.profile_image ? (
-                    <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <DefaultAvatar />
-                  )}
+          {experts.map((expert, i) => {
+            const expertId = expert.id || expert._id;
+            return (
+              <ImpressionWrapper
+                key={expertId || i}
+                authorId={expertId}
+                entityId={`expert:${expertId}`}
+                className="shrink-0"
+              >
+                <div 
+                  className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 border border-slate-200/90 shadow-xs hover:shadow-md transition-all text-center h-full"
+                >
+              <Link
+                href={expertId ? `/profile/${expertId}` : '#'}
+                className="w-full flex flex-col items-center group cursor-pointer"
+              >
+                <div className="relative mb-4">
+                  <div className="w-18 h-18 rounded-full bg-slate-100 border-2 border-slate-200 group-hover:border-km-primary flex items-center justify-center overflow-hidden shadow-2xs transition-colors">
+                    {expert.profile_image ? (
+                      <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <DefaultAvatar />
+                    )}
+                  </div>
+                  <div className="absolute bottom-0 right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
                 </div>
-                <div className="absolute bottom-0 right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
-              </div>
-              
-              <h3 className="text-sm font-bold text-slate-900 leading-tight mb-0.5 text-center">
-                {expert.name?.replace(/\s*\.+$/, '') || 'Career Expert'}
-              </h3>
-              <p className="text-[11px] text-slate-500 mb-2 font-medium text-center line-clamp-1">
-                {expert.headline || (expert as any).job_categories?.[0] ? `${(expert as any).job_categories[0]} Specialist` : 'Career & Trade Mentor'}
-              </p>
-              
-              <div className="flex items-center gap-1 text-slate-400 text-[10px] mb-2 font-semibold">
-                <MapPin size={10} className="text-km-primary" />
-                <span>{expert.city || 'India'}</span>
-              </div>
-              
-              <p className="text-[10px] text-slate-400 mb-4 font-bold uppercase tracking-wider">
-                {expert.rating ? `${expert.rating} ★ Mentor` : 'Verified Expert'}
-              </p>
+                
+                <h3 className="text-sm font-bold text-slate-900 group-hover:text-km-primary transition-colors leading-tight mb-0.5 text-center">
+                  {expert.name?.replace(/\s*\.+$/, '') || 'Career Expert'}
+                </h3>
+                <p className="text-[11px] text-slate-500 mb-2 font-medium text-center line-clamp-1">
+                  {expert.headline || (expert as any).job_categories?.[0] ? `${(expert as any).job_categories[0]} Specialist` : 'Career & Trade Mentor'}
+                </p>
+                
+                <div className="flex items-center gap-1 text-slate-400 text-[10px] mb-2 font-semibold">
+                  <MapPin size={10} className="text-km-primary" />
+                  <span>{expert.city || 'India'}</span>
+                </div>
+                
+                <p className="text-[10px] text-slate-400 mb-4 font-bold uppercase tracking-wider">
+                  {expert.rating ? `${expert.rating} ★ Mentor` : 'Verified Expert'}
+                </p>
+              </Link>
               
               <div className="w-full flex gap-2 mt-auto flex-col">
                 {(() => {
@@ -1075,9 +1088,11 @@ const ExpertSlider = ({
                     </>
                   );
                 })()}
+                </div>
               </div>
-            </div>
-          ))}
+            </ImpressionWrapper>
+          );
+        })}
         </div>
 
         {/* Custom Interactive Scrollbar */}
@@ -1360,7 +1375,7 @@ const TestimonialsSection = () => {
                 fill
                 className="object-cover opacity-70"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent" />
+              <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent" />
               
               <div className="relative z-10 text-center text-white px-6">
                 <div className="w-16 h-16 rounded-full bg-km-primary/90 text-white flex items-center justify-center mx-auto mb-3 shadow-lg ring-4 ring-white/30">

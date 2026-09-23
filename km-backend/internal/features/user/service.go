@@ -32,11 +32,16 @@ type UserService interface {
 	GenerateToken(user *User) (string, error)
 	UpdateProfile(ctx context.Context, userID string, updates map[string]interface{}) (*User, error)
 	AddEducation(ctx context.Context, userID string, edu Education) (*User, error)
+	UpdateEducation(ctx context.Context, userID string, eduID string, edu Education) (*User, error)
+	DeleteEducation(ctx context.Context, userID string, eduID string) (*User, error)
 	AddExperience(ctx context.Context, userID string, exp Experience) (*User, error)
+	UpdateExperience(ctx context.Context, userID string, expID string, exp Experience) (*User, error)
+	DeleteExperience(ctx context.Context, userID string, expID string) (*User, error)
 	AddProject(ctx context.Context, userID string, project Project) (*User, error)
 	UpdateProject(ctx context.Context, userID string, projectID string, project Project) (*User, error)
 	DeleteProject(ctx context.Context, userID string, projectID string) (*User, error)
 	AddSkill(ctx context.Context, userID string, skillName string) (*User, error)
+	DeleteSkill(ctx context.Context, userID string, skillName string) (*User, error)
 	SendEmailOTP(ctx context.Context, email string) error
 	VerifyEmailOTP(ctx context.Context, email, code string, userID string) error
 	ForgotPassword(ctx context.Context, req ForgotPasswordRequest) error
@@ -53,6 +58,13 @@ type UserService interface {
 	UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error)
 	GetPlatformStats(ctx context.Context) (map[string]interface{}, error)
 	GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error)
+	RecordProfileView(ctx context.Context, targetUserID, viewerID string) error
+	GetProfileViewers(ctx context.Context, userID string) ([]*User, error)
+	RecordPostImpressions(ctx context.Context, viewerID string, authorIDs []string) error
+	UpdateUsername(ctx context.Context, userID, newUsername string) (*User, error)
+	CheckUsernameAvailability(ctx context.Context, currentUserID, username string) (bool, string, error)
+	UpdateOpenToWork(ctx context.Context, userID string, prefs OpenToWorkPreferences) (*User, error)
+	UpdateProvidingServices(ctx context.Context, userID string, prefs ProvidingServicesPreferences) (*User, error)
 }
 
 type UserServiceImpl struct {
@@ -63,6 +75,13 @@ type UserServiceImpl struct {
 }
 
 func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config) UserService {
+	// Trigger non-destructive background backfill for legacy users
+	go func() {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		_ = repo.BackfillUsernames(bgCtx)
+	}()
+
 	return &UserServiceImpl{
 		repo:       repo,
 		smsService: smsService,
@@ -243,6 +262,10 @@ func (s *UserServiceImpl) GetProfile(ctx context.Context, userID string) (*User,
 	if user == nil {
 		return nil, errors.New("user not found")
 	}
+	if user.Username == "" {
+		user.Username = GenerateDefaultUsername(user.Name, user.ID.Hex())
+		_, _ = s.repo.UpdateUser(ctx, user)
+	}
 	return user, nil
 }
 
@@ -351,6 +374,26 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 			if v, ok := value.(string); ok {
 				user.PortfolioLabel = v
 			}
+		case "state":
+			if v, ok := value.(string); ok {
+				user.State = v
+			}
+		case "country":
+			if v, ok := value.(string); ok {
+				user.Country = v
+			}
+		case "skills":
+			if v, ok := value.([]string); ok {
+				user.Skills = v
+			} else if v, ok := value.([]interface{}); ok {
+				var strSkills []string
+				for _, item := range v {
+					if strItem, ok := item.(string); ok {
+						strSkills = append(strSkills, strItem)
+					}
+				}
+				user.Skills = strSkills
+			}
 		}
 	}
 
@@ -377,6 +420,50 @@ func (s *UserServiceImpl) AddEducation(ctx context.Context, userID string, edu E
 	return s.repo.UpdateUser(ctx, user)
 }
 
+func (s *UserServiceImpl) UpdateEducation(ctx context.Context, userID string, eduID string, updated Education) (*User, error) {
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	found := false
+	for i, edu := range user.Education {
+		if edu.ID == eduID {
+			updated.ID = eduID
+			user.Education[i] = updated
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, errors.New("education entry not found")
+	}
+
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) DeleteEducation(ctx context.Context, userID string, eduID string) (*User, error) {
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	filtered := make([]Education, 0, len(user.Education))
+	for _, edu := range user.Education {
+		if edu.ID != eduID {
+			filtered = append(filtered, edu)
+		}
+	}
+	user.Education = filtered
+	return s.repo.UpdateUser(ctx, user)
+}
+
 func (s *UserServiceImpl) AddExperience(ctx context.Context, userID string, exp Experience) (*User, error) {
 	user, err := s.repo.FindUserByID(ctx, userID)
 	if err != nil {
@@ -390,6 +477,50 @@ func (s *UserServiceImpl) AddExperience(ctx context.Context, userID string, exp 
 		exp.ID = primitive.NewObjectID().Hex()
 	}
 	user.Experience = append(user.Experience, exp)
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) UpdateExperience(ctx context.Context, userID string, expID string, updated Experience) (*User, error) {
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	found := false
+	for i, exp := range user.Experience {
+		if exp.ID == expID {
+			updated.ID = expID
+			user.Experience[i] = updated
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, errors.New("experience entry not found")
+	}
+
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) DeleteExperience(ctx context.Context, userID string, expID string) (*User, error) {
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	filtered := make([]Experience, 0, len(user.Experience))
+	for _, exp := range user.Experience {
+		if exp.ID != expID {
+			filtered = append(filtered, exp)
+		}
+	}
+	user.Experience = filtered
 	return s.repo.UpdateUser(ctx, user)
 }
 
@@ -490,6 +621,25 @@ func (s *UserServiceImpl) AddSkill(ctx context.Context, userID string, skillName
 	}
 
 	user.Skills = append(user.Skills, skillName)
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) DeleteSkill(ctx context.Context, userID string, skillName string) (*User, error) {
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	filtered := make([]string, 0, len(user.Skills))
+	for _, skill := range user.Skills {
+		if !strings.EqualFold(skill, skillName) {
+			filtered = append(filtered, skill)
+		}
+	}
+	user.Skills = filtered
 	return s.repo.UpdateUser(ctx, user)
 }
 
@@ -715,6 +865,14 @@ func (s *UserServiceImpl) GetExperts(ctx context.Context) ([]*User, error) {
 
 func (s *UserServiceImpl) SearchUsers(ctx context.Context, query string) ([]*User, error) {
 	users, _, err := s.repo.FindUsers(ctx, UserFilter{Search: query, Limit: 20})
+	if err == nil && len(users) > 0 {
+		go func(found []*User) {
+			for _, u := range found {
+				u.SearchAppearances++
+				_, _ = s.repo.UpdateUser(context.Background(), u)
+			}
+		}(users)
+	}
 	return users, err
 }
 
@@ -1141,4 +1299,231 @@ func (s *UserServiceImpl) GetLiveActivity(ctx context.Context) ([]map[string]int
 	return s.repo.GetLiveActivity(ctx)
 }
 
+func (s *UserServiceImpl) RecordProfileView(ctx context.Context, targetUserID, viewerID string) error {
+	if targetUserID == "" {
+		return errors.New("target user ID required")
+	}
 
+	target, err := s.repo.FindUserByID(ctx, targetUserID)
+	if err != nil || target == nil {
+		return err
+	}
+
+	targetIDHex := target.ID.Hex()
+
+	// Never record or count self-views (or unauthenticated visits)
+	if viewerID == "" || viewerID == targetIDHex {
+		return nil
+	}
+
+	// 24-hour debounce check: if viewer is already in recent viewers, do not increment again
+	alreadyViewedRecently := false
+	for _, vid := range target.ProfileViewers {
+		if vid == viewerID {
+			alreadyViewedRecently = true
+			break
+		}
+	}
+
+	if alreadyViewedRecently {
+		return nil
+	}
+
+	// Atomic increment and prepend unique viewer
+	target.ProfileViews++
+	target.ProfileViewers = append([]string{viewerID}, target.ProfileViewers...)
+	if len(target.ProfileViewers) > 20 {
+		target.ProfileViewers = target.ProfileViewers[:20]
+	}
+
+	_, err = s.repo.UpdateUser(ctx, target)
+	return err
+}
+
+func (s *UserServiceImpl) GetProfileViewers(ctx context.Context, userID string) ([]*User, error) {
+	if userID == "" {
+		return nil, errors.New("user ID required")
+	}
+
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil || user == nil {
+		return nil, err
+	}
+
+	userIDHex := user.ID.Hex()
+	if len(user.ProfileViewers) == 0 {
+		return []*User{}, nil
+	}
+
+	var viewers []*User
+	cleanedViewers := make([]string, 0, len(user.ProfileViewers))
+	hasSelfViewer := false
+
+	for _, vid := range user.ProfileViewers {
+		// Filter out self-viewer if it was previously recorded
+		if vid == userIDHex {
+			hasSelfViewer = true
+			continue
+		}
+		cleanedViewers = append(cleanedViewers, vid)
+		v, err := s.repo.FindUserByID(ctx, vid)
+		if err == nil && v != nil && v.ID.Hex() != userIDHex {
+			viewers = append(viewers, v)
+		}
+	}
+
+	// If self-viewer was detected, clean up the array in the database permanently
+	if hasSelfViewer {
+		user.ProfileViewers = cleanedViewers
+		_, _ = s.repo.UpdateUser(ctx, user)
+	}
+
+	return viewers, nil
+}
+
+func (s *UserServiceImpl) RecordPostImpressions(ctx context.Context, viewerID string, authorIDs []string) error {
+	if len(authorIDs) == 0 {
+		return nil
+	}
+
+	counts := make(map[string]int)
+	for _, id := range authorIDs {
+		id = strings.TrimSpace(id)
+		if id == "" || id == viewerID {
+			continue
+		}
+		counts[id]++
+	}
+
+	if len(counts) == 0 {
+		return nil
+	}
+
+	go func(c map[string]int) {
+		bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_ = s.repo.IncrementPostImpressions(bgCtx, c)
+	}(counts)
+
+	return nil
+}
+
+var reservedUsernames = map[string]bool{
+	"admin": true, "administrator": true, "api": true, "login": true,
+	"register": true, "auth": true, "settings": true, "profile": true,
+	"wallet": true, "jobs": true, "mentorship": true, "network": true,
+	"events": true, "company": true, "expert": true, "experts": true,
+	"community": true, "help": true, "support": true, "root": true,
+	"system": true, "kaammilega": true, "instantmilega": true,
+	"viewers": true, "impressions": true, "notifications": true,
+}
+
+var validUsernameRegex = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{1,28}[a-z0-9])?$`)
+
+func ValidateUsernameFormat(username string) error {
+	username = strings.ToLower(strings.TrimSpace(username))
+	if len(username) < 3 || len(username) > 30 {
+		return errors.New("username must be between 3 and 30 characters")
+	}
+	if strings.Contains(username, "--") {
+		return errors.New("username cannot contain consecutive hyphens")
+	}
+	if !validUsernameRegex.MatchString(username) {
+		return errors.New("username must only contain lowercase letters, numbers, and hyphens, and cannot start or end with a hyphen")
+	}
+	if reservedUsernames[username] {
+		return errors.New("this username is reserved by the platform")
+	}
+	return nil
+}
+
+func (s *UserServiceImpl) CheckUsernameAvailability(ctx context.Context, currentUserID, username string) (bool, string, error) {
+	username = strings.ToLower(strings.TrimSpace(username))
+	if err := ValidateUsernameFormat(username); err != nil {
+		return false, err.Error(), nil
+	}
+
+	existing, err := s.repo.FindUserByUsername(ctx, username)
+	if err != nil {
+		return false, "Error verifying username", err
+	}
+
+	if existing != nil {
+		if currentUserID != "" && existing.ID.Hex() == currentUserID {
+			return true, "This is your current URL", nil
+		}
+		return false, "This URL is already taken. Please try another.", nil
+	}
+
+	return true, "Username is available", nil
+}
+
+func (s *UserServiceImpl) UpdateUsername(ctx context.Context, userID, newUsername string) (*User, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized")
+	}
+
+	newUsername = strings.ToLower(strings.TrimSpace(newUsername))
+	if err := ValidateUsernameFormat(newUsername); err != nil {
+		return nil, err
+	}
+
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil || user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	if user.Username == newUsername {
+		return user, nil
+	}
+
+	// Verify not already taken by someone else
+	existing, err := s.repo.FindUserByUsername(ctx, newUsername)
+	if err == nil && existing != nil && existing.ID.Hex() != userID {
+		return nil, errors.New("this URL is already in use by another member")
+	}
+
+	user.Username = newUsername
+	updated, err := s.repo.UpdateUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return updated, nil
+}
+
+func (s *UserServiceImpl) UpdateOpenToWork(ctx context.Context, userID string, prefs OpenToWorkPreferences) (*User, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized")
+	}
+
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil || user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	if prefs.Visibility == "" {
+		prefs.Visibility = "all"
+	}
+
+	user.OpenToWork = &prefs
+	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) UpdateProvidingServices(ctx context.Context, userID string, prefs ProvidingServicesPreferences) (*User, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized")
+	}
+
+	user, err := s.repo.FindUserByID(ctx, userID)
+	if err != nil || user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	if prefs.Currency == "" {
+		prefs.Currency = "INR"
+	}
+
+	user.ProvidingServices = &prefs
+	return s.repo.UpdateUser(ctx, user)
+}

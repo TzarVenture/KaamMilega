@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 
@@ -7,9 +7,10 @@ interface EducationModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: (updatedUser: any) => void;
+    educationToEdit?: any;
 }
 
-const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => {
+const EducationModal = ({ isOpen, onClose, onSuccess, educationToEdit }: EducationModalProps) => {
     const [formData, setFormData] = useState({
         school_name: '',
         degree: '',
@@ -21,22 +22,51 @@ const EducationModal = ({ isOpen, onClose, onSuccess }: EducationModalProps) => 
     });
     const [loading, setLoading] = useState(false);
 
+    useEffect(() => {
+        if (educationToEdit) {
+            setFormData({
+                school_name: educationToEdit.school_name || '',
+                degree: educationToEdit.degree || '',
+                field_of_study: educationToEdit.field_of_study || '',
+                start_date: educationToEdit.start_date || '',
+                end_date: educationToEdit.end_date || '',
+                grade: educationToEdit.grade || '',
+                description: educationToEdit.description || ''
+            });
+        } else {
+            setFormData({
+                school_name: '',
+                degree: '',
+                field_of_study: '',
+                start_date: '',
+                end_date: '',
+                grade: '',
+                description: ''
+            });
+        }
+    }, [educationToEdit, isOpen]);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await api.post('/user/education', formData);
+            let response;
+            if (educationToEdit?.id) {
+                response = await api.put(`/user/education/${educationToEdit.id}`, formData);
+            } else {
+                response = await api.post('/user/education', formData);
+            }
             onSuccess(response);
             onClose();
         } catch (error) {
-            console.error("Failed to add education:", error);
+            console.error("Failed to save education:", error);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <ModalWrapper isOpen={isOpen} onClose={onClose} title="Add Education">
+        <ModalWrapper isOpen={isOpen} onClose={onClose} title={educationToEdit ? "Edit Education" : "Add Education"}>
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">School / University</label>

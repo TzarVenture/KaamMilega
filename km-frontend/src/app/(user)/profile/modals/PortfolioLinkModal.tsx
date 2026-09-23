@@ -90,7 +90,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
                             type="url"
                             required
                             placeholder="https://mywork.in or https://github.com/username"
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-800"
+                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm text-gray-800"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
                         />
@@ -104,7 +104,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
                     <input
                         type="text"
                         placeholder="Ex: View Portfolio ↗, Personal Website, My Work"
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-sm text-gray-800"
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-sm text-gray-800"
                         value={label}
                         onChange={(e) => setLabel(e.target.value)}
                     />
@@ -135,7 +135,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-5 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-300 text-white rounded-full text-xs font-bold transition-colors flex items-center gap-1.5"
+                            className="px-5 py-2 bg-km-primary hover:bg-km-primary-dark disabled:bg-gray-300 text-white rounded-full text-xs font-bold transition-colors flex items-center gap-1.5 shadow-sm"
                         >
                             {loading ? 'Saving...' : 'Save Link'}
                         </button>

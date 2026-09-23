@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, Award, Users2, BookOpen, X, MessageSquare, UserPlus } from 'lucide-react';
+import { Users, Calendar, Award, Users2, BookOpen, X, MessageSquare, UserPlus, MapPin } from 'lucide-react';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+import { ImpressionWrapper } from '@/lib/telemetry';
 
 // --- Types ---
 interface User {
@@ -249,51 +250,63 @@ const InvitationRow = ({ invitation, onAccept, onIgnore }: { invitation: Enriche
     );
 };
 
-const ProfileCard = ({ person, onConnect, onChat }: { person: User, onConnect: () => void, onChat: () => void }) => (
-    <div className="relative border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center text-center group hover:shadow-md hover:border-blue-200 transition-all bg-white">
-        <button className="absolute top-3 right-3 text-slate-300 hover:text-slate-500 transition-colors">
-            <X size={16} />
-        </button>
-        <div className="w-16 h-16 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 text-white font-bold rounded-2xl mb-3 overflow-hidden flex items-center justify-center shadow-xs border border-slate-700">
-            {person.profile_image ? (
-                    <img src={person.profile_image} alt={person.name} className="w-full h-full object-cover" />
-                ) : (
-                    person.name?.[0] || 'U'
-            )}
-        </div>
-        <h4 className="font-bold text-sm text-slate-900 line-clamp-1 h-5">{person.name || 'Unknown User'}</h4>
-        <p className="text-[11px] text-slate-500 font-medium mb-1 line-clamp-2 h-7">{person.headline || person.roles?.join(', ') || 'Member'}</p>
-        <p className="text-[10px] text-slate-400 font-semibold mb-4 h-4">{person.city ? `📍 ${person.city}` : ''}</p>
+const ProfileCard = ({ person, onConnect, onChat }: { person: User, onConnect: () => void, onChat: () => void }) => {
+    const authorId = person.id || person._id;
+    return (
+        <ImpressionWrapper authorId={authorId} entityId={`network:${authorId}`} className="h-full">
+            <div className="relative border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center text-center group hover:shadow-md hover:border-blue-200 transition-all bg-white h-full">
+                <button className="absolute top-3 right-3 text-slate-300 hover:text-slate-500 transition-colors">
+                    <X size={16} />
+                </button>
+                <div className="w-16 h-16 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 text-white font-bold rounded-2xl mb-3 overflow-hidden flex items-center justify-center shadow-xs border border-slate-700">
+                    {person.profile_image ? (
+                            <img src={person.profile_image} alt={person.name} className="w-full h-full object-cover" />
+                        ) : (
+                            person.name?.[0] || 'U'
+                    )}
+                </div>
+                <h4 className="font-bold text-sm text-slate-900 line-clamp-1 h-5">{person.name || 'Unknown User'}</h4>
+                <p className="text-[11px] text-slate-500 font-medium mb-1 line-clamp-2 h-7">{person.headline || person.roles?.join(', ') || 'Member'}</p>
+                <p className="text-[10px] text-slate-400 font-semibold mb-4 h-4 flex items-center justify-center gap-1">
+                    {person.city ? (
+                        <>
+                            <MapPin size={10} className="text-km-primary" />
+                            <span>{person.city}</span>
+                        </>
+                    ) : ''}
+                </p>
 
-        <div className="w-full space-y-2 mt-auto">
-            {(() => {
-                const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-                let currentUserId = '';
-                if (storedUser) {
-                    try {
-                        const parsed = JSON.parse(storedUser);
-                        currentUserId = parsed.id || parsed._id;
-                    } catch (e) {}
-                }
-                const isSelf = (person.id === currentUserId || person._id === currentUserId);
-                
-                return !isSelf && (
-                    <>
-                        <button 
-                            onClick={onConnect}
-                            className="w-full flex items-center justify-center gap-2 bg-km-primary hover:bg-km-primary-dark text-white py-2 rounded-xl text-xs font-bold transition-all shadow-xs">
-                            <UserPlus size={14} /> Connect
-                        </button>
-                        <button 
-                            onClick={onChat}
-                            className="w-full flex items-center justify-center gap-2 border border-km-primary text-km-primary py-2 rounded-xl text-xs font-bold hover:bg-blue-50 transition-colors">
-                            <MessageSquare size={14} /> Message
-                        </button>
-                    </>
-                );
-            })()}
-        </div>
-    </div>
-);
+                <div className="w-full space-y-2 mt-auto">
+                    {(() => {
+                        const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
+                        let currentUserId = '';
+                        if (storedUser) {
+                            try {
+                                const parsed = JSON.parse(storedUser);
+                                currentUserId = parsed.id || parsed._id;
+                            } catch (e) {}
+                        }
+                        const isSelf = (person.id === currentUserId || person._id === currentUserId);
+                        
+                        return !isSelf && (
+                            <>
+                                <button 
+                                    onClick={onConnect}
+                                    className="w-full flex items-center justify-center gap-2 bg-km-primary hover:bg-km-primary-dark text-white py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer">
+                                    <UserPlus size={14} /> Connect
+                                </button>
+                                <button 
+                                    onClick={onChat}
+                                    className="w-full flex items-center justify-center gap-2 border border-km-primary text-km-primary py-2 rounded-xl text-xs font-bold hover:bg-blue-50 transition-colors cursor-pointer">
+                                    <MessageSquare size={14} /> Message
+                                </button>
+                            </>
+                        );
+                    })()}
+                </div>
+            </div>
+        </ImpressionWrapper>
+    );
+};
 
 export default NetworkPage;
