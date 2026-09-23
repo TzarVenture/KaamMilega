@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
+	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -12,6 +13,7 @@ import (
 	"io"
 	"math"
 	"net/http"
+	"net/smtp"
 	"time"
 
 	"km-backend/internal/config"
@@ -26,6 +28,7 @@ type WalletService interface {
 	RecordTransaction(ctx context.Context, input RecordTransactionInput) (*TransactionItemResponse, *WalletSummaryResponse, error)
 	CreateTopupOrder(ctx context.Context, userID string, amount float64) (*CreateTopupOrderResponse, error)
 	VerifyTopupPayment(ctx context.Context, userID string, req VerifyTopupPaymentRequest) (*WalletSummaryResponse, *TransactionItemResponse, error)
+	RequestWithdrawal(ctx context.Context, userID string, req WithdrawalRequest) (*WithdrawalResponse, error)
 }
 
 type WalletServiceImpl struct {
@@ -338,6 +341,168 @@ func (s *WalletServiceImpl) VerifyTopupPayment(ctx context.Context, userID strin
 	}
 
 	return summary, tx, nil
+}
+
+// RequestWithdrawal processes an expert payout request from earnings_balance (F71)
+func (s *WalletServiceImpl) RequestWithdrawal(ctx context.Context, userID string, req WithdrawalRequest) (*WithdrawalResponse, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized: missing user id")
+	}
+
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user id format")
+	}
+
+	if req.Amount < 50 {
+		return nil, errors.New("minimum withdrawal amount is ₹50")
+	}
+	if req.Amount > 500000 {
+		return nil, errors.New("maximum single withdrawal amount is ₹5,00,000")
+	}
+
+	if req.PayoutMethod != "bank" && req.PayoutMethod != "upi" {
+		return nil, errors.New("payout method must be 'bank' or 'upi'")
+	}
+
+	if req.PayoutMethod == "bank" {
+		if req.AccountNumber == "" || req.IFSCCode == "" {
+			return nil, errors.New("account number and IFSC code are required for bank transfer")
+		}
+	} else {
+		if req.UPIID == "" {
+			return nil, errors.New("valid UPI ID is required for UPI payout")
+		}
+	}
+
+	// Verify user has sufficient earnings balance
+	walletDoc, err := s.repo.GetOrCreateWallet(ctx, oid)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve wallet: %w", err)
+	}
+
+	if walletDoc.EarningsBalance < req.Amount {
+		return nil, fmt.Errorf("insufficient withdrawable earnings (available: ₹%.2f, requested: ₹%.2f)", walletDoc.EarningsBalance, req.Amount)
+	}
+
+	refID := fmt.Sprintf("WTH_%s_%d", userID[:min(6, len(userID))], time.Now().Unix())
+
+	metadata := map[string]interface{}{
+		"payout_method":  req.PayoutMethod,
+		"account_holder": req.AccountHolder,
+		"phone_number":   req.PhoneNumber,
+		"status":         "pending",
+	}
+
+	var desc string
+	if req.PayoutMethod == "bank" {
+		metadata["account_number"] = req.AccountNumber
+		metadata["ifsc_code"] = req.IFSCCode
+		metadata["bank_name"] = req.BankName
+		masked := req.AccountNumber
+		if len(masked) > 4 {
+			masked = "••••" + masked[len(masked)-4:]
+		}
+		desc = fmt.Sprintf("Withdrawal to Bank A/C (%s)", masked)
+	} else {
+		metadata["upi_id"] = req.UPIID
+		desc = fmt.Sprintf("Withdrawal to UPI (%s)", req.UPIID)
+	}
+
+	// Record atomic debit transaction against BalanceEarnings
+	input := RecordTransactionInput{
+		UserID:        oid,
+		Type:          TypeDebit,
+		TargetBalance: BalanceEarnings,
+		Category:      CategoryWithdrawal,
+		Amount:        req.Amount,
+		ReferenceID:   refID,
+		Description:   desc,
+		Metadata:      metadata,
+	}
+
+	txItem, updatedWallet, err := s.RecordTransaction(ctx, input)
+	if err != nil {
+		return nil, fmt.Errorf("failed to process withdrawal: %w", err)
+	}
+
+	// Asynchronously notify admin and user via SMTP
+	go s.sendWithdrawalNotificationEmail(req, refID, walletDoc.EarningsBalance-req.Amount)
+
+	return &WithdrawalResponse{
+		Transaction: txItem,
+		Wallet:      updatedWallet,
+		Message:     fmt.Sprintf("Withdrawal request of ₹%.2f submitted successfully. Reference ID: %s", req.Amount, refID),
+	}, nil
+}
+
+// sendWithdrawalNotificationEmail dispatches a payout notification email to admin
+func (s *WalletServiceImpl) sendWithdrawalNotificationEmail(req WithdrawalRequest, refID string, remaining float64) {
+	if s.cfg.SMTPHost == "" || s.cfg.SMTPUsername == "" {
+		return
+	}
+
+	adminEmail := s.cfg.SMTPFromEmail
+	if adminEmail == "" {
+		return
+	}
+
+	subject := fmt.Sprintf("[KaamMilega Payout Alert] New Withdrawal Request: ₹%.2f (%s)", req.Amount, refID)
+	destDetails := fmt.Sprintf("UPI ID: %s", req.UPIID)
+	if req.PayoutMethod == "bank" {
+		destDetails = fmt.Sprintf("Bank: %s | A/C: %s | IFSC: %s | Holder: %s", req.BankName, req.AccountNumber, req.IFSCCode, req.AccountHolder)
+	}
+
+	body := fmt.Sprintf(`<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; background: #f8fafc; padding: 20px;">
+  <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 24px; border: 1px solid #e2e8f0;">
+    <h2 style="color: #1a2b8c; margin-top: 0;">New Payout Request Received</h2>
+    <p>An expert has requested a bank payout from their earnings balance:</p>
+    <table style="width: 100%%; border-collapse: collapse; margin: 16px 0;">
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Reference ID:</td><td style="padding: 8px 0; font-weight: bold;">%s</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Amount:</td><td style="padding: 8px 0; font-weight: bold; color: #10b981;">₹%.2f</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Payout Method:</td><td style="padding: 8px 0; font-weight: bold; text-transform: uppercase;">%s</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Destination:</td><td style="padding: 8px 0; font-weight: bold;">%s</td></tr>
+      <tr style="border-bottom: 1px solid #f1f5f9;"><td style="padding: 8px 0; color: #64748b;">Phone / Contact:</td><td style="padding: 8px 0; font-weight: bold;">%s</td></tr>
+      <tr><td style="padding: 8px 0; color: #64748b;">Remaining Earnings:</td><td style="padding: 8px 0; font-weight: bold;">₹%.2f</td></tr>
+    </table>
+    <p style="color: #64748b; font-size: 13px;">Please verify account details, disburse funds via IMPS/NEFT/UPI, and confirm with the expert.</p>
+  </div>
+</body>
+</html>`, refID, req.Amount, req.PayoutMethod, destDetails, req.PhoneNumber, remaining)
+
+	addr := fmt.Sprintf("%s:%s", s.cfg.SMTPHost, s.cfg.SMTPPort)
+	auth := smtp.PlainAuth("", s.cfg.SMTPUsername, s.cfg.SMTPPassword, s.cfg.SMTPHost)
+
+	header := fmt.Sprintf("From: %s <%s>\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n",
+		s.cfg.SMTPFromName, s.cfg.SMTPFromEmail, adminEmail, subject)
+
+	client, err := smtp.Dial(addr)
+	if err != nil {
+		return
+	}
+	defer client.Close()
+
+	if err = client.StartTLS(&tls.Config{ServerName: s.cfg.SMTPHost}); err != nil {
+		return
+	}
+	if err = client.Auth(auth); err != nil {
+		return
+	}
+	if err = client.Mail(s.cfg.SMTPFromEmail); err != nil {
+		return
+	}
+	if err = client.Rcpt(adminEmail); err != nil {
+		return
+	}
+	w, err := client.Data()
+	if err != nil {
+		return
+	}
+	_, _ = w.Write([]byte(header + body))
+	_ = w.Close()
+	_ = client.Quit()
 }
 
 

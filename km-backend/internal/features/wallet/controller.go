@@ -126,4 +126,30 @@ func (ctrl *WalletController) VerifyTopupPayment(c *fiber.Ctx) error {
 	})
 }
 
+// RequestWithdrawal handles withdrawal requests from earnings balance (F71)
+func (ctrl *WalletController) RequestWithdrawal(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized: valid authentication token required",
+		})
+	}
+
+	var req WithdrawalRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body format",
+		})
+	}
+
+	res, err := ctrl.service.RequestWithdrawal(c.Context(), userID, req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(res)
+}
+
 

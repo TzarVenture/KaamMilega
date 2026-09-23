@@ -13,7 +13,11 @@ import {
     Zap, 
     CheckCircle2,
     Users,
-    ShieldCheck
+    ShieldCheck,
+    Building2,
+    Phone,
+    AlertCircle,
+    X
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
@@ -43,6 +47,18 @@ export default function WalletPage() {
     const [topupAmount, setTopupAmount] = useState("500");
     const [refreshKey, setRefreshKey] = useState(0);
     const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+
+    // Withdrawal Form State (F71)
+    const [withdrawAmount, setWithdrawAmount] = useState("500");
+    const [payoutMethod, setPayoutMethod] = useState<'bank' | 'upi'>('bank');
+    const [accountHolder, setAccountHolder] = useState("");
+    const [accountNumber, setAccountNumber] = useState("");
+    const [confirmAccountNumber, setConfirmAccountNumber] = useState("");
+    const [ifscCode, setIfscCode] = useState("");
+    const [bankName, setBankName] = useState("");
+    const [upiId, setUpiId] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [isWithdrawing, setIsWithdrawing] = useState(false);
 
     const fetchWallet = useCallback(async () => {
         setLoading(true);
@@ -182,6 +198,84 @@ export default function WalletPage() {
             console.error("Payment initiation error", err);
             toast.error(err?.response?.data?.error || "Failed to initiate payment. Please try again.");
             setIsPaymentProcessing(false);
+        }
+    };
+
+    // Process Bank / UPI withdrawal request from earnings balance (F71)
+    const handleRequestWithdrawal = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const amt = parseFloat(withdrawAmount);
+        if (isNaN(amt) || amt < 50) {
+            toast.error("Minimum withdrawal amount is ₹50");
+            return;
+        }
+
+        const available = wallet?.withdrawable_balance || 0;
+        if (amt > available) {
+            toast.error(`Insufficient earnings balance. Maximum withdrawable: ₹${available.toFixed(2)}`);
+            return;
+        }
+
+        if (payoutMethod === 'bank') {
+            if (!accountHolder.trim()) {
+                toast.error("Please enter account holder name");
+                return;
+            }
+            if (!accountNumber.trim()) {
+                toast.error("Please enter bank account number");
+                return;
+            }
+            if (accountNumber.trim() !== confirmAccountNumber.trim()) {
+                toast.error("Account numbers do not match");
+                return;
+            }
+            if (!ifscCode.trim() || ifscCode.trim().length < 8) {
+                toast.error("Please enter a valid IFSC code (e.g. HDFC0001234)");
+                return;
+            }
+        } else {
+            if (!upiId.trim() || !upiId.includes('@')) {
+                toast.error("Please enter a valid UPI ID (e.g. name@okhdfcbank)");
+                return;
+            }
+        }
+
+        if (!phoneNumber.trim() || phoneNumber.trim().length < 10) {
+            toast.error("Please provide a valid 10-digit contact phone number");
+            return;
+        }
+
+        setIsWithdrawing(true);
+        try {
+            const res: any = await api.post('/wallet/withdraw', {
+                amount: amt,
+                payout_method: payoutMethod,
+                account_holder: accountHolder.trim(),
+                account_number: accountNumber.trim(),
+                ifsc_code: ifscCode.trim().toUpperCase(),
+                bank_name: bankName.trim(),
+                upi_id: upiId.trim(),
+                phone_number: phoneNumber.trim()
+            });
+
+            toast.success(res?.message || "Withdrawal request submitted! Funds will be transferred shortly.");
+            setIsWithdrawModalOpen(false);
+            // Reset form
+            setWithdrawAmount("500");
+            setAccountHolder("");
+            setAccountNumber("");
+            setConfirmAccountNumber("");
+            setIfscCode("");
+            setBankName("");
+            setUpiId("");
+            setPhoneNumber("");
+            // Refresh wallet balance and transaction ledger
+            fetchWallet();
+        } catch (err: any) {
+            console.error("Withdrawal request error", err);
+            toast.error(err?.response?.data?.error || "Failed to submit withdrawal request. Please try again.");
+        } finally {
+            setIsWithdrawing(false);
         }
     };
 
@@ -515,43 +609,277 @@ export default function WalletPage() {
                 </div>
             )}
 
-            {/* Withdraw Modal */}
+            {/* Withdraw Modal (F71 Bank / UPI Payout) */}
             {isWithdrawModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-6">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <ArrowUpRight size={18} className="text-emerald-600" />
-                                <span>Withdraw Earnings</span>
-                            </h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
+                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 my-8">
+                        {/* Modal Header */}
+                        <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-2.5">
+                                <div className="p-2 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
+                                    <ArrowUpRight size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-900">
+                                        Withdraw Earnings
+                                    </h3>
+                                    <p className="text-xs text-slate-500 font-medium">
+                                        Direct payout to your Bank Account or UPI
+                                    </p>
+                                </div>
+                            </div>
                             <button 
                                 onClick={() => setIsWithdrawModalOpen(false)}
-                                className="text-slate-400 hover:text-slate-600 text-sm font-bold p-1 cursor-pointer"
+                                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
+                                aria-label="Close modal"
                             >
-                                ✕
+                                <X size={18} />
                             </button>
                         </div>
 
-                        <div className="space-y-3.5 text-sm">
-                            <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-emerald-900">
-                                <p className="text-xs text-emerald-700 font-semibold">Available for Withdrawal</p>
-                                <p className="text-3xl font-black mt-1 font-mono">{formatCurrency(wallet?.withdrawable_balance)}</p>
+                        {/* Available Balance Banner */}
+                        <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl border border-emerald-100/80 flex items-center justify-between">
+                            <div>
+                                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
+                                    Withdrawable Earnings
+                                </span>
+                                <span className="text-2xl font-black text-emerald-950 font-mono">
+                                    {formatCurrency(wallet?.withdrawable_balance)}
+                                </span>
                             </div>
-
-                            <p className="text-xs text-slate-500 leading-relaxed">
-                                Earnings from completed mentorship sessions can be transferred directly to your bank account or UPI ID.
-                            </p>
+                            <button
+                                type="button"
+                                onClick={() => setWithdrawAmount(String(wallet?.withdrawable_balance || 0))}
+                                disabled={(wallet?.withdrawable_balance || 0) < 50}
+                                className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-xs cursor-pointer active:scale-95 transition"
+                            >
+                                Withdraw All
+                            </button>
                         </div>
 
-                        <button
-                            onClick={() => {
-                                toast.info("Bank payout setup will be prompted upon withdrawal request.");
-                                setIsWithdrawModalOpen(false);
-                            }}
-                            className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer active:scale-95"
-                        >
-                            Understood
-                        </button>
+                        <form onSubmit={handleRequestWithdrawal} className="space-y-4">
+                            {/* Amount Input */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Amount to Withdraw (Min ₹50)
+                                </label>
+                                <div className="relative">
+                                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400 text-base">
+                                        ₹
+                                    </span>
+                                    <input
+                                        type="number"
+                                        min={50}
+                                        max={wallet?.withdrawable_balance || 0}
+                                        step="any"
+                                        value={withdrawAmount}
+                                        onChange={(e) => setWithdrawAmount(e.target.value)}
+                                        className="w-full pl-8 pr-4 py-2.5 rounded-2xl border border-slate-200 text-slate-900 font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                        placeholder="Enter amount"
+                                        required
+                                    />
+                                </div>
+                                <div className="flex gap-2 mt-2">
+                                    {["100", "500", "1000", "2000"].map((preset) => (
+                                        <button
+                                            key={preset}
+                                            type="button"
+                                            onClick={() => setWithdrawAmount(preset)}
+                                            className={`px-2.5 py-1 rounded-xl text-xs font-semibold border transition cursor-pointer ${
+                                                withdrawAmount === preset
+                                                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                            }`}
+                                        >
+                                            ₹{preset}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Payout Method Toggle */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                                    Payout Destination
+                                </label>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPayoutMethod('bank')}
+                                        className={`py-2 px-3 rounded-2xl border flex items-center justify-center gap-2 text-xs font-bold transition cursor-pointer ${
+                                            payoutMethod === 'bank'
+                                                ? 'bg-blue-50 border-blue-600 text-blue-900 shadow-xs'
+                                                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <Building2 size={16} />
+                                        <span>Bank Transfer</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPayoutMethod('upi')}
+                                        className={`py-2 px-3 rounded-2xl border flex items-center justify-center gap-2 text-xs font-bold transition cursor-pointer ${
+                                            payoutMethod === 'upi'
+                                                ? 'bg-purple-50 border-purple-600 text-purple-900 shadow-xs'
+                                                : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                        }`}
+                                    >
+                                        <Zap size={16} />
+                                        <span>Instant UPI</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Bank Details Form */}
+                            {payoutMethod === 'bank' && (
+                                <div className="space-y-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div>
+                                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                            Account Holder Name
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={accountHolder}
+                                            onChange={(e) => setAccountHolder(e.target.value)}
+                                            placeholder="As per bank passbook"
+                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                            required={payoutMethod === 'bank'}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                                Account Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={accountNumber}
+                                                onChange={(e) => setAccountNumber(e.target.value)}
+                                                placeholder="e.g. 5010023456789"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                required={payoutMethod === 'bank'}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                                Confirm A/C Number
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={confirmAccountNumber}
+                                                onChange={(e) => setConfirmAccountNumber(e.target.value)}
+                                                placeholder="Re-enter A/C number"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                required={payoutMethod === 'bank'}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                        <div>
+                                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                                IFSC Code
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={ifscCode}
+                                                onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
+                                                placeholder="e.g. HDFC0001234"
+                                                maxLength={11}
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono uppercase font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                required={payoutMethod === 'bank'}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                                Bank Name (Optional)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={bankName}
+                                                onChange={(e) => setBankName(e.target.value)}
+                                                placeholder="e.g. HDFC Bank"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* UPI Details Form */}
+                            {payoutMethod === 'upi' && (
+                                <div className="space-y-3 p-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div>
+                                        <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                                            UPI ID / VPA
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={upiId}
+                                            onChange={(e) => setUpiId(e.target.value)}
+                                            placeholder="e.g. username@okhdfcbank or 9876543210@paytm"
+                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-purple-500"
+                                            required={payoutMethod === 'upi'}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Contact Phone */}
+                            <div>
+                                <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
+                                    <Phone size={13} className="text-slate-400" />
+                                    <span>Contact Phone (For verification & payout alert)</span>
+                                </label>
+                                <input
+                                    type="tel"
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value)}
+                                    placeholder="10-digit mobile number"
+                                    maxLength={13}
+                                    className="w-full px-3.5 py-2.5 rounded-2xl border border-slate-200 text-xs font-medium text-slate-900 focus:outline-none focus:border-emerald-500"
+                                    required
+                                />
+                            </div>
+
+                            {/* Info Callout */}
+                            <div className="flex items-start gap-2 p-3 bg-amber-50/80 rounded-2xl border border-amber-200/60 text-amber-900 text-xs leading-relaxed">
+                                <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                                <p>
+                                    Requested amount is deducted immediately from your earnings to prevent double-spending, and recorded in your immutable ledger below. Payout is disbursed by admin via IMPS/UPI.
+                                </p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsWithdrawModalOpen(false)}
+                                    disabled={isWithdrawing}
+                                    className="flex-1 py-3 rounded-2xl border border-slate-200 font-bold text-xs text-slate-700 hover:bg-slate-50 cursor-pointer disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isWithdrawing || (wallet?.withdrawable_balance || 0) < 50}
+                                    className="flex-1 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs shadow-md shadow-emerald-600/20 cursor-pointer active:scale-95 flex items-center justify-center gap-2"
+                                >
+                                    {isWithdrawing ? (
+                                        <>
+                                            <RefreshCw size={14} className="animate-spin" />
+                                            <span>Submitting...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <ArrowUpRight size={15} />
+                                            <span>Withdraw ₹{withdrawAmount || '0'}</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}

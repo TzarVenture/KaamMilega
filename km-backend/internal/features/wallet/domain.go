@@ -150,3 +150,22 @@ type VerifyTopupPaymentRequest struct {
 	Amount            float64 `json:"amount"` // in INR
 }
 
+// WithdrawalRequest represents input for requesting an earnings payout (F71)
+type WithdrawalRequest struct {
+	Amount        float64 `json:"amount"`         // in INR (e.g. 500)
+	PayoutMethod  string  `json:"payout_method"`  // "bank" or "upi"
+	AccountHolder string  `json:"account_holder"` // Name on bank account / UPI
+	AccountNumber string  `json:"account_number"` // Bank account number
+	IFSCCode      string  `json:"ifsc_code"`      // Bank IFSC code
+	BankName      string  `json:"bank_name"`      // Bank name
+	UPIID         string  `json:"upi_id"`         // VPA / UPI ID (e.g. name@upi)
+	PhoneNumber   string  `json:"phone_number"`   // Contact phone for verification
+}
+
+// WithdrawalResponse represents response after withdrawal request is submitted
+type WithdrawalResponse struct {
+	Transaction *TransactionItemResponse `json:"transaction"`
+	Wallet      *WalletSummaryResponse   `json:"wallet"`
+	Message     string                   `json:"message"`
+}
+
