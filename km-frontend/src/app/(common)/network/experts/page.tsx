@@ -6,6 +6,7 @@ import Pagination from '@/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
+import UserAvatar from '@/components/ui/UserAvatar';
 
 export interface ExpertUser {
     id: string;
@@ -22,12 +23,8 @@ export const ExpertCard = ({ expert, onChat, onDelete }: { expert: ExpertUser, o
         <div className="flex items-center justify-between py-5 border-b border-slate-100 last:border-0 hover:bg-purple-50/30 transition-colors px-2 rounded-xl">
             <div className="flex items-center gap-4">
                 <div className="relative">
-                    <div className="w-14 h-14 rounded-2xl bg-linear-to-br from-purple-900 to-indigo-950 flex items-center justify-center overflow-hidden border border-purple-800 shadow-xs">
-                        {expert.profile_image ? (
-                            <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-white font-black text-lg">{expert.name?.[0]?.toUpperCase() || 'E'}</span>
-                        )}
+                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-2xs">
+                        <UserAvatar src={expert.profile_image} name={expert.name} />
                     </div>
                 </div>
 
@@ -292,12 +289,8 @@ export const SidebarExpert = ({ expert, onChat }: { expert: ExpertUser, onChat: 
         <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3">
                 <div className="relative">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-linear-to-br from-purple-900 to-indigo-950 border border-purple-800">
-                        {expert.profile_image ? (
-                            <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-white font-bold">{expert.name?.[0]?.toUpperCase() || 'E'}</span>
-                        )}
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-slate-100 border border-slate-200">
+                        <UserAvatar src={expert.profile_image} name={expert.name} />
                     </div>
                 </div>
 

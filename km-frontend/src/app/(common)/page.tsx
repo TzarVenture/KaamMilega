@@ -20,7 +20,10 @@ import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 import HeroSection from '@/components/home/HeroSection';
 import SevenServicesSection from '@/components/home/SevenServicesSection';
 import SuccessTicker from '@/components/home/SuccessTicker';
-import DefaultAvatar from '@/components/ui/DefaultAvatar';
+import UserAvatar from '@/components/ui/UserAvatar';
+import { ENTERPRISE_COMPANIES as enterprisePartners } from '@/lib/constants/companies';
+import CompanyCard from '@/components/company/CompanyCard';
+import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
 import { ImpressionWrapper } from '@/lib/telemetry';
@@ -604,86 +607,6 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
 };
 
 // --- Enterprise Hiring Partners Showcase ---
-interface EnterprisePartner {
-  name: string;
-  logo: string;
-  openings: string;
-  category: string;
-  rating: string;
-  reviews: string;
-  verified: boolean;
-  bgClass?: string;
-  imgClass?: string;
-}
-
-const enterprisePartners: EnterprisePartner[] = [
-  {
-    name: "Zomato",
-    logo: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/zomato/default.svg",
-    openings: "1,600+ Openings",
-    category: "Transport & Delivery Fleet",
-    rating: "4.8",
-    reviews: "3.7k Reviews",
-    verified: true,
-    bgClass: "bg-rose-50/80 border-rose-200/70",
-    imgClass: "h-5 w-auto max-w-[85%]",
-  },
-  {
-    name: "Swiggy",
-    logo: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/swiggy/default.svg",
-    openings: "3,100+ Openings",
-    category: "Dark Store & Quick Commerce",
-    rating: "4.7",
-    reviews: "5.1k Reviews",
-    verified: true,
-    bgClass: "bg-orange-50/80 border-orange-200/70",
-    imgClass: "h-7 w-auto",
-  },
-  {
-    name: "Uber",
-    logo: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/uber/default.svg",
-    openings: "2,400+ Openings",
-    category: "Rideshare & Fleet Logistics",
-    rating: "4.7",
-    reviews: "6.2k Reviews",
-    verified: true,
-    bgClass: "bg-slate-950 border-slate-800 shadow-xs",
-    imgClass: "h-4 w-auto max-w-[85%]",
-  },
-  {
-    name: "Amazon",
-    logo: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/amazon/default.svg",
-    openings: "4,200+ Openings",
-    category: "Fulfillment & Last-Mile Delivery",
-    rating: "4.8",
-    reviews: "8.5k Reviews",
-    verified: true,
-    bgClass: "bg-amber-50/60 border-amber-200/70",
-    imgClass: "h-5 w-auto max-w-[85%]",
-  },
-  {
-    name: "Airtel",
-    logo: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/airtel/default.svg",
-    openings: "1,850+ Openings",
-    category: "Telecom & Field Operations",
-    rating: "4.7",
-    reviews: "4.3k Reviews",
-    verified: true,
-    bgClass: "bg-red-50/80 border-red-200/70",
-    imgClass: "h-6 w-auto",
-  },
-  {
-    name: "Domino's",
-    logo: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/dominos/default.svg",
-    openings: "2,100+ Openings",
-    category: "QSR & Store Operations",
-    rating: "4.6",
-    reviews: "3.9k Reviews",
-    verified: true,
-    bgClass: "bg-blue-50/80 border-blue-200/70",
-    imgClass: "h-7 w-auto",
-  },
-];
 
 const CompaniesSlider = ({ companies }: { companies: any[] }) => {
   return (
@@ -741,53 +664,7 @@ const FeaturedCompanies = ({ companies }: { companies: any[] }) => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {enterprisePartners.map((co, i) => (
-            <div
-              key={i}
-              className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs hover:shadow-lg hover:border-blue-500/40 transition-all flex flex-col justify-between group/card"
-            >
-              <div>
-                {/* Header: Vector Logo & Active Badge */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3.5">
-                    <div className={`w-14 h-12 rounded-xl border p-2 flex items-center justify-center shrink-0 shadow-2xs ${co.bgClass || 'bg-slate-50 border-slate-200/80'}`}>
-                      <img
-                        src={co.logo}
-                        alt={co.name}
-                        className={`object-contain ${co.imgClass || 'max-h-full max-w-full'}`}
-                      />
-                    </div>
-                    <div>
-                      <h4 className="text-base font-bold text-slate-900 group-hover/card:text-km-primary transition-colors leading-tight">
-                        {co.name}
-                      </h4>
-                      <p className="text-xs text-slate-500 mt-0.5">
-                        {co.category}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-1 rounded-full shrink-0">
-                    {co.openings}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 text-xs text-slate-600 my-4 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                  <div className="flex items-center gap-1 font-bold text-slate-900">
-                    <Star size={14} className="fill-amber-400 text-amber-400" />
-                    <span>{co.rating}</span>
-                  </div>
-                  <span className="text-slate-300">•</span>
-                  <span className="text-slate-500">{co.reviews}</span>
-                  <span className="text-slate-300">•</span>
-                  <span className="text-km-primary font-semibold">100% Direct HR</span>
-                </div>
-              </div>
-
-              <Link href={`/jobs?company=${encodeURIComponent(co.name)}`}>
-                <button className="w-full py-2.5 bg-slate-50 group-hover/card:bg-km-primary group-hover/card:text-white text-slate-700 border border-slate-200 group-hover/card:border-km-primary rounded-xl text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer">
-                  View Verified Jobs →
-                </button>
-              </Link>
-            </div>
+            <CompanyCard key={co.name || i} company={co} variant="expanded" />
           ))}
         </div>
 
@@ -989,6 +866,19 @@ const ExpertSlider = ({
   onFollow: (id: string, name?: string) => void;
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+          const parsed = JSON.parse(storedUser);
+          setCurrentUserId(parsed.id || parsed._id || '');
+        }
+      } catch {}
+    }
+  }, []);
 
   if (!experts || experts.length === 0) return null;
 
@@ -1003,96 +893,23 @@ const ExpertSlider = ({
           className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" 
         >
           {experts.map((expert, i) => {
-            const expertId = expert.id || expert._id;
+            const expertId = expert.id || expert._id || '';
+            const isSelf = Boolean(currentUserId && expertId === currentUserId);
+            const isPending = pendingIds.includes(expertId);
+
             return (
-              <ImpressionWrapper
+              <ProfileConnectionCard
                 key={expertId || i}
-                authorId={expertId}
-                entityId={`expert:${expertId}`}
-                className="shrink-0"
-              >
-                <div 
-                  className="w-65 bg-white rounded-3xl p-6 flex flex-col items-center shrink-0 border border-slate-200/90 shadow-xs hover:shadow-md transition-all text-center h-full"
-                >
-              <Link
-                href={expertId ? `/profile/${expertId}` : '#'}
-                className="w-full flex flex-col items-center group cursor-pointer"
-              >
-                <div className="relative mb-4">
-                  <div className="w-18 h-18 rounded-full bg-slate-100 border-2 border-slate-200 group-hover:border-km-primary flex items-center justify-center overflow-hidden shadow-2xs transition-colors">
-                    {expert.profile_image ? (
-                      <img src={expert.profile_image} alt={expert.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <DefaultAvatar />
-                    )}
-                  </div>
-                  <div className="absolute bottom-0 right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
-                </div>
-                
-                <h3 className="text-sm font-bold text-slate-900 group-hover:text-km-primary transition-colors leading-tight mb-0.5 text-center">
-                  {expert.name?.replace(/\s*\.+$/, '') || 'Career Expert'}
-                </h3>
-                <p className="text-[11px] text-slate-500 mb-2 font-medium text-center line-clamp-1">
-                  {expert.headline || (expert as any).job_categories?.[0] ? `${(expert as any).job_categories[0]} Specialist` : 'Career & Trade Mentor'}
-                </p>
-                
-                <div className="flex items-center gap-1 text-slate-400 text-[10px] mb-2 font-semibold">
-                  <MapPin size={10} className="text-km-primary" />
-                  <span>{expert.city || 'India'}</span>
-                </div>
-                
-                <p className="text-[10px] text-slate-400 mb-4 font-bold uppercase tracking-wider">
-                  {expert.rating ? `${expert.rating} ★ Mentor` : 'Verified Expert'}
-                </p>
-              </Link>
-              
-              <div className="w-full flex gap-2 mt-auto flex-col">
-                {(() => {
-                  const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-                  let currentUserId = '';
-                  if (storedUser) {
-                    try {
-                      const parsed = JSON.parse(storedUser);
-                      currentUserId = parsed.id || parsed._id;
-                    } catch (e) {}
-                  }
-                  const expertId = expert.id || expert._id || '';
-                  const isSelf = (expertId && expertId === currentUserId);
-                  const isPending = pendingIds.includes(expertId);
-                  
-                  return !isSelf && (
-                    <>
-                      <button 
-                        onClick={() => onChat(expertId)}
-                        className="w-full py-2 rounded-xl border border-km-primary text-km-primary text-xs font-bold flex items-center justify-center gap-2 hover:bg-blue-50 transition-colors cursor-pointer"
-                      >
-                        <MessageCircle size={14} />
-                        Chat
-                      </button>
-                      {isPending ? (
-                        <button 
-                          disabled
-                          className="w-full py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-default border border-slate-200"
-                        >
-                          <CheckCircle size={13} className="text-emerald-500" />
-                          Pending
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => onFollow(expertId, expert.name)}
-                          className="w-full py-2 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
-                        >
-                          Follow
-                        </button>
-                      )}
-                    </>
-                  );
-                })()}
-                </div>
-              </div>
-            </ImpressionWrapper>
-          );
-        })}
+                user={expert}
+                variant="slider"
+                isSelf={isSelf}
+                isPending={isPending}
+                entityType="expert"
+                onChat={onChat}
+                onFollow={onFollow}
+              />
+            );
+          })}
         </div>
 
         {/* Custom Interactive Scrollbar */}

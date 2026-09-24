@@ -26,6 +26,11 @@ func (api *CompanyApi) Setup(app *fiber.App) {
 	// Or maybe recruiters can see their own?
 	// For /admin/companies, it should be admin only.
 
+	// Public routes
+	publicRoutes := app.Group("/api/companies")
+	publicRoutes.Get("/top", api.controller.GetTopCompanies)
+	publicRoutes.Get("/", api.controller.GetTopCompanies)
+
 	// Group for admin company management
 	adminRoutes := app.Group("/api/admin/companies", middleware.AuthMiddleware(api.config.JWTSecret)) // Add Admin role check if needed
 

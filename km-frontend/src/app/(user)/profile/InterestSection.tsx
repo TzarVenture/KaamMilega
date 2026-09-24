@@ -1,53 +1,123 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MessageCircle, Briefcase, Building2, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
-import CustomImage from '@/components/ui/CustomImage';
+import ProfileConnectionCard, { ProfileCardUser } from '@/components/network/ProfileConnectionCard';
+import CompanyCard from '@/components/company/CompanyCard';
+import { HiringCompany, mergeHiringCompanies } from '@/lib/constants/companies';
+
+interface JobItem {
+    company?: string;
+    company_name?: string;
+    city_name?: string;
+    location?: string;
+}
 
 interface InterestsSectionProps {
-    initialExperts?: any[];
+    initialExperts?: ProfileCardUser[];
 }
 
 const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
+    const router = useRouter();
     const [activeTab, setActiveTab] = useState<'Top Experts' | 'Companies'>('Top Experts');
-    const [experts, setExperts] = useState<any[]>(initialExperts || []);
-    const [companies, setCompanies] = useState<any[]>([]);
+    const [experts, setExperts] = useState<ProfileCardUser[]>(initialExperts || []);
+    // Eagerly initialize with enterprise partners so the company tab is never empty
+    const [companies, setCompanies] = useState<HiringCompany[]>(() => mergeHiringCompanies([]).slice(0, 6));
     const [loading, setLoading] = useState(false);
-
+    const [followingCompanies, setFollowingCompanies] = useState<string[]>([]);
     const tabs: Array<'Top Experts' | 'Companies'> = ['Top Experts', 'Companies'];
+
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem('km_following_companies');
+            if (saved) setFollowingCompanies(JSON.parse(saved));
+        } catch {}
+    }, []);
+
+    const handleToggleFollow = (companyName: string, following: boolean) => {
+        setFollowingCompanies((prev) => {
+            const updated = following
+                ? [...prev, companyName]
+                : prev.filter((name) => name !== companyName);
+            try {
+                localStorage.setItem('km_following_companies', JSON.stringify(updated));
+            } catch {}
+            return updated;
+        });
+    };
+
+    const handleChat = (id: string) => {
+        if (id) {
+            router.push(`/chat?userId=${id}`);
+        } else {
+            router.push('/chat');
+        }
+    };
 
     useEffect(() => {
         let isMounted = true;
         const loadData = async () => {
             setLoading(true);
             try {
-                const [expertsRes, jobsRes] = await Promise.allSettled([
+                const [expertsRes, jobsRes, topCompaniesRes] = await Promise.allSettled([
                     api.get('/experts').catch(() => []),
-                    api.get('/jobs?limit=30').catch(() => ({ jobs: [] }))
+                    api.get('/jobs?limit=30').catch(() => ({ jobs: [] })),
+                    api.get('/companies/top').catch(() => [])
                 ]);
 
                 if (isMounted && expertsRes.status === 'fulfilled') {
-                    const data = expertsRes.value as any;
-                    const list = Array.isArray(data) ? data : data.data || [];
+                    const data = expertsRes.value as unknown;
+                    const list = Array.isArray(data)
+                        ? (data as ProfileCardUser[])
+                        : ((data as { data?: ProfileCardUser[] })?.data || []);
                     setExperts(list.slice(0, 6));
                 }
 
-                if (isMounted && jobsRes.status === 'fulfilled') {
-                    const jobsData = (jobsRes.value as any)?.jobs || [];
-                    const compMap = new Map();
-                    jobsData.forEach((j: any) => {
+                if (isMounted) {
+                    const extracted: Array<Record<string, unknown>> = [];
+                    const seen = new Set<string>();
+
+                    // 1. Ingest any companies from /companies/top endpoint
+                    if (topCompaniesRes.status === 'fulfilled') {
+                        const topData = topCompaniesRes.value as unknown;
+                        const topList = Array.isArray(topData) ? topData : ((topData as { data?: unknown[] })?.data || []);
+                        if (Array.isArray(topList)) {
+                            topList.forEach((c: any) => {
+                                const name = c.name || c.company_name;
+                                if (name && typeof name === 'string' && name.trim().length > 0 && !seen.has(name.toLowerCase())) {
+                                    seen.add(name.toLowerCase());
+                                    extracted.push({
+                                        name: name.trim(),
+                                        logo: c.logo || c.company_logo,
+                                        location: c.location || c.city || 'India',
+                                        category: c.category || c.industry || 'Enterprise Employer',
+                                        jobCount: c.job_count || c.jobCount || 1,
+                                    });
+                                }
+                            });
+                        }
+                    }
+
+                    // 2. Ingest any companies from live jobs
+                    const jobsVal = jobsRes.status === 'fulfilled' ? (jobsRes.value as unknown) : null;
+                    const jobsData = (jobsVal as { jobs?: JobItem[] })?.jobs || [];
+                    jobsData.forEach((j: JobItem) => {
                         const name = j.company || j.company_name;
-                        if (name && !compMap.has(name)) {
-                            compMap.set(name, {
-                                name,
-                                location: j.location || 'India',
-                                jobCount: jobsData.filter((x: any) => (x.company || x.company_name) === name).length
+                        if (name && typeof name === 'string' && name.trim().length > 0 && !seen.has(name.toLowerCase())) {
+                            seen.add(name.toLowerCase());
+                            extracted.push({
+                                name: name.trim(),
+                                location: j.city_name || j.location || 'India',
+                                jobCount: jobsData.filter((x: JobItem) => (x.company || x.company_name) === name).length
                             });
                         }
                     });
-                    setCompanies(Array.from(compMap.values()).slice(0, 6));
+
+                    const merged = mergeHiringCompanies(extracted);
+                    setCompanies(merged.slice(0, 6));
                 }
             } catch (err) {
                 console.error('Failed to load interests data:', err);
@@ -63,7 +133,7 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
     }, []);
 
     return (
-        <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mt-6">
+        <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mt-6 font-sans">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Interests</h2>
 
             {/* Tab Navigation */}
@@ -85,51 +155,27 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                 </div>
             </div>
 
-            {loading && (
+            {loading && experts.length === 0 && (
                 <div className="flex items-center justify-center py-10">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-km-primary"></div>
                 </div>
             )}
 
             {/* Top Experts Grid */}
-            {!loading && activeTab === 'Top Experts' && (
+            {activeTab === 'Top Experts' && (
                 <div>
                     {experts.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            {experts.map((exp: any, i: number) => {
-                                const expName = exp.name || exp.full_name || (exp.first_name ? `${exp.first_name} ${exp.last_name || ''}` : 'Verified Expert');
-                                const expHeadline = exp.headline || exp.designation || exp.expertise || 'Career & Technical Mentor';
-
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                            {experts.map((exp: ProfileCardUser, i: number) => {
+                                const expId = exp.id || exp._id || '';
                                 return (
-                                    <div
-                                        key={exp.id || exp._id || i}
-                                        className="flex flex-col items-center text-center p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 transition-all group"
-                                    >
-                                        <div className="relative mb-3">
-                                            <div className="w-16 h-16 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
-                                                {exp.profile_image ? (
-                                                    <CustomImage
-                                                        src={exp.profile_image}
-                                                        alt={expName}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <span>{expName.charAt(0).toUpperCase()}</span>
-                                                )}
-                                            </div>
-                                            <div className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>
-                                        </div>
-                                        <h4 className="font-bold text-sm text-gray-900 line-clamp-1">{expName}</h4>
-                                        <p className="text-xs text-gray-500 line-clamp-1 mb-1 mt-0.5">{expHeadline}</p>
-                                        <p className="text-[11px] text-km-primary font-semibold mb-3">
-                                            {exp.followers_count || 12} Connects
-                                        </p>
-                                        <Link href="/chat" className="w-full mt-auto">
-                                            <button className="flex items-center justify-center gap-1.5 w-full py-1.5 border border-km-primary text-km-primary rounded-xl text-xs font-bold hover:bg-blue-50 transition-colors cursor-pointer">
-                                                <MessageCircle size={14} /> Chat
-                                            </button>
-                                        </Link>
-                                    </div>
+                                    <ProfileConnectionCard
+                                        key={expId || i}
+                                        user={exp}
+                                        variant="grid"
+                                        showConnect={false}
+                                        onChat={(id) => handleChat(id || expId)}
+                                    />
                                 );
                             })}
                         </div>
@@ -150,35 +196,18 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
             )}
 
             {/* Companies Grid */}
-            {!loading && activeTab === 'Companies' && (
+            {activeTab === 'Companies' && (
                 <div>
                     {companies.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {companies.map((comp: any, idx: number) => (
-                                <div
-                                    key={idx}
-                                    className="p-4 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 transition-all flex flex-col justify-between"
-                                >
-                                    <div className="flex items-start gap-3 mb-3">
-                                        <div className="w-10 h-10 rounded-lg bg-km-primary/10 text-km-primary flex items-center justify-center font-bold text-sm shrink-0 border border-km-primary/20">
-                                            <Building2 size={20} />
-                                        </div>
-                                        <div className="min-w-0">
-                                            <h4 className="font-bold text-sm text-gray-900 truncate">{comp.name}</h4>
-                                            <p className="text-xs text-gray-500 truncate">{comp.location}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 text-xs">
-                                        <span className="text-gray-500">{comp.jobCount} open {comp.jobCount === 1 ? 'job' : 'jobs'}</span>
-                                        <Link
-                                            href={`/jobs?search=${encodeURIComponent(comp.name)}`}
-                                            className="text-km-primary font-bold hover:underline inline-flex items-center gap-0.5"
-                                        >
-                                            <span>View</span>
-                                            <ChevronRight size={12} />
-                                        </Link>
-                                    </div>
-                                </div>
+                            {companies.map((comp: HiringCompany, idx: number) => (
+                                <CompanyCard
+                                    key={comp.name || idx}
+                                    company={comp}
+                                    variant="compact"
+                                    isInitiallyFollowing={followingCompanies.includes(comp.name)}
+                                    onToggleFollow={handleToggleFollow}
+                                />
                             ))}
                         </div>
                     ) : (

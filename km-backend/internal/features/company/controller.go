@@ -98,3 +98,15 @@ func (c *CompanyController) DeleteCompany(ctx *fiber.Ctx) error {
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
+
+func (c *CompanyController) GetTopCompanies(ctx *fiber.Ctx) error {
+	limit, _ := strconv.Atoi(ctx.Query("limit", "10"))
+	companies, err := c.service.GetTopCompanies(ctx.Context(), limit)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(fiber.Map{
+		"data": companies,
+	})
+}
+
