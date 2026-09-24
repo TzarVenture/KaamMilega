@@ -27,6 +27,7 @@ type MentorshipRepository interface {
 	ListBookingsByExpert(ctx context.Context, expertID string) ([]Booking, error)
 	UpdateBookingStatus(ctx context.Context, id string, status string) error
 	UpdateBookingPayment(ctx context.Context, id string, paymentStatus string, paymentMethod string, rzpPaymentID string, status string) error
+	UpdateMeetingLink(ctx context.Context, id string, meetingLink string) error
 
 	UpdateAvailability(ctx context.Context, expertID string, availabilities []Availability) error
 	GetAvailabilityByExpert(ctx context.Context, expertID string) ([]Availability, error)
@@ -219,6 +220,15 @@ func (r *MentorshipRepositoryImpl) UpdateBookingPayment(ctx context.Context, id 
 		update["status"] = status
 	}
 	_, err = r.bookingColl.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": update})
+	return err
+}
+
+func (r *MentorshipRepositoryImpl) UpdateMeetingLink(ctx context.Context, id string, meetingLink string) error {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = r.bookingColl.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": bson.M{"meeting_link": meetingLink, "updated_at": time.Now()}})
 	return err
 }
 

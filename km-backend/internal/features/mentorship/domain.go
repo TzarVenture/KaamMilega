@@ -39,6 +39,11 @@ type Booking struct {
 	Review            string             `bson:"review,omitempty" json:"review,omitempty"`
 	CreatedAt         time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt         time.Time          `bson:"updated_at" json:"updated_at"`
+
+	// Enriched fields for Expert and Mentee views
+	MentorshipTitle   string             `bson:"mentorship_title,omitempty" json:"mentorship_title,omitempty"`
+	MenteeName        string             `bson:"mentee_name,omitempty" json:"mentee_name,omitempty"`
+	MenteeEmail       string             `bson:"mentee_email,omitempty" json:"mentee_email,omitempty"`
 }
 
 type Availability struct {

@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"km-backend/internal/config"
@@ -32,6 +33,7 @@ type MentorshipService interface {
 	GetUserBookings(ctx context.Context, userID string) ([]Booking, error)
 	GetExpertBookings(ctx context.Context, expertID string) ([]Booking, error)
 	UpdateBookingStatus(ctx context.Context, expertID string, bookingID string, status string) error
+	UpdateMeetingLink(ctx context.Context, expertID string, bookingID string, meetingLink string) error
 
 	// Payment & Checkout methods for F76
 	BookWithWallet(ctx context.Context, userID string, req BookWithWalletRequest) (*Booking, *wallet.WalletSummaryResponse, error)
@@ -443,22 +445,175 @@ func (s *MentorshipServiceImpl) VerifyBookingPayment(ctx context.Context, userID
 }
 
 func (s *MentorshipServiceImpl) GetUserBookings(ctx context.Context, userID string) ([]Booking, error) {
-	return s.repo.ListBookingsByUser(ctx, userID)
+	bookings, err := s.repo.ListBookingsByUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	for i := range bookings {
+		if bookings[i].MentorshipTitle == "" && !bookings[i].MentorshipID.IsZero() {
+			m, _ := s.repo.GetMentorshipByID(ctx, bookings[i].MentorshipID.Hex())
+			if m != nil {
+				bookings[i].MentorshipTitle = m.Title
+			}
+		}
+	}
+	return bookings, nil
 }
 
 func (s *MentorshipServiceImpl) GetExpertBookings(ctx context.Context, expertID string) ([]Booking, error) {
-	return s.repo.ListBookingsByExpert(ctx, expertID)
+	bookings, err := s.repo.ListBookingsByExpert(ctx, expertID)
+	if err != nil {
+		return nil, err
+	}
+	for i := range bookings {
+		if bookings[i].MentorshipTitle == "" && !bookings[i].MentorshipID.IsZero() {
+			m, _ := s.repo.GetMentorshipByID(ctx, bookings[i].MentorshipID.Hex())
+			if m != nil {
+				bookings[i].MentorshipTitle = m.Title
+			}
+		}
+		if bookings[i].MenteeName == "" && !bookings[i].UserID.IsZero() {
+			u, _ := s.userRepo.FindUserByID(ctx, bookings[i].UserID.Hex())
+			if u != nil {
+				name := strings.TrimSpace(u.Name)
+				if name == "" {
+					name = strings.TrimSpace(u.FirstName + " " + u.LastName)
+				}
+				bookings[i].MenteeName = name
+				bookings[i].MenteeEmail = u.Email
+			}
+		}
+	}
+	return bookings, nil
 }
 
+// UpdateBookingStatus updates booking status and manages escrow release or refunds
 func (s *MentorshipServiceImpl) UpdateBookingStatus(ctx context.Context, expertID string, bookingID string, status string) error {
 	b, err := s.repo.GetBookingByID(ctx, bookingID)
 	if err != nil || b == nil {
 		return errors.New("booking not found")
 	}
 	if b.ExpertID.Hex() != expertID {
-		return errors.New("unauthorized")
+		return errors.New("unauthorized: caller is not the session expert")
 	}
+
+	// Idempotency check: if already in target status, do nothing
+	if b.Status == status {
+		return nil
+	}
+
+	// Terminal state guards
+	if b.Status == "completed" {
+		return errors.New("cannot change status of an already completed session")
+	}
+	if b.Status == "cancelled" {
+		return errors.New("cannot change status of a cancelled session")
+	}
+
+	switch status {
+	case "completed":
+		// Session completed: release escrow from mentee's locked_balance to expert's earnings_balance
+		if b.PaymentStatus == "paid" && b.Amount > 0 {
+			// 1. Debit mentee's locked escrow balance
+			releaseInput := wallet.RecordTransactionInput{
+				UserID:        b.UserID,
+				Type:          wallet.TypeDebit,
+				TargetBalance: wallet.BalanceLocked,
+				Category:      wallet.CategorySessionBooking,
+				Amount:        b.Amount,
+				ReferenceID:   fmt.Sprintf("REL_%s_%d", b.ID.Hex()[:min(6, len(b.ID.Hex()))], time.Now().UnixNano()),
+				Description:   fmt.Sprintf("Escrow Release for Session: %s", b.ID.Hex()),
+				Metadata: map[string]interface{}{
+					"booking_id":    b.ID.Hex(),
+					"expert_id":     b.ExpertID.Hex(),
+					"mentee_id":     b.UserID.Hex(),
+					"mentorship_id": b.MentorshipID.Hex(),
+					"action":        "escrow_release",
+				},
+			}
+			if _, _, err := s.walletService.RecordTransaction(ctx, releaseInput); err != nil {
+				return fmt.Errorf("failed to debit locked escrow: %w", err)
+			}
+
+			// 2. Atomically credit expert's earnings balance
+			earnInput := wallet.RecordTransactionInput{
+				UserID:        b.ExpertID,
+				Type:          wallet.TypeCredit,
+				TargetBalance: wallet.BalanceEarnings,
+				Category:      wallet.CategorySessionBooking,
+				Amount:        b.Amount,
+				ReferenceID:   fmt.Sprintf("EARN_%s_%d", b.ID.Hex()[:min(6, len(b.ID.Hex()))], time.Now().UnixNano()),
+				Description:   fmt.Sprintf("Mentorship Session Earnings Credited: %s", b.ID.Hex()),
+				Metadata: map[string]interface{}{
+					"booking_id":    b.ID.Hex(),
+					"mentee_id":     b.UserID.Hex(),
+					"mentorship_id": b.MentorshipID.Hex(),
+					"action":        "expert_earnings",
+				},
+			}
+			if _, _, err := s.walletService.RecordTransaction(ctx, earnInput); err != nil {
+				return fmt.Errorf("failed to credit expert earnings: %w", err)
+			}
+		}
+
+	case "cancelled":
+		// Session cancelled: refund locked escrow back to mentee's main balance
+		if b.PaymentStatus == "paid" && b.Amount > 0 {
+			// 1. Debit mentee's locked balance
+			relLocked := wallet.RecordTransactionInput{
+				UserID:        b.UserID,
+				Type:          wallet.TypeDebit,
+				TargetBalance: wallet.BalanceLocked,
+				Category:      wallet.CategoryRefund,
+				Amount:        b.Amount,
+				ReferenceID:   fmt.Sprintf("REF_LCK_%s_%d", b.ID.Hex()[:min(6, len(b.ID.Hex()))], time.Now().UnixNano()),
+				Description:   fmt.Sprintf("Escrow Refund Release: %s", b.ID.Hex()),
+				Metadata: map[string]interface{}{
+					"booking_id": b.ID.Hex(),
+					"action":     "escrow_refund_release",
+				},
+			}
+			_, _, _ = s.walletService.RecordTransaction(ctx, relLocked)
+
+			// 2. Credit mentee's main balance
+			refundMain := wallet.RecordTransactionInput{
+				UserID:        b.UserID,
+				Type:          wallet.TypeCredit,
+				TargetBalance: wallet.BalanceMain,
+				Category:      wallet.CategoryRefund,
+				Amount:        b.Amount,
+				ReferenceID:   fmt.Sprintf("REF_%s_%d", b.ID.Hex()[:min(6, len(b.ID.Hex()))], time.Now().UnixNano()),
+				Description:   fmt.Sprintf("Mentorship Booking Refund: %s", b.ID.Hex()),
+				Metadata: map[string]interface{}{
+					"booking_id": b.ID.Hex(),
+					"action":     "mentee_refund",
+				},
+			}
+			_, _, _ = s.walletService.RecordTransaction(ctx, refundMain)
+
+			// Update payment status to refunded
+			_ = s.repo.UpdateBookingPayment(ctx, bookingID, "refunded", "", "", "cancelled")
+		}
+
+	case "confirmed":
+		// Confirmed by expert, funds remain securely held in locked escrow
+
+	default:
+		return fmt.Errorf("invalid status transition: %s", status)
+	}
+
 	return s.repo.UpdateBookingStatus(ctx, bookingID, status)
+}
+
+func (s *MentorshipServiceImpl) UpdateMeetingLink(ctx context.Context, expertID string, bookingID string, meetingLink string) error {
+	b, err := s.repo.GetBookingByID(ctx, bookingID)
+	if err != nil || b == nil {
+		return errors.New("booking not found")
+	}
+	if b.ExpertID.Hex() != expertID {
+		return errors.New("unauthorized: caller is not the session expert")
+	}
+	return s.repo.UpdateMeetingLink(ctx, bookingID, meetingLink)
 }
 
 func (s *MentorshipServiceImpl) UpdateAvailability(ctx context.Context, expertID string, req []AvailabilityRequest) error {

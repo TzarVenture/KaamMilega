@@ -187,11 +187,48 @@ func (c *MentorshipController) GetExpertBookings(ctx *fiber.Ctx) error {
 func (c *MentorshipController) UpdateBookingStatus(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	status := ctx.Query("status")
-	expertID := ctx.Locals("user_id").(string)
-	if err := c.service.UpdateBookingStatus(ctx.Context(), expertID, id, status); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	var body struct {
+		Status      string `json:"status"`
+		MeetingLink string `json:"meeting_link"`
 	}
-	return ctx.SendStatus(fiber.StatusOK)
+	if err := ctx.BodyParser(&body); err == nil {
+		if status == "" && body.Status != "" {
+			status = body.Status
+		}
+	}
+	expertID := ctx.Locals("user_id").(string)
+
+	if body.MeetingLink != "" {
+		_ = c.service.UpdateMeetingLink(ctx.Context(), expertID, id, body.MeetingLink)
+	}
+
+	if status != "" {
+		if err := c.service.UpdateBookingStatus(ctx.Context(), expertID, id, status); err != nil {
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+	}
+	return ctx.JSON(fiber.Map{
+		"message": "Booking updated successfully",
+		"status":  status,
+	})
+}
+
+func (c *MentorshipController) UpdateMeetingLink(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	var body struct {
+		MeetingLink string `json:"meeting_link"`
+	}
+	if err := ctx.BodyParser(&body); err != nil || body.MeetingLink == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "meeting_link is required"})
+	}
+	expertID := ctx.Locals("user_id").(string)
+	if err := c.service.UpdateMeetingLink(ctx.Context(), expertID, id, body.MeetingLink); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(fiber.Map{
+		"message":      "Meeting link updated successfully",
+		"meeting_link": body.MeetingLink,
+	})
 }
 
 func (c *MentorshipController) UpdateAvailability(ctx *fiber.Ctx) error {

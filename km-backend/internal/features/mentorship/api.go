@@ -41,6 +41,7 @@ func (api *MentorshipApi) Setup(app *fiber.App) {
 	protected.Get("/bookings/my", api.controller.GetMyBookings)
 	protected.Get("/bookings/expert", api.controller.GetExpertBookings)
 	protected.Patch("/bookings/:id/status", api.controller.UpdateBookingStatus)
+	protected.Patch("/bookings/:id/meeting-link", api.controller.UpdateMeetingLink)
 	
 	// Dynamic ID routes must be defined last
 	app.Get("/api/mentorships/:id", api.controller.GetMentorship)
