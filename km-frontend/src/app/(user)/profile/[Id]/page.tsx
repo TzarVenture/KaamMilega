@@ -14,6 +14,8 @@ import CustomImage from '@/components/ui/CustomImage';
 import Link from 'next/link';
 import Head from 'next/head';
 import { PageHeaderSkeleton, CardGridSkeleton } from '@/components/ui/LoadingSkeleton';
+import TopEmployersWidget from '@/components/profile/TopEmployersWidget';
+import UserAvatar from '@/components/ui/UserAvatar';
 
 const OtherUserProfilePage = () => {
     const params = useParams();
@@ -507,12 +509,8 @@ const OtherUserProfilePage = () => {
                                         return (
                                             <div key={pId || i} className="flex flex-col gap-2.5 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
                                                 <div className="flex gap-3 items-center">
-                                                    <div className="w-11 h-11 bg-slate-800 text-white rounded-full flex items-center justify-center font-bold text-sm overflow-hidden shrink-0">
-                                                        {person.profile_image ? (
-                                                            <CustomImage src={person.profile_image} alt={pName} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <span>{pName.charAt(0).toUpperCase()}</span>
-                                                        )}
+                                                    <div className="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-slate-200">
+                                                        <UserAvatar src={person.profile_image} name={pName} />
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="font-bold text-sm text-gray-900 truncate">{pName}</p>
@@ -561,12 +559,8 @@ const OtherUserProfilePage = () => {
                                         return (
                                             <div key={eId || i} className="flex flex-col gap-2 pb-3 border-b border-gray-100 last:border-0 last:pb-0">
                                                 <div className="flex gap-3 items-center">
-                                                    <div className="w-10 h-10 rounded-full bg-slate-800 text-white font-bold flex items-center justify-center shrink-0 overflow-hidden text-xs">
-                                                        {exp.profile_image ? (
-                                                            <CustomImage src={exp.profile_image} alt={eName} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <span>{eName.charAt(0).toUpperCase()}</span>
-                                                        )}
+                                                    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden border border-slate-200">
+                                                        <UserAvatar src={exp.profile_image} name={eName} />
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="font-bold text-sm text-gray-900 truncate leading-none">{eName}</p>
@@ -587,40 +581,8 @@ const OtherUserProfilePage = () => {
                             </div>
                         </div>
 
-                        {/* Top Employers */}
-                        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="font-bold text-gray-900 text-base">Top Employers</h3>
-                                <Link href="/jobs" className="text-xs font-semibold text-km-primary hover:underline">
-                                    Browse Jobs
-                                </Link>
-                            </div>
-                            <div className="space-y-4">
-                                {sidebarJobs.length > 0 ? (
-                                    sidebarJobs.map((j: any, i: number) => {
-                                        const compName = j.company || j.company_name || 'KaamMilega Partner';
-                                        return (
-                                            <div key={j.id || i} className="flex gap-3 pb-3 border-b border-gray-100 last:border-0 last:pb-0 items-start">
-                                                <div className="w-10 h-10 bg-km-primary/10 border border-km-primary/20 rounded-lg shrink-0 flex items-center justify-center text-km-primary font-bold text-sm">
-                                                    {compName.charAt(0).toUpperCase()}
-                                                </div>
-                                                <div className="min-w-0 flex-1">
-                                                    <p className="font-bold text-sm text-gray-900 truncate">{compName}</p>
-                                                    <p className="text-xs text-gray-500 truncate">{j.location || 'Pan India'}</p>
-                                                    <Link href={`/jobs?search=${encodeURIComponent(compName)}`}>
-                                                        <button className="mt-2 w-full py-1 bg-km-primary text-white rounded-xl text-xs font-bold hover:bg-km-primary-dark transition-colors shadow-xs cursor-pointer">
-                                                            View Openings
-                                                        </button>
-                                                    </Link>
-                                                </div>
-                                            </div>
-                                        );
-                                    })
-                                ) : (
-                                    <p className="text-xs text-gray-400 italic">No companies listed right now.</p>
-                                )}
-                            </div>
-                        </div>
+                        {/* Top Employers Widget */}
+                        <TopEmployersWidget />
 
                     </div>
                 </div>

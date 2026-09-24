@@ -68,3 +68,15 @@ type RecruiterInfo struct {
 	Designation string `json:"designation"`
 	LastActive  string `json:"last_active"` // For simplified display
 }
+
+type TopCompanyResponse struct {
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Logo     string `json:"logo"`
+	Website  string `json:"website,omitempty"`
+	Category string `json:"category,omitempty"`
+	Location string `json:"location,omitempty"`
+	JobCount int    `json:"job_count"`
+	Verified bool   `json:"verified"`
+}
+

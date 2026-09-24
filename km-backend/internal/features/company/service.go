@@ -204,3 +204,42 @@ func (s *CompanyService) DeleteCompany(ctx context.Context, id string) error {
 	// Let's assume we don't delete via this API for now or add DeleteUser
 	return errors.New("delete company not implemented safely")
 }
+
+func (s *CompanyService) GetTopCompanies(ctx context.Context, limit int) ([]TopCompanyResponse, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 10
+	}
+	users, _, err := s.userRepo.FindUsers(ctx, user.UserFilter{
+		Role:  user.RoleRecruiter,
+		Limit: limit,
+	})
+	if err != nil {
+		return []TopCompanyResponse{}, err
+	}
+
+	var top []TopCompanyResponse
+	for _, u := range users {
+		if u.CompanyName != "" {
+			category := u.Headline
+			if category == "" {
+				category = "Enterprise Employer"
+			}
+			location := u.City
+			if location == "" {
+				location = "India"
+			}
+			top = append(top, TopCompanyResponse{
+				ID:       u.ID.Hex(),
+				Name:     u.CompanyName,
+				Logo:     u.CompanyLogo,
+				Website:  u.CompanyWebsite,
+				Category: category,
+				Location: location,
+				JobCount: 1,
+				Verified: u.VerificationStatus == "verified",
+			})
+		}
+	}
+	return top, nil
+}
+
