@@ -42,6 +42,8 @@ type MentorshipService interface {
 
 	UpdateAvailability(ctx context.Context, expertID string, req []AvailabilityRequest) error
 	GetAvailability(ctx context.Context, expertID string) ([]Availability, error)
+
+	SubmitBookingReview(ctx context.Context, userID string, bookingID string, req SubmitBookingReviewRequest) error
 }
 
 type MentorshipServiceImpl struct {
@@ -456,6 +458,18 @@ func (s *MentorshipServiceImpl) GetUserBookings(ctx context.Context, userID stri
 				bookings[i].MentorshipTitle = m.Title
 			}
 		}
+		if !bookings[i].ExpertID.IsZero() {
+			u, _ := s.userRepo.FindUserByID(ctx, bookings[i].ExpertID.Hex())
+			if u != nil {
+				name := strings.TrimSpace(u.Name)
+				if name == "" {
+					name = strings.TrimSpace(u.FirstName + " " + u.LastName)
+				}
+				bookings[i].ExpertName = name
+				bookings[i].ExpertHeadline = u.Headline
+				bookings[i].ExpertImage = u.ProfileImage
+			}
+		}
 	}
 	return bookings, nil
 }
@@ -632,3 +646,25 @@ func (s *MentorshipServiceImpl) UpdateAvailability(ctx context.Context, expertID
 func (s *MentorshipServiceImpl) GetAvailability(ctx context.Context, expertID string) ([]Availability, error) {
 	return s.repo.GetAvailabilityByExpert(ctx, expertID)
 }
+
+func (s *MentorshipServiceImpl) SubmitBookingReview(ctx context.Context, userID string, bookingID string, req SubmitBookingReviewRequest) error {
+	booking, err := s.repo.GetBookingByID(ctx, bookingID)
+	if err != nil || booking == nil {
+		return errors.New("booking not found")
+	}
+
+	if booking.UserID.Hex() != userID {
+		return errors.New("unauthorized to review this booking")
+	}
+
+	if booking.Status != "completed" {
+		return errors.New("can only review completed sessions")
+	}
+
+	if req.Rating < 1 || req.Rating > 5 {
+		return errors.New("rating must be between 1 and 5")
+	}
+
+	return s.repo.UpdateBookingReview(ctx, bookingID, req.Rating, req.Review)
+}
+

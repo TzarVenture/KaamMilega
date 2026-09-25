@@ -44,6 +44,9 @@ type Booking struct {
 	MentorshipTitle   string             `bson:"mentorship_title,omitempty" json:"mentorship_title,omitempty"`
 	MenteeName        string             `bson:"mentee_name,omitempty" json:"mentee_name,omitempty"`
 	MenteeEmail       string             `bson:"mentee_email,omitempty" json:"mentee_email,omitempty"`
+	ExpertName        string             `bson:"expert_name,omitempty" json:"expert_name,omitempty"`
+	ExpertHeadline    string             `bson:"expert_headline,omitempty" json:"expert_headline,omitempty"`
+	ExpertImage       string             `bson:"expert_image,omitempty" json:"expert_image,omitempty"`
 }
 
 type Availability struct {
@@ -117,4 +120,9 @@ type VerifyMentorshipPaymentRequest struct {
 	RazorpayOrderID   string `json:"razorpay_order_id" validate:"required"`
 	RazorpayPaymentID string `json:"razorpay_payment_id" validate:"required"`
 	RazorpaySignature string `json:"razorpay_signature" validate:"required"`
+}
+
+type SubmitBookingReviewRequest struct {
+	Rating float64 `json:"rating" validate:"required,min=1,max=5"`
+	Review string  `json:"review"`
 }

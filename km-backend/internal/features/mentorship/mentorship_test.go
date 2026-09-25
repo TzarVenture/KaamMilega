@@ -142,6 +142,16 @@ func (m *mockMentorshipRepo) UpdateMeetingLink(ctx context.Context, id string, m
 	return nil
 }
 
+func (m *mockMentorshipRepo) UpdateBookingReview(ctx context.Context, id string, rating float64, review string) error {
+	b, ok := m.bookings[id]
+	if !ok {
+		return errors.New("not found")
+	}
+	b.Rating = rating
+	b.Review = review
+	return nil
+}
+
 func (m *mockMentorshipRepo) UpdateAvailability(ctx context.Context, expertID string, availabilities []Availability) error {
 	m.availabilities[expertID] = availabilities
 	return nil
@@ -401,3 +411,63 @@ func TestUpdateBookingStatus_Guards(t *testing.T) {
 		t.Fatalf("expected already completed error, got %v", err)
 	}
 }
+
+func TestSubmitBookingReview(t *testing.T) {
+	mockRepo := newMockMentorshipRepo()
+	mockWallet := newMockWalletService()
+	cfg := &config.Config{}
+
+	svc := &MentorshipServiceImpl{
+		repo:          mockRepo,
+		walletService: mockWallet,
+		cfg:           cfg,
+	}
+
+	ctx := context.Background()
+	expertID := primitive.NewObjectID()
+	menteeID := primitive.NewObjectID()
+	otherUserID := primitive.NewObjectID()
+	bookingID := primitive.NewObjectID()
+
+	booking := &Booking{
+		ID:            bookingID,
+		ExpertID:      expertID,
+		UserID:        menteeID,
+		Amount:        500,
+		Status:        "confirmed",
+		PaymentStatus: "paid",
+	}
+	_, _ = mockRepo.CreateBooking(ctx, booking)
+
+	// 1. Cannot review non-completed session
+	req := SubmitBookingReviewRequest{Rating: 5, Review: "Great mentorship!"}
+	err := svc.SubmitBookingReview(ctx, menteeID.Hex(), bookingID.Hex(), req)
+	if err == nil || err.Error() != "can only review completed sessions" {
+		t.Fatalf("expected can only review completed sessions, got %v", err)
+	}
+
+	// 2. Unauthorized mentee cannot review
+	booking.Status = "completed"
+	err = svc.SubmitBookingReview(ctx, otherUserID.Hex(), bookingID.Hex(), req)
+	if err == nil || err.Error() != "unauthorized to review this booking" {
+		t.Fatalf("expected unauthorized error, got %v", err)
+	}
+
+	// 3. Invalid rating (e.g. 6 or 0)
+	err = svc.SubmitBookingReview(ctx, menteeID.Hex(), bookingID.Hex(), SubmitBookingReviewRequest{Rating: 6, Review: "Too high"})
+	if err == nil || err.Error() != "rating must be between 1 and 5" {
+		t.Fatalf("expected rating out of range error, got %v", err)
+	}
+
+	// 4. Valid review succeeds
+	err = svc.SubmitBookingReview(ctx, menteeID.Hex(), bookingID.Hex(), req)
+	if err != nil {
+		t.Fatalf("expected valid review to succeed, got %v", err)
+	}
+
+	updated, _ := mockRepo.GetBookingByID(ctx, bookingID.Hex())
+	if updated.Rating != 5 || updated.Review != "Great mentorship!" {
+		t.Fatalf("expected rating 5 and review stored, got rating %.1f, review %s", updated.Rating, updated.Review)
+	}
+}
+
