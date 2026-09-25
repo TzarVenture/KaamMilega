@@ -242,11 +242,11 @@ export default function ExpertProSubscriptionPage() {
   const isWalletSufficient = walletBalance >= selectedPlan.price;
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-24 text-slate-800">
+    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800">
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
       {/* Hero Banner */}
-      <section className="bg-linear-to-br from-slate-950 via-[#0a1128] to-[#1a2b8c] text-white py-16 md:py-24 px-6 md:px-12 rounded-b-[40px] md:rounded-b-[60px] relative overflow-hidden">
+      <section className="bg-linear-to-br from-slate-950 via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-[32px] sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
@@ -261,34 +261,18 @@ export default function ExpertProSubscriptionPage() {
               Turn Your Industry Expertise <br className="hidden sm:block" /> Into <span className="text-orange-400">Sustainable Income</span>
             </h1>
 
-            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed mb-8">
+            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed">
               Join vetted tech leaders, managers, and career coaches hosting 1-on-1 mentorship calls. Set your own session prices, keep 100% of your earnings, and rank at the top of India's expert directory.
             </p>
-
-            {/* Quick Proof Badges */}
-            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 text-xs font-semibold text-slate-300 pt-2">
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-xl">
-                <CheckCircle2 size={16} className="text-emerald-400" />
-                <span>Zero Commission on Sessions</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-xl">
-                <CheckCircle2 size={16} className="text-emerald-400" />
-                <span>Instant Bank & UPI Payouts</span>
-              </div>
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 px-3.5 py-1.5 rounded-xl">
-                <CheckCircle2 size={16} className="text-emerald-400" />
-                <span>Verified Pro Golden Badge</span>
-              </div>
-            </div>
           </motion.div>
         </div>
       </section>
 
       {/* Main Content Container */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 -mt-8 relative z-20">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-8 sm:pt-12 md:pt-16 pb-4 sm:pb-6 relative z-10">
         {/* Active Subscription Alert if already subscribed */}
         {activeSub && (
-          <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-8 sm:mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white shrink-0">
                 <Award size={26} />
@@ -318,7 +302,7 @@ export default function ExpertProSubscriptionPage() {
         )}
 
         {/* Plan Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-20 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
           {plans.map((plan) => {
             const isYearly = plan.plan_type === "yearly";
 
