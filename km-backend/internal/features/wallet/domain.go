@@ -29,6 +29,7 @@ const (
 	CategoryWithdrawal     TransactionCategory = "withdrawal"
 	CategoryBonusReward    TransactionCategory = "bonus_reward"
 	CategoryRefund         TransactionCategory = "refund"
+	CategorySubscription   TransactionCategory = "subscription"
 
 	StatusCompleted TransactionStatus = "completed"
 	StatusPending   TransactionStatus = "pending"
