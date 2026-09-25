@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
   Sparkles, CheckCircle2, ShieldCheck, Star, Calendar, 
   ArrowRight, Award, Zap, Users, DollarSign, Wallet, 
-  Clock, ArrowUpRight, HelpCircle, Check, X, ChevronRight, Lock
+  Clock, ArrowUpRight, X, Lock
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -317,42 +317,10 @@ export default function ExpertProSubscriptionPage() {
           </div>
         )}
 
-        {/* Pricing & Plan Switcher */}
-        <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 p-1.5 bg-white border border-slate-200/80 rounded-2xl shadow-sm">
-            <button
-              type="button"
-              onClick={() => setSelectedPlanType("monthly")}
-              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                selectedPlanType === "monthly"
-                  ? "bg-[#1a2b8c] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              Monthly Billing
-            </button>
-            <button
-              type="button"
-              onClick={() => setSelectedPlanType("yearly")}
-              className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                selectedPlanType === "yearly"
-                  ? "bg-[#1a2b8c] text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
-              }`}
-            >
-              <span>Annual Billing</span>
-              <span className="bg-orange-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">
-                Save 25%
-              </span>
-            </button>
-          </div>
-        </div>
-
         {/* Plan Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto mb-20 pt-4">
           {plans.map((plan) => {
             const isYearly = plan.plan_type === "yearly";
-            const isSelected = selectedPlanType === plan.plan_type;
 
             return (
               <div
@@ -416,92 +384,12 @@ export default function ExpertProSubscriptionPage() {
                       : "bg-[#1a2b8c] hover:bg-[#152370] text-white shadow-[#1a2b8c]/20"
                   }`}
                 >
-                  <span>{activeSub ? "Switch to this Plan" : "Upgrade to Pro Expert"}</span>
+                  <span>{activeSub ? "Switch to this Plan" : isYearly ? "Upgrade to Annual" : "Upgrade to Monthly"}</span>
                   <ArrowRight size={15} />
                 </button>
               </div>
             );
           })}
-        </div>
-
-        {/* Feature Comparison Table */}
-        <div className="bg-white rounded-3xl border border-slate-200/80 p-6 md:p-10 mb-16 shadow-xs max-w-4xl mx-auto">
-          <h3 className="text-xl md:text-2xl font-black text-slate-900 text-center mb-2">
-            Why Upgrade to <span className="text-[#1a2b8c]">Pro Expert?</span>
-          </h3>
-          <p className="text-xs text-slate-500 text-center mb-8 max-w-lg mx-auto">
-            Compare standard platform privileges with the verified Pro Expert tier.
-          </p>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 uppercase tracking-wider text-[10px]">
-                  <th className="pb-3 font-black">Feature / Privilege</th>
-                  <th className="pb-3 font-bold text-slate-500 text-center w-28">Free Member</th>
-                  <th className="pb-3 font-black text-[#1a2b8c] text-center w-36">Pro Expert Tier</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                <tr>
-                  <td className="py-3.5 font-bold text-slate-900">Verified Golden Pro Badge</td>
-                  <td className="py-3.5 text-center text-slate-300"><X size={16} className="mx-auto" /></td>
-                  <td className="py-3.5 text-center text-emerald-600 font-bold"><Check size={18} className="mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="py-3.5 font-bold text-slate-900">Host Paid 1-on-1 Mentorship Sessions</td>
-                  <td className="py-3.5 text-center text-slate-300"><X size={16} className="mx-auto" /></td>
-                  <td className="py-3.5 text-center text-emerald-600 font-bold"><Check size={18} className="mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="py-3.5 font-bold text-slate-900">Session Fee Commission</td>
-                  <td className="py-3.5 text-center text-slate-400">N/A</td>
-                  <td className="py-3.5 text-center text-emerald-600 font-black">0% (Keep 100%)</td>
-                </tr>
-                <tr>
-                  <td className="py-3.5 font-bold text-slate-900">Featured Search & Directory Ranking</td>
-                  <td className="py-3.5 text-center text-slate-400">Standard</td>
-                  <td className="py-3.5 text-center text-emerald-600 font-bold">Top Priority</td>
-                </tr>
-                <tr>
-                  <td className="py-3.5 font-bold text-slate-900">Availability Hours & Slot Calendar</td>
-                  <td className="py-3.5 text-center text-slate-300"><X size={16} className="mx-auto" /></td>
-                  <td className="py-3.5 text-center text-emerald-600 font-bold"><Check size={18} className="mx-auto" /></td>
-                </tr>
-                <tr>
-                  <td className="py-3.5 font-bold text-slate-900">Earnings Payouts to Bank / UPI (F71)</td>
-                  <td className="py-3.5 text-center text-slate-300"><X size={16} className="mx-auto" /></td>
-                  <td className="py-3.5 text-center text-emerald-600 font-bold"><Check size={18} className="mx-auto" /></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Frequently Asked Questions */}
-        <div className="max-w-3xl mx-auto mb-12">
-          <h3 className="text-xl md:text-2xl font-black text-slate-900 text-center mb-6">
-            Frequently Asked Questions
-          </h3>
-
-          <div className="space-y-4">
-            <FaqItem
-              question="How do I get paid when candidates book mentorship calls?"
-              answer="Candidates pay for sessions upfront. Funds are held in KaamMilega Escrow during the call. Once you mark the session completed, the fee is credited directly to your Earnings Wallet, which you can withdraw anytime to your Bank account or UPI ID with 0% platform commission."
-            />
-            <FaqItem
-              question="Can I set my own hours and session prices?"
-              answer="Yes! As a Pro Expert, you have full control over your session duration, pricing (from ₹99 to ₹10,000+), and weekly availability slots right from your Expert Mentorship dashboard."
-            />
-            <FaqItem
-              question="Can I pay using my KaamMilega Wallet balance?"
-              answer="Yes. You can subscribe directly using either Razorpay (UPI, Credit/Debit Cards, NetBanking) or your KaamMilega Wallet Main Balance in one click."
-            />
-            <FaqItem
-              question="Can I cancel or renew my subscription?"
-              answer="Your subscription remains active for the full paid period (30 days for monthly, 365 days for annual). You can manage or switch plans anytime."
-            />
-          </div>
         </div>
       </section>
 
@@ -670,27 +558,6 @@ export default function ExpertProSubscriptionPage() {
         )}
       </AnimatePresence>
     </main>
-  );
-}
-
-function FaqItem({ question, answer }: { question: string; answer: string }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="bg-white border border-slate-200/80 rounded-2xl overflow-hidden shadow-2xs">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="w-full p-4 md:p-5 text-left flex items-center justify-between gap-4 font-bold text-xs md:text-sm text-slate-900 cursor-pointer"
-      >
-        <span>{question}</span>
-        <ChevronRight size={16} className={`transition-transform duration-200 text-slate-400 shrink-0 ${open ? "rotate-90" : ""}`} />
-      </button>
-      {open && (
-        <div className="px-4 md:px-5 pb-5 pt-1 text-xs text-slate-600 leading-relaxed border-t border-slate-50">
-          {answer}
-        </div>
-      )}
-    </div>
   );
 }
 
