@@ -66,7 +66,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
         )}
 
         {/* Profile Image Container */}
-        <div className="relative w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden bg-[#0D1B5E] flex items-center justify-center shadow-inner">
+        <div className="relative w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden bg-[#071A4D] flex items-center justify-center shadow-inner">
           {imageUrl ? (
             <CustomImage
               src={imageUrl}

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { Info, Loader2, AlertCircle } from 'lucide-react';
 
 interface ProfessionModalProps {
     isOpen: boolean;
@@ -168,8 +168,8 @@ const ProfessionModal = ({
                 </div>
 
                 {/* Info Note */}
-                <div className="flex items-start gap-2.5 p-3.5 bg-purple-50/70 border border-purple-100 text-purple-900 rounded-2xl text-xs">
-                    <Sparkles size={16} className="text-purple-600 shrink-0 mt-0.5" />
+                <div className="flex items-start gap-2.5 p-3.5 bg-blue-50/70 border border-blue-100 text-blue-900 rounded-2xl text-xs">
+                    <Info size={16} className="text-km-primary shrink-0 mt-0.5" />
                     <span>
                         This profession/skill will be instantly available in the candidate profile search, recruiter job creation filters, and InstantMilega gig dispatch categories.
                     </span>

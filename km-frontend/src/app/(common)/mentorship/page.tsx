@@ -97,8 +97,8 @@ export default function MentorshipPage() {
 
   return (
     <main className="min-h-screen bg-[#fafafa] pb-20">
-      {/* Clean Marketing Hero Section */}
-      <section className="bg-linear-to-br from-slate-950 via-[#0a1128] to-[#1a2b8c] text-white py-16 md:py-24 px-6 md:px-12 rounded-b-[40px] md:rounded-b-[60px] relative overflow-hidden">
+      {/* Hero Section */}
+      <section className="bg-linear-to-br from-slate-950 via-[#071A4D] to-[#0B5ED7] text-white py-16 md:py-24 px-6 md:px-12 rounded-b-[40px] md:rounded-b-[60px] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
         
@@ -114,7 +114,7 @@ export default function MentorshipPage() {
             </div>
             
             <h1 className="text-3xl md:text-6xl font-black mb-4 md:mb-6 leading-tight">
-              Unlock Your Potential with <br className="hidden md:block" /> <span className="text-orange-400">Expert Mentorship</span>
+              Unlock Your Potential with <br className="hidden md:block" /> <span className="text-km-accent">Expert Mentorship</span>
             </h1>
             <p className="text-sm md:text-lg text-slate-300 mb-6 md:mb-10 max-w-2xl leading-relaxed">
               Connect with vetted industry leaders and accelerate your career growth with personalized 1-on-1 sessions.
@@ -126,14 +126,14 @@ export default function MentorshipPage() {
                 <input 
                   type="text" 
                   placeholder="Search by mentor name or topic..." 
-                  className="w-full bg-white text-slate-900 py-3 md:py-4 pl-12 pr-4 rounded-xl md:rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#1a2b8c] transition-all font-medium text-sm md:text-base shadow-sm"
+                  className="w-full bg-white text-slate-900 py-3 md:py-4 pl-12 pr-4 rounded-xl md:rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary transition-all font-medium text-sm md:text-base shadow-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <button 
                 type="button"
-                className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all shadow-lg shadow-orange-500/20 active:scale-95 whitespace-nowrap text-sm md:text-base cursor-pointer"
+                className="bg-km-accent hover:bg-km-accent-light text-white px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all shadow-lg shadow-orange-500/20 active:scale-95 whitespace-nowrap text-sm md:text-base cursor-pointer"
               >
                 Find My Mentor
               </button>
@@ -151,7 +151,7 @@ export default function MentorshipPage() {
               onClick={() => setSelectedCategory(cat)}
               className={`px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat 
-                  ? 'bg-[#1a2b8c] text-white shadow-xs' 
+                  ? 'bg-km-primary text-white shadow-xs' 
                   : 'text-slate-600 hover:bg-slate-50'
               }`}
             >
@@ -247,16 +247,16 @@ export default function MentorshipPage() {
         <div className="bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-200/80 flex flex-col md:flex-row items-center gap-10">
             <div className="md:w-1/2">
                 <h2 className="text-2xl md:text-4xl font-black text-slate-900 mb-6 leading-tight">
-                    Why Choose <span className="text-[#1a2b8c]">KaamMilega Mentors?</span>
+                    Why Choose <span className="text-km-primary">KaamMilega Mentors?</span>
                 </h2>
                 <div className="space-y-4">
                     <BenefitItem 
-                        icon={<Award className="text-orange-500" />} 
+                        icon={<Award className="text-km-accent" />} 
                         title="Vetted Industry Leaders" 
                         desc="All mentors undergo a screening process to ensure practical, quality guidance." 
                     />
                     <BenefitItem 
-                        icon={<MessageSquare className="text-blue-600" />} 
+                        icon={<MessageSquare className="text-km-blue" />} 
                         title="Interactive 1-on-1 Sessions" 
                         desc="Engage in meaningful conversations and get answers to your specific career questions." 
                     />
@@ -269,7 +269,7 @@ export default function MentorshipPage() {
             </div>
             <div className="md:w-1/2 flex justify-center">
                 <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm max-w-sm w-full space-y-4 text-center">
-                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto text-[#1a2b8c]">
+                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto text-km-primary">
                         <Users size={32} />
                     </div>
                     <h3 className="text-lg font-bold text-slate-900">Are You an Industry Expert?</h3>
@@ -278,7 +278,7 @@ export default function MentorshipPage() {
                     </p>
                     <Link
                       href="/expert/apply"
-                      className="inline-block w-full py-3 bg-[#1a2b8c] hover:bg-[#152370] text-white text-xs font-bold rounded-xl transition shadow-xs"
+                      className="inline-block w-full py-3 bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold rounded-xl transition shadow-xs"
                     >
                       Apply to Become a Mentor
                     </Link>
@@ -308,16 +308,16 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
              {expert?.profile_image ? (
                <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
              ) : (
-               <span className="text-[#1a2b8c] font-black text-lg md:text-xl">{expertInitial}</span>
+               <span className="text-km-primary font-black text-lg md:text-xl">{expertInitial}</span>
              )}
           </div>
-          <span className="bg-blue-50 text-[#1a2b8c] text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue-100">
+          <span className="bg-blue-50 text-km-primary text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue-100">
             {mentorship?.category || "Mentorship"}
           </span>
         </div>
  
         <Link href={`/mentorship/${mentorship?.id}`}>
-          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-1.5 group-hover:text-[#1a2b8c] transition-colors line-clamp-2 min-h-[44px]">
+          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-1.5 group-hover:text-km-primary transition-colors line-clamp-2 min-h-[44px]">
             {mentorship?.title}
           </h3>
         </Link>
@@ -327,7 +327,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
  
         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 mt-auto">
           <div className="flex items-center gap-1.5 text-slate-500">
-            <Clock size={14} className="text-[#1a2b8c]" />
+            <Clock size={14} className="text-km-primary" />
             <span className="text-xs font-semibold">{mentorship?.duration || 45} Mins</span>
           </div>
           <div className="flex items-center gap-1.5 text-slate-500">
@@ -345,7 +345,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
         <Link href={`/mentorship/${mentorship?.id}`}>
           <button 
             type="button"
-            className="bg-[#1a2b8c] hover:bg-[#152370] text-white px-4 md:px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
+            className="bg-km-primary hover:bg-km-primary-dark text-white px-4 md:px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <span>Book Session</span> 
             <ChevronRight size={14} />

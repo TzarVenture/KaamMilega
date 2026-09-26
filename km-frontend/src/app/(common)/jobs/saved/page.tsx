@@ -177,7 +177,7 @@ export default function SavedJobsPage() {
                                     </Link>
                                     <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-4 flex items-center gap-2">
                                         <span>{job.company}</span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-km-primary animate-pulse" />
+                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                                         <span className="text-km-primary italic font-bold">Saved Job</span>
                                     </p>
 

@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Star, Clock, Calendar, CheckCircle, ChevronLeft, 
   Award, Users, CalendarDays, ShieldCheck, 
-  MessageCircle, AlertCircle, Sparkles, Check,
+  MessageCircle, AlertCircle, BookOpen, Check,
   Wallet, CreditCard, X, ArrowRight, ExternalLink,
   Lock, Zap, HelpCircle
 } from 'lucide-react';
@@ -271,7 +271,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
           }
         },
         theme: {
-          color: '#1a2b8c',
+          color: '#071A4D',
         },
         modal: {
           ondismiss: function () {
@@ -296,7 +296,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#1a2b8c] border-t-transparent rounded-full animate-spin" />
+        <div className="w-12 h-12 border-4 border-km-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
@@ -311,7 +311,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
         <p className="text-sm text-slate-500 mb-6">This mentorship session may be inactive or unavailable.</p>
         <Link 
           href="/mentorship" 
-          className="px-5 py-2.5 bg-[#1a2b8c] text-white text-xs font-bold rounded-xl hover:bg-[#152370] transition shadow-xs"
+          className="px-5 py-2.5 bg-km-primary text-white text-xs font-bold rounded-xl hover:bg-km-primary-dark transition shadow-xs"
         >
           ← Back to Mentorships
         </Link>
@@ -334,7 +334,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-10">
         <Link 
           href="/mentorship" 
-          className="inline-flex items-center gap-2 text-slate-500 hover:text-[#1a2b8c] font-bold mb-6 md:mb-8 transition-all text-sm md:text-base"
+          className="inline-flex items-center gap-2 text-slate-500 hover:text-km-primary font-bold mb-6 md:mb-8 transition-all text-sm md:text-base"
         >
           <ChevronLeft size={18} className="md:w-5 md:h-5" /> 
           <span>Back to Mentorships</span>
@@ -346,7 +346,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             {/* Header Card */}
             <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xs border border-slate-200/80 relative overflow-hidden">
                 <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-4 md:mb-6">
-                   <span className="bg-blue-50 text-[#1a2b8c] text-[10px] md:text-xs font-extrabold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-blue-100">
+                   <span className="bg-blue-50 text-km-primary text-[10px] md:text-xs font-extrabold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-blue-100">
                      {mentorship.category || "Mentorship"}
                    </span>
                    <div className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
@@ -362,7 +362,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                 </h1>
 
                 <div className="flex flex-wrap gap-4 md:gap-8 pt-2 border-t border-slate-100">
-                    <InfoItem icon={<Clock className="text-[#1a2b8c]" size={18} />} label="Duration" value={`${mentorship.duration || 45} Mins`} />
+                    <InfoItem icon={<Clock className="text-km-primary" size={18} />} label="Duration" value={`${mentorship.duration || 45} Mins`} />
                     <InfoItem icon={<Users className="text-emerald-600" size={18} />} label="Session Format" value="1-on-1 Dedicated" />
                     <InfoItem icon={<MessageCircle className="text-orange-500" size={18} />} label="Languages" value="Hindi / English" />
                 </div>
@@ -371,7 +371,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             {/* About the Session */}
             <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xs border border-slate-200/80">
                <h2 className="text-lg md:text-xl font-bold text-slate-900 mb-4 md:mb-6 flex items-center gap-2">
-                  <Sparkles size={18} className="text-orange-500" />
+                  <BookOpen size={18} className="text-km-accent" />
                   <span>About this Mentorship Session</span>
                </h2>
                <div className="text-slate-600 text-sm md:text-base leading-relaxed space-y-4">
@@ -395,7 +395,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             </div>
 
             {/* Meet Your Mentor Card */}
-            <div className="bg-linear-to-br from-slate-950 via-[#0f1d5e] to-[#1a2b8c] text-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xl shadow-blue-950/20 relative overflow-hidden">
+            <div className="bg-linear-to-br from-slate-950 via-[#071A4D] to-[#0B5ED7] text-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xl shadow-blue-950/20 relative overflow-hidden">
                 <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
                 
                 <h2 className="text-lg md:text-xl font-bold mb-6 text-white flex items-center gap-2">
@@ -407,7 +407,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                        {expert?.profile_image ? (
                            <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
                        ) : (
-                           <div className="w-full h-full bg-[#1a2b8c] flex items-center justify-center text-2xl font-black text-white">
+                           <div className="w-full h-full bg-km-primary flex items-center justify-center text-2xl font-black text-white">
                              {expertInitial}
                            </div>
                        )}
@@ -463,7 +463,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     <div>
                         <div className="flex items-center justify-between mb-3">
                           <label className="text-xs font-bold text-slate-900 uppercase flex items-center gap-1.5">
-                             <CalendarDays size={15} className="text-[#1a2b8c]" />
+                             <CalendarDays size={15} className="text-km-primary" />
                              <span>Select Date</span>
                           </label>
                           <span className="text-[11px] text-slate-400 font-medium">Next 7 Days</span>
@@ -483,7 +483,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                                         onClick={() => handleDateSelect(d)}
                                         className={`flex flex-col items-center p-2 rounded-2xl border transition-all cursor-pointer active:scale-95 ${
                                             isSelected 
-                                              ? 'bg-[#1a2b8c] border-[#1a2b8c] text-white shadow-md shadow-blue-900/20' 
+                                              ? 'bg-km-primary border-km-primary text-white shadow-md shadow-blue-900/20' 
                                               : isAvail
                                                 ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 hover:border-slate-300'
                                                 : 'bg-slate-100/50 border-slate-100 text-slate-400 opacity-60'
@@ -507,7 +507,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     {/* Time Slot Display based on Expert's Own Timing */}
                     <div>
                         <label className="text-xs font-bold text-slate-900 uppercase mb-2 flex items-center gap-1.5">
-                           <Clock size={15} className="text-[#1a2b8c]" />
+                           <Clock size={15} className="text-km-primary" />
                            <span>Expert's Available Time</span>
                         </label>
 
@@ -518,15 +518,15 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                                     onClick={() => setSelectedSlot(currentDayAvail.start_time)}
                                     className={`w-full py-3 px-4 rounded-xl text-center text-xs font-bold border transition-all cursor-pointer flex items-center justify-between ${
                                         selectedSlot === currentDayAvail.start_time
-                                            ? 'bg-blue-50 border-[#1a2b8c] text-[#1a2b8c] ring-2 ring-[#1a2b8c]/20'
+                                            ? 'bg-blue-50 border-km-primary text-km-primary ring-2 ring-km-primary/20'
                                             : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                                     }`}
                                 >
                                     <span className="flex items-center gap-2">
-                                      <Clock size={14} className="text-[#1a2b8c]" />
+                                      <Clock size={14} className="text-km-primary" />
                                       <span>Session Window: {currentDayAvail.start_time} – {currentDayAvail.end_time}</span>
                                     </span>
-                                    <span className="text-[10px] font-black uppercase bg-[#1a2b8c] text-white px-2 py-0.5 rounded-md">
+                                    <span className="text-[10px] font-black uppercase bg-km-primary text-white px-2 py-0.5 rounded-md">
                                       Active Slot
                                     </span>
                                 </button>
@@ -548,7 +548,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                            Topics to Discuss <span className="text-slate-400 font-medium">(Optional)</span>
                         </label>
                         <textarea 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs md:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#1a2b8c] transition-all font-medium min-h-[80px]"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs md:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-km-primary transition-all font-medium min-h-[80px]"
                             placeholder="Share your goals, challenges, or questions for this session..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
@@ -560,7 +560,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                         type="button"
                         onClick={handleOpenCheckout}
                         disabled={!currentDayAvail}
-                        className="w-full bg-[#1a2b8c] hover:bg-[#152370] text-white py-3.5 md:py-4 rounded-xl font-bold transition-all shadow-md shadow-blue-900/20 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer text-xs md:text-sm flex items-center justify-center gap-2"
+                        className="w-full bg-km-primary hover:bg-km-primary-dark text-white py-3.5 md:py-4 rounded-xl font-bold transition-all shadow-md shadow-blue-900/20 active:scale-95 disabled:opacity-50 disabled:pointer-events-none cursor-pointer text-xs md:text-sm flex items-center justify-center gap-2"
                     >
                         <span>Book Session (₹{sessionPrice})</span>
                         <ArrowRight size={16} />
@@ -574,7 +574,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             </div>
 
             <div className="bg-blue-50/60 rounded-2xl p-5 border border-blue-100/80 flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 text-[#1a2b8c] rounded-xl flex items-center justify-center shrink-0">
+                <div className="w-10 h-10 bg-blue-100 text-km-primary rounded-xl flex items-center justify-center shrink-0">
                     <ShieldCheck size={20} />
                 </div>
                 <div>
@@ -598,7 +598,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
               className="bg-white w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 overflow-hidden relative max-h-[92vh] flex flex-col"
             >
               {/* Modal Header */}
-              <div className="bg-linear-to-r from-[#1a2b8c] to-[#0f1d5e] text-white px-6 py-5 flex items-center justify-between shrink-0">
+              <div className="bg-linear-to-r from-[#071A4D] to-[#0B5ED7] text-white px-6 py-5 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center border border-white/20">
                     <ShieldCheck size={18} className="text-emerald-400" />
@@ -623,7 +623,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1a2b8c] bg-blue-100/60 px-2 py-0.5 rounded-md">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-km-primary bg-blue-100/60 px-2 py-0.5 rounded-md">
                         {mentorship.category || "Mentorship"}
                       </span>
                       <h4 className="font-bold text-slate-900 text-sm mt-1 leading-snug">
@@ -641,7 +641,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
                   <div className="pt-2.5 border-t border-slate-200/60 grid grid-cols-2 gap-2 text-xs">
                     <div className="flex items-center gap-1.5 text-slate-600 font-medium">
-                      <Calendar size={13} className="text-[#1a2b8c]" />
+                      <Calendar size={13} className="text-km-primary" />
                       <span>{selectedDate?.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
                     </div>
                     <div className="flex items-center gap-1.5 text-slate-600 font-medium">
@@ -663,14 +663,14 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                       onClick={() => !paymentProcessing && setPaymentMethod('wallet')}
                       className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${
                         paymentMethod === 'wallet' 
-                          ? 'border-[#1a2b8c] bg-blue-50/40 shadow-xs' 
+                          ? 'border-km-primary bg-blue-50/40 shadow-xs' 
                           : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                            paymentMethod === 'wallet' ? 'bg-[#1a2b8c] text-white' : 'bg-slate-100 text-slate-600'
+                            paymentMethod === 'wallet' ? 'bg-km-primary text-white' : 'bg-slate-100 text-slate-600'
                           }`}>
                             <Wallet size={20} />
                           </div>
@@ -688,7 +688,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                         </div>
 
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${
-                          paymentMethod === 'wallet' ? 'border-[#1a2b8c] bg-[#1a2b8c]' : 'border-slate-300'
+                          paymentMethod === 'wallet' ? 'border-km-primary bg-km-primary' : 'border-slate-300'
                         }`}>
                           {paymentMethod === 'wallet' && <div className="w-2 h-2 rounded-full bg-white" />}
                         </div>
@@ -704,7 +704,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                           <Link 
                             href="/wallet" 
                             target="_blank"
-                            className="text-[#1a2b8c] font-bold hover:underline flex items-center gap-1"
+                            className="text-km-primary font-bold hover:underline flex items-center gap-1"
                           >
                             <span>Top Up Wallet</span>
                             <ExternalLink size={12} />
@@ -718,21 +718,21 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                       onClick={() => !paymentProcessing && setPaymentMethod('razorpay')}
                       className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${
                         paymentMethod === 'razorpay' 
-                          ? 'border-[#1a2b8c] bg-blue-50/40 shadow-xs' 
+                          ? 'border-km-primary bg-blue-50/40 shadow-xs' 
                           : 'border-slate-200 hover:border-slate-300 bg-white'
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                            paymentMethod === 'razorpay' ? 'bg-[#1a2b8c] text-white' : 'bg-slate-100 text-slate-600'
+                            paymentMethod === 'razorpay' ? 'bg-km-primary text-white' : 'bg-slate-100 text-slate-600'
                           }`}>
                             <CreditCard size={20} />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-slate-900 text-sm">UPI, Cards & NetBanking</span>
-                              <span className="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-[#1a2b8c] px-1.5 py-0.5 rounded">
+                              <span className="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-km-primary px-1.5 py-0.5 rounded">
                                 Razorpay
                               </span>
                             </div>
@@ -743,7 +743,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                         </div>
 
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${
-                          paymentMethod === 'razorpay' ? 'border-[#1a2b8c] bg-[#1a2b8c]' : 'border-slate-300'
+                          paymentMethod === 'razorpay' ? 'border-km-primary bg-km-primary' : 'border-slate-300'
                         }`}>
                           {paymentMethod === 'razorpay' && <div className="w-2 h-2 rounded-full bg-white" />}
                         </div>
@@ -778,7 +778,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                       type="button"
                       onClick={handleWalletPayment}
                       disabled={paymentProcessing}
-                      className="flex-1 bg-[#1a2b8c] hover:bg-[#152370] text-white py-3 px-5 rounded-xl font-bold text-xs md:text-sm transition shadow-md shadow-blue-900/20 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                      className="flex-1 bg-km-primary hover:bg-km-primary-dark text-white py-3 px-5 rounded-xl font-bold text-xs md:text-sm transition shadow-md shadow-blue-900/20 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                     >
                       {paymentProcessing ? (
                         <>
@@ -807,7 +807,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     type="button"
                     onClick={handleRazorpayPayment}
                     disabled={paymentProcessing}
-                    className="flex-1 bg-[#1a2b8c] hover:bg-[#152370] text-white py-3 px-5 rounded-xl font-bold text-xs md:text-sm transition shadow-md shadow-blue-900/20 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    className="flex-1 bg-km-primary hover:bg-km-primary-dark text-white py-3 px-5 rounded-xl font-bold text-xs md:text-sm transition shadow-md shadow-blue-900/20 active:scale-95 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
                   >
                     {paymentProcessing ? (
                       <>
@@ -887,7 +887,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
               <div className="space-y-2.5">
                 <Link
                   href="/wallet"
-                  className="w-full bg-[#1a2b8c] hover:bg-[#152370] text-white py-3 rounded-xl font-bold text-xs md:text-sm transition shadow-md shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-2"
+                  className="w-full bg-km-primary hover:bg-km-primary-dark text-white py-3 rounded-xl font-bold text-xs md:text-sm transition shadow-md shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-2"
                 >
                   <Wallet size={15} />
                   <span>View Wallet & Escrow Ledger</span>

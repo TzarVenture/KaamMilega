@@ -1249,7 +1249,7 @@ const ProfilePage = () => {
                 <div className="lg:col-span-4 space-y-6">
 
                     {/* Wallet Card */}
-                    <div className="bg-linear-to-br from-km-primary-dark via-[#0D1B5E] to-slate-900 rounded-xl p-5 sm:p-6 text-white flex justify-between items-center shadow-lg border border-blue-900/40">
+                    <div className="bg-linear-to-br from-km-primary-dark via-[#071A4D] to-slate-900 rounded-xl p-5 sm:p-6 text-white flex justify-between items-center shadow-lg border border-blue-900/40">
                         <div>
                             <p className="text-xs font-medium text-blue-200">Wallet Balance</p>
                             <p className="text-2xl sm:text-3xl font-black mt-1">₹{walletBalance.toFixed(2)}</p>

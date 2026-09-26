@@ -361,7 +361,7 @@ const EventDetailsPage = () => {
                         className="w-full h-full object-cover opacity-60"
                     />
                 ) : (
-                    <div className="w-full h-full bg-linear-to-br from-slate-950 via-[#0D1B5E] to-slate-950 flex items-center justify-center">
+                    <div className="w-full h-full bg-linear-to-br from-slate-950 via-[#071A4D] to-slate-950 flex items-center justify-center">
                         <div className="w-24 h-24 bg-km-accent/20 rounded-2xl flex items-center justify-center">
                             <Calendar size={48} className="text-km-accent" />
                         </div>

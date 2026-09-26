@@ -7,7 +7,6 @@ import {
     Trash2,
     Edit2,
     GraduationCap,
-    Sparkles,
     Loader2,
     RefreshCw,
     FolderTree,
