@@ -2,6 +2,8 @@ package application
 
 import (
 	"context"
+	"log"
+	"strings"
 
 	"km-backend/internal/features/job"
 	"km-backend/internal/features/notification"
@@ -221,14 +223,20 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id str
 		return nil, err
 	}
 
-	// 2. Fetch candidate and check their notification settings
+	// 2. Fetch candidate and check notification settings
 	candidate, err := s.userRepo.FindUserByID(ctx, updated.CandidateID.Hex())
 	if err != nil || candidate == nil {
 		// Notification failure is non-fatal: return the updated application
 		return updated, nil
 	}
 
-	if candidate.Settings.EmailApplicationUpdates && candidate.Email != "" {
+	// Transactional status notifications are enabled by default unless user explicitly opted out
+	emailUpdatesEnabled := true
+	if candidate.Settings.ProfileVisibility != "" {
+		emailUpdatesEnabled = candidate.Settings.EmailApplicationUpdates
+	}
+
+	if emailUpdatesEnabled && candidate.Email != "" {
 		jobTitle := "your applied position"
 		company := ""
 		if jobInfo, jerr := s.jobRepo.FindByID(ctx, updated.JobID.Hex()); jerr == nil && jobInfo != nil {
@@ -236,17 +244,36 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id str
 			company = jobInfo.Company
 		}
 
+		candidateName := strings.TrimSpace(candidate.Name)
+		if candidateName == "" {
+			candidateName = strings.TrimSpace(candidate.FirstName + " " + candidate.LastName)
+		}
+		if candidateName == "" {
+			candidateName = "Candidate"
+		}
+
 		// Fire-and-forget via centralized mailer — non-fatal
 		go func() {
-			_ = s.mailer.SendApplicationUpdate(notification.ApplicationUpdateParams{
+			if s.mailer == nil {
+				log.Printf("[ApplicationNotification] Mailer is nil, skipping status email to %s", candidate.Email)
+				return
+			}
+			merr := s.mailer.SendApplicationUpdate(notification.ApplicationUpdateParams{
 				ToEmail:       candidate.Email,
-				CandidateName: candidate.Name,
+				CandidateName: candidateName,
 				JobTitle:      jobTitle,
 				CompanyName:   company,
 				NewStatus:     status,
 				ActionURL:     "https://kaammilega.com/applications",
 			})
+			if merr != nil {
+				log.Printf("[ApplicationNotification] Failed to send status email to %s: %v", candidate.Email, merr)
+			} else {
+				log.Printf("[ApplicationNotification] Status update email sent successfully to %s for '%s' -> %s", candidate.Email, jobTitle, status)
+			}
 		}()
+	} else if candidate.Email == "" {
+		log.Printf("[ApplicationNotification] Candidate %s has no email address, skipping email notification", candidate.ID.Hex())
 	}
 
 	return updated, nil
