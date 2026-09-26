@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/features/notification"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -13,7 +14,7 @@ import (
 func setupDisputeTestEnv() (*mockWalletRepository, WalletService, string, primitive.ObjectID) {
 	mockRepo := &mockWalletRepository{}
 	cfg := &config.Config{Port: "8000"}
-	svc := NewWalletService(mockRepo, cfg)
+	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg))
 
 	userOID := primitive.NewObjectID()
 	userID := userOID.Hex()

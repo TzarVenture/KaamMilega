@@ -2,12 +2,9 @@ package application
 
 import (
 	"context"
-	"crypto/tls"
-	"fmt"
-	"net/smtp"
-	"os"
 
 	"km-backend/internal/features/job"
+	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,13 +15,21 @@ type ApplicationService struct {
 	repo     ApplicationRepository
 	jobRepo  job.JobRepository
 	userRepo user.UserRepository
+	mailer   notification.Mailer
 }
 
-func NewApplicationService(repo ApplicationRepository, jobRepo job.JobRepository, userRepo user.UserRepository) *ApplicationService {
+// NewApplicationService constructs the service with a Mailer injected by the DI container.
+func NewApplicationService(
+	repo ApplicationRepository,
+	jobRepo job.JobRepository,
+	userRepo user.UserRepository,
+	mailer notification.Mailer,
+) *ApplicationService {
 	return &ApplicationService{
 		repo:     repo,
 		jobRepo:  jobRepo,
 		userRepo: userRepo,
+		mailer:   mailer,
 	}
 }
 
@@ -224,128 +229,27 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id str
 	}
 
 	if candidate.Settings.EmailApplicationUpdates && candidate.Email != "" {
-		// Fetch job title for a meaningful notification
 		jobTitle := "your applied position"
+		company := ""
 		if jobInfo, jerr := s.jobRepo.FindByID(ctx, updated.JobID.Hex()); jerr == nil && jobInfo != nil {
 			jobTitle = jobInfo.Title
+			company = jobInfo.Company
 		}
 
-		// Fire-and-forget: log on error but don't fail the status update
+		// Fire-and-forget via centralized mailer — non-fatal
 		go func() {
-			_ = sendApplicationUpdateEmail(candidate.Email, candidate.Name, jobTitle, status)
+			_ = s.mailer.SendApplicationUpdate(notification.ApplicationUpdateParams{
+				ToEmail:       candidate.Email,
+				CandidateName: candidate.Name,
+				JobTitle:      jobTitle,
+				CompanyName:   company,
+				NewStatus:     status,
+				ActionURL:     "https://kaammilega.com/applications",
+			})
 		}()
 	}
 
 	return updated, nil
 }
 
-// sendApplicationUpdateEmail dispatches a transactional email to a candidate informing
-// them that their application status has changed. It uses the same SES SMTP relay as
-// the rest of the platform. If SMTP is not configured, the call is silently a no-op.
-func sendApplicationUpdateEmail(toEmail, candidateName, jobTitle, newStatus string) error {
-	smtpHost := getenv("SMTP_HOST")
-	smtpPort := getenv("SMTP_PORT")
-	smtpUser := getenv("SMTP_USERNAME")
-	smtpPass := getenv("SMTP_PASSWORD")
-	fromEmail := getenv("SMTP_FROM_EMAIL")
-	fromName := getenvDefault("SMTP_FROM_NAME", "KaamMilega")
-
-	if smtpHost == "" || smtpUser == "" || smtpPass == "" {
-		return nil // SMTP not configured — skip silently
-	}
-
-	name := candidateName
-	if name == "" {
-		name = "Candidate"
-	}
-
-	subject := "Application Update — " + jobTitle
-	body := fmt.Sprintf(`<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background:#f8fafc;padding:40px 16px;">
-    <tr><td align="center">
-      <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="max-width:520px;background:#fff;border-radius:24px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 10px 25px -5px rgba(91,33,104,.08);">
-        <tr><td style="background:#5b2168;height:6px;"></td></tr>
-        <tr><td style="padding:32px 32px 24px;text-align:center;">
-          <div style="display:inline-block;background:#5b2168;color:#fff;font-size:18px;font-weight:900;width:44px;height:44px;line-height:44px;border-radius:12px;text-align:center;">KM</div>
-          <h1 style="color:#0f172a;font-size:22px;font-weight:800;margin:16px 0 4px;letter-spacing:-.5px;">KaamMilega</h1>
-          <p style="color:#64748b;font-size:13px;font-weight:600;margin:0;text-transform:uppercase;letter-spacing:1px;">Application Status Update</p>
-        </td></tr>
-        <tr><td style="padding:0 32px 32px;color:#334155;font-size:15px;line-height:1.6;">
-          <p style="margin:0 0 16px;">Hi %s,</p>
-          <p style="margin:0 0 24px;color:#475569;">Your application for <strong>%s</strong> has been updated. Your current status is:</p>
-          <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;">
-            <tr><td align="center" style="background:#faf5ff;border:2px dashed #d8b4fe;border-radius:16px;padding:20px;">
-              <div style="font-size:22px;font-weight:900;color:#5b2168;letter-spacing:2px;">%s</div>
-            </td></tr>
-          </table>
-          <p style="margin:0;color:#94a3b8;font-size:13px;">If you have questions, please contact the recruiter directly through the platform. You can manage your notification preferences in <a href="https://kaammilega.com/settings" style="color:#5b2168;">Account Settings</a>.</p>
-        </td></tr>
-        <tr><td style="padding:20px 32px;background:#f8fafc;border-top:1px solid #f1f5f9;text-align:center;color:#94a3b8;font-size:12px;">&copy; 2026 KaamMilega Platform. All rights reserved.</td></tr>
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`, name, jobTitle, newStatus)
-
-	return sendAppSMTPEmail(smtpHost, smtpPort, smtpUser, smtpPass, fromEmail, fromName, toEmail, subject, body)
-}
-
-// getenv is a local helper to read an OS environment variable.
-func getenv(key string) string {
-	return os.Getenv(key)
-}
-
-func getenvDefault(key, def string) string {
-	v := os.Getenv(key)
-	if v == "" {
-		return def
-	}
-	return v
-}
-
-// sendAppSMTPEmail sends an HTML email via SES-compatible SMTP (mirrors user/service.go sendSESEmail).
-func sendAppSMTPEmail(smtpHost, smtpPort, username, password, fromEmail, fromName, toEmail, subject, body string) error {
-	addr := fmt.Sprintf("%s:%s", smtpHost, smtpPort)
-	auth := smtp.PlainAuth("", username, password, smtpHost)
-
-	header := fmt.Sprintf(
-		"From: %s <%s>\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n",
-		fromName, fromEmail, toEmail, subject,
-	)
-
-	client, err := smtp.Dial(addr)
-	if err != nil {
-		return fmt.Errorf("smtp dial: %w", err)
-	}
-	defer client.Close()
-
-	tlsCfg := &tls.Config{ServerName: smtpHost}
-	if err = client.StartTLS(tlsCfg); err != nil {
-		return fmt.Errorf("starttls: %w", err)
-	}
-	if err = client.Auth(auth); err != nil {
-		return fmt.Errorf("smtp auth: %w", err)
-	}
-	if err = client.Mail(fromEmail); err != nil {
-		return fmt.Errorf("smtp mail from: %w", err)
-	}
-	if err = client.Rcpt(toEmail); err != nil {
-		return fmt.Errorf("smtp rcpt to: %w", err)
-	}
-	w, err := client.Data()
-	if err != nil {
-		return fmt.Errorf("smtp data: %w", err)
-	}
-	_, err = fmt.Fprint(w, header+body)
-	if err != nil {
-		return fmt.Errorf("smtp write: %w", err)
-	}
-	if err = w.Close(); err != nil {
-		return fmt.Errorf("smtp close: %w", err)
-	}
-	return client.Quit()
-}
 

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/features/notification"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -174,7 +175,7 @@ func TestRequestWithdrawal_Validations(t *testing.T) {
 		Port: "8000",
 	}
 	mockRepo := &mockWalletRepository{}
-	svc := NewWalletService(mockRepo, cfg)
+	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg))
 	ctx := context.Background()
 	testUserID := primitive.NewObjectID().Hex()
 
@@ -251,7 +252,7 @@ func TestRequestWithdrawal_BankSuccess(t *testing.T) {
 		Port: "8000",
 	}
 	mockRepo := &mockWalletRepository{}
-	svc := NewWalletService(mockRepo, cfg)
+	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg))
 	ctx := context.Background()
 	testUserID := primitive.NewObjectID().Hex()
 
@@ -301,7 +302,7 @@ func TestRequestWithdrawal_UPISuccess(t *testing.T) {
 		Port: "8000",
 	}
 	mockRepo := &mockWalletRepository{}
-	svc := NewWalletService(mockRepo, cfg)
+	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg))
 	ctx := context.Background()
 	testUserID := primitive.NewObjectID().Hex()
 
