@@ -7,7 +7,7 @@ import {
     Zap,
     GraduationCap,
     UserCheck,
-    Wrench,
+    Store,
     Users,
     Calendar,
     ArrowRight,
@@ -22,9 +22,9 @@ interface ServiceDefinition {
     providerLabel: string;
     providerHref: string;
     icon: React.ReactNode;
-    tagColor: string;
-    iconColor: string;
+    colorHex: string;
     iconBg: string;
+    borderColor: string;
 }
 
 export default function SevenServicesSection() {
@@ -38,22 +38,22 @@ export default function SevenServicesSection() {
             providerLabel: 'Post a Job',
             providerHref: '/recruiter/login',
             icon: <Briefcase size={24} />,
-            tagColor: 'text-blue-700 bg-blue-50 border-blue-100',
-            iconColor: 'text-blue-600',
-            iconBg: 'bg-blue-50/80',
+            colorHex: '#0B5ED7',
+            iconBg: 'bg-[#EFF6FF] text-[#0B5ED7]',
+            borderColor: 'hover:border-[#0B5ED7]/40',
         },
         {
             number: '02',
-            title: 'Instant / Hourly Work',
+            title: 'InstantMilega™',
             description: 'Hyperlocal 15-minute gig dispatch for certified technicians with daily wallet payouts.',
             actionLabel: 'Find Instant Gigs',
             href: '/jobs?type=instant',
             providerLabel: 'Book Staff',
             providerHref: '/jobs?type=instant&mode=hire',
             icon: <Zap size={24} />,
-            tagColor: 'text-amber-700 bg-amber-50 border-amber-100',
-            iconColor: 'text-amber-600',
-            iconBg: 'bg-amber-50/80',
+            colorHex: '#FF6B00',
+            iconBg: 'bg-[#FFF7ED] text-[#FF6B00]',
+            borderColor: 'hover:border-[#FF6B00]/40',
         },
         {
             number: '03',
@@ -64,9 +64,9 @@ export default function SevenServicesSection() {
             providerLabel: 'Accredited Tests',
             providerHref: '/resources',
             icon: <GraduationCap size={24} />,
-            tagColor: 'text-emerald-700 bg-emerald-50 border-emerald-100',
-            iconColor: 'text-emerald-600',
-            iconBg: 'bg-emerald-50/80',
+            colorHex: '#16A34A',
+            iconBg: 'bg-[#F0FDF4] text-[#16A34A]',
+            borderColor: 'hover:border-[#16A34A]/40',
         },
         {
             number: '04',
@@ -77,9 +77,9 @@ export default function SevenServicesSection() {
             providerLabel: 'Become Mentor',
             providerHref: '/mentorship',
             icon: <UserCheck size={24} />,
-            tagColor: 'text-sky-700 bg-sky-50 border-sky-100',
-            iconColor: 'text-sky-600',
-            iconBg: 'bg-sky-50/80',
+            colorHex: '#7C3AED',
+            iconBg: 'bg-[#FAF5FF] text-[#7C3AED]',
+            borderColor: 'hover:border-[#7C3AED]/40',
         },
         {
             number: '05',
@@ -89,59 +89,59 @@ export default function SevenServicesSection() {
             href: '/jobs?type=service',
             providerLabel: 'List Service',
             providerHref: '/jobs/create',
-            icon: <Wrench size={24} />,
-            tagColor: 'text-rose-700 bg-rose-50 border-rose-100',
-            iconColor: 'text-rose-600',
-            iconBg: 'bg-rose-50/80',
+            icon: <Store size={24} />,
+            colorHex: '#EF4444',
+            iconBg: 'bg-[#FEF2F2] text-[#EF4444]',
+            borderColor: 'hover:border-[#EF4444]/40',
         },
         {
             number: '06',
-            title: 'Peer-to-Peer Network',
+            title: 'Peer-to-Peer',
             description: 'Connect directly with verified professionals across trades, share referrals, and grow reputation.',
             actionLabel: 'Join Network',
             href: '/network',
             providerLabel: 'Create Post',
             providerHref: '/network',
             icon: <Users size={24} />,
-            tagColor: 'text-indigo-700 bg-indigo-50 border-indigo-100',
-            iconColor: 'text-indigo-600',
-            iconBg: 'bg-indigo-50/80',
+            colorHex: '#0F9D8A',
+            iconBg: 'bg-[#F0FDFA] text-[#0F9D8A]',
+            borderColor: 'hover:border-[#0F9D8A]/40',
         },
         {
             number: '07',
-            title: 'Events & Job Fairs',
+            title: 'Events & Community',
             description: 'Attend physical mega hiring drives, vocational workshops, and virtual recruitment webinars.',
             actionLabel: 'View Events',
             href: '/events',
             providerLabel: 'Host Drive',
             providerHref: '/events',
             icon: <Calendar size={24} />,
-            tagColor: 'text-orange-700 bg-orange-50 border-orange-100',
-            iconColor: 'text-orange-600',
-            iconBg: 'bg-orange-50/80',
+            colorHex: '#F59E0B',
+            iconBg: 'bg-[#FFFBEB] text-[#F59E0B]',
+            borderColor: 'hover:border-[#F59E0B]/40',
         },
     ];
 
     return (
-        <section className="py-12 sm:py-16 bg-white border-b border-slate-200/80 font-sans">
+        <section className="py-12 sm:py-16 bg-white border-b border-[#D9E0EA] font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Section Header - Centered, Authoritative, High Readability */}
+                {/* Section Header */}
                 <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-12">
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111827] tracking-tight">
                         Explore the Seven Core Services
                     </h2>
-                    <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+                    <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-[#5B6472] leading-relaxed max-w-2xl mx-auto">
                         A unified platform designed for jobs, instant gig dispatch, vocational upskilling, and verified professional hiring.
                     </p>
                 </div>
 
-                {/* Services Cards - Clean, High Contrast, Enhanced Readability */}
+                {/* Services Cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {services.map((service) => {
                         return (
                             <div
                                 key={service.number}
-                                className="group relative bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-lg hover:border-blue-500/40"
+                                className={`group relative bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
                             >
                                 {/* Header: Number & Vector Icon */}
                                 <div>
@@ -150,28 +150,28 @@ export default function SevenServicesSection() {
                                             {service.number}
                                         </span>
                                         <div
-                                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 ${service.iconBg} ${service.iconColor}`}
+                                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 ${service.iconBg}`}
                                         >
                                             {service.icon}
                                         </div>
                                     </div>
 
                                     {/* Service Title */}
-                                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover:text-km-primary transition-colors mb-3 leading-snug">
+                                    <h3 className="text-lg sm:text-xl font-bold text-[#111827] group-hover:text-km-primary transition-colors mb-3 leading-snug">
                                         {service.title}
                                     </h3>
 
-                                    {/* Description - High contrast & readable size */}
-                                    <p className="text-sm sm:text-[15px] text-slate-600 leading-relaxed">
+                                    {/* Description */}
+                                    <p className="text-sm text-[#5B6472] leading-relaxed">
                                         {service.description}
                                     </p>
                                 </div>
 
                                 {/* Footer Links */}
-                                <div className="mt-8 pt-5 border-t border-slate-100 flex items-center justify-between">
+                                <div className="mt-8 pt-5 border-t border-[#D9E0EA]/60 flex items-center justify-between">
                                     <Link
                                         href={service.href}
-                                        className="inline-flex items-center gap-1.5 text-sm font-bold text-km-primary group-hover:text-km-primary-dark transition-colors"
+                                        className="inline-flex items-center gap-1.5 text-sm font-bold text-km-primary hover:text-km-primary-dark transition-colors"
                                     >
                                         <span>{service.actionLabel}</span>
                                         <ArrowRight

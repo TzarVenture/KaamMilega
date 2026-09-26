@@ -378,7 +378,7 @@ export default function JobsPage() {
                                         <div className="mt-6 pt-5 border-t border-slate-100 flex items-center justify-between">
                                             {job.status === 'Active' ? (
                                                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-                                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                                    <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                                                     <span>Active Post</span>
                                                 </div>
                                             ) : (

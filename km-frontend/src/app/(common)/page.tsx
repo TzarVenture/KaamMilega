@@ -782,7 +782,7 @@ const JobTypeSection = () => {
 const DiversityBanner = () => (
   <section className="px-3 md:px-6 py-6 md:py-10 max-w-7xl mx-auto">
     <div className="relative min-h-70 md:h-75 rounded-3xl md:rounded-[40px] overflow-hidden flex items-center px-6 md:px-12 text-white py-8 md:py-0">
-      <div className="absolute inset-0 bg-linear-to-r from-[#0D1B5E] via-[#1a2b8c] to-[#0A1647] z-10" />
+      <div className="absolute inset-0 bg-linear-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] z-10" />
 
       <div className="relative z-20 max-w-lg">
         <div className="flex items-center gap-2 mb-3 md:mb-4">
@@ -824,7 +824,7 @@ const LearnSection = () => {
       </h2>
       <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
         {/* Main Video Player */}
-        <div className="w-full md:flex-1 aspect-video bg-[#0D1B5E] rounded-3xl md:rounded-[40px] flex items-center justify-center relative group cursor-pointer overflow-hidden shadow-md">
+        <div className="w-full md:flex-1 aspect-video bg-[#071A4D] rounded-3xl md:rounded-[40px] flex items-center justify-center relative group cursor-pointer overflow-hidden shadow-md">
           <Play size={50} className="text-white opacity-80 group-hover:scale-110 transition-transform" />
         </div>
 
@@ -956,7 +956,7 @@ const EventsSection = ({ events }: { events: any[] }) => {
                   {event.image_url ? (
                       <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                      <div className="w-full h-full bg-[#0D1B5E] flex items-center justify-center relative overflow-hidden">
+                      <div className="w-full h-full bg-[#071A4D] flex items-center justify-center relative overflow-hidden">
                           <div className="flex items-center justify-center opacity-60">
                               <div className="w-10 h-10 bg-blue-400 clip-path-triangle transform -rotate-12 -translate-x-2" />
                               <div className="w-8 h-8 bg-blue-300 clip-path-triangle translate-x-2 translate-y-2" />

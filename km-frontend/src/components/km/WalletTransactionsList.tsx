@@ -5,7 +5,7 @@ import {
     ArrowUpRight, 
     ArrowDownLeft, 
     Lock, 
-    Sparkles, 
+    Briefcase, 
     Clock, 
     ChevronLeft, 
     ChevronRight, 
@@ -129,14 +129,14 @@ export default function WalletTransactionsList({ refreshKey = 0 }: Props) {
                 return { label: 'Mentorship', bg: 'bg-purple-50 text-purple-700 border-purple-100', icon: Users };
             case 'session_payout':
             case 'gig_payout':
-                return { label: 'Gig Earning', bg: 'bg-emerald-50 text-emerald-800 border-emerald-100', icon: Sparkles };
+                return { label: 'Gig Earning', bg: 'bg-emerald-50 text-emerald-800 border-emerald-100', icon: Briefcase };
             case 'bonus_reward':
                 return { label: 'Bonus Reward', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100', icon: Gift };
             case 'withdrawal':
                 return { label: 'Bank Payout', bg: 'bg-slate-100 text-slate-800 border-slate-200', icon: ArrowUpRight };
             default:
                 if (targetBalance === 'earnings') {
-                    return { label: 'Earnings', bg: 'bg-emerald-50 text-emerald-700 border-emerald-100', icon: Sparkles };
+                    return { label: 'Earnings', bg: 'bg-emerald-50 text-emerald-700 border-emerald-100', icon: Briefcase };
                 }
                 return { label: 'Activity', bg: 'bg-slate-50 text-slate-700 border-slate-200', icon: ReceiptText };
         }

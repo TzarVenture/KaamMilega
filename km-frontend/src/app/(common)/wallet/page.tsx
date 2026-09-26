@@ -7,7 +7,6 @@ import {
     ArrowDownLeft, 
     Lock, 
     Gift, 
-    Sparkles, 
     RefreshCw, 
     CreditCard, 
     Zap, 
@@ -179,7 +178,7 @@ export default function WalletPage() {
                     }
                 },
                 theme: {
-                    color: '#1a2b8c', // Brand Blue from DESIGN_SYSTEM.md
+                    color: '#071A4D', // Deep Navy from master design specification
                 },
                 modal: {
                     ondismiss: function () {
@@ -320,7 +319,7 @@ export default function WalletPage() {
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8">
                         <div className="space-y-2 sm:space-y-3">
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/10">
-                                <Sparkles size={13} className="text-amber-400" />
+                                <ShieldCheck size={13} className="text-emerald-400" />
                                 <span>Total Balance</span>
                             </div>
                             <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white font-mono">

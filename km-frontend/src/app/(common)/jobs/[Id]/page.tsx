@@ -152,7 +152,7 @@ const JobDetailPage = () => {
                             </h1>
                             <p className="text-blue-200 font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
                                 <span>{job.company}</span>
-                                <span className="w-1.5 h-1.5 rounded-full bg-km-primary animate-pulse" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-300" />
                                 <span className="text-amber-400 font-bold">Direct Hiring</span>
                             </p>
                         </div>

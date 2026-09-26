@@ -1,48 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --font-inter: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  /* Master Fonts */
+  --font-poppins: var(--font-poppins), 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-inter: var(--font-inter), 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-devanagari: var(--font-devanagari), 'Noto Sans Devanagari', 'Poppins', sans-serif;
 
-  /* Brand Primary: Blue #1a2b8c */
-  --km-primary: #1a2b8c;
-  --km-primary-dark: #0D1B5E;
-  --km-primary-light: #2A3FB0;
-
-  /* Brand Accent: Orange #F97316 */
-  --km-accent: #F97316;
-  --km-accent-dark: #EA580C;
-  --km-accent-light: #FB923C;
-
-  /* Surfaces & Borders */
-  --km-surface: #F8FAFC;
+  /* Canvas & Structural Neutrals */
+  --background: #F4F7FB;
+  --foreground: #111827;
+  --km-surface: #F4F7FB;
   --km-surface-card: #FFFFFF;
-  --km-border: #E2E8F0;
+  --km-border: #D9E0EA;
+  --km-text-primary: #111827;
+  --km-text-secondary: #5B6472;
+  --km-text-muted: #8F9AA8;
 
-  /* Text Semantic */
-  --km-text-primary: #0F172A;
-  --km-text-secondary: #64748B;
-  --km-text-muted: #94A3B8;
+  /* Primary Brand Identity: Deep Navy #071A4D */
+  --km-primary: #071A4D;
+  --km-primary-dark: #0B1F52;
+  --km-blue: #0B5ED7;
 
-  /* Per-Module Identity */
-  --km-jobs: #1a2b8c;
-  --km-instant: #F97316;
+  /* Brand Accent: Brand Orange #FF6B00 */
+  --km-accent: #FF6B00;
+  --km-accent-light: #FF8A00;
+  --km-accent-dark: #E66000;
+
+  /* Brand Digital Gradients */
+  --km-gradient-digital: linear-gradient(135deg, #071A4D 0%, #0B5ED7 100%);
+  --km-gradient-accent: linear-gradient(135deg, #FF6B00 0%, #FF8A00 100%);
+
+  /* Seven Service Module Identity */
+  --km-jobs: #0B5ED7;
+  --km-instant: #FF6B00;
   --km-skills: #16A34A;
   --km-mentors: #7C3AED;
-  --km-services: #EC4899;
-  --km-p2p: #0D9488;
-  --km-events: #EA580C;
+  --km-services: #EF4444;
+  --km-p2p: #0F9D8A;
+  --km-events: #F59E0B;
 }
 
 @theme {
   --color-km-primary: var(--km-primary);
   --color-km-primary-dark: var(--km-primary-dark);
-  --color-km-primary-light: var(--km-primary-light);
+  --color-km-blue: var(--km-blue);
   --color-km-accent: var(--km-accent);
-  --color-km-accent-dark: var(--km-accent-dark);
   --color-km-accent-light: var(--km-accent-light);
+  --color-km-accent-dark: var(--km-accent-dark);
+
   --color-km-surface: var(--km-surface);
   --color-km-surface-card: var(--km-surface-card);
   --color-km-border: var(--km-border);
@@ -58,13 +63,16 @@
   --color-km-p2p: var(--km-p2p);
   --color-km-events: var(--km-events);
 
+  --font-poppins: var(--font-poppins);
+  --font-sans: var(--font-poppins);
   --font-inter: var(--font-inter);
+  --font-devanagari: var(--font-devanagari);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-poppins), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Base utility classes for consistent UI */
@@ -82,7 +90,7 @@ body {
 }
 .btn-primary:hover {
   background-color: var(--km-primary-dark);
-  box-shadow: 0 4px 12px rgba(26, 43, 140, 0.2);
+  box-shadow: 0 4px 14px rgba(7, 26, 77, 0.25);
 }
 
 .btn-accent {
@@ -98,8 +106,8 @@ body {
   gap: 0.5rem;
 }
 .btn-accent:hover {
-  background-color: var(--km-accent-dark);
-  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+  background-color: var(--km-accent-light);
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.3);
 }
 
 .btn-outline {
@@ -116,18 +124,21 @@ body {
   gap: 0.5rem;
 }
 .btn-outline:hover {
-  background-color: #EFF6FF;
+  background-color: #F4F7FB;
+  border-color: var(--km-blue);
+  color: var(--km-blue);
 }
 
 .km-card {
   background-color: #ffffff;
   border: 1px solid var(--km-border);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px 0 rgba(7, 26, 77, 0.04);
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 .km-card:hover {
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+  border-color: rgba(11, 94, 215, 0.35);
+  box-shadow: 0 6px 20px -2px rgba(7, 26, 77, 0.08);
 }
 
 @keyframes shimmer {
@@ -140,7 +151,7 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 37%, #f1f5f9 63%);
+  background: linear-gradient(90deg, #F4F7FB 25%, #E5ECF5 37%, #F4F7FB 63%);
   background-size: 200% 100%;
   animation: shimmer 1.8s infinite linear;
 }
@@ -167,24 +178,24 @@ body {
 /* Responsive, hardware-accelerated horizontal scrollbar */
 .clean-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #94a3b8 #f1f5f9;
+  scrollbar-color: #D9E0EA #F4F7FB;
 }
 .clean-scrollbar::-webkit-scrollbar {
   height: 8px;
 }
 .clean-scrollbar::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #F4F7FB;
   border-radius: 9999px;
 }
 .clean-scrollbar::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: #D9E0EA;
   border-radius: 9999px;
 }
 .clean-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--km-primary);
+  background: var(--km-blue);
 }
 .clean-scrollbar::-webkit-scrollbar-thumb:active {
-  background: var(--km-primary-dark);
+  background: var(--km-primary);
 }
 
 /* Hide native scrollbars completely */

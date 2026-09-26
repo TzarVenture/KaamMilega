@@ -154,7 +154,7 @@ const EventDetailsPage = () => {
                 {event.image_url ? (
                     <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
                 ) : (
-                    <div className="w-full h-full bg-linear-to-br from-slate-950 via-[#0D1B5E] to-slate-950 flex items-center justify-center">
+                    <div className="w-full h-full bg-linear-to-br from-slate-950 via-[#071A4D] to-slate-950 flex items-center justify-center">
                         <div className="opacity-15 flex gap-4">
                             <div className="w-20 h-20 bg-km-accent rounded-xl transform -rotate-12" />
                             <div className="w-16 h-16 bg-km-accent/70 rounded-xl translate-y-6" />

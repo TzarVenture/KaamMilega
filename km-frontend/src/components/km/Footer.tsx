@@ -16,7 +16,7 @@ export default function Footer() {
     if (pathname?.startsWith('/chat')) return null;
 
     return (
-        <footer className="bg-[#0D1B5E] text-white px-6 sm:px-12 lg:px-20 pt-16 pb-8 border-t border-blue-950">
+        <footer className="bg-[#071A4D] text-white px-6 sm:px-12 lg:px-20 pt-16 pb-8 border-t border-blue-950">
             <div className="max-w-7xl mx-auto">
                 {/* Official KaamMilega Platform Branding Header */}
                 <div className="pb-10 mb-12 border-b border-blue-900/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
@@ -35,7 +35,7 @@ export default function Footer() {
                     </div>
 
                     <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-amber-300 shrink-0">
-                        <span>✨ Kaam Bhi. Skill Bhi. Kamaai Bhi.</span>
+                        <span className="font-medium tracking-wide">Har Kaam, Har Mauka™</span>
                     </div>
                 </div>
 
