@@ -10,10 +10,8 @@
 package notification
 
 import (
-	"bytes"
 	"crypto/tls"
 	"fmt"
-	"html/template"
 	"net/smtp"
 	"strings"
 	"time"
@@ -37,6 +35,9 @@ type Mailer interface {
 
 	// SendWithdrawalRequest notifies admin + expert of a payout request.
 	SendWithdrawalRequest(p WithdrawalRequestParams) error
+
+	// SendEmailOTP dispatches a verification or password reset OTP email.
+	SendEmailOTP(p EmailOTPParams) error
 
 	// SendRaw dispatches an arbitrary HTML email. Use only when no typed method fits.
 	SendRaw(to, subject, htmlBody string) error
@@ -92,12 +93,20 @@ type WithdrawalRequestParams struct {
 	PhoneNumber   string
 }
 
+// EmailOTPParams carries data for authentication & verification OTP emails.
+type EmailOTPParams struct {
+	ToEmail  string
+	Code     string
+	Purpose  string // "verification" | "password_reset"
+	UserName string // optional
+}
+
 // ─── SMTP Implementation ──────────────────────────────────────────────────────
 
 // smtpMailer is the production implementation that sends via Brevo SMTP relay.
 type smtpMailer struct {
-	cfg  *config.Config
-	tmpl *template.Template
+	cfg       *config.Config
+	templates *templateRegistry
 }
 
 // NewMailer constructs the production SMTP-backed Mailer.
@@ -107,8 +116,8 @@ func NewMailer(cfg *config.Config) Mailer {
 	if cfg.SMTPUsername == "" || cfg.SMTPPassword == "" {
 		return &noopMailer{}
 	}
-	tmpl := mustParseTemplates()
-	return &smtpMailer{cfg: cfg, tmpl: tmpl}
+	templates := mustParseTemplates()
+	return &smtpMailer{cfg: cfg, templates: templates}
 }
 
 func (m *smtpMailer) SendInterviewInvite(p InterviewInviteParams) error {
@@ -119,7 +128,7 @@ func (m *smtpMailer) SendInterviewInvite(p InterviewInviteParams) error {
 		p.Location = "To be communicated"
 	}
 	subject := fmt.Sprintf("Interview Scheduled — %s at %s", p.JobTitle, p.CompanyName)
-	body, err := renderTemplate(m.tmpl, "interview_invite", templateData{
+	body, err := renderTemplate(m.templates, "interview_invite", templateData{
 		RecipientName: p.CandidateName,
 		JobTitle:      p.JobTitle,
 		CompanyName:   p.CompanyName,
@@ -149,7 +158,7 @@ func (m *smtpMailer) SendApplicationUpdate(p ApplicationUpdateParams) error {
 	if p.ActionURL == "" {
 		p.ActionURL = "https://kaammilega.com/applications"
 	}
-	body, err := renderTemplate(m.tmpl, "application_update", templateData{
+	body, err := renderTemplate(m.templates, "application_update", templateData{
 		RecipientName: p.CandidateName,
 		JobTitle:      p.JobTitle,
 		CompanyName:   p.CompanyName,
@@ -172,7 +181,7 @@ func (m *smtpMailer) SendTransactionReceipt(p TransactionReceiptParams) error {
 		p.Currency = "INR"
 	}
 	subject := fmt.Sprintf("[KaamMilega] Receipt — %s ₹%.2f", p.TransactionType, p.Amount)
-	body, err := renderTemplate(m.tmpl, "transaction_receipt", templateData{
+	body, err := renderTemplate(m.templates, "transaction_receipt", templateData{
 		RecipientName: p.RecipientName,
 		Status:        "Payment Confirmed",
 		StatusColor:   "#16A34A",
@@ -196,7 +205,7 @@ func (m *smtpMailer) SendWithdrawalRequest(p WithdrawalRequestParams) error {
 	// Admin alert
 	if p.AdminEmail != "" {
 		adminSubject := fmt.Sprintf("[KaamMilega Payout Alert] ₹%.2f — Ref: %s", p.Amount, p.ReferenceID)
-		adminBody, err := renderTemplate(m.tmpl, "withdrawal_admin", templateData{
+		adminBody, err := renderTemplate(m.templates, "withdrawal_admin", templateData{
 			RecipientName: "Admin",
 			Status:        "New Payout Request",
 			StatusColor:   "#FF6B00",
@@ -224,7 +233,7 @@ func (m *smtpMailer) SendWithdrawalRequest(p WithdrawalRequestParams) error {
 			expertName = "Valued Expert"
 		}
 		expertSubject := fmt.Sprintf("[KaamMilega] Withdrawal Request Received — ₹%.2f (%s)", p.Amount, p.ReferenceID)
-		expertBody, err := renderTemplate(m.tmpl, "transaction_receipt", templateData{
+		expertBody, err := renderTemplate(m.templates, "transaction_receipt", templateData{
 			RecipientName: expertName,
 			Status:        "Withdrawal Request Received",
 			StatusColor:   "#0B5ED7",
@@ -247,6 +256,25 @@ func (m *smtpMailer) SendWithdrawalRequest(p WithdrawalRequestParams) error {
 	return nil
 }
 
+func (m *smtpMailer) SendEmailOTP(p EmailOTPParams) error {
+	subject := "KaamMilega Verification Code"
+	status := "Email Verification"
+	if p.Purpose == "password_reset" {
+		subject = "KaamMilega Password Reset Code"
+		status = "Password Reset"
+	}
+	body, err := renderTemplate(m.templates, "email_otp", templateData{
+		RecipientName: p.UserName,
+		Status:        status,
+		StatusColor:   "#0B5ED7",
+		Note:          p.Code,
+	})
+	if err != nil {
+		return fmt.Errorf("notification: render email otp: %w", err)
+	}
+	return m.SendRaw(p.ToEmail, subject, body)
+}
+
 func (m *smtpMailer) SendRaw(to, subject, htmlBody string) error {
 	if to == "" {
 		return fmt.Errorf("notification: empty recipient address")
@@ -264,6 +292,7 @@ func (n *noopMailer) SendInterviewInvite(_ InterviewInviteParams) error      { r
 func (n *noopMailer) SendApplicationUpdate(_ ApplicationUpdateParams) error  { return nil }
 func (n *noopMailer) SendTransactionReceipt(_ TransactionReceiptParams) error { return nil }
 func (n *noopMailer) SendWithdrawalRequest(_ WithdrawalRequestParams) error  { return nil }
+func (n *noopMailer) SendEmailOTP(_ EmailOTPParams) error                    { return nil }
 func (n *noopMailer) SendRaw(_, _, _ string) error                           { return nil }
 
 // ─── SMTP Dial & Send ─────────────────────────────────────────────────────────
@@ -336,13 +365,4 @@ func currencySymbol(currency string) string {
 	default:
 		return currency
 	}
-}
-
-// renderTemplate executes a named template and returns the HTML string.
-func renderTemplate(tmpl *template.Template, name string, data templateData) (string, error) {
-	var buf bytes.Buffer
-	if err := tmpl.ExecuteTemplate(&buf, name, data); err != nil {
-		return "", err
-	}
-	return buf.String(), nil
 }
