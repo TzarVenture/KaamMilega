@@ -14,6 +14,7 @@ import (
 type mockWalletRepository struct {
 	wallet       *Wallet
 	transactions []WalletTransaction
+	disputes     []WalletDispute
 }
 
 func (m *mockWalletRepository) GetOrCreateWallet(ctx context.Context, userID primitive.ObjectID) (*Wallet, error) {
@@ -105,6 +106,67 @@ func (m *mockWalletRepository) RecordAtomicTransaction(ctx context.Context, inpu
 
 func (m *mockWalletRepository) GetUserContact(ctx context.Context, userID primitive.ObjectID) (string, string, error) {
 	return "expert@example.com", "John Doe", nil
+}
+
+func (m *mockWalletRepository) GetTransactionByID(ctx context.Context, txID primitive.ObjectID) (*WalletTransaction, error) {
+	for _, tx := range m.transactions {
+		if tx.ID == txID {
+			return &tx, nil
+		}
+	}
+	return nil, errors.New("transaction not found")
+}
+
+func (m *mockWalletRepository) CreateDispute(ctx context.Context, dispute *WalletDispute) (*WalletDispute, error) {
+	if dispute.ID.IsZero() {
+		dispute.ID = primitive.NewObjectID()
+	}
+	dispute.CreatedAt = time.Now()
+	dispute.UpdatedAt = time.Now()
+	m.disputes = append(m.disputes, *dispute)
+	return dispute, nil
+}
+
+func (m *mockWalletRepository) GetDisputeByID(ctx context.Context, id primitive.ObjectID) (*WalletDispute, error) {
+	for _, d := range m.disputes {
+		if d.ID == id {
+			return &d, nil
+		}
+	}
+	return nil, errors.New("dispute not found")
+}
+
+func (m *mockWalletRepository) GetDisputeByTransactionID(ctx context.Context, txID primitive.ObjectID) (*WalletDispute, error) {
+	for _, d := range m.disputes {
+		if d.TransactionID == txID {
+			return &d, nil
+		}
+	}
+	return nil, nil
+}
+
+func (m *mockWalletRepository) GetDisputes(ctx context.Context, query DisputeQuery) ([]WalletDispute, int64, error) {
+	var filtered []WalletDispute
+	for _, d := range m.disputes {
+		if query.Status != "" && d.Status != query.Status {
+			continue
+		}
+		if query.UserID != "" && d.UserID.Hex() != query.UserID {
+			continue
+		}
+		filtered = append(filtered, d)
+	}
+	return filtered, int64(len(filtered)), nil
+}
+
+func (m *mockWalletRepository) UpdateDispute(ctx context.Context, dispute *WalletDispute) error {
+	for i, d := range m.disputes {
+		if d.ID == dispute.ID {
+			m.disputes[i] = *dispute
+			return nil
+		}
+	}
+	return errors.New("dispute not found")
 }
 
 func TestRequestWithdrawal_Validations(t *testing.T) {

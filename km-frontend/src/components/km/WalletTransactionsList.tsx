@@ -15,7 +15,8 @@ import {
     Zap,
     Users,
     Gift,
-    ShieldCheck
+    ShieldCheck,
+    ShieldAlert
 } from 'lucide-react';
 import api from '@/lib/axios';
 
@@ -44,9 +45,10 @@ interface TransactionsResponse {
 
 interface Props {
     refreshKey?: number;
+    onRaiseDispute?: (transaction: TransactionItem) => void;
 }
 
-export default function WalletTransactionsList({ refreshKey = 0 }: Props) {
+export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute }: Props) {
     const [transactions, setTransactions] = useState<TransactionItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'all' | 'credit' | 'debit' | 'earnings'>('all');
@@ -307,6 +309,21 @@ export default function WalletTransactionsList({ refreshKey = 0 }: Props) {
                                                 {tx.status}
                                             </span>
                                         </div>
+
+                                        {onRaiseDispute && !isCredit && tx.category !== 'withdrawal' && tx.category !== 'refund' && tx.status === 'completed' && (
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    onRaiseDispute(tx);
+                                                }}
+                                                className="mt-1 text-[11px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 px-2.5 py-1 rounded-xl transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
+                                                title="Request refund or report an issue with this transaction"
+                                            >
+                                                <ShieldAlert size={12} className="text-amber-600" />
+                                                <span>Dispute / Refund</span>
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             );

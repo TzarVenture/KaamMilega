@@ -17,13 +17,17 @@ import {
     Building2,
     Phone,
     AlertCircle,
-    X
+    X,
+    ShieldAlert,
+    ReceiptText
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
-import WalletTransactionsList from '@/components/km/WalletTransactionsList';
+import WalletTransactionsList, { TransactionItem } from '@/components/km/WalletTransactionsList';
+import WalletDisputesList from '@/components/km/WalletDisputesList';
+import WalletDisputeModal from '@/components/km/WalletDisputeModal';
 
 interface WalletSummary {
     wallet_id: string;
@@ -59,6 +63,11 @@ export default function WalletPage() {
     const [upiId, setUpiId] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [isWithdrawing, setIsWithdrawing] = useState(false);
+
+    // Dispute / Refund State (F73)
+    const [activeHistoryTab, setActiveHistoryTab] = useState<'ledger' | 'disputes'>('ledger');
+    const [selectedTxForDispute, setSelectedTxForDispute] = useState<TransactionItem | null>(null);
+    const [isDisputeModalOpen, setIsDisputeModalOpen] = useState(false);
 
     const fetchWallet = useCallback(async () => {
         setLoading(true);
@@ -511,8 +520,47 @@ export default function WalletPage() {
                     </div>
                 </div>
 
-                {/* Ledger & Transactions History Section (F72) */}
-                <WalletTransactionsList refreshKey={refreshKey} />
+                {/* Ledger & Disputes Tabs Switcher */}
+                <div className="flex items-center gap-2 p-1.5 bg-slate-200/60 rounded-2xl w-fit">
+                    <button
+                        type="button"
+                        onClick={() => setActiveHistoryTab('ledger')}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                            activeHistoryTab === 'ledger'
+                                ? 'bg-white text-slate-900 shadow-xs'
+                                : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                        <ReceiptText size={15} />
+                        <span>Ledger & Activity</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setActiveHistoryTab('disputes')}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                            activeHistoryTab === 'disputes'
+                                ? 'bg-white text-slate-900 shadow-xs'
+                                : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                        <ShieldAlert size={15} className="text-amber-600" />
+                        <span>Refunds & Disputes</span>
+                    </button>
+                </div>
+
+                {/* History Content: Ledger or Disputes */}
+                {activeHistoryTab === 'ledger' ? (
+                    <WalletTransactionsList 
+                        refreshKey={refreshKey} 
+                        onRaiseDispute={(tx) => {
+                            setSelectedTxForDispute(tx);
+                            setIsDisputeModalOpen(true);
+                        }}
+                    />
+                ) : (
+                    <WalletDisputesList refreshKey={refreshKey} />
+                )}
             </div>
 
             {/* Add Money Modal */}
@@ -883,6 +931,21 @@ export default function WalletPage() {
                     </div>
                 </div>
             )}
+
+            {/* Raise Dispute & Refund Modal */}
+            <WalletDisputeModal
+                isOpen={isDisputeModalOpen}
+                onClose={() => {
+                    setIsDisputeModalOpen(false);
+                    setSelectedTxForDispute(null);
+                }}
+                transaction={selectedTxForDispute}
+                onDisputeCreated={() => {
+                    fetchWallet();
+                    setRefreshKey(prev => prev + 1);
+                    setActiveHistoryTab('disputes');
+                }}
+            />
         </div>
     );
 }

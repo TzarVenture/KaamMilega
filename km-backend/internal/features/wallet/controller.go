@@ -1,6 +1,8 @@
 package wallet
 
 import (
+	"fmt"
+
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -150,6 +152,116 @@ func (ctrl *WalletController) RequestWithdrawal(c *fiber.Ctx) error {
 	}
 
 	return c.Status(fiber.StatusOK).JSON(res)
+}
+
+// CreateDispute handles raising a dispute on an eligible transaction (F73)
+func (ctrl *WalletController) CreateDispute(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized: valid authentication token required",
+		})
+	}
+
+	var req CreateDisputeRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body format",
+		})
+	}
+
+	dispute, err := ctrl.service.CreateDispute(c.Context(), userID, req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(dispute)
+}
+
+// GetMyDisputes returns disputes filed by the authenticated user
+func (ctrl *WalletController) GetMyDisputes(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Unauthorized: valid authentication token required",
+		})
+	}
+
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 20)
+	status := DisputeStatus(c.Query("status"))
+
+	res, err := ctrl.service.GetMyDisputes(c.Context(), userID, DisputeQuery{
+		Page:   page,
+		Limit:  limit,
+		Status: status,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(res)
+}
+
+// GetAdminDisputes returns all disputes across platform for admin review
+func (ctrl *WalletController) GetAdminDisputes(c *fiber.Ctx) error {
+	page := c.QueryInt("page", 1)
+	limit := c.QueryInt("limit", 20)
+	status := DisputeStatus(c.Query("status"))
+	userID := c.Query("user_id")
+
+	res, err := ctrl.service.GetAdminDisputes(c.Context(), DisputeQuery{
+		Page:   page,
+		Limit:  limit,
+		Status: status,
+		UserID: userID,
+	})
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(res)
+}
+
+// ResolveAdminDispute resolves a dispute by admin approval or rejection
+func (ctrl *WalletController) ResolveAdminDispute(c *fiber.Ctx) error {
+	adminID, ok := c.Locals("user_id").(string)
+	if !ok || adminID == "" {
+		adminID = "admin"
+	}
+
+	disputeID := c.Params("id")
+	if disputeID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "missing dispute id parameter",
+		})
+	}
+
+	var req ResolveDisputeRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body format",
+		})
+	}
+
+	dispute, summary, err := ctrl.service.ResolveDispute(c.Context(), disputeID, adminID, req)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"dispute": dispute,
+		"wallet":  summary,
+		"message": fmt.Sprintf("Dispute successfully %sd", req.Action),
+	})
 }
 
 

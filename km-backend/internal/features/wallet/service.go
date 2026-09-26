@@ -14,6 +14,7 @@ import (
 	"math"
 	"net/http"
 	"net/smtp"
+	"strings"
 	"time"
 
 	"km-backend/internal/config"
@@ -29,6 +30,12 @@ type WalletService interface {
 	CreateTopupOrder(ctx context.Context, userID string, amount float64) (*CreateTopupOrderResponse, error)
 	VerifyTopupPayment(ctx context.Context, userID string, req VerifyTopupPaymentRequest) (*WalletSummaryResponse, *TransactionItemResponse, error)
 	RequestWithdrawal(ctx context.Context, userID string, req WithdrawalRequest) (*WithdrawalResponse, error)
+
+	// Dispute & Refund handling (F73)
+	CreateDispute(ctx context.Context, userID string, req CreateDisputeRequest) (*WalletDispute, error)
+	GetMyDisputes(ctx context.Context, userID string, query DisputeQuery) (*DisputeListResponse, error)
+	GetAdminDisputes(ctx context.Context, query DisputeQuery) (*DisputeListResponse, error)
+	ResolveDispute(ctx context.Context, disputeID string, adminID string, req ResolveDisputeRequest) (*WalletDispute, *WalletSummaryResponse, error)
 }
 
 type WalletServiceImpl struct {
@@ -585,6 +592,240 @@ func sendSMTPMail(cfg *config.Config, to, subject, htmlBody string) error {
 	_, _ = w.Write([]byte(header + htmlBody))
 	_ = w.Close()
 	return client.Quit()
+}
+
+// CreateDispute allows a user to file a dispute on an eligible debit transaction (F73)
+func (s *WalletServiceImpl) CreateDispute(ctx context.Context, userID string, req CreateDisputeRequest) (*WalletDispute, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized: missing user id")
+	}
+	if req.TransactionID == "" {
+		return nil, errors.New("missing transaction id")
+	}
+	if req.Reason == "" {
+		return nil, errors.New("missing dispute reason")
+	}
+	if strings.TrimSpace(req.Description) == "" {
+		return nil, errors.New("dispute explanation description is required")
+	}
+
+	uOID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, errors.New("invalid user id format")
+	}
+
+	txOID, err := primitive.ObjectIDFromHex(req.TransactionID)
+	if err != nil {
+		return nil, errors.New("invalid transaction id format")
+	}
+
+	// 1. Fetch user wallet
+	w, err := s.repo.GetOrCreateWallet(ctx, uOID)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Fetch original transaction
+	tx, err := s.repo.GetTransactionByID(ctx, txOID)
+	if err != nil {
+		return nil, errors.New("transaction not found")
+	}
+
+	// 3. Validate transaction ownership and eligibility
+	if tx.WalletID != w.ID {
+		return nil, errors.New("unauthorized: transaction does not belong to your wallet")
+	}
+	if tx.Type != TypeDebit {
+		return nil, errors.New("only debit transactions (purchases/bookings) can be disputed")
+	}
+	if tx.Category == CategoryRefund {
+		return nil, errors.New("refund transactions cannot be disputed")
+	}
+
+	// 4. Check if dispute already exists for this transaction
+	existing, err := s.repo.GetDisputeByTransactionID(ctx, tx.ID)
+	if err != nil {
+		return nil, err
+	}
+	if existing != nil {
+		return nil, errors.New("a dispute request has already been filed for this transaction")
+	}
+
+	// 5. Fetch user contact details and build dispute
+	userEmail, userName, _ := s.repo.GetUserContact(ctx, uOID)
+
+	dispute := &WalletDispute{
+		UserID:        uOID,
+		UserName:      userName,
+		UserEmail:     userEmail,
+		TransactionID: tx.ID,
+		ReferenceID:   tx.ReferenceID,
+		Amount:        tx.Amount,
+		TargetBalance: tx.TargetBalance,
+		Category:      tx.Category,
+		Reason:        req.Reason,
+		Description:   strings.TrimSpace(req.Description),
+		Status:        DisputeStatusPending,
+	}
+
+	created, err := s.repo.CreateDispute(ctx, dispute)
+	if err != nil {
+		return nil, err
+	}
+
+	return created, nil
+}
+
+// GetMyDisputes returns all disputes filed by the authenticated user
+func (s *WalletServiceImpl) GetMyDisputes(ctx context.Context, userID string, query DisputeQuery) (*DisputeListResponse, error) {
+	if userID == "" {
+		return nil, errors.New("unauthorized: missing user id")
+	}
+	query.UserID = userID
+	disputes, total, err := s.repo.GetDisputes(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	page := query.Page
+	if page < 1 {
+		page = 1
+	}
+	limit := query.Limit
+	if limit < 1 {
+		limit = 20
+	}
+
+	return &DisputeListResponse{
+		Disputes: disputes,
+		Total:    total,
+		Page:     page,
+		Limit:    limit,
+	}, nil
+}
+
+// GetAdminDisputes returns all disputes for admin review
+func (s *WalletServiceImpl) GetAdminDisputes(ctx context.Context, query DisputeQuery) (*DisputeListResponse, error) {
+	disputes, total, err := s.repo.GetDisputes(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range disputes {
+		if disputes[i].UserName == "" || disputes[i].UserEmail == "" {
+			email, name, _ := s.repo.GetUserContact(ctx, disputes[i].UserID)
+			if disputes[i].UserName == "" {
+				disputes[i].UserName = name
+			}
+			if disputes[i].UserEmail == "" {
+				disputes[i].UserEmail = email
+			}
+		}
+	}
+
+	page := query.Page
+	if page < 1 {
+		page = 1
+	}
+	limit := query.Limit
+	if limit < 1 {
+		limit = 20
+	}
+
+	return &DisputeListResponse{
+		Disputes: disputes,
+		Total:    total,
+		Page:     page,
+		Limit:    limit,
+	}, nil
+}
+
+// ResolveDispute resolves a dispute with approval (and refund) or rejection
+func (s *WalletServiceImpl) ResolveDispute(ctx context.Context, disputeID string, adminID string, req ResolveDisputeRequest) (*WalletDispute, *WalletSummaryResponse, error) {
+	if disputeID == "" {
+		return nil, nil, errors.New("missing dispute id")
+	}
+
+	action := strings.ToLower(strings.TrimSpace(req.Action))
+	if action == "" {
+		if req.Status == "approved" {
+			action = "approve"
+		} else if req.Status == "rejected" {
+			action = "reject"
+		}
+	}
+	if action != "approve" && action != "reject" {
+		return nil, nil, errors.New("invalid action: must be 'approve' or 'reject'")
+	}
+
+	dOID, err := primitive.ObjectIDFromHex(disputeID)
+	if err != nil {
+		return nil, nil, errors.New("invalid dispute id format")
+	}
+
+	dispute, err := s.repo.GetDisputeByID(ctx, dOID)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if dispute.Status == DisputeStatusApproved || dispute.Status == DisputeStatusRejected {
+		return nil, nil, errors.New("dispute has already been resolved")
+	}
+
+	now := time.Now()
+	dispute.AdminNotes = strings.TrimSpace(req.AdminNotes)
+	dispute.ResolvedBy = adminID
+	dispute.ResolvedAt = &now
+
+	if action == "reject" {
+		dispute.Status = DisputeStatusRejected
+		if err := s.repo.UpdateDispute(ctx, dispute); err != nil {
+			return nil, nil, err
+		}
+		summary, _ := s.GetWalletSummary(ctx, dispute.UserID.Hex())
+		return dispute, summary, nil
+	}
+
+	// Action == "approve" -> Execute refund
+	refundAmount := dispute.Amount
+	if req.RefundAmount != nil && *req.RefundAmount > 0 {
+		refundAmount = *req.RefundAmount
+	}
+
+	// Atomically credit user's main wallet with category "refund"
+	recordInput := RecordTransactionInput{
+		UserID:        dispute.UserID,
+		Type:          TypeCredit,
+		TargetBalance: BalanceMain,
+		Category:      CategoryRefund,
+		Amount:        refundAmount,
+		ReferenceID:   "REFUND-" + dispute.ID.Hex(),
+		Description:   fmt.Sprintf("Dispute Refund for: %s", dispute.ReferenceID),
+		Metadata: map[string]interface{}{
+			"dispute_id":          dispute.ID.Hex(),
+			"original_tx_id":      dispute.TransactionID.Hex(),
+			"dispute_reason":      string(dispute.Reason),
+			"admin_resolution":    dispute.AdminNotes,
+			"resolved_by":         adminID,
+		},
+	}
+
+	refundTx, updatedSummary, err := s.RecordTransaction(ctx, recordInput)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to process refund credit: %w", err)
+	}
+
+	dispute.Status = DisputeStatusApproved
+	if refundTx != nil {
+		txOID, _ := primitive.ObjectIDFromHex(refundTx.ID)
+		dispute.RefundTransactionID = &txOID
+	}
+
+	if err := s.repo.UpdateDispute(ctx, dispute); err != nil {
+		return nil, updatedSummary, err
+	}
+
+	return dispute, updatedSummary, nil
 }
 
 

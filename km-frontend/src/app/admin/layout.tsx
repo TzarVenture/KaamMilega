@@ -22,7 +22,8 @@ import {
     Menu,
     LogOut,
     Shield,
-    X
+    X,
+    ShieldAlert
 } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,6 +40,7 @@ const navItems = [
     { name: 'Learn Videos', icon: Video, href: '/admin/learn-videos' },
     { name: 'Adds Published', icon: LayoutPanelLeft, href: '/admin/ads' },
     { name: 'Expert Requests', icon: Briefcase, href: '/admin/expert-requests' },
+    { name: 'Wallet Disputes', icon: ShieldAlert, href: '/admin/disputes' },
 ];
 
 export default function AdminLayout({

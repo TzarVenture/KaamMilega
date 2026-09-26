@@ -171,3 +171,78 @@ type WithdrawalResponse struct {
 	Message     string                   `json:"message"`
 }
 
+// DisputeStatus represents lifecycle states of a refund dispute (F73)
+type DisputeStatus string
+
+const (
+	DisputeStatusPending     DisputeStatus = "pending"
+	DisputeStatusUnderReview DisputeStatus = "under_review"
+	DisputeStatusApproved    DisputeStatus = "approved"
+	DisputeStatusRejected    DisputeStatus = "rejected"
+)
+
+// DisputeReason categories for user refund requests
+type DisputeReason string
+
+const (
+	DisputeReasonSessionCancelled   DisputeReason = "session_cancelled"
+	DisputeReasonServiceNotProvided DisputeReason = "service_not_provided"
+	DisputeReasonDuplicateCharge    DisputeReason = "duplicate_charge"
+	DisputeReasonTechnicalFailure   DisputeReason = "technical_failure"
+	DisputeReasonDissatisfied        DisputeReason = "dissatisfied"
+	DisputeReasonOther              DisputeReason = "other"
+)
+
+// WalletDispute represents an immutable user dispute/refund record (F73)
+type WalletDispute struct {
+	ID                  primitive.ObjectID  `bson:"_id,omitempty" json:"id"`
+	UserID              primitive.ObjectID  `bson:"user_id" json:"user_id"`
+	UserName            string              `bson:"user_name,omitempty" json:"user_name,omitempty"`
+	UserEmail           string              `bson:"user_email,omitempty" json:"user_email,omitempty"`
+	TransactionID       primitive.ObjectID  `bson:"transaction_id" json:"transaction_id"`
+	ReferenceID         string              `bson:"reference_id" json:"reference_id"`
+	Amount              float64             `bson:"amount" json:"amount"`
+	TargetBalance       TargetBalance       `bson:"target_balance" json:"target_balance"`
+	Category            TransactionCategory `bson:"category" json:"category"`
+	Reason              DisputeReason       `bson:"reason" json:"reason"`
+	Description         string              `bson:"description" json:"description"`
+	Status              DisputeStatus       `bson:"status" json:"status"` // pending, under_review, approved, rejected
+	AdminNotes          string              `bson:"admin_notes,omitempty" json:"admin_notes,omitempty"`
+	RefundTransactionID *primitive.ObjectID `bson:"refund_transaction_id,omitempty" json:"refund_transaction_id,omitempty"`
+	ResolvedBy          string              `bson:"resolved_by,omitempty" json:"resolved_by,omitempty"`
+	ResolvedAt          *time.Time          `bson:"resolved_at,omitempty" json:"resolved_at,omitempty"`
+	CreatedAt           time.Time           `bson:"created_at" json:"created_at"`
+	UpdatedAt           time.Time           `bson:"updated_at" json:"updated_at"`
+}
+
+// CreateDisputeRequest payload from client to raise a dispute
+type CreateDisputeRequest struct {
+	TransactionID string        `json:"transaction_id" validate:"required"`
+	Reason        DisputeReason `json:"reason" validate:"required"`
+	Description   string        `json:"description" validate:"required"`
+}
+
+// ResolveDisputeRequest payload from admin to resolve a dispute
+type ResolveDisputeRequest struct {
+	Action       string   `json:"action"`                  // "approve" or "reject"
+	Status       string   `json:"status"`                  // "approved", "rejected", or "under_review"
+	AdminNotes   string   `json:"admin_notes"`
+	RefundAmount *float64 `json:"refund_amount,omitempty"` // Optional custom refund amount
+}
+
+// DisputeQuery filters for dispute pagination
+type DisputeQuery struct {
+	Page   int           `json:"page"`
+	Limit  int           `json:"limit"`
+	Status DisputeStatus `json:"status"`
+	UserID string        `json:"user_id"`
+}
+
+// DisputeListResponse represents paginated disputes returned to client/admin
+type DisputeListResponse struct {
+	Disputes []WalletDispute `json:"disputes"`
+	Total    int64           `json:"total"`
+	Page     int             `json:"page"`
+	Limit    int             `json:"limit"`
+}
+
