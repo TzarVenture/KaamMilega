@@ -3,6 +3,8 @@ package interview
 import (
 	"context"
 	"errors"
+	"log"
+	"strings"
 
 	"km-backend/internal/features/application"
 	"km-backend/internal/features/job"
@@ -75,7 +77,11 @@ func (s *InterviewService) ScheduleInterview(ctx context.Context, req *ScheduleI
 		if cerr != nil || candidate == nil {
 			return
 		}
-		if !candidate.Settings.EmailApplicationUpdates || candidate.Email == "" {
+		emailUpdatesEnabled := true
+		if candidate.Settings.ProfileVisibility != "" {
+			emailUpdatesEnabled = candidate.Settings.EmailApplicationUpdates
+		}
+		if !emailUpdatesEnabled || candidate.Email == "" {
 			return
 		}
 
@@ -88,9 +94,22 @@ func (s *InterviewService) ScheduleInterview(ctx context.Context, req *ScheduleI
 			}
 		}
 
-		_ = s.mailer.SendInterviewInvite(notification.InterviewInviteParams{
+		candidateName := strings.TrimSpace(candidate.Name)
+		if candidateName == "" {
+			candidateName = strings.TrimSpace(candidate.FirstName + " " + candidate.LastName)
+		}
+		if candidateName == "" {
+			candidateName = "Candidate"
+		}
+
+		if s.mailer == nil {
+			log.Printf("[InterviewNotification] Mailer is nil, skipping interview invite to %s", candidate.Email)
+			return
+		}
+
+		merr := s.mailer.SendInterviewInvite(notification.InterviewInviteParams{
 			ToEmail:       candidate.Email,
-			CandidateName: candidate.Name,
+			CandidateName: candidateName,
 			JobTitle:      jobTitle,
 			CompanyName:   company,
 			InterviewType: req.Type,
@@ -98,6 +117,11 @@ func (s *InterviewService) ScheduleInterview(ctx context.Context, req *ScheduleI
 			Location:      req.Location,
 			Notes:         req.Notes,
 		})
+		if merr != nil {
+			log.Printf("[InterviewNotification] Failed to send interview invite to %s: %v", candidate.Email, merr)
+		} else {
+			log.Printf("[InterviewNotification] Successfully sent interview invite to %s for '%s'", candidate.Email, jobTitle)
+		}
 	}()
 
 	return created, nil

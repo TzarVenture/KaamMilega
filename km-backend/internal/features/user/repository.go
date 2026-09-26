@@ -183,6 +183,9 @@ func (r *UserRepositoryImpl) FindUserByID(ctx context.Context, id string) (*User
 func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *User) (*User, error) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
+	if user.Settings.ProfileVisibility == "" {
+		user.Settings = DefaultUserSettings()
+	}
 	res, err := r.userColl.InsertOne(ctx, user)
 	if err != nil {
 		return nil, err
@@ -381,6 +384,10 @@ func (r *UserRepositoryImpl) GetUserSettings(ctx context.Context, userID string)
 	user, err := r.FindUserByID(ctx, userID)
 	if err != nil || user == nil {
 		return nil, errors.New("user not found")
+	}
+	if user.Settings.ProfileVisibility == "" {
+		defaults := DefaultUserSettings()
+		return &defaults, nil
 	}
 	return &user.Settings, nil
 }

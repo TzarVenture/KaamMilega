@@ -257,6 +257,21 @@ type UserSettings struct {
 	SearchEngineIndexing    bool   `bson:"search_engine_indexing" json:"search_engine_indexing"`
 }
 
+// DefaultUserSettings provides initial standard settings matching the frontend defaults
+func DefaultUserSettings() UserSettings {
+	return UserSettings{
+		EmailJobAlerts:          true,
+		EmailApplicationUpdates: true,
+		EmailMarketing:          false,
+		SMSAlerts:               true,
+		PushNotifications:       true,
+		ProfileVisibility:       "public",
+		Language:                "en",
+		EnableAIRecommendations: true,
+		SearchEngineIndexing:    true,
+	}
+}
+
 type UpdateUsernameRequest struct {
 	Username string `json:"username" validate:"required"`
 }
