@@ -169,10 +169,7 @@ body {
   display: flex;
   width: max-content;
   animation: kmMarquee 45s linear infinite;
-}
-
-.animate-km-marquee:hover {
-  animation-play-state: paused;
+  will-change: transform;
 }
 
 /* Responsive, hardware-accelerated horizontal scrollbar */

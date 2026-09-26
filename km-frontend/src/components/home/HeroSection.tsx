@@ -406,47 +406,54 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                 </div>
 
                 {/* Real Platform Stats Strip */}
-                <div className="mt-6 pt-6 sm:mt-10 sm:pt-8 border-t border-slate-200/80 grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 text-center">
-                    <div className="flex items-center justify-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-km-primary flex items-center justify-center shrink-0">
-                            <Users size={20} />
+                <div className="mt-6 pt-5 sm:mt-8 sm:pt-6 border-t border-slate-200/80 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-white/70 transition-all text-left">
+                        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-blue-50 text-km-blue border border-blue-100/80 flex items-center justify-center shrink-0 shadow-2xs">
+                            <Users size={18} className="sm:hidden" />
+                            <Users size={20} className="hidden sm:block" />
                         </div>
-                        <div className="text-left">
-                            <p className="text-lg sm:text-xl font-black text-slate-900 leading-tight">
+                        <div>
+                            <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-tight font-poppins">
                                 {stats?.total_users ? `${stats.total_users}+ Users` : '120+ Users'}
                             </p>
-                            <p className="text-xs text-slate-500 font-medium">Verified Community</p>
+                            <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Verified Community</p>
                         </div>
                     </div>
-                    <div className="flex items-center justify-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                            <MapPin size={20} />
+
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-white/70 transition-all text-left">
+                        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100/80 flex items-center justify-center shrink-0 shadow-2xs">
+                            <MapPin size={18} className="sm:hidden" />
+                            <MapPin size={20} className="hidden sm:block" />
                         </div>
-                        <div className="text-left">
-                            <p className="text-lg sm:text-xl font-black text-slate-900 leading-tight">
+                        <div>
+                            <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-tight font-poppins">
                                 {stats?.cities || cities.length || 36}+ Cities
                             </p>
-                            <p className="text-xs text-slate-500 font-medium">Verified Hubs</p>
+                            <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Verified Hubs</p>
                         </div>
                     </div>
-                    <div className="flex items-center justify-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-700 flex items-center justify-center shrink-0">
-                            <Building2 size={20} />
+
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-white/70 transition-all text-left">
+                        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-orange-50 text-km-accent border border-orange-100/80 flex items-center justify-center shrink-0 shadow-2xs">
+                            <Building2 size={18} className="sm:hidden" />
+                            <Building2 size={20} className="hidden sm:block" />
                         </div>
-                        <div className="text-left">
-                            <p className="text-lg sm:text-xl font-black text-slate-900 leading-tight">
+                        <div>
+                            <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-tight font-poppins">
                                 {stats?.applications ? `${stats.applications}+ Placed` : '100% Free'}
                             </p>
-                            <p className="text-xs text-slate-500 font-medium">Direct Applications</p>
+                            <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Direct Applications</p>
                         </div>
                     </div>
-                    <div className="flex items-center justify-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0">
-                            <PhoneCall size={20} />
+
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-white/70 transition-all text-left">
+                        <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl bg-purple-50 text-purple-600 border border-purple-100/80 flex items-center justify-center shrink-0 shadow-2xs">
+                            <PhoneCall size={18} className="sm:hidden" />
+                            <PhoneCall size={20} className="hidden sm:block" />
                         </div>
-                        <div className="text-left">
-                            <p className="text-lg sm:text-xl font-black text-slate-900 leading-tight">Direct Calls</p>
-                            <p className="text-xs text-slate-500 font-medium">With HR Recruiters</p>
+                        <div>
+                            <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-tight font-poppins">Direct Calls</p>
+                            <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">With HR Recruiters</p>
                         </div>
                     </div>
                 </div>
