@@ -12,6 +12,7 @@ import (
 	"km-backend/internal/features/interview"
 	"km-backend/internal/features/mentorship"
 	"km-backend/internal/features/network"
+	"km-backend/internal/features/notification"
 
 	"km-backend/internal/features/company"
 	"km-backend/internal/features/event"
@@ -155,6 +156,7 @@ func main() {
 			subscription.NewSubscriptionRepository,
 
 			// Services
+			notification.NewMailer,
 			setting.NewSettingService,
 			file.NewFileService,
 			sms.NewSMSService,
