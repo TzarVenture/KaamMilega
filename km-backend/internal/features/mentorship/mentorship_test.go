@@ -254,6 +254,22 @@ func (w *mockWalletService) RequestWithdrawal(ctx context.Context, userID string
 	return nil, nil
 }
 
+func (w *mockWalletService) CreateDispute(ctx context.Context, userID string, req wallet.CreateDisputeRequest) (*wallet.WalletDispute, error) {
+	return nil, nil
+}
+
+func (w *mockWalletService) GetMyDisputes(ctx context.Context, userID string, query wallet.DisputeQuery) (*wallet.DisputeListResponse, error) {
+	return nil, nil
+}
+
+func (w *mockWalletService) GetAdminDisputes(ctx context.Context, query wallet.DisputeQuery) (*wallet.DisputeListResponse, error) {
+	return nil, nil
+}
+
+func (w *mockWalletService) ResolveDispute(ctx context.Context, disputeID string, adminID string, req wallet.ResolveDisputeRequest) (*wallet.WalletDispute, *wallet.WalletSummaryResponse, error) {
+	return nil, nil, nil
+}
+
 func TestUpdateBookingStatus_EscrowReleaseOnCompletion(t *testing.T) {
 	mockRepo := newMockMentorshipRepo()
 	mockWallet := newMockWalletService()

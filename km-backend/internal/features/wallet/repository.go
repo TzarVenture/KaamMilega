@@ -20,18 +20,28 @@ type WalletRepository interface {
 	UpdateBalances(ctx context.Context, userID primitive.ObjectID, mainDelta, earningsDelta, lockedDelta, bonusDelta float64) (*Wallet, error)
 	CreateTransaction(ctx context.Context, tx *WalletTransaction) error
 	GetTransactionsByWalletID(ctx context.Context, walletID primitive.ObjectID, query TransactionQuery) ([]WalletTransaction, int64, error)
+	GetTransactionByID(ctx context.Context, txID primitive.ObjectID) (*WalletTransaction, error)
 	RecordAtomicTransaction(ctx context.Context, input RecordTransactionInput) (*WalletTransaction, *Wallet, error)
 	GetUserContact(ctx context.Context, userID primitive.ObjectID) (string, string, error)
+
+	// Dispute operations (F73)
+	CreateDispute(ctx context.Context, dispute *WalletDispute) (*WalletDispute, error)
+	GetDisputeByID(ctx context.Context, id primitive.ObjectID) (*WalletDispute, error)
+	GetDisputeByTransactionID(ctx context.Context, txID primitive.ObjectID) (*WalletDispute, error)
+	GetDisputes(ctx context.Context, query DisputeQuery) ([]WalletDispute, int64, error)
+	UpdateDispute(ctx context.Context, dispute *WalletDispute) error
 }
 
 type WalletRepositoryImpl struct {
-	db           *database.MongodbDB
-	collection   *mongo.Collection
-	txCollection *mongo.Collection
+	db                *database.MongodbDB
+	collection        *mongo.Collection
+	txCollection      *mongo.Collection
+	disputeCollection *mongo.Collection
 }
 
 func NewWalletRepository(db *database.MongodbDB) WalletRepository {
 	txColl := db.DB.Collection("wallet_transactions")
+	disputeColl := db.DB.Collection("wallet_disputes")
 
 	// Ensure indexes for wallet transactions in background
 	go func() {
@@ -58,12 +68,21 @@ func NewWalletRepository(db *database.MongodbDB) WalletRepository {
 				Sparse: &sparse,
 			},
 		})
+		// Compound index: user_id + created_at desc for disputes
+		_, _ = disputeColl.Indexes().CreateOne(ctx, mongo.IndexModel{
+			Keys: bson.D{
+				{Key: "user_id", Value: 1},
+				{Key: "created_at", Value: -1},
+			},
+			Options: options.Index().SetName("idx_wallet_disputes_user_date"),
+		})
 	}()
 
 	return &WalletRepositoryImpl{
-		db:           db,
-		collection:   db.DB.Collection("wallets"),
-		txCollection: txColl,
+		db:                db,
+		collection:        db.DB.Collection("wallets"),
+		txCollection:      txColl,
+		disputeCollection: disputeColl,
 	}
 }
 
@@ -348,5 +367,120 @@ func (r *WalletRepositoryImpl) GetUserContact(ctx context.Context, userID primit
 		fullName = "Valued Expert"
 	}
 	return u.Email, fullName, nil
+}
+
+// GetTransactionByID fetches a single wallet transaction by its ID
+func (r *WalletRepositoryImpl) GetTransactionByID(ctx context.Context, txID primitive.ObjectID) (*WalletTransaction, error) {
+	var tx WalletTransaction
+	err := r.txCollection.FindOne(ctx, bson.M{"_id": txID}).Decode(&tx)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("transaction not found")
+		}
+		return nil, err
+	}
+	return &tx, nil
+}
+
+// CreateDispute saves a new dispute record into MongoDB
+func (r *WalletRepositoryImpl) CreateDispute(ctx context.Context, dispute *WalletDispute) (*WalletDispute, error) {
+	if dispute.ID.IsZero() {
+		dispute.ID = primitive.NewObjectID()
+	}
+	dispute.CreatedAt = time.Now()
+	dispute.UpdatedAt = time.Now()
+
+	_, err := r.disputeCollection.InsertOne(ctx, dispute)
+	if err != nil {
+		return nil, err
+	}
+	return dispute, nil
+}
+
+// GetDisputeByID retrieves a dispute by its primary key
+func (r *WalletRepositoryImpl) GetDisputeByID(ctx context.Context, id primitive.ObjectID) (*WalletDispute, error) {
+	var dispute WalletDispute
+	err := r.disputeCollection.FindOne(ctx, bson.M{"_id": id}).Decode(&dispute)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errors.New("dispute not found")
+		}
+		return nil, err
+	}
+	return &dispute, nil
+}
+
+// GetDisputeByTransactionID checks if a dispute already exists for a transaction
+func (r *WalletRepositoryImpl) GetDisputeByTransactionID(ctx context.Context, txID primitive.ObjectID) (*WalletDispute, error) {
+	var dispute WalletDispute
+	err := r.disputeCollection.FindOne(ctx, bson.M{"transaction_id": txID}).Decode(&dispute)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, nil // No existing dispute
+		}
+		return nil, err
+	}
+	return &dispute, nil
+}
+
+// GetDisputes returns paginated disputes filtered by status or user
+func (r *WalletRepositoryImpl) GetDisputes(ctx context.Context, query DisputeQuery) ([]WalletDispute, int64, error) {
+	filter := bson.M{}
+	if query.Status != "" {
+		filter["status"] = query.Status
+	}
+	if query.UserID != "" {
+		uid, err := primitive.ObjectIDFromHex(query.UserID)
+		if err == nil {
+			filter["user_id"] = uid
+		}
+	}
+
+	total, err := r.disputeCollection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	page := query.Page
+	if page < 1 {
+		page = 1
+	}
+	limit := query.Limit
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+	skip := int64((page - 1) * limit)
+
+	findOpts := options.Find().
+		SetSort(bson.D{{Key: "created_at", Value: -1}}).
+		SetSkip(skip).
+		SetLimit(int64(limit))
+
+	cursor, err := r.disputeCollection.Find(ctx, filter, findOpts)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var disputes []WalletDispute
+	if err := cursor.All(ctx, &disputes); err != nil {
+		return nil, 0, err
+	}
+	if disputes == nil {
+		disputes = []WalletDispute{}
+	}
+
+	return disputes, total, nil
+}
+
+// UpdateDispute updates a dispute's status, resolution notes, and refund details
+func (r *WalletRepositoryImpl) UpdateDispute(ctx context.Context, dispute *WalletDispute) error {
+	dispute.UpdatedAt = time.Now()
+	_, err := r.disputeCollection.UpdateOne(
+		ctx,
+		bson.M{"_id": dispute.ID},
+		bson.M{"$set": dispute},
+	)
+	return err
 }
 
