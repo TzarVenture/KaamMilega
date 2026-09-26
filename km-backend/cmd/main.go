@@ -22,6 +22,7 @@ import (
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
 	"km-backend/internal/features/system"
+	"km-backend/internal/features/subscription"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -151,6 +152,7 @@ func main() {
 			network.NewNetworkRepository,
 			event.NewEventRepository,
 			mentorship.NewMentorshipRepository,
+			subscription.NewSubscriptionRepository,
 
 			// Services
 			setting.NewSettingService,
@@ -169,6 +171,7 @@ func main() {
 			event.NewEventService,
 			question.NewQuestionService,
 			mentorship.NewMentorshipService,
+			subscription.NewSubscriptionService,
 
 			// controllers
 			file.NewFileController,
@@ -187,6 +190,7 @@ func main() {
 			network.NewNetworkController,
 			event.NewEventController,
 			mentorship.NewMentorshipController,
+			subscription.NewSubscriptionController,
 
 			// routes
 			AsRoute(file.NewFileApi),
@@ -206,6 +210,7 @@ func main() {
 			AsRoute(network.NewNetworkApi),
 			AsRoute(event.NewEventApi),
 			AsRoute(mentorship.NewMentorshipApi),
+			AsRoute(subscription.NewSubscriptionApi),
 		),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}

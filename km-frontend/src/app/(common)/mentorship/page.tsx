@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, Clock, BookOpen, Users,
-  ChevronRight, Award, CheckCircle, ArrowRight, MessageSquare
+  ChevronRight, Award, CheckCircle, ArrowRight, MessageSquare,
+  Calendar, Video, ExternalLink, ShieldCheck, Sparkles
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/axios';
@@ -24,10 +25,29 @@ export default function MentorshipPage() {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [myBookingsCount, setMyBookingsCount] = useState(0);
+  const [nextUpcomingSession, setNextUpcomingSession] = useState<any | null>(null);
 
   useEffect(() => {
     fetchMentorships();
   }, [selectedCategory]);
+
+  useEffect(() => {
+    // If logged in, fetch candidate bookings count and next upcoming session
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (token) {
+      api.get('/mentorships/bookings/my')
+        .then((res: any) => {
+          const list = Array.isArray(res) ? res : (res?.data || []);
+          setMyBookingsCount(list.length);
+          const upcoming = list.find((b: any) => b.status === 'confirmed' || b.status === 'pending');
+          if (upcoming) {
+            setNextUpcomingSession(upcoming);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   const fetchMentorships = async () => {
     try {
@@ -49,12 +69,38 @@ export default function MentorshipPage() {
     (m?.expert?.name || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('en-IN', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatTime = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleTimeString('en-IN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } catch {
+      return '';
+    }
+  };
+
   return (
     <main className="min-h-screen bg-[#fafafa] pb-20">
       {/* Hero Section */}
       <section className="bg-linear-to-br from-slate-950 via-[#071A4D] to-[#0B5ED7] text-white py-16 md:py-24 px-6 md:px-12 rounded-b-[40px] md:rounded-b-[60px] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
         
         <div className="max-w-7xl mx-auto relative z-10">
           <motion.div 
@@ -63,8 +109,10 @@ export default function MentorshipPage() {
             className="text-center md:text-left max-w-3xl"
           >
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-4 border border-white/10 backdrop-blur-xs">
+              <Sparkles size={13} />
               <span>Verified Industry Guidance</span>
             </div>
+            
             <h1 className="text-3xl md:text-6xl font-black mb-4 md:mb-6 leading-tight">
               Unlock Your Potential with <br className="hidden md:block" /> <span className="text-km-accent">Expert Mentorship</span>
             </h1>
@@ -113,15 +161,64 @@ export default function MentorshipPage() {
         </div>
       </section>
 
-      {/* Content */}
+      {/* Content Section */}
       <section className="max-w-7xl mx-auto px-4 md:px-6 py-10 md:py-14">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-8 md:mb-10">
+        {/* Smart Upcoming Session Alert Banner */}
+        {nextUpcomingSession && (
+          <div className="bg-linear-to-r from-orange-50 via-amber-50 to-blue-50 border border-orange-200/80 rounded-2xl p-4 md:p-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Video size={18} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black uppercase text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200/50">
+                    Upcoming Call
+                  </span>
+                  <span className="text-xs md:text-sm font-bold text-slate-900 line-clamp-1">
+                    {nextUpcomingSession.mentorship_title || "1-on-1 Mentorship Call"}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Mentor: <span className="font-bold text-slate-800">{nextUpcomingSession.expert_name || "Verified Mentor"}</span> • {formatDate(nextUpcomingSession.scheduled_at)} at {formatTime(nextUpcomingSession.scheduled_at)}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/mentorship/my-sessions"
+              className="bg-[#1a2b8c] hover:bg-[#152370] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs self-start sm:self-auto flex items-center gap-1.5 whitespace-nowrap active:scale-95"
+            >
+              <span>View Session / Join Call</span>
+              <ArrowRight size={13} />
+            </Link>
+          </div>
+        )}
+
+        {/* Section Header with "My Booked Sessions" Button on the right */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
           <div>
             <h2 className="text-2xl md:text-3xl font-black text-slate-900">Featured Mentorships</h2>
-            <p className="text-xs md:text-sm text-slate-500 font-medium tracking-tight mt-1">Top-rated experts ready to guide your career forward</p>
+            <p className="text-xs md:text-sm text-slate-500 font-medium tracking-tight mt-1">
+              Top-rated experts ready to guide your career forward
+            </p>
           </div>
+
+          <Link
+            href="/mentorship/my-sessions"
+            className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
+          >
+            <Calendar size={14} className="text-[#1a2b8c]" />
+            <span>My Booked Sessions</span>
+            {myBookingsCount > 0 && (
+              <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-orange-500 text-white">
+                {myBookingsCount}
+              </span>
+            )}
+            <ArrowRight size={13} className="text-slate-400" />
+          </Link>
         </div>
 
+        {/* Mentorship Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[1, 2, 3, 4, 5, 6].map(i => (

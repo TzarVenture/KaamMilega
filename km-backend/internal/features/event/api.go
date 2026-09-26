@@ -18,12 +18,23 @@ func NewEventApi(ctrl *EventController, cfg *config.Config) api.Route {
 }
 
 func (a *EventApi) Setup(app *fiber.App) {
+	jwtAuth := middleware.AuthMiddleware(a.cfg.JWTSecret)
+
 	// Public Routes
 	app.Get("/api/events", a.ctrl.GetEvents)
-	app.Get("/api/events/:id", a.ctrl.GetEventByID)
 
-	// Protected Routes
-	group := app.Group("/api/events", middleware.AuthMiddleware(a.cfg.JWTSecret))
-	group.Post("/", a.ctrl.CreateEvent)
-	group.Post("/:id/register", a.ctrl.RegisterUser)
+	// Protected user ticket routes (registered before /:id)
+	protected := app.Group("/api/events", jwtAuth)
+	protected.Get("/my/tickets", a.ctrl.GetMyTickets)
+
+	// Protected event creation & checkout routes
+	protected.Post("/", a.ctrl.CreateEvent)
+	protected.Post("/:id/register", a.ctrl.RegisterUser)
+	protected.Post("/:id/create-order", a.ctrl.CreateEventOrder)
+	protected.Post("/:id/verify-payment", a.ctrl.VerifyEventPayment)
+	protected.Post("/:id/wallet-checkout", a.ctrl.BookWithWallet)
+	protected.Get("/:id/ticket", a.ctrl.GetEventTicket)
+
+	// Dynamic public event detail route
+	app.Get("/api/events/:id", a.ctrl.GetEventByID)
 }

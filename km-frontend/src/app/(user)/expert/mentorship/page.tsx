@@ -148,7 +148,7 @@ export default function ExpertMentorshipManagement() {
           <div className="min-h-[400px]">
             {activeTab === 'bookings' && <BookingsList bookings={bookings} onUpdate={() => { fetchData(); fetchWallet(); }} />}
             {activeTab === 'sessions' && <SessionsList mentorships={mentorships} />}
-            {activeTab === 'availability' && <AvailabilityManager availability={availability} />}
+            {activeTab === 'availability' && <AvailabilityManager availability={availability} onSaved={fetchData} />}
           </div>
         )}
       </div>
@@ -453,37 +453,211 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
   );
 }
 
-function AvailabilityManager({ availability }: { availability: any[] }) {
-  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  
+function AvailabilityManager({ availability, onSaved }: { availability: any[]; onSaved?: () => void }) {
+  const DAYS = [
+    { dayOfWeek: 1, name: "Monday" },
+    { dayOfWeek: 2, name: "Tuesday" },
+    { dayOfWeek: 3, name: "Wednesday" },
+    { dayOfWeek: 4, name: "Thursday" },
+    { dayOfWeek: 5, name: "Friday" },
+    { dayOfWeek: 6, name: "Saturday" },
+    { dayOfWeek: 0, name: "Sunday" },
+  ];
+
+  const buildInitialState = () => {
+    return DAYS.map(d => {
+      const existing = (availability || []).find(a => a.day_of_week === d.dayOfWeek && (a.is_active === undefined || a.is_active === true));
+      return {
+        dayOfWeek: d.dayOfWeek,
+        name: d.name,
+        isActive: !!existing,
+        startTime: existing?.start_time || "09:00",
+        endTime: existing?.end_time || "17:00",
+      };
+    });
+  };
+
+  const [schedule, setSchedule] = useState(buildInitialState);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setSchedule(buildInitialState());
+  }, [availability]);
+
+  const toggleDay = (dayOfWeek: number) => {
+    setSchedule(prev => prev.map(d => d.dayOfWeek === dayOfWeek ? { ...d, isActive: !d.isActive } : d));
+  };
+
+  const updateTime = (dayOfWeek: number, field: 'startTime' | 'endTime', value: string) => {
+    setSchedule(prev => prev.map(d => d.dayOfWeek === dayOfWeek ? { ...d, [field]: value } : d));
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      const activeDays = schedule.filter(d => d.isActive);
+      if (activeDays.length === 0) {
+        toast.warning("Please enable at least one day of availability.");
+        setSaving(false);
+        return;
+      }
+      
+      for (const d of activeDays) {
+        if (d.startTime >= d.endTime) {
+          toast.error(`${d.name}: End time must be after start time.`);
+          setSaving(false);
+          return;
+        }
+      }
+
+      const payload = activeDays.map(d => ({
+        day_of_week: d.dayOfWeek,
+        start_time: d.startTime,
+        end_time: d.endTime,
+      }));
+
+      await api.put('/mentorships/availability', payload);
+      toast.success("Availability updated successfully!");
+      if (onSaved) onSaved();
+    } catch (err: any) {
+      console.error("Failed to update availability", err);
+      toast.error(err?.response?.data?.error || "Failed to update availability");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDiscard = () => {
+    setSchedule(buildInitialState());
+    toast.info("Changes reverted to saved schedule.");
+  };
+
+  const setWeekdayPreset = () => {
+    setSchedule(prev => prev.map(d => ({
+      ...d,
+      isActive: d.dayOfWeek >= 1 && d.dayOfWeek <= 5,
+      startTime: "09:00",
+      endTime: "17:00",
+    })));
+  };
+
+  const activeCount = schedule.filter(s => s.isActive).length;
+
   return (
-    <div className="bg-white p-5 md:p-8 rounded-xl md:rounded-2xl border border-gray-50 shadow-sm max-w-3xl">
-      <h3 className="text-lg md:text-xl font-black text-gray-900 mb-4 md:mb-6">Weekly Availability</h3>
-      <p className="text-[10px] md:text-xs text-gray-500 mb-6 md:mb-8 font-medium">Define the time slots you're available for sessions. Users book within these hours.</p>
+    <div className="bg-white p-5 md:p-8 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm max-w-3xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg md:text-xl font-black text-gray-900">Weekly Availability</h3>
+            <span className="bg-purple-50 text-purple-700 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-purple-100">
+              {activeCount} {activeCount === 1 ? 'Day' : 'Days'} Active
+            </span>
+          </div>
+          <p className="text-[10px] md:text-xs text-gray-500 font-medium mt-1">
+            Define your working days and call hours. Candidates can book 1-on-1 slots within these times.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={setWeekdayPreset}
+          className="text-[11px] font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-all self-start sm:self-auto cursor-pointer"
+        >
+          Preset: Mon - Fri (9-5)
+        </button>
+      </div>
 
       <div className="space-y-3 md:space-y-4">
-        {days.map((day, idx) => (
-          <div key={day} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4 pb-3 sm:pb-4 border-b border-gray-50 last:border-0">
-            <div className="sm:w-28 font-bold text-gray-900 text-xs md:text-sm">{day}</div>
-            <div className="flex-1 flex items-center gap-2 md:gap-3">
-              <input type="time" defaultValue="09:00" className="flex-1 sm:flex-none bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1.5 text-[10px] md:text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium" />
-              <span className="text-gray-300 text-[10px]">to</span>
-              <input type="time" defaultValue="17:00" className="flex-1 sm:flex-none bg-gray-50 border border-gray-100 rounded-lg px-2.5 py-1.5 text-[10px] md:text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium" />
+        {schedule.map((item) => (
+          <div 
+            key={item.dayOfWeek} 
+            className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 rounded-xl border transition-all ${
+              item.isActive 
+                ? 'bg-purple-50/20 border-purple-100/60 shadow-2xs' 
+                : 'bg-gray-50/50 border-gray-100 opacity-60'
+            }`}
+          >
+            <div className="sm:w-32 flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${item.isActive ? 'bg-emerald-500' : 'bg-gray-300'}`} />
+              <span className="font-bold text-gray-900 text-xs md:text-sm">{item.name}</span>
             </div>
-            <div className="flex items-center justify-between sm:justify-start gap-3">
-              <span className="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase">Available</span>
-              <div className="w-8 h-4 md:w-10 md:h-5 bg-purple-600 rounded-full relative p-0.5 cursor-pointer">
-                <div className="w-3 h-3 md:w-4 md:h-4 bg-white rounded-full absolute right-0.5" />
+
+            <div className="flex-1 flex items-center gap-2 md:gap-3">
+              <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
+                <Clock size={12} className="text-gray-400" />
+                <input 
+                  type="time" 
+                  value={item.startTime}
+                  disabled={!item.isActive}
+                  onChange={(e) => updateTime(item.dayOfWeek, 'startTime', e.target.value)}
+                  className="bg-transparent text-gray-900 text-[11px] md:text-xs font-semibold focus:outline-none disabled:text-gray-400" 
+                />
               </div>
+
+              <span className="text-gray-400 text-xs font-medium">to</span>
+
+              <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
+                <Clock size={12} className="text-gray-400" />
+                <input 
+                  type="time" 
+                  value={item.endTime}
+                  disabled={!item.isActive}
+                  onChange={(e) => updateTime(item.dayOfWeek, 'endTime', e.target.value)}
+                  className="bg-transparent text-gray-900 text-[11px] md:text-xs font-semibold focus:outline-none disabled:text-gray-400" 
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+              <span className={`text-[10px] font-black uppercase tracking-wider ${item.isActive ? 'text-purple-700' : 'text-gray-400'}`}>
+                {item.isActive ? 'Available' : 'Off'}
+              </span>
+              
+              <button
+                type="button"
+                role="switch"
+                aria-checked={item.isActive}
+                onClick={() => toggleDay(item.dayOfWeek)}
+                className={`w-11 h-6 rounded-full relative transition-colors duration-200 focus:outline-none p-0.5 cursor-pointer ${
+                  item.isActive ? 'bg-purple-600' : 'bg-gray-200 hover:bg-gray-300'
+                }`}
+              >
+                <div 
+                  className={`w-5 h-5 bg-white rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
+                    item.isActive ? 'translate-x-5' : 'translate-x-0'
+                  }`} 
+                />
+              </button>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 md:mt-10 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3">
-        <button className="px-4 md:px-6 py-2 text-[10px] md:text-xs text-gray-400 font-black hover:text-gray-600 transition-all">Discard Changes</button>
-        <button className="bg-purple-600 hover:bg-purple-700 text-white px-6 md:px-8 py-2 md:py-2.5 rounded-lg md:rounded-xl font-black transition-all shadow-xl shadow-purple-900/10 active:scale-95 text-xs">
-          Save Availability
+      <div className="mt-8 pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3">
+        <button 
+          type="button"
+          onClick={handleDiscard}
+          disabled={saving}
+          className="px-4 md:px-6 py-2.5 text-xs text-gray-500 font-bold hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+        >
+          Discard Changes
+        </button>
+        <button 
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-6 md:px-8 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-purple-600/20 active:scale-95 text-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+        >
+          {saving ? (
+            <>
+              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <Check size={14} />
+              <span>Save Availability</span>
+            </>
+          )}
         </button>
       </div>
     </div>

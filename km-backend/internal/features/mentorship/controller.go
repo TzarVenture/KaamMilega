@@ -255,3 +255,21 @@ func (c *MentorshipController) GetAvailability(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(avails)
 }
+
+func (c *MentorshipController) SubmitBookingReview(ctx *fiber.Ctx) error {
+	bookingID := ctx.Params("id")
+	var req SubmitBookingReviewRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	userID := ctx.Locals("user_id").(string)
+	if err := c.service.SubmitBookingReview(ctx.Context(), userID, bookingID, req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"message": "Review submitted successfully",
+	})
+}
+
