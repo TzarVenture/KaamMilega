@@ -78,6 +78,34 @@ const defaultUpdates: TickerUpdate[] = [
     },
 ];
 
+function formatStatus(status: string) {
+    if (!status) return '';
+    const lower = status.toLowerCase();
+    const words = lower.split(/\s+/);
+    return words
+        .map((w, i) => {
+            if (i > 0 && ['an', 'a', 'the', 'for', 'of', 'in', 'on', 'with'].includes(w)) {
+                return w;
+            }
+            return w.charAt(0).toUpperCase() + w.slice(1);
+        })
+        .join(' ');
+}
+
+function getStatusStyle(status: string) {
+    const s = (status || '').toLowerCase();
+    if (s.includes('interview')) {
+        return 'bg-blue-50 text-km-blue border-blue-100';
+    }
+    if (s.includes('gig') || s.includes('instant')) {
+        return 'bg-orange-50 text-km-accent border-orange-100';
+    }
+    if (s.includes('selected') || s.includes('placed') || s.includes('completed')) {
+        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
+    }
+    return 'bg-slate-100 text-slate-700 border-slate-200';
+}
+
 export default function SuccessTicker({ updates }: SuccessTickerProps) {
     const [selectedStory, setSelectedStory] = useState<TickerUpdate | null>(null);
     const [liveUpdates, setLiveUpdates] = useState<TickerUpdate[]>([]);
@@ -112,30 +140,39 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
 
     return (
         <>
-            <div className="bg-slate-50/90 py-3.5 sm:py-4 overflow-hidden font-sans group/ticker">
-                <div className="animate-km-marquee flex gap-6 sm:gap-8 items-center">
+            <div className="relative bg-slate-50/70 py-3 sm:py-3.5 overflow-hidden font-sans border-b border-slate-200/80">
+                {/* Subtle side edge fade vignettes */}
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-12 sm:w-24 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-12 sm:w-24 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+
+                <div className="animate-km-marquee flex gap-4 sm:gap-6 items-center">
                     {[...items, ...items].map((item, idx) => (
                         <button
                             key={`${item.id}-${idx}`}
                             type="button"
                             onClick={() => setSelectedStory(item)}
-                            className="group flex items-center gap-3.5 bg-white hover:bg-slate-50 border border-slate-200/90 hover:border-slate-300 rounded-2xl px-4 py-2.5 shadow-2xs hover:shadow-xs transition-all text-left shrink-0 cursor-pointer"
+                            className="group flex items-center gap-3.5 bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-slate-300 rounded-2xl px-4 py-2.5 shadow-2xs hover:shadow-xs transition-all text-left shrink-0 cursor-pointer"
                         >
                             {/* Circular Play Button Icon (Client Signature Element) */}
-                            <div className="w-10 h-10 sm:w-11 sm:h-11 bg-km-primary group-hover:bg-km-primary-dark rounded-full flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-all">
-                                <Play size={16} className="fill-white translate-x-0.5" />
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-km-primary group-hover:bg-km-primary-dark rounded-full flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-all">
+                                <Play size={14} className="fill-white translate-x-0.5" />
                             </div>
 
                             {/* Details */}
                             <div className="flex flex-col">
-                                <span className="text-[10px] sm:text-[11px] text-km-primary font-bold uppercase tracking-wider leading-none">
-                                    {item.status}
-                                </span>
+                                <div className="flex items-center">
+                                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold border ${getStatusStyle(item.status)}`}>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70 shrink-0" />
+                                        <span>{formatStatus(item.status)}</span>
+                                    </span>
+                                </div>
                                 <span className="text-xs sm:text-sm font-bold text-slate-900 mt-1 leading-tight group-hover:text-km-primary transition-colors">
                                     {item.name}
                                 </span>
-                                <span className="text-[11px] text-slate-500 font-medium leading-none mt-0.5">
-                                    {item.role} • {item.city}
+                                <span className="text-[11px] text-slate-500 font-medium leading-none mt-1 flex items-center gap-1">
+                                    <span>{item.role}</span>
+                                    <span className="text-slate-300">•</span>
+                                    <span>{item.city}</span>
                                 </span>
                             </div>
                         </button>

@@ -74,7 +74,7 @@ export default function AdminLoginPage() {
                                     <ShieldCheck size={40} />
                                 </div>
                                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                    <div className="w-2 h-2 bg-white rounded-full"></div>
                                 </div>
                             </div>
                         </div>

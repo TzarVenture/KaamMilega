@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { Calendar, Users, Bookmark, MapPin, Search, Sparkles, ArrowUpDown, Clock, Ticket, CheckCircle2, Tag } from 'lucide-react';
+import { Calendar, Users, Bookmark, MapPin, Search, Sparkles, ArrowUpDown, Clock, TrendingUp, Ticket, CheckCircle2, Tag } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
@@ -153,13 +153,13 @@ const PublicEventsPage = () => {
         <div className="bg-slate-50 min-h-screen pb-20">
 
             {/* ─── Hero Section ─── */}
-            <div className="bg-linear-to-br from-slate-950 via-[#0D1B5E] to-slate-950 pt-10 pb-28 md:pt-14 md:pb-32 px-4 text-center text-white relative overflow-hidden">
+            <div className="bg-linear-to-br from-slate-950 via-[#071A4D] to-slate-950 pt-10 pb-28 md:pt-14 md:pb-32 px-4 text-center text-white relative overflow-hidden">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-km-accent/5 rounded-full blur-3xl pointer-events-none" />
                 <div className="absolute bottom-0 left-0 right-0 h-24 bg-linear-to-t from-slate-50 to-transparent z-10 pointer-events-none" />
 
                 <div className="relative z-10 max-w-2xl mx-auto">
                     <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full border border-white/10 mb-5">
-                        <Sparkles size={14} className="text-km-accent" /> Workshops, Masterclasses & Networking
+                        <Calendar size={14} className="text-km-accent" /> Workshops, Masterclasses & Networking
                     </div>
                     <h1 className="text-3xl md:text-5xl font-black mb-3 tracking-tight">
                         Discover Amazing <span className="text-km-accent">Events</span>
@@ -293,7 +293,7 @@ const PublicEventsPage = () => {
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-linear-to-br from-slate-900 via-[#0D1B5E] to-slate-900 flex items-center justify-center">
+                                            <div className="w-full h-full bg-linear-to-br from-slate-900 via-[#071A4D] to-slate-900 flex items-center justify-center">
                                                 <div className="flex items-center justify-center opacity-30">
                                                     <div className="w-14 h-14 bg-km-accent rounded-lg transform -rotate-12" />
                                                     <div className="w-10 h-10 bg-km-accent/70 rounded-lg translate-y-3 -translate-x-3" />

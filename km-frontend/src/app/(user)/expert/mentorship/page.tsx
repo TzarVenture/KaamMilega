@@ -5,7 +5,7 @@ import {
   Plus, Calendar, Clock, Edit, Trash2, Check, X,
   ChevronRight, ArrowLeft, User, MessageCircle, Info,
   CheckCircle2, Video, ExternalLink, Wallet, DollarSign,
-  AlertCircle, Link2, ArrowUpRight, ShieldCheck, Sparkles
+  AlertCircle, Link2, ArrowUpRight, ShieldCheck
 } from 'lucide-react';
 import api from '@/lib/axios';
 import Link from 'next/link';
@@ -98,7 +98,7 @@ export default function ExpertMentorshipManagement() {
 
             <Link 
               href="/wallet"
-              className="bg-[#1a2b8c] hover:bg-[#152370] text-white px-4 py-2.5 rounded-xl font-bold transition-all shadow-md flex items-center gap-1.5 text-xs md:text-sm whitespace-nowrap"
+              className="bg-km-primary hover:bg-km-primary-dark text-white px-4 py-2.5 rounded-xl font-bold transition-all shadow-md flex items-center gap-1.5 text-xs md:text-sm whitespace-nowrap"
             >
               <Wallet size={16} /> Wallet & Payouts (F71) <ArrowUpRight size={14} />
             </Link>

@@ -11,7 +11,6 @@ import {
     Globe,
     CheckCircle2,
     Save,
-    Sparkles,
     Eye,
     Smartphone,
     Mail,
@@ -164,7 +163,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     </p>
                 </div>
                 {saving && (
-                    <div className="flex items-center gap-2 text-xs font-extrabold text-km-primary bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-100 animate-pulse">
+                    <div className="flex items-center gap-2 text-xs font-extrabold text-km-primary bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-100">
                         <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Saving changes...
                     </div>
                 )}
@@ -342,13 +341,13 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     </div>
 
                     <div className="divide-y divide-slate-100 pt-4">
-                        {/* AI Match */}
+                        {/* Automated Match */}
                         <div className="py-4 flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-km-accent" /> AI Job Matching & Recommendations
+                                    <SlidersHorizontal className="w-4 h-4 text-km-primary" /> Automated Skill Matching & Recommendations
                                 </p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">Allow automated algorithms to match your resume skills with recruiter searches.</p>
+                                <p className="text-xs text-slate-500 font-medium mt-0.5">Match your verified profile and skills with relevant recruiter requirements.</p>
                             </div>
                             <button
                                 onClick={() => handleToggle("enable_ai_recommendations")}

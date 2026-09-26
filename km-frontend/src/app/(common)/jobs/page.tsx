@@ -4,7 +4,7 @@ import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import {
     ChevronDown, MapPin, Search, Phone, MessageCircle,
     CheckCircle2, Star, ChevronRight, ChevronLeft, Bookmark, BookmarkCheck,
-    Briefcase, SlidersHorizontal, Sparkles, Building2, TrendingUp, Zap, RotateCcw,
+    Briefcase, SlidersHorizontal, ShieldCheck, Building2, TrendingUp, Zap, RotateCcw,
     ArrowUpDown, Clock, Users, ArrowUpRight
 } from 'lucide-react';
 import api from '@/lib/axios';
@@ -524,7 +524,7 @@ const JobsPageContent = () => {
                     <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                         <div className="max-w-2xl">
                             <div className="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 backdrop-blur-md text-blue-200 text-xs font-bold px-3.5 py-1.5 rounded-full mb-4">
-                                <Sparkles size={14} className="text-amber-400" />
+                                <ShieldCheck size={14} className="text-emerald-400" />
                                 <span>Verified Indian Employment Portal</span>
                             </div>
                             <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight">
@@ -798,7 +798,7 @@ const JobCard = ({
                             </Link>
                             <p className="text-slate-400 font-semibold text-xs uppercase tracking-wider mt-0.5 flex items-center gap-2">
                                 <span>{job.company}</span>
-                                <span className="w-1.5 h-1.5 rounded-full bg-km-primary animate-pulse" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                                 <span className="text-km-primary italic font-bold">Hiring Now</span>
                             </p>
                         </div>

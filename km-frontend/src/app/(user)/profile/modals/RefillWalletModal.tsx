@@ -101,7 +101,7 @@ export default function RefillWalletModal({
                     }
                 },
                 theme: {
-                    color: '#1a2b8c', // Official KaamMilega Brand Blue
+                    color: '#071A4D', // Official KaamMilega Deep Navy
                 },
                 modal: {
                     ondismiss: function () {
