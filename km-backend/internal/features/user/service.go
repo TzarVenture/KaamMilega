@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/features/notification"
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
 
@@ -72,9 +73,10 @@ type UserServiceImpl struct {
 	smsService sms.SMSService
 	skillRepo  skill.SkillRepository
 	config     *config.Config
+	mailer     notification.Mailer
 }
 
-func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config) UserService {
+func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config, mailer notification.Mailer) UserService {
 	// Trigger non-destructive background backfill for legacy users
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -87,6 +89,7 @@ func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo sk
 		smsService: smsService,
 		skillRepo:  skillRepo,
 		config:     cfg,
+		mailer:     mailer,
 	}
 }
 
@@ -660,7 +663,21 @@ func (s *UserServiceImpl) SendEmailOTP(ctx context.Context, email string) error 
 
 	fmt.Printf("Email OTP generated for %s: %s\n", email, code)
 
-	// Send live email via AWS SES SMTP if credentials are configured
+	// Send verification email via centralized mailer if available
+	if s.mailer != nil {
+		if err := s.mailer.SendEmailOTP(notification.EmailOTPParams{
+			ToEmail: email,
+			Code:    code,
+			Purpose: "verification",
+		}); err != nil {
+			fmt.Printf("Error sending verification email via mailer: %v\n", err)
+			return fmt.Errorf("failed to send email: %w", err)
+		}
+		fmt.Printf("Successfully sent verification email to %s via notification mailer\n", email)
+		return nil
+	}
+
+	// Fallback direct SMTP if mailer not wired
 	if s.config.SMTPUsername != "" && s.config.SMTPPassword != "" {
 		subject := "KaamMilega Verification Code"
 		htmlBody := fmt.Sprintf(`<!DOCTYPE html>
@@ -669,51 +686,62 @@ func (s *UserServiceImpl) SendEmailOTP(ctx context.Context, email string) error 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 16px;">
+<body style="margin: 0; padding: 0; background-color: #f4f7fb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #f4f7fb; padding: 32px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(91, 33, 104, 0.08);">
+        <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 16px; border: 1px solid #d9e0ea; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(7, 26, 77, 0.06);">
           <tr>
-            <td style="background-color: #5b2168; height: 6px;"></td>
+            <td style="background: linear-gradient(90deg, #0B5ED7 0%%, #FF6B00 100%%); height: 4px; line-height: 4px; font-size: 4px;">&nbsp;</td>
           </tr>
           <tr>
-            <td style="padding: 32px 32px 24px 32px; text-align: center; background-color: #ffffff;">
-              <table role="presentation" align="center" cellspacing="0" cellpadding="0">
+            <td style="padding: 28px 32px 20px; text-align: center; background-color: #ffffff; border-bottom: 1px solid #f1f5f9;">
+              <table role="presentation" cellspacing="0" cellpadding="0" align="center" style="margin: 0 auto;">
                 <tr>
-                  <td align="center">
-                    <div style="display: inline-block; background-color: #5b2168; color: #ffffff; font-size: 18px; font-weight: 900; width: 44px; height: 44px; line-height: 44px; border-radius: 12px; text-align: center; letter-spacing: -0.5px;">KM</div>
+                  <td style="vertical-align: middle; padding-right: 10px;">
+                    <a href="https://kaammilega.com" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <img src="https://kaammilega.com/kaammilega-logo-icon.png" alt="KaamMilega Icon" width="38" height="39" style="display: block; width: 38px; height: 39px; max-width: 38px; border: 0; outline: none; text-decoration: none;" />
+                    </a>
+                  </td>
+                  <td style="vertical-align: middle;">
+                    <a href="https://kaammilega.com" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <img src="https://kaammilega.com/kaammilega-logo-text.png" alt="Kaammilega™" width="158" height="28" style="display: block; width: 158px; height: 28px; max-width: 158px; border: 0; outline: none; text-decoration: none;" />
+                    </a>
                   </td>
                 </tr>
               </table>
-              <h1 style="color: #0f172a; font-size: 22px; font-weight: 800; margin: 16px 0 4px 0; letter-spacing: -0.5px;">KaamMilega</h1>
-              <p style="color: #64748b; font-size: 13px; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Email Verification Code</p>
+              <div style="margin-top: 14px;">
+                <span style="display: inline-block; background-color: #f4f7fb; border: 1px solid #d9e0ea; color: #0b5ed7; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 14px; border-radius: 20px;">
+                  Email Verification Code
+                </span>
+              </div>
             </td>
           </tr>
           <tr>
-            <td style="padding: 0 32px 32px 32px; color: #334155; font-size: 15px; line-height: 1.6;">
-              <p style="margin: 0 0 16px 0;">Hello,</p>
-              <p style="margin: 0 0 24px 0; color: #475569;">Please use the 4-digit verification code below to confirm your email address and complete your account setup:</p>
+            <td style="padding: 28px 32px; color: #374151; font-size: 15px; line-height: 1.65;">
+              <p style="margin: 0 0 16px 0; font-weight: 600; color: #111827;">Hello,</p>
+              <p style="margin: 0 0 24px 0; color: #5b6472;">Please use the 4-digit verification code below to confirm your email address and complete your account setup:</p>
               <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px 0;">
                 <tr>
-                  <td align="center" style="background-color: #faf5ff; border: 2px dashed #d8b4fe; border-radius: 16px; padding: 20px;">
-                    <div style="font-size: 38px; font-weight: 900; color: #5b2168; letter-spacing: 12px; font-family: 'Courier New', Courier, monospace; margin-left: 12px;">%s</div>
+                  <td align="center" style="background-color: #eff6ff; border: 2px dashed #0b5ed7; border-radius: 16px; padding: 24px 20px;">
+                    <div style="font-size: 38px; font-weight: 900; color: #071a4d; letter-spacing: 14px; font-family: 'Courier New', Courier, monospace; margin-left: 14px;">%s</div>
                   </td>
                 </tr>
               </table>
-              <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; border-radius: 12px; margin-bottom: 24px;">
+              <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #fff7ed; border: 1px solid #ffedd5; border-left: 4px solid #ff6b00; border-radius: 8px; margin-bottom: 24px;">
                 <tr>
-                  <td style="padding: 12px 16px; font-size: 13px; color: #64748b;">
-                    ⏱️ <strong>Note:</strong> This verification code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.
+                  <td style="padding: 12px 16px; font-size: 13px; color: #9a3412; line-height: 1.5;">
+                    ⏱️ <strong>Security Notice:</strong> This code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.
                   </td>
                 </tr>
               </table>
-              <p style="margin: 0; color: #94a3b8; font-size: 13px;">If you did not request this email, please safely ignore it.</p>
+              <p style="margin: 0; color: #8f9aa8; font-size: 13px;">If you did not request this email, please safely ignore it.</p>
             </td>
           </tr>
           <tr>
-            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 12px;">
-              &copy; 2026 KaamMilega Platform. All rights reserved.
+            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #8f9aa8; font-size: 11px; line-height: 1.6;">
+              &copy; 2026 KaamMilega Platform Pvt. Ltd. &middot; All rights reserved.<br>
+              <a href="https://kaammilega.com" style="color: #0b5ed7; text-decoration: none; font-weight: 600;">kaammilega.com</a>
             </td>
           </tr>
         </table>
@@ -735,10 +763,10 @@ func (s *UserServiceImpl) SendEmailOTP(ctx context.Context, email string) error 
 			htmlBody,
 		)
 		if err != nil {
-			fmt.Printf("Error sending email via AWS SES: %v\n", err)
+			fmt.Printf("Error sending email via direct SMTP: %v\n", err)
 			return fmt.Errorf("failed to send email: %w", err)
 		}
-		fmt.Printf("Successfully sent verification email to %s via AWS SES\n", email)
+		fmt.Printf("Successfully sent verification email to %s via direct SMTP\n", email)
 	}
 
 	return nil
@@ -1125,7 +1153,21 @@ func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPassword
 
 	fmt.Printf("Password reset OTP generated for %s: %s\n", email, code)
 
-	// Send live email via SMTP if credentials are configured
+	// Send reset email via centralized mailer if available
+	if s.mailer != nil {
+		if err := s.mailer.SendEmailOTP(notification.EmailOTPParams{
+			ToEmail: email,
+			Code:    code,
+			Purpose: "password_reset",
+		}); err != nil {
+			fmt.Printf("Error sending password reset email via mailer: %v\n", err)
+			return fmt.Errorf("failed to send reset email: %w", err)
+		}
+		fmt.Printf("Successfully sent password reset email to %s via notification mailer\n", email)
+		return nil
+	}
+
+	// Fallback direct SMTP if mailer not wired
 	if s.config.SMTPUsername != "" && s.config.SMTPPassword != "" {
 		subject := "KaamMilega Password Reset Code"
 		htmlBody := fmt.Sprintf(`<!DOCTYPE html>
@@ -1134,51 +1176,62 @@ func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPassword
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
-  <table role="presentation" width="100%%%%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 16px;">
+<body style="margin: 0; padding: 0; background-color: #f4f7fb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #f4f7fb; padding: 32px 16px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%%%%" cellspacing="0" cellpadding="0" style="max-width: 520px; background-color: #ffffff; border-radius: 24px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(91, 33, 104, 0.08);">
+        <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #ffffff; border-radius: 16px; border: 1px solid #d9e0ea; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(7, 26, 77, 0.06);">
           <tr>
-            <td style="background-color: #5b2168; height: 6px;"></td>
+            <td style="background: linear-gradient(90deg, #0B5ED7 0%%, #FF6B00 100%%); height: 4px; line-height: 4px; font-size: 4px;">&nbsp;</td>
           </tr>
           <tr>
-            <td style="padding: 32px 32px 24px 32px; text-align: center; background-color: #ffffff;">
-              <table role="presentation" align="center" cellspacing="0" cellpadding="0">
+            <td style="padding: 28px 32px 20px; text-align: center; background-color: #ffffff; border-bottom: 1px solid #f1f5f9;">
+              <table role="presentation" cellspacing="0" cellpadding="0" align="center" style="margin: 0 auto;">
                 <tr>
-                  <td align="center">
-                    <div style="display: inline-block; background-color: #5b2168; color: #ffffff; font-size: 18px; font-weight: 900; width: 44px; height: 44px; line-height: 44px; border-radius: 12px; text-align: center; letter-spacing: -0.5px;">KM</div>
+                  <td style="vertical-align: middle; padding-right: 10px;">
+                    <a href="https://kaammilega.com" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <img src="https://kaammilega.com/kaammilega-logo-icon.png" alt="KaamMilega Icon" width="38" height="39" style="display: block; width: 38px; height: 39px; max-width: 38px; border: 0; outline: none; text-decoration: none;" />
+                    </a>
+                  </td>
+                  <td style="vertical-align: middle;">
+                    <a href="https://kaammilega.com" target="_blank" style="text-decoration: none; display: inline-block;">
+                      <img src="https://kaammilega.com/kaammilega-logo-text.png" alt="Kaammilega™" width="158" height="28" style="display: block; width: 158px; height: 28px; max-width: 158px; border: 0; outline: none; text-decoration: none;" />
+                    </a>
                   </td>
                 </tr>
               </table>
-              <h1 style="color: #0f172a; font-size: 22px; font-weight: 800; margin: 16px 0 4px 0; letter-spacing: -0.5px;">KaamMilega</h1>
-              <p style="color: #64748b; font-size: 13px; font-weight: 600; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Password Reset Code</p>
+              <div style="margin-top: 14px;">
+                <span style="display: inline-block; background-color: #f4f7fb; border: 1px solid #d9e0ea; color: #0b5ed7; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 14px; border-radius: 20px;">
+                  Password Reset Code
+                </span>
+              </div>
             </td>
           </tr>
           <tr>
-            <td style="padding: 0 32px 32px 32px; color: #334155; font-size: 15px; line-height: 1.6;">
-              <p style="margin: 0 0 16px 0;">Hello,</p>
-              <p style="margin: 0 0 24px 0; color: #475569;">We received a request to reset your password. Use the 4-digit verification code below to proceed with setting a new password:</p>
-              <table role="presentation" width="100%%%%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px 0;">
+            <td style="padding: 28px 32px; color: #374151; font-size: 15px; line-height: 1.65;">
+              <p style="margin: 0 0 16px 0; font-weight: 600; color: #111827;">Hello,</p>
+              <p style="margin: 0 0 24px 0; color: #5b6472;">We received a request to reset your password. Use the 4-digit verification code below to proceed with setting a new password:</p>
+              <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="margin: 0 0 24px 0;">
                 <tr>
-                  <td align="center" style="background-color: #faf5ff; border: 2px dashed #d8b4fe; border-radius: 16px; padding: 20px;">
-                    <div style="font-size: 38px; font-weight: 900; color: #5b2168; letter-spacing: 12px; font-family: 'Courier New', Courier, monospace; margin-left: 12px;">%s</div>
+                  <td align="center" style="background-color: #eff6ff; border: 2px dashed #0b5ed7; border-radius: 16px; padding: 24px 20px;">
+                    <div style="font-size: 38px; font-weight: 900; color: #071a4d; letter-spacing: 14px; font-family: 'Courier New', Courier, monospace; margin-left: 14px;">%s</div>
                   </td>
                 </tr>
               </table>
-              <table role="presentation" width="100%%%%" cellspacing="0" cellpadding="0" style="background-color: #f1f5f9; border-radius: 12px; margin-bottom: 24px;">
+              <table role="presentation" width="100%%" cellspacing="0" cellpadding="0" style="background-color: #fff7ed; border: 1px solid #ffedd5; border-left: 4px solid #ff6b00; border-radius: 8px; margin-bottom: 24px;">
                 <tr>
-                  <td style="padding: 12px 16px; font-size: 13px; color: #64748b;">
-                    ⏱️ <strong>Note:</strong> This reset code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.
+                  <td style="padding: 12px 16px; font-size: 13px; color: #9a3412; line-height: 1.5;">
+                    ⏱️ <strong>Security Notice:</strong> This code will expire in <strong>5 minutes</strong>. Do not share this code with anyone.
                   </td>
                 </tr>
               </table>
-              <p style="margin: 0; color: #94a3b8; font-size: 13px;">If you did not request a password reset, you can safely ignore this email.</p>
+              <p style="margin: 0; color: #8f9aa8; font-size: 13px;">If you did not request a password reset, you can safely ignore this email.</p>
             </td>
           </tr>
           <tr>
-            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #94a3b8; font-size: 12px;">
-              &copy; 2026 KaamMilega Platform. All rights reserved.
+            <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; color: #8f9aa8; font-size: 11px; line-height: 1.6;">
+              &copy; 2026 KaamMilega Platform Pvt. Ltd. &middot; All rights reserved.<br>
+              <a href="https://kaammilega.com" style="color: #0b5ed7; text-decoration: none; font-weight: 600;">kaammilega.com</a>
             </td>
           </tr>
         </table>
@@ -1200,10 +1253,10 @@ func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPassword
 			htmlBody,
 		)
 		if err != nil {
-			fmt.Printf("Error sending password reset email: %v\n", err)
+			fmt.Printf("Error sending password reset email via direct SMTP: %v\n", err)
 			return fmt.Errorf("failed to send reset email: %w", err)
 		}
-		fmt.Printf("Successfully sent password reset email to %s\n", email)
+		fmt.Printf("Successfully sent password reset email to %s via direct SMTP\n", email)
 	}
 
 	return nil
