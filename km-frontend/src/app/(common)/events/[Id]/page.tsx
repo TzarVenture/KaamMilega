@@ -140,7 +140,7 @@ const EventDetailsPage = () => {
                 }
 
                 // If user logged in, check for existing digital ticket & wallet balance
-                if (token) {
+                if (isAuthenticated()) {
                     fetchUserTicket();
                     fetchWalletBalance();
                 }
@@ -744,7 +744,7 @@ const EventDetailsPage = () => {
                             </div>
 
                             {/* Printable Boarding Pass Body */}
-                            <div ref={ticketRef} className="p-5 bg-gradient-to-b from-white via-slate-50/50 to-slate-100/50 overflow-x-hidden">
+                            <div ref={ticketRef} className="p-5 bg-linear-to-b from-white via-slate-50/50 to-slate-100/50 overflow-x-hidden">
                                 {/* Header / Title */}
                                 <div className="flex items-start justify-between gap-3 mb-3">
                                     <div className="min-w-0 flex-1">

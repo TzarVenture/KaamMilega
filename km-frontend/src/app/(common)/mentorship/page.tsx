@@ -222,7 +222,7 @@ export default function MentorshipPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="bg-white rounded-3xl h-[380px] animate-pulse border border-slate-100" />
+              <div key={i} className="bg-white rounded-3xl h-95 animate-pulse border border-slate-100" />
             ))}
           </div>
         ) : filteredMentorships.length > 0 ? (
@@ -317,7 +317,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
         </div>
  
         <Link href={`/mentorship/${mentorship?.id}`}>
-          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-1.5 group-hover:text-km-primary transition-colors line-clamp-2 min-h-[44px]">
+          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-1.5 group-hover:text-km-primary transition-colors line-clamp-2 min-h-11">
             {mentorship?.title}
           </h3>
         </Link>

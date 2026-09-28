@@ -440,7 +440,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
           </div>
 
           {/* Sidebar - Booking */}
-          <div className="lg:w-[420px] space-y-6">
+          <div className="lg:w-105 space-y-6">
             <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-lg shadow-slate-200/50 border border-slate-200/80 lg:sticky lg:top-8">
                 {/* Session Fee Header */}
                 <div className="mb-6 pb-5 border-b border-slate-100">
@@ -547,7 +547,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                            Topics to Discuss <span className="text-slate-400 font-medium">(Optional)</span>
                         </label>
                         <textarea 
-                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs md:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-km-primary transition-all font-medium min-h-[80px]"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs md:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-km-primary transition-all font-medium min-h-20"
                             placeholder="Share your goals, challenges, or questions for this session..."
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
@@ -857,7 +857,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-left space-y-2.5 mb-6 text-xs">
                 <div className="flex justify-between py-1 border-b border-slate-200/60">
                   <span className="text-slate-500 font-medium">Session:</span>
-                  <span className="font-bold text-slate-900 text-right max-w-[200px] truncate">{mentorship.title}</span>
+                  <span className="font-bold text-slate-900 text-right max-w-50 truncate">{mentorship.title}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-200/60">
                   <span className="text-slate-500 font-medium">Mentor:</span>

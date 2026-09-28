@@ -63,14 +63,14 @@ export default function AdminLoginPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-[480px]"
+                className="w-full max-w-120"
             >
                 <div className="bg-white rounded-[40px] shadow-2xl shadow-purple-900/10 border border-purple-50 p-10 md:p-12">
                     {/* Logo & Header */}
                     <div className="text-center mb-10">
                         <div className="flex justify-center mb-6">
                             <div className="relative">
-                                <div className="w-20 h-20 bg-gradient-to-tr from-purple-600 to-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-purple-200 rotate-12">
+                                <div className="w-20 h-20 bg-linear-to-tr from-purple-600 to-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-purple-200 rotate-12">
                                     <ShieldCheck size={40} />
                                 </div>
                                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center">
@@ -132,7 +132,7 @@ export default function AdminLoginPage() {
 
                         <button
                             disabled={isLoading}
-                            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl py-4 font-bold text-[16px] shadow-xl shadow-purple-200 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
+                            className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl py-4 font-bold text-[16px] shadow-xl shadow-purple-200 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
                         >
                             {isLoading ? (
                                 <>
