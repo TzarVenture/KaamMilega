@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/axios';
+import { isAuthenticated } from '@/lib/auth';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -25,9 +26,9 @@ export default function MyMentorshipSessionsPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    setIsLoggedIn(!!token);
-    if (token) {
+    const authed = isAuthenticated();
+    setIsLoggedIn(authed);
+    if (authed) {
       fetchMyBookings();
     } else {
       setLoading(false);

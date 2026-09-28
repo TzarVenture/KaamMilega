@@ -67,15 +67,15 @@ const GuestNavbar = () => {
 
     const navLinks = [
         { label: 'Jobs', href: '/jobs', icon: <Briefcase size={15} /> },
-        { label: 'InstantMilega™', href: '/jobs?type=instant', icon: <Zap size={15} className="text-amber-500 fill-amber-500" />, isHighlighted: true },
+        { label: 'InstantMilega™', href: '/instant-milega', icon: <Zap size={15} className="text-[#FF6B00] fill-[#FF6B00]" />, isHighlighted: true },
         { label: 'Mentors', href: '/mentorship', icon: <GraduationCap size={15} /> },
         { label: 'Events', href: '/events', icon: <Calendar size={15} /> },
         { label: 'Network', href: '/network', icon: <Users size={15} /> },
     ];
 
     const isLinkActive = (item: { href: string }) => {
-        if (item.href === '/jobs?type=instant') {
-            return searchParams.get('type') === 'instant';
+        if (item.href === '/instant-milega') {
+            return pathname === '/instant-milega' || searchParams.get('type') === 'instant';
         }
         if (item.href === '/jobs') {
             return pathname === '/jobs' && searchParams.get('type') !== 'instant';

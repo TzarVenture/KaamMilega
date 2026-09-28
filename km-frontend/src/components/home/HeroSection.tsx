@@ -46,10 +46,9 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
     const handleInstantGigSearch = (e: React.FormEvent) => {
         e.preventDefault();
         const params = new URLSearchParams();
-        params.set('type', 'instant');
         if (tradeType) params.set('role', tradeType);
         if (pincode.trim()) params.set('pincode', pincode.trim());
-        router.push(`/jobs?${params.toString()}`);
+        router.push(`/instant-milega?${params.toString()}`);
     };
 
     const handleSkillSearch = (e: React.FormEvent) => {
@@ -78,7 +77,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
     ];
 
     return (
-        <section className="relative overflow-hidden bg-gradient-to-b from-[#F0F5FB] via-[#F4F7FB] to-white pt-4 pb-4 sm:pt-10 sm:pb-12 lg:min-h-[96vh] lg:flex lg:items-center border-b border-slate-200/80 font-sans">
+        <section className="relative overflow-hidden bg-linear-to-b from-[#F0F5FB] via-[#F4F7FB] to-white pt-4 pb-4 sm:pt-10 sm:pb-12 lg:min-h-[96vh] lg:flex lg:items-center border-b border-slate-200/80 font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Main Hero Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-6 items-center">
@@ -311,11 +310,11 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                     </div>
 
                     {/* Right Column: Hero Person with KaamMilega 'K' Brand Art */}
-                    <div className="lg:col-span-5 relative flex items-end justify-center min-h-[200px] sm:min-h-[300px] lg:min-h-[460px]">
+                    <div className="lg:col-span-5 relative flex items-end justify-center min-h-50 sm:min-h-75 lg:min-h-115">
                         
                         {/* KaamMilega K Logo — proportional background art */}
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
-                            <div className="relative w-[70%] sm:w-[80%] lg:w-[95%] aspect-square max-w-[480px] translate-x-2 sm:translate-x-4 opacity-90">
+                            <div className="relative w-[70%] sm:w-[80%] lg:w-[95%] aspect-square max-w-120 translate-x-2 sm:translate-x-4 opacity-90">
                                 <Image
                                     src="/kaammilega-logo-icon.png"
                                     alt="KaamMilega K Brand Art"
@@ -343,7 +342,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         </div>
 
                         {/* Main Person — sized to sit within the K art, not overflow it */}
-                        <div className="relative z-10 w-[50%] sm:w-[60%] lg:w-[75%] max-w-[360px] flex items-end justify-center">
+                        <div className="relative z-10 w-[50%] sm:w-[60%] lg:w-[75%] max-w-90 flex items-end justify-center">
                             <Image
                                 src="/asset/hero/hero-worker-new-clean.png"
                                 alt="KaamMilega Verified Candidate"
@@ -355,7 +354,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         </div>
 
                         {/* Floating Feature Card (Using kaammilega-logo-text.png, no hover animation) */}
-                        <div className="absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-[130px] sm:min-w-[160px] select-none">
+                        <div className="absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none">
                             <div className="flex items-center gap-2 sm:gap-2.5">
                                 <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-md sm:rounded-lg bg-orange-50 text-km-accent flex items-center justify-center shrink-0">
                                     <Briefcase size={13} className="sm:hidden" />

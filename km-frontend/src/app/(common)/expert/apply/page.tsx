@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
+import { isAuthenticated } from "@/lib/auth";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -44,11 +45,11 @@ export default function ExpertProSubscriptionPage() {
   const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    setIsLoggedIn(!!token);
+    const authed = isAuthenticated();
+    setIsLoggedIn(authed);
 
     fetchPlans();
-    if (token) {
+    if (authed) {
       fetchMySubscription();
       fetchWallet();
     }
@@ -246,7 +247,7 @@ export default function ExpertProSubscriptionPage() {
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
       {/* Hero Banner */}
-      <section className="bg-linear-to-br from-slate-950 via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-[32px] sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
+      <section className="bg-linear-to-br from-slate-950 via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
@@ -334,7 +335,7 @@ export default function ExpertProSubscriptionPage() {
                   </div>
 
                   <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-2">{plan.name}</h3>
-                  <p className="text-xs text-slate-500 font-medium mb-6 min-h-[36px]">{plan.description}</p>
+                  <p className="text-xs text-slate-500 font-medium mb-6 min-h-9">{plan.description}</p>
 
                   <div className="flex items-baseline gap-1.5 mb-6 pb-6 border-b border-slate-100">
                     <span className="text-3xl md:text-4xl font-black text-slate-900 font-mono">

@@ -7,6 +7,7 @@ import BrandLogo from "@/components/km/BrandLogo";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Download, ArrowLeft, Phone, Lock, Eye, EyeOff } from "lucide-react";
 import api from "@/lib/axios";
+import { saveSession } from "@/lib/auth";
 
 export default function KaamMilegaAuth() {
     const router = useRouter();
@@ -109,8 +110,7 @@ export default function KaamMilegaAuth() {
         try {
             const data: any = await api.post("/auth/otp/verify", { mobile, code: otpString, role: "recruiter" });
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            saveSession(data.user);
 
             if (!data.is_registered) {
                 router.push("/recruiter/register");
@@ -143,8 +143,7 @@ export default function KaamMilegaAuth() {
                 role: "recruiter",
             });
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            saveSession(data.user);
 
             if (!data.is_registered) {
                 router.push("/recruiter/register");
@@ -192,8 +191,7 @@ export default function KaamMilegaAuth() {
                 role: "recruiter",
             });
 
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            saveSession(data.user);
 
             router.push("/recruiter/register");
         } catch (err: any) {

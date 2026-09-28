@@ -77,6 +77,9 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 func (c *Controller) WebSocketHandler(ctx *websocket.Conn) {
 	tokenString := ctx.Query("token")
 	if tokenString == "" {
+		tokenString = ctx.Cookies("km_auth_token")
+	}
+	if tokenString == "" {
 		ctx.Close()
 		return
 	}

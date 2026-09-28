@@ -14,6 +14,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
@@ -46,10 +47,9 @@ export default function LandingPage() {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('user');
-      if (token) {
+      if (isAuthenticated()) {
         setIsLoggedIn(true);
+        const storedUser = localStorage.getItem('user');
         if (storedUser) {
           try {
             setCurrentUser(JSON.parse(storedUser));
@@ -60,8 +60,7 @@ export default function LandingPage() {
   }, []);
 
   const handleChat = (id: string) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (!token) {
+    if (!isAuthenticated()) {
       toast.info("Please sign in to chat with professionals", { position: "top-center" });
       router.push(`/login?redirect=${encodeURIComponent(`/chat?userId=${id}`)}`);
       return;
@@ -70,8 +69,7 @@ export default function LandingPage() {
   };
 
   const handleConnect = async (id: string, name?: string) => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (!token) {
+    if (!isAuthenticated()) {
       toast.info("Please sign in to connect with professionals", { position: "top-center" });
       router.push('/login?redirect=/');
       return;

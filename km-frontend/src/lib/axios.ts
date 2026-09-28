@@ -8,9 +8,10 @@ const api = axios.create({
     headers: {
         "Content-Type": "application/json",
     },
+    withCredentials: true,
 });
 
-// Request Interceptor: Attach Token
+// Request Interceptor: Attach Token (keeps backwards compatibility for stored tokens)
 api.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         if (typeof window !== "undefined") {
@@ -38,6 +39,7 @@ api.interceptors.response.use(
                 if (typeof window !== "undefined") {
                     localStorage.removeItem("token");
                     localStorage.removeItem("user");
+                    document.cookie = "km_user_role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0;";
 
                     const currentPath = window.location.pathname;
                     const isPublicRoute = currentPath === "/" || currentPath.startsWith("/jobs") || currentPath.startsWith("/mentorship");

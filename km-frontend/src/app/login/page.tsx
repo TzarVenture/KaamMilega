@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import BrandLogo from "@/components/km/BrandLogo";
 import DownloadAppModal from "@/components/km/DownloadAppModal";
 import api from "@/lib/axios";
+import { saveSession } from "@/lib/auth";
 import OtpInput from "@/components/ui/OtpInput";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Download, Phone, Lock, Eye, EyeOff, User, Mail } from "lucide-react";
@@ -634,8 +635,7 @@ export default function LoginPage() {
         setLoading(true);
         try {
             const data: any = await api.post("/auth/otp/verify", { mobile, code: otpString, role: "user" });
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            saveSession(data.user);
             router.push(getRedirectUrl(data.is_registered));
         } catch (err: any) {
             setError(err.message || "Invalid OTP");
@@ -661,8 +661,7 @@ export default function LoginPage() {
                 password: cleanPassword,
                 role: "user",
             });
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            saveSession(data.user);
             router.push(getRedirectUrl(data.is_registered));
         } catch (err: any) {
             setError(err.message || "Invalid email or password");
@@ -703,8 +702,7 @@ export default function LoginPage() {
                 password: cleanPassword,
                 role: "user",
             });
-            localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
+            saveSession(data.user);
             // Direct to profile completion wizard
             router.push("/register");
         } catch (err: any) {

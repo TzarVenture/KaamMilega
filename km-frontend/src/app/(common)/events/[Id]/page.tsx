@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
+import { isAuthenticated } from '@/lib/auth';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
@@ -124,7 +125,6 @@ const EventDetailsPage = () => {
 
                 // Check registration status from stored user
                 const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-                const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
                 if (storedUser) {
                     try {
@@ -142,7 +142,7 @@ const EventDetailsPage = () => {
                 }
 
                 // If user logged in, check for existing digital ticket & wallet balance
-                if (token) {
+                if (isAuthenticated()) {
                     fetchUserTicket();
                     fetchWalletBalance();
                 }
@@ -190,8 +190,7 @@ const EventDetailsPage = () => {
 
     // Free Event Registration handler
     const handleFreeRegister = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
+        if (!isAuthenticated()) {
             toast.info("Please login to register for this event");
             router.push(`/login?redirect=/events/${Id}`);
             return;
@@ -213,8 +212,7 @@ const EventDetailsPage = () => {
 
     // Open Paid Checkout Modal
     const handleOpenCheckout = () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
+        if (!isAuthenticated()) {
             toast.info("Please login to purchase tickets");
             router.push(`/login?redirect=/events/${Id}`);
             return;
@@ -757,7 +755,7 @@ const EventDetailsPage = () => {
                             </div>
 
                             {/* Printable Boarding Pass Body */}
-                            <div ref={ticketRef} className="p-5 bg-gradient-to-b from-white via-slate-50/50 to-slate-100/50 overflow-x-hidden">
+                            <div ref={ticketRef} className="p-5 bg-linear-to-b from-white via-slate-50/50 to-slate-100/50 overflow-x-hidden">
                                 {/* Header / Title */}
                                 <div className="flex items-start justify-between gap-3 mb-3">
                                     <div className="min-w-0 flex-1">

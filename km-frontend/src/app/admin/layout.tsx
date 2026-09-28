@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import BrandLogo from '@/components/km/BrandLogo';
+import { clearSession, isAuthenticated } from '@/lib/auth';
 import {
     Users,
     Building2,
@@ -70,9 +71,8 @@ export default function AdminLayout({
         }
 
         const userStr = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
 
-        if (!token || !userStr) {
+        if (!userStr || !isAuthenticated()) {
             router.push('/admin/login');
             return;
         }
@@ -91,8 +91,7 @@ export default function AdminLayout({
     }, [pathname, isLoginPage, router]);
 
     const handleSignOut = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearSession();
         router.push('/admin/login');
     };
 
@@ -126,7 +125,7 @@ export default function AdminLayout({
         <>
             <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6">
                 {/* Admin Profile Mini */}
-                <div className={`p-4 mx-2 rounded-2xl bg-gradient-to-br from-purple-700 to-indigo-900 flex items-center gap-4 shadow-lg shadow-purple-900/10 transition-all ${collapsed && 'px-2'}`}>
+                <div className={`p-4 mx-2 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-4 shadow-lg shadow-purple-900/10 transition-all ${collapsed && 'px-2'}`}>
                     <motion.div
                         whileHover={{ scale: 1.05 }}
                         className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20"

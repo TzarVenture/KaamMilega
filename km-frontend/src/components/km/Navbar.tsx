@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import {
     Search, MapPin, ChevronDown, Home, Users, Briefcase,
     MessageSquare, BookOpen, Bell, ArrowUpRight, Menu, X,
-    Calendar
+    Calendar, Zap
 } from 'lucide-react';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
@@ -11,6 +11,7 @@ import CustomImage from '@/components/ui/CustomImage';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
+import { clearSession } from '@/lib/auth';
 
 interface NavbarProps {
     showCitySelector?: boolean;
@@ -98,6 +99,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
     const navLinks = [
         { href: '/', icon: <Home size={18} />, label: 'Home' },
+        { href: '/instant-milega', icon: <Zap size={18} className="text-[#FF6B00] fill-[#FF6B00]" />, label: 'InstantMilega™' },
         { href: '/network', icon: <Users size={18} />, label: 'Network' },
         { href: '/events', icon: <Calendar size={18} />, label: 'Events' },
         { href: '/jobs', icon: <Briefcase size={18} />, label: 'Jobs' },
@@ -302,9 +304,8 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                                 <hr className="border-gray-100" />
 
                                 <div className="pt-2">
-                                    <MenuItem label="Sign Out" onClick={() => {
-                                        localStorage.removeItem('token');
-                                        localStorage.removeItem('user');
+                                    <MenuItem label="Sign Out" onClick={async () => {
+                                        await clearSession();
                                         window.location.href = '/login';
                                     }} />
                                 </div>
@@ -471,9 +472,8 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
                         <div className="px-4 py-3">
                             <button
-                                onClick={() => {
-                                    localStorage.removeItem('token');
-                                    localStorage.removeItem('user');
+                                onClick={async () => {
+                                    await clearSession();
                                     window.location.href = '/login';
                                 }}
                                 className="w-full text-center py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"

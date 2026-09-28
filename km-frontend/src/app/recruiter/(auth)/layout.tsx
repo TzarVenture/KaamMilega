@@ -4,6 +4,7 @@ import Navbar from '@/components/km/AppNavbar';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
+import { isAuthenticated } from '@/lib/auth';
 import RecruiterSidebar from '@/components/RecruiterSidebar';
 import { FullPageSkeleton } from '@/components/ui/LoadingSkeleton';
 
@@ -13,8 +14,7 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const verifyRecruiter = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
+            if (!isAuthenticated()) {
                 router.push('/recruiter/login');
                 return;
             }

@@ -3,6 +3,7 @@ package user
 import (
 	"log"
 	"strings"
+	"time"
 
 	"km-backend/internal/config"
 
@@ -17,6 +18,85 @@ type UserController struct {
 
 func NewUserController(service UserService, cfg *config.Config) *UserController {
 	return &UserController{service: service, config: cfg}
+}
+
+// setAuthCookies issues HttpOnly session token and readable role cookie
+func (ctrl *UserController) setAuthCookies(c *fiber.Ctx, token string, user *User) {
+	if token == "" || user == nil {
+		return
+	}
+
+	primaryRole := RoleUser
+	if len(user.Roles) > 0 && user.Roles[0] != "" {
+		primaryRole = user.Roles[0]
+	}
+
+	// In production or HTTPS, mark cookies as secure
+	isSecure := ctrl.config.Environment == "production" || c.Protocol() == "https"
+
+	// 1. Primary Auth Token (HttpOnly, inaccessible via client JS, immune to XSS)
+	c.Cookie(&fiber.Cookie{
+		Name:     "km_auth_token",
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(72 * time.Hour),
+		MaxAge:   72 * 3600,
+		HTTPOnly: true,
+		Secure:   isSecure,
+		SameSite: "Lax",
+	})
+
+	// 2. User Role (Readable by Next.js Edge Middleware for 0ms server-side routing)
+	c.Cookie(&fiber.Cookie{
+		Name:     "km_user_role",
+		Value:    primaryRole,
+		Path:     "/",
+		Expires:  time.Now().Add(72 * time.Hour),
+		MaxAge:   72 * 3600,
+		HTTPOnly: false,
+		Secure:   isSecure,
+		SameSite: "Lax",
+	})
+}
+
+// clearAuthCookies removes auth cookies from the browser
+func (ctrl *UserController) clearAuthCookies(c *fiber.Ctx) {
+	isSecure := ctrl.config.Environment == "production" || c.Protocol() == "https"
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "km_auth_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-24 * time.Hour),
+		MaxAge:   -1,
+		HTTPOnly: true,
+		Secure:   isSecure,
+		SameSite: "Lax",
+	})
+
+	c.Cookie(&fiber.Cookie{
+		Name:     "km_user_role",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now().Add(-24 * time.Hour),
+		MaxAge:   -1,
+		HTTPOnly: false,
+		Secure:   isSecure,
+		SameSite: "Lax",
+	})
+}
+
+// Logout godoc
+// @Summary User Logout
+// @Description Clear authentication cookies
+// @Tags auth
+// @Success 200 {object} map[string]string
+// @Router /api/auth/logout [post]
+func (ctrl *UserController) Logout(c *fiber.Ctx) error {
+	ctrl.clearAuthCookies(c)
+	return c.JSON(fiber.Map{
+		"message": "Logged out successfully",
+	})
 }
 
 // SendOTP godoc
@@ -72,6 +152,7 @@ func (ctrl *UserController) VerifyOTP(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	ctrl.setAuthCookies(c, res.Token, res.User)
 	return c.JSON(res)
 }
 
@@ -609,6 +690,7 @@ func (ctrl *UserController) LoginWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	ctrl.setAuthCookies(c, res.Token, res.User)
 	return c.JSON(res)
 }
 
@@ -632,6 +714,7 @@ func (ctrl *UserController) RegisterWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	ctrl.setAuthCookies(c, res.Token, res.User)
 	return c.JSON(res)
 }
 
