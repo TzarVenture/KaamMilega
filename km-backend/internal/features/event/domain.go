@@ -95,6 +95,27 @@ type EventTicketResponse struct {
 	Event  Event       `json:"event"`
 }
 
+// EventAttendeeItem represents a confirmed participant attending an event (F64)
+type EventAttendeeItem struct {
+	ID           string    `json:"id"`
+	Name         string    `json:"name"`
+	Headline     string    `json:"headline,omitempty"`
+	ProfileImage string    `json:"profile_image,omitempty"`
+	City         string    `json:"city,omitempty"`
+	Role         string    `json:"role,omitempty"`
+	TicketNumber string    `json:"ticket_number,omitempty"`
+	PaymentType  string    `json:"payment_type,omitempty"` // "free", "paid", etc.
+	JoinedAt     time.Time `json:"joined_at,omitempty"`
+}
+
+// EventAttendeesResponse payload returned for F64 attendee list modal
+type EventAttendeesResponse struct {
+	EventID     string              `json:"event_id"`
+	EventTitle  string              `json:"event_title"`
+	TotalJoined int                 `json:"total_joined"`
+	Attendees   []EventAttendeeItem `json:"attendees"`
+}
+
 type EventRepository interface {
 	CreateEvent(ctx context.Context, e *Event) (*Event, error)
 	GetEvents(ctx context.Context, filter EventFilter) ([]Event, int64, error)
@@ -108,6 +129,9 @@ type EventRepository interface {
 	GetTicketsByUser(ctx context.Context, userID primitive.ObjectID) ([]EventTicket, error)
 	GetTicketsByEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error)
 	DecrementAvailableSeats(ctx context.Context, eventID primitive.ObjectID) error
+
+	// Attendee operations (F64)
+	GetEventAttendees(ctx context.Context, eventID primitive.ObjectID) ([]EventAttendeeItem, error)
 }
 
 type EventService interface {
@@ -122,4 +146,7 @@ type EventService interface {
 	BookTicketWithWallet(ctx context.Context, userID string, eventID string, req EventWalletCheckoutRequest) (*EventTicket, *wallet.WalletSummaryResponse, error)
 	GetMyTickets(ctx context.Context, userID string) ([]EventTicket, error)
 	GetEventTicket(ctx context.Context, userID string, eventID string) (*EventTicket, error)
+
+	// Attendee operations for F64
+	GetEventAttendees(ctx context.Context, eventID string) (*EventAttendeesResponse, error)
 }

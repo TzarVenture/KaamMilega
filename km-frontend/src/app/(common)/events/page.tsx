@@ -4,6 +4,7 @@ import { Calendar, Users, Bookmark, MapPin, Search, Sparkles, ArrowUpDown, Clock
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
+import AttendeeListModal from '@/components/km/AttendeeListModal';
 
 interface EventData {
     id: string;
@@ -72,6 +73,7 @@ const PublicEventsPage = () => {
     const [locationFilter, setLocationFilter] = useState('');
     const [sort, setSort] = useState('recent');
     const [pricingFilter, setPricingFilter] = useState<'all' | 'free' | 'paid'>('all');
+    const [attendeeModalEvent, setAttendeeModalEvent] = useState<{ id: string; title: string; total: number } | null>(null);
 
     // Debounce refs
     const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -341,10 +343,23 @@ const PublicEventsPage = () => {
                                                 <Calendar size={13} className="text-km-accent" />
                                                 {formatDate(event.date)} {event.time && `• ${event.time}`}
                                             </span>
-                                            <span className="flex items-center gap-1.5 font-bold text-slate-600">
-                                                <Users size={13} className="text-km-primary" />
-                                                {event.participants?.length || 0} joined
-                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    e.stopPropagation();
+                                                    setAttendeeModalEvent({
+                                                        id: event.id,
+                                                        title: event.title,
+                                                        total: event.participants?.length || 0
+                                                    });
+                                                }}
+                                                className="flex items-center gap-1.5 font-bold text-slate-600 hover:text-km-primary hover:bg-blue-50 px-2 py-0.5 -mr-1 rounded-full transition-all cursor-pointer group/btn"
+                                                title="Click to view attendee list"
+                                            >
+                                                <Users size={13} className="text-km-primary group-hover/btn:scale-110 transition-transform" />
+                                                <span>{event.participants?.length || 0} joined</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </Link>
@@ -371,6 +386,16 @@ const PublicEventsPage = () => {
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-km-accent" />
                     </div>
                 )}
+            {/* Attendee List Modal (F64) */}
+            {attendeeModalEvent && (
+                <AttendeeListModal
+                    isOpen={Boolean(attendeeModalEvent)}
+                    onClose={() => setAttendeeModalEvent(null)}
+                    eventId={attendeeModalEvent.id}
+                    eventTitle={attendeeModalEvent.title}
+                    totalJoinedCount={attendeeModalEvent.total}
+                />
+            )}
             </div>
         </div>
     );

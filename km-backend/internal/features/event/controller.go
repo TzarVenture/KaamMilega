@@ -214,3 +214,22 @@ func (ctrl *EventController) GetEventTicket(c *fiber.Ctx) error {
 
 	return c.JSON(ticket)
 }
+
+// GetEventAttendees returns the confirmed attendee list for an event (F64)
+func (ctrl *EventController) GetEventAttendees(c *fiber.Ctx) error {
+	eventID := c.Params("id")
+	if eventID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Event ID is required"})
+	}
+
+	attendees, err := ctrl.service.GetEventAttendees(c.Context(), eventID)
+	if err != nil {
+		if err.Error() == "event not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(attendees)
+}
+
