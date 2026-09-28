@@ -127,6 +127,25 @@ func (m *mockEventRepo) GetTicketsByEvent(ctx context.Context, eventID primitive
 	return list, nil
 }
 
+func (m *mockEventRepo) GetEventAttendees(ctx context.Context, eventID primitive.ObjectID) ([]EventAttendeeItem, error) {
+	e, ok := m.events[eventID.Hex()]
+	if !ok {
+		return nil, errors.New("event not found")
+	}
+	var attendees []EventAttendeeItem
+	for _, pid := range e.Participants {
+		attendees = append(attendees, EventAttendeeItem{
+			ID:          pid.Hex(),
+			Name:        "Test Attendee",
+			Headline:    "Software Engineer",
+			City:        "Mumbai",
+			Role:        "candidate",
+			PaymentType: "free",
+		})
+	}
+	return attendees, nil
+}
+
 // Mock User Repo
 type mockUserRepo struct {
 	user.UserRepository
@@ -462,3 +481,40 @@ func TestEvent_CapacitySoldOut(t *testing.T) {
 		t.Fatalf("expected sold out error, got nil")
 	}
 }
+
+func TestGetEventAttendees(t *testing.T) {
+	ctx := context.Background()
+	repo := newMockEventRepo()
+	userRepo := &mockUserRepo{users: make(map[string]*user.User)}
+	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
+	cfg := &config.Config{}
+
+	svc := NewEventService(repo, userRepo, walletSvc, cfg)
+
+	p1 := primitive.NewObjectID()
+	p2 := primitive.NewObjectID()
+
+	ev, err := repo.CreateEvent(ctx, &Event{
+		Title:        "Tech Career Fair 2026",
+		Participants: []primitive.ObjectID{p1, p2},
+	})
+	if err != nil {
+		t.Fatalf("failed to create event: %v", err)
+	}
+
+	resp, err := svc.GetEventAttendees(ctx, ev.ID.Hex())
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	if resp.TotalJoined != 2 {
+		t.Fatalf("expected 2 attendees, got %d", resp.TotalJoined)
+	}
+	if len(resp.Attendees) != 2 {
+		t.Fatalf("expected attendees slice of length 2, got %d", len(resp.Attendees))
+	}
+	if resp.Attendees[0].ID != p1.Hex() {
+		t.Errorf("expected attendee ID %s, got %s", p1.Hex(), resp.Attendees[0].ID)
+	}
+}
+

@@ -13,6 +13,7 @@ import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
+import AttendeeListModal from '@/components/km/AttendeeListModal';
 
 interface EventDetails {
     id: string;
@@ -104,6 +105,7 @@ const EventDetailsPage = () => {
     // Modal states
     const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
     const [ticketModalOpen, setTicketModalOpen] = useState(false);
+    const [isAttendeeModalOpen, setIsAttendeeModalOpen] = useState(false);
 
     // Form & Payment state
     const [attendeeName, setAttendeeName] = useState('');
@@ -461,11 +463,20 @@ const EventDetailsPage = () => {
                                 </div>
                             </div>
 
-                            {/* Participant / Seat count */}
-                            <div className="bg-slate-50 rounded-xl py-3 px-4 mb-5 text-center">
-                                <p className="text-xs font-bold text-slate-600">
-                                    <span className="text-km-primary font-black">{participantCount}</span> {participantCount === 1 ? 'person has' : 'people have'} registered
-                                </p>
+                            {/* Participant / Seat count (Clickable for F64 Attendees Modal) */}
+                            <div 
+                                onClick={() => setIsAttendeeModalOpen(true)}
+                                className="bg-slate-50 hover:bg-blue-50/70 border border-slate-200/60 hover:border-blue-200 rounded-xl py-3 px-4 mb-5 text-center transition-all cursor-pointer group shadow-2xs"
+                                title="Click to view confirmed attendees"
+                            >
+                                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 group-hover:text-km-primary transition-colors flex-wrap">
+                                    <Users size={14} className="text-km-primary group-hover:scale-110 transition-transform" />
+                                    <span className="text-km-primary font-black">{participantCount}</span> 
+                                    <span>{participantCount === 1 ? 'person has' : 'people have'} registered</span>
+                                    <span className="text-[10px] text-blue-700 bg-blue-100/70 group-hover:bg-[#1a2b8c] group-hover:text-white px-2 py-0.5 rounded-full font-bold ml-1 transition-all">
+                                        View Attendees
+                                    </span>
+                                </div>
                                 {event.capacity && event.capacity > 0 ? (
                                     <p className="text-[11px] text-slate-500 font-semibold mt-1">
                                         {event.available_seats ?? event.capacity} seats remaining of {event.capacity} total
@@ -870,6 +881,17 @@ const EventDetailsPage = () => {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Attendee List Modal (F64) */}
+            {event && (
+                <AttendeeListModal
+                    isOpen={isAttendeeModalOpen}
+                    onClose={() => setIsAttendeeModalOpen(false)}
+                    eventId={event.id}
+                    eventTitle={event.title}
+                    totalJoinedCount={participantCount}
+                />
+            )}
         </div>
     );
 };

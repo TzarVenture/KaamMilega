@@ -22,6 +22,7 @@ func (a *EventApi) Setup(app *fiber.App) {
 
 	// Public Routes
 	app.Get("/api/events", a.ctrl.GetEvents)
+	app.Get("/api/events/:id/attendees", a.ctrl.GetEventAttendees)
 
 	// Protected user ticket routes (registered before /:id)
 	protected := app.Group("/api/events", jwtAuth)

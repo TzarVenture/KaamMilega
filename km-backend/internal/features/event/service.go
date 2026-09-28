@@ -447,9 +447,38 @@ func (s *EventServiceImpl) GetEventTicket(ctx context.Context, userID string, ev
 	return s.repo.GetTicketByEventAndUser(ctx, evID, uID)
 }
 
+// GetEventAttendees retrieves the attendee list for an event modal (F64)
+func (s *EventServiceImpl) GetEventAttendees(ctx context.Context, eventID string) (*EventAttendeesResponse, error) {
+	evID, err := primitive.ObjectIDFromHex(eventID)
+	if err != nil {
+		return nil, errors.New("invalid event id")
+	}
+
+	event, err := s.repo.GetEventByID(ctx, evID)
+	if err != nil {
+		return nil, err
+	}
+	if event == nil {
+		return nil, errors.New("event not found")
+	}
+
+	attendees, err := s.repo.GetEventAttendees(ctx, evID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &EventAttendeesResponse{
+		EventID:     event.ID.Hex(),
+		EventTitle:  event.Title,
+		TotalJoined: len(attendees),
+		Attendees:   attendees,
+	}, nil
+}
+
 func min(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
+

@@ -2,6 +2,8 @@ package event
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -207,3 +209,120 @@ func (r *EventRepositoryImpl) GetTicketsByEvent(ctx context.Context, eventID pri
 	}
 	return tickets, nil
 }
+
+// GetEventAttendees fetches attendee profiles for all confirmed participants of an event (F64)
+func (r *EventRepositoryImpl) GetEventAttendees(ctx context.Context, eventID primitive.ObjectID) ([]EventAttendeeItem, error) {
+	event, err := r.GetEventByID(ctx, eventID)
+	if err != nil {
+		return nil, err
+	}
+	if event == nil {
+		return nil, errors.New("event not found")
+	}
+
+	if len(event.Participants) == 0 {
+		return []EventAttendeeItem{}, nil
+	}
+
+	userColl := r.db.DB.Collection("users")
+	cursor, err := userColl.Find(ctx, bson.M{
+		"_id": bson.M{"$in": event.Participants},
+	}, options.Find().SetProjection(bson.M{
+		"_id":           1,
+		"name":          1,
+		"first_name":    1,
+		"last_name":     1,
+		"headline":      1,
+		"profile_image": 1,
+		"city":          1,
+		"roles":         1,
+	}))
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	type rawUser struct {
+		ID           primitive.ObjectID `bson:"_id"`
+		Name         string             `bson:"name"`
+		FirstName    string             `bson:"first_name"`
+		LastName     string             `bson:"last_name"`
+		Headline     string             `bson:"headline"`
+		ProfileImage string             `bson:"profile_image"`
+		City         string             `bson:"city"`
+		Roles        []string           `bson:"roles"`
+	}
+
+	var users []rawUser
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+
+	userMap := make(map[primitive.ObjectID]rawUser)
+	for _, u := range users {
+		userMap[u.ID] = u
+	}
+
+	// Fetch confirmed tickets for this event
+	tickets, _ := r.GetTicketsByEvent(ctx, eventID)
+	ticketMap := make(map[primitive.ObjectID]EventTicket)
+	for _, t := range tickets {
+		ticketMap[t.UserID] = t
+	}
+
+	attendees := make([]EventAttendeeItem, 0, len(event.Participants))
+	for _, uid := range event.Participants {
+		u, found := userMap[uid]
+		name := u.Name
+		if name == "" && found {
+			if u.FirstName != "" || u.LastName != "" {
+				name = fmt.Sprintf("%s %s", u.FirstName, u.LastName)
+			}
+		}
+
+		ticket, hasTicket := ticketMap[uid]
+		if name == "" && hasTicket && ticket.AttendeeName != "" {
+			name = ticket.AttendeeName
+		}
+		if name == "" {
+			name = "Participant"
+		}
+
+		headline := u.Headline
+		if headline == "" {
+			headline = "KaamMilega Member"
+		}
+
+		role := "user"
+		if len(u.Roles) > 0 {
+			role = u.Roles[0]
+		}
+
+		paymentType := "free"
+		var ticketNum string
+		var joinedAt time.Time
+
+		if hasTicket {
+			paymentType = ticket.PaymentStatus
+			ticketNum = ticket.TicketNumber
+			joinedAt = ticket.CreatedAt
+		} else {
+			joinedAt = event.CreatedAt
+		}
+
+		attendees = append(attendees, EventAttendeeItem{
+			ID:           uid.Hex(),
+			Name:         name,
+			Headline:     headline,
+			ProfileImage: u.ProfileImage,
+			City:         u.City,
+			Role:         role,
+			TicketNumber: ticketNum,
+			PaymentType:  paymentType,
+			JoinedAt:     joinedAt,
+		})
+	}
+
+	return attendees, nil
+}
+
