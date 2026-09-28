@@ -12,6 +12,7 @@ import {
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -53,8 +54,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   // Fetch candidate's wallet balance
   const fetchWallet = useCallback(async () => {
     if (typeof window === 'undefined') return;
-    const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!isAuthenticated()) return;
     try {
       const res: any = await api.get('/wallet/balance');
       if (res) {
@@ -144,8 +144,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
   // Opens the checkout modal or redirects to login if unauthenticated
   const handleOpenCheckout = () => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
-    if (!token) {
+    if (!isAuthenticated()) {
       toast.warn("Please login to your account to book a mentorship session");
       setTimeout(() => {
         router.push(`/login?redirect=/mentorship/${id}`);

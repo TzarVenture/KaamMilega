@@ -3,6 +3,7 @@ import { useEffect, useState, Suspense } from 'react';
 import Navbar from './Navbar';
 import GuestNavbar from './GuestNavbar';
 import api from '@/lib/axios';
+import { isAuthenticated } from '@/lib/auth';
 
 function AppNavbarContent() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,8 +14,7 @@ function AppNavbarContent() {
         const verifyUser = async () => {
             if (typeof window === "undefined") return;
 
-            const token = localStorage.getItem('token');
-            if (!token) {
+            if (!isAuthenticated()) {
                 setIsLoggedIn(false);
                 setLoading(false);
                 return;

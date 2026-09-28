@@ -10,6 +10,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
+import { isAuthenticated } from "@/lib/auth";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -44,11 +45,11 @@ export default function ExpertProSubscriptionPage() {
   const [paymentProcessing, setPaymentProcessing] = useState(false);
 
   useEffect(() => {
-    const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
-    setIsLoggedIn(!!token);
+    const authed = isAuthenticated();
+    setIsLoggedIn(authed);
 
     fetchPlans();
-    if (token) {
+    if (authed) {
       fetchMySubscription();
       fetchWallet();
     }

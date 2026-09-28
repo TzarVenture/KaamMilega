@@ -3,15 +3,14 @@ import Footer from '@/components/km/Footer';
 import Navbar from '@/components/km/AppNavbar'; // Use AppNavbar which handles auth state
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
 
 const Layout = ({ children }: { children: React.ReactNode }) => {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // Simple auth check similar to AppNavbar
-        const token = localStorage.getItem('token');
-        if (!token) {
+        if (!isAuthenticated()) {
             router.push('/login');
         } else {
             setIsLoading(false);

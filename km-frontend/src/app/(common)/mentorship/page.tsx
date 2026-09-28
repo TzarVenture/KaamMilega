@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/axios';
+import { isAuthenticated } from '@/lib/auth';
 
 const categories = [
   "All",
@@ -34,8 +35,7 @@ export default function MentorshipPage() {
 
   useEffect(() => {
     // If logged in, fetch candidate bookings count and next upcoming session
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-    if (token) {
+    if (isAuthenticated()) {
       api.get('/mentorships/bookings/my')
         .then((res: any) => {
           const list = Array.isArray(res) ? res : (res?.data || []);

@@ -121,8 +121,11 @@ const ChatPage = () => {
         let reconnectTimer: NodeJS.Timeout;
 
         const connectWS = () => {
-            const token = localStorage.getItem('token') || '';
-            ws = new WebSocket(`${protocol}//${host}/api/ws/chats?token=${token}`);
+            const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+            const wsUrl = token
+                ? `${protocol}//${host}/api/ws/chats?token=${token}`
+                : `${protocol}//${host}/api/ws/chats`;
+            ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
                 fetchConversations(currentUser.id);

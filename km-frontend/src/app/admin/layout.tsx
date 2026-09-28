@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import BrandLogo from '@/components/km/BrandLogo';
+import { clearSession, isAuthenticated } from '@/lib/auth';
 import {
     Users,
     Building2,
@@ -70,9 +71,8 @@ export default function AdminLayout({
         }
 
         const userStr = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
 
-        if (!token || !userStr) {
+        if (!userStr || !isAuthenticated()) {
             router.push('/admin/login');
             return;
         }
@@ -91,8 +91,7 @@ export default function AdminLayout({
     }, [pathname, isLoginPage, router]);
 
     const handleSignOut = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        clearSession();
         router.push('/admin/login');
     };
 

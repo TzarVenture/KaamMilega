@@ -26,6 +26,8 @@ func (api *UserApi) Setup(app *fiber.App) {
 	auth.Post("/register/password", api.controller.RegisterWithPassword)
 	auth.Post("/password/forgot", api.controller.ForgotPassword)
 	auth.Post("/password/reset", api.controller.ResetPassword)
+	auth.Post("/logout", api.controller.Logout)
+	auth.Get("/logout", api.controller.Logout)
 
 	// Protected routes
 	protected := app.Group("/api/user", middleware.AuthMiddleware(api.controller.config.JWTSecret))

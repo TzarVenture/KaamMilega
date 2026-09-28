@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
+import { isAuthenticated } from '@/lib/auth';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Link from 'next/link';
@@ -122,7 +123,6 @@ const EventDetailsPage = () => {
 
                 // Check registration status from stored user
                 const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-                const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
 
                 if (storedUser) {
                     try {
@@ -188,8 +188,7 @@ const EventDetailsPage = () => {
 
     // Free Event Registration handler
     const handleFreeRegister = async () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
+        if (!isAuthenticated()) {
             toast.info("Please login to register for this event");
             router.push(`/login?redirect=/events/${Id}`);
             return;
@@ -211,8 +210,7 @@ const EventDetailsPage = () => {
 
     // Open Paid Checkout Modal
     const handleOpenCheckout = () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
+        if (!isAuthenticated()) {
             toast.info("Please login to purchase tickets");
             router.push(`/login?redirect=/events/${Id}`);
             return;

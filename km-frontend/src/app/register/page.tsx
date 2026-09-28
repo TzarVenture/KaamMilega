@@ -6,6 +6,7 @@ import Link from "next/link";
 import BrandLogo from "@/components/km/BrandLogo";
 import DownloadAppModal from "@/components/km/DownloadAppModal";
 import api from "@/lib/axios";
+import { isAuthenticated, saveSession } from "@/lib/auth";
 import OtpInput from "@/components/ui/OtpInput";
 import { CheckCircle2, Mail, AlertCircle, ArrowRight, ShieldCheck, Download, ChevronDown, HelpCircle, ArrowLeft } from "lucide-react";
 
@@ -56,12 +57,10 @@ export default function RegisterPage() {
     }, []);
 
     useEffect(() => {
-        const storedToken = localStorage.getItem("token");
-        if (!storedToken) {
+        if (!isAuthenticated()) {
             router.push("/login");
             return;
         }
-        setToken(storedToken);
 
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
@@ -165,7 +164,7 @@ export default function RegisterPage() {
     };
 
     const handleRegister = async () => {
-        if (!token) return;
+        if (!isAuthenticated()) return;
         setLoading(true);
         setValidationError(null);
 
@@ -184,7 +183,7 @@ export default function RegisterPage() {
 
         try {
             const data: any = await api.post("/user/register", payload);
-            localStorage.setItem("user", JSON.stringify(data));
+            saveSession(data);
             setStep(5);
         } catch (error: any) {
             console.error("Registration error:", error);

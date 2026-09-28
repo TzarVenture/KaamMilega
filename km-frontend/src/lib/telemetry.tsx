@@ -25,7 +25,7 @@ function getCurrentUserId(): string | null {
 function hasAuthToken(): boolean {
     if (typeof window === 'undefined') return false;
     try {
-        return Boolean(localStorage.getItem('token'));
+        return Boolean(localStorage.getItem('user') || localStorage.getItem('token') || document.cookie.includes('km_user_role='));
     } catch {
         return false;
     }

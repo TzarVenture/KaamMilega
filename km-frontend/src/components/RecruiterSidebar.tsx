@@ -17,6 +17,7 @@ import {
     Wallet
 } from "lucide-react";
 import api from "@/lib/axios";
+import { clearSession } from "@/lib/auth";
 
 const sidebarItems = [
     { name: "Dashboard Overview", href: "/recruiter", icon: LayoutDashboard },
@@ -103,10 +104,9 @@ export default function RecruiterSidebar() {
             {/* Footer / Sign Out */}
             <div className="p-4 border-t border-slate-100 bg-slate-50/50">
                 <button
-                    onClick={() => {
-                        localStorage.removeItem("token");
-                        localStorage.removeItem("user");
-                        window.location.href = "/login";
+                    onClick={async () => {
+                        await clearSession();
+                        window.location.href = "/recruiter/login";
                     }}
                     className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-2xl border border-transparent hover:border-rose-100 transition-all"
                 >

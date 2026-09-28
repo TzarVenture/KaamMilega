@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { ChevronRight, Loader2, ShieldCheck, ArrowLeft, Phone, KeyRound } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/axios';
+import { saveSession } from '@/lib/auth';
 
 export default function AdminLoginPage() {
     const router = useRouter();
@@ -37,9 +38,8 @@ export default function AdminLoginPage() {
 
         try {
             const response: any = await api.post('/auth/otp/verify', { mobile, code: otp, role: 'admin' });
-            if (response.token) {
-                localStorage.setItem('token', response.token);
-                localStorage.setItem('user', JSON.stringify(response.user));
+            if (response.user) {
+                saveSession(response.user);
                 router.push('/admin');
             } else {
                 setError('Invalid response from server.');
