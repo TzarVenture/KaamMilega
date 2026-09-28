@@ -9,6 +9,7 @@ import (
 	"km-backend/internal/features/application"
 	"km-backend/internal/features/chat"
 	"km-backend/internal/features/city"
+	"km-backend/internal/features/instant_work"
 	"km-backend/internal/features/interview"
 	"km-backend/internal/features/mentorship"
 	"km-backend/internal/features/network"
@@ -154,6 +155,7 @@ func main() {
 			event.NewEventRepository,
 			mentorship.NewMentorshipRepository,
 			subscription.NewSubscriptionRepository,
+			instant_work.NewInstantWorkRepository,
 
 			// Services
 			notification.NewMailer,
@@ -174,6 +176,7 @@ func main() {
 			question.NewQuestionService,
 			mentorship.NewMentorshipService,
 			subscription.NewSubscriptionService,
+			instant_work.NewInstantWorkService,
 
 			// controllers
 			file.NewFileController,
@@ -193,6 +196,7 @@ func main() {
 			event.NewEventController,
 			mentorship.NewMentorshipController,
 			subscription.NewSubscriptionController,
+			instant_work.NewInstantWorkController,
 
 			// routes
 			AsRoute(file.NewFileApi),
@@ -213,6 +217,7 @@ func main() {
 			AsRoute(event.NewEventApi),
 			AsRoute(mentorship.NewMentorshipApi),
 			AsRoute(subscription.NewSubscriptionApi),
+			AsRoute(instant_work.NewInstantWorkApi),
 		),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}

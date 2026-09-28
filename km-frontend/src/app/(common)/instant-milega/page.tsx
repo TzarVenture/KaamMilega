@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import CandidateHero from '@/components/instant-milega/CandidateHero';
+import CandidateInstantMilegaView from '@/components/instant-milega/CandidateInstantMilegaView';
 
 function InstantMilegaPageContent() {
     const searchParams = useSearchParams();
@@ -11,8 +11,8 @@ function InstantMilegaPageContent() {
 
     return (
         <main className="min-h-screen bg-[#F4F7FB] font-sans antialiased">
-            {/* Candidate Instant Milega Hero View */}
-            <CandidateHero
+            {/* Candidate Instant Milega Real-Time Experience */}
+            <CandidateInstantMilegaView
                 initialRole={roleParam}
                 initialLocation={locationParam}
             />

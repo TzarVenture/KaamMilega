@@ -21,29 +21,37 @@ interface CandidateHeroProps {
     initialRole?: string;
     initialLocation?: string;
     cities?: any[];
+    onSearch?: (trade: string, location: string) => void;
 }
 
 export default function CandidateHero({
     initialRole = '',
     initialLocation = '',
-    cities = []
+    cities = [],
+    onSearch,
 }: CandidateHeroProps) {
     const router = useRouter();
 
     const [tradeType, setTradeType] = useState(initialRole || 'All');
     const [selectedCity, setSelectedCity] = useState(initialLocation);
-    const [pincode, setPincode] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        const params = new URLSearchParams();
-        params.set('type', 'instant');
-        if (tradeType && tradeType !== 'All') params.set('role', tradeType);
-        if (searchQuery.trim()) params.set('q', searchQuery.trim());
-        if (selectedCity) params.set('city', selectedCity);
-        if (pincode.trim()) params.set('pincode', pincode.trim());
-        router.push(`/jobs?${params.toString()}`);
+        const selectedTrade = tradeType === 'All' ? '' : tradeType;
+        if (onSearch) {
+            onSearch(selectedTrade, selectedCity);
+        } else {
+            const params = new URLSearchParams();
+            if (selectedTrade) params.set('role', selectedTrade);
+            if (selectedCity) params.set('location', selectedCity);
+            router.push(`/instant-milega?${params.toString()}`);
+        }
+
+        // Smoothly scroll down to the instant gigs feed on this page
+        const feedElement = document.getElementById('instant-gigs-feed');
+        if (feedElement) {
+            feedElement.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     const popularGigSearches = [
@@ -58,11 +66,17 @@ export default function CandidateHero({
     ];
 
     const handleQuickTag = (tag: string) => {
-        const params = new URLSearchParams();
-        params.set('type', 'instant');
-        params.set('role', tag);
-        if (selectedCity) params.set('city', selectedCity);
-        router.push(`/jobs?${params.toString()}`);
+        setTradeType(tag);
+        if (onSearch) {
+            onSearch(tag, selectedCity);
+        } else {
+            router.push(`/instant-milega?role=${encodeURIComponent(tag)}`);
+        }
+
+        const feedElement = document.getElementById('instant-gigs-feed');
+        if (feedElement) {
+            feedElement.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     return (
@@ -87,25 +101,25 @@ export default function CandidateHero({
                             />
                         </div>
 
-                        {/* Master Hero Headline (from reference image) */}
+                        {/* Master Hero Headline */}
                         <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-black text-slate-900 tracking-tight leading-[1.12] mb-3 sm:mb-4">
                             Work in Minutes.{' '}
                             <span className="text-km-accent block sm:inline">Anywhere. Anytime!</span>
                         </h1>
 
-                        {/* Reduced Description Subtitle (from reference image) */}
+                        {/* Reduced Description Subtitle */}
                         <p className="text-sm sm:text-base font-semibold text-slate-600 mb-6 sm:mb-7 flex items-center gap-2">
                             <span className="text-km-blue font-black text-base sm:text-lg">»</span>
                             <span>Trusted professionals. Quick response. Quality work.</span>
                         </p>
 
-                        {/* Search Console: Clean Elevated Bar */}
+                        {/* Search Console: Clean Elevated Bar (Matching Platform Instant Gig Design) */}
                         <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xl shadow-blue-950/5 p-3.5 sm:p-5">
                             <form onSubmit={handleSearch} className="flex flex-col gap-3">
-                                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
+                                <div className="flex flex-col sm:flex-row gap-3">
                                     
                                     {/* Trade Selector */}
-                                    <div className="sm:col-span-6 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-white focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
+                                    <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-white focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
                                         <Wrench size={18} className="text-km-accent mr-2.5 shrink-0" />
                                         <select
                                             value={tradeType}
@@ -118,14 +132,16 @@ export default function CandidateHero({
                                             <option value="Plumber">Plumber (Fittings &amp; Sanitation)</option>
                                             <option value="Driver">Driver (Personal &amp; Commercial)</option>
                                             <option value="Warehouse Helper">Warehouse Helper &amp; Loader</option>
-                                            <option value="AC Repair">AC &amp; Appliance Technician</option>
+                                            <option value="AC Technician">AC &amp; Appliance Technician</option>
                                             <option value="Carpenter">Carpenter &amp; Woodworker</option>
                                             <option value="Security Guard">Security Guard &amp; Bouncer</option>
+                                            <option value="Painter">Painter (Walls &amp; Textures)</option>
+                                            <option value="Mason & Construction">Mason &amp; Construction</option>
                                         </select>
                                     </div>
 
                                     {/* City Selector */}
-                                    <div className="sm:col-span-6 flex items-center">
+                                    <div className="sm:w-56 flex items-center">
                                         <CitySelector
                                             selectedCity={selectedCity}
                                             onCityChange={(city) => setSelectedCity(city === 'All' ? '' : city)}
@@ -133,31 +149,24 @@ export default function CandidateHero({
                                             cities={cities}
                                         />
                                     </div>
-                                </div>
 
-                                {/* Bottom Row: Pincode / Keyword + Submit CTA */}
-                                <div className="flex flex-col sm:flex-row gap-3 pt-1">
-                                    <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-white focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
-                                        <Search size={18} className="text-slate-400 mr-2.5 shrink-0" />
-                                        <input
-                                            type="text"
-                                            placeholder="Specific skill, keyword or landmark (optional)..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full bg-transparent text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none font-medium"
-                                        />
-                                    </div>
-
+                                    {/* Find Instant Gigs Submit CTA */}
                                     <button
                                         type="submit"
-                                        className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-9 py-3.5 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                        className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 py-3.5 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                                     >
                                         <Zap size={16} className="fill-white" />
                                         <span>Find Instant Gigs</span>
                                     </button>
                                 </div>
 
-                                {/* Popular Gigs Chips (Moved into card in place of badges) */}
+                                {/* Slogan Subtext */}
+                                <p className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 pl-1">
+                                    <Clock size={13} className="shrink-0 text-km-accent" />
+                                    <span>Instant local gig alerts with zero commission and daily verified payouts.</span>
+                                </p>
+
+                                {/* Popular Gigs Chips */}
                                 <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
                                     <span className="text-xs font-bold text-slate-500 shrink-0">Popular Gigs:</span>
                                     {popularGigSearches.map((tag) => (
