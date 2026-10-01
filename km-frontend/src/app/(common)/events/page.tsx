@@ -1,6 +1,23 @@
 'use client'
+
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { Calendar, Users, Bookmark, MapPin, Search, Sparkles, ArrowUpDown, Clock, TrendingUp, Ticket, CheckCircle2, Tag } from 'lucide-react';
+import { 
+    Calendar, 
+    Users, 
+    MapPin, 
+    Search, 
+    ArrowUpDown, 
+    Clock, 
+    Ticket, 
+    CheckCircle2, 
+    Tag, 
+    ArrowRight,
+    X,
+    RotateCcw,
+    Video,
+    Award,
+    Sparkle
+} from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
@@ -23,41 +40,48 @@ interface EventData {
     description?: string;
 }
 
-// ─── Shimmer Skeleton Card ───
+// ─── Design.md Shimmer Skeleton Card ───
 const EventCardSkeleton = () => (
-    <div className="bg-white rounded-2xl overflow-hidden border border-slate-100 animate-pulse">
-        <div className="h-48 bg-slate-200" />
-        <div className="p-5">
-            <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-slate-200 rounded-xl" />
-                <div className="flex-1">
-                    <div className="h-4 bg-slate-200 rounded-lg w-3/4 mb-2" />
-                    <div className="h-3 bg-slate-100 rounded-lg w-1/2" />
-                </div>
+    <div className="bg-white rounded-2xl overflow-hidden border border-[#D9E0EA] flex flex-col shadow-xs">
+        <div className="h-48 bg-[#F4F7FB] animate-shimmer" />
+        <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+            <div className="space-y-2.5">
+                <div className="h-4 bg-[#F4F7FB] animate-shimmer rounded-md w-1/3" />
+                <div className="h-5 bg-[#F4F7FB] animate-shimmer rounded-md w-4/5" />
+                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/2" />
             </div>
-            <div className="flex justify-between mb-4">
-                <div className="h-3 bg-slate-100 rounded-lg w-1/3" />
-                <div className="h-3 bg-slate-100 rounded-lg w-1/4" />
+            <div className="pt-3 border-t border-[#D9E0EA] flex justify-between items-center">
+                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/4" />
+                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/4" />
             </div>
-            <div className="h-9 bg-slate-100 rounded-xl w-full" />
         </div>
     </div>
 );
 
-// ─── Empty State ───
-const EmptyState = ({ hasSearch }: { hasSearch: boolean }) => (
-    <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
-        <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mb-6">
-            <Calendar className="w-10 h-10 text-km-accent" />
+// ─── Professional Empty State ───
+const EmptyState = ({ hasSearch, onReset }: { hasSearch: boolean; onReset: () => void }) => (
+    <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center">
+        <div className="w-16 h-16 bg-[#FFFBEB] border border-[#FDE68A] text-[#F59E0B] rounded-2xl flex items-center justify-center mb-4 shadow-2xs">
+            <Calendar className="w-8 h-8" />
         </div>
-        <h3 className="text-xl font-black text-slate-800 mb-2">
-            {hasSearch ? "No Events Found" : "No Events Yet"}
+        <h3 className="text-lg font-bold text-[#111827] mb-1.5">
+            {hasSearch ? "No Workshops Found" : "No Workshops Scheduled Yet"}
         </h3>
-        <p className="text-sm text-slate-500 max-w-sm">
+        <p className="text-sm text-[#5B6472] max-w-md mb-5 leading-relaxed">
             {hasSearch
-                ? "Try adjusting your search or pricing filter to find what you're looking for."
-                : "Stay tuned! Exciting events and workshops are coming soon."}
+                ? "No workshops match your current search criteria. Try modifying your search keywords or resetting filters."
+                : "Interactive workshops, masterclasses, and expert-led skill sessions will appear here once announced by our verified experts."}
         </p>
+        {hasSearch && (
+            <button
+                type="button"
+                onClick={onReset}
+                className="btn-outline text-xs px-4 py-2 cursor-pointer inline-flex items-center gap-1.5"
+            >
+                <RotateCcw size={13} />
+                <span>Reset All Filters</span>
+            </button>
+        )}
     </div>
 );
 
@@ -85,7 +109,7 @@ const PublicEventsPage = () => {
         if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
         searchDebounceRef.current = setTimeout(() => {
             setDebouncedSearch(search);
-        }, 500);
+        }, 400);
         return () => {
             if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
         };
@@ -97,7 +121,7 @@ const PublicEventsPage = () => {
         if (locationDebounceRef.current) clearTimeout(locationDebounceRef.current);
         locationDebounceRef.current = setTimeout(() => {
             setDebouncedLocation(locationFilter);
-        }, 500);
+        }, 400);
         return () => {
             if (locationDebounceRef.current) clearTimeout(locationDebounceRef.current);
         };
@@ -123,7 +147,7 @@ const PublicEventsPage = () => {
             setTotal(res.total || 0);
             setHasMore(newEvents.length === 9);
         } catch (error: any) {
-            toast.error(error.message || "Failed to load events");
+            toast.error(error?.response?.data?.error || error.message || "Failed to load workshops");
         } finally {
             setLoading(false);
         }
@@ -141,6 +165,13 @@ const PublicEventsPage = () => {
         fetchEvents(nextPage, debouncedSearch, debouncedLocation, sort, pricingFilter);
     };
 
+    const handleResetFilters = () => {
+        setSearch('');
+        setLocationFilter('');
+        setSort('recent');
+        setPricingFilter('all');
+    };
+
     const formatDate = (dateStr: string) => {
         if (!dateStr) return '';
         try {
@@ -151,117 +182,206 @@ const PublicEventsPage = () => {
         }
     };
 
+    const hasActiveFilters = Boolean(search || locationFilter || pricingFilter !== 'all' || sort !== 'recent');
+
     return (
-        <div className="bg-slate-50 min-h-screen pb-20">
+        <div className="bg-[#F4F7FB] min-h-screen pb-20 font-sans">
 
-            {/* ─── Hero Section ─── */}
-            <div className="bg-linear-to-br from-slate-950 via-[#071A4D] to-slate-950 pt-10 pb-28 md:pt-14 md:pb-32 px-4 text-center text-white relative overflow-hidden">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-150 h-150 bg-km-accent/5 rounded-full blur-3xl pointer-events-none" />
-                <div className="absolute bottom-0 left-0 right-0 h-24 bg-linear-to-t from-slate-50 to-transparent z-10 pointer-events-none" />
+            {/* ─── Hero Section with Dynamic Art Sizing Resting on Card Edge ─── */}
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 relative overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
+                        {/* Left Column: Headlines & Value Props */}
+                        <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
+                            {/* Hero Badge without "Service 07" */}
+                            <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
+                                <Calendar size={14} className="text-[#F59E0B]" />
+                                <span>Workshops & Masterclasses</span>
+                            </div>
 
-                <div className="relative z-10 max-w-2xl mx-auto">
-                    <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white text-xs font-bold px-4 py-1.5 rounded-full border border-white/10 mb-5">
-                        <Calendar size={14} className="text-km-accent" /> Workshops, Masterclasses & Networking
+                            {/* Master Brand Headline tailored for Skill Learning & Expert Sessions */}
+                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
+                                Learn Practical Skills with <span className="text-[#FF6B00]">Live Expert Sessions</span>
+                            </h1>
+
+                            {/* Precise & Authentic Subheading */}
+                            <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
+                                Join interactive workshops and live masterclasses led by verified practitioners. Learn practical trades, participate in live Q&A via Google Meet or Zoom, and advance your professional craft.
+                            </p>
+
+                            {/* CTA Row */}
+                            <div className="flex flex-wrap items-center gap-3 mt-6">
+                                <a
+                                    href="#workshops-catalog"
+                                    className="btn-accent text-xs px-5 py-2.5 shadow-sm"
+                                >
+                                    Browse Live Workshops
+                                </a>
+                                <Link
+                                    href="/expert/apply"
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all"
+                                >
+                                    <span>Become an Expert & Host Sessions</span>
+                                    <ArrowRight size={13} />
+                                </Link>
+                            </div>
+
+                            {/* Key Benefits / Trust Chips */}
+                            <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
+                                <div className="flex items-center gap-2">
+                                    <Video size={15} className="text-[#10B981] shrink-0" />
+                                    <span>Live Google Meet & Zoom Access</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle2 size={15} className="text-[#10B981] shrink-0" />
+                                    <span>Verified Industry Practitioners</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Award size={15} className="text-[#10B981] shrink-0" />
+                                    <span>Instant Digital Pass & QR</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column: Hero Artwork Resting Directly on Top Edge of Search Card */}
+                        <div className="lg:col-span-5 xl:col-span-5 flex items-end justify-center lg:justify-end self-end">
+                            <div 
+                                className="relative flex items-end justify-center lg:justify-end"
+                                style={{ width: 'clamp(320px, 44vw, 560px)', maxWidth: '100%' }}
+                            >
+                                <img
+                                    src="/expert-page-art.png"
+                                    alt="KaamMilega Skill Workshops and Masterclasses"
+                                    className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-xl block translate-y-[1px]"
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <h1 className="text-3xl md:text-5xl font-black mb-3 tracking-tight">
-                        Discover Amazing <span className="text-km-accent">Events</span>
-                    </h1>
-                    <p className="text-sm md:text-base text-white/60 max-w-lg mx-auto font-medium">
-                        Join free workshops & premium paid masterclasses hosted by top industry leaders.
-                    </p>
                 </div>
-            </div>
+            </section>
 
             {/* ─── Search + Filters Bar ─── */}
-            <div className="max-w-5xl mx-auto px-4 -mt-20 relative z-20">
-                <div className="bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 p-3 md:p-4">
-                    <div className="flex flex-col md:flex-row gap-3 mb-3">
+            <div id="workshops-catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 lg:-mt-10 relative z-20">
+                <div className="bg-white rounded-2xl shadow-sm border border-[#D9E0EA] p-4 sm:p-5">
+                    <div className="flex flex-col md:flex-row gap-3 mb-3.5">
                         {/* Search Input */}
-                        <div className="flex-1 flex items-center gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100 focus-within:border-km-primary/30 focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
-                            <Search size={18} className="text-slate-400 shrink-0" />
+                        <div className="flex-1 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
+                            <Search size={17} className="text-[#5B6472] shrink-0" />
                             <input
                                 type="text"
-                                placeholder="Search by event name or organizer..."
+                                placeholder="Search by workshop title, mentor name, or skill..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none font-medium"
+                                className="w-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
                             />
+                            {search && (
+                                <button
+                                    type="button"
+                                    onClick={() => setSearch('')}
+                                    className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
                         </div>
 
                         {/* Location Input */}
-                        <div className="w-full md:w-56 flex items-center gap-2.5 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100 focus-within:border-km-primary/30 focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
-                            <MapPin size={18} className="text-slate-400 shrink-0" />
+                        <div className="w-full md:w-60 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
+                            <MapPin size={17} className="text-[#5B6472] shrink-0" />
                             <input
                                 type="text"
-                                placeholder="Filter by city..."
+                                placeholder="Filter by city or online..."
                                 value={locationFilter}
                                 onChange={(e) => setLocationFilter(e.target.value)}
-                                className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none font-medium"
+                                className="w-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
                             />
+                            {locationFilter && (
+                                <button
+                                    type="button"
+                                    onClick={() => setLocationFilter('')}
+                                    className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
                         </div>
 
                         {/* Sort Toggle */}
                         <button
+                            type="button"
                             onClick={() => setSort(s => s === 'recent' ? 'upcoming' : 'recent')}
-                            className="flex items-center justify-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-700 px-4 py-3 rounded-xl border border-slate-100 font-bold text-xs transition-colors shrink-0 cursor-pointer"
+                            className="flex items-center justify-center gap-2 bg-white hover:bg-[#F4F7FB] text-[#111827] px-4 py-2.5 rounded-xl border border-[#D9E0EA] font-semibold text-xs transition-colors shrink-0 cursor-pointer shadow-2xs"
                         >
-                            <Clock size={15} className="text-slate-400" />
-                            {sort === 'upcoming' ? 'Upcoming Date' : 'Recently Added'}
-                            <ArrowUpDown size={14} className="text-slate-400" />
+                            <Clock size={14} className="text-[#5B6472]" />
+                            <span>{sort === 'upcoming' ? 'Sorted by: Upcoming Date' : 'Sorted by: Recently Added'}</span>
+                            <ArrowUpDown size={13} className="text-[#5B6472]" />
                         </button>
                     </div>
 
-                    {/* Pricing Filter Pills */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100">
-                        <span className="text-[11px] font-black uppercase tracking-wider text-slate-400 mr-1 flex items-center gap-1">
-                            <Tag size={12} /> Pricing:
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => setPricingFilter('all')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                pricingFilter === 'all'
-                                    ? 'bg-[#1a2b8c] text-white shadow-xs'
-                                    : 'bg-slate-100 text-slate-600 hover:text-slate-900'
-                            }`}
-                        >
-                            All Events
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setPricingFilter('free')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                                pricingFilter === 'free'
-                                    ? 'bg-emerald-600 text-white shadow-xs'
-                                    : 'bg-slate-100 text-slate-600 hover:text-emerald-700'
-                            }`}
-                        >
-                            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                            Free Events
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setPricingFilter('paid')}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                                pricingFilter === 'paid'
-                                    ? 'bg-orange-500 text-white shadow-xs'
-                                    : 'bg-slate-100 text-slate-600 hover:text-orange-600'
-                            }`}
-                        >
-                            <Ticket size={13} />
-                            Paid Masterclasses
-                        </button>
+                    {/* Pricing Filter Pills & Meta */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#D9E0EA]">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-semibold text-[#5B6472] mr-1 flex items-center gap-1.5">
+                                <Tag size={13} className="text-[#F59E0B]" /> Format & Pricing:
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setPricingFilter('all')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                                    pricingFilter === 'all'
+                                        ? 'bg-[#071A4D] text-white shadow-2xs'
+                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                }`}
+                            >
+                                All Sessions
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPricingFilter('free')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                    pricingFilter === 'free'
+                                        ? 'bg-[#071A4D] text-white shadow-2xs'
+                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                }`}
+                            >
+                                <span className={`w-1.5 h-1.5 rounded-full ${pricingFilter === 'free' ? 'bg-[#10B981]' : 'bg-[#5B6472]'}`} />
+                                Free Workshops
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setPricingFilter('paid')}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                    pricingFilter === 'paid'
+                                        ? 'bg-[#FF6B00] text-white shadow-2xs'
+                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                }`}
+                            >
+                                <Ticket size={12} />
+                                Paid Masterclasses
+                            </button>
+                        </div>
+
+                        {/* Reset button if filters active */}
+                        {hasActiveFilters && (
+                            <button
+                                type="button"
+                                onClick={handleResetFilters}
+                                className="text-xs font-semibold text-[#0B5ED7] hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                                <RotateCcw size={12} /> Clear all filters
+                            </button>
+                        )}
                     </div>
                 </div>
 
-                {/* Results Count */}
+                {/* Results Count Header */}
                 {!loading && (
                     <div className="flex items-center justify-between mt-6 mb-2 px-1">
-                        <p className="text-sm font-bold text-slate-500">
+                        <p className="text-sm font-semibold text-[#5B6472]">
                             {total > 0 ? (
-                                <>{total} event{total !== 1 ? 's' : ''} found</>
+                                <>Showing <span className="text-[#111827] font-bold">{total}</span> verified session{total !== 1 ? 's' : ''}</>
                             ) : (
-                                <>No events found</>
+                                <>No workshops match the selected criteria</>
                             )}
                         </p>
                     </div>
@@ -269,80 +389,90 @@ const PublicEventsPage = () => {
             </div>
 
             {/* ─── Events Grid ─── */}
-            <div className="max-w-5xl mx-auto px-4 mt-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {loading && events.length === 0 ? (
                         Array.from({ length: 6 }).map((_, i) => <EventCardSkeleton key={i} />)
                     ) : events.length === 0 ? (
-                        <EmptyState hasSearch={!!(debouncedSearch || debouncedLocation || pricingFilter !== 'all')} />
+                        <EmptyState hasSearch={hasActiveFilters} onReset={handleResetFilters} />
                     ) : (
                         events.map((event, idx) => {
                             const isPaid = event.is_paid && (event.price || 0) > 0;
-                            const priceText = isPaid ? `₹${event.price}` : 'FREE';
+                            const priceText = isPaid ? `₹${event.price}` : 'Free Entry';
 
                             return (
                                 <Link
                                     href={`/events/${event.id}`}
                                     key={event.id || idx}
-                                    className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border border-slate-100 hover:border-slate-200 transition-all duration-300 flex flex-col group relative"
+                                    className="km-card flex flex-col group overflow-hidden"
                                 >
-                                    {/* Card Image */}
-                                    <div className="h-44 bg-slate-200 relative overflow-hidden">
+                                    {/* Card Image Area */}
+                                    <div className="h-48 bg-[#F4F7FB] relative overflow-hidden border-b border-[#D9E0EA]">
                                         {event.image_url ? (
                                             <img
                                                 src={event.image_url}
                                                 alt={event.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-linear-to-br from-slate-900 via-[#071A4D] to-slate-900 flex items-center justify-center">
-                                                <div className="flex items-center justify-center opacity-30">
-                                                    <div className="w-14 h-14 bg-km-accent rounded-lg transform -rotate-12" />
-                                                    <div className="w-10 h-10 bg-km-accent/70 rounded-lg translate-y-3 -translate-x-3" />
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-[#5B6472] p-4 bg-[#F4F7FB]">
+                                                <div className="w-12 h-12 rounded-xl bg-white border border-[#D9E0EA] flex items-center justify-center text-[#071A4D] mb-2 shadow-2xs">
+                                                    <Calendar size={22} className="text-[#F59E0B]" />
                                                 </div>
+                                                <span className="text-[11px] font-semibold text-[#5B6472]">Skill Masterclass</span>
                                             </div>
                                         )}
 
                                         {/* Location Badge */}
-                                        <span className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-                                            <MapPin size={10} /> {event.location || 'Online'}
+                                        <span className="absolute top-3 left-3 bg-[#111827]/85 text-white text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
+                                            <MapPin size={11} className="text-[#FF6B00]" /> {event.location || 'Online Meet / Zoom'}
                                         </span>
 
-                                        {/* Pricing Badge (F63) */}
-                                        <span className={`absolute bottom-3 right-3 text-white text-[11px] font-black px-3 py-1 rounded-xl shadow-md flex items-center gap-1 backdrop-blur-xs ${
-                                            isPaid
-                                                ? 'bg-linear-to-r from-orange-500 to-amber-500'
-                                                : 'bg-emerald-600'
+                                        {/* Pricing Badge */}
+                                        <span className={`absolute bottom-3 right-3 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1 ${
+                                            isPaid ? 'bg-[#FF6B00]' : 'bg-[#071A4D]'
                                         }`}>
                                             {isPaid && <Ticket size={12} />}
                                             {priceText}
                                         </span>
                                     </div>
 
-                                    {/* Card Content */}
+                                    {/* Card Content Area */}
                                     <div className="p-5 flex flex-col flex-1">
-                                        {/* Title & Organizer */}
-                                        <h4 className="font-bold text-slate-900 text-base leading-snug mb-1 line-clamp-2 group-hover:text-km-primary transition-colors">
+                                        {/* Category Badge */}
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md">
+                                                {event.category || 'Live Workshop'}
+                                            </span>
+                                        </div>
+
+                                        {/* Event Title */}
+                                        <h3 className="font-bold text-[#111827] text-base leading-snug line-clamp-2 group-hover:text-[#0B5ED7] transition-colors mb-1.5">
                                             {event.title}
-                                        </h4>
-                                        <p className="text-xs text-slate-500 font-medium mb-4">
-                                            By <span className="font-semibold text-slate-600">{event.organizer}</span>
+                                        </h3>
+
+                                        {/* Organizer / Expert */}
+                                        <p className="text-xs text-[#5B6472] font-normal mb-3">
+                                            Hosted by <span className="font-medium text-[#111827]">{event.organizer}</span>
                                         </p>
 
-                                        {/* Seats left indicator if capacity is set */}
+                                        {/* Date & Time */}
+                                        <div className="flex items-center gap-2 text-xs text-[#5B6472] mb-3">
+                                            <Calendar size={13} className="text-[#F59E0B] shrink-0" />
+                                            <span>{formatDate(event.date)}</span>
+                                            {event.time && <span>• {event.time}</span>}
+                                        </div>
+
+                                        {/* Available seats if capacity configured */}
                                         {event.capacity && event.capacity > 0 ? (
-                                            <div className="mb-3 text-[11px] text-slate-500 flex items-center justify-between">
-                                                <span>Seats: <strong className="text-slate-800">{event.available_seats ?? event.capacity} left</strong></span>
-                                                <span className="text-[10px] text-slate-400">Total {event.capacity}</span>
+                                            <div className="mb-3 text-[11px] text-[#5B6472] flex items-center justify-between">
+                                                <span>Seats left: <strong className="text-[#111827]">{event.available_seats ?? event.capacity}</strong></span>
+                                                <span className="text-[#5B6472]">Capacity: {event.capacity}</span>
                                             </div>
                                         ) : null}
 
-                                        {/* Date & Participants */}
-                                        <div className="flex items-center justify-between text-xs text-slate-500 font-medium mt-auto pt-4 border-t border-slate-50">
-                                            <span className="flex items-center gap-1.5">
-                                                <Calendar size={13} className="text-km-accent" />
-                                                {formatDate(event.date)} {event.time && `• ${event.time}`}
-                                            </span>
+                                        {/* Card Footer */}
+                                        <div className="mt-auto pt-3.5 border-t border-[#D9E0EA] flex items-center justify-between">
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -354,12 +484,16 @@ const PublicEventsPage = () => {
                                                         total: event.participants?.length || 0
                                                     });
                                                 }}
-                                                className="flex items-center gap-1.5 font-bold text-slate-600 hover:text-km-primary hover:bg-blue-50 px-2 py-0.5 -mr-1 rounded-full transition-all cursor-pointer group/btn"
-                                                title="Click to view attendee list"
+                                                className="flex items-center gap-1.5 text-xs font-semibold text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                                                title="View registered participants"
                                             >
-                                                <Users size={13} className="text-km-primary group-hover/btn:scale-110 transition-transform" />
-                                                <span>{event.participants?.length || 0} joined</span>
+                                                <Users size={13} className="text-[#071A4D]" />
+                                                <span>{event.participants?.length || 0} registered</span>
                                             </button>
+
+                                            <span className="text-xs font-semibold text-[#071A4D] group-hover:text-[#0B5ED7] flex items-center gap-1 transition-colors">
+                                                View Session <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                                            </span>
                                         </div>
                                     </div>
                                 </Link>
@@ -368,34 +502,36 @@ const PublicEventsPage = () => {
                     )}
                 </div>
 
-                {/* Load More */}
+                {/* Load More Button */}
                 {hasMore && !loading && (
                     <div className="flex justify-center mt-10">
                         <button
+                            type="button"
                             onClick={handleLoadMore}
-                            className="px-8 py-3 bg-white border-2 border-slate-200 rounded-xl text-slate-700 font-bold text-sm hover:border-km-primary hover:text-km-primary transition-all shadow-sm cursor-pointer"
+                            className="btn-outline text-xs px-8 py-3 cursor-pointer shadow-2xs"
                         >
-                            Load More Events
+                            Load More Workshops
                         </button>
                     </div>
                 )}
 
-                {/* Loading indicator for pagination */}
+                {/* Loading Indicator for Subsequent Pages */}
                 {loading && events.length > 0 && (
                     <div className="flex justify-center mt-8">
-                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-km-accent" />
+                        <div className="w-8 h-8 border-3 border-[#071A4D]/20 border-t-[#071A4D] rounded-full animate-spin" />
                     </div>
                 )}
-            {/* Attendee List Modal (F64) */}
-            {attendeeModalEvent && (
-                <AttendeeListModal
-                    isOpen={Boolean(attendeeModalEvent)}
-                    onClose={() => setAttendeeModalEvent(null)}
-                    eventId={attendeeModalEvent.id}
-                    eventTitle={attendeeModalEvent.title}
-                    totalJoinedCount={attendeeModalEvent.total}
-                />
-            )}
+
+                {/* Attendee List Modal */}
+                {attendeeModalEvent && (
+                    <AttendeeListModal
+                        isOpen={Boolean(attendeeModalEvent)}
+                        onClose={() => setAttendeeModalEvent(null)}
+                        eventId={attendeeModalEvent.id}
+                        eventTitle={attendeeModalEvent.title}
+                        totalJoinedCount={attendeeModalEvent.total}
+                    />
+                )}
             </div>
         </div>
     );

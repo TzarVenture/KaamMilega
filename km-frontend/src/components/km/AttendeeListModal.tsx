@@ -9,7 +9,6 @@ import {
     ExternalLink, 
     Ticket, 
     CheckCircle2, 
-    Sparkles,
     Shield
 } from "lucide-react";
 import api from "@/lib/axios";
@@ -136,7 +135,7 @@ export default function AttendeeListModal({
                     </button>
 
                     <div className="flex items-center gap-2 mb-1.5">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1a2b8c]/10 text-[#1a2b8c]">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#071A4D]/10 text-[#071A4D]">
                             <Users size={12} />
                             <span>Confirmed Attendees</span>
                         </span>
@@ -160,7 +159,7 @@ export default function AttendeeListModal({
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search attendees by name, role, or city..."
-                            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-hidden focus:border-[#1a2b8c] focus:ring-2 focus:ring-[#1a2b8c]/10 transition-all shadow-xs"
+                            className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E0EA] rounded-xl text-xs font-medium text-[#111827] placeholder-[#5B6472] focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all shadow-xs"
                         />
                         {searchQuery && (
                             <button
@@ -178,7 +177,7 @@ export default function AttendeeListModal({
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2.5 divide-y divide-slate-100">
                     {loading ? (
                         <div className="py-12 flex flex-col items-center justify-center gap-3">
-                            <div className="w-8 h-8 border-3 border-[#1a2b8c]/20 border-t-[#1a2b8c] rounded-full animate-spin" />
+                            <div className="w-8 h-8 border-3 border-[#071A4D]/20 border-t-[#071A4D] rounded-full animate-spin" />
                             <p className="text-xs font-medium text-slate-500">Loading attendee list...</p>
                         </div>
                     ) : error ? (
@@ -194,14 +193,14 @@ export default function AttendeeListModal({
                                         .catch(() => setError("Failed to reload"))
                                         .finally(() => setLoading(false));
                                 }}
-                                className="text-xs font-bold text-[#1a2b8c] underline hover:no-underline"
+                                className="text-xs font-bold text-[#071A4D] underline hover:no-underline"
                             >
                                 Try again
                             </button>
                         </div>
                     ) : attendees.length === 0 ? (
                         <div className="py-14 text-center px-4">
-                            <div className="w-14 h-14 mx-auto mb-3 bg-blue-50 text-[#1a2b8c] rounded-2xl flex items-center justify-center">
+                            <div className="w-14 h-14 mx-auto mb-3 bg-[#F4F7FB] text-[#071A4D] rounded-2xl flex items-center justify-center">
                                 <Users size={26} />
                             </div>
                             <h3 className="text-sm font-bold text-slate-800 mb-1">No attendees yet</h3>
@@ -270,7 +269,7 @@ export default function AttendeeListModal({
                                 <div className="shrink-0">
                                     <Link
                                         href={`/profile/${attendee.id}`}
-                                        className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 bg-white border border-slate-200 hover:border-[#1a2b8c] text-slate-700 hover:text-[#1a2b8c] rounded-xl transition-all shadow-2xs hover:shadow-xs active:scale-95"
+                                        className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 bg-white border border-[#D9E0EA] hover:border-[#071A4D] text-[#111827] hover:text-[#071A4D] rounded-xl transition-all shadow-2xs hover:shadow-xs active:scale-95"
                                         title="View member profile"
                                     >
                                         <span>View</span>
@@ -284,14 +283,14 @@ export default function AttendeeListModal({
 
                 {/* ─── Modal Footer ─── */}
                 <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                    <span className="flex items-center gap-1 text-[11px] text-slate-400 font-medium">
-                        <Sparkles size={12} className="text-amber-500" />
+                    <span className="flex items-center gap-1 text-[11px] text-[#5B6472] font-medium">
+                        <Users size={12} className="text-[#F59E0B]" />
                         <span>Showing {filteredAttendees.length} of {attendees.length} joined</span>
                     </span>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 rounded-xl font-bold text-xs transition-all cursor-pointer shadow-2xs"
+                        className="px-4 py-1.5 bg-white border border-[#D9E0EA] text-[#111827] hover:bg-[#F4F7FB] rounded-xl font-bold text-xs transition-all cursor-pointer shadow-2xs"
                     >
                         Close
                     </button>
