@@ -285,6 +285,37 @@ func (m *mockMentorshipRepoFull) GetAvailabilityByExpert(ctx context.Context, ex
 	return m.availabilities[expertID], nil
 }
 
+func (m *mockMentorshipRepoFull) GetReviewsByMentorshipID(ctx context.Context, mentorshipID string) ([]mentorship.Booking, error) {
+	var list []mentorship.Booking
+	for _, b := range m.bookings {
+		if b.MentorshipID.Hex() == mentorshipID && b.Rating > 0 {
+			list = append(list, *b)
+		}
+	}
+	return list, nil
+}
+
+func (m *mockMentorshipRepoFull) GetReviewsByExpertID(ctx context.Context, expertID string) ([]mentorship.Booking, error) {
+	var list []mentorship.Booking
+	for _, b := range m.bookings {
+		if b.ExpertID.Hex() == expertID && b.Rating > 0 {
+			list = append(list, *b)
+		}
+	}
+	return list, nil
+}
+
+func (m *mockMentorshipRepoFull) UpdateMentorshipRatingStats(ctx context.Context, mentorshipID string, rating float64, reviewsCount int) error {
+	for _, ms := range m.mentorships {
+		if ms.ID.Hex() == mentorshipID {
+			ms.Rating = rating
+			ms.Reviews = reviewsCount
+			return nil
+		}
+	}
+	return nil
+}
+
 // -------------------------------------------------------------
 // END-TO-END TEST: Complete Expert Lifecycle & All Feature Tests
 // -------------------------------------------------------------

@@ -21,6 +21,8 @@ func (api *MentorshipApi) Setup(app *fiber.App) {
 	// Public routes
 	app.Get("/api/mentorships", api.controller.ListMentorships)
 	app.Get("/api/mentorships/expert/:expert_id/availability", api.controller.GetAvailability)
+	app.Get("/api/mentorships/expert/:expert_id/reviews", api.controller.GetExpertReviews)
+	app.Get("/api/mentorships/:id/reviews", api.controller.GetMentorshipReviews)
 
 	// Protected routes (Must register specific sub-paths before dynamic /:id)
 	protected := app.Group("/api/mentorships", jwtAuth)

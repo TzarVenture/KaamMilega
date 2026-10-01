@@ -161,6 +161,37 @@ func (m *mockMentorshipRepo) GetAvailabilityByExpert(ctx context.Context, expert
 	return m.availabilities[expertID], nil
 }
 
+func (m *mockMentorshipRepo) GetReviewsByMentorshipID(ctx context.Context, mentorshipID string) ([]Booking, error) {
+	var list []Booking
+	for _, b := range m.bookings {
+		if b.MentorshipID.Hex() == mentorshipID && b.Rating > 0 {
+			list = append(list, *b)
+		}
+	}
+	return list, nil
+}
+
+func (m *mockMentorshipRepo) GetReviewsByExpertID(ctx context.Context, expertID string) ([]Booking, error) {
+	var list []Booking
+	for _, b := range m.bookings {
+		if b.ExpertID.Hex() == expertID && b.Rating > 0 {
+			list = append(list, *b)
+		}
+	}
+	return list, nil
+}
+
+func (m *mockMentorshipRepo) UpdateMentorshipRatingStats(ctx context.Context, mentorshipID string, rating float64, reviewsCount int) error {
+	for _, ms := range m.mentorships {
+		if ms.ID.Hex() == mentorshipID {
+			ms.Rating = rating
+			ms.Reviews = reviewsCount
+			return nil
+		}
+	}
+	return nil
+}
+
 type mockWalletService struct {
 	wallets map[string]*wallet.WalletSummaryResponse
 }
@@ -441,16 +472,25 @@ func TestSubmitBookingReview(t *testing.T) {
 
 	ctx := context.Background()
 	expertID := primitive.NewObjectID()
+	mentorshipID := primitive.NewObjectID()
 	menteeID := primitive.NewObjectID()
 	otherUserID := primitive.NewObjectID()
 	bookingID := primitive.NewObjectID()
 
+	ms := &Mentorship{
+		ID:       mentorshipID,
+		ExpertID: expertID,
+		Title:    "Go Architecture Mentorship",
+	}
+	_, _ = mockRepo.CreateMentorship(ctx, ms)
+
 	booking := &Booking{
-		ID:            bookingID,
-		ExpertID:      expertID,
-		UserID:        menteeID,
-		Amount:        500,
-		Status:        "confirmed",
+		ID:           bookingID,
+		MentorshipID: mentorshipID,
+		ExpertID:     expertID,
+		UserID:       menteeID,
+		Amount:       500,
+		Status:       "confirmed",
 		PaymentStatus: "paid",
 	}
 	_, _ = mockRepo.CreateBooking(ctx, booking)
@@ -484,6 +524,27 @@ func TestSubmitBookingReview(t *testing.T) {
 	updated, _ := mockRepo.GetBookingByID(ctx, bookingID.Hex())
 	if updated.Rating != 5 || updated.Review != "Great mentorship!" {
 		t.Fatalf("expected rating 5 and review stored, got rating %.1f, review %s", updated.Rating, updated.Review)
+	}
+
+	// 5. Verify mentorship aggregate rating and reviews count were updated
+	updatedMs, _ := mockRepo.GetMentorshipByID(ctx, mentorshipID.Hex())
+	if updatedMs.Rating != 5 || updatedMs.Reviews != 1 {
+		t.Fatalf("expected mentorship rating 5.0 and reviews count 1, got rating %.1f, reviews %d", updatedMs.Rating, updatedMs.Reviews)
+	}
+
+	// 6. Test GetMentorshipReviews endpoint logic
+	reviewResp, err := svc.GetMentorshipReviews(ctx, mentorshipID.Hex())
+	if err != nil {
+		t.Fatalf("unexpected error fetching mentorship reviews: %v", err)
+	}
+	if reviewResp.TotalReviews != 1 || reviewResp.AverageRating != 5.0 {
+		t.Fatalf("expected 1 review with 5.0 average, got %d reviews, %.1f avg", reviewResp.TotalReviews, reviewResp.AverageRating)
+	}
+	if reviewResp.Distribution.FiveStar != 1 {
+		t.Fatalf("expected 1 5-star review in distribution, got %d", reviewResp.Distribution.FiveStar)
+	}
+	if len(reviewResp.Reviews) != 1 || reviewResp.Reviews[0].Review != "Great mentorship!" {
+		t.Fatalf("expected review text in list, got %+v", reviewResp.Reviews)
 	}
 }
 

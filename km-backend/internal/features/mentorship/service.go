@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"strings"
 	"time"
@@ -44,6 +45,8 @@ type MentorshipService interface {
 	GetAvailability(ctx context.Context, expertID string) ([]Availability, error)
 
 	SubmitBookingReview(ctx context.Context, userID string, bookingID string, req SubmitBookingReviewRequest) error
+	GetMentorshipReviews(ctx context.Context, mentorshipID string) (*MentorshipReviewsResponse, error)
+	GetExpertReviews(ctx context.Context, expertID string) (*MentorshipReviewsResponse, error)
 }
 
 type MentorshipServiceImpl struct {
@@ -119,6 +122,8 @@ func (s *MentorshipServiceImpl) GetMentorship(ctx context.Context, id string) (*
 		return nil, errors.New("expert not found")
 	}
 
+	reviewsSummary, _ := s.GetMentorshipReviews(ctx, id)
+
 	return &MentorshipDetail{
 		Mentorship: *m,
 		Expert: ExpertInfo{
@@ -127,7 +132,9 @@ func (s *MentorshipServiceImpl) GetMentorship(ctx context.Context, id string) (*
 			Headline:     u.Headline,
 			ProfileImage: u.ProfileImage,
 			Bio:          u.ExpertBio,
+			Rating:       m.Rating,
 		},
+		ReviewsSummary: reviewsSummary,
 	}, nil
 }
 
@@ -665,6 +672,120 @@ func (s *MentorshipServiceImpl) SubmitBookingReview(ctx context.Context, userID 
 		return errors.New("rating must be between 1 and 5")
 	}
 
-	return s.repo.UpdateBookingReview(ctx, bookingID, req.Rating, req.Review)
+	if err := s.repo.UpdateBookingReview(ctx, bookingID, req.Rating, req.Review); err != nil {
+		return err
+	}
+
+	_ = s.recalculateMentorshipRating(ctx, booking.MentorshipID.Hex())
+	return nil
+}
+
+func (s *MentorshipServiceImpl) recalculateMentorshipRating(ctx context.Context, mentorshipID string) error {
+	bookings, err := s.repo.GetReviewsByMentorshipID(ctx, mentorshipID)
+	if err != nil {
+		return err
+	}
+
+	var totalReviews int
+	var sumRating float64
+	for _, b := range bookings {
+		if b.Rating >= 1 && b.Rating <= 5 {
+			totalReviews++
+			sumRating += b.Rating
+		}
+	}
+
+	var avgRating float64
+	if totalReviews > 0 {
+		avgRating = math.Round((sumRating/float64(totalReviews))*10) / 10
+	}
+
+	return s.repo.UpdateMentorshipRatingStats(ctx, mentorshipID, avgRating, totalReviews)
+}
+
+func (s *MentorshipServiceImpl) GetMentorshipReviews(ctx context.Context, mentorshipID string) (*MentorshipReviewsResponse, error) {
+	bookings, err := s.repo.GetReviewsByMentorshipID(ctx, mentorshipID)
+	if err != nil {
+		return nil, err
+	}
+	return s.buildReviewsResponse(ctx, bookings)
+}
+
+func (s *MentorshipServiceImpl) GetExpertReviews(ctx context.Context, expertID string) (*MentorshipReviewsResponse, error) {
+	bookings, err := s.repo.GetReviewsByExpertID(ctx, expertID)
+	if err != nil {
+		return nil, err
+	}
+	return s.buildReviewsResponse(ctx, bookings)
+}
+
+func (s *MentorshipServiceImpl) buildReviewsResponse(ctx context.Context, bookings []Booking) (*MentorshipReviewsResponse, error) {
+	resp := &MentorshipReviewsResponse{
+		Reviews: make([]ReviewItem, 0),
+	}
+
+	var sumRating float64
+	for _, b := range bookings {
+		if b.Rating < 1 || b.Rating > 5 {
+			continue
+		}
+
+		resp.TotalReviews++
+		sumRating += b.Rating
+
+		intRating := int(math.Round(b.Rating))
+		switch intRating {
+		case 5:
+			resp.Distribution.FiveStar++
+		case 4:
+			resp.Distribution.FourStar++
+		case 3:
+			resp.Distribution.ThreeStar++
+		case 2:
+			resp.Distribution.TwoStar++
+		case 1:
+			resp.Distribution.OneStar++
+		}
+
+		item := ReviewItem{
+			ID:              b.ID,
+			BookingID:       b.ID,
+			MenteeID:        b.UserID,
+			MenteeName:      b.MenteeName,
+			MentorshipTitle: b.MentorshipTitle,
+			Rating:          b.Rating,
+			Review:          b.Review,
+			CreatedAt:       b.UpdatedAt,
+		}
+		if item.CreatedAt.IsZero() {
+			item.CreatedAt = b.CreatedAt
+		}
+
+		if (item.MenteeName == "" || item.MenteeAvatar == "") && !b.UserID.IsZero() && s.userRepo != nil {
+			if u, _ := s.userRepo.FindUserByID(ctx, b.UserID.Hex()); u != nil {
+				name := strings.TrimSpace(u.Name)
+				if name == "" {
+					name = strings.TrimSpace(u.FirstName + " " + u.LastName)
+				}
+				if item.MenteeName == "" {
+					item.MenteeName = name
+				}
+				if item.MenteeAvatar == "" {
+					item.MenteeAvatar = u.ProfileImage
+				}
+				if item.MenteeHeadline == "" {
+					item.MenteeHeadline = u.Headline
+				}
+			}
+		}
+
+		resp.Reviews = append(resp.Reviews, item)
+	}
+
+	if resp.TotalReviews > 0 {
+		resp.AverageRating = math.Round((sumRating/float64(resp.TotalReviews))*10) / 10
+	}
+
+	return resp, nil
 }
 

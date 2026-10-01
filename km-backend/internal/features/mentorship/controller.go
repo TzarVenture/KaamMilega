@@ -273,3 +273,22 @@ func (c *MentorshipController) SubmitBookingReview(ctx *fiber.Ctx) error {
 	})
 }
 
+func (c *MentorshipController) GetMentorshipReviews(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	resp, err := c.service.GetMentorshipReviews(ctx.Context(), id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(resp)
+}
+
+func (c *MentorshipController) GetExpertReviews(ctx *fiber.Ctx) error {
+	expertID := ctx.Params("expert_id")
+	resp, err := c.service.GetExpertReviews(ctx.Context(), expertID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(resp)
+}
+
+

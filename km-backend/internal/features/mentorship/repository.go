@@ -29,6 +29,9 @@ type MentorshipRepository interface {
 	UpdateBookingPayment(ctx context.Context, id string, paymentStatus string, paymentMethod string, rzpPaymentID string, status string) error
 	UpdateMeetingLink(ctx context.Context, id string, meetingLink string) error
 	UpdateBookingReview(ctx context.Context, id string, rating float64, review string) error
+	GetReviewsByMentorshipID(ctx context.Context, mentorshipID string) ([]Booking, error)
+	GetReviewsByExpertID(ctx context.Context, expertID string) ([]Booking, error)
+	UpdateMentorshipRatingStats(ctx context.Context, mentorshipID string, rating float64, reviewsCount int) error
 
 	UpdateAvailability(ctx context.Context, expertID string, availabilities []Availability) error
 	GetAvailabilityByExpert(ctx context.Context, expertID string) ([]Availability, error)
@@ -279,3 +282,63 @@ func (r *MentorshipRepositoryImpl) GetAvailabilityByExpert(ctx context.Context, 
 	}
 	return list, nil
 }
+
+func (r *MentorshipRepositoryImpl) GetReviewsByMentorshipID(ctx context.Context, mentorshipID string) ([]Booking, error) {
+	oid, err := primitive.ObjectIDFromHex(mentorshipID)
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.M{
+		"mentorship_id": oid,
+		"rating":        bson.M{"$gt": 0},
+	}
+	opts := options.Find().SetSort(bson.M{"updated_at": -1, "created_at": -1})
+	cursor, err := r.bookingColl.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	var list []Booking
+	if err = cursor.All(ctx, &list); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+func (r *MentorshipRepositoryImpl) GetReviewsByExpertID(ctx context.Context, expertID string) ([]Booking, error) {
+	oid, err := primitive.ObjectIDFromHex(expertID)
+	if err != nil {
+		return nil, err
+	}
+	filter := bson.M{
+		"expert_id": oid,
+		"rating":    bson.M{"$gt": 0},
+	}
+	opts := options.Find().SetSort(bson.M{"updated_at": -1, "created_at": -1})
+	cursor, err := r.bookingColl.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	var list []Booking
+	if err = cursor.All(ctx, &list); err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+func (r *MentorshipRepositoryImpl) UpdateMentorshipRatingStats(ctx context.Context, mentorshipID string, rating float64, reviewsCount int) error {
+	oid, err := primitive.ObjectIDFromHex(mentorshipID)
+	if err != nil {
+		return err
+	}
+	_, err = r.mentorshipColl.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{
+		"$set": bson.M{
+			"rating":     rating,
+			"reviews":    reviewsCount,
+			"updated_at": time.Now(),
+		},
+	})
+	return err
+}
+

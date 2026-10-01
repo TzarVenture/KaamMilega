@@ -59,8 +59,37 @@ type Availability struct {
 }
 
 type MentorshipDetail struct {
-	Mentorship Mentorship `json:"mentorship"`
-	Expert     ExpertInfo `json:"expert"`
+	Mentorship     Mentorship                 `json:"mentorship"`
+	Expert         ExpertInfo                 `json:"expert"`
+	ReviewsSummary *MentorshipReviewsResponse `json:"reviews_summary,omitempty"`
+}
+
+type ReviewItem struct {
+	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	BookingID       primitive.ObjectID `bson:"booking_id" json:"booking_id"`
+	MenteeID        primitive.ObjectID `bson:"mentee_id" json:"mentee_id"`
+	MenteeName      string             `bson:"mentee_name" json:"mentee_name"`
+	MenteeAvatar    string             `bson:"mentee_avatar,omitempty" json:"mentee_avatar,omitempty"`
+	MenteeHeadline  string             `bson:"mentee_headline,omitempty" json:"mentee_headline,omitempty"`
+	MentorshipTitle string             `bson:"mentorship_title,omitempty" json:"mentorship_title,omitempty"`
+	Rating          float64            `bson:"rating" json:"rating"`
+	Review          string             `bson:"review" json:"review"`
+	CreatedAt       time.Time          `bson:"created_at" json:"created_at"`
+}
+
+type RatingDistribution struct {
+	FiveStar  int `json:"5_star"`
+	FourStar  int `json:"4_star"`
+	ThreeStar int `json:"3_star"`
+	TwoStar   int `json:"2_star"`
+	OneStar   int `json:"1_star"`
+}
+
+type MentorshipReviewsResponse struct {
+	AverageRating float64            `json:"average_rating"`
+	TotalReviews  int                `json:"total_reviews"`
+	Distribution  RatingDistribution `json:"distribution"`
+	Reviews       []ReviewItem       `json:"reviews"`
 }
 
 type ExpertInfo struct {

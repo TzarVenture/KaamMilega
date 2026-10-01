@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Search, Clock, BookOpen, Users,
+  Search, Clock, Star, BookOpen, Users,
   ChevronRight, Award, CheckCircle, ArrowRight, MessageSquare,
   Calendar, Video, ExternalLink, ShieldCheck, Sparkles
 } from 'lucide-react';
@@ -311,9 +311,16 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
                <span className="text-km-primary font-black text-lg md:text-xl">{expertInitial}</span>
              )}
           </div>
-          <span className="bg-blue-50 text-km-primary text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue-100">
-            {mentorship?.category || "Mentorship"}
-          </span>
+          <div className="flex flex-col items-end gap-1.5">
+            <span className="bg-blue-50 text-km-primary text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue-100">
+              {mentorship?.category || "Mentorship"}
+            </span>
+            <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-800">
+              <Star size={11} className="fill-amber-400 text-amber-400" />
+              <span>{mentorship?.rating ? Number(mentorship.rating).toFixed(1) : '5.0'}</span>
+              <span className="text-amber-600 font-medium">({mentorship?.reviews || 0})</span>
+            </div>
+          </div>
         </div>
  
         <Link href={`/mentorship/${mentorship?.id}`}>

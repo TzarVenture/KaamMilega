@@ -32,6 +32,34 @@ interface WalletData {
   currency?: string;
 }
 
+interface ReviewItem {
+  id?: string;
+  booking_id?: string;
+  mentee_id?: string;
+  mentee_name?: string;
+  mentee_avatar?: string;
+  mentee_headline?: string;
+  mentorship_title?: string;
+  rating: number;
+  review?: string;
+  created_at?: string;
+}
+
+interface RatingDistribution {
+  "5_star"?: number;
+  "4_star"?: number;
+  "3_star"?: number;
+  "2_star"?: number;
+  "1_star"?: number;
+}
+
+interface ReviewsSummary {
+  average_rating: number;
+  total_reviews: number;
+  distribution: RatingDistribution;
+  reviews: ReviewItem[];
+}
+
 export default function MentorshipDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
@@ -50,6 +78,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   const [walletData, setWalletData] = useState<WalletData | null>(null);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [confirmedBooking, setConfirmedBooking] = useState<any>(null);
+  const [reviewsData, setReviewsData] = useState<ReviewsSummary | null>(null);
 
   // Fetch candidate's wallet balance
   const fetchWallet = useCallback(async () => {
@@ -77,6 +106,15 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
       setLoading(true);
       const res: any = await api.get(`/mentorships/${id}`);
       setData(res);
+      if (res?.reviews_summary) {
+        setReviewsData(res.reviews_summary);
+      } else {
+        api.get(`/mentorships/${id}/reviews`)
+          .then((r: any) => {
+            if (r) setReviewsData(r);
+          })
+          .catch(() => {});
+      }
       
       // Fetch availability for the expert
       if (res?.expert?.id) {
@@ -319,6 +357,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   }
 
   const { mentorship, expert } = data;
+  const reviewsSummary = reviewsData || data?.reviews_summary;
   const currentDayAvail = getDayAvailability(selectedDate);
   const expertNameClean = (expert?.name || "Industry Expert").replace(/\s*\.+$/, "");
   const expertInitial = (expertNameClean[0] || "E").toUpperCase();
@@ -351,7 +390,13 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                    <div className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100">
                      <Star size={13} className="fill-amber-400 text-amber-400" />
                      <span className="text-xs font-bold text-amber-800">
-                       {mentorship.rating || 4.9} ({mentorship.reviews || 24}+ reviews)
+                       {reviewsSummary?.total_reviews > 0 ? (
+                        `${reviewsSummary.average_rating.toFixed(1)} (${reviewsSummary.total_reviews} ${reviewsSummary.total_reviews === 1 ? 'review' : 'reviews'})`
+                      ) : mentorship.rating ? (
+                        `${mentorship.rating} (${mentorship.reviews || 0} reviews)`
+                      ) : (
+                        "5.0 (New Mentor)"
+                      )}
                      </span>
                    </div>
                 </div>
@@ -437,6 +482,183 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     </div>
                 </div>
             </div>
+
+            {/* Candidate Ratings & Reviews Section (F45) */}
+            <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xs border border-slate-200/80">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-100">
+                <div>
+                  <h2 className="text-lg md:text-xl font-black text-slate-900 flex items-center gap-2">
+                    <Star size={20} className="fill-amber-400 text-amber-400" />
+                    <span>Candidate Ratings & Reviews</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 font-medium mt-1">
+                    Verified feedback from candidates who completed 1-on-1 mentorship sessions
+                  </p>
+                </div>
+
+                {/* Overall score badge */}
+                <div className="flex items-center gap-3 bg-amber-50/80 border border-amber-200/70 px-4 py-2.5 rounded-2xl shrink-0">
+                  <div className="text-2xl font-black text-amber-900 font-mono">
+                    {reviewsSummary?.total_reviews > 0 
+                      ? reviewsSummary.average_rating.toFixed(1)
+                      : (mentorship?.rating ? Number(mentorship.rating).toFixed(1) : "5.0")}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map((s) => {
+                        const currentScore = reviewsSummary?.total_reviews > 0
+                          ? reviewsSummary.average_rating
+                          : (mentorship?.rating || 5);
+                        return (
+                          <Star
+                            key={s}
+                            size={14}
+                            className={s <= Math.round(currentScore) ? "fill-amber-400 text-amber-400" : "text-slate-300"}
+                          />
+                        );
+                      })}
+                    </div>
+                    <span className="text-[11px] font-bold text-amber-800 block mt-0.5">
+                      {reviewsSummary?.total_reviews 
+                        ? `${reviewsSummary.total_reviews} verified ${reviewsSummary.total_reviews === 1 ? 'review' : 'reviews'}`
+                        : (mentorship?.reviews ? `${mentorship.reviews} reviews` : "Verified Mentor")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rating Breakdown Progress Bars */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-5 bg-slate-50/70 rounded-2xl border border-slate-100 mb-8">
+                <div className="flex flex-col justify-center space-y-2.5">
+                  {[5, 4, 3, 2, 1].map((stars) => {
+                    const key = `${stars}_star` as keyof RatingDistribution;
+                    const count = reviewsSummary?.distribution?.[key] || 0;
+                    const total = reviewsSummary?.total_reviews || 0;
+                    const percent = total > 0 ? Math.round((count / total) * 100) : (stars === 5 ? 100 : 0);
+
+                    return (
+                      <div key={stars} className="flex items-center gap-3 text-xs">
+                        <span className="w-12 font-bold text-slate-700 flex items-center gap-1">
+                          <span>{stars}</span>
+                          <Star size={12} className="fill-amber-400 text-amber-400" />
+                        </span>
+                        <div className="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                            style={{ width: `${percent}%` }}
+                          />
+                        </div>
+                        <span className="w-10 text-right text-slate-400 font-mono text-[11px] font-semibold">
+                          {percent}%
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Trust & Guarantee Box */}
+                <div className="flex flex-col justify-center bg-white p-5 rounded-xl border border-slate-200/70 shadow-2xs space-y-2.5">
+                  <div className="flex items-center gap-2 text-emerald-700 font-bold text-xs">
+                    <ShieldCheck size={18} className="text-emerald-600 shrink-0" />
+                    <span>100% Verified Candidate Feedback</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">
+                    Reviews can only be submitted by candidates who booked, paid, and successfully completed a 1-on-1 session with this mentor.
+                  </p>
+                  <div className="pt-2 flex items-center gap-3 text-[11px] font-semibold text-slate-600 border-t border-slate-100">
+                    <span className="flex items-center gap-1 text-slate-700">
+                      <CheckCircle size={13} className="text-emerald-500" />
+                      <span>No anonymous reviews</span>
+                    </span>
+                    <span className="flex items-center gap-1 text-slate-700">
+                      <CheckCircle size={13} className="text-emerald-500" />
+                      <span>Zero fake testimonials</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Review Cards Feed */}
+              {reviewsSummary?.reviews && reviewsSummary.reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviewsSummary.reviews.map((rev: ReviewItem, idx: number) => {
+                    const menteeInitial = rev.mentee_name ? rev.mentee_name.trim().charAt(0).toUpperCase() : "C";
+                    const dateStr = rev.created_at ? new Date(rev.created_at).toLocaleDateString('en-IN', {
+                      month: 'short',
+                      year: 'numeric'
+                    }) : "Recent Session";
+
+                    return (
+                      <div 
+                        key={rev.id || rev.booking_id || idx}
+                        className="p-5 md:p-6 rounded-2xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-xs transition-all space-y-3"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-2xs overflow-hidden shrink-0">
+                              {rev.mentee_avatar ? (
+                                <img src={rev.mentee_avatar} alt={rev.mentee_name} className="w-full h-full object-cover" />
+                              ) : (
+                                <span>{menteeInitial}</span>
+                              )}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-xs md:text-sm font-bold text-slate-900">
+                                  {rev.mentee_name || "Verified Candidate"}
+                                </h4>
+                                <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                                  <ShieldCheck size={11} />
+                                  <span>Verified Mentee</span>
+                                </span>
+                              </div>
+                              {rev.mentee_headline && (
+                                <p className="text-[11px] text-slate-500 font-medium line-clamp-1">{rev.mentee_headline}</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <span className="text-[11px] text-slate-400 font-medium shrink-0">
+                            {dateStr}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <Star
+                              key={star}
+                              size={13}
+                              className={star <= rev.rating ? "fill-amber-400 text-amber-400" : "text-slate-200"}
+                            />
+                          ))}
+                          <span className="text-xs font-bold text-slate-700 ml-1.5">{rev.rating}.0</span>
+                        </div>
+
+                        {rev.review ? (
+                          <p className="text-xs md:text-sm text-slate-600 leading-relaxed italic bg-slate-50/60 p-3.5 rounded-xl border border-slate-100">
+                            "{rev.review}"
+                          </p>
+                        ) : (
+                          <p className="text-xs text-slate-400 italic">
+                            Rated this session {rev.rating} out of 5 stars.
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-10 px-4 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                  <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-2xs">
+                    <Star size={24} className="fill-amber-400 text-amber-400" />
+                  </div>
+                  <h3 className="text-sm font-bold text-slate-800 mb-1">No Reviews Yet</h3>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto leading-relaxed">
+                    Be the first to schedule a 1-on-1 session with <span className="font-bold text-slate-700">{expertNameClean}</span> and leave your verified feedback!
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Sidebar - Booking */}
@@ -454,6 +676,22 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                         <span className="text-slate-400 font-semibold text-xs md:text-sm">
                           / 1-on-1 session
                         </span>
+                    </div>
+                    {/* Trust Rating Pill */}
+                    <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-1 text-amber-500 text-xs font-bold">
+                        <Star size={12} className="fill-amber-400 text-amber-400" />
+                        <span>
+                          {reviewsSummary?.total_reviews > 0 
+                            ? `${reviewsSummary.average_rating.toFixed(1)} (${reviewsSummary.total_reviews} reviews)`
+                            : (mentorship?.rating ? `${mentorship.rating} rating` : "Top Rated")}
+                        </span>
+                      </div>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-emerald-600 text-xs font-semibold flex items-center gap-0.5">
+                        <ShieldCheck size={12} />
+                        <span>Verified Call</span>
+                      </span>
                     </div>
                 </div>
 
