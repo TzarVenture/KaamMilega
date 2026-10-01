@@ -1,10 +1,14 @@
 'use client';
 
 import React, { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, notFound } from 'next/navigation';
 import CandidateInstantMilegaView from '@/components/instant-milega/CandidateInstantMilegaView';
+import { FEATURES } from '@/config/features';
 
 function InstantMilegaPageContent() {
+    if (!FEATURES.INSTANT_MILEGA) {
+        notFound();
+    }
     const searchParams = useSearchParams();
     const roleParam = searchParams.get('role') || '';
     const locationParam = searchParams.get('location') || '';
@@ -21,6 +25,9 @@ function InstantMilegaPageContent() {
 }
 
 export default function InstantMilegaPage() {
+    if (!FEATURES.INSTANT_MILEGA) {
+        notFound();
+    }
     return (
         <Suspense fallback={
             <div className="min-h-[60vh] bg-[#F4F7FB] flex items-center justify-center">

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 import CitySelector from '@/components/km/CitySelector';
+import { FEATURES } from '@/config/features';
 
 interface HeroSectionProps {
     cities?: any[];
@@ -122,23 +123,25 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                     <Briefcase size={16} />
                                     <span>Jobs</span>
                                 </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setActiveTab('instant')}
-                                    className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-t-xl sm:rounded-t-2xl font-bold text-xs sm:text-sm transition-all shrink-0 cursor-pointer ${
-                                        activeTab === 'instant'
-                                            ? 'bg-km-accent text-white shadow-md'
-                                            : 'bg-white/70 hover:bg-white text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-primary'
-                                    }`}
-                                >
-                                    <Zap 
-                                        size={16} 
-                                        className={activeTab === 'instant' ? 'text-white fill-white' : 'text-km-accent fill-km-accent'} 
-                                    />
-                                    <span>
-                                        Instant Milega<sup className="text-[10px] font-semibold ml-0.5">™</sup>
-                                    </span>
-                                </button>
+                                {FEATURES.INSTANT_MILEGA && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setActiveTab('instant')}
+                                        className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-t-xl sm:rounded-t-2xl font-bold text-xs sm:text-sm transition-all shrink-0 cursor-pointer ${
+                                            activeTab === 'instant'
+                                                ? 'bg-km-accent text-white shadow-md'
+                                                : 'bg-white/70 hover:bg-white text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-primary'
+                                        }`}
+                                    >
+                                        <Zap 
+                                            size={16} 
+                                            className={activeTab === 'instant' ? 'text-white fill-white' : 'text-km-accent fill-km-accent'} 
+                                        />
+                                        <span>
+                                            Instant Milega<sup className="text-[10px] font-semibold ml-0.5">™</sup>
+                                        </span>
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     onClick={() => setActiveTab('skills')}
@@ -198,7 +201,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 )}
 
                                 {/* Tab 2: Instant Gigs */}
-                                {activeTab === 'instant' && (
+                                {FEATURES.INSTANT_MILEGA && activeTab === 'instant' && (
                                     <form onSubmit={handleInstantGigSearch} className="flex flex-col gap-3">
                                         <div className="flex flex-col sm:flex-row gap-3">
                                             <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-white focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">

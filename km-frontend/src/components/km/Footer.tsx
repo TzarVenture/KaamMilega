@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { usePathname } from "next/navigation";
+import { FEATURES } from "@/config/features";
 
 export default function Footer() {
     const pathname = usePathname();
@@ -29,7 +30,7 @@ export default function Footer() {
                                 India&apos;s Verified Employment &amp; Skill Platform
                             </p>
                             <p className="text-xs text-slate-300">
-                                Direct HR Calls • Zero Brokerage • Biometric Verified Profiles • InstantMilega™ Shifts
+                                Direct HR Calls • Zero Brokerage • Biometric Verified Profiles{FEATURES.INSTANT_MILEGA ? ' • InstantMilega™ Shifts' : ''}
                             </p>
                         </div>
                     </div>
@@ -76,7 +77,7 @@ export default function Footer() {
                         <div className="space-y-3">
                             <FooterLink>Connect Like You</FooterLink>
                             <FooterLink>Premium Job Search</FooterLink>
-                            <FooterLink>InstantMilega™</FooterLink>
+                            {FEATURES.INSTANT_MILEGA && <FooterLink>InstantMilega™</FooterLink>}
                             <FooterLink>Learn With KM</FooterLink>
                             <FooterLink>Promotion (Ad Network)</FooterLink>
                             <FooterLink>How We Work</FooterLink>

@@ -12,6 +12,7 @@ import {
     Calendar,
     ArrowRight,
 } from 'lucide-react';
+import { FEATURES } from '@/config/features';
 
 interface ServiceDefinition {
     number: string;
@@ -28,7 +29,7 @@ interface ServiceDefinition {
 }
 
 export default function SevenServicesSection() {
-    const services: ServiceDefinition[] = [
+    const allServices: ServiceDefinition[] = [
         {
             number: '01',
             title: 'Jobs & Recruitment',
@@ -122,16 +123,24 @@ export default function SevenServicesSection() {
         },
     ];
 
+    const services = FEATURES.INSTANT_MILEGA
+        ? allServices
+        : allServices
+            .filter((s) => s.title !== 'InstantMilega™')
+            .map((s, idx) => ({ ...s, number: `0${idx + 1}` }));
+
     return (
         <section className="py-12 sm:py-16 bg-white border-b border-[#D9E0EA] font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Section Header */}
                 <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-12">
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111827] tracking-tight">
-                        Explore the Seven Core Services
+                        {FEATURES.INSTANT_MILEGA ? 'Explore the Seven Core Services' : 'Explore Core Platform Services'}
                     </h2>
                     <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-[#5B6472] leading-relaxed max-w-2xl mx-auto">
-                        A unified platform designed for jobs, instant gig dispatch, vocational upskilling, and verified professional hiring.
+                        {FEATURES.INSTANT_MILEGA
+                            ? 'A unified platform designed for jobs, instant gig dispatch, vocational upskilling, and verified professional hiring.'
+                            : 'A unified platform designed for verified jobs, vocational upskilling, trade services, and professional hiring.'}
                     </p>
                 </div>
 

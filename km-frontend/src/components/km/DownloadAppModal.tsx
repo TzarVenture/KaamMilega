@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Smartphone, CheckCircle, ArrowRight, QrCode } from 'lucide-react';
 import Image from 'next/image';
+import { FEATURES } from '@/config/features';
 
 interface DownloadAppModalProps {
     isOpen: boolean;
@@ -91,7 +92,7 @@ export default function DownloadAppModal({ isOpen, onClose }: DownloadAppModalPr
                                 </div>
                                 <div className="flex items-start gap-2 text-xs text-slate-600">
                                     <CheckCircle size={15} className="text-emerald-600 shrink-0 mt-0.5" />
-                                    <span>InstantMilega 15-minute gig alerts</span>
+                                    <span>{FEATURES.INSTANT_MILEGA ? 'InstantMilega 15-minute gig alerts' : 'Fast job & interview alerts'}</span>
                                 </div>
                                 <div className="flex items-start gap-2 text-xs text-slate-600">
                                     <CheckCircle size={15} className="text-emerald-600 shrink-0 mt-0.5" />

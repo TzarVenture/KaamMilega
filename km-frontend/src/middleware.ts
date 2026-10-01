@@ -7,8 +7,13 @@ export function middleware(request: NextRequest) {
     const tokenCookie = request.cookies.get('km_auth_token')?.value;
     const roleCookie = request.cookies.get('km_user_role')?.value;
 
-    // 1. Role-Based Routing for /instant-milega
-    if (pathname === '/instant-milega') {
+    // 1. Feature Gate & Role-Based Routing for /instant-milega
+    if (pathname === '/instant-milega' || pathname.startsWith('/instant-milega/')) {
+        const isInstantMilegaEnabled = process.env.NEXT_PUBLIC_ENABLE_INSTANT_MILEGA === 'true';
+        if (!isInstantMilegaEnabled) {
+            return NextResponse.rewrite(new URL('/not-found', request.url));
+        }
+
         // If logged-in user is a recruiter and no explicit role parameter was forced in the URL
         if (roleCookie === 'recruiter' && !searchParams.has('role')) {
             const url = request.nextUrl.clone();

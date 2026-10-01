@@ -12,6 +12,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { clearSession } from '@/lib/auth';
+import { FEATURES } from '@/config/features';
 
 interface NavbarProps {
     showCitySelector?: boolean;
@@ -99,7 +100,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
     const navLinks = [
         { href: '/', icon: <Home size={18} />, label: 'Home' },
-        { href: '/instant-milega', icon: <Zap size={18} className="text-[#FF6B00] fill-[#FF6B00]" />, label: 'InstantMilega™' },
+        ...(FEATURES.INSTANT_MILEGA ? [{ href: '/instant-milega', icon: <Zap size={18} className="text-[#FF6B00] fill-[#FF6B00]" />, label: 'InstantMilega™' }] : []),
         { href: '/network', icon: <Users size={18} />, label: 'Network' },
         { href: '/events', icon: <Calendar size={18} />, label: 'Events' },
         { href: '/jobs', icon: <Briefcase size={18} />, label: 'Jobs' },
@@ -115,7 +116,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 {/* Left Section: Logo & Search */}
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                     <div className="shrink-0 flex items-center">
-                        <BrandLogo size="sm" showTextOnMobile={false} />
+                        <BrandLogo size="sm" showTextOnMobile={true} />
                     </div>
 
                     {/* Desktop: City selector + Search */}

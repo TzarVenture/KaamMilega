@@ -7,6 +7,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
 import DownloadAppModal from './DownloadAppModal';
+import { FEATURES } from '@/config/features';
 
 const GuestNavbar = () => {
     const router = useRouter();
@@ -67,7 +68,7 @@ const GuestNavbar = () => {
 
     const navLinks = [
         { label: 'Jobs', href: '/jobs', icon: <Briefcase size={15} /> },
-        { label: 'InstantMilega™', href: '/instant-milega', icon: <Zap size={15} className="text-[#FF6B00] fill-[#FF6B00]" />, isHighlighted: true },
+        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', icon: <Zap size={15} className="text-[#FF6B00] fill-[#FF6B00]" />, isHighlighted: true }] : []),
         { label: 'Mentors', href: '/mentorship', icon: <GraduationCap size={15} /> },
         { label: 'Events', href: '/events', icon: <Calendar size={15} /> },
         { label: 'Network', href: '/network', icon: <Users size={15} /> },
