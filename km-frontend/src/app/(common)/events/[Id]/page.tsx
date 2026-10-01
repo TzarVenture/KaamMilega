@@ -3,10 +3,29 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
-    Calendar, MapPin, Users, Share2, ArrowLeft,
-    Clock, CheckCircle2, Ticket, Wallet, Lock, X,
-    Sparkles, ShieldCheck, QrCode, Download, Printer,
-    CreditCard, AlertCircle
+    Calendar, 
+    MapPin, 
+    Users, 
+    Share2, 
+    ArrowLeft,
+    Clock, 
+    CheckCircle2, 
+    Ticket, 
+    Wallet, 
+    Lock, 
+    X,
+    ShieldCheck, 
+    QrCode, 
+    Download, 
+    Printer,
+    CreditCard, 
+    AlertCircle,
+    Video,
+    ExternalLink,
+    Award,
+    ArrowRight,
+    Check,
+    Radio
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
@@ -59,34 +78,27 @@ interface WalletSummary {
     earnings_balance: number;
 }
 
-// ─── Shimmer Skeleton ───
+// ─── Design.md Shimmer Skeleton ───
 const DetailSkeleton = () => (
-    <div className="bg-slate-50 min-h-screen animate-pulse">
-        <div className="relative h-72 md:h-96 bg-slate-200 w-full" />
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-8 -mt-16 relative z-20">
+    <div className="bg-[#F4F7FB] min-h-screen">
+        <div className="relative h-64 md:h-80 bg-[#E5ECF5] animate-shimmer w-full" />
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8 -mt-16 relative z-20">
             <div className="flex-1 space-y-6">
-                <div className="bg-white rounded-2xl p-8 border border-slate-100">
-                    <div className="h-6 bg-slate-200 rounded-lg w-1/3 mb-6" />
-                    <div className="space-y-3">
-                        <div className="h-4 bg-slate-100 rounded w-full" />
-                        <div className="h-4 bg-slate-100 rounded w-5/6" />
-                        <div className="h-4 bg-slate-100 rounded w-4/6" />
+                <div className="bg-white rounded-2xl p-8 border border-[#D9E0EA] space-y-4">
+                    <div className="h-6 bg-[#F4F7FB] animate-shimmer rounded-md w-1/3" />
+                    <div className="h-8 bg-[#F4F7FB] animate-shimmer rounded-md w-3/4" />
+                    <div className="space-y-2 pt-4">
+                        <div className="h-4 bg-[#F4F7FB] animate-shimmer rounded w-full" />
+                        <div className="h-4 bg-[#F4F7FB] animate-shimmer rounded w-5/6" />
+                        <div className="h-4 bg-[#F4F7FB] animate-shimmer rounded w-4/6" />
                     </div>
                 </div>
             </div>
-            <div className="w-full lg:w-88">
-                <div className="bg-white rounded-2xl p-6 border border-slate-100 space-y-5">
-                    <div className="h-4 bg-slate-200 rounded w-1/2 mb-4" />
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="flex items-center gap-3">
-                            <div className="w-11 h-11 bg-slate-200 rounded-xl" />
-                            <div className="flex-1">
-                                <div className="h-3 bg-slate-100 rounded w-1/3 mb-1.5" />
-                                <div className="h-4 bg-slate-200 rounded w-2/3" />
-                            </div>
-                        </div>
-                    ))}
-                    <div className="h-12 bg-slate-200 rounded-xl w-full mt-4" />
+            <div className="w-full lg:w-96">
+                <div className="bg-white rounded-2xl p-6 border border-[#D9E0EA] space-y-5">
+                    <div className="h-5 bg-[#F4F7FB] animate-shimmer rounded w-1/2" />
+                    <div className="h-12 bg-[#F4F7FB] animate-shimmer rounded-xl w-full" />
+                    <div className="h-12 bg-[#F4F7FB] animate-shimmer rounded-xl w-full" />
                 </div>
             </div>
         </div>
@@ -147,7 +159,7 @@ const EventDetailsPage = () => {
                     fetchWalletBalance();
                 }
             } catch (error: any) {
-                toast.error(error.message || "Failed to load event details");
+                toast.error(error?.response?.data?.error || error.message || "Failed to load workshop details");
             } finally {
                 setLoading(false);
             }
@@ -164,7 +176,7 @@ const EventDetailsPage = () => {
                 setIsRegistered(true);
             }
         } catch (err) {
-            // Not ticketed yet or error
+            // Not ticketed yet
         }
     };
 
@@ -179,7 +191,10 @@ const EventDetailsPage = () => {
 
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
-            if ((window as any).Razorpay) return resolve(true);
+            if (typeof window !== "undefined" && (window as any).Razorpay) {
+                resolve(true);
+                return;
+            }
             const script = document.createElement("script");
             script.src = "https://checkout.razorpay.com/v1/checkout.js";
             script.onload = () => resolve(true);
@@ -188,10 +203,10 @@ const EventDetailsPage = () => {
         });
     };
 
-    // Free Event Registration handler
+    // Free 1-Click Registration
     const handleFreeRegister = async () => {
         if (!isAuthenticated()) {
-            toast.info("Please login to register for this event");
+            toast.info("Please login to register for this session");
             router.push(`/login?redirect=/events/${Id}`);
             return;
         }
@@ -199,7 +214,7 @@ const EventDetailsPage = () => {
         try {
             setRegistering(true);
             await api.post(`/events/${Id}/register`);
-            toast.success("Successfully registered for the event!");
+            toast.success("Successfully registered for the workshop!");
             setIsRegistered(true);
             await fetchUserTicket();
             setTicketModalOpen(true);
@@ -213,7 +228,7 @@ const EventDetailsPage = () => {
     // Open Paid Checkout Modal
     const handleOpenCheckout = () => {
         if (!isAuthenticated()) {
-            toast.info("Please login to purchase tickets");
+            toast.info("Please login to purchase workshop tickets");
             router.push(`/login?redirect=/events/${Id}`);
             return;
         }
@@ -247,15 +262,15 @@ const EventDetailsPage = () => {
                 key: orderRes.key_id,
                 amount: orderRes.amount_paise,
                 currency: orderRes.currency || "INR",
-                name: "KaamMilega Events",
-                description: `Ticket: ${orderRes.event_title}`,
+                name: "KaamMilega Workshops",
+                description: `Pass: ${orderRes.event_title}`,
                 order_id: orderRes.order_id,
                 prefill: {
                     name: attendeeName,
                     email: attendeeEmail,
                     contact: attendeePhone,
                 },
-                theme: { color: "#1a2b8c" },
+                theme: { color: "#071A4D" },
                 handler: async (response: any) => {
                     try {
                         const verifyRes: any = await api.post(`/events/${Id}/verify-payment`, {
@@ -267,7 +282,7 @@ const EventDetailsPage = () => {
                             attendee_phone: attendeePhone,
                         });
 
-                        toast.success("Payment successful! Your ticket is confirmed.");
+                        toast.success("Payment successful! Your workshop seat is confirmed.");
                         setIsRegistered(true);
                         setTicket(verifyRes.ticket);
                         setCheckoutModalOpen(false);
@@ -310,7 +325,7 @@ const EventDetailsPage = () => {
                 attendee_phone: attendeePhone,
             });
 
-            toast.success("Ticket purchased successfully using Wallet balance!");
+            toast.success("Workshop pass booked successfully using Wallet balance!");
             setIsRegistered(true);
             setTicket(res.ticket);
             setCheckoutModalOpen(false);
@@ -348,135 +363,275 @@ const EventDetailsPage = () => {
     const walletBalance = wallet?.main_balance || 0;
     const isWalletSufficient = walletBalance >= (event.price || 0);
 
+    // Meeting link resolution (if event.location contains meet/zoom or is online)
+    const isOnlineSession = !event.location || event.location.toLowerCase().includes('online') || event.location.toLowerCase().includes('zoom') || event.location.toLowerCase().includes('meet') || event.location.startsWith('http');
+    const meetingUrl = event.location?.startsWith('http') 
+        ? event.location 
+        : `https://meet.google.com/new`;
+
     return (
-        <div className="bg-slate-50 min-h-screen pb-20">
+        <div className="bg-[#F4F7FB] min-h-screen pb-20 font-sans">
             <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
-            {/* ─── Hero / Banner ─── */}
-            <div className="relative h-64 md:h-88 w-full bg-slate-900 overflow-hidden">
+            {/* ─── Hero Banner with Master Deep Navy ─── */}
+            <div className="relative h-60 sm:h-72 lg:h-80 w-full bg-[#071A4D] overflow-hidden border-b border-[#0B1F52]">
                 {event.image_url ? (
                     <img
                         src={event.image_url}
                         alt={event.title}
-                        className="w-full h-full object-cover opacity-60"
+                        className="w-full h-full object-cover opacity-35"
                     />
                 ) : (
-                    <div className="w-full h-full bg-linear-to-br from-slate-950 via-[#071A4D] to-slate-950 flex items-center justify-center">
-                        <div className="w-24 h-24 bg-km-accent/20 rounded-2xl flex items-center justify-center">
-                            <Calendar size={48} className="text-km-accent" />
+                    <div className="w-full h-full bg-[#071A4D] flex items-center justify-center">
+                        <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#F59E0B]">
+                            <Calendar size={40} />
                         </div>
                     </div>
                 )}
-                <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent" />
-
-                <div className="absolute top-6 left-4 md:left-8 z-20">
+                
+                {/* Back to Events Nav Button */}
+                <div className="absolute top-6 left-4 sm:left-8 z-20">
                     <Link
                         href="/events"
-                        className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-all"
+                        className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all border border-white/20 shadow-xs"
                     >
-                        <ArrowLeft size={16} /> Back to Events
+                        <ArrowLeft size={15} /> Back to Workshops
                     </Link>
                 </div>
             </div>
 
-            {/* ─── Main Content ─── */}
-            <div className="max-w-5xl mx-auto px-4 md:px-8 py-8 flex flex-col lg:flex-row gap-8 -mt-20 relative z-20">
-                {/* ── Left Column: Details ── */}
+            {/* ─── Main Content Container ─── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8 -mt-20 relative z-20">
+                {/* ── Left Column: Details & Live Meeting Access ── */}
                 <div className="flex-1 space-y-6">
-                    <div className="bg-white rounded-2xl p-6 md:p-8 border border-slate-100 shadow-xs">
+                    {/* Primary Workshop Card */}
+                    <div className="bg-white rounded-2xl p-6 sm:p-8 border border-[#D9E0EA] shadow-xs">
                         {/* Event Tags */}
-                        <div className="flex flex-wrap items-center gap-2.5 mb-4">
-                            <span className="bg-orange-50 text-km-accent text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider">
-                                {event.category || 'Event'}
+                        <div className="flex flex-wrap items-center gap-2.5 mb-3.5">
+                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md">
+                                {event.category || 'Skill Workshop'}
                             </span>
-                            <span className={`text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider ${
+                            <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md ${
                                 isPaid
-                                    ? 'bg-amber-100 text-amber-900'
-                                    : 'bg-emerald-100 text-emerald-800'
+                                    ? 'bg-[#FF6B00] text-white'
+                                    : 'bg-[#071A4D] text-white'
                             }`}>
-                                {isPaid ? `Paid Workshop • ₹${event.price}` : 'Free Entry'}
+                                {isPaid ? `Paid Masterclass • ₹${event.price}` : 'Free Entry Pass'}
                             </span>
+                            {isOnlineSession && (
+                                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                                    <Video size={12} className="text-emerald-600" /> Live Video Session
+                                </span>
+                            )}
                         </div>
 
                         {/* Title */}
-                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 mb-3 leading-snug">
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] mb-2 leading-snug">
                             {event.title}
                         </h1>
 
-                        <p className="text-sm text-slate-500 font-medium mb-6">
-                            Organized by <span className="font-bold text-slate-700">{event.organizer}</span>
+                        <p className="text-sm text-[#5B6472] font-normal mb-6">
+                            Conducted by <span className="font-semibold text-[#111827]">{event.organizer}</span>
+                            <span className="text-[#0B5ED7] ml-2 text-xs font-medium">• Verified Expert Practitioner</span>
                         </p>
 
                         {/* Description */}
-                        <div className="border-t border-slate-100 pt-6">
-                            <h3 className="text-base font-black text-slate-900 mb-3">About this Event</h3>
-                            <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line font-normal">
-                                {event.description || "Join us for this exciting event! More details will be shared with registered participants."}
+                        <div className="border-t border-[#D9E0EA] pt-6">
+                            <h3 className="text-base font-bold text-[#111827] mb-3">About this Masterclass</h3>
+                            <p className="text-sm text-[#5B6472] leading-relaxed whitespace-pre-line font-normal">
+                                {event.description || "Join this expert-led masterclass to acquire practical skills, trade techniques, and career insights. Interactive Q&A will be conducted at the end of the session."}
                             </p>
+                        </div>
+                    </div>
+
+                    {/* ── Live Session & Meeting Link Section (Google Meet / Zoom) ── */}
+                    {isRegistered ? (
+                        <div className="bg-white rounded-2xl p-6 sm:p-7 border-2 border-[#10B981]/40 shadow-xs space-y-4">
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                                <div className="flex items-center gap-2.5 text-emerald-700 font-bold text-sm">
+                                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                                        <Video size={18} />
+                                    </div>
+                                    <span>Live Video Conference & Room Access</span>
+                                </div>
+                                <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
+                                    <CheckCircle2 size={12} /> Entry Pass Active
+                                </span>
+                            </div>
+
+                            <p className="text-xs text-[#5B6472] leading-relaxed">
+                                Your pass has been issued. Use the secure meeting link below to join the live video session at the scheduled date and time:
+                            </p>
+
+                            <div className="p-4 bg-[#F4F7FB] rounded-xl border border-[#D9E0EA] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                <div className="flex items-center gap-3 min-w-0">
+                                    <div className="w-10 h-10 rounded-xl bg-white border border-[#D9E0EA] flex items-center justify-center text-[#071A4D] shrink-0 shadow-2xs">
+                                        <Video size={20} className="text-[#0B5ED7]" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-bold text-[#111827] truncate">
+                                            {isOnlineSession ? "Interactive Google Meet / Zoom Room" : event.location}
+                                        </p>
+                                        <p className="text-[11px] text-[#5B6472] truncate">
+                                            Ticket Pass ID: <span className="font-mono font-semibold text-[#071A4D]">{ticket?.ticket_number || "CONFIRMED"}</span>
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <a
+                                    href={meetingUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn-accent text-xs px-4 py-2.5 shrink-0 inline-flex items-center gap-1.5 shadow-xs"
+                                >
+                                    <Video size={14} />
+                                    <span>Join Meeting Room</span>
+                                    <ExternalLink size={12} />
+                                </a>
+                            </div>
+
+                            <p className="text-[11px] text-[#5B6472]">
+                                Note: Please join 5 minutes before scheduled start ({event.time || "scheduled time"}). The expert host admits participants with verified ticket pass numbers.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="bg-[#FFFBEB] rounded-2xl p-5 sm:p-6 border border-[#FDE68A] shadow-xs">
+                            <div className="flex items-start gap-3.5">
+                                <div className="w-9 h-9 rounded-xl bg-amber-100 text-[#B45309] flex items-center justify-center shrink-0 mt-0.5">
+                                    <Lock size={17} />
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="text-sm font-bold text-[#111827]">Live Session Meeting Room (Google Meet / Zoom)</h4>
+                                    <p className="text-xs text-[#5B6472] mt-1 leading-relaxed">
+                                        The direct video conference link, meeting ID, and workshop handouts unlock automatically for your account once you reserve a pass for this session.
+                                    </p>
+                                    <div className="mt-3 flex items-center gap-2">
+                                        <span className="text-[11px] font-semibold text-[#B45309] bg-white border border-[#FDE68A] px-2.5 py-1 rounded-lg">
+                                            Locked for Registered Learners
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* What You'll Learn / Inclusions Grid */}
+                    <div className="bg-white rounded-2xl p-6 sm:p-7 border border-[#D9E0EA] shadow-xs">
+                        <h3 className="text-base font-bold text-[#111827] mb-4">Workshop Deliverables</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs text-[#5B6472]">
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]/70">
+                                <Check size={16} className="text-[#10B981] shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-[#111827]">Direct Live Interaction</p>
+                                    <p className="text-[11px] text-[#5B6472] mt-0.5">Interactive Q&A with real-time feedback from the expert.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]/70">
+                                <Check size={16} className="text-[#10B981] shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-[#111827]">Verified Skill Takeaways</p>
+                                    <p className="text-[11px] text-[#5B6472] mt-0.5">Practical knowledge you can immediately apply to jobs.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]/70">
+                                <Check size={16} className="text-[#10B981] shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-[#111827]">Digital Boarding Pass</p>
+                                    <p className="text-[11px] text-[#5B6472] mt-0.5">Unique QR-verified pass stored inside your account.</p>
+                                </div>
+                            </div>
+                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]/70">
+                                <Check size={16} className="text-[#10B981] shrink-0 mt-0.5" />
+                                <div>
+                                    <p className="font-semibold text-[#111827]">Direct Mentorship Connect</p>
+                                    <p className="text-[11px] text-[#5B6472] mt-0.5">Opportunity to book follow-up 1-on-1 expert sessions.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Host Sessions Banner (Callout for Practitioners) */}
+                    <div className="bg-white rounded-2xl p-6 border border-[#D9E0EA] shadow-xs">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <h4 className="text-sm font-bold text-[#111827]">Are you an experienced trade professional or expert?</h4>
+                                <p className="text-xs text-[#5B6472] max-w-lg leading-relaxed">
+                                    Apply to become a verified expert on KaamMilega. Host workshops, teach candidates, and earn directly with integrated video links and wallet payouts.
+                                </p>
+                            </div>
+                            <Link
+                                href="/expert/apply"
+                                className="btn-outline text-xs px-4 py-2 shrink-0 inline-flex items-center gap-1.5"
+                            >
+                                <span>Apply as Expert</span>
+                                <ArrowRight size={13} />
+                            </Link>
                         </div>
                     </div>
                 </div>
 
-                {/* ── Right Column: Sidebar Registration ── */}
-                <div className="w-full lg:w-88">
+                {/* ── Right Column: Sidebar Registration Pass ── */}
+                <div className="w-full lg:w-96">
                     <div className="lg:sticky lg:top-24 space-y-5">
-                        <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
-                            <div className="flex items-center justify-between mb-5">
-                                <h3 className="text-base font-black text-slate-900">Event Pass</h3>
-                                <span className={`text-xs font-black uppercase px-2.5 py-1 rounded-md ${
-                                    isPaid ? 'bg-orange-100 text-orange-800' : 'bg-emerald-100 text-emerald-800'
+                        <div className="km-card p-6 shadow-sm">
+                            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#D9E0EA]">
+                                <h3 className="text-base font-bold text-[#111827]">Workshop Pass</h3>
+                                <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
+                                    isPaid ? 'bg-[#FF6B00] text-white' : 'bg-[#071A4D] text-white'
                                 }`}>
-                                    {isPaid ? `₹${event.price}` : 'FREE'}
+                                    {isPaid ? `₹${event.price}` : 'Free Entry'}
                                 </span>
                             </div>
 
                             {/* Meta Info */}
-                            <div className="space-y-4 mb-6">
+                            <div className="space-y-3.5 mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-km-accent shrink-0">
+                                    <div className="w-10 h-10 rounded-xl bg-[#FFFBEB] text-[#F59E0B] border border-[#FDE68A] flex items-center justify-center shrink-0">
                                         <Calendar size={18} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Date</p>
-                                        <p className="text-sm font-bold text-slate-800">{event.date}</p>
+                                        <p className="text-[10px] font-semibold text-[#5B6472] uppercase tracking-wider">Date</p>
+                                        <p className="text-sm font-bold text-[#111827]">{event.date}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-km-primary shrink-0">
+                                    <div className="w-10 h-10 rounded-xl bg-[#F4F7FB] text-[#071A4D] border border-[#D9E0EA] flex items-center justify-center shrink-0">
                                         <Clock size={18} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time</p>
-                                        <p className="text-sm font-bold text-slate-800">{event.time || 'TBA'}</p>
+                                        <p className="text-[10px] font-semibold text-[#5B6472] uppercase tracking-wider">Time</p>
+                                        <p className="text-sm font-bold text-[#111827]">{event.time || 'TBA'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
-                                        <MapPin size={18} />
+                                    <div className="w-10 h-10 rounded-xl bg-[#FFF7ED] text-[#FF6B00] border border-[#FFEDD5] flex items-center justify-center shrink-0">
+                                        <Video size={18} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Location</p>
-                                        <p className="text-sm font-bold text-slate-800">{event.location}</p>
+                                        <p className="text-[10px] font-semibold text-[#5B6472] uppercase tracking-wider">Format</p>
+                                        <p className="text-sm font-bold text-[#111827]">
+                                            {isOnlineSession ? "Online (Google Meet / Zoom)" : event.location}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Participant / Seat count (Clickable for F64 Attendees Modal) */}
+                            {/* Participant / Seat count (Clickable for Attendee Modal) */}
                             <div 
                                 onClick={() => setIsAttendeeModalOpen(true)}
-                                className="bg-slate-50 hover:bg-blue-50/70 border border-slate-200/60 hover:border-blue-200 rounded-xl py-3 px-4 mb-5 text-center transition-all cursor-pointer group shadow-2xs"
+                                className="bg-[#F4F7FB] hover:bg-blue-50/70 border border-[#D9E0EA] hover:border-[#0B5ED7]/40 rounded-xl py-3 px-4 mb-5 text-center transition-all cursor-pointer group shadow-2xs"
                                 title="Click to view confirmed attendees"
                             >
-                                <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-slate-700 group-hover:text-km-primary transition-colors flex-wrap">
-                                    <Users size={14} className="text-km-primary group-hover:scale-110 transition-transform" />
-                                    <span className="text-km-primary font-black">{participantCount}</span> 
-                                    <span>{participantCount === 1 ? 'person has' : 'people have'} registered</span>
-                                    <span className="text-[10px] text-blue-700 bg-blue-100/70 group-hover:bg-[#1a2b8c] group-hover:text-white px-2 py-0.5 rounded-full font-bold ml-1 transition-all">
-                                        View Attendees
+                                <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-[#111827] group-hover:text-[#0B5ED7] transition-colors flex-wrap">
+                                    <Users size={14} className="text-[#071A4D] group-hover:scale-110 transition-transform" />
+                                    <span className="text-[#071A4D] font-bold">{participantCount}</span> 
+                                    <span>{participantCount === 1 ? 'learner has' : 'learners have'} registered</span>
+                                    <span className="text-[10px] text-[#071A4D] bg-white border border-[#D9E0EA] px-2 py-0.5 rounded-full font-bold ml-1 transition-all">
+                                        View All
                                     </span>
                                 </div>
                                 {event.capacity && event.capacity > 0 ? (
-                                    <p className="text-[11px] text-slate-500 font-semibold mt-1">
+                                    <p className="text-[11px] text-[#5B6472] font-medium mt-1">
                                         {event.available_seats ?? event.capacity} seats remaining of {event.capacity} total
                                     </p>
                                 ) : null}
@@ -485,7 +640,7 @@ const EventDetailsPage = () => {
                             {/* Action Buttons */}
                             {isRegistered ? (
                                 <div className="space-y-3">
-                                    <div className="w-full py-3 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl font-bold text-xs flex items-center justify-center gap-2">
+                                    <div className="w-full py-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs flex items-center justify-center gap-2">
                                         <CheckCircle2 size={16} /> You're Registered!
                                     </div>
                                     <button
@@ -494,25 +649,36 @@ const EventDetailsPage = () => {
                                             if (ticket) setTicketModalOpen(true);
                                             else fetchUserTicket().then(() => setTicketModalOpen(true));
                                         }}
-                                        className="w-full py-3.5 bg-linear-to-r from-[#1a2b8c] to-blue-700 hover:from-[#152370] hover:to-blue-800 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-95"
+                                        className="btn-primary w-full py-3.5 text-xs shadow-md cursor-pointer"
                                     >
                                         <QrCode size={16} />
                                         <span>View Digital Pass & QR</span>
                                     </button>
+                                    {isOnlineSession && (
+                                        <a
+                                            href={meetingUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn-accent w-full py-3 text-xs shadow-md inline-flex items-center justify-center gap-2"
+                                        >
+                                            <Video size={15} />
+                                            <span>Join Live Session</span>
+                                        </a>
+                                    )}
                                 </div>
                             ) : isPaid ? (
                                 isSoldOut ? (
-                                    <button disabled className="w-full py-3.5 bg-slate-200 text-slate-500 rounded-xl font-bold text-sm cursor-not-allowed">
-                                        Sold Out
+                                    <button disabled className="w-full py-3.5 bg-[#E5ECF5] text-[#5B6472] rounded-xl font-bold text-sm cursor-not-allowed">
+                                        Workshop Full
                                     </button>
                                 ) : (
                                     <button
                                         type="button"
                                         onClick={handleOpenCheckout}
-                                        className="w-full py-3.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/20 active:scale-95 cursor-pointer"
+                                        className="btn-accent w-full py-3.5 text-sm shadow-md cursor-pointer"
                                     >
                                         <Ticket size={16} />
-                                        <span>Buy Ticket (₹{event.price})</span>
+                                        <span>Book Pass • ₹{event.price}</span>
                                     </button>
                                 )
                             ) : (
@@ -520,9 +686,9 @@ const EventDetailsPage = () => {
                                     type="button"
                                     onClick={handleFreeRegister}
                                     disabled={registering || isSoldOut}
-                                    className="w-full py-3.5 bg-km-accent hover:bg-km-accent-dark text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-orange-500/20 active:scale-95 disabled:opacity-60 cursor-pointer"
+                                    className="btn-primary w-full py-3.5 text-sm shadow-md cursor-pointer disabled:opacity-60"
                                 >
-                                    {registering ? "Registering..." : isSoldOut ? "Full" : "Register for Event (Free)"}
+                                    {registering ? "Reserving Pass..." : isSoldOut ? "Workshop Full" : "Register for Workshop (Free)"}
                                 </button>
                             )}
                         </div>
@@ -538,21 +704,21 @@ const EventDetailsPage = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl border border-slate-100 overflow-hidden my-auto"
+                            className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl border border-[#D9E0EA] overflow-hidden my-auto"
                         >
                             {/* Modal Header */}
-                            <div className="flex justify-between items-center px-5 py-3.5 border-b border-slate-100 shrink-0 bg-white">
+                            <div className="flex justify-between items-center px-5 py-3.5 border-b border-[#D9E0EA] shrink-0 bg-white">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                                        <Ticket size={18} />
+                                    <div className="w-8 h-8 rounded-xl bg-[#FFFBEB] text-[#F59E0B] border border-[#FDE68A] flex items-center justify-center">
+                                        <Ticket size={17} />
                                     </div>
-                                    <h3 className="text-base sm:text-lg font-black text-slate-900">Event Ticket Checkout</h3>
+                                    <h3 className="text-base font-bold text-[#111827]">Workshop Pass Checkout</h3>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => !paymentProcessing && setCheckoutModalOpen(false)}
                                     disabled={paymentProcessing}
-                                    className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
+                                    className="w-8 h-8 rounded-full bg-[#F4F7FB] hover:bg-[#D9E0EA] flex items-center justify-center text-[#5B6472] transition-colors cursor-pointer"
                                 >
                                     <X size={16} />
                                 </button>
@@ -561,29 +727,29 @@ const EventDetailsPage = () => {
                             {/* Modal Scrollable Body */}
                             <div className="p-5 overflow-y-auto flex-1 space-y-4 text-left">
                                 {/* Order Summary */}
-                                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3.5">
-                                    <h4 className="font-extrabold text-sm text-slate-900 mb-1">{event.title}</h4>
-                                    <div className="flex justify-between items-center text-xs text-slate-500 mb-2">
+                                <div className="bg-[#F4F7FB] border border-[#D9E0EA] rounded-2xl p-4">
+                                    <h4 className="font-bold text-sm text-[#111827] mb-1">{event.title}</h4>
+                                    <div className="flex justify-between items-center text-xs text-[#5B6472] mb-2">
                                         <span>{event.date} • {event.time}</span>
-                                        <span className="text-base font-black text-slate-900 font-mono">
+                                        <span className="text-base font-bold text-[#071A4D] font-mono">
                                             ₹{event.price}
                                         </span>
                                     </div>
-                                    <div className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-lg p-2 font-medium">
-                                        ✓ Instant digital boarding pass with unique verification QR code
+                                    <div className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200/60 rounded-lg p-2 font-medium">
+                                        ✓ Includes live Google Meet / Zoom link and verified entry boarding pass
                                     </div>
                                 </div>
 
                                 {/* Attendee Info Form */}
                                 <div className="space-y-2.5">
-                                    <label className="block text-xs font-bold text-slate-700">Attendee Details:</label>
+                                    <label className="block text-xs font-semibold text-[#111827]">Attendee Details:</label>
                                     <div>
                                         <input
                                             type="text"
                                             placeholder="Full Name"
                                             value={attendeeName}
                                             onChange={(e) => setAttendeeName(e.target.value)}
-                                            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a2b8c]"
+                                            className="w-full text-xs font-medium bg-white border border-[#D9E0EA] rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                         />
                                     </div>
                                     <div>
@@ -592,7 +758,7 @@ const EventDetailsPage = () => {
                                             placeholder="Email Address"
                                             value={attendeeEmail}
                                             onChange={(e) => setAttendeeEmail(e.target.value)}
-                                            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a2b8c]"
+                                            className="w-full text-xs font-medium bg-white border border-[#D9E0EA] rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                         />
                                     </div>
                                     <div>
@@ -601,35 +767,35 @@ const EventDetailsPage = () => {
                                             placeholder="Phone Number (optional)"
                                             value={attendeePhone}
                                             onChange={(e) => setAttendeePhone(e.target.value)}
-                                            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-[#1a2b8c]"
+                                            className="w-full text-xs font-medium bg-white border border-[#D9E0EA] rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                         />
                                     </div>
                                 </div>
 
                                 {/* Payment Method Selector */}
                                 <div className="space-y-2">
-                                    <label className="block text-xs font-bold text-slate-700">Choose Payment Method:</label>
+                                    <label className="block text-xs font-semibold text-[#111827]">Choose Payment Method:</label>
 
                                     {/* Razorpay */}
                                     <div
                                         onClick={() => !paymentProcessing && setPaymentMethod("razorpay")}
-                                        className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                                        className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                                             paymentMethod === "razorpay"
-                                                ? "border-[#1a2b8c] bg-blue-50/40 ring-1 ring-[#1a2b8c]"
-                                                : "border-slate-200 hover:border-slate-300"
+                                                ? "border-[#071A4D] bg-[#071A4D]/5 ring-1 ring-[#071A4D]"
+                                                : "border-[#D9E0EA] hover:border-slate-300"
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-7 h-7 rounded-xl bg-blue-100/70 text-[#1a2b8c] flex items-center justify-center shrink-0">
+                                            <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#071A4D] flex items-center justify-center shrink-0 border border-blue-100">
                                                 <CreditCard size={15} />
                                             </div>
                                             <div>
-                                                <div className="font-bold text-xs text-slate-900">Razorpay Online Payment</div>
-                                                <div className="text-[10px] text-slate-500">UPI, Cards, NetBanking</div>
+                                                <div className="font-bold text-xs text-[#111827]">Razorpay Online Checkout</div>
+                                                <div className="text-[10px] text-[#5B6472]">UPI, Cards, NetBanking</div>
                                             </div>
                                         </div>
                                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                            paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
+                                            paymentMethod === "razorpay" ? "border-[#071A4D] bg-[#071A4D]" : "border-slate-300"
                                         }`}>
                                             {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                         </div>
@@ -638,46 +804,46 @@ const EventDetailsPage = () => {
                                     {/* KaamMilega Wallet */}
                                     <div
                                         onClick={() => !paymentProcessing && setPaymentMethod("wallet")}
-                                        className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
+                                        className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                                             paymentMethod === "wallet"
-                                                ? "border-[#1a2b8c] bg-blue-50/40 ring-1 ring-[#1a2b8c]"
-                                                : "border-slate-200 hover:border-slate-300"
+                                                ? "border-[#071A4D] bg-[#071A4D]/5 ring-1 ring-[#071A4D]"
+                                                : "border-[#D9E0EA] hover:border-slate-300"
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-7 h-7 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center shrink-0">
+                                            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
                                                 <Wallet size={15} />
                                             </div>
                                             <div>
-                                                <div className="font-bold text-xs text-slate-900">KaamMilega Wallet</div>
-                                                <div className="text-[10px] text-slate-500">
-                                                    Available Balance: <span className="font-mono font-bold text-slate-800">₹{walletBalance.toFixed(2)}</span>
+                                                <div className="font-bold text-xs text-[#111827]">KaamMilega Wallet</div>
+                                                <div className="text-[10px] text-[#5B6472]">
+                                                    Available Balance: <span className="font-mono font-bold text-[#111827]">₹{walletBalance.toFixed(2)}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                            paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
+                                            paymentMethod === "wallet" ? "border-[#071A4D] bg-[#071A4D]" : "border-slate-300"
                                         }`}>
                                             {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                                         </div>
                                     </div>
 
                                     {paymentMethod === "wallet" && !isWalletSufficient && (
-                                        <div className="p-2.5 bg-amber-50 border border-amber-200/80 rounded-xl text-[11px] text-amber-800 flex items-center justify-between">
-                                            <span>Insufficient balance.</span>
-                                            <Link href="/wallet" className="font-bold underline text-amber-900">Top up Wallet</Link>
+                                        <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center gap-1.5">
+                                            <AlertCircle size={13} className="text-amber-600 shrink-0" />
+                                            <span>Insufficient wallet balance. Please select Razorpay or refill wallet.</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Modal Actions Footer */}
-                            <div className="flex items-center justify-end gap-3 px-5 py-3 border-t border-slate-100 bg-slate-50/60 shrink-0">
+                            {/* Modal Footer */}
+                            <div className="px-5 py-3.5 bg-[#F4F7FB] border-t border-[#D9E0EA] flex items-center justify-between shrink-0">
                                 <button
                                     type="button"
                                     onClick={() => setCheckoutModalOpen(false)}
                                     disabled={paymentProcessing}
-                                    className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 cursor-pointer disabled:opacity-50"
+                                    className="px-4 py-2 text-xs font-semibold text-[#5B6472] hover:text-[#111827] cursor-pointer disabled:opacity-50"
                                 >
                                     Cancel
                                 </button>
@@ -687,7 +853,7 @@ const EventDetailsPage = () => {
                                         type="button"
                                         onClick={handleRazorpayCheckout}
                                         disabled={paymentProcessing}
-                                        className="bg-[#1a2b8c] hover:bg-[#152370] text-white px-5 py-2 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-60"
+                                        className="btn-primary text-xs px-5 py-2.5 shadow-md active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-60"
                                     >
                                         {paymentProcessing ? (
                                             <>
@@ -706,7 +872,7 @@ const EventDetailsPage = () => {
                                         type="button"
                                         onClick={handleWalletCheckout}
                                         disabled={paymentProcessing || !isWalletSufficient}
-                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                                        className="btn-accent text-xs px-5 py-2.5 shadow-md active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
                                     >
                                         {paymentProcessing ? (
                                             <>
@@ -715,8 +881,8 @@ const EventDetailsPage = () => {
                                             </>
                                         ) : (
                                             <>
-                                                <Wallet size={14} />
-                                                <span>Pay ₹{event.price} from Wallet</span>
+                                                <Wallet size={13} />
+                                                <span>Confirm & Pay from Wallet</span>
                                             </>
                                         )}
                                     </button>
@@ -727,88 +893,85 @@ const EventDetailsPage = () => {
                 )}
             </AnimatePresence>
 
-            {/* ─── Digital Boarding Pass Ticket Modal (F63) ─── */}
+            {/* ─── Digital Pass & QR Code Modal (F63) ─── */}
             <AnimatePresence>
                 {ticketModalOpen && ticket && (
                     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            initial={{ opacity: 0, scale: 0.9, y: 15 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 overflow-hidden my-auto flex flex-col"
+                            exit={{ opacity: 0, scale: 0.9, y: 15 }}
+                            className="bg-white rounded-2xl max-w-sm sm:max-w-md w-full shadow-2xl border border-[#D9E0EA] overflow-hidden my-auto"
                         >
-                            {/* Modal Close Header */}
-                            <div className="flex justify-between items-center px-5 py-3 bg-slate-900 text-white shrink-0">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-6 h-6 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center">
-                                        <Ticket size={14} />
-                                    </div>
-                                    <span className="text-xs font-black uppercase tracking-wider text-slate-100">Official Event Ticket Pass</span>
-                                </div>
+                            {/* Modal Action Bar */}
+                            <div className="flex justify-between items-center px-5 py-3 border-b border-[#D9E0EA] bg-white">
+                                <span className="text-xs font-bold text-[#111827] flex items-center gap-1.5 uppercase tracking-wider">
+                                    <Ticket size={14} className="text-[#FF6B00]" /> Digital Workshop Pass
+                                </span>
                                 <button
                                     type="button"
                                     onClick={() => setTicketModalOpen(false)}
-                                    className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer"
+                                    className="w-8 h-8 rounded-full bg-[#F4F7FB] hover:bg-[#D9E0EA] flex items-center justify-center text-[#5B6472] transition-colors cursor-pointer"
                                 >
-                                    <X size={14} />
+                                    <X size={16} />
                                 </button>
                             </div>
 
-                            {/* Printable Boarding Pass Body */}
-                            <div ref={ticketRef} className="p-5 bg-linear-to-b from-white via-slate-50/50 to-slate-100/50 overflow-x-hidden">
-                                {/* Header / Title */}
-                                <div className="flex items-start justify-between gap-3 mb-3">
-                                    <div className="min-w-0 flex-1">
-                                        <span className="inline-block text-[9px] font-black uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 mb-1.5">
-                                            ✓ Confirmed Entry Pass
+                            {/* Printable Ticket Container */}
+                            <div ref={ticketRef} className="p-5 sm:p-6 bg-white">
+                                {/* Ticket Header */}
+                                <div className="flex items-start justify-between gap-3 mb-4">
+                                    <div>
+                                        <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1 mb-1">
+                                            <CheckCircle2 size={11} className="text-emerald-600" /> Pass Confirmed
                                         </span>
-                                        <h3 className="text-base font-black text-slate-900 leading-snug line-clamp-2">
+                                        <h3 className="font-bold text-base text-[#111827] leading-snug line-clamp-2">
                                             {ticket.event_title || event.title}
                                         </h3>
-                                        <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                                            Hosted by <span className="font-semibold text-slate-700">{event.organizer}</span>
+                                        <p className="text-xs text-[#5B6472]">
+                                            By {event.organizer}
                                         </p>
                                     </div>
-                                    <div className="text-right shrink-0 bg-blue-50 border border-blue-100 rounded-xl px-2.5 py-1.5">
-                                        <span className="text-[9px] font-bold text-blue-500 uppercase tracking-wider block">Pass Type</span>
-                                        <span className="text-xs font-black text-[#1a2b8c] uppercase">
+                                    <div className="text-right shrink-0 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl px-2.5 py-1.5">
+                                        <span className="text-[9px] font-semibold text-[#5B6472] uppercase tracking-wider block">Pass Type</span>
+                                        <span className="text-xs font-bold text-[#071A4D] uppercase">
                                             {ticket.amount > 0 ? `₹${ticket.amount}` : 'Free Entry'}
                                         </span>
                                     </div>
                                 </div>
 
                                 {/* Event Schedule Strip */}
-                                <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-100/80 rounded-xl mb-3 text-xs border border-slate-200/50">
+                                <div className="grid grid-cols-2 gap-2 p-3 bg-[#F4F7FB] rounded-xl mb-3 text-xs border border-[#D9E0EA]">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
+                                        <div className="w-6 h-6 rounded-lg bg-[#FFFBEB] text-[#F59E0B] flex items-center justify-center shrink-0">
                                             <Calendar size={12} />
                                         </div>
                                         <div className="min-w-0">
-                                            <span className="text-[9px] font-semibold text-slate-400 block uppercase">Date</span>
-                                            <span className="font-bold text-[11px] text-slate-800 truncate block">
+                                            <span className="text-[9px] font-semibold text-[#5B6472] block uppercase">Date</span>
+                                            <span className="font-bold text-[11px] text-[#111827] truncate block">
                                                 {ticket.event_date || event.date}
                                             </span>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                        <div className="w-6 h-6 rounded-lg bg-blue-100 text-[#071A4D] flex items-center justify-center shrink-0">
                                             <Clock size={12} />
                                         </div>
                                         <div className="min-w-0">
-                                            <span className="text-[9px] font-semibold text-slate-400 block uppercase">Time</span>
-                                            <span className="font-bold text-[11px] text-slate-800 truncate block">
+                                            <span className="text-[9px] font-semibold text-[#5B6472] block uppercase">Time</span>
+                                            <span className="font-bold text-[11px] text-[#111827] truncate block">
                                                 {ticket.event_time || event.time || 'TBA'}
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="col-span-2 pt-1.5 border-t border-slate-200/60 flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
-                                            <MapPin size={12} />
+                                    <div className="col-span-2 pt-2 border-t border-[#D9E0EA] flex items-center gap-2">
+                                        <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                                            <Video size={12} />
                                         </div>
                                         <div className="min-w-0 flex-1">
-                                            <span className="text-[9px] font-semibold text-slate-400 block uppercase">Location</span>
-                                            <span className="font-semibold text-[11px] text-slate-800 truncate block">
-                                                {ticket.event_location || event.location}
+                                            <span className="text-[9px] font-semibold text-[#5B6472] block uppercase">Room / Location</span>
+                                            <span className="font-semibold text-[11px] text-[#111827] truncate block">
+                                                {isOnlineSession ? "Online Video Room (Google Meet / Zoom)" : (ticket.event_location || event.location)}
                                             </span>
                                         </div>
                                     </div>
@@ -817,7 +980,7 @@ const EventDetailsPage = () => {
                                 {/* Perforated Divider with matching notched sides */}
                                 <div className="relative my-3 flex items-center overflow-hidden">
                                     <div className="w-2.5 h-5 -ml-5 bg-black/75 rounded-r-full shrink-0" />
-                                    <div className="flex-1 border-t-2 border-dashed border-slate-300 mx-1.5" />
+                                    <div className="flex-1 border-t-2 border-dashed border-[#D9E0EA] mx-1.5" />
                                     <div className="w-2.5 h-5 -mr-5 bg-black/75 rounded-l-full shrink-0" />
                                 </div>
 
@@ -825,43 +988,43 @@ const EventDetailsPage = () => {
                                 <div className="flex items-center justify-between gap-3 pt-1">
                                     <div className="space-y-1.5 min-w-0 flex-1 text-left">
                                         <div>
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Attendee</span>
-                                            <span className="font-black text-xs text-slate-900 truncate block">{ticket.attendee_name}</span>
+                                            <span className="text-[9px] font-semibold text-[#5B6472] uppercase tracking-wider block">Attendee</span>
+                                            <span className="font-bold text-xs text-[#111827] truncate block">{ticket.attendee_name}</span>
                                         </div>
                                         <div>
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Email</span>
-                                            <span className="font-medium text-[11px] text-slate-600 truncate block">{ticket.attendee_email}</span>
+                                            <span className="text-[9px] font-semibold text-[#5B6472] uppercase tracking-wider block">Email</span>
+                                            <span className="font-medium text-[11px] text-[#5B6472] truncate block">{ticket.attendee_email}</span>
                                         </div>
                                         <div>
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Ticket ID</span>
-                                            <span className="font-mono font-black text-[11px] text-[#1a2b8c] bg-blue-50 px-2 py-0.5 rounded border border-blue-200/60 inline-block">
+                                            <span className="text-[9px] font-semibold text-[#5B6472] uppercase tracking-wider block">Pass ID</span>
+                                            <span className="font-mono font-bold text-[11px] text-[#071A4D] bg-[#F4F7FB] px-2 py-0.5 rounded border border-[#D9E0EA] inline-block">
                                                 {ticket.ticket_number}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* QR Code Container */}
-                                    <div className="flex flex-col items-center bg-white p-2 rounded-xl border border-slate-200 shadow-xs shrink-0">
-                                        <div className="w-20 h-20 bg-slate-950 p-1.5 rounded-lg flex items-center justify-center text-white">
+                                    <div className="flex flex-col items-center bg-white p-2 rounded-xl border border-[#D9E0EA] shadow-2xs shrink-0">
+                                        <div className="w-20 h-20 bg-[#071A4D] p-1.5 rounded-lg flex items-center justify-center text-white">
                                             <QrCode size={64} className="text-white" />
                                         </div>
-                                        <span className="text-[8px] font-black uppercase text-slate-400 tracking-wider mt-1">
-                                            Scan at Entry
+                                        <span className="text-[8px] font-bold uppercase text-[#5B6472] tracking-wider mt-1">
+                                            Pass Verification
                                         </span>
                                     </div>
                                 </div>
                             </div>
 
                             {/* Ticket Actions Footer */}
-                            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200/80 flex items-center justify-between gap-3 shrink-0">
-                                <span className="text-[11px] font-bold text-emerald-700 flex items-center gap-1.5">
-                                    <ShieldCheck size={15} /> Verified Platform Pass
+                            <div className="px-5 py-3.5 bg-[#F4F7FB] border-t border-[#D9E0EA] flex items-center justify-between gap-3 shrink-0">
+                                <span className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1.5">
+                                    <ShieldCheck size={15} className="text-emerald-600" /> Verified KaamMilega Pass
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <button
                                         type="button"
                                         onClick={handlePrintTicket}
-                                        className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-300 cursor-pointer shadow-xs"
+                                        className="px-3.5 py-1.5 bg-white hover:bg-[#F4F7FB] text-[#111827] rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border border-[#D9E0EA] cursor-pointer shadow-2xs"
                                     >
                                         <Printer size={13} />
                                         <span>Print</span>
@@ -869,7 +1032,7 @@ const EventDetailsPage = () => {
                                     <button
                                         type="button"
                                         onClick={() => setTicketModalOpen(false)}
-                                        className="px-4 py-1.5 bg-[#1a2b8c] hover:bg-[#152370] text-white rounded-xl text-xs font-bold transition-all cursor-pointer shadow-xs"
+                                        className="btn-primary text-xs px-4 py-1.5 shadow-2xs cursor-pointer"
                                     >
                                         Done
                                     </button>
@@ -881,7 +1044,7 @@ const EventDetailsPage = () => {
             </AnimatePresence>
 
             {/* Attendee List Modal (F64) */}
-            {event && (
+            {isAttendeeModalOpen && (
                 <AttendeeListModal
                     isOpen={isAttendeeModalOpen}
                     onClose={() => setIsAttendeeModalOpen(false)}
