@@ -175,7 +175,7 @@ func TestRequestWithdrawal_Validations(t *testing.T) {
 		Port: "8000",
 	}
 	mockRepo := &mockWalletRepository{}
-	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg))
+	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg), nil)
 	ctx := context.Background()
 	testUserID := primitive.NewObjectID().Hex()
 
@@ -252,7 +252,7 @@ func TestRequestWithdrawal_BankSuccess(t *testing.T) {
 		Port: "8000",
 	}
 	mockRepo := &mockWalletRepository{}
-	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg))
+	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg), nil)
 	ctx := context.Background()
 	testUserID := primitive.NewObjectID().Hex()
 
@@ -302,7 +302,7 @@ func TestRequestWithdrawal_UPISuccess(t *testing.T) {
 		Port: "8000",
 	}
 	mockRepo := &mockWalletRepository{}
-	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg))
+	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg), nil)
 	ctx := context.Background()
 	testUserID := primitive.NewObjectID().Hex()
 

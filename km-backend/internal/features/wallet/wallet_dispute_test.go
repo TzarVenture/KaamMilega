@@ -14,7 +14,7 @@ import (
 func setupDisputeTestEnv() (*mockWalletRepository, WalletService, string, primitive.ObjectID) {
 	mockRepo := &mockWalletRepository{}
 	cfg := &config.Config{Port: "8000"}
-	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg))
+	svc := NewWalletService(mockRepo, cfg, notification.NewMailer(cfg), nil)
 
 	userOID := primitive.NewObjectID()
 	userID := userOID.Hex()

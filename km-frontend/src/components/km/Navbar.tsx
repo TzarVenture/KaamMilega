@@ -1,9 +1,9 @@
-'use client'
-import { useState, useRef, useEffect } from 'react';
+'use client';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import {
     Search, MapPin, ChevronDown, Home, Users, Briefcase,
     MessageSquare, BookOpen, Bell, ArrowUpRight, Menu, X,
-    Calendar, Zap
+    Calendar, Zap, Check
 } from 'lucide-react';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { clearSession } from '@/lib/auth';
 import { FEATURES } from '@/config/features';
+import { useNotifications, sanitizeNotificationLink } from '@/lib/notifications';
 
 interface NavbarProps {
     showCitySelector?: boolean;
@@ -23,22 +24,38 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+    const { unreadCount, recentNotifications, markAsRead, markAllAsRead } = useNotifications();
+    const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+    const notifRef = useRef<HTMLDivElement>(null);
     const menuRef = useRef<HTMLDivElement>(null);
+
+    const unreadRecentNotifications = useMemo(() => {
+        return recentNotifications.filter((n) => !n.is_read);
+    }, [recentNotifications]);
 
     const router = useRouter();
     const pathname = usePathname();
     const searchParams = useSearchParams();
 
-    // Close profile dropdown when clicking outside
+    // Close profile & notification dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
                 setIsMenuOpen(false);
             }
+            if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+                setNotifDropdownOpen(false);
+            }
         };
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    // Close popovers on route change
+    useEffect(() => {
+        setNotifDropdownOpen(false);
+        setIsMenuOpen(false);
+    }, [pathname]);
 
     // Lock body scroll when mobile drawer or mobile search is open
     useEffect(() => {
@@ -183,30 +200,136 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                             );
                         })}
 
-                        {/* Notifications Icon with Custom Tooltip */}
-                        <div className="relative group flex items-center justify-center">
-                            <Link
-                                href="/notifications"
-                                className={`relative p-2 rounded-xl flex items-center justify-center transition-all duration-150 ${
-                                    pathname === '/notifications'
+                        {/* Notifications Icon with Popover Dropdown */}
+                        <div className="relative flex items-center justify-center" ref={notifRef}>
+                            <button
+                                onClick={() => setNotifDropdownOpen((prev) => !prev)}
+                                className={`relative p-2 rounded-xl flex items-center justify-center transition-all duration-150 cursor-pointer ${
+                                    pathname === '/notifications' || notifDropdownOpen
                                         ? 'text-km-primary bg-blue-50/90 font-bold shadow-xs'
                                         : 'text-slate-600 hover:text-km-primary hover:bg-slate-50'
                                     }`}
                                 aria-label="Notifications"
                             >
-                                <Bell size={18} />
-                                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
-                                {pathname === '/notifications' && (
+                                <Bell size={18} className={unreadCount > 0 ? "fill-slate-600 hover:fill-km-primary text-slate-600 hover:text-km-primary" : ""} />
+                                {unreadCount > 0 && (
+                                    <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-xs animate-in zoom-in duration-150">
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
+                                )}
+                                {(pathname === '/notifications' || notifDropdownOpen) && (
                                     <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-km-primary rounded-full" />
                                 )}
-                            </Link>
+                            </button>
 
-                            {/* Custom Tooltip */}
-                            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 translate-y-1 group-hover:translate-y-0 z-50">
-                                <div className="bg-slate-900 text-white text-[10px] font-semibold py-0.5 px-2 rounded-md shadow-md whitespace-nowrap">
-                                    Notifications
+                            {/* Dropdown Popover */}
+                            {notifDropdownOpen && (
+                                <div className="absolute right-0 top-12 w-84 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                                    {/* Header */}
+                                    <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <h3 className="font-bold text-slate-900 text-sm">Notifications</h3>
+                                            {unreadCount > 0 && (
+                                                <span className="bg-red-50 text-red-600 text-[11px] font-bold px-2 py-0.5 rounded-full">
+                                                    {unreadCount} new
+                                                </span>
+                                            )}
+                                        </div>
+                                        {unreadCount > 0 && (
+                                            <button
+                                                onClick={markAllAsRead}
+                                                className="text-xs font-semibold text-km-primary hover:text-km-primary-dark transition-colors cursor-pointer flex items-center gap-1"
+                                            >
+                                                <Check size={13} />
+                                                Mark all read
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Recent Unread List */}
+                                    <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
+                                        {unreadRecentNotifications.length === 0 ? (
+                                            <div className="p-8 text-center text-slate-400">
+                                                <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                                                    <Check size={18} />
+                                                </div>
+                                                <p className="text-xs font-semibold text-slate-700">All caught up!</p>
+                                                <p className="text-[11px] text-slate-400 mt-0.5">No unread notifications right now.</p>
+                                            </div>
+                                        ) : (
+                                            unreadRecentNotifications.map((notif) => (
+                                                <div
+                                                    key={notif.id}
+                                                    onClick={() => {
+                                                        markAsRead(notif.id);
+                                                        setNotifDropdownOpen(false);
+                                                        if (notif.link) {
+                                                            router.push(sanitizeNotificationLink(notif.link));
+                                                        } else {
+                                                            router.push('/notifications');
+                                                        }
+                                                    }}
+                                                    className="p-3.5 flex items-start gap-3 hover:bg-slate-50 transition-colors cursor-pointer relative bg-blue-50/40"
+                                                >
+                                                    {/* Notification Icon/Avatar */}
+                                                    <div className="shrink-0 mt-0.5">
+                                                        {notif.actor_avatar ? (
+                                                            <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100">
+                                                                <CustomImage src={notif.actor_avatar} alt={notif.actor_name || "User"} className="w-full h-full object-cover" />
+                                                            </div>
+                                                        ) : notif.category === 'messages' ? (
+                                                            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700">
+                                                                <MessageSquare size={15} className="fill-blue-700" />
+                                                            </div>
+                                                        ) : notif.category === 'jobs' ? (
+                                                            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
+                                                                <Briefcase size={15} className="fill-amber-700" />
+                                                            </div>
+                                                        ) : notif.category === 'network' ? (
+                                                            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
+                                                                <Users size={15} className="fill-emerald-700" />
+                                                            </div>
+                                                        ) : (
+                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700">
+                                                                <Bell size={15} className="fill-slate-700" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Content */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                                                            <p className="text-xs truncate font-bold text-slate-900">
+                                                                {notif.title || notif.actor_name || 'Notification'}
+                                                            </p>
+                                                            <span className="text-[10px] text-slate-400 shrink-0">
+                                                                {formatRelativeTime(notif.created_at)}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+                                                            {notif.message}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Unread indicator dot */}
+                                                    <div className="w-2 h-2 rounded-full bg-km-primary shrink-0 mt-2" />
+                                                </div>
+                                            ))
+                                        )}
+                                    </div>
+
+                                    {/* Footer */}
+                                    <div className="p-2 border-t border-slate-100 text-center bg-slate-50/60 rounded-b-2xl">
+                                        <Link
+                                            href="/notifications"
+                                            onClick={() => setNotifDropdownOpen(false)}
+                                            className="text-xs font-bold text-km-primary hover:text-km-primary-dark transition-colors py-1 block"
+                                        >
+                                            View all notifications
+                                        </Link>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
 
@@ -342,11 +465,15 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     >
                         <Search size={20} />
                     </button>
-                    <div className="relative">
-                        <Link href="/notifications">
-                            <Bell size={20} className="text-gray-600" />
+                    <div className="relative flex items-center justify-center">
+                        <Link href="/notifications" className="p-1 block relative" aria-label="Notifications">
+                            <Bell size={20} className={unreadCount > 0 ? "fill-gray-700 text-gray-700" : "text-gray-600"} />
+                            {unreadCount > 0 && (
+                                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white shadow-2xs">
+                                    {unreadCount > 99 ? '99+' : unreadCount}
+                                </span>
+                            )}
                         </Link>
-                        <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
                     </div>
                     <button
                         onClick={() => {
@@ -502,5 +629,24 @@ const MenuItem = ({ label, onClick, href }: { label: string; onClick?: () => voi
 
     return content;
 };
+
+function formatRelativeTime(dateString: string): string {
+    if (!dateString) return '';
+    try {
+        const now = new Date();
+        const date = new Date(dateString);
+        const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
+        if (diffSec < 60) return 'Just now';
+        const diffMin = Math.floor(diffSec / 60);
+        if (diffMin < 60) return `${diffMin}m`;
+        const diffHr = Math.floor(diffMin / 60);
+        if (diffHr < 24) return `${diffHr}h`;
+        const diffDay = Math.floor(diffHr / 24);
+        if (diffDay < 7) return `${diffDay}d`;
+        return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+    } catch {
+        return '';
+    }
+}
 
 export default Navbar;

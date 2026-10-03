@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Poppins, Inter, Noto_Sans_Devanagari } from "next/font/google";
+import { NotificationProvider } from "@/lib/notifications";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -63,7 +64,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${inter.variable} ${notoSansDevanagari.variable}`}>
       <body className="font-poppins antialiased bg-[#F4F7FB] text-[#111827]">
-        {children}
+        <NotificationProvider>
+          {children}
+        </NotificationProvider>
       </body>
     </html>
   );

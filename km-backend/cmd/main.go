@@ -156,9 +156,12 @@ func main() {
 			mentorship.NewMentorshipRepository,
 			subscription.NewSubscriptionRepository,
 			instant_work.NewInstantWorkRepository,
+			notification.NewNotificationRepository,
+			notification.NewNotificationHub,
 
 			// Services
 			notification.NewMailer,
+			notification.NewNotificationService,
 			setting.NewSettingService,
 			file.NewFileService,
 			sms.NewSMSService,
@@ -197,6 +200,7 @@ func main() {
 			mentorship.NewMentorshipController,
 			subscription.NewSubscriptionController,
 			instant_work.NewInstantWorkController,
+			notification.NewNotificationController,
 
 			// routes
 			AsRoute(file.NewFileApi),
@@ -218,6 +222,7 @@ func main() {
 			AsRoute(mentorship.NewMentorshipApi),
 			AsRoute(subscription.NewSubscriptionApi),
 			AsRoute(instant_work.NewInstantWorkApi),
+			AsRoute(notification.NewNotificationApi),
 		),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}

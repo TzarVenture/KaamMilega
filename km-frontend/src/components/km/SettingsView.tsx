@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import api from "@/lib/axios";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -39,7 +40,15 @@ interface UserSettingsState {
 }
 
 export default function SettingsView({ mode = "candidate" }: SettingsViewProps) {
+    const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<"notifications" | "privacy" | "security" | "preferences">("notifications");
+
+    useEffect(() => {
+        const tab = searchParams?.get("tab");
+        if (tab && ["notifications", "privacy", "security", "preferences"].includes(tab)) {
+            setActiveTab(tab as any);
+        }
+    }, [searchParams]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);

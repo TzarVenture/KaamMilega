@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"strings"
 
@@ -12,26 +13,28 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-
 type ApplicationService struct {
-	repo     ApplicationRepository
-	jobRepo  job.JobRepository
-	userRepo user.UserRepository
-	mailer   notification.Mailer
+	repo         ApplicationRepository
+	jobRepo      job.JobRepository
+	userRepo     user.UserRepository
+	mailer       notification.Mailer
+	notifService notification.NotificationService
 }
 
-// NewApplicationService constructs the service with a Mailer injected by the DI container.
+// NewApplicationService constructs the service with a Mailer and NotificationService injected by the DI container.
 func NewApplicationService(
 	repo ApplicationRepository,
 	jobRepo job.JobRepository,
 	userRepo user.UserRepository,
 	mailer notification.Mailer,
+	notifService notification.NotificationService,
 ) *ApplicationService {
 	return &ApplicationService{
-		repo:     repo,
-		jobRepo:  jobRepo,
-		userRepo: userRepo,
-		mailer:   mailer,
+		repo:         repo,
+		jobRepo:      jobRepo,
+		userRepo:     userRepo,
+		mailer:       mailer,
+		notifService: notifService,
 	}
 }
 
@@ -87,7 +90,44 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 		ResumeURL:   req.ResumeURL,
 	}
 
-	return s.repo.Create(ctx, app)
+	createdApp, err := s.repo.Create(ctx, app)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.notifService != nil && !jobInfo.RecruiterID.IsZero() {
+		go func() {
+			candName := "A candidate"
+			candAvatar := ""
+			if candidateUser, _ := s.userRepo.FindUserByID(context.Background(), candidateID); candidateUser != nil {
+				if candidateUser.Name != "" {
+					candName = candidateUser.Name
+				} else if candidateUser.FirstName != "" {
+					candName = candidateUser.FirstName + " " + candidateUser.LastName
+				}
+				candAvatar = candidateUser.ProfileImage
+			}
+
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:      jobInfo.RecruiterID,
+				ActorID:     &cOID,
+				ActorName:   candName,
+				ActorAvatar: candAvatar,
+				Type:        notification.TypeApplicationReceived,
+				Category:    notification.CategoryJobs,
+				Title:       "New Application Received",
+				Message:     fmt.Sprintf("%s applied for %s", candName, jobInfo.Title),
+				Link:        fmt.Sprintf("/recruiter/applications?job_id=%s", jobInfo.ID.Hex()),
+				Metadata: map[string]interface{}{
+					"application_id": createdApp.ID.Hex(),
+					"job_id":         jobInfo.ID.Hex(),
+					"candidate_id":   candidateID,
+				},
+			})
+		}()
+	}
+
+	return createdApp, nil
 }
 
 func (s *ApplicationService) HasCandidateApplied(ctx context.Context, candidateID, jobID string) (bool, error) {
@@ -274,6 +314,42 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id str
 		}()
 	} else if candidate.Email == "" {
 		log.Printf("[ApplicationNotification] Candidate %s has no email address, skipping email notification", candidate.ID.Hex())
+	}
+
+	// Real-time in-app notification to candidate
+	if s.notifService != nil {
+		go func() {
+			jobTitle := "your applied position"
+			companyName := "Recruiter"
+			if j, err := s.jobRepo.FindByID(context.Background(), updated.JobID.Hex()); err == nil && j != nil {
+				if j.Title != "" {
+					jobTitle = j.Title
+				}
+				if j.Company != "" {
+					companyName = j.Company
+				}
+			}
+
+			statusLabel := status
+			if len(statusLabel) > 0 {
+				statusLabel = strings.ToUpper(statusLabel[:1]) + strings.ToLower(statusLabel[1:])
+			}
+
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:      updated.CandidateID,
+				ActorName:   companyName,
+				Type:        notification.TypeApplicationStatus,
+				Category:    notification.CategoryJobs,
+				Title:       "Application Status Updated",
+				Message:     fmt.Sprintf("Your application for %s is now %s", jobTitle, statusLabel),
+				Link:        "/applications",
+				Metadata: map[string]interface{}{
+					"application_id": updated.ID.Hex(),
+					"job_id":         updated.JobID.Hex(),
+					"status":         status,
+				},
+			})
+		}()
 	}
 
 	return updated, nil
