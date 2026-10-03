@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -24,6 +25,7 @@ type EventServiceImpl struct {
 	repo          EventRepository
 	userRepo      user.UserRepository
 	walletService wallet.WalletService
+	notifService  notification.NotificationService
 	cfg           *config.Config
 	httpClient    *http.Client
 }
@@ -33,11 +35,13 @@ func NewEventService(
 	userRepo user.UserRepository,
 	walletService wallet.WalletService,
 	cfg *config.Config,
+	notifService notification.NotificationService,
 ) EventService {
 	return &EventServiceImpl{
 		repo:          repo,
 		userRepo:      userRepo,
 		walletService: walletService,
+		notifService:  notifService,
 		cfg:           cfg,
 		httpClient:    &http.Client{Timeout: 15 * time.Second},
 	}
@@ -127,6 +131,23 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 
 	if ev.Capacity > 0 {
 		_ = s.repo.DecrementAvailableSeats(ctx, evID)
+	}
+
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   uID,
+				Type:     "event_confirmed",
+				Category: notification.CategorySystem,
+				Title:    "Event Registration Confirmed",
+				Message:  fmt.Sprintf("You are registered for %s on %s!", ev.Title, ev.Date),
+				Link:     "/events",
+				Metadata: map[string]interface{}{
+					"event_id":      ev.ID.Hex(),
+					"ticket_number": ticketNumber,
+				},
+			})
+		}()
 	}
 
 	return nil
@@ -314,6 +335,23 @@ func (s *EventServiceImpl) VerifyEventPayment(ctx context.Context, userID string
 		_ = s.repo.DecrementAvailableSeats(ctx, evID)
 	}
 
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   uID,
+				Type:     "event_confirmed",
+				Category: notification.CategorySystem,
+				Title:    "Event Ticket Confirmed",
+				Message:  fmt.Sprintf("Your ticket (%s) for %s is confirmed!", ticketNumber, ev.Title),
+				Link:     "/events",
+				Metadata: map[string]interface{}{
+					"event_id":      evID.Hex(),
+					"ticket_number": ticketNumber,
+				},
+			})
+		}()
+	}
+
 	return created, nil
 }
 
@@ -422,6 +460,23 @@ func (s *EventServiceImpl) BookTicketWithWallet(ctx context.Context, userID stri
 	_ = s.repo.RegisterUser(ctx, evID, uID)
 	if ev.Capacity > 0 {
 		_ = s.repo.DecrementAvailableSeats(ctx, evID)
+	}
+
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   uID,
+				Type:     "event_confirmed",
+				Category: notification.CategorySystem,
+				Title:    "Event Ticket Confirmed",
+				Message:  fmt.Sprintf("You are confirmed for %s (%s)", ev.Title, ticketNumber),
+				Link:     "/events",
+				Metadata: map[string]interface{}{
+					"event_id":      eventID,
+					"ticket_number": ticketNumber,
+				},
+			})
+		}()
 	}
 
 	return created, updatedSummary, nil

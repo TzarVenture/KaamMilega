@@ -1,8 +1,12 @@
 package chat
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"km-backend/internal/config"
+	"km-backend/internal/features/notification"
+	"km-backend/internal/features/user"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -11,13 +15,26 @@ import (
 )
 
 type Controller struct {
-	service ChatService
-	config  *config.Config
-	hub     *Hub
+	service      ChatService
+	config       *config.Config
+	hub          *Hub
+	notifService notification.NotificationService
+	userRepo     user.UserRepository
 }
 
-func NewController(service ChatService, config *config.Config) *Controller {
-	return &Controller{service: service, config: config, hub: NewHub()}
+func NewController(
+	service ChatService,
+	config *config.Config,
+	notifService notification.NotificationService,
+	userRepo user.UserRepository,
+) *Controller {
+	return &Controller{
+		service:      service,
+		config:       config,
+		hub:          NewHub(),
+		notifService: notifService,
+		userRepo:     userRepo,
+	}
 }
 
 func (c *Controller) GetConversations(ctx *fiber.Ctx) error {
@@ -70,6 +87,45 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 
 	c.hub.Send(req.ReceiverID.Hex(), wsPayload)
 	c.hub.Send(senderID.Hex(), wsPayload)
+
+	// Trigger real-time in-app notification for receiver
+	if c.notifService != nil {
+		go func() {
+			senderName := "Someone"
+			senderAvatar := ""
+			if c.userRepo != nil {
+				if sender, err := c.userRepo.FindUserByID(context.Background(), senderID.Hex()); err == nil && sender != nil {
+					if sender.Name != "" {
+						senderName = sender.Name
+					} else if sender.FirstName != "" {
+						senderName = sender.FirstName + " " + sender.LastName
+					}
+					senderAvatar = sender.ProfileImage
+				}
+			}
+
+			preview := req.Content
+			if len(preview) > 80 {
+				preview = preview[:77] + "..."
+			}
+
+			_, _ = c.notifService.CreateOrDebounceChatNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:      req.ReceiverID,
+				ActorID:     &senderID,
+				ActorName:   senderName,
+				ActorAvatar: senderAvatar,
+				Type:        notification.TypeChatMessage,
+				Category:    notification.CategoryMessages,
+				Title:       senderName,
+				Message:     preview,
+				Link:        fmt.Sprintf("/chat?user=%s", senderID.Hex()),
+				Metadata: map[string]interface{}{
+					"conversation_id": msg.ConversationID.Hex(),
+					"sender_id":       senderID.Hex(),
+				},
+			})
+		}()
+	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(msg)
 }

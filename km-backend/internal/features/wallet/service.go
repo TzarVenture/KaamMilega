@@ -38,18 +38,25 @@ type WalletService interface {
 }
 
 type WalletServiceImpl struct {
-	repo       WalletRepository
-	cfg        *config.Config
-	httpClient *http.Client
-	mailer     notification.Mailer
+	repo         WalletRepository
+	cfg          *config.Config
+	httpClient   *http.Client
+	mailer       notification.Mailer
+	notifService notification.NotificationService
 }
 
-func NewWalletService(repo WalletRepository, cfg *config.Config, mailer notification.Mailer) WalletService {
+func NewWalletService(
+	repo WalletRepository,
+	cfg *config.Config,
+	mailer notification.Mailer,
+	notifService notification.NotificationService,
+) WalletService {
 	return &WalletServiceImpl{
-		repo:       repo,
-		cfg:        cfg,
-		httpClient: &http.Client{Timeout: 15 * time.Second},
-		mailer:     mailer,
+		repo:         repo,
+		cfg:          cfg,
+		httpClient:   &http.Client{Timeout: 15 * time.Second},
+		mailer:       mailer,
+		notifService: notifService,
 	}
 }
 
@@ -367,6 +374,24 @@ func (s *WalletServiceImpl) VerifyTopupPayment(ctx context.Context, userID strin
 		}
 	}
 
+	// Dispatch in-app notification
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   oid,
+				Type:     "wallet_credit",
+				Category: notification.CategorySystem,
+				Title:    "Wallet Credited",
+				Message:  fmt.Sprintf("₹%.2f credited to your wallet via Razorpay", req.Amount),
+				Link:     "/wallet",
+				Metadata: map[string]interface{}{
+					"payment_id": req.RazorpayPaymentID,
+					"amount":     req.Amount,
+				},
+			})
+		}()
+	}
+
 	return summary, tx, nil
 }
 
@@ -475,6 +500,23 @@ func (s *WalletServiceImpl) RequestWithdrawal(ctx context.Context, userID string
 				Destination:  maskedDest,
 				Remaining:    walletDoc.EarningsBalance - req.Amount,
 				PhoneNumber:  req.PhoneNumber,
+			})
+		}()
+	}
+
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   oid,
+				Type:     "wallet_withdrawal",
+				Category: notification.CategorySystem,
+				Title:    "Withdrawal Requested",
+				Message:  fmt.Sprintf("Payout request of ₹%.2f submitted successfully", req.Amount),
+				Link:     "/wallet",
+				Metadata: map[string]interface{}{
+					"reference_id": refID,
+					"amount":       req.Amount,
+				},
 			})
 		}()
 	}

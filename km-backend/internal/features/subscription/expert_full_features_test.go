@@ -330,7 +330,7 @@ func TestCompleteExpertLifecycleAndFeatures(t *testing.T) {
 	cfg := &config.Config{RazorpayKeyID: "rzp_test_key", RazorpayKeySecret: "rzp_test_secret"}
 
 	subSvc := NewSubscriptionService(subRepo, userRepo, walletSvc, cfg)
-	mentSvc := mentorship.NewMentorshipService(mentRepo, userRepo, walletSvc, cfg)
+	mentSvc := mentorship.NewMentorshipService(mentRepo, userRepo, walletSvc, cfg, nil)
 
 	// 2. Setup Users
 	// Regular User who will become an Expert

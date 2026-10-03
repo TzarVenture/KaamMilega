@@ -3,17 +3,29 @@ package network
 import (
 	"context"
 	"errors"
+	"fmt"
+
+	"km-backend/internal/features/notification"
+	"km-backend/internal/features/user"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type NetworkServiceImpl struct {
-	repo NetworkRepository
+	repo         NetworkRepository
+	notifService notification.NotificationService
+	userRepo     user.UserRepository
 }
 
-func NewNetworkService(repo NetworkRepository) NetworkService {
+func NewNetworkService(
+	repo NetworkRepository,
+	notifService notification.NotificationService,
+	userRepo user.UserRepository,
+) NetworkService {
 	return &NetworkServiceImpl{
-		repo: repo,
+		repo:         repo,
+		notifService: notifService,
+		userRepo:     userRepo,
 	}
 }
 
@@ -41,7 +53,44 @@ func (s *NetworkServiceImpl) SendInvitation(ctx context.Context, senderID primit
 		Status:     StatusPending,
 	}
 
-	return s.repo.CreateInvitation(ctx, invitation)
+	if err := s.repo.CreateInvitation(ctx, invitation); err != nil {
+		return err
+	}
+
+	// Real-time in-app notification to receiver
+	if s.notifService != nil {
+		go func() {
+			senderName := "Someone"
+			senderAvatar := ""
+			if s.userRepo != nil {
+				if sender, err := s.userRepo.FindUserByID(context.Background(), senderID.Hex()); err == nil && sender != nil {
+					if sender.Name != "" {
+						senderName = sender.Name
+					} else if sender.FirstName != "" {
+						senderName = sender.FirstName + " " + sender.LastName
+					}
+					senderAvatar = sender.ProfileImage
+				}
+			}
+
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:      rOID,
+				ActorID:     &senderID,
+				ActorName:   senderName,
+				ActorAvatar: senderAvatar,
+				Type:        notification.TypeConnectionRequest,
+				Category:    notification.CategoryNetwork,
+				Title:       "New Connection Request",
+				Message:     fmt.Sprintf("%s sent you a connection request", senderName),
+				Link:        "/network",
+				Metadata: map[string]interface{}{
+					"sender_id": senderID.Hex(),
+				},
+			})
+		}()
+	}
+
+	return nil
 }
 
 func (s *NetworkServiceImpl) AcceptInvitation(ctx context.Context, receiverID primitive.ObjectID, senderID string) error {
@@ -50,7 +99,44 @@ func (s *NetworkServiceImpl) AcceptInvitation(ctx context.Context, receiverID pr
 		return err
 	}
 
-	return s.repo.UpdateInvitationStatus(ctx, sOID, receiverID, StatusAccepted)
+	if err := s.repo.UpdateInvitationStatus(ctx, sOID, receiverID, StatusAccepted); err != nil {
+		return err
+	}
+
+	// Real-time in-app notification to sender
+	if s.notifService != nil {
+		go func() {
+			receiverName := "Someone"
+			receiverAvatar := ""
+			if s.userRepo != nil {
+				if receiver, err := s.userRepo.FindUserByID(context.Background(), receiverID.Hex()); err == nil && receiver != nil {
+					if receiver.Name != "" {
+						receiverName = receiver.Name
+					} else if receiver.FirstName != "" {
+						receiverName = receiver.FirstName + " " + receiver.LastName
+					}
+					receiverAvatar = receiver.ProfileImage
+				}
+			}
+
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:      sOID,
+				ActorID:     &receiverID,
+				ActorName:   receiverName,
+				ActorAvatar: receiverAvatar,
+				Type:        notification.TypeConnectionAccepted,
+				Category:    notification.CategoryNetwork,
+				Title:       "Connection Accepted",
+				Message:     fmt.Sprintf("%s accepted your connection request", receiverName),
+				Link:        "/network",
+				Metadata: map[string]interface{}{
+					"accepted_by": receiverID.Hex(),
+				},
+			})
+		}()
+	}
+
+	return nil
 }
 
 func (s *NetworkServiceImpl) IgnoreInvitation(ctx context.Context, receiverID primitive.ObjectID, senderID string) error {

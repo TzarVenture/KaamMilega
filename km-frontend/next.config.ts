@@ -17,6 +17,35 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: "/candidate/applications",
+        destination: "/applications",
+        permanent: true,
+      },
+      {
+        source: "/candidate/application",
+        destination: "/applications",
+        permanent: true,
+      },
+      {
+        source: "/candidate/interviews",
+        destination: "/interviews",
+        permanent: true,
+      },
+      {
+        source: "/candidate/interview",
+        destination: "/interviews",
+        permanent: true,
+      },
+      {
+        source: "/candidate/profile",
+        destination: "/profile",
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

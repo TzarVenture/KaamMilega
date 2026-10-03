@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -53,6 +54,7 @@ type MentorshipServiceImpl struct {
 	repo          MentorshipRepository
 	userRepo      user.UserRepository
 	walletService wallet.WalletService
+	notifService  notification.NotificationService
 	cfg           *config.Config
 	httpClient    *http.Client
 }
@@ -62,11 +64,13 @@ func NewMentorshipService(
 	userRepo user.UserRepository, 
 	walletService wallet.WalletService, 
 	cfg *config.Config,
+	notifService notification.NotificationService,
 ) MentorshipService {
 	return &MentorshipServiceImpl{
 		repo:          repo,
 		userRepo:      userRepo,
 		walletService: walletService,
+		notifService:  notifService,
 		cfg:           cfg,
 		httpClient:    &http.Client{Timeout: 15 * time.Second},
 	}
@@ -189,7 +193,30 @@ func (s *MentorshipServiceImpl) BookSession(ctx context.Context, userID string, 
 		Notes:         req.Notes,
 	}
 
-	return s.repo.CreateBooking(ctx, booking)
+	created, err := s.repo.CreateBooking(ctx, booking)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   m.ExpertID,
+				ActorID:  &uid,
+				Type:     "mentorship_booked",
+				Category: notification.CategorySystem,
+				Title:    "New Mentorship Session Booked",
+				Message:  fmt.Sprintf("A candidate booked a session for %s", m.Title),
+				Link:     "/expert/mentorship",
+				Metadata: map[string]interface{}{
+					"booking_id":    created.ID.Hex(),
+					"mentorship_id": m.ID.Hex(),
+				},
+			})
+		}()
+	}
+
+	return created, nil
 }
 
 // BookWithWallet handles instant 1-click booking via wallet main balance with escrow hold
@@ -623,7 +650,34 @@ func (s *MentorshipServiceImpl) UpdateBookingStatus(ctx context.Context, expertI
 		return fmt.Errorf("invalid status transition: %s", status)
 	}
 
-	return s.repo.UpdateBookingStatus(ctx, bookingID, status)
+	err = s.repo.UpdateBookingStatus(ctx, bookingID, status)
+	if err != nil {
+		return err
+	}
+
+	if s.notifService != nil {
+		go func() {
+			statusLabel := status
+			if len(statusLabel) > 0 {
+				statusLabel = strings.ToUpper(statusLabel[:1]) + strings.ToLower(statusLabel[1:])
+			}
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   b.UserID,
+				ActorID:  &b.ExpertID,
+				Type:     "mentorship_status",
+				Category: notification.CategorySystem,
+				Title:    "Mentorship Session " + statusLabel,
+				Message:  fmt.Sprintf("Your mentorship session status is now %s", status),
+				Link:     "/mentorship",
+				Metadata: map[string]interface{}{
+					"booking_id": bookingID,
+					"status":     status,
+				},
+			})
+		}()
+	}
+
+	return nil
 }
 
 func (s *MentorshipServiceImpl) UpdateMeetingLink(ctx context.Context, expertID string, bookingID string, meetingLink string) error {

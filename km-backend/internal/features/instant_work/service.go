@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -54,14 +55,22 @@ type InstantWorkServiceImpl struct {
 	repo          InstantWorkRepository
 	userRepo      user.UserRepository
 	walletService wallet.WalletService
+	notifService  notification.NotificationService
 	cfg           *config.Config
 }
 
-func NewInstantWorkService(repo InstantWorkRepository, userRepo user.UserRepository, walletService wallet.WalletService, cfg *config.Config) InstantWorkService {
+func NewInstantWorkService(
+	repo InstantWorkRepository,
+	userRepo user.UserRepository,
+	walletService wallet.WalletService,
+	cfg *config.Config,
+	notifService notification.NotificationService,
+) InstantWorkService {
 	return &InstantWorkServiceImpl{
 		repo:          repo,
 		userRepo:      userRepo,
 		walletService: walletService,
+		notifService:  notifService,
 		cfg:           cfg,
 	}
 }
@@ -306,6 +315,19 @@ func (s *InstantWorkServiceImpl) PurchasePassWithWallet(ctx context.Context, use
 		return nil, nil, fmt.Errorf("wallet debit transaction failed: %w", err)
 	}
 
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   userID,
+				Type:     "instant_pass_activated",
+				Category: notification.CategorySystem,
+				Title:    "InstantPass Activated",
+				Message:  "Your InstantPass (10 spot gigs) is active! You can now accept spot jobs.",
+				Link:     "/instant-work",
+			})
+		}()
+	}
+
 	return pass, updatedSummary, nil
 }
 
@@ -445,6 +467,19 @@ func (s *InstantWorkServiceImpl) VerifyPassPayment(ctx context.Context, userID p
 	}
 	_, _, _ = s.walletService.RecordTransaction(ctx, debitInput)
 
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   userID,
+				Type:     "instant_pass_activated",
+				Category: notification.CategorySystem,
+				Title:    "InstantPass Activated",
+				Message:  "Your InstantPass (10 spot gigs) is active via Razorpay!",
+				Link:     "/instant-work",
+			})
+		}()
+	}
+
 	return activatedPass, nil
 }
 
@@ -546,6 +581,25 @@ func (s *InstantWorkServiceImpl) ClaimSpotGig(ctx context.Context, candidateID p
 	// 2. Decrement candidate pass quota atomically
 	_, _ = s.repo.DecrementQuota(ctx, candidateID)
 
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:    claimedJob.RecruiterID,
+				ActorID:   &candidateID,
+				ActorName: name,
+				Type:      "instant_job_claimed",
+				Category:  notification.CategoryJobs,
+				Title:     "Spot Gig Claimed",
+				Message:   fmt.Sprintf("%s claimed your spot gig for %s (%s)", name, claimedJob.Skill, claimedJob.Address),
+				Link:      "/instant-hire",
+				Metadata: map[string]interface{}{
+					"job_id": jobID.Hex(),
+					"skill":  claimedJob.Skill,
+				},
+			})
+		}()
+	}
+
 	return claimedJob, nil
 }
 
@@ -572,7 +626,29 @@ func (s *InstantWorkServiceImpl) CompleteSpotJob(ctx context.Context, candidateI
 		return nil, ErrUnauthorizedJob
 	}
 
-	return s.repo.CompleteJob(ctx, jobID)
+	completedJob, err := s.repo.CompleteJob(ctx, jobID)
+	if err != nil {
+		return nil, err
+	}
+
+	if s.notifService != nil {
+		go func() {
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   job.RecruiterID,
+				ActorID:  &candidateID,
+				Type:     "instant_job_completed",
+				Category: notification.CategoryJobs,
+				Title:    "Spot Gig Marked Complete",
+				Message:  fmt.Sprintf("Candidate has marked the %s gig as completed. Please review and release payout.", job.Skill),
+				Link:     "/instant-hire",
+				Metadata: map[string]interface{}{
+					"job_id": jobID.Hex(),
+				},
+			})
+		}()
+	}
+
+	return completedJob, nil
 }
 
 // CloseSpotJob marks gig closed and releases earnings into worker's wallet
@@ -618,6 +694,24 @@ func (s *InstantWorkServiceImpl) CloseSpotJob(ctx context.Context, recruiterID p
 				},
 			}
 			_, _, _ = s.walletService.RecordTransaction(ctx, creditInput)
+
+			if s.notifService != nil {
+				candID := *closedJob.CandidateID
+				go func() {
+					_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+						UserID:   candID,
+						Type:     "instant_job_payout",
+						Category: notification.CategorySystem,
+						Title:    "Gig Payout Released",
+						Message:  fmt.Sprintf("₹%.2f credited to your wallet for %s gig (%s).", payoutAmount, closedJob.Skill, closedJob.CompanyName),
+						Link:     "/wallet",
+						Metadata: map[string]interface{}{
+							"job_id": closedJob.ID.Hex(),
+							"amount": payoutAmount,
+						},
+					})
+				}()
+			}
 		}
 	}
 

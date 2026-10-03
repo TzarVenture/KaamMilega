@@ -219,7 +219,7 @@ func TestEvent_FreeRegistration(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
 
 	// Create Free Event
 	ev, _ := repo.CreateEvent(ctx, &Event{
@@ -269,7 +269,7 @@ func TestEvent_PaidEventRejectsFreeRegistration(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
 
 	// Create Paid Event
 	ev, _ := repo.CreateEvent(ctx, &Event{
@@ -298,7 +298,7 @@ func TestEvent_WalletCheckout_InsufficientFunds(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
 
 	ev, _ := repo.CreateEvent(ctx, &Event{
 		Title:          "Fullstack AI Masterclass",
@@ -329,7 +329,7 @@ func TestEvent_WalletCheckout_Success(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
 
 	ev, _ := repo.CreateEvent(ctx, &Event{
 		Title:          "DevOps & Kubernetes Workshop",
@@ -402,7 +402,7 @@ func TestEvent_RazorpayPaymentVerification(t *testing.T) {
 	secret := "test_secret_key_12345"
 	cfg := &config.Config{RazorpayKeySecret: secret}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
 
 	ev, _ := repo.CreateEvent(ctx, &Event{
 		Title:          "Data Science Hackathon Pass",
@@ -459,7 +459,7 @@ func TestEvent_CapacitySoldOut(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
 
 	ev, _ := repo.CreateEvent(ctx, &Event{
 		Title:          "Exclusive VIP Workshop",
@@ -489,7 +489,7 @@ func TestGetEventAttendees(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
 
 	p1 := primitive.NewObjectID()
 	p2 := primitive.NewObjectID()

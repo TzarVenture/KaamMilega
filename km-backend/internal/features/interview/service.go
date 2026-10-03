@@ -3,6 +3,7 @@ package interview
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 
@@ -13,27 +14,30 @@ import (
 )
 
 type InterviewService struct {
-	repo     InterviewRepository
-	appRepo  application.ApplicationRepository
-	jobRepo  job.JobRepository
-	userRepo user.UserRepository
-	mailer   notification.Mailer
+	repo         InterviewRepository
+	appRepo      application.ApplicationRepository
+	jobRepo      job.JobRepository
+	userRepo     user.UserRepository
+	mailer       notification.Mailer
+	notifService notification.NotificationService
 }
 
-// NewInterviewService constructs the service with a Mailer injected by the DI container.
+// NewInterviewService constructs the service with a Mailer and NotificationService injected by the DI container.
 func NewInterviewService(
 	repo InterviewRepository,
 	appRepo application.ApplicationRepository,
 	jobRepo job.JobRepository,
 	userRepo user.UserRepository,
 	mailer notification.Mailer,
+	notifService notification.NotificationService,
 ) *InterviewService {
 	return &InterviewService{
-		repo:     repo,
-		appRepo:  appRepo,
-		jobRepo:  jobRepo,
-		userRepo: userRepo,
-		mailer:   mailer,
+		repo:         repo,
+		appRepo:      appRepo,
+		jobRepo:      jobRepo,
+		userRepo:     userRepo,
+		mailer:       mailer,
+		notifService: notifService,
 	}
 }
 
@@ -123,6 +127,39 @@ func (s *InterviewService) ScheduleInterview(ctx context.Context, req *ScheduleI
 			log.Printf("[InterviewNotification] Successfully sent interview invite to %s for '%s'", candidate.Email, jobTitle)
 		}
 	}()
+
+	// Real-time in-app notification to candidate
+	if s.notifService != nil {
+		go func() {
+			jobTitle := "your position"
+			companyName := "Recruiter"
+			if appInfo, err := s.appRepo.FindByID(context.Background(), created.ApplicationID.Hex()); err == nil && appInfo != nil {
+				if j, err := s.jobRepo.FindByID(context.Background(), appInfo.JobID.Hex()); err == nil && j != nil {
+					if j.Title != "" {
+						jobTitle = j.Title
+					}
+					if j.Company != "" {
+						companyName = j.Company
+					}
+				}
+			}
+
+			timeStr := created.ScheduledAt.Format("02 Jan, 3:04 PM")
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:      created.CandidateID,
+				ActorName:   companyName,
+				Type:        notification.TypeInterviewScheduled,
+				Category:    notification.CategoryJobs,
+				Title:       "Interview Scheduled",
+				Message:     fmt.Sprintf("Interview scheduled for %s on %s (%s)", jobTitle, timeStr, created.Type),
+				Link:        "/interviews",
+				Metadata: map[string]interface{}{
+					"interview_id":   created.ID.Hex(),
+					"application_id": created.ApplicationID.Hex(),
+				},
+			})
+		}()
+	}
 
 	return created, nil
 }
