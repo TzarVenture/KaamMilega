@@ -228,6 +228,11 @@ export const NetworkSidebar: React.FC = () => {
           <ArrowRight size={13} />
         </Link>
       </div>
+
+      {/* Ad Banner Placeholder */}
+      <div className="hidden lg:flex bg-white rounded-xl h-64 items-center justify-center border border-dashed border-gray-300 text-gray-400">
+        Ad Banner
+      </div>
     </div>
   );
 };
