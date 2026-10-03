@@ -1,11 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, ChevronDown, MessageCircle, Trash2, ArrowLeft } from 'lucide-react';
+import { Search, ArrowLeft } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
+import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 
 interface User {
     id: string;
@@ -23,10 +24,11 @@ const ConnectionsPage = () => {
     const router = useRouter();
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState<'recent' | 'name_asc' | 'name_desc'>('recent');
     const [connections, setConnections] = useState<User[]>([]);
     const [suggestedConnections, setSuggestedConnections] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
-    const ITEMS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = 9;
 
     useEffect(() => {
         const fetchConnections = async () => {
@@ -54,12 +56,12 @@ const ConnectionsPage = () => {
                         Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                         Math.sin(dLon / 2) * Math.sin(dLon / 2);
                     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                    return R * c; // Distance in km
+                    return R * c;
                 };
 
                 try {
                     const usersRes = (await api.get('/admin/users')) as User[];
-                    const currentUserStr = localStorage.getItem('user');
+                    const currentUserStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
                     let currentUserId = '';
                     if (currentUserStr) {
                         try {
@@ -74,13 +76,10 @@ const ConnectionsPage = () => {
                         !connsRes.includes(u.id || u._id || '')
                     );
 
-                    // Try to sort by location if browser allows geolocation
                     if ('geolocation' in navigator) {
                         navigator.geolocation.getCurrentPosition(
                             (position) => {
                                 const { latitude, longitude } = position.coords;
-
-                                // Optional: You could make an API call here to save this location for the current user
                                 api.put('/user/location', { lat: latitude, lng: longitude });
 
                                 const sorted = [...filteredSuggestions].sort((a, b) => {
@@ -94,9 +93,7 @@ const ConnectionsPage = () => {
                                 });
                                 setSuggestedConnections(sorted.slice(0, 8));
                             },
-                            (error) => {
-                                console.warn("Geolocation Error:", error.message);
-                                // Fallback if geolocation fails or is denied
+                            () => {
                                 setSuggestedConnections(filteredSuggestions.slice(0, 8));
                             },
                             { timeout: 10000, enableHighAccuracy: false, maximumAge: Infinity }
@@ -133,14 +130,24 @@ const ConnectionsPage = () => {
     };
 
     const filteredConnections = useMemo(() => {
-        if (!searchQuery) return connections;
-        const q = searchQuery.toLowerCase();
-        return connections.filter(c =>
-            c.name?.toLowerCase().includes(q) ||
-            c.headline?.toLowerCase().includes(q) ||
-            c.roles?.join(' ').toLowerCase().includes(q)
-        );
-    }, [connections, searchQuery]);
+        let list = [...connections];
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            list = list.filter(c =>
+                c.name?.toLowerCase().includes(q) ||
+                c.headline?.toLowerCase().includes(q) ||
+                c.roles?.join(' ').toLowerCase().includes(q)
+            );
+        }
+
+        if (sortBy === 'name_asc') {
+            list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        } else if (sortBy === 'name_desc') {
+            list.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+        }
+
+        return list;
+    }, [connections, searchQuery, sortBy]);
 
     const totalItems = filteredConnections.length;
     const currentList = filteredConnections.slice(
@@ -149,124 +156,149 @@ const ConnectionsPage = () => {
     );
 
     if (loading) {
-        return <div className="min-h-screen flex items-center justify-center bg-[#F4F2F7]">Loading...</div>;
+        return (
+            <div className="space-y-6 animate-pulse">
+                <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs">
+                    <div className="h-5 w-44 bg-slate-200 rounded-lg mb-2" />
+                    <div className="h-3 w-60 bg-slate-100 rounded-lg mb-6" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="h-64 bg-[#F4F7FB]/60 border border-[#D9E0EA] rounded-2xl p-5 flex flex-col items-center justify-between">
+                                <div className="w-16 h-16 rounded-full bg-slate-200" />
+                                <div className="h-4 w-28 bg-slate-200 rounded mt-3" />
+                                <div className="h-3 w-36 bg-slate-100 rounded mt-1" />
+                                <div className="w-full space-y-2 mt-4">
+                                    <div className="h-8 bg-slate-200 rounded-xl w-full" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="bg-[#F4F2F7] min-h-screen pb-6">
+        <div className="space-y-6">
             {suggestedConnections.length > 0 && (
-                <ConnectJustLikeYou
-                    users={suggestedConnections}
-                    onChat={(id) => handleChat(id)}
-                    onFollow={async (id) => {
-                        try {
-                            await api.post('/network/connect', { receiver_id: id });
-                            alert("Connection request sent!");
-                        } catch (e: any) {
-                            console.error("Failed to connect", e);
-                            alert(e.message || "Could not send connection request");
-                        }
-                    }}
-                />
+                <div className="bg-white rounded-2xl border border-[#D9E0EA] p-4 sm:p-6 shadow-xs overflow-hidden">
+                    <ConnectJustLikeYou
+                        users={suggestedConnections}
+                        onChat={(id) => handleChat(id)}
+                        onFollow={async (id) => {
+                            try {
+                                await api.post('/network/connect', { receiver_id: id });
+                                alert("Connection request sent!");
+                            } catch (e: any) {
+                                console.error("Failed to connect", e);
+                                alert(e.message || "Could not send connection request");
+                            }
+                        }}
+                    />
+                </div>
             )}
-            <div className="max-w-7xl mx-auto p-6 flex gap-8">
 
-                {/* Main Content Area */}
-                <div className="flex-1 bg-white rounded-2xl shadow-sm overflow-hidden">
-                    {/* Header */}
-                    <div className="p-6 border-b border-gray-100">
-                        <div className="flex items-center gap-4 mb-6">
-                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" onClick={() => router.back()}>
-                                <ArrowLeft size={20} className="text-gray-600" />
-                            </button>
-                            <h1 className="text-xl font-bold text-gray-800">{totalItems} Connections</h1>
+            {/* Main Connections Card */}
+            <div className="bg-white rounded-2xl border border-[#D9E0EA] shadow-xs overflow-hidden">
+                {/* Header */}
+                <div className="p-5 sm:p-6 border-b border-[#D9E0EA]/70">
+                    <div className="flex items-center gap-3 mb-5">
+                        <button 
+                            type="button"
+                            className="p-2 hover:bg-[#F4F7FB] rounded-xl text-[#5B6472] hover:text-[#071A4D] transition-colors cursor-pointer active:scale-[0.98]" 
+                            onClick={() => router.back()}
+                            aria-label="Back to network"
+                        >
+                            <ArrowLeft size={18} />
+                        </button>
+                        <div>
+                            <h1 className="text-lg sm:text-xl font-bold text-[#111827]">
+                                {totalItems} {totalItems === 1 ? 'Connection' : 'Connections'}
+                            </h1>
+                            <p className="text-xs text-[#5B6472]">Verified professionals in your direct network</p>
                         </div>
+                    </div>
 
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            <div className="flex items-center gap-2 text-sm text-gray-600 font-medium">
-                                <span>Sort by:</span>
-                                <button className="flex items-center gap-1 font-bold text-gray-800 hover:text-purple-700">
-                                    Recently added <ChevronDown size={16} />
-                                </button>
-                            </div>
-
-                            <div className="relative w-full md:w-80">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="Search connections..."
-                                    value={searchQuery}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 text-xs text-[#5B6472] font-medium">
+                            <span>Sort by:</span>
+                            <div className="relative">
+                                <select 
+                                    value={sortBy}
                                     onChange={(e) => {
-                                        setSearchQuery(e.target.value);
+                                        setSortBy(e.target.value as any);
                                         setCurrentPage(1);
                                     }}
-                                    className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-full focus:ring-2 focus:ring-purple-500 outline-none text-sm"
-                                />
+                                    className="px-3 py-1.5 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl text-xs font-semibold text-[#111827] hover:border-[#071A4D] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none transition-colors cursor-pointer"
+                                >
+                                    <option value="recent">Recently added</option>
+                                    <option value="name_asc">Name (A – Z)</option>
+                                    <option value="name_desc">Name (Z – A)</option>
+                                </select>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Connections List */}
-                    <div className="divide-y divide-gray-100 min-h-[400px]">
-                        {currentList.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400">
-                                {searchQuery ? "No connections found matching your search." : "You don't have any connections yet."}
-                            </div>
-                        ) : (
-                            currentList.map((person) => (
-                                <div key={person.id} className="flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <div className="relative">
-                                            <div className="w-16 h-16 bg-purple-100 text-purple-700 font-bold rounded-full flex items-center justify-center overflow-hidden shrink-0">
-                                                {person.profile_image ? (
-                                                    <img src={person.profile_image} alt={person.name} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    person.name?.[0] || 'U'
-                                                )}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h3 className="font-bold text-gray-900">{person.name || 'Unknown User'}</h3>
-                                            <p className="text-xs text-gray-500">{person.headline || person.roles?.join(', ')}</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <button
-                                            onClick={() => handleChat(person.id)}
-                                            className="flex items-center gap-2 px-5 py-1.5 border border-purple-300 rounded-full text-purple-700 text-sm font-semibold hover:bg-purple-50 transition-all">
-                                            <MessageCircle size={16} />
-                                            Message
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(person.id)}
-                                            className="p-2 text-purple-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                            <Trash2 size={20} />
-                                        </button>
-                                    </div>
-                                </div>
-                            ))
-                        )}
-                    </div>
-
-                    {/* Pagination Section */}
-                    {totalItems > ITEMS_PER_PAGE && (
-                        <div className="p-8 border-t border-gray-100 flex justify-center">
-                            <Pagination
-                                current={currentPage}
-                                total={Math.ceil(totalItems / ITEMS_PER_PAGE)}
-                                onPageChange={(page) => setCurrentPage(page)}
+                        <div className="relative w-full sm:w-72">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6472]" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Search connections..."
+                                value={searchQuery}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                className="w-full pl-9 pr-4 py-2 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl text-xs font-medium focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none text-[#111827] placeholder:text-[#5B6472] transition-all"
                             />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Connections Grid */}
+                <div className="p-5 sm:p-6 min-h-[300px]">
+                    {currentList.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                            <div className="w-12 h-12 rounded-2xl bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center text-[#5B6472] mb-3">
+                                <Search size={20} />
+                            </div>
+                            <p className="text-sm font-semibold text-[#111827]">
+                                {searchQuery ? "No connections found matching your search." : "You don't have any connections yet."}
+                            </p>
+                            <p className="text-xs text-[#5B6472] mt-1 max-w-sm">
+                                {searchQuery ? "Try a different search term or clear the filter." : "Discover industry peers and grow your professional circle."}
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+                            {currentList.map((person) => {
+                                const personId = person.id || person._id || '';
+
+                                return (
+                                    <ProfileConnectionCard
+                                        key={personId}
+                                        user={person}
+                                        variant="grid"
+                                        actionType="connected"
+                                        entityType="connect"
+                                        onChat={() => handleChat(personId)}
+                                        onRemove={() => handleDelete(personId)}
+                                    />
+                                );
+                            })}
                         </div>
                     )}
                 </div>
 
-                {/* Sidebar (Matching the UI Screenshot) */}
-                <div className="hidden lg:block w-80 space-y-6">
-                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 h-48 flex items-center justify-center text-gray-400 font-bold">
-                        Ad Banner
+                {/* Pagination Section */}
+                {totalItems > ITEMS_PER_PAGE && (
+                    <div className="p-6 border-t border-[#D9E0EA]/70 flex justify-center">
+                        <Pagination
+                            current={currentPage}
+                            total={Math.ceil(totalItems / ITEMS_PER_PAGE)}
+                            onPageChange={(page) => setCurrentPage(page)}
+                        />
                     </div>
-                </div>
+                )}
             </div>
         </div>
     );

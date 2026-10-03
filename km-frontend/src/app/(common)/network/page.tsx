@@ -1,11 +1,12 @@
-'use client'
+'use client';
 
-import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-import { Users, Calendar, Award, Users2, BookOpen, X, MessageSquare, UserPlus, MapPin } from 'lucide-react';
+import Link from 'next/link';
+import { Users, MapPin } from 'lucide-react';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
-import { ImpressionWrapper } from '@/lib/telemetry';
+import UserAvatar from '@/components/ui/UserAvatar';
+import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 
 // --- Types ---
 interface User {
@@ -42,8 +43,8 @@ const NetworkPage = () => {
         const loadInitialData = async () => {
             try {
                 // 1. Get User Profile
-                let userObj = null;
-                const storedUser = localStorage.getItem('user');
+                let userObj: any = null;
+                const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
                 if (storedUser) {
                     try {
                         const parsed = JSON.parse(storedUser);
@@ -78,16 +79,14 @@ const NetworkPage = () => {
                 const connsRes = await api.get('/network/connections') as string[];
                 setConnections(connsRes || []);
 
-                // 4. Fetch suggestions (Generic users right now)
+                // 4. Fetch suggestions
                 const usersRes = await api.get('/admin/users') as any[]; 
-                // Filter out self and connected/pending users if needed
                 const filteredSearch = (usersRes || []).filter(u => 
                     u.id !== userObj.id && 
                     u._id !== userObj.id &&
                     !connsRes?.includes(u.id || u._id)
                 );
-                // Grab up to 8
-                setSuggestions(filteredSearch.slice(0, 8).map(u => ({...u, id: u.id || u._id})));
+                setSuggestions(filteredSearch.slice(0, 12).map(u => ({ ...u, id: u.id || u._id })));
 
             } catch (error) {
                 console.error("Failed to load network data", error);
@@ -121,191 +120,177 @@ const NetworkPage = () => {
     const handleConnect = async (userId: string) => {
         try {
             await api.post('/network/connect', { receiver_id: userId });
-            // Optimistically remove from suggestions
             setSuggestions(prev => prev.filter(s => s.id !== userId));
-            alert("Invitation sent!");
+            alert("Invitation sent successfully!");
         } catch (e: any) {
             console.error("Failed to connect", e);
-            alert(e.message || "Could not send invitation");
+            alert(e?.response?.data?.error || e.message || "Could not send invitation");
         }
     };
 
     const handleChat = (userId: string) => {
-        router.push(`/chat?userId=${userId}`); // App level handles starting the actual chat
+        router.push(`/chat?userId=${userId}`);
     };
 
     if (loading) {
-        return <div className="min-h-screen bg-gray-50 flex items-center justify-center">Loading...</div>;
+        return (
+            <div className="space-y-6 animate-pulse">
+                <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs">
+                    <div className="h-5 w-44 bg-slate-200 rounded-lg mb-2" />
+                    <div className="h-3 w-64 bg-slate-100 rounded-lg mb-6" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="h-64 bg-[#F4F7FB]/60 border border-[#D9E0EA] rounded-2xl p-5 flex flex-col items-center justify-between">
+                                <div className="w-16 h-16 rounded-full bg-slate-200" />
+                                <div className="h-4 w-28 bg-slate-200 rounded mt-3" />
+                                <div className="h-3 w-36 bg-slate-100 rounded mt-1" />
+                                <div className="w-full space-y-2 mt-4">
+                                    <div className="h-8 bg-slate-200 rounded-xl w-full" />
+                                    <div className="h-8 bg-slate-100 rounded-xl w-full" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 md:p-8">
-            <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-
-                {/* --- LEFT SIDEBAR --- */}
-                <aside className="lg:col-span-3 space-y-6">
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                        <h2 className="font-semibold text-gray-800 mb-4">Manage My Network</h2>
-                        <nav className="space-y-1">
-                            <SidebarItem icon={<Users size={18} />} label="Connections" count={connections.length} href="/network/connections" />
-                            <SidebarItem icon={<Calendar size={18} />} label="Events" count={2} href="/user/events" />
-                            <SidebarItem icon={<Award size={18} />} label="Experts" count={5} href="/network/experts" />
-                            <SidebarItem icon={<Users2 size={18} />} label="Groups" count={1} href="/network/groups" />
-                        </nav>
-                    </div>
-
-                    <div className="bg-white rounded-xl h-64 flex items-center justify-center border border-dashed border-gray-300 text-gray-400">
-                        Ad Banner
-                    </div>
-                </aside>
-
-                {/* --- MAIN CONTENT --- */}
-                <main className="lg:col-span-9 space-y-8">
-
-                    {/* Invitations Section */}
-                    {invitations.length > 0 && (
-                        <section className="bg-white rounded-2xl shadow-xs p-6 overflow-hidden border border-slate-200/80">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-lg font-bold text-slate-900">Invitations</h2>
-                                <button className="text-km-primary font-bold text-sm hover:underline">See All</button>
-                            </div>
-                            <div className="space-y-4">
-                                {invitations.map((inv) => (
-                                    <InvitationRow 
-                                        key={inv.id} 
-                                        invitation={inv} 
-                                        onAccept={() => handleAccept(inv.sender_id)}
-                                        onIgnore={() => handleIgnore(inv.sender_id)}
-                                    />
-                                ))}
-                            </div>
-                        </section>
-                    )}
-
-                    {/* People You May Know (Grid) */}
-                    <section className="bg-white rounded-2xl shadow-xs p-6 border border-slate-200/80">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-lg font-bold text-slate-900">People You May Know</h2>
-                            <button className="text-km-primary font-bold text-sm hover:underline">See All</button>
+        <div className="space-y-6">
+            {/* Invitations Section */}
+            {invitations.length > 0 && (
+                <section className="bg-white rounded-2xl shadow-xs p-5 sm:p-6 border border-[#D9E0EA]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#D9E0EA]/70">
+                        <div>
+                            <h2 className="text-base sm:text-lg font-bold text-[#111827]">
+                                Pending Invitations
+                            </h2>
+                            <p className="text-xs text-[#5B6472] font-medium mt-0.5">
+                                People who requested to connect with you
+                            </p>
                         </div>
-                        
-                        {suggestions.length === 0 ? (
-                            <p className="text-slate-500 text-xs py-8 text-center bg-slate-50 rounded-xl font-medium">No suggestions right now. Invite more people!</p>
-                        ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                                {suggestions.map((user) => (
-                                    <ProfileCard 
-                                        key={user.id} 
-                                        person={user} 
-                                        onConnect={() => handleConnect(user.id)}
-                                        onChat={() => handleChat(user.id)}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </section>
+                        <span className="bg-[#FF6B00]/10 text-[#FF6B00] font-bold text-xs px-3 py-1 rounded-full border border-[#FF6B00]/20 self-start sm:self-auto">
+                            {invitations.length} {invitations.length === 1 ? 'Request' : 'Requests'}
+                        </span>
+                    </div>
 
-                </main>
-            </div>
+                    <div className="divide-y divide-[#D9E0EA]/60">
+                        {invitations.map((inv) => (
+                            <InvitationRow 
+                                key={inv.id} 
+                                invitation={inv} 
+                                onAccept={() => handleAccept(inv.sender_id)}
+                                onIgnore={() => handleIgnore(inv.sender_id)}
+                            />
+                        ))}
+                    </div>
+                </section>
+            )}
+
+            {/* People You May Know Grid */}
+            <section className="bg-white rounded-2xl shadow-xs p-5 sm:p-6 border border-[#D9E0EA]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#D9E0EA]/70">
+                    <div>
+                        <h2 className="text-base sm:text-lg font-bold text-[#111827]">
+                            People You May Know
+                        </h2>
+                        <p className="text-xs text-[#5B6472] font-medium mt-0.5">
+                            Expand your network across industry peers and career mentors
+                        </p>
+                    </div>
+                    <Link 
+                        href="/network/connections"
+                        className="text-[#071A4D] hover:text-[#0B5ED7] font-semibold text-xs transition-colors self-start sm:self-auto"
+                    >
+                        View Connections ({connections.length}) →
+                    </Link>
+                </div>
+                
+                {suggestions.length === 0 ? (
+                    <div className="text-center py-12 px-4 bg-[#F4F7FB]/60 rounded-xl border border-dashed border-[#D9E0EA]">
+                        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#071A4D] flex items-center justify-center mx-auto mb-3 shadow-2xs">
+                            <Users size={22} />
+                        </div>
+                        <h3 className="text-sm font-bold text-[#111827] mb-1">No New Suggestions Right Now</h3>
+                        <p className="text-xs text-[#5B6472] max-w-sm mx-auto leading-relaxed">
+                            Check back soon as new candidates and industry experts join the platform daily.
+                        </p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+                        {suggestions.map((user) => (
+                            <ProfileConnectionCard 
+                                key={user.id || user._id} 
+                                user={user}
+                                variant="grid"
+                                actionType="discover"
+                                entityType="connect"
+                                onConnect={() => handleConnect(user.id || user._id || '')}
+                                onChat={() => handleChat(user.id || user._id || '')}
+                                onDismiss={(id) => setSuggestions(prev => prev.filter(s => (s.id || s._id) !== id))}
+                            />
+                        ))}
+                    </div>
+                )}
+            </section>
         </div>
     );
 };
 
 // --- Sub-Components ---
 
-const SidebarItem = ({ icon, label, count, href }: { icon: React.ReactNode, label: string, count: number, href: string }) => (
-    <Link href={href} className="flex items-center justify-between p-2.5 hover:bg-blue-50/60 rounded-xl cursor-pointer transition-colors group">
-        <div className="flex items-center gap-3 text-slate-600 group-hover:text-km-primary">
-            {icon}
-            <span className="text-xs font-bold">{label}</span>
-        </div>
-        <span className="text-xs text-slate-400 font-bold group-hover:text-km-primary">{count}</span>
-    </Link>
-);
-
-const InvitationRow = ({ invitation, onAccept, onIgnore }: { invitation: EnrichedInvitation, onAccept: () => void, onIgnore: () => void }) => {
+const InvitationRow = ({
+    invitation,
+    onAccept,
+    onIgnore,
+}: {
+    invitation: EnrichedInvitation;
+    onAccept: () => void;
+    onIgnore: () => void;
+}) => {
     const { senderInfo } = invitation;
+    const name = senderInfo.name || 'Verified Member';
+
     return (
-        <div className="flex items-center justify-between py-2.5 border-b border-slate-100 last:border-0 hover:bg-slate-50/80 px-3 rounded-xl transition-colors">
-            <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 text-white font-bold rounded-xl overflow-hidden flex items-center justify-center shrink-0 border border-slate-700 shadow-xs">
-                    {senderInfo.profile_image ? (
-                        <img src={senderInfo.profile_image} alt={senderInfo.name} className="w-full h-full object-cover" />
-                    ) : (
-                        senderInfo.name?.[0] || 'U'
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 py-4 first:pt-0 last:pb-0 hover:bg-[#F4F7FB]/40 px-2 sm:px-3 rounded-xl transition-colors">
+            <div className="flex items-center gap-3.5 min-w-0">
+                <div className="w-12 h-12 rounded-full bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+                    <UserAvatar src={senderInfo.profile_image} name={name} />
+                </div>
+                <div className="min-w-0">
+                    <h4 className="font-bold text-sm text-[#111827] leading-snug truncate">
+                        {name}
+                    </h4>
+                    <p className="text-xs text-[#5B6472] font-medium line-clamp-1 truncate">
+                        {senderInfo.headline || senderInfo.roles?.[0] || 'Member'}
+                    </p>
+                    {senderInfo.city && (
+                        <div className="flex items-center gap-1 text-[11px] text-[#5B6472] font-semibold mt-0.5">
+                            <MapPin size={11} className="text-[#071A4D] shrink-0" />
+                            <span className="truncate">{senderInfo.city}</span>
+                        </div>
                     )}
                 </div>
-                <div>
-                    <h4 className="font-bold text-sm text-slate-900">{senderInfo.name || 'Unknown User'}</h4>
-                    <p className="text-xs text-slate-500 font-medium">{senderInfo.headline || senderInfo.roles?.[0] || 'Member'}</p>
-                </div>
             </div>
-            <div className="flex items-center gap-3">
-                <button onClick={onIgnore} className="text-slate-500 text-xs font-bold hover:text-slate-900 transition-colors">Ignore</button>
-                <button onClick={onAccept} className="bg-km-primary hover:bg-km-primary-dark text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-xs">
+
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0 w-full sm:w-auto justify-end">
+                <button 
+                    type="button"
+                    onClick={onIgnore} 
+                    className="text-[#5B6472] text-xs font-semibold hover:text-[#111827] px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-all duration-150 cursor-pointer active:scale-[0.98]"
+                >
+                    Ignore
+                </button>
+                <button 
+                    type="button"
+                    onClick={onAccept} 
+                    className="bg-[#071A4D] hover:bg-[#0B1F52] text-white px-5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer"
+                >
                     Accept
                 </button>
             </div>
         </div>
-    );
-};
-
-const ProfileCard = ({ person, onConnect, onChat }: { person: User, onConnect: () => void, onChat: () => void }) => {
-    const authorId = person.id || person._id;
-    return (
-        <ImpressionWrapper authorId={authorId} entityId={`network:${authorId}`} className="h-full">
-            <div className="relative border border-slate-200/80 rounded-2xl p-4 flex flex-col items-center text-center group hover:shadow-md hover:border-blue-200 transition-all bg-white h-full">
-                <button className="absolute top-3 right-3 text-slate-300 hover:text-slate-500 transition-colors">
-                    <X size={16} />
-                </button>
-                <div className="w-16 h-16 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 text-white font-bold rounded-2xl mb-3 overflow-hidden flex items-center justify-center shadow-xs border border-slate-700">
-                    {person.profile_image ? (
-                            <img src={person.profile_image} alt={person.name} className="w-full h-full object-cover" />
-                        ) : (
-                            person.name?.[0] || 'U'
-                    )}
-                </div>
-                <h4 className="font-bold text-sm text-slate-900 line-clamp-1 h-5">{person.name || 'Unknown User'}</h4>
-                <p className="text-[11px] text-slate-500 font-medium mb-1 line-clamp-2 h-7">{person.headline || person.roles?.join(', ') || 'Member'}</p>
-                <p className="text-[10px] text-slate-400 font-semibold mb-4 h-4 flex items-center justify-center gap-1">
-                    {person.city ? (
-                        <>
-                            <MapPin size={10} className="text-km-primary" />
-                            <span>{person.city}</span>
-                        </>
-                    ) : ''}
-                </p>
-
-                <div className="w-full space-y-2 mt-auto">
-                    {(() => {
-                        const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-                        let currentUserId = '';
-                        if (storedUser) {
-                            try {
-                                const parsed = JSON.parse(storedUser);
-                                currentUserId = parsed.id || parsed._id;
-                            } catch (e) {}
-                        }
-                        const isSelf = (person.id === currentUserId || person._id === currentUserId);
-                        
-                        return !isSelf && (
-                            <>
-                                <button 
-                                    onClick={onConnect}
-                                    className="w-full flex items-center justify-center gap-2 bg-km-primary hover:bg-km-primary-dark text-white py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer">
-                                    <UserPlus size={14} /> Connect
-                                </button>
-                                <button 
-                                    onClick={onChat}
-                                    className="w-full flex items-center justify-center gap-2 border border-km-primary text-km-primary py-2 rounded-xl text-xs font-bold hover:bg-blue-50 transition-colors cursor-pointer">
-                                    <MessageSquare size={14} /> Message
-                                </button>
-                            </>
-                        );
-                    })()}
-                </div>
-            </div>
-        </ImpressionWrapper>
     );
 };
 

@@ -1,12 +1,12 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, MessageSquare, Search, Trash2, ArrowLeft } from 'lucide-react';
+import { Search, ArrowLeft } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
-import UserAvatar from '@/components/ui/UserAvatar';
+import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 
 export interface ExpertUser {
     id: string;
@@ -16,50 +16,18 @@ export interface ExpertUser {
     headline?: string;
     profile_image?: string;
     city?: string;
+    rating?: string | number;
 }
-
-export const ExpertCard = ({ expert, onChat, onDelete }: { expert: ExpertUser, onChat: () => void, onDelete: () => void }) => {
-    return (
-        <div className="flex items-center justify-between py-5 border-b border-slate-100 last:border-0 hover:bg-purple-50/30 transition-colors px-2 rounded-xl">
-            <div className="flex items-center gap-4">
-                <div className="relative">
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-2xs">
-                        <UserAvatar src={expert.profile_image} name={expert.name} />
-                    </div>
-                </div>
-
-                <div>
-                    <h3 className="font-bold text-slate-900 leading-tight">{expert.name || 'Unknown Expert'}</h3>
-                    <p className="text-xs text-slate-500 font-medium">{expert.headline || expert.roles?.join(', ')}</p>
-                    {expert.city && <p className="text-xs text-slate-400 font-semibold mt-1">📍 {expert.city}</p>}
-                </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-                <button 
-                    onClick={onChat}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl border border-purple-300 text-purple-700 text-xs font-bold hover:bg-purple-50 transition-all shadow-xs">
-                    <MessageSquare size={16} />
-                    Chat
-                </button>
-                <button 
-                    onClick={onDelete}
-                    className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-colors">
-                    <Trash2 size={18} />
-                </button>
-            </div>
-        </div>
-    );
-};
 
 export default function ExpertsPage() {
     const router = useRouter();
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
+    const [sortBy, setSortBy] = useState<'recent' | 'name_asc' | 'name_desc'>('recent');
     const [myExperts, setMyExperts] = useState<ExpertUser[]>([]);
     const [suggestedExperts, setSuggestedExperts] = useState<ExpertUser[]>([]);
     const [loading, setLoading] = useState(true);
-    const ITEMS_PER_PAGE = 10;
+    const ITEMS_PER_PAGE = 9;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -78,7 +46,7 @@ export default function ExpertsPage() {
                 );
                 
                 // Get current user id
-                const currentUserStr = localStorage.getItem('user');
+                const currentUserStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
                 let currentUserId = '';
                 if (currentUserStr) {
                     try {
@@ -106,9 +74,9 @@ export default function ExpertsPage() {
                         u._id !== currentUserId &&
                         !connsRes.includes(u.id || u._id || '')
                     );
-                    setSuggestedExperts(filteredSuggestions.slice(0, 5));
+                    setSuggestedExperts(filteredSuggestions.slice(0, 6));
                 } catch (e) {
-                    // /admin/users might be restricted depending on role, ignore failure silently
+                    // Ignore failure silently
                 }
             } catch (err) {
                 console.error("Failed to fetch experts", err);
@@ -140,13 +108,23 @@ export default function ExpertsPage() {
     };
 
     const filteredExperts = useMemo(() => {
-        if (!searchQuery) return myExperts;
-        const q = searchQuery.toLowerCase();
-        return myExperts.filter(c => 
-            c.name?.toLowerCase().includes(q) || 
-            c.headline?.toLowerCase().includes(q)
-        );
-    }, [myExperts, searchQuery]);
+        let list = [...myExperts];
+        if (searchQuery) {
+            const q = searchQuery.toLowerCase();
+            list = list.filter(c => 
+                c.name?.toLowerCase().includes(q) || 
+                c.headline?.toLowerCase().includes(q)
+            );
+        }
+
+        if (sortBy === 'name_asc') {
+            list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        } else if (sortBy === 'name_desc') {
+            list.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+        }
+
+        return list;
+    }, [myExperts, searchQuery, sortBy]);
 
     const totalItems = filteredExperts.length;
     const currentList = filteredExperts.slice(
@@ -155,53 +133,98 @@ export default function ExpertsPage() {
     );
 
     if (loading) {
-        return <div className="min-h-screen bg-[#F8F9FB] flex items-center justify-center">Loading...</div>;
+        return (
+            <div className="space-y-6 animate-pulse">
+                <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs">
+                    <div className="h-5 w-44 bg-slate-200 rounded-lg mb-2" />
+                    <div className="h-3 w-60 bg-slate-100 rounded-lg mb-6" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
+                            <div key={i} className="h-64 bg-[#F4F7FB]/60 border border-[#D9E0EA] rounded-2xl p-5 flex flex-col items-center justify-between">
+                                <div className="w-16 h-16 rounded-full bg-slate-200" />
+                                <div className="h-4 w-28 bg-slate-200 rounded mt-3" />
+                                <div className="h-3 w-36 bg-slate-100 rounded mt-1" />
+                                <div className="w-full space-y-2 mt-4">
+                                    <div className="h-8 bg-slate-200 rounded-xl w-full" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-[#F8F9FB] pb-6">
+        <div className="space-y-6">
             {suggestedExperts.length > 0 && (
-                <ConnectJustLikeYou 
-                    users={suggestedExperts}
-                    onChat={(id) => handleChat(id)}
-                    onFollow={async (id) => {
-                        try {
-                            await api.post('/network/connect', { receiver_id: id });
-                            alert("Invitation sent to expert!");
-                        } catch (e: any) {
-                            console.error("Failed to connect", e);
-                            alert(e.message || "Could not send invitation");
-                        }
-                    }}
-                />
+                <div className="bg-white rounded-2xl border border-[#D9E0EA] p-4 sm:p-6 shadow-xs overflow-hidden">
+                    <ConnectJustLikeYou 
+                        users={suggestedExperts}
+                        onChat={(id) => handleChat(id)}
+                        onFollow={async (id) => {
+                            try {
+                                await api.post('/network/connect', { receiver_id: id });
+                                alert("Invitation sent to expert!");
+                            } catch (e: any) {
+                                console.error("Failed to connect", e);
+                                alert(e.message || "Could not send invitation");
+                            }
+                        }}
+                    />
+                </div>
             )}
-            <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 px-6 mt-6">
 
-                <main className="flex-1 bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                    <div className="flex items-center justify-between mb-8">
-                        <div className="flex items-center gap-4">
-                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors" onClick={() => router.back()}>
-                                <ArrowLeft size={20} className="text-gray-600" />
+            {/* Main Experts Card */}
+            <div className="bg-white rounded-2xl border border-[#D9E0EA] shadow-xs overflow-hidden">
+                <div className="p-5 sm:p-6 border-b border-[#D9E0EA]/70">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+                        <div className="flex items-center gap-3">
+                            <button 
+                                type="button"
+                                className="p-2 hover:bg-[#F4F7FB] rounded-xl text-[#5B6472] hover:text-[#071A4D] transition-colors cursor-pointer active:scale-[0.98]" 
+                                onClick={() => router.back()}
+                                aria-label="Back to network"
+                            >
+                                <ArrowLeft size={18} />
                             </button>
-                            <h1 className="text-2xl font-bold text-gray-900">{totalItems} Experts</h1>
+                            <div>
+                                <h1 className="text-lg sm:text-xl font-bold text-[#111827]">
+                                    {totalItems} Connected {totalItems === 1 ? 'Expert' : 'Experts'}
+                                </h1>
+                                <p className="text-xs text-[#5B6472]">Verified mentors and industry advisors</p>
+                            </div>
                         </div>
+
                         <button 
+                            type="button"
                             onClick={() => router.push('/expert/apply')}
-                            className="px-6 py-2.5 rounded-xl bg-purple-700 hover:bg-purple-800 text-white text-xs font-bold transition-all shadow-xs"
+                            className="bg-[#FF6B00] hover:bg-[#E05E00] text-white px-5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer self-start sm:self-auto"
                         >
                             Become An Expert
                         </button>
                     </div>
 
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-                        <div className="flex items-center gap-2 text-sm">
-                            <span className="text-gray-500">Sort by:</span>
-                            <select className="font-bold bg-transparent outline-none">
-                                <option>Recently added</option>
-                            </select>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2 text-xs text-[#5B6472] font-medium">
+                            <span>Sort by:</span>
+                            <div className="relative">
+                                <select 
+                                    value={sortBy}
+                                    onChange={(e) => {
+                                        setSortBy(e.target.value as any);
+                                        setCurrentPage(1);
+                                    }}
+                                    className="px-3 py-1.5 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl text-xs font-semibold text-[#111827] hover:border-[#071A4D] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none transition-colors cursor-pointer"
+                                >
+                                    <option value="recent">Recently added</option>
+                                    <option value="name_asc">Name (A – Z)</option>
+                                    <option value="name_desc">Name (Z – A)</option>
+                                </select>
+                            </div>
                         </div>
-                        <div className="relative w-full md:w-80">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <div className="relative w-full sm:w-72">
+                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6472]" size={16} />
                             <input
                                 type="text"
                                 placeholder="Search experts..."
@@ -210,110 +233,63 @@ export default function ExpertsPage() {
                                     setSearchQuery(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                className="w-full pl-9 pr-4 py-2 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl text-xs font-medium focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none text-[#111827] placeholder:text-[#5B6472] transition-all"
                             />
                         </div>
                     </div>
+                </div>
 
-                    <div className="space-y-1 min-h-100">
-                        {currentList.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center h-full py-16 text-gray-400">
-                                {searchQuery ? "No experts found matching your search." : "You are not following any experts yet."}
+                <div className="p-5 sm:p-6 min-h-[300px]">
+                    {currentList.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                            <div className="w-12 h-12 rounded-2xl bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center text-[#5B6472] mb-3">
+                                <Search size={20} />
                             </div>
-                        ) : (
-                            currentList.map((expert) => (
-                                <ExpertCard
-                                    key={expert.id}
-                                    expert={expert}
-                                    onChat={() => handleChat(expert.id)}
-                                    onDelete={() => handleDelete(expert.id)}
-                                />
-                            ))
-                        )}
-                    </div>
-
-                    {totalItems > ITEMS_PER_PAGE && (
-                        <div className="mt-8 flex justify-center">
-                            <Pagination
-                                total={Math.ceil(totalItems / ITEMS_PER_PAGE)}
-                                current={currentPage}
-                                onPageChange={(page) => setCurrentPage(page)}
-                            />
-                        </div>
-                    )}
-                </main>
-
-                <aside className="w-full lg:w-80 space-y-6">
-                    <div className="bg-white rounded-2xl p-8 border border-gray-100 flex flex-col items-center justify-center min-h-62.5">
-                        <span className="text-gray-400 font-bold text-lg">Ad Banner</span>
-                    </div>
-
-                    {suggestedExperts.length > 0 && (
-                        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-                            <div className="p-6">
-                                <h2 className="text-xl font-bold text-gray-900 mb-4">
-                                    Our <span className="text-purple-600">Experts</span>
-                                </h2>
-                                <div className="space-y-6">
-                                    {suggestedExperts.map((expert) => (
-                                        <SidebarExpert key={expert.id} expert={expert} onChat={() => handleChat(expert.id)} />
-                                    ))}
-                                </div>
-                            </div>
-                            <button 
-                                onClick={() => router.push('/network')} 
-                                className="w-full py-4 bg-gray-50 text-purple-600 text-sm font-bold border-t border-gray-100 hover:bg-gray-100 transition-colors">
-                                Show All
+                            <p className="text-sm font-semibold text-[#111827]">
+                                {searchQuery ? "No experts found matching your search." : "You are not connected to any experts yet."}
+                            </p>
+                            <p className="text-xs text-[#5B6472] mt-1 max-w-sm">
+                                {searchQuery ? "Try a different search keyword." : "Explore verified experts to book 1-on-1 mentorship and career advice."}
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => router.push('/mentorship')}
+                                className="mt-4 px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer"
+                            >
+                                Browse Mentors
                             </button>
                         </div>
-                    )}
-                </aside>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
+                            {currentList.map((expert) => {
+                                const expertId = expert.id || expert._id || '';
 
+                                return (
+                                    <ProfileConnectionCard
+                                        key={expertId}
+                                        user={expert}
+                                        variant="grid"
+                                        actionType="expert"
+                                        entityType="expert"
+                                        onChat={() => handleChat(expertId)}
+                                        onRemove={() => handleDelete(expertId)}
+                                    />
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                {totalItems > ITEMS_PER_PAGE && (
+                    <div className="p-6 border-t border-[#D9E0EA]/70 flex justify-center">
+                        <Pagination
+                            total={Math.ceil(totalItems / ITEMS_PER_PAGE)}
+                            current={currentPage}
+                            onPageChange={(page) => setCurrentPage(page)}
+                        />
+                    </div>
+                )}
             </div>
         </div>
     );
 }
-
-export const SidebarExpert = ({ expert, onChat }: { expert: ExpertUser, onChat: () => void }) => {
-    const handleConnect = async () => {
-        try {
-            await api.post('/network/connect', { receiver_id: expert.id });
-            alert("Invitation sent to expert!");
-        } catch (e: any) {
-            console.error("Failed to connect", e);
-            alert(e.message || "Could not send invitation");
-        }
-    };
-
-    return (
-        <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3">
-                <div className="relative">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-slate-100 border border-slate-200">
-                        <UserAvatar src={expert.profile_image} name={expert.name} />
-                    </div>
-                </div>
-
-                <div>
-                    <h4 className="text-sm font-bold text-slate-900 leading-tight">{expert.name || 'Expert'}</h4>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-wider line-clamp-1">{expert.headline || expert.roles?.join(', ')}</p>
-                    {expert.city && <p className="text-[10px] text-slate-400 mt-0.5 font-semibold">📍 {expert.city}</p>}
-                </div>
-            </div>
-
-            <div className="flex gap-2">
-                <button 
-                    onClick={onChat}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 border border-purple-300 rounded-xl text-purple-700 text-xs font-bold hover:bg-purple-50 transition-colors">
-                    <MessageSquare size={14} />
-                    Chat
-                </button>
-                <button 
-                    onClick={handleConnect}
-                    className="flex-1 py-2 bg-purple-700 hover:bg-purple-800 rounded-xl text-white text-xs font-bold transition-all shadow-xs">
-                    Follow
-                </button>
-            </div>
-        </div>
-    );
-};
