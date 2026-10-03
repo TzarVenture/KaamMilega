@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import api from "@/lib/axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -242,13 +243,23 @@ function ApplicationsContent() {
                                                 {/* Candidate Header */}
                                                 <div className="flex items-start justify-between gap-2 mb-2">
                                                     <div className="flex items-center gap-2 min-w-0">
-                                                        <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary flex items-center justify-center font-black text-xs shrink-0 uppercase border border-blue-100">
+                                                        <Link
+                                                            href={`/profile/${app.candidate_id}`}
+                                                            target="_blank"
+                                                            title="View Candidate Full Profile"
+                                                            className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary flex items-center justify-center font-black text-xs shrink-0 uppercase border border-blue-100 hover:bg-blue-100 transition-colors"
+                                                        >
                                                             {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
-                                                        </div>
+                                                        </Link>
                                                         <div className="min-w-0">
-                                                            <h4 className="font-bold text-gray-900 text-sm truncate group-hover:text-km-primary transition-colors">
+                                                            <Link
+                                                                href={`/profile/${app.candidate_id}`}
+                                                                target="_blank"
+                                                                title="View Candidate Full Profile"
+                                                                className="font-bold text-gray-900 text-sm truncate group-hover:text-km-primary transition-colors hover:underline block"
+                                                            >
                                                                 {app.candidate?.name || `Candidate #${app.candidate_id.substring(0, 6)}`}
-                                                            </h4>
+                                                            </Link>
                                                             <p className="text-[11px] text-gray-500 truncate">
                                                                 {app.candidate?.headline || app.candidate?.email || "Applicant"}
                                                             </p>
@@ -274,7 +285,7 @@ function ApplicationsContent() {
                                                 {/* Meta details */}
                                                 <div className="flex items-center justify-between text-[10px] text-gray-400 mt-3 pt-2 border-t border-gray-50">
                                                     <span className="flex items-center gap-1">
-                                                        <Clock size={11} /> {new Date(app.created_at).toLocaleDateString()}
+                                                        <Clock size={11} className="fill-gray-400/20" /> {new Date(app.created_at).toLocaleDateString()}
                                                     </span>
 
                                                     {app.resume_url && (
@@ -284,7 +295,7 @@ function ApplicationsContent() {
                                                             rel="noreferrer"
                                                             className="text-km-primary hover:underline font-bold flex items-center gap-1"
                                                         >
-                                                            <FileText size={11} /> Resume
+                                                            <FileText size={11} className="fill-km-primary/20" /> Resume
                                                         </a>
                                                     )}
                                                 </div>
@@ -337,15 +348,20 @@ function ApplicationsContent() {
                                     filteredApps.map((app) => (
                                         <tr key={app.id} className="hover:bg-blue-50/20 transition-colors">
                                             <td className="py-4 px-6">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary font-bold flex items-center justify-center uppercase shrink-0 border border-blue-100">
+                                                <Link
+                                                    href={`/profile/${app.candidate_id}`}
+                                                    target="_blank"
+                                                    title="View Candidate Full Profile"
+                                                    className="flex items-center gap-3 group/cand"
+                                                >
+                                                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary font-bold flex items-center justify-center uppercase shrink-0 border border-blue-100 group-hover/cand:bg-blue-100 transition-colors">
                                                         {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-gray-900">{app.candidate?.name || `Candidate #${app.candidate_id.substring(0, 6)}`}</p>
+                                                        <p className="font-bold text-gray-900 group-hover/cand:text-km-primary group-hover/cand:underline transition-colors">{app.candidate?.name || `Candidate #${app.candidate_id.substring(0, 6)}`}</p>
                                                         <p className="text-xs text-gray-400">{app.candidate?.email || app.candidate?.mobile || "N/A"}</p>
                                                     </div>
-                                                </div>
+                                                </Link>
                                             </td>
                                             <td className="py-4 px-6">
                                                 <p className="font-medium text-gray-900">{app.job?.title || "N/A"}</p>

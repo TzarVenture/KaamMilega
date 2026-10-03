@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Search, Clock, Star, BookOpen, Users,
-  ChevronRight, Award, CheckCircle, ArrowRight, MessageSquare,
-  Calendar, Video, ExternalLink, ShieldCheck, Sparkles
+  ChevronRight, Award, CheckCircle, CheckCircle2, ArrowRight, MessageSquare,
+  Calendar, Video, ExternalLink, ShieldCheck, GraduationCap, X
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/axios';
@@ -96,49 +96,90 @@ export default function MentorshipPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-20">
-      {/* Hero Section */}
-      <section className="bg-linear-to-br from-slate-950 via-[#071A4D] to-[#0B5ED7] text-white py-16 md:py-24 px-6 md:px-12 rounded-b-[40px] md:rounded-b-[60px] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center md:text-left max-w-3xl"
-          >
-            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-4 border border-white/10 backdrop-blur-xs">
-              <Sparkles size={13} />
-              <span>Verified Industry Guidance</span>
+    <main className="min-h-screen bg-[#F4F7FB] pb-20 font-sans">
+      {/* ─── Mentorship Hero Section with Expert Art & Rounded Bottom ─── */}
+      <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
+            {/* Left Column: Headlines, Search & Value Props */}
+            <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
+              {/* Category Indicator */}
+              <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
+                <GraduationCap size={14} className="text-[#F59E0B]" />
+                <span>1-on-1 Expert Mentorship</span>
+              </div>
+
+              {/* Master Brand Headline for Mentorship */}
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
+                Learn Practical Skills with <span className="text-[#FF6B00]">Live Expert Mentors</span>
+              </h1>
+
+              {/* Authentic Subheading */}
+              <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
+                Connect 1-on-1 with vetted industry practitioners for personalized career advisory, mock interview coaching, and trade guidance via Google Meet or Zoom.
+              </p>
+
+              {/* Search Bar + Become a Mentor CTA */}
+              <div className="flex flex-col sm:flex-row gap-3 max-w-xl mt-6">
+                <div className="flex-1 flex items-center bg-white rounded-xl px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-[#0B5ED7]/20 transition-all shadow-xs">
+                  <Search size={17} className="text-slate-400 mr-2.5 shrink-0" />
+                  <input 
+                    type="text" 
+                    placeholder="Search by mentor name, trade, or skill..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none font-medium"
+                  />
+                  {searchQuery && (
+                    <button 
+                      type="button" 
+                      onClick={() => setSearchQuery('')}
+                      className="text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+                <Link
+                  href="/expert/apply"
+                  className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all whitespace-nowrap shadow-xs"
+                >
+                  <span>Become an Expert & Host</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+
+              {/* Key Benefits / Trust Chips */}
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
+                <div className="flex items-center gap-2">
+                  <Video size={15} className="text-[#10B981] shrink-0" />
+                  <span>Live Google Meet & Zoom Access</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={15} className="text-[#10B981] shrink-0" />
+                  <span>Verified Industry Practitioners</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Award size={15} className="text-[#10B981] shrink-0" />
+                  <span>Personalized Career Roadmap</span>
+                </div>
+              </div>
             </div>
-            
-            <h1 className="text-3xl md:text-6xl font-black mb-4 md:mb-6 leading-tight">
-              Unlock Your Potential with <br className="hidden md:block" /> <span className="text-km-accent">Expert Mentorship</span>
-            </h1>
-            <p className="text-sm md:text-lg text-slate-300 mb-6 md:mb-10 max-w-2xl leading-relaxed">
-              Connect with vetted industry leaders and accelerate your career growth with personalized 1-on-1 sessions.
-            </p>
-            
-            <div className="flex flex-col md:flex-row gap-3 md:gap-4 max-w-2xl mx-auto md:mx-0">
-              <div className="relative flex-1">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="Search by mentor name or topic..." 
-                  className="w-full bg-white text-slate-900 py-3 md:py-4 pl-12 pr-4 rounded-xl md:rounded-2xl focus:outline-none focus:ring-2 focus:ring-km-primary transition-all font-medium text-sm md:text-base shadow-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+
+            {/* Right Column: Hero Artwork Resting Directly on Top Edge of Category Tabs */}
+            <div className="lg:col-span-5 xl:col-span-5 flex items-end justify-center lg:justify-end self-end">
+              <div 
+                className="relative flex items-end justify-center lg:justify-end"
+                style={{ width: 'clamp(320px, 44vw, 560px)', maxWidth: '100%' }}
+              >
+                <img
+                  src="/expert-page-art.png"
+                  alt="KaamMilega 1-on-1 Expert Mentorship"
+                  className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-xl block translate-y-[1px]"
                 />
               </div>
-              <button 
-                type="button"
-                className="bg-km-accent hover:bg-km-accent-light text-white px-8 py-3 md:py-4 rounded-xl md:rounded-2xl font-bold transition-all shadow-lg shadow-orange-500/20 active:scale-95 whitespace-nowrap text-sm md:text-base cursor-pointer"
-              >
-                Find My Mentor
-              </button>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 

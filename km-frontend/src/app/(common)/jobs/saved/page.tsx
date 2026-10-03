@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { BookmarkCheck, Search, MapPin, CheckCircle2, Phone, MessageCircle, Trash2, ArrowLeft } from 'lucide-react';
+import { BookmarkCheck, Search, MapPin, CheckCircle2, Trash2, ArrowLeft, Users, ArrowUpRight } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -91,7 +91,7 @@ export default function SavedJobsPage() {
 
         try {
             await api.post('/applications', { job_id: jobId });
-            toast.success("Applied successfully!");
+            toast.success("Applied successfully");
             setAppliedJobIds(prev => new Set(prev).add(jobId));
         } catch (error: any) {
             toast.error(error.response?.data?.error || "Failed to apply");
@@ -105,21 +105,21 @@ export default function SavedJobsPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] py-8 sm:py-12">
+        <div className="min-h-screen bg-[#F4F7FB] py-8 sm:py-10 font-sans text-[#111827]">
             <ToastContainer />
-            <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 {/* Header */}
-                <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <Link href="/jobs" className="inline-flex items-center gap-1.5 text-xs font-bold text-km-primary hover:underline mb-2">
+                        <Link href="/jobs" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0B5ED7] hover:underline mb-2">
                             <ArrowLeft size={14} /> Back to All Jobs
                         </Link>
-                        <h1 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                            <BookmarkCheck className="w-8 h-8 text-km-primary fill-blue-50" />
-                            Saved Jobs
+                        <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight flex items-center gap-3">
+                            <BookmarkCheck className="w-7 h-7 text-[#0B5ED7]" />
+                            <span>Saved Jobs</span>
                         </h1>
-                        <p className="text-slate-500 font-medium text-sm mt-1">
+                        <p className="text-[#5B6472] font-normal text-xs sm:text-sm mt-1">
                             {savedJobs.length} {savedJobs.length === 1 ? 'job' : 'jobs'} saved for later
                         </p>
                     </div>
@@ -127,12 +127,11 @@ export default function SavedJobsPage() {
                     {/* Search bar */}
                     {savedJobs.length > 0 && (
                         <div className="relative min-w-72">
-
-                            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+                            <Search className="absolute left-3.5 top-3 w-4 h-4 text-[#5B6472]" />
                             <input
                                 type="text"
                                 placeholder="Search saved jobs..."
-                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary shadow-xs"
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#D9E0EA] rounded-xl text-xs font-medium text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all shadow-xs"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -142,83 +141,87 @@ export default function SavedJobsPage() {
 
                 {/* Content */}
                 {loading ? (
-                    <div className="space-y-4">
+                    <div className="space-y-3.5">
                         {[1, 2, 3].map(n => (
-                            <div key={n} className="h-44 bg-white rounded-3xl animate-shimmer shadow-xs border border-slate-200/80" />
+                            <div key={n} className="h-40 bg-white rounded-2xl animate-shimmer shadow-xs border border-[#D9E0EA]" />
                         ))}
                     </div>
                 ) : filteredJobs.length === 0 ? (
-                    <div className="bg-white rounded-3xl border border-slate-200/80 p-12 text-center shadow-xs">
-                        <div className="w-16 h-16 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <div className="bg-white rounded-2xl border border-[#D9E0EA] p-10 text-center shadow-xs">
+                        <div className="w-16 h-16 bg-[#FFFBEB] border border-[#FDE68A] text-[#F59E0B] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xs">
                             <BookmarkCheck className="w-8 h-8" />
                         </div>
-                        <h3 className="text-xl font-black text-slate-900 mb-2">No Saved Jobs Found</h3>
-                        <p className="text-slate-500 max-w-md mx-auto text-xs font-medium mb-6">
+                        <h3 className="text-lg font-bold text-[#111827] mb-1.5">No Saved Jobs Found</h3>
+                        <p className="text-[#5B6472] max-w-md mx-auto text-xs sm:text-sm font-normal leading-relaxed mb-6">
                             {savedJobs.length === 0
-                                ? "You haven't bookmarked any jobs yet. Browse job listings and click the bookmark icon to save them for later."
-                                : "No saved jobs matched your search query."}
+                                ? "You have not saved any jobs yet. Browse active job listings and click the bookmark icon to save them for quick reference."
+                                : "No saved jobs match your current search query."}
                         </p>
                         <Link
                             href="/jobs"
-                            className="inline-flex items-center justify-center px-6 py-3 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl font-bold text-xs shadow-md shadow-blue-900/10 transition-all"
+                            className="btn-primary text-xs px-5 py-2.5 inline-flex items-center gap-1.5"
                         >
-                            Browse Jobs
+                            <span>Browse Jobs</span>
+                            <ArrowUpRight size={14} />
                         </Link>
                     </div>
                 ) : (
-                    <div className="space-y-4">
+                    <div className="space-y-3.5">
                         {filteredJobs.map((job) => (
-                            <div key={job.id} className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex flex-col xl:flex-row justify-between items-start gap-6">
+                            <div key={job.id} className="bg-white p-5 sm:p-6 rounded-2xl border border-[#D9E0EA] shadow-xs hover:border-[#0B5ED7]/50 hover:shadow-sm transition-all flex flex-col xl:flex-row justify-between items-start gap-5">
                                 <div className="flex-1 min-w-0">
                                     <Link href={`/jobs/${job.id}`}>
-                                        <h3 className="text-xl font-bold text-slate-900 hover:text-km-primary transition-colors line-clamp-1 mb-1">
+                                        <h3 className="text-lg sm:text-xl font-bold text-[#111827] hover:text-[#0B5ED7] transition-colors line-clamp-1 mb-1">
                                             {job.title}
                                         </h3>
                                     </Link>
-                                    <p className="text-slate-400 font-bold text-xs uppercase tracking-wider mb-4 flex items-center gap-2">
+                                    <p className="text-[#5B6472] font-medium text-xs mb-3 flex items-center gap-2">
                                         <span>{job.company}</span>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
-                                        <span className="text-km-primary italic font-bold">Saved Job</span>
+                                        <span className="w-1 h-1 rounded-full bg-[#D9E0EA]" />
+                                        <span className="text-[#0B5ED7] font-semibold">Saved Item</span>
                                     </p>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-bold text-slate-700">
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-bold text-emerald-600">₹</span>
-                                            <span>₹{job.salary_min.toLocaleString()} - ₹{job.salary_max.toLocaleString()} / mo</span>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs text-[#111827]">
+                                        <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]">
+                                            <span className="font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 w-6 h-6 rounded-lg flex items-center justify-center text-xs">₹</span>
+                                            <span className="font-bold">₹{job.salary_min?.toLocaleString('en-IN') || 0} - ₹{job.salary_max?.toLocaleString('en-IN') || 0} / mo</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <MapPin size={16} className="text-km-primary" />
-                                            <span>{job.location || 'Flexible'}, {job.city_name}</span>
+                                        <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]">
+                                            <MapPin size={15} className="text-[#0B5ED7]" />
+                                            <span className="font-semibold">{job.location || 'Flexible'}, {job.city_name}</span>
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-wrap gap-2 mt-4">
-                                        <span className="px-3 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-full uppercase border border-slate-200/60">
+                                    <div className="flex flex-wrap gap-2 mt-3">
+                                        <span className="px-2.5 py-1 bg-[#F4F7FB] text-[#5B6472] text-xs font-medium rounded-lg border border-[#D9E0EA]">
                                             {job.job_type}
                                         </span>
-                                        <span className="px-3 py-1 bg-blue-50 text-km-primary text-[10px] font-bold rounded-full uppercase border border-blue-100">
-                                            {job.vacancies || 1} Openings
+                                        <span className="px-2.5 py-1 bg-[#F4F7FB] text-[#5B6472] text-xs font-medium rounded-lg border border-[#D9E0EA] flex items-center gap-1">
+                                            <Users size={12} className="text-[#5B6472]" />
+                                            <span>{job.vacancies || 1} Openings</span>
                                         </span>
                                     </div>
                                 </div>
 
-                                <div className="flex flex-row xl:flex-col items-center gap-3 w-full xl:w-auto pt-4 xl:pt-0 border-t xl:border-0 border-slate-100">
+                                <div className="flex flex-row xl:flex-col items-center gap-2.5 w-full xl:w-auto pt-3 xl:pt-0 border-t xl:border-0 border-[#D9E0EA]">
                                     <button
+                                        type="button"
                                         onClick={() => handleRemoveBookmark(job.id)}
-                                        className="p-3 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center text-xs font-bold gap-1.5 border border-rose-100"
+                                        className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center text-xs font-semibold gap-1.5 border border-rose-200 cursor-pointer"
                                         title="Remove from saved"
                                     >
-                                        <Trash2 size={16} />
+                                        <Trash2 size={15} />
                                         <span className="xl:hidden">Remove</span>
                                     </button>
 
                                     <button
+                                        type="button"
                                         onClick={() => handleApply(job.id)}
                                         disabled={appliedJobIds.has(job.id)}
-                                        className={`flex-1 xl:flex-none px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                                        className={`flex-1 xl:flex-none px-5 py-2.5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                                             appliedJobIds.has(job.id)
-                                                ? 'bg-emerald-600 text-white cursor-not-allowed shadow-xs'
-                                                : 'bg-km-primary hover:bg-km-primary-dark text-white shadow-md shadow-blue-900/10'
+                                                ? 'bg-emerald-600 text-white cursor-default shadow-xs'
+                                                : 'btn-primary shadow-xs'
                                         }`}
                                     >
                                         {appliedJobIds.has(job.id) ? (

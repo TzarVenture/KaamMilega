@@ -16,7 +16,8 @@ import {
     RotateCcw,
     Video,
     Award,
-    Sparkle
+    Building2,
+    ShieldCheck
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
@@ -187,26 +188,26 @@ const PublicEventsPage = () => {
     return (
         <div className="bg-[#F4F7FB] min-h-screen pb-20 font-sans">
 
-            {/* ─── Hero Section with Dynamic Art Sizing Resting on Card Edge ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 relative overflow-hidden">
+            {/* ─── Events & Bootcamps Hero Section with Art & Rounded Bottom ─── */}
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
-                        {/* Left Column: Headlines & Value Props */}
+                        {/* Left Column: Headlines, Simple Copy, CTAs & Value Props */}
                         <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
-                            {/* Hero Badge without "Service 07" */}
+                            {/* Category Indicator */}
                             <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
                                 <Calendar size={14} className="text-[#F59E0B]" />
-                                <span>Workshops & Masterclasses</span>
+                                <span>Events & Bootcamps</span>
                             </div>
 
-                            {/* Master Brand Headline tailored for Skill Learning & Expert Sessions */}
+                            {/* Simple, Punchy Headline */}
                             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-                                Learn Practical Skills with <span className="text-[#FF6B00]">Live Expert Sessions</span>
+                                Skill Bootcamps & <span className="text-[#FF6B00]">Live Events</span>
                             </h1>
 
-                            {/* Precise & Authentic Subheading */}
+                            {/* Reduced, Simple Subheading */}
                             <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
-                                Join interactive workshops and live masterclasses led by verified practitioners. Learn practical trades, participate in live Q&A via Google Meet or Zoom, and advance your professional craft.
+                                Join interactive workshops, skill bootcamps, and live masterclasses led by verified experts. Learn in real time via Google Meet or Zoom and earn certificates.
                             </p>
 
                             {/* CTA Row */}
@@ -215,13 +216,13 @@ const PublicEventsPage = () => {
                                     href="#workshops-catalog"
                                     className="btn-accent text-xs px-5 py-2.5 shadow-sm"
                                 >
-                                    Browse Live Workshops
+                                    Browse Events
                                 </a>
                                 <Link
                                     href="/expert/apply"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all"
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs"
                                 >
-                                    <span>Become an Expert & Host Sessions</span>
+                                    <span>Host an Event</span>
                                     <ArrowRight size={13} />
                                 </Link>
                             </div>
@@ -230,28 +231,28 @@ const PublicEventsPage = () => {
                             <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
                                 <div className="flex items-center gap-2">
                                     <Video size={15} className="text-[#10B981] shrink-0" />
-                                    <span>Live Google Meet & Zoom Access</span>
+                                    <span>Google Meet & Zoom Access</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <CheckCircle2 size={15} className="text-[#10B981] shrink-0" />
-                                    <span>Verified Industry Practitioners</span>
+                                    <span>Verified Industry Experts</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Award size={15} className="text-[#10B981] shrink-0" />
-                                    <span>Instant Digital Pass & QR</span>
+                                    <Ticket size={15} className="text-[#10B981] shrink-0" />
+                                    <span>Instant Digital Entry Pass</span>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Right Column: Hero Artwork Resting Directly on Top Edge of Search Card */}
+                        {/* Right Column: Events Hero Artwork Resting Directly on Top Edge of Search Card */}
                         <div className="lg:col-span-5 xl:col-span-5 flex items-end justify-center lg:justify-end self-end">
                             <div 
                                 className="relative flex items-end justify-center lg:justify-end"
                                 style={{ width: 'clamp(320px, 44vw, 560px)', maxWidth: '100%' }}
                             >
                                 <img
-                                    src="/expert-page-art.png"
-                                    alt="KaamMilega Skill Workshops and Masterclasses"
+                                    src="/events-page-art.png"
+                                    alt="KaamMilega Events and Bootcamps"
                                     className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-xl block translate-y-[1px]"
                                 />
                             </div>
