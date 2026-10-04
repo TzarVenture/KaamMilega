@@ -41,6 +41,7 @@ export default function LandingPage() {
   const [skills, setSkills] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [pendingConnectIds, setPendingConnectIds] = useState<string[]>([]);
+  const [connectedIds, setConnectedIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
@@ -103,6 +104,16 @@ export default function LandingPage() {
           api.get('/skills').catch(() => []),
           api.get('/platform/stats').catch(() => null)
         ]);
+
+        if (isAuthenticated()) {
+          Promise.all([
+            api.get('/network/connections').catch(() => []),
+            api.get('/network/sent').catch(() => [])
+          ]).then(([conns, sent]: [any, any]) => {
+            if (Array.isArray(conns)) setConnectedIds(conns);
+            if (Array.isArray(sent)) setPendingConnectIds(sent);
+          }).catch(() => {});
+        }
 
         if (citiesRes.status === 'fulfilled') {
           // Handle array or object wrapper
@@ -205,6 +216,7 @@ export default function LandingPage() {
         <ConnectJustLikeYou 
           users={users} 
           pendingIds={pendingConnectIds}
+          connectedIds={connectedIds}
           onChat={handleChat} 
           onFollow={handleConnect} 
         />
@@ -218,6 +230,7 @@ export default function LandingPage() {
         <ExpertSlider 
           experts={experts} 
           pendingIds={pendingConnectIds}
+          connectedIds={connectedIds}
           onChat={handleChat} 
           onFollow={handleConnect} 
         />
@@ -855,11 +868,13 @@ const LearnSection = () => {
 const ExpertSlider = ({
   experts,
   pendingIds = [],
+  connectedIds = [],
   onChat,
   onFollow,
 }: {
   experts: any[];
   pendingIds?: string[];
+  connectedIds?: string[];
   onChat: (id: string) => void;
   onFollow: (id: string, name?: string) => void;
 }) => {
@@ -894,6 +909,7 @@ const ExpertSlider = ({
             const expertId = expert.id || expert._id || '';
             const isSelf = Boolean(currentUserId && expertId === currentUserId);
             const isPending = pendingIds.includes(expertId);
+            const isConnected = (connectedIds || []).includes(expertId);
 
             return (
               <ProfileConnectionCard
@@ -902,6 +918,7 @@ const ExpertSlider = ({
                 variant="slider"
                 isSelf={isSelf}
                 isPending={isPending}
+                isConnected={isConnected}
                 entityType="expert"
                 onChat={onChat}
                 onFollow={onFollow}

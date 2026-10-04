@@ -37,6 +37,7 @@ const NetworkPage = () => {
     const [invitations, setInvitations] = useState<EnrichedInvitation[]>([]);
     const [suggestions, setSuggestions] = useState<User[]>([]);
     const [connections, setConnections] = useState<string[]>([]);
+    const [sentPending, setSentPending] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -61,8 +62,13 @@ const NetworkPage = () => {
 
                 if (!userObj) return;
 
-                // 2. Fetch pending invitations
-                const pendingRes = await api.get('/network/pending') as ConnectionRequest[];
+                // 2. Fetch pending invitations, connections, and sent invitations in parallel
+                const [pendingRes, connsRes, sentRes] = await Promise.all([
+                    api.get('/network/pending').catch(() => []) as Promise<ConnectionRequest[]>,
+                    api.get('/network/connections').catch(() => []) as Promise<string[]>,
+                    api.get('/network/sent').catch(() => []) as Promise<string[]>,
+                ]);
+
                 const enrichedInvs = await Promise.all(
                     (pendingRes || []).map(async (inv) => {
                         try {
@@ -74,12 +80,10 @@ const NetworkPage = () => {
                     })
                 );
                 setInvitations(enrichedInvs.filter(i => i !== null) as EnrichedInvitation[]);
-
-                // 3. Fetch connections
-                const connsRes = await api.get('/network/connections') as string[];
                 setConnections(connsRes || []);
+                setSentPending(sentRes || []);
 
-                // 4. Fetch suggestions
+                // 3. Fetch suggestions
                 const usersRes = await api.get('/admin/users') as any[]; 
                 const filteredSearch = (usersRes || []).filter(u => 
                     u.id !== userObj.id && 
@@ -120,11 +124,13 @@ const NetworkPage = () => {
     const handleConnect = async (userId: string) => {
         try {
             await api.post('/network/connect', { receiver_id: userId });
-            setSuggestions(prev => prev.filter(s => s.id !== userId));
-            alert("Invitation sent successfully!");
+            setSentPending(prev => [...prev, userId]);
         } catch (e: any) {
             console.error("Failed to connect", e);
-            alert(e?.response?.data?.error || e.message || "Could not send invitation");
+            const msg = e?.response?.data?.error || e.message || '';
+            if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
+                setSentPending(prev => [...prev, userId]);
+            }
         }
     };
 
@@ -160,7 +166,7 @@ const NetworkPage = () => {
         <div className="space-y-6">
             {/* Invitations Section */}
             {invitations.length > 0 && (
-                <section className="bg-white rounded-2xl shadow-xs p-5 sm:p-6 border border-[#D9E0EA]">
+                <section id="invitations" className="bg-white rounded-2xl shadow-xs p-5 sm:p-6 border border-[#D9E0EA] scroll-mt-24">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#D9E0EA]/70">
                         <div>
                             <h2 className="text-base sm:text-lg font-bold text-[#111827]">
@@ -219,18 +225,26 @@ const NetworkPage = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-                        {suggestions.map((user) => (
-                            <ProfileConnectionCard 
-                                key={user.id || user._id} 
-                                user={user}
-                                variant="grid"
-                                actionType="discover"
-                                entityType="connect"
-                                onConnect={() => handleConnect(user.id || user._id || '')}
-                                onChat={() => handleChat(user.id || user._id || '')}
-                                onDismiss={(id) => setSuggestions(prev => prev.filter(s => (s.id || s._id) !== id))}
-                            />
-                        ))}
+                        {suggestions.map((user) => {
+                            const uid = user.id || user._id || '';
+                            const isPending = sentPending.includes(uid);
+                            const isConnected = connections.includes(uid);
+
+                            return (
+                                <ProfileConnectionCard 
+                                    key={uid} 
+                                    user={user}
+                                    variant="grid"
+                                    actionType="discover"
+                                    entityType="connect"
+                                    isPending={isPending}
+                                    isConnected={isConnected}
+                                    onConnect={() => handleConnect(uid)}
+                                    onChat={() => handleChat(uid)}
+                                    onDismiss={(id) => setSuggestions(prev => prev.filter(s => (s.id || s._id) !== id))}
+                                />
+                            );
+                        })}
                     </div>
                 )}
             </section>

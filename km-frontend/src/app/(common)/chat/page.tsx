@@ -1,548 +1,2026 @@
-'use client'
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Edit, MoreHorizontal, Send, ChevronLeft, Check } from 'lucide-react';
-import api from '@/lib/axios';
+"use client";
 
-// --- Types ---
+import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import {
+  Search,
+  Send,
+  Paperclip,
+  Image as ImageIcon,
+  FileText,
+  Check,
+  CheckCheck,
+  ChevronLeft,
+  ExternalLink,
+  X,
+  Download,
+  Loader2,
+  MessageSquare,
+  Clock,
+  User as UserIcon,
+  RefreshCw,
+  Smile,
+  MoreVertical,
+  Trash2,
+  RotateCcw,
+} from "lucide-react";
+import { toast } from "react-toastify";
+import api from "@/lib/axios";
+import { playMessageReceivedSound } from "@/lib/sound";
+
+// --- Interfaces ---
 interface User {
-    id: string;
-    name: string;
-    profile_image?: string;
-    roles: string[];
-    headline?: string;
+  id: string;
+  name: string;
+  profile_image?: string;
+  roles?: string[];
+  headline?: string;
+  is_online?: boolean;
 }
 
 interface Conversation {
-    id: string;
-    participants: string[];
-    last_message: string;
-    last_message_id?: string;
-    updated_at: string;
-    otherUser?: User;
+  id: string;
+  participants: string[];
+  last_message: string;
+  last_message_id?: string;
+  updated_at: string;
+  created_at?: string;
+  other_user?: User;
+  otherUser?: User; // backwards-compatible alias
+  unread_count?: number;
 }
 
 interface Message {
-    id: string;
-    conversation_id: string;
-    sender_id: string;
-    content: string;
-    created_at: string;
-    is_read: boolean;
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  is_read: boolean;
+  attachment_url?: string;
+  attachment_type?: string;
+  attachment_name?: string;
+  attachment_size?: number;
+  isOptimistic?: boolean;
 }
 
-// --- Main Page ---
-const ChatPage = () => {
-    const [conversations, setConversations] = useState<Conversation[]>([]);
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [activeChat, setActiveChat] = useState<Conversation | null>(null);
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [userSearchResults, setUserSearchResults] = useState<User[]>([]);
-    const [isSearchingUsers, setIsSearchingUsers] = useState(false);
-    const [inputText, setInputText] = useState('');
-    const [initialChatChecked, setInitialChatChecked] = useState(false);
+interface PendingAttachment {
+  file: File;
+  previewUrl?: string;
+  isImage: boolean;
+  name: string;
+  sizeFormatted: string;
+}
 
-    // Mobile: show chat panel when a conversation is selected
-    const [mobileChatOpen, setMobileChatOpen] = useState(false);
-
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const activeChatRef = useRef<Conversation | null>(null);
-    const prevMessagesLength = useRef(0);
-    const prevActiveChatId = useRef<string | null>(null);
-
-    useEffect(() => {
-        activeChatRef.current = activeChat;
-    }, [activeChat]);
-
-    // Initial Load
-    useEffect(() => {
-        const loadInitialData = async () => {
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                try {
-                    const parsed = JSON.parse(storedUser);
-                    const userId = parsed.id || parsed._id;
-                    setCurrentUser({ ...parsed, id: userId });
-                    fetchConversations(userId);
-                } catch (e) {
-                    console.error("Failed to parse user", e);
-                }
-            } else {
-                try {
-                    const profile = await api.get('/user/profile') as any;
-                    setCurrentUser({ ...profile, id: profile.id || profile._id });
-                    fetchConversations(profile.id || profile._id);
-                } catch (e) {
-                    console.error("Not logged in");
-                }
-            }
-        };
-        loadInitialData();
-    }, []);
-
-    const fetchConversations = async (myId: string) => {
-        try {
-            const res = await api.get('/chats') as Conversation[];
-            const enrichedCtxs = await Promise.all(res.map(async (c) => {
-                const otherId = c.participants.find(p => p !== myId);
-                if (!otherId) return c;
-                try {
-                    const user = await api.get(`/user/${otherId}`) as User;
-                    return { ...c, otherUser: user };
-                } catch (e) {
-                    return c;
-                }
-            }));
-            setConversations(enrichedCtxs.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()));
-        } catch (e) {
-            console.error("Failed to fetch conversations", e);
-        }
-    };
-
-    useEffect(() => {
-        if (!activeChat) return;
-        if (activeChat.id.startsWith('temp-')) {
-            setMessages([]);
-            return;
-        }
-        fetchMessages(activeChat.id);
-    }, [activeChat]);
-
-    // WebSocket
-    useEffect(() => {
-        if (!currentUser) return;
-
-        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const host = process.env.NEXT_PUBLIC_API_URL
-            ? process.env.NEXT_PUBLIC_API_URL.replace(/^https?:\/\//, '')
-            : window.location.host;
-
-        let ws: WebSocket;
-        let reconnectTimer: NodeJS.Timeout;
-
-        const connectWS = () => {
-            const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-            const wsUrl = token
-                ? `${protocol}//${host}/api/ws/chats?token=${token}`
-                : `${protocol}//${host}/api/ws/chats`;
-            ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                fetchConversations(currentUser.id);
-            };
-
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    if (data.type === 'NEW_MESSAGE') {
-                        fetchConversations(currentUser.id);
-                        const currentActive = activeChatRef.current;
-                        if (currentActive && data.message.conversation_id === currentActive.id) {
-                            setMessages(prev => {
-                                if (prev.find(m => m.id === data.message.id)) return prev;
-                                return [...prev, data.message];
-                            });
-                        }
-                    }
-                } catch (e) {
-                    console.error("Invalid WS payload", e);
-                }
-            };
-
-            ws.onclose = () => {
-                reconnectTimer = setTimeout(connectWS, 3000);
-            };
-
-            ws.onerror = (err) => {
-                console.error("Chat WS Error", err);
-            };
-        };
-
-        connectWS();
-
-        return () => {
-            clearTimeout(reconnectTimer);
-            if (ws) {
-                ws.onclose = null;
-                ws.close();
-            }
-        };
-    }, [currentUser]);
-
-    const fetchMessages = async (chatId: string) => {
-        if (chatId.startsWith('temp-')) return;
-        try {
-            const res = await api.get(`/chats/${chatId}/messages`) as Message[];
-            setMessages(res);
-        } catch (e) {
-            console.error("Failed to fetch messages", e);
-        }
-    };
-
-    const handleSendMessage = async () => {
-        if (!inputText.trim() || !activeChat || !currentUser) return;
-        const otherId = activeChat.participants.find(p => p !== currentUser.id);
-        if (!otherId) return;
-
-        try {
-            await api.post('/chats/messages', { receiver_id: otherId, content: inputText });
-            setInputText('');
-            if (activeChat.id.startsWith('temp-')) {
-                await fetchConversations(currentUser.id);
-            } else {
-                fetchMessages(activeChat.id);
-                fetchConversations(currentUser.id);
-            }
-        } catch (e) {
-            console.error("Failed to send message", e);
-        }
-    };
-
-    const handleSearchUsers = async (query: string) => {
-        setSearchQuery(query);
-        if (query.length < 2) {
-            setUserSearchResults([]);
-            return;
-        }
-        setIsSearchingUsers(true);
-        try {
-            const res = await api.get(`/user/search?q=${query}`) as User[];
-            setUserSearchResults(res || []);
-        } catch (e) {
-            console.error("Search failed", e);
-        } finally {
-            setIsSearchingUsers(false);
-        }
-    };
-
-    const startConversation = async (user: User) => {
-        if (!currentUser) return;
-        const existing = conversations.find(c => c.participants.includes(user.id));
-        if (existing) {
-            setActiveChat(existing);
-        } else {
-            const newChat: Conversation = {
-                id: 'temp-' + user.id,
-                participants: [currentUser.id, user.id],
-                last_message: '',
-                updated_at: new Date().toISOString(),
-                otherUser: user,
-            };
-            setActiveChat(newChat);
-            setMessages([]);
-        }
-        setSearchQuery('');
-        setUserSearchResults([]);
-        setMobileChatOpen(true); // open chat panel on mobile
-    };
-
-    // Check URL params
-    useEffect(() => {
-        const checkInitialChat = async () => {
-            if (!currentUser || initialChatChecked) return;
-            const params = new URLSearchParams(window.location.search);
-            const newUserId = params.get('userId');
-            if (newUserId && newUserId !== currentUser.id) {
-                const existing = conversations.find(c => c.participants.includes(newUserId));
-                if (existing) {
-                    setActiveChat(existing);
-                    setMobileChatOpen(true);
-                } else {
-                    try {
-                        const user = await api.get(`/user/${newUserId}`) as User;
-                        startConversation(user);
-                    } catch (e) {
-                        console.error("Failed to start initial chat from URL", e);
-                    }
-                }
-            }
-            setInitialChatChecked(true);
-        };
-        checkInitialChat();
-    }, [currentUser, conversations, initialChatChecked]);
-
-    // Upgrade temp chat
-    useEffect(() => {
-        if (activeChat && activeChat.id.startsWith('temp-') && currentUser) {
-            const otherId = activeChat.participants.find((p: string) => p !== currentUser.id);
-            if (otherId) {
-                const realChat = conversations.find(c => c.participants.includes(otherId) && !c.id.startsWith('temp-'));
-                if (realChat) setActiveChat(realChat);
-            }
-        }
-    }, [conversations, activeChat, currentUser]);
-
-    // Scroll to bottom
-    useEffect(() => {
-        if (activeChat && activeChat.id !== prevActiveChatId.current) {
-            prevActiveChatId.current = activeChat.id;
-            prevMessagesLength.current = messages.length;
-            messagesEndRef.current?.scrollIntoView();
-        } else if (messages.length > prevMessagesLength.current) {
-            prevMessagesLength.current = messages.length;
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-        } else {
-            prevMessagesLength.current = messages.length;
-        }
-    }, [messages, activeChat]);
-
-    const handleSelectChat = (chat: Conversation) => {
-        setActiveChat(chat);
-        setMobileChatOpen(true);
-    };
-
-    const handleBackToList = () => {
-        setMobileChatOpen(false);
-    };
-
-    return (
-        // Full viewport height minus the navbar (assumed ~64px)
-        <div className="flex h-[calc(100vh-64px)] bg-gray-50 overflow-hidden relative">
-
-            {/* ── SIDEBAR / CONVERSATION LIST ── */}
-            {/* On mobile: shown by default, slides out when a chat opens */}
-            <aside
-                className={`
-                    absolute inset-0 z-10 md:static md:z-auto
-                    w-full md:w-80 lg:w-96 bg-white border-r border-gray-100
-                    flex flex-col h-full
-                    transition-transform duration-300 ease-in-out
-                    ${mobileChatOpen ? '-translate-x-full md:translate-x-0' : 'translate-x-0'}
-                `}
-            >
-                {/* Header */}
-                <div className="p-4 space-y-3 border-b border-gray-100">
-                    <div className="flex justify-between items-center">
-                        <h1 className="text-xl font-bold text-gray-900">Messages</h1>
-                        <div className="flex gap-2">
-                            <MoreHorizontal className="text-gray-400 cursor-pointer hover:text-gray-600" size={20} />
-                            <Edit className="text-gray-400 cursor-pointer hover:text-gray-600" size={20} />
-                        </div>
-                    </div>
-
-                    {/* Search */}
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                        <input
-                            value={searchQuery}
-                            onChange={(e) => handleSearchUsers(e.target.value)}
-                            className="w-full bg-slate-50 rounded-xl py-2.5 pl-9 pr-4 text-sm focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none border border-slate-200 transition"
-                            placeholder="Search people..."
-                        />
-
-                        {/* Search Results Dropdown */}
-                        {searchQuery && (
-                            <div className="absolute top-full left-0 right-0 mt-1 z-20 bg-white shadow-xl rounded-xl border border-slate-100 max-h-56 overflow-y-auto">
-                                {isSearchingUsers ? (
-                                    <div className="p-4 text-center text-sm text-slate-400">Searching…</div>
-                                ) : userSearchResults.length > 0 ? (
-                                    userSearchResults.map(u => (
-                                        <div
-                                            key={u.id}
-                                            onClick={() => startConversation(u)}
-                                            className="p-3 hover:bg-blue-50 cursor-pointer flex items-center gap-3"
-                                        >
-                                            <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-km-primary font-bold text-xs shrink-0 overflow-hidden">
-                                                {u.profile_image
-                                                    ? <img src={u.profile_image} className="w-full h-full object-cover" alt={u.name} />
-                                                    : u.name[0]}
-                                            </div>
-                                            <div className="min-w-0">
-                                                <p className="text-sm font-semibold truncate text-slate-900">{u.name}</p>
-                                                <p className="text-xs text-slate-400 truncate">{u.roles?.join(', ')}</p>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-4 text-center text-sm text-slate-400">No users found</div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                {/* Conversation list */}
-                <div className="flex-1 overflow-y-auto">
-                    <div className="p-3">
-                        <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 px-1">Recent Chats</h3>
-                        <div className="space-y-0.5">
-                            {conversations.map(chat => (
-                                <ChatListItem
-                                    key={chat.id}
-                                    active={activeChat?.id === chat.id}
-                                    name={chat.otherUser?.name || 'Unknown'}
-                                    message={chat.last_message || 'No messages yet'}
-                                    date={new Date(chat.updated_at).toLocaleDateString()}
-                                    onClick={() => handleSelectChat(chat)}
-                                    user={chat.otherUser}
-                                />
-                            ))}
-                            {conversations.length === 0 && (
-                                <p className="text-center text-xs text-slate-400 py-8">No conversations yet.<br />Search above to start one.</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            {/* ── MAIN CHAT PANEL ── */}
-            {/* On mobile: slides in when a chat is open */}
-            <main
-                className={`
-                    absolute inset-0 z-20 md:static md:z-auto
-                    flex-1 flex flex-col bg-white md:m-3 md:rounded-2xl
-                    md:shadow-sm md:border md:border-slate-100 overflow-hidden
-                    transition-transform duration-300 ease-in-out
-                    ${mobileChatOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-                `}
-            >
-                {activeChat ? (
-                    <>
-                        {/* Chat Header — includes back button on mobile */}
-                        <ChatHeader
-                            name={activeChat.otherUser?.name || 'Unknown User'}
-                            designation={activeChat.otherUser?.roles?.join(' • ') || 'User'}
-                            avatar={activeChat.otherUser?.profile_image}
-                            onBack={handleBackToList}
-                        />
-
-                        {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-4 bg-slate-50">
-                            {messages.map((msg, i) => {
-                                const isMe = msg.sender_id === currentUser?.id;
-                                const showDate = i === 0 || new Date(messages[i - 1].created_at).getDate() !== new Date(msg.created_at).getDate();
-                                return (
-                                    <React.Fragment key={msg.id}>
-                                        {showDate && (
-                                            <div className="text-center text-xs text-slate-400 font-medium my-2">
-                                                {new Date(msg.created_at).toLocaleDateString()}
-                                            </div>
-                                        )}
-                                        <MessageBubble
-                                            isMe={isMe}
-                                            name={isMe ? 'You' : (activeChat.otherUser?.name || 'User')}
-                                            text={msg.content}
-                                            time={new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                            avatar={isMe ? currentUser?.profile_image : activeChat.otherUser?.profile_image}
-                                        />
-                                    </React.Fragment>
-                                );
-                            })}
-                            <div ref={messagesEndRef} />
-                        </div>
-
-                        {/* Input */}
-                        <div className="p-3 md:p-4 bg-white border-t border-slate-100">
-                            <div className="flex items-end gap-2 bg-slate-100 rounded-2xl px-4 py-2 border border-transparent focus-within:bg-white focus-within:border-km-primary/30 transition-all">
-                                <textarea
-                                    rows={1}
-                                    value={inputText}
-                                    onChange={(e) => setInputText(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                            e.preventDefault();
-                                            handleSendMessage();
-                                        }
-                                    }}
-                                    placeholder="Write a message..."
-                                    className="flex-1 bg-transparent border-none focus:ring-0 text-sm resize-none py-1.5 outline-none max-h-32 text-slate-800"
-                                    style={{ scrollbarWidth: 'none' }}
-                                />
-                                <button
-                                    onClick={handleSendMessage}
-                                    disabled={!inputText.trim()}
-                                    className={`p-2.5 rounded-xl transition-all shrink-0 mb-0.5 ${inputText.trim() ? 'bg-km-primary text-white hover:bg-km-primary-dark shadow-md shadow-blue-900/10' : 'bg-slate-200 text-slate-400'}`}
-                                >
-                                    <Send size={18} />
-                                </button>
-                            </div>
-                        </div>
-                    </>
-                ) : (
-                    // Empty state — only visible on desktop since mobile shows sidebar
-                    <div className="hidden md:flex flex-1 flex-col items-center justify-center text-slate-400">
-                        <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mb-4">
-                            <Send size={36} className="text-km-primary ml-1 mt-1" />
-                        </div>
-                        <h2 className="text-lg font-bold text-slate-700">Your Messages</h2>
-                        <p className="text-sm text-center mt-1 max-w-xs text-slate-500">
-                            Select a chat or search for someone to start a conversation.
-                        </p>
-                    </div>
-                )}
-            </main>
-        </div>
-    );
+// --- Curated Emoji Dataset ---
+const EMOJI_CATEGORIES = {
+  smileys: {
+    label: "Smileys",
+    emojis: [
+      "😀",
+      "😁",
+      "😂",
+      "🤣",
+      "😃",
+      "😄",
+      "😅",
+      "😆",
+      "😉",
+      "😊",
+      "😋",
+      "😎",
+      "😍",
+      "🥰",
+      "😘",
+      "😚",
+      "🙂",
+      "🤗",
+      "🤩",
+      "🤔",
+      "🤨",
+      "😐",
+      "😶",
+      "🙄",
+      "😏",
+      "😴",
+      "😌",
+      "🥳",
+      "🥺",
+      "😇",
+      "🤠",
+      "🤐",
+      "😮",
+      "🤤",
+      "🫠",
+      "🙃",
+    ],
+  },
+  hands: {
+    label: "Hands",
+    emojis: [
+      "👍",
+      "👎",
+      "👌",
+      "✌️",
+      "🤞",
+      "🤟",
+      "🤘",
+      "🤙",
+      "👈",
+      "👉",
+      "👆",
+      "👇",
+      "✋",
+      "🖐️",
+      "🖖",
+      "👋",
+      "🤝",
+      "👏",
+      "🙌",
+      "👐",
+      "🤲",
+      "🙏",
+      "💪",
+      "👊",
+    ],
+  },
+  work: {
+    label: "Work",
+    emojis: [
+      "💼",
+      "📁",
+      "📄",
+      "📊",
+      "📈",
+      "📉",
+      "💻",
+      "🖥️",
+      "📱",
+      "✉️",
+      "📧",
+      "✍️",
+      "🎯",
+      "📌",
+      "📍",
+      "🔍",
+      "💡",
+      "⏱️",
+      "📅",
+      "🗓️",
+      "🏢",
+      "🧑‍💻",
+      "👨‍💼",
+      "👩‍💼",
+    ],
+  },
+  fun: {
+    label: "Fun & Symbols",
+    emojis: [
+      "🎉",
+      "🎊",
+      "🎈",
+      "🏆",
+      "🥇",
+      "⭐",
+      "🌟",
+      "✨",
+      "🚀",
+      "🔥",
+      "💯",
+      "🥂",
+      "🎁",
+      "💐",
+      "❤️",
+      "🧡",
+      "💙",
+      "🟢",
+      "✔️",
+      "✅",
+      "⚠️",
+      "❗",
+      "❓",
+      "🔔",
+    ],
+  },
 };
 
-// --- Sub-Components ---
 
-const ChatListItem = ({ name, message, date, active, onClick, user }: any) => (
-    <div
-        onClick={onClick}
-        className={`p-3 rounded-xl flex gap-3 cursor-pointer transition-all ${active ? 'bg-blue-50/80 border border-blue-200' : 'hover:bg-slate-50 border border-transparent'}`}
-    >
-        <div className="relative w-11 h-11 bg-km-primary-dark rounded-full shrink-0 flex items-center justify-center text-white font-bold overflow-hidden shadow-inner">
-            {user?.profile_image
-                ? <img src={user.profile_image} className="w-full h-full object-cover" alt={name} />
-                : name[0]}
-        </div>
-        <div className="flex-1 min-w-0">
-            <div className="flex justify-between items-start">
-                <h4 className={`text-sm font-bold truncate ${active ? 'text-km-primary' : 'text-slate-800'}`}>{name}</h4>
-                <span className="text-[10px] text-slate-400 whitespace-nowrap ml-2 mt-0.5 font-medium">{date}</span>
+
+// --- Formatters ---
+const formatFileSize = (bytes?: number): string => {
+  if (!bytes || bytes <= 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const formatMessageTime = (dateStr: string): string => {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } catch {
+    return "";
+  }
+};
+
+const formatChatListDate = (dateStr: string): string => {
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0 && d.getDate() === now.getDate()) {
+      return d.toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+    if (diffDays === 1 || (diffDays === 0 && d.getDate() !== now.getDate())) {
+      return "Yesterday";
+    }
+    if (diffDays < 7) {
+      return d.toLocaleDateString([], { weekday: "short" });
+    }
+    return d.toLocaleDateString([], { month: "short", day: "numeric" });
+  } catch {
+    return "";
+  }
+};
+
+const getDateDividerLabel = (dateStr: string): string => {
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const isToday =
+      d.getDate() === now.getDate() &&
+      d.getMonth() === now.getMonth() &&
+      d.getFullYear() === now.getFullYear();
+
+    if (isToday) return "Today";
+
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const isYesterday =
+      d.getDate() === yesterday.getDate() &&
+      d.getMonth() === yesterday.getMonth() &&
+      d.getFullYear() === yesterday.getFullYear();
+
+    if (isYesterday) return "Yesterday";
+
+    return d.toLocaleDateString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      year: d.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    });
+  } catch {
+    return dateStr;
+  }
+};
+
+// --- Resolve asset URL ---
+const getFullMediaUrl = (url?: string): string => {
+  if (!url) return "";
+  if (
+    url.startsWith("http://") ||
+    url.startsWith("https://") ||
+    url.startsWith("blob:") ||
+    url.startsWith("data:")
+  ) {
+    return url;
+  }
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  return `${apiUrl.replace(/\/$/, "")}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
+// --- Main Chat View Component ---
+function ChatView() {
+  const searchParams = useSearchParams();
+
+  // Data state
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [activeChat, setActiveChat] = useState<Conversation | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+
+  // Search & Filter
+  const [filterTab, setFilterTab] = useState<"all" | "unread">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [platformSearchResults, setPlatformSearchResults] = useState<User[]>(
+    [],
+  );
+  const [isSearchingPlatform, setIsSearchingPlatform] = useState(false);
+
+  // Input & Attachments
+  const [inputText, setInputText] = useState("");
+  const [pendingAttachment, setPendingAttachment] =
+    useState<PendingAttachment | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Emoji Picker state
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiCategory, setEmojiCategory] = useState<
+    "smileys" | "hands" | "work" | "fun"
+  >("smileys");
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  // Real-time typing states
+  const [isOtherTyping, setIsOtherTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<Record<string, boolean>>({});
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const myTypingDebounceRef = useRef<NodeJS.Timeout | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+
+  // Lightbox image viewer
+  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+
+  // Mobile slide-in view
+  const [mobileChatOpen, setMobileChatOpen] = useState(false);
+
+  // DOM & State refs
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const activeChatRef = useRef<Conversation | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const prevMessagesLength = useRef(0);
+  const prevActiveChatId = useRef<string | null>(null);
+
+  // Chat options menu state
+  const [showChatMenu, setShowChatMenu] = useState(false);
+  const chatMenuRef = useRef<HTMLDivElement>(null);
+
+  // Reset window scroll on mount so page doesn't get scrolled under navbar
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Close chat menu when clicking outside
+  useEffect(() => {
+    const handleMenuClickOutside = (e: MouseEvent) => {
+      if (
+        chatMenuRef.current &&
+        !chatMenuRef.current.contains(e.target as Node)
+      ) {
+        setShowChatMenu(false);
+      }
+    };
+    if (showChatMenu) {
+      document.addEventListener("mousedown", handleMenuClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleMenuClickOutside);
+    };
+  }, [showChatMenu]);
+
+  useEffect(() => {
+    activeChatRef.current = activeChat;
+    setShowChatMenu(false);
+  }, [activeChat]);
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(e.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+    if (showEmojiPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
+  // 1. Initial User Profile & Conversations
+  useEffect(() => {
+    const initUser = async () => {
+      let userObj: User | null = null;
+      const stored = localStorage.getItem("user");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          userObj = { ...parsed, id: parsed.id || parsed._id };
+        } catch (e) {
+          console.error("Failed to parse cached user", e);
+        }
+      }
+
+      if (!userObj) {
+        try {
+          const profile = (await api.get("/user/profile")) as any;
+          userObj = { ...profile, id: profile.id || profile._id };
+        } catch (e) {
+          console.error("User not logged in", e);
+        }
+      }
+
+      if (userObj) {
+        setCurrentUser(userObj);
+        await loadConversations(userObj.id, true);
+      } else {
+        setLoadingConversations(false);
+      }
+    };
+
+    initUser();
+  }, []);
+
+  // 2. Load conversations (Enriched in 1 single backend query)
+  // Note: isInitial flag ensures the sidebar ONLY shows the spinner on cold start, NEVER on message exchange!
+  const loadConversations = async (myId: string, isInitial = false) => {
+    try {
+      if (isInitial) setLoadingConversations(true);
+      const res = (await api.get("/chats")) as Conversation[];
+      // Normalize other_user / otherUser
+      const list = (res || []).map((c) => {
+        const partner = c.other_user || c.otherUser;
+        return {
+          ...c,
+          otherUser: partner,
+          other_user: partner,
+        };
+      });
+
+      // Sort by updated_at desc
+      list.sort(
+        (a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+      );
+      setConversations(list);
+      return list;
+    } catch (e) {
+      console.error("Failed to fetch conversations", e);
+      return [];
+    } finally {
+      if (isInitial) setLoadingConversations(false);
+    }
+  };
+
+  // Smooth In-Memory Sidebar Update (Prevents unmounting or flicker on message send/receive)
+  const updateConversationLastMessageLocally = (
+    convId: string,
+    lastMsgText: string,
+    partnerId?: string,
+    unreadDelta = 0,
+  ) => {
+    setConversations((prev) => {
+      const updated = prev.map((c) => {
+        const matches =
+          c.id === convId || (partnerId && c.participants.includes(partnerId));
+        if (matches) {
+          return {
+            ...c,
+            last_message: lastMsgText,
+            updated_at: new Date().toISOString(),
+            unread_count: Math.max(0, (c.unread_count || 0) + unreadDelta),
+          };
+        }
+        return c;
+      });
+
+      // Sort by updated_at so latest conversation moves smoothly to top
+      return updated.sort(
+        (a, b) =>
+          new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+      );
+    });
+  };
+
+  // 3. Mark conversation as read
+  const markAsRead = async (chat: Conversation) => {
+    if (!chat || !chat.id || chat.id.startsWith("temp-") || !currentUser)
+      return;
+    const other = chat.other_user || chat.otherUser;
+    const otherId =
+      other?.id || chat.participants.find((p) => p !== currentUser.id);
+    if (!otherId) return;
+
+    try {
+      await api
+        .put(`/chats/${chat.id}/read?other_id=${otherId}`)
+        .catch(() => {});
+      // Optimistically reset unread count in state
+      setConversations((prev) =>
+        prev.map((c) => (c.id === chat.id ? { ...c, unread_count: 0 } : c)),
+      );
+    } catch {
+      // Silently ignore
+    }
+  };
+
+  // 4. WebSocket setup
+  useEffect(() => {
+    if (!currentUser) return;
+
+    let ws: WebSocket;
+    let reconnectTimer: NodeJS.Timeout;
+    let isUnmounting = false;
+
+    const connectWS = () => {
+      if (isUnmounting) return;
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      const host = process.env.NEXT_PUBLIC_API_URL
+        ? process.env.NEXT_PUBLIC_API_URL.replace(/^https?:\/\//, "")
+        : window.location.host;
+
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const wsUrl = token
+        ? `${protocol}//${host}/api/ws/chats?token=${encodeURIComponent(token)}`
+        : `${protocol}//${host}/api/ws/chats`;
+
+      ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+
+      ws.onopen = () => {
+        // Keep-alive or re-sync
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const currentActive = activeChatRef.current;
+
+          // Handle New Incoming Message
+          if (data.type === "NEW_MESSAGE" && data.message) {
+            const newMsg: Message = data.message;
+            const isForActiveChat =
+              currentActive &&
+              (newMsg.conversation_id === currentActive.id ||
+                (currentActive.id.startsWith("temp-") &&
+                  currentActive.participants.includes(newMsg.sender_id)));
+
+            if (isForActiveChat) {
+              setMessages((prev) => {
+                // Prevent duplicate append if ID already in state
+                if (prev.some((m) => m.id === newMsg.id)) return prev;
+
+                // If this is my own message and an optimistic placeholder exists, replace it
+                const optIndex = prev.findIndex(
+                  (m) =>
+                    m.isOptimistic &&
+                    m.sender_id === newMsg.sender_id &&
+                    (m.content === newMsg.content ||
+                      (newMsg.attachment_name &&
+                        m.attachment_name === newMsg.attachment_name)),
+                );
+                if (optIndex !== -1) {
+                  const next = [...prev];
+                  next[optIndex] = newMsg;
+                  return next;
+                }
+
+                return [...prev, newMsg];
+              });
+
+              // If incoming message from other user in active chat, mark as read immediately
+              if (newMsg.sender_id !== currentUser.id) {
+                markAsRead(currentActive);
+              }
+            } else {
+              // Message in an inactive chat: play soft audio chime (powered by uisfx)
+              if (newMsg.sender_id !== currentUser.id) {
+                playMessageReceivedSound();
+              }
+            }
+
+            // Smoothly update the last message in sidebar in-memory (no spinner!)
+            const previewText =
+              newMsg.content ||
+              (newMsg.attachment_name
+                ? `📎 ${newMsg.attachment_name}`
+                : "Sent an attachment");
+            updateConversationLastMessageLocally(
+              newMsg.conversation_id,
+              previewText,
+              newMsg.sender_id,
+              isForActiveChat ? 0 : 1,
+            );
+
+            // Quiet background refresh to keep state identical with backend
+            loadConversations(currentUser.id, false);
+          }
+
+          // Handle Read Receipts
+          if (data.type === "MESSAGES_READ" && data.conversation_id) {
+            if (currentActive && currentActive.id === data.conversation_id) {
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.sender_id === currentUser.id ? { ...m, is_read: true } : m,
+                ),
+              );
+            }
+          }
+
+          // Handle Typing Indicator
+          if (data.type === "USER_TYPING") {
+            const typingSenderId = data.sender_id;
+            if (typingSenderId && typingSenderId !== currentUser.id) {
+              // Update sidebar typing indicators
+              setTypingUsers((prev) => {
+                const next = { ...prev };
+                if (data.is_typing) {
+                  next[typingSenderId] = true;
+                } else {
+                  delete next[typingSenderId];
+                }
+                return next;
+              });
+
+              // Check active conversation partner
+              if (currentActive) {
+                const partner =
+                  currentActive.other_user || currentActive.otherUser;
+                const partnerId =
+                  partner?.id ||
+                  currentActive.participants.find((p) => p !== currentUser.id);
+
+                if (typingSenderId === partnerId) {
+                  setIsOtherTyping(Boolean(data.is_typing));
+                  if (typingTimeoutRef.current)
+                    clearTimeout(typingTimeoutRef.current);
+                  if (data.is_typing) {
+                    typingTimeoutRef.current = setTimeout(() => {
+                      setIsOtherTyping(false);
+                    }, 3000);
+                  }
+                }
+              }
+            }
+          }
+
+          // Handle Message Deletion
+          if (data.type === "MESSAGE_DELETED") {
+            const deletedMsgId = data.message_id;
+            setMessages((prev) => prev.filter((m) => m.id !== deletedMsgId));
+            if (currentUser) {
+              loadConversations(currentUser.id, false);
+            }
+          }
+
+          // Handle Clear Messages
+          if (data.type === "CHAT_CLEARED") {
+            if (currentActive && currentActive.id === data.conversation_id) {
+              setMessages([]);
+            }
+            if (currentUser) {
+              loadConversations(currentUser.id, false);
+            }
+          }
+
+          // Handle Conversation Deletion
+          if (data.type === "CONVERSATION_DELETED") {
+            const targetConvId = data.conversation_id;
+            setConversations((prev) =>
+              prev.filter((c) => c.id !== targetConvId),
+            );
+            if (currentActive && currentActive.id === targetConvId) {
+              setActiveChat(null);
+              setMessages([]);
+              setMobileChatOpen(false);
+            }
+          }
+        } catch (e) {
+          console.error("Invalid WS payload", e);
+        }
+      };
+
+      ws.onclose = () => {
+        if (!isUnmounting) {
+          reconnectTimer = setTimeout(connectWS, 3000);
+        }
+      };
+
+      ws.onerror = (err) => {
+        console.error("Chat WS connection error", err);
+      };
+    };
+
+    connectWS();
+
+    return () => {
+      isUnmounting = true;
+      clearTimeout(reconnectTimer);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+      if (ws) {
+        ws.onclose = null;
+        ws.close();
+      }
+    };
+  }, [currentUser]);
+
+  // 5. Emit typing status
+  const emitTyping = (isTyping: boolean) => {
+    if (
+      !wsRef.current ||
+      wsRef.current.readyState !== WebSocket.OPEN ||
+      !activeChat ||
+      !currentUser
+    ) {
+      return;
+    }
+    const other = activeChat.other_user || activeChat.otherUser;
+    const otherId =
+      other?.id || activeChat.participants.find((p) => p !== currentUser.id);
+    if (!otherId) return;
+
+    try {
+      wsRef.current.send(
+        JSON.stringify({
+          type: "TYPING",
+          receiver_id: otherId,
+          conversation_id: activeChat.id,
+          is_typing: isTyping,
+        }),
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputText(e.target.value);
+
+    // Auto expand textarea height
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+    }
+
+    // Emit typing true
+    emitTyping(true);
+    if (myTypingDebounceRef.current) clearTimeout(myTypingDebounceRef.current);
+    myTypingDebounceRef.current = setTimeout(() => {
+      emitTyping(false);
+    }, 2000);
+  };
+
+  // Insert emoji at cursor position
+  const insertEmoji = (emoji: string) => {
+    const textarea = textareaRef.current;
+    if (!textarea) {
+      setInputText((prev) => prev + emoji);
+      return;
+    }
+    const start = textarea.selectionStart || 0;
+    const end = textarea.selectionEnd || 0;
+    const text = inputText;
+    const newText = text.substring(0, start) + emoji + text.substring(end);
+    setInputText(newText);
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+    }, 0);
+    emitTyping(true);
+  };
+
+  // 6. Handle URL search params (?user= or ?userId=) to deep-link chat
+  useEffect(() => {
+    const targetUserId = searchParams.get("user") || searchParams.get("userId");
+    if (!targetUserId || !currentUser || loadingConversations) return;
+    if (targetUserId === currentUser.id) return;
+
+    const selectOrStartChat = async () => {
+      const existing = conversations.find((c) =>
+        c.participants.includes(targetUserId),
+      );
+      if (existing) {
+        setActiveChat(existing);
+        setMobileChatOpen(true);
+        markAsRead(existing);
+      } else {
+        try {
+          const targetUser = (await api.get(`/user/${targetUserId}`)) as User;
+          const draft: Conversation = {
+            id: `temp-${targetUserId}`,
+            participants: [currentUser.id, targetUserId],
+            last_message: "",
+            updated_at: new Date().toISOString(),
+            other_user: targetUser,
+            otherUser: targetUser,
+            unread_count: 0,
+          };
+          setActiveChat(draft);
+          setMessages([]);
+          setMobileChatOpen(true);
+        } catch (e) {
+          console.error("Failed to resolve target user for chat deep-link", e);
+        }
+      }
+    };
+
+    selectOrStartChat();
+  }, [searchParams, currentUser, loadingConversations]);
+
+  // 7. Load messages when active chat changes
+  useEffect(() => {
+    if (!activeChat) {
+      setMessages([]);
+      return;
+    }
+
+    setIsOtherTyping(false);
+
+    if (activeChat.id.startsWith("temp-")) {
+      setMessages([]);
+      return;
+    }
+
+    const fetchMessages = async () => {
+      setLoadingMessages(true);
+      try {
+        const res = (await api.get(
+          `/chats/${activeChat.id}/messages`,
+        )) as Message[];
+        setMessages(res || []);
+        markAsRead(activeChat);
+      } catch (e) {
+        console.error("Failed to load messages", e);
+      } finally {
+        setLoadingMessages(false);
+      }
+    };
+
+    fetchMessages();
+  }, [activeChat?.id]);
+
+  // 8. Auto-scroll on new messages (Container-level, never window-level)
+  useEffect(() => {
+    if (!activeChat) return;
+
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    if (activeChat.id !== prevActiveChatId.current) {
+      prevActiveChatId.current = activeChat.id;
+      prevMessagesLength.current = messages.length;
+      container.scrollTop = container.scrollHeight;
+    } else if (messages.length > prevMessagesLength.current) {
+      prevMessagesLength.current = messages.length;
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    } else {
+      prevMessagesLength.current = messages.length;
+    }
+  }, [messages, activeChat, isOtherTyping]);
+
+  // 9. File attachment selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Limit file size to 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("File size exceeds the 10 MB limit");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      return;
+    }
+
+    const isImage = file.type.startsWith("image/");
+    const previewUrl = isImage ? URL.createObjectURL(file) : undefined;
+
+    setPendingAttachment({
+      file,
+      previewUrl,
+      isImage,
+      name: file.name,
+      sizeFormatted: formatFileSize(file.size),
+    });
+
+    // Reset input element so re-selecting same file triggers event
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const removePendingAttachment = () => {
+    if (pendingAttachment?.previewUrl) {
+      URL.revokeObjectURL(pendingAttachment.previewUrl);
+    }
+    setPendingAttachment(null);
+  };
+
+  // 10. Send message (with attachment upload & optimistic update)
+  const handleSendMessage = async () => {
+    const text = inputText.trim();
+    if (
+      (!text && !pendingAttachment) ||
+      !activeChat ||
+      !currentUser ||
+      isUploading
+    )
+      return;
+
+    const other = activeChat.other_user || activeChat.otherUser;
+    const otherId =
+      other?.id || activeChat.participants.find((p) => p !== currentUser.id);
+    if (!otherId) return;
+
+    // Close emoji picker
+    setShowEmojiPicker(false);
+
+    // Clear typing
+    emitTyping(false);
+    if (myTypingDebounceRef.current) clearTimeout(myTypingDebounceRef.current);
+
+    let uploadedUrl = "";
+    let uploadedType = "";
+    let uploadedName = "";
+    let uploadedSize = 0;
+
+    // 1. Upload attachment if attached
+    if (pendingAttachment) {
+      setIsUploading(true);
+      try {
+        const formData = new FormData();
+        formData.append("file", pendingAttachment.file);
+        formData.append("module_name", "chat");
+        formData.append("record_id", activeChat.id);
+
+        const uploadRes = (await api.post("/files/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        })) as any;
+
+        uploadedUrl = uploadRes.url || uploadRes.URL || "";
+        uploadedType = uploadRes.mime_type || pendingAttachment.file.type || "";
+        uploadedName =
+          uploadRes.original_filename || pendingAttachment.name || "";
+        uploadedSize = uploadRes.size || pendingAttachment.file.size || 0;
+      } catch (err: any) {
+        console.error("File upload failed", err);
+        toast.error(
+          err?.message || "Attachment upload failed. Please try again.",
+        );
+        setIsUploading(false);
+        return;
+      }
+    }
+
+    // 2. Optimistic UI update
+    const tempId = `optimistic-${Date.now()}`;
+    const optimisticMsg: Message = {
+      id: tempId,
+      conversation_id: activeChat.id,
+      sender_id: currentUser.id,
+      content: text,
+      created_at: new Date().toISOString(),
+      is_read: false,
+      attachment_url: uploadedUrl || pendingAttachment?.previewUrl,
+      attachment_type:
+        uploadedType ||
+        (pendingAttachment?.isImage
+          ? "image/jpeg"
+          : "application/octet-stream"),
+      attachment_name: uploadedName || pendingAttachment?.name,
+      attachment_size: uploadedSize || pendingAttachment?.file.size,
+      isOptimistic: true,
+    };
+
+    setMessages((prev) => [...prev, optimisticMsg]);
+    setInputText("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+    removePendingAttachment();
+
+    // Optimistically update conversation last message in the sidebar immediately (no spinner!)
+    const displayPreview =
+      text || (uploadedName ? `📎 ${uploadedName}` : "Sent an attachment");
+    updateConversationLastMessageLocally(
+      activeChat.id,
+      displayPreview,
+      otherId,
+      0,
+    );
+
+    // 3. Post to API
+    try {
+      const payload: any = {
+        receiver_id: otherId,
+        content: text,
+      };
+      if (uploadedUrl) {
+        payload.attachment_url = uploadedUrl;
+        payload.attachment_type = uploadedType;
+        payload.attachment_name = uploadedName;
+        payload.attachment_size = uploadedSize;
+      }
+
+      const sentMsg = (await api.post("/chats/messages", payload)) as Message;
+
+      // Replace optimistic message with actual message returned from server,
+      // or remove the optimistic placeholder if WebSocket already added it.
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === sentMsg.id)) {
+          return prev.filter((m) => m.id !== tempId);
+        }
+        return prev.map((m) =>
+          m.id === tempId ? { ...sentMsg, isOptimistic: false } : m,
+        );
+      });
+
+      // If it was a draft temporary conversation, refresh conversations to get real conversation ID
+      if (activeChat.id.startsWith("temp-")) {
+        const refreshed = await loadConversations(currentUser.id, false);
+        const realChat = refreshed.find((c) =>
+          c.participants.includes(otherId),
+        );
+        if (realChat) {
+          setActiveChat(realChat);
+        }
+      } else {
+        // Quiet background sync without showing a spinner
+        loadConversations(currentUser.id, false);
+      }
+    } catch (err: any) {
+      console.error("Failed to send message", err);
+      toast.error(err?.message || "Failed to send message");
+      // Remove optimistic message on failure
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // 11. Platform-wide user search for starting a new chat
+  const handlePlatformSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (query.trim().length < 2) {
+      setPlatformSearchResults([]);
+      return;
+    }
+
+    setIsSearchingPlatform(true);
+    try {
+      const res = (await api.get(
+        `/user/search?q=${encodeURIComponent(query.trim())}`,
+      )) as User[];
+      // Exclude current user from search
+      const filtered = (res || []).filter((u) => u.id !== currentUser?.id);
+      setPlatformSearchResults(filtered);
+    } catch (e) {
+      console.error("Search platform users failed", e);
+    } finally {
+      setIsSearchingPlatform(false);
+    }
+  };
+
+  const startConversationWithUser = (user: User) => {
+    if (!currentUser) return;
+    const existing = conversations.find((c) =>
+      c.participants.includes(user.id),
+    );
+    if (existing) {
+      setActiveChat(existing);
+      markAsRead(existing);
+    } else {
+      const draft: Conversation = {
+        id: `temp-${user.id}`,
+        participants: [currentUser.id, user.id],
+        last_message: "",
+        updated_at: new Date().toISOString(),
+        other_user: user,
+        otherUser: user,
+        unread_count: 0,
+      };
+      setActiveChat(draft);
+      setMessages([]);
+    }
+    setSearchQuery("");
+    setPlatformSearchResults([]);
+    setMobileChatOpen(true);
+  };
+
+  // 12. Filtered conversation list
+  const filteredConversations = useMemo(() => {
+    let list = conversations;
+    if (filterTab === "unread") {
+      list = list.filter((c) => (c.unread_count || 0) > 0);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter((c) => {
+        const partner = c.other_user || c.otherUser;
+        const name = (partner?.name || "").toLowerCase();
+        const lastMsg = (c.last_message || "").toLowerCase();
+        return name.includes(q) || lastMsg.includes(q);
+      });
+    }
+    return list;
+  }, [conversations, filterTab, searchQuery]);
+
+  const activePartner = activeChat?.other_user || activeChat?.otherUser;
+
+  // 13. Message & Conversation Deletion Handlers
+  const handleDeleteMessage = async (messageId: string) => {
+    if (!window.confirm("Delete this message for everyone?")) return;
+    try {
+      await api.delete(`/chats/messages/${messageId}`);
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      if (currentUser) {
+        loadConversations(currentUser.id, false);
+      }
+      toast.success("Message deleted");
+    } catch (e: any) {
+      console.error("Failed to delete message", e);
+      toast.error(e?.response?.data?.error || "Failed to delete message");
+    }
+  };
+
+  const handleClearChat = async () => {
+    if (!activeChat) return;
+    if (
+      !window.confirm(
+        "Are you sure you want to clear all messages in this chat?",
+      )
+    )
+      return;
+    setShowChatMenu(false);
+    try {
+      await api.delete(`/chats/${activeChat.id}/messages`);
+      setMessages([]);
+      if (currentUser) {
+        loadConversations(currentUser.id, false);
+      }
+      toast.success("Chat cleared");
+    } catch (e: any) {
+      console.error("Failed to clear chat", e);
+      toast.error(e?.response?.data?.error || "Failed to clear chat");
+    }
+  };
+
+  const handleDeleteConversation = async (conversationId?: string) => {
+    const convId = conversationId || activeChat?.id;
+    if (!convId) return;
+    if (
+      !window.confirm(
+        "Delete this conversation completely? All messages will be permanently deleted.",
+      )
+    )
+      return;
+    setShowChatMenu(false);
+    try {
+      await api.delete(`/chats/${convId}`);
+      setConversations((prev) => prev.filter((c) => c.id !== convId));
+      if (activeChat?.id === convId) {
+        setActiveChat(null);
+        setMessages([]);
+        setMobileChatOpen(false);
+      }
+      toast.success("Conversation deleted");
+    } catch (e: any) {
+      console.error("Failed to delete conversation", e);
+      toast.error(e?.response?.data?.error || "Failed to delete conversation");
+    }
+  };
+
+  return (
+    <div className="flex h-[calc(100dvh-64px)] bg-[#F4F7FB] overflow-hidden relative font-sans w-full">
+      {/* ── SIDEBAR / CONVERSATION LIST ── */}
+      <aside
+        className={`
+                    w-full md:w-80 lg:w-[360px] xl:w-[380px] bg-white border-r border-[#D9E0EA]
+                    flex flex-col h-full shrink-0 shadow-xs z-10
+                    transition-transform duration-300 ease-in-out
+                    ${mobileChatOpen ? "hidden md:flex" : "flex"}
+                `}
+      >
+        {/* Sidebar Header */}
+        <div className="p-3.5 sm:p-4 border-b border-[#D9E0EA] space-y-2.5 bg-white">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-[#071A4D] font-poppins">
+                Messages
+              </h1>
+              {conversations.reduce(
+                (sum, c) => sum + (c.unread_count || 0),
+                0,
+              ) > 0 && (
+                <span className="bg-[#FF6B00] text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                  {conversations.reduce(
+                    (sum, c) => sum + (c.unread_count || 0),
+                    0,
+                  )}
+                </span>
+              )}
             </div>
-            <p className={`text-xs truncate mt-0.5 ${active ? 'text-km-primary font-medium' : 'text-slate-500'}`}>{message}</p>
-        </div>
-    </div>
-);
-
-const ChatHeader = ({ name, designation, avatar, onBack }: any) => (
-    <div className="p-3 md:p-4 border-b border-slate-100 flex justify-between items-center bg-white">
-        <div className="flex items-center gap-3">
-            {/* Back button — mobile only */}
             <button
-                onClick={onBack}
-                className="md:hidden p-1.5 -ml-1 rounded-full hover:bg-slate-100 text-slate-500 transition-colors"
-                aria-label="Back to conversations"
+              onClick={() =>
+                currentUser && loadConversations(currentUser.id, false)
+              }
+              title="Refresh conversations"
+              className="p-1.5 rounded-lg text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] transition-colors"
             >
-                <ChevronLeft size={22} />
+              <RefreshCw size={17} />
             </button>
+          </div>
 
-            <div className="relative w-9 h-9 md:w-10 md:h-10 bg-km-primary-dark rounded-full flex items-center justify-center text-white font-bold overflow-hidden shrink-0 shadow-inner">
-                {avatar
-                    ? <img src={avatar} className="w-full h-full object-cover" alt={name} />
-                    : name[0]}
-                <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white rounded-full" />
-            </div>
-            <div>
-                <h3 className="text-sm font-bold text-slate-900 leading-tight">{name}</h3>
-                <p className="text-[10px] text-slate-400 font-medium">{designation}</p>
-            </div>
+          {/* Filter Tabs */}
+          <div className="flex bg-[#F4F7FB] p-1 rounded-xl border border-[#D9E0EA]">
+            <button
+              onClick={() => setFilterTab("all")}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
+                filterTab === "all"
+                  ? "bg-white text-[#071A4D] shadow-xs"
+                  : "text-[#5B6472] hover:text-[#071A4D]"
+              }`}
+            >
+              All Chats
+            </button>
+            <button
+              onClick={() => setFilterTab("unread")}
+              className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
+                filterTab === "unread"
+                  ? "bg-white text-[#071A4D] shadow-xs"
+                  : "text-[#5B6472] hover:text-[#071A4D]"
+              }`}
+            >
+              <span>Unread</span>
+              {conversations.filter((c) => (c.unread_count || 0) > 0).length >
+                0 && <span className="w-2 h-2 rounded-full bg-[#FF6B00]" />}
+            </button>
+          </div>
+
+          {/* Search Input */}
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B6472]"
+              size={16}
+            />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handlePlatformSearch(e.target.value)}
+              className="w-full bg-[#F4F7FB] rounded-xl py-2 pl-9 pr-8 text-sm text-[#111827] placeholder-[#5B6472] border border-[#D9E0EA] focus:border-[#071A4D] focus:bg-white focus:outline-none transition-all"
+              placeholder="Search chats or find people..."
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setPlatformSearchResults([]);
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5B6472] hover:text-[#111827]"
+              >
+                <X size={15} />
+              </button>
+            )}
+
+            {/* Search Results Dropdown (Platform Users) */}
+            {searchQuery.trim().length >= 2 && (
+              <div className="absolute top-full left-0 right-0 mt-1.5 z-30 bg-white shadow-xl rounded-xl border border-[#D9E0EA] max-h-64 overflow-y-auto divide-y divide-[#F4F7FB]">
+                <div className="p-2 bg-[#F4F7FB] text-[11px] font-bold text-[#5B6472] uppercase tracking-wider">
+                  Platform Search Results
+                </div>
+                {isSearchingPlatform ? (
+                  <div className="p-4 text-center text-xs text-[#5B6472] flex items-center justify-center gap-2">
+                    <Loader2
+                      size={14}
+                      className="animate-spin text-[#071A4D]"
+                    />
+                    Searching users...
+                  </div>
+                ) : platformSearchResults.length > 0 ? (
+                  platformSearchResults.map((u) => (
+                    <div
+                      key={u.id}
+                      onClick={() => startConversationWithUser(u)}
+                      className="p-3 hover:bg-[#F4F7FB] cursor-pointer flex items-center gap-3 transition-colors"
+                    >
+                      <div className="relative w-9 h-9 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden">
+                        {u.profile_image ? (
+                          <img
+                            src={getFullMediaUrl(u.profile_image)}
+                            className="w-full h-full object-cover"
+                            alt={u.name}
+                          />
+                        ) : (
+                          u.name?.[0]?.toUpperCase() || "U"
+                        )}
+                        {u.is_online && (
+                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-[#111827] truncate">
+                          {u.name}
+                        </p>
+                        <p className="text-xs text-[#5B6472] truncate">
+                          {u.headline ||
+                            u.roles?.join(", ") ||
+                            "KaamMilega Member"}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 text-center text-xs text-[#5B6472]">
+                    No users matching &quot;{searchQuery}&quot;
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-        <button className="p-2 rounded-full hover:bg-slate-100 text-slate-400 transition-colors">
-            <MoreHorizontal size={20} />
-        </button>
+
+        {/* Conversation List */}
+        <div className="flex-1 overflow-y-auto divide-y divide-[#F4F7FB]">
+          {loadingConversations ? (
+            <div className="p-6 text-center text-xs text-[#5B6472] space-y-2">
+              <Loader2
+                size={20}
+                className="animate-spin mx-auto text-[#071A4D]"
+              />
+              <p>Loading conversations...</p>
+            </div>
+          ) : filteredConversations.length > 0 ? (
+            filteredConversations.map((chat, idx) => {
+              const partner = chat.other_user || chat.otherUser;
+              const isActive = activeChat?.id === chat.id;
+              const unread = chat.unread_count || 0;
+              const isTyping = Boolean(partner?.id && typingUsers[partner.id]);
+
+              return (
+                <div
+                  key={`${chat.id}-${idx}`}
+                  onClick={() => {
+                    setActiveChat(chat);
+                    setMobileChatOpen(true);
+                    markAsRead(chat);
+                  }}
+                  className={`p-3.5 flex items-center gap-3 cursor-pointer transition-all group ${
+                    isActive
+                      ? "bg-blue-50/70 border-l-4 border-l-[#071A4D]"
+                      : "hover:bg-[#F4F7FB] border-l-4 border-l-transparent"
+                  }`}
+                >
+                  {/* Avatar with solid presence dot */}
+                  <div className="relative w-11 h-11 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs">
+                    {partner?.profile_image ? (
+                      <img
+                        src={getFullMediaUrl(partner.profile_image)}
+                        className="w-full h-full object-cover"
+                        alt={partner.name || "User"}
+                      />
+                    ) : (
+                      partner?.name?.[0]?.toUpperCase() || "U"
+                    )}
+                    {partner?.is_online && (
+                      <span
+                        title="Online"
+                        className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"
+                      />
+                    )}
+                  </div>
+
+                  {/* Conversation Preview */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-baseline mb-1">
+                      <h4
+                        className={`text-sm truncate font-semibold ${
+                          unread > 0
+                            ? "text-[#071A4D] font-bold"
+                            : "text-[#111827]"
+                        }`}
+                      >
+                        {partner?.name || "User"}
+                      </h4>
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
+                        <span className="text-[11px] text-[#5B6472]">
+                          {formatChatListDate(chat.updated_at)}
+                        </span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteConversation(chat.id);
+                          }}
+                          title="Delete conversation"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-all"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      {isTyping ? (
+                        <span className="text-[#FF6B00] text-xs font-semibold animate-pulse">
+                          Typing...
+                        </span>
+                      ) : (
+                        <p
+                          className={`text-xs truncate ${
+                            unread > 0
+                              ? "text-[#071A4D] font-medium"
+                              : "text-[#5B6472]"
+                          }`}
+                        >
+                          {chat.last_message || "Started a new conversation"}
+                        </p>
+                      )}
+                      {unread > 0 && (
+                        <span className="shrink-0 bg-[#FF6B00] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">
+                          {unread}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="p-8 text-center text-[#5B6472] space-y-2">
+              <MessageSquare size={32} className="mx-auto text-[#D9E0EA]" />
+              <p className="text-sm font-semibold text-[#111827]">
+                No conversations found
+              </p>
+              <p className="text-xs text-[#5B6472] max-w-xs mx-auto">
+                Search for a candidate, recruiter, or colleague above to start
+                chatting.
+              </p>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* ── MAIN CHAT PANEL ── */}
+      <main
+        className={`
+                    flex-1 flex flex-col bg-white md:m-2.5 lg:m-3 md:rounded-2xl
+                    md:border md:border-[#D9E0EA] md:shadow-xs overflow-hidden h-full z-20
+                    transition-all duration-300
+                    ${mobileChatOpen ? "flex" : "hidden md:flex"}
+                `}
+      >
+        {activeChat ? (
+          <>
+            {/* Chat Header */}
+            <div className="p-3 sm:p-3.5 md:p-4 border-b border-[#D9E0EA] flex items-center justify-between bg-white z-10 shrink-0">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                {/* Mobile Back Button */}
+                <button
+                  onClick={() => setMobileChatOpen(false)}
+                  className="md:hidden p-1.5 -ml-1 rounded-lg text-[#5B6472] hover:bg-[#F4F7FB] transition-colors shrink-0"
+                  aria-label="Back to messages"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+
+                {/* Contact Avatar */}
+                <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs">
+                  {activePartner?.profile_image ? (
+                    <img
+                      src={getFullMediaUrl(activePartner.profile_image)}
+                      className="w-full h-full object-cover"
+                      alt={activePartner.name || "User"}
+                    />
+                  ) : (
+                    activePartner?.name?.[0]?.toUpperCase() || "U"
+                  )}
+                  {activePartner?.is_online && (
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+                  )}
+                </div>
+
+                {/* Contact Info */}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <h3 className="text-sm font-bold text-[#111827] leading-snug truncate">
+                      {activePartner?.name || "Direct Message"}
+                    </h3>
+                    {activePartner?.is_online && (
+                      <span className="hidden sm:inline-block text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full shrink-0">
+                        Active now
+                      </span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-[#5B6472] truncate">
+                    {isOtherTyping ? (
+                      <span className="text-[#FF6B00] font-semibold flex items-center gap-1.5">
+                        <span>Typing</span>
+                        <span className="inline-flex gap-0.5">
+                          <span className="w-1 h-1 bg-[#FF6B00] rounded-full animate-bounce [animation-delay:-0.3s]" />
+                          <span className="w-1 h-1 bg-[#FF6B00] rounded-full animate-bounce [animation-delay:-0.15s]" />
+                          <span className="w-1 h-1 bg-[#FF6B00] rounded-full animate-bounce" />
+                        </span>
+                      </span>
+                    ) : (
+                      activePartner?.headline ||
+                      activePartner?.roles?.join(" • ") ||
+                      "KaamMilega Verified Member"
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {activePartner?.id && (
+                  <Link
+                    href={`/profile/${activePartner.id}`}
+                    target="_blank"
+                    className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-[#071A4D] bg-[#F4F7FB] hover:bg-slate-200 rounded-lg border border-[#D9E0EA] transition-colors"
+                  >
+                    <span className="hidden xs:inline">Profile</span>
+                    <ExternalLink size={13} />
+                  </Link>
+                )}
+
+                {/* Chat Options Menu */}
+                <div className="relative" ref={chatMenuRef}>
+                  <button
+                    onClick={() => setShowChatMenu(!showChatMenu)}
+                    className="p-1.5 rounded-lg text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] transition-colors"
+                    title="Chat options"
+                    aria-label="Chat options"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+
+                  {showChatMenu && (
+                    <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-[#D9E0EA] rounded-xl shadow-lg z-30 py-1 text-xs divide-y divide-[#F4F7FB]">
+                      <button
+                        onClick={handleClearChat}
+                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] transition-colors"
+                      >
+                        <RotateCcw size={14} />
+                        <span>Clear messages</span>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteConversation()}
+                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                        <span>Delete conversation</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Messages Scroll Area */}
+            <div
+              ref={messagesContainerRef}
+              className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-6 space-y-3.5 md:space-y-4 bg-[#F4F7FB]"
+            >
+              {loadingMessages ? (
+                <div className="flex flex-col items-center justify-center h-full text-xs text-[#5B6472] space-y-2">
+                  <Loader2 size={24} className="animate-spin text-[#071A4D]" />
+                  <p>Loading messages...</p>
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-3">
+                  <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center border border-[#D9E0EA] shadow-xs">
+                    <MessageSquare size={24} className="text-[#071A4D]" />
+                  </div>
+                  <p className="text-sm font-bold text-[#111827]">
+                    Say hello to {activePartner?.name || "your contact"}!
+                  </p>
+                  <p className="text-xs text-[#5B6472] max-w-sm">
+                    Send a direct message, emoji, or share a document to start
+                    collaborating.
+                  </p>
+                </div>
+              ) : (
+                messages.map((msg, index) => {
+                  const isMe = msg.sender_id === currentUser?.id;
+                  const prevMsg = messages[index - 1];
+                  const showDateDivider =
+                    index === 0 ||
+                    new Date(msg.created_at).toDateString() !==
+                      new Date(prevMsg.created_at).toDateString();
+
+                  return (
+                    <React.Fragment key={`${msg.id || "msg"}-${index}`}>
+                      {showDateDivider && (
+                        <div className="flex items-center justify-center my-3 sm:my-4">
+                          <span className="bg-white text-[#5B6472] text-[11px] font-semibold px-3 py-1 rounded-full border border-[#D9E0EA] shadow-xs">
+                            {getDateDividerLabel(msg.created_at)}
+                          </span>
+                        </div>
+                      )}
+
+                      <div
+                        className={`flex gap-2 sm:gap-2.5 group ${isMe ? "flex-row-reverse" : ""}`}
+                      >
+                        {/* Mini avatar for received messages */}
+                        {!isMe && (
+                          <div className="w-7 h-7 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-[10px] shrink-0 overflow-hidden mt-1">
+                            {activePartner?.profile_image ? (
+                              <img
+                                src={getFullMediaUrl(
+                                  activePartner.profile_image,
+                                )}
+                                className="w-full h-full object-cover"
+                                alt={activePartner.name || "User"}
+                              />
+                            ) : (
+                              activePartner?.name?.[0]?.toUpperCase() || "U"
+                            )}
+                          </div>
+                        )}
+
+                        {/* Delete message button (for sender) */}
+                        {isMe && !msg.isOptimistic && (
+                          <button
+                            onClick={() => handleDeleteMessage(msg.id)}
+                            title="Delete message"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity self-center p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-[#D9E0EA] shadow-xs shrink-0"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
+
+                        <div
+                          className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%] ${
+                            isMe ? "items-end" : "items-start"
+                          }`}
+                        >
+                          {/* Message Box */}
+                          <div
+                            className={`rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-sm shadow-xs break-words ${
+                              isMe
+                                ? "bg-[#071A4D] text-white rounded-tr-xs"
+                                : "bg-white text-[#111827] border border-[#D9E0EA] rounded-tl-xs"
+                            }`}
+                          >
+                            {/* Attachment: Image */}
+                            {msg.attachment_url &&
+                              (msg.attachment_type?.startsWith("image/") ||
+                                msg.attachment_url.match(
+                                  /\.(jpg|jpeg|png|webp|gif)$/i,
+                                )) && (
+                                <div className="mb-2 overflow-hidden rounded-xl">
+                                  <img
+                                    src={getFullMediaUrl(msg.attachment_url)}
+                                    alt={
+                                      msg.attachment_name || "Attached image"
+                                    }
+                                    onClick={() =>
+                                      setLightboxImage(
+                                        getFullMediaUrl(msg.attachment_url),
+                                      )
+                                    }
+                                    className="max-h-60 w-auto rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                  />
+                                </div>
+                              )}
+
+                            {/* Attachment: File/Document */}
+                            {msg.attachment_url &&
+                              !msg.attachment_type?.startsWith("image/") &&
+                              !msg.attachment_url.match(
+                                /\.(jpg|jpeg|png|webp|gif)$/i,
+                              ) && (
+                                <a
+                                  href={getFullMediaUrl(msg.attachment_url)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  download={msg.attachment_name || "document"}
+                                  className={`flex items-center gap-2.5 p-2 mb-2 rounded-xl border transition-colors ${
+                                    isMe
+                                      ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                                      : "bg-[#F4F7FB] hover:bg-slate-200 border-[#D9E0EA] text-[#071A4D]"
+                                  }`}
+                                >
+                                  <div
+                                    className={`p-2 rounded-lg ${
+                                      isMe
+                                        ? "bg-white/20"
+                                        : "bg-white border border-[#D9E0EA]"
+                                    }`}
+                                  >
+                                    <FileText size={18} />
+                                  </div>
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-xs font-semibold truncate">
+                                      {msg.attachment_name ||
+                                        "Attached Document"}
+                                    </p>
+                                    {msg.attachment_size ? (
+                                      <p
+                                        className={`text-[10px] ${
+                                          isMe
+                                            ? "text-white/70"
+                                            : "text-[#5B6472]"
+                                        }`}
+                                      >
+                                        {formatFileSize(msg.attachment_size)}
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                  <Download size={15} className="shrink-0" />
+                                </a>
+                              )}
+
+                            {/* Text Content */}
+                            {msg.content && (
+                              <p className="whitespace-pre-wrap break-words leading-relaxed text-[13.5px]">
+                                {msg.content}
+                              </p>
+                            )}
+
+                            {/* Time & Read Status - Generous padding to prevent trimming on double ticks */}
+                            <div
+                              className={`flex items-center gap-1.5 justify-end mt-1 text-[10px] select-none ${
+                                isMe ? "text-white/80" : "text-[#5B6472]"
+                              }`}
+                            >
+                              <span className="leading-none">
+                                {formatMessageTime(msg.created_at)}
+                              </span>
+                              {isMe && (
+                                <span
+                                  className="inline-flex items-center justify-center shrink-0 pl-0.5 pr-0.5"
+                                  style={{ minWidth: "18px" }}
+                                >
+                                  {msg.isOptimistic ? (
+                                    <Clock
+                                      size={12}
+                                      className="text-white/70"
+                                    />
+                                  ) : msg.is_read ? (
+                                    <span
+                                      title="Read"
+                                      className="inline-flex items-center"
+                                    >
+                                      <CheckCheck
+                                        size={16}
+                                        strokeWidth={2.4}
+                                        className="text-[#38BDF8] shrink-0"
+                                      />
+                                    </span>
+                                  ) : (
+                                    <span
+                                      title="Sent"
+                                      className="inline-flex items-center"
+                                    >
+                                      <Check
+                                        size={14}
+                                        strokeWidth={2.2}
+                                        className="text-white/70 shrink-0"
+                                      />
+                                    </span>
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </React.Fragment>
+                  );
+                })
+              )}
+
+              {/* Typing Indicator Bubble */}
+              {isOtherTyping && (
+                <div className="flex gap-2.5 items-end">
+                  <div className="w-7 h-7 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-[10px] shrink-0 overflow-hidden">
+                    {activePartner?.profile_image ? (
+                      <img
+                        src={getFullMediaUrl(activePartner.profile_image)}
+                        className="w-full h-full object-cover"
+                        alt={activePartner.name || "User"}
+                      />
+                    ) : (
+                      activePartner?.name?.[0]?.toUpperCase() || "U"
+                    )}
+                  </div>
+                  <div className="bg-white border border-[#D9E0EA] rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-xs flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce [animation-delay:-0.3s]" />
+                    <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce [animation-delay:-0.15s]" />
+                    <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce" />
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input Area */}
+            <div className="p-2.5 sm:p-3 md:p-4 bg-white border-t border-[#D9E0EA] space-y-2 shrink-0 relative">
+              {/* Pending Attachment Draft Preview */}
+              {pendingAttachment && (
+                <div className="flex items-center gap-3 p-2 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl">
+                  {pendingAttachment.isImage && pendingAttachment.previewUrl ? (
+                    <img
+                      src={pendingAttachment.previewUrl}
+                      alt="Preview"
+                      className="w-12 h-12 object-cover rounded-lg border border-[#D9E0EA]"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-white border border-[#D9E0EA] flex items-center justify-center text-[#071A4D]">
+                      <FileText size={20} />
+                    </div>
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs font-semibold text-[#111827] truncate">
+                      {pendingAttachment.name}
+                    </p>
+                    <p className="text-[10px] text-[#5B6472]">
+                      {pendingAttachment.sizeFormatted}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={removePendingAttachment}
+                    className="p-1 rounded-lg text-[#5B6472] hover:text-red-500 hover:bg-white transition-colors"
+                    title="Remove file"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              )}
+
+              {/* Responsive Emoji Picker Popover */}
+              {showEmojiPicker && (
+                <div
+                  ref={emojiPickerRef}
+                  className="absolute bottom-16 sm:bottom-20 left-3 sm:left-4 z-40 bg-white border border-[#D9E0EA] rounded-2xl shadow-xl w-72 sm:w-80 p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-150"
+                >
+                  {/* Category Tabs */}
+                  <div className="flex items-center gap-1 p-1 bg-[#F4F7FB] rounded-xl border border-[#D9E0EA]/60">
+                    {(
+                      Object.keys(
+                        EMOJI_CATEGORIES,
+                      ) as (keyof typeof EMOJI_CATEGORIES)[]
+                    ).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setEmojiCategory(cat)}
+                        className={`flex-1 py-1 text-[11px] font-semibold rounded-lg transition-colors ${
+                          emojiCategory === cat
+                            ? "bg-[#071A4D] text-white shadow-xs"
+                            : "text-[#5B6472] hover:text-[#071A4D]"
+                        }`}
+                      >
+                        {EMOJI_CATEGORIES[cat].label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Emoji Grid */}
+                  <div className="grid grid-cols-7 gap-1 max-h-48 overflow-y-auto p-1">
+                    {EMOJI_CATEGORIES[emojiCategory].emojis.map((em, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => insertEmoji(em)}
+                        className="p-1.5 text-lg hover:bg-[#F4F7FB] hover:scale-125 rounded-lg transition-transform flex items-center justify-center cursor-pointer select-none"
+                      >
+                        {em}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Input Bar Capsule */}
+              <div className="flex items-end gap-1.5 sm:gap-2 bg-[#F4F7FB] rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 border border-[#D9E0EA] focus-within:border-[#071A4D] focus-within:bg-white transition-all">
+                {/* Hidden File Input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.pdf,.doc,.docx,.txt"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+
+                {/* Attachment Button */}
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach image or file"
+                  disabled={isUploading}
+                  className="p-1.5 sm:p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 transition-colors shrink-0 mb-0.5"
+                >
+                  <Paperclip size={18} />
+                </button>
+
+                {/* Emoji Toggle Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowEmojiPicker((prev) => !prev)}
+                  title="Insert emoji"
+                  className={`p-1.5 sm:p-2 rounded-xl transition-colors shrink-0 mb-0.5 ${
+                    showEmojiPicker
+                      ? "text-[#FF6B00] bg-orange-50"
+                      : "text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60"
+                  }`}
+                >
+                  <Smile size={19} />
+                </button>
+
+                {/* Message Textarea */}
+                <textarea
+                  ref={textareaRef}
+                  rows={1}
+                  value={inputText}
+                  onChange={handleInputChange}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSendMessage();
+                    }
+                  }}
+                  placeholder="Type a message..."
+                  className="flex-1 bg-transparent border-none focus:outline-none text-sm text-[#111827] placeholder-[#5B6472] resize-none py-1.5 min-h-[38px] max-h-28 leading-normal"
+                  style={{ scrollbarWidth: "none" }}
+                />
+
+                {/* Send Button */}
+                <button
+                  type="button"
+                  onClick={handleSendMessage}
+                  disabled={
+                    (!inputText.trim() && !pendingAttachment) || isUploading
+                  }
+                  className={`p-2 sm:p-2.5 rounded-xl transition-all shrink-0 mb-0.5 flex items-center justify-center ${
+                    (inputText.trim() || pendingAttachment) && !isUploading
+                      ? "bg-[#071A4D] text-white hover:bg-[#0B1F52] shadow-sm cursor-pointer"
+                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  }`}
+                >
+                  {isUploading ? (
+                    <Loader2 size={18} className="animate-spin" />
+                  ) : (
+                    <Send size={18} />
+                  )}
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Desktop Empty State */
+          <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 text-center bg-white h-full">
+            <div className="w-20 h-20 bg-[#F4F7FB] border border-[#D9E0EA] rounded-full flex items-center justify-center mb-4 text-[#071A4D] shadow-xs">
+              <Send size={32} className="ml-1" />
+            </div>
+            <h2 className="text-xl font-bold text-[#071A4D] font-poppins">
+              Select a conversation
+            </h2>
+            <p className="text-sm text-[#5B6472] mt-1.5 max-w-sm">
+              Pick an existing conversation from the left sidebar or search for
+              a candidate or employer to send a message.
+            </p>
+          </div>
+        )}
+      </main>
+
+      {/* Lightbox Modal */}
+      {lightboxImage && (
+        <div
+          onClick={() => setLightboxImage(null)}
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 backdrop-blur-xs cursor-zoom-out"
+        >
+          <button
+            onClick={() => setLightboxImage(null)}
+            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors"
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={lightboxImage}
+            alt="Enlarged view"
+            className="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl"
+          />
+        </div>
+      )}
     </div>
-);
+  );
+}
 
-const MessageBubble = ({ name, text, time, isMe, avatar }: any) => (
-    <div className={`flex gap-2 md:gap-3 ${isMe ? 'flex-row-reverse' : ''}`}>
-        <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-bold overflow-hidden ${isMe ? 'bg-km-primary text-white' : 'bg-slate-200 text-slate-600'}`}>
-            {avatar
-                ? <img src={avatar} className="w-full h-full object-cover" alt={name} />
-                : name[0]}
-        </div>
-        <div className={`flex flex-col max-w-[75%] md:max-w-sm ${isMe ? 'items-end' : 'items-start'}`}>
-            <div className={`flex items-center gap-2 mb-1 ${isMe ? 'flex-row-reverse' : ''}`}>
-                <span className="text-xs font-bold text-slate-700">{name}</span>
-                <span className="text-[10px] text-slate-400">{time}</span>
-            </div>
-            <div className={`px-3 md:px-4 py-2 rounded-2xl text-sm leading-relaxed ${isMe ? 'bg-km-primary text-white rounded-tr-none shadow-sm' : 'bg-white border border-slate-100 text-slate-700 rounded-tl-none shadow-sm'}`}>
-                {text}
-            </div>
-        </div>
+// Fallback skeleton while Suspense resolves useSearchParams
+function ChatLoadingFallback() {
+  return (
+    <div className="flex h-[calc(100dvh-64px)] items-center justify-center bg-[#F4F7FB]">
+      <div className="text-center space-y-3">
+        <Loader2 size={32} className="animate-spin text-[#071A4D] mx-auto" />
+        <p className="text-sm font-semibold text-[#071A4D]">
+          Loading conversations...
+        </p>
+      </div>
     </div>
-);
+  );
+}
 
-export default ChatPage;
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<ChatLoadingFallback />}>
+      <ChatView />
+    </Suspense>
+  );
+}

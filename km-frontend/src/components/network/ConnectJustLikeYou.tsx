@@ -6,11 +6,12 @@ import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 interface Props {
     users: ProfileCardUser[];
     pendingIds?: string[];
+    connectedIds?: string[];
     onChat: (id: string) => void;
     onFollow: (id: string, name?: string) => void;
 }
 
-export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], onChat, onFollow }) => {
+export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], connectedIds = [], onChat, onFollow }) => {
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [currentUserId, setCurrentUserId] = useState<string>('');
 
@@ -76,6 +77,7 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], on
                         const targetUserId = user.id || user._id || '';
                         const isSelf = Boolean(currentUserId && targetUserId === currentUserId);
                         const isPending = pendingIds.includes(targetUserId);
+                        const isConnected = connectedIds.includes(targetUserId);
 
                         return (
                             <ProfileConnectionCard
@@ -84,6 +86,7 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], on
                                 variant="slider"
                                 isSelf={isSelf}
                                 isPending={isPending}
+                                isConnected={isConnected}
                                 entityType="connect"
                                 onChat={onChat}
                                 onFollow={onFollow}

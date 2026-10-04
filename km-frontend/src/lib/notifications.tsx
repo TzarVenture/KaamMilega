@@ -14,6 +14,7 @@ import {
 import CustomImage from "@/components/ui/CustomImage";
 import api from "./axios";
 import { isAuthenticated } from "./auth";
+import { playNotificationSound } from "@/lib/sound";
 
 export interface NotificationItem {
     id: string;
@@ -42,7 +43,12 @@ export interface ToastAlertItem {
  * Route Link Sanitizer:
  * Guarantees legacy or inconsistent notification links never result in 404s.
  */
-export const sanitizeNotificationLink = (rawLink?: string): string => {
+export const sanitizeNotificationLink = (rawLink?: string, notifItem?: Partial<NotificationItem>): string => {
+    if (notifItem && notifItem.type === "connection_accepted") {
+        const targetId = notifItem.actor_id || notifItem.metadata?.accepted_by;
+        if (targetId) return `/profile/${targetId}`;
+    }
+
     if (!rawLink) return "/notifications";
     let link = rawLink.trim();
 
@@ -62,53 +68,7 @@ export const sanitizeNotificationLink = (rawLink?: string): string => {
     return link;
 };
 
-/**
- * Synthesizes a pleasant, subtle two-tone audio chime via HTML5 Web Audio API.
- * 100% self-contained, offline-compatible, and zero external asset dependencies.
- */
-const playNotificationChime = () => {
-    try {
-        if (typeof window === "undefined") return;
-        const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-        if (!AudioContextClass) return;
 
-        const ctx = new AudioContextClass();
-        const now = ctx.currentTime;
-
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gainNode = ctx.createGain();
-
-        // Harmonic notes (E5 659.25Hz -> G#5 830.61Hz)
-        osc1.type = "sine";
-        osc1.frequency.setValueAtTime(659.25, now);
-        osc1.frequency.exponentialRampToValueAtTime(830.61, now + 0.12);
-
-        osc2.type = "triangle";
-        osc2.frequency.setValueAtTime(1318.5, now);
-        osc2.frequency.exponentialRampToValueAtTime(1661.22, now + 0.12);
-
-        // Soft, professional gain envelope
-        gainNode.gain.setValueAtTime(0.001, now);
-        gainNode.gain.linearRampToValueAtTime(0.12, now + 0.025);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
-
-        osc1.connect(gainNode);
-        osc2.connect(gainNode);
-        gainNode.connect(ctx.destination);
-
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + 0.38);
-        osc2.stop(now + 0.38);
-
-        setTimeout(() => {
-            ctx.close().catch(() => {});
-        }, 450);
-    } catch {
-        // Silently catch audio policy blocks when user hasn't interacted with document yet
-    }
-};
 
 interface NotificationContextType {
     unreadCount: number;
@@ -177,7 +137,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
                 // Update recent notifications cache if fetching main/all feed
                 if (category === "all" && offset === 0) {
-                    setRecentNotifications(items.slice(0, 6));
+                    setRecentNotifications(items.slice(0, 8));
                 }
 
                 return { notifications: items, total: data?.total || items.length };
@@ -193,6 +153,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
     // Mark single notification as read
     const markAsRead = useCallback(async (id: string) => {
+        if (!id || typeof id !== "string") return;
         try {
             // Optimistic update
             setNotifications((prev) =>
@@ -315,8 +276,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                                     setUnreadCount((prev) => prev + 1);
                                 }
 
-                                // 1. Audio chime on real-time notification
-                                playNotificationChime();
+                                // 1. Audio chime on real-time notification (powered by uisfx)
+                                playNotificationSound();
 
                                 // 2. Floating toast alert in foreground
                                 setToasts((prev) => [
@@ -383,6 +344,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         // Initial fetch & connect
         refreshUnreadCount();
+        fetchNotifications("all", false, 8, 0).catch(() => {});
         connectWebSocket();
 
         // Fallback polling every 45s

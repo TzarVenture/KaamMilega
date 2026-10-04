@@ -173,6 +173,7 @@ func main() {
 			interview.NewInterviewService,
 			city.NewCityService,
 			company.NewCompanyService,
+			chat.NewHub,
 			chat.NewService,
 			network.NewNetworkService,
 			event.NewEventService,

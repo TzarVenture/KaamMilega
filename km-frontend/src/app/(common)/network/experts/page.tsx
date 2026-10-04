@@ -26,16 +26,21 @@ export default function ExpertsPage() {
     const [sortBy, setSortBy] = useState<'recent' | 'name_asc' | 'name_desc'>('recent');
     const [myExperts, setMyExperts] = useState<ExpertUser[]>([]);
     const [suggestedExperts, setSuggestedExperts] = useState<ExpertUser[]>([]);
+    const [pendingExpertIds, setPendingExpertIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const ITEMS_PER_PAGE = 9;
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Fetch connections
-                const connsRes = (await api.get('/network/connections')) as string[] || [];
+                // Fetch connections and sent invitations in parallel
+                const [connsRes, sentRes] = await Promise.all([
+                    api.get('/network/connections').catch(() => []) as Promise<string[]>,
+                    api.get('/network/sent').catch(() => []) as Promise<string[]>,
+                ]);
+                setPendingExpertIds(sentRes || []);
                 const enriched = await Promise.all(
-                    connsRes.map(async (id) => {
+                    (connsRes || []).map(async (id) => {
                         try {
                             const user = await api.get(`/user/${id}`) as ExpertUser;
                             return { ...user, id: user.id || user._id || id };
@@ -161,14 +166,18 @@ export default function ExpertsPage() {
                 <div className="bg-white rounded-2xl border border-[#D9E0EA] p-4 sm:p-6 shadow-xs overflow-hidden">
                     <ConnectJustLikeYou 
                         users={suggestedExperts}
+                        pendingIds={pendingExpertIds}
                         onChat={(id) => handleChat(id)}
                         onFollow={async (id) => {
                             try {
                                 await api.post('/network/connect', { receiver_id: id });
-                                alert("Invitation sent to expert!");
+                                setPendingExpertIds(prev => [...prev, id]);
                             } catch (e: any) {
                                 console.error("Failed to connect", e);
-                                alert(e.message || "Could not send invitation");
+                                const msg = e?.response?.data?.error || e.message || '';
+                                if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
+                                    setPendingExpertIds(prev => [...prev, id]);
+                                }
                             }
                         }}
                     />

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { MessageSquare, MessageCircle, MapPin, CheckCircle2, UserPlus, Trash2, X, Calendar } from 'lucide-react';
+import { MessageSquare, MessageCircle, MapPin, CheckCircle2, UserPlus, Trash2, X, Calendar, UserMinus } from 'lucide-react';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { ImpressionWrapper } from '@/lib/telemetry';
 
@@ -32,6 +32,7 @@ export interface ProfileConnectionCardProps {
     actionType?: 'discover' | 'connected' | 'expert';
     showConnect?: boolean;
     isPending?: boolean;
+    isConnected?: boolean;
     isSelf?: boolean;
     badgeText?: string;
     entityType?: 'connect' | 'expert';
@@ -55,6 +56,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
     actionType = 'discover',
     showConnect = true,
     isPending = false,
+    isConnected = false,
     isSelf = false,
     badgeText,
     entityType,
@@ -118,7 +120,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
 
             <Link href={profileHref} className="w-full flex flex-col items-center cursor-pointer">
                 {/* Avatar with online status */}
-                <div className="relative mb-3 shrink-0">
+                <div className="relative mb-2.5 shrink-0">
                     <div className="w-16 h-16 rounded-full bg-[#F4F7FB] border-2 border-[#D9E0EA] group-hover:border-[#071A4D] flex items-center justify-center overflow-hidden shadow-2xs transition-colors">
                         <UserAvatar src={user.profile_image} name={cleanName} />
                     </div>
@@ -126,54 +128,61 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 </div>
 
                 {/* Name */}
-                <h3 className="text-sm font-bold text-[#111827] group-hover:text-[#0B5ED7] transition-colors leading-tight mb-1 text-center line-clamp-1 min-h-[1.25rem]">
+                <h3 className="text-sm font-bold text-[#111827] group-hover:text-[#0B5ED7] transition-colors leading-tight mb-1 text-center line-clamp-1">
                     {cleanName}
                 </h3>
 
                 {/* Headline */}
-                <p className="text-[11px] text-[#5B6472] mb-1 font-medium text-center line-clamp-1 max-w-[92%] min-h-[1rem]">
+                <p className="text-[11px] text-[#5B6472] mb-1.5 font-medium text-center line-clamp-2 max-w-[95%]">
                     {headline}
                 </p>
 
                 {/* Location */}
-                <div className="min-h-[1.25rem] flex items-center justify-center mb-1">
-                    {user.city ? (
-                        <div className="flex items-center gap-1 text-[#5B6472] text-[10px] font-semibold">
-                            <MapPin size={11} className="text-[#071A4D] shrink-0" />
-                            <span className="line-clamp-1">{user.city}</span>
-                        </div>
-                    ) : null}
-                </div>
+                {user.city && (
+                    <div className="flex items-center gap-1 text-[#5B6472] text-[10px] font-semibold mb-1.5">
+                        <MapPin size={11} className="text-[#071A4D] shrink-0" />
+                        <span className="line-clamp-1">{user.city}</span>
+                    </div>
+                )}
 
                 {/* Badge text */}
-                <div className="min-h-[1.5rem] flex items-center justify-center mb-3">
-                    {displayBadge ? (
+                {displayBadge && (
+                    <div className="mb-2">
                         <span className="text-[10px] font-bold tracking-wide text-[#0B5ED7] bg-[#0B5ED7]/10 px-2.5 py-0.5 rounded-full inline-block">
                             {displayBadge}
                         </span>
-                    ) : null}
-                </div>
+                    </div>
+                )}
             </Link>
 
-            {/* Action Buttons - Fixed at bottom */}
-            <div className="w-full flex flex-col gap-2 mt-auto pt-2 border-t border-[#D9E0EA]/40">
+            {/* Action Buttons */}
+            <div className="w-full flex flex-col gap-1.5 mt-auto pt-2.5 border-t border-[#D9E0EA]/50">
                 {!isSelf && (
                     <>
                         {/* Connected State */}
-                        {actionType === 'connected' && (
-                            <button
-                                type="button"
-                                onClick={() => onChat(userId)}
-                                className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
-                            >
-                                <MessageSquare size={14} />
-                                <span>Message</span>
-                            </button>
-                        )}
-
-                        {/* Expert State */}
-                        {actionType === 'expert' && (
-                            <>
+                        {(actionType === 'connected' || isConnected) ? (
+                            <div className="flex flex-col gap-1.5 w-full">
+                                <button
+                                    type="button"
+                                    onClick={() => onChat(userId)}
+                                    className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+                                >
+                                    <MessageSquare size={14} />
+                                    <span>Message</span>
+                                </button>
+                                {onRemove && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onRemove(userId)}
+                                        className="w-full py-1.5 bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-xl text-xs font-medium border border-slate-200 hover:border-red-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.98]"
+                                    >
+                                        <UserMinus size={13} />
+                                        <span>Remove Connection</span>
+                                    </button>
+                                )}
+                            </div>
+                        ) : actionType === 'expert' ? (
+                            <div className="flex flex-col gap-1.5 w-full">
                                 <Link
                                     href={`/expert/${userId}`}
                                     className="w-full py-2 bg-[#FF6B00] hover:bg-[#E05E00] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
@@ -184,48 +193,35 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => onChat(userId)}
-                                    className="w-full py-2 rounded-xl border border-[#D9E0EA] text-[#071A4D] text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-[#F4F7FB] hover:border-[#071A4D] transition-all cursor-pointer active:scale-[0.98]"
+                                    className="w-full py-1.5 rounded-xl border border-[#D9E0EA] text-[#071A4D] text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-[#F4F7FB] hover:border-[#071A4D] transition-all cursor-pointer active:scale-[0.98]"
                                 >
                                     <MessageSquare size={14} />
                                     <span>Chat</span>
                                 </button>
-                            </>
-                        )}
-
-                        {/* Discover State */}
-                        {actionType === 'discover' && (
-                            <>
-                                {showConnect && handleConnectAction && (
-                                    isPending ? (
-                                        <button
-                                            type="button"
-                                            disabled
-                                            className="w-full py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1 cursor-default border border-slate-200"
-                                        >
-                                            <CheckCircle2 size={13} className="text-emerald-500" />
-                                            <span>Pending</span>
-                                        </button>
-                                    ) : (
-                                        <button
-                                            type="button"
-                                            onClick={() => handleConnectAction(userId, cleanName)}
-                                            className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
-                                        >
-                                            <UserPlus size={14} />
-                                            <span>Connect</span>
-                                        </button>
-                                    )
-                                )}
-
-                                <button
-                                    type="button"
-                                    onClick={() => onChat(userId)}
-                                    className="w-full py-2 rounded-xl border border-[#D9E0EA] text-[#071A4D] text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-[#F4F7FB] hover:border-[#071A4D] transition-all cursor-pointer active:scale-[0.98]"
-                                >
-                                    {isGrid ? <MessageCircle size={14} /> : <MessageSquare size={14} />}
-                                    <span>Chat</span>
-                                </button>
-                            </>
+                            </div>
+                        ) : (
+                            /* Discover State */
+                            showConnect && handleConnectAction && (
+                                isPending ? (
+                                    <button
+                                        type="button"
+                                        disabled
+                                        className="w-full py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-default border border-slate-200"
+                                    >
+                                        <CheckCircle2 size={13} className="text-emerald-500" />
+                                        <span>Pending</span>
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleConnectAction(userId, cleanName)}
+                                        className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+                                    >
+                                        <UserPlus size={14} />
+                                        <span>Connect</span>
+                                    </button>
+                                )
+                            )
                         )}
                     </>
                 )}
