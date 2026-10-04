@@ -24,6 +24,7 @@ func (a *NetworkApi) Setup(app *fiber.App) {
 	network.Post("/accept", a.ctrl.AcceptInvitation)
 	network.Post("/ignore", a.ctrl.IgnoreInvitation)
 	network.Get("/pending", a.ctrl.GetPendingInvitations)
+	network.Get("/sent", a.ctrl.GetSentInvitations)
 	network.Get("/connections", a.ctrl.GetConnections)
 	network.Delete("/connections/:id", a.ctrl.DeleteConnection)
 	network.Get("/status/:id", a.ctrl.GetStatus)

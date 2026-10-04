@@ -1,5 +1,5 @@
 import AppNavbar from '@/components/km/AppNavbar'
-import Footer from '@/components/km/Footer'
+import CommonFooter from '@/components/km/CommonFooter'
 import React, { Suspense } from 'react'
 
 const layout = ({ children }: { children: React.ReactNode }) => {
@@ -9,7 +9,7 @@ const layout = ({ children }: { children: React.ReactNode }) => {
                 <AppNavbar />
             </Suspense>
             {children}
-            <Footer />
+            <CommonFooter />
         </div>
     )
 }

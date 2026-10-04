@@ -515,6 +515,33 @@ func (ctrl *UserController) UpdateProfile(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
+func (ctrl *UserController) UpdateLocation(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	var req struct {
+		Lat float64 `json:"lat"`
+		Lng float64 `json:"lng"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	updates := map[string]interface{}{
+		"last_login_lat": req.Lat,
+		"last_login_lng": req.Lng,
+	}
+
+	_, err := ctrl.service.UpdateProfile(c.Context(), userID, updates)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": "Location updated successfully"})
+}
+
 func (ctrl *UserController) SendEmailOTP(c *fiber.Ctx) error {
 	var req SendEmailOTPRequest
 	if err := c.BodyParser(&req); err != nil {

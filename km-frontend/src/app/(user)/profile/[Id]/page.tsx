@@ -29,6 +29,7 @@ const OtherUserProfilePage = () => {
     const [sidebarExperts, setSidebarExperts] = useState<any[]>([]);
     const [sidebarJobs, setSidebarJobs] = useState<any[]>([]);
     const [isConnected, setIsConnected] = useState(false);
+    const [isPending, setIsPending] = useState(false);
     const [isConnecting, setIsConnecting] = useState(false);
 
     const formatDisplayDate = (dateStr?: string) => {
@@ -47,10 +48,13 @@ const OtherUserProfilePage = () => {
         try {
             setIsConnecting(true);
             await api.post('/network/connect', { receiver_id: targetId });
-            setIsConnected(true);
+            setIsPending(true);
         } catch (error: any) {
             console.error('Failed to send connection request:', error);
-            alert(error.message || 'Could not send invitation.');
+            const msg = error?.response?.data?.error || error.message || '';
+            if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
+                setIsPending(true);
+            }
         } finally {
             setIsConnecting(false);
         }
@@ -62,6 +66,12 @@ const OtherUserProfilePage = () => {
             try {
                 const response = await api.get(`/user/${params.Id}`);
                 setUser(response);
+
+                // Fetch connection status if authenticated
+                api.get(`/network/status/${params.Id}`).then((res: any) => {
+                    if (res?.status === 'accepted') setIsConnected(true);
+                    else if (res?.status === 'pending') setIsPending(true);
+                }).catch(() => {});
             } catch (error: any) {
                 if (error?.response?.status === 403 || error?.status === 403) {
                     setIsPrivate(true);
@@ -189,10 +199,10 @@ const OtherUserProfilePage = () => {
                                     <div className="flex flex-wrap gap-2 mb-2">
                                         <button
                                             onClick={() => handleConnect(userId)}
-                                            disabled={isConnected || isConnecting}
-                                            className="bg-km-primary text-white px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-km-primary-dark shadow-sm transition-colors cursor-pointer disabled:bg-emerald-600"
+                                            disabled={isConnected || isPending || isConnecting}
+                                            className="bg-km-primary text-white px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-km-primary-dark shadow-sm transition-colors cursor-pointer disabled:bg-slate-100 disabled:text-slate-500 disabled:border disabled:border-slate-200 disabled:cursor-default"
                                         >
-                                            {isConnected ? 'Connected' : (isConnecting ? 'Connecting...' : 'Connect')}
+                                            {isConnected ? 'Connected' : (isPending ? 'Pending' : (isConnecting ? 'Connecting...' : 'Connect'))}
                                         </button>
                                         <Link href={`/chat?userId=${userId}`}>
                                             <button className="border border-km-primary text-km-primary px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors flex items-center gap-1.5 cursor-pointer">

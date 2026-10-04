@@ -5,6 +5,7 @@ import { Search, ArrowLeft } from 'lucide-react';
 import Pagination from '@/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
+import { toast } from 'react-toastify';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 
@@ -27,13 +28,18 @@ const ConnectionsPage = () => {
     const [sortBy, setSortBy] = useState<'recent' | 'name_asc' | 'name_desc'>('recent');
     const [connections, setConnections] = useState<User[]>([]);
     const [suggestedConnections, setSuggestedConnections] = useState<User[]>([]);
+    const [pendingConnectionIds, setPendingConnectionIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const ITEMS_PER_PAGE = 9;
 
     useEffect(() => {
         const fetchConnections = async () => {
             try {
-                const connsRes = await api.get('/network/connections') as string[];
+                const [connsRes, sentRes] = await Promise.all([
+                    api.get('/network/connections').catch(() => []) as Promise<string[]>,
+                    api.get('/network/sent').catch(() => []) as Promise<string[]>,
+                ]);
+                setPendingConnectionIds(sentRes || []);
                 const enriched = await Promise.all(
                     (connsRes || []).map(async (id) => {
                         try {
@@ -80,7 +86,9 @@ const ConnectionsPage = () => {
                         navigator.geolocation.getCurrentPosition(
                             (position) => {
                                 const { latitude, longitude } = position.coords;
-                                api.put('/user/location', { lat: latitude, lng: longitude });
+                                api.put('/user/location', { lat: latitude, lng: longitude }).catch((err) => {
+                                    console.warn("Location update failed", err);
+                                });
 
                                 const sorted = [...filteredSuggestions].sort((a, b) => {
                                     const distA = (a.last_login_lat && a.last_login_lng)
@@ -119,9 +127,10 @@ const ConnectionsPage = () => {
         try {
             await api.delete(`/network/connections/${id}`);
             setConnections(prev => prev.filter(c => c.id !== id));
+            toast.success("Connection removed");
         } catch (err) {
             console.error("Failed to delete connection", err);
-            alert("Could not remove connection");
+            toast.error("Could not remove connection");
         }
     };
 
@@ -184,14 +193,18 @@ const ConnectionsPage = () => {
                 <div className="bg-white rounded-2xl border border-[#D9E0EA] p-4 sm:p-6 shadow-xs overflow-hidden">
                     <ConnectJustLikeYou
                         users={suggestedConnections}
+                        pendingIds={pendingConnectionIds}
                         onChat={(id) => handleChat(id)}
                         onFollow={async (id) => {
                             try {
                                 await api.post('/network/connect', { receiver_id: id });
-                                alert("Connection request sent!");
+                                setPendingConnectionIds(prev => [...prev, id]);
                             } catch (e: any) {
                                 console.error("Failed to connect", e);
-                                alert(e.message || "Could not send connection request");
+                                const msg = e?.response?.data?.error || e.message || '';
+                                if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
+                                    setPendingConnectionIds(prev => [...prev, id]);
+                                }
                             }
                         }}
                     />

@@ -41,6 +41,7 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Patch("/open-to-work", api.controller.UpdateOpenToWork)
 	protected.Patch("/providing-services", api.controller.UpdateProvidingServices)
 	protected.Get("/viewers", api.controller.GetProfileViewers)
+	protected.Put("/location", api.controller.UpdateLocation)
 	protected.Get("/:id", api.controller.GetOtherUserProfile)
 	protected.Patch("/profile", api.controller.UpdateProfile)
 	protected.Post("/education", api.controller.AddEducation)

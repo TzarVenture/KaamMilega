@@ -397,6 +397,14 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 				}
 				user.Skills = strSkills
 			}
+		case "last_login_lat":
+			if v, ok := value.(float64); ok {
+				user.LastLoginLat = v
+			}
+		case "last_login_lng":
+			if v, ok := value.(float64); ok {
+				user.LastLoginLng = v
+			}
 		}
 	}
 

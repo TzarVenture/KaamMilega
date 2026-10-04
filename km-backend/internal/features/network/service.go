@@ -43,8 +43,11 @@ func (s *NetworkServiceImpl) SendInvitation(ctx context.Context, senderID primit
 	if err != nil {
 		return err
 	}
-	if status != "" {
+	if status == StatusPending || status == StatusAccepted {
 		return errors.New("invitation already exists or already connected")
+	}
+	if status == StatusIgnored {
+		_ = s.repo.DeleteInvitation(ctx, senderID, rOID)
 	}
 
 	invitation := &ConnectionRequest{
@@ -128,7 +131,7 @@ func (s *NetworkServiceImpl) AcceptInvitation(ctx context.Context, receiverID pr
 				Category:    notification.CategoryNetwork,
 				Title:       "Connection Accepted",
 				Message:     fmt.Sprintf("%s accepted your connection request", receiverName),
-				Link:        "/network",
+				Link:        fmt.Sprintf("/profile/%s", receiverID.Hex()),
 				Metadata: map[string]interface{}{
 					"accepted_by": receiverID.Hex(),
 				},
@@ -145,13 +148,16 @@ func (s *NetworkServiceImpl) IgnoreInvitation(ctx context.Context, receiverID pr
 		return err
 	}
 
-	// We can either update status to "ignored" or just delete it
-	// Let's delete it so they can try again later if they want, or just set to ignored
-	return s.repo.UpdateInvitationStatus(ctx, sOID, receiverID, StatusIgnored)
+	// Deleting the invitation resets the status so the sender is no longer pending and can connect again later
+	return s.repo.DeleteInvitation(ctx, sOID, receiverID)
 }
 
 func (s *NetworkServiceImpl) GetPendingInvitations(ctx context.Context, userID primitive.ObjectID) ([]ConnectionRequest, error) {
 	return s.repo.GetPendingInvitations(ctx, userID)
+}
+
+func (s *NetworkServiceImpl) GetSentPendingInvitations(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error) {
+	return s.repo.GetSentPendingInvitations(ctx, userID)
 }
 
 func (s *NetworkServiceImpl) GetConnections(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error) {

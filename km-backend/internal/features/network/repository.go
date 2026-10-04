@@ -62,6 +62,29 @@ func (r *MongoDBRepository) GetPendingInvitations(ctx context.Context, userID pr
 	return invitations, nil
 }
 
+func (r *MongoDBRepository) GetSentPendingInvitations(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error) {
+	filter := bson.M{
+		"sender_id": userID,
+		"status":    StatusPending,
+	}
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var invitations []ConnectionRequest
+	if err := cursor.All(ctx, &invitations); err != nil {
+		return nil, err
+	}
+
+	res := make([]primitive.ObjectID, 0, len(invitations))
+	for _, inv := range invitations {
+		res = append(res, inv.ReceiverID)
+	}
+	return res, nil
+}
+
 func (r *MongoDBRepository) GetConnections(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error) {
 	filter := bson.M{
 		"status": StatusAccepted,

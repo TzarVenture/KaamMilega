@@ -253,8 +253,15 @@ export default function NotificationsPage() {
             markAsRead(item.id);
             setFeedItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n)));
         }
+        if (item.type === "connection_accepted") {
+            const targetId = item.actor_id || item.metadata?.accepted_by;
+            if (targetId) {
+                router.push(`/profile/${targetId}`);
+                return;
+            }
+        }
         if (item.link) {
-            router.push(sanitizeNotificationLink(item.link));
+            router.push(sanitizeNotificationLink(item.link, item));
         }
     };
 
@@ -263,8 +270,15 @@ export default function NotificationsPage() {
             markAsRead(item.id);
             setFeedItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n)));
         }
+        if (item.type === "connection_accepted") {
+            const targetId = item.actor_id || item.metadata?.accepted_by;
+            if (targetId) {
+                router.push(`/profile/${targetId}`);
+                return;
+            }
+        }
         if (item.link) {
-            router.push(sanitizeNotificationLink(item.link));
+            router.push(sanitizeNotificationLink(item.link, item));
         }
     };
 

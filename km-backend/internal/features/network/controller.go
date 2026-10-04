@@ -85,6 +85,26 @@ func (ctrl *NetworkController) GetPendingInvitations(c *fiber.Ctx) error {
 	return c.JSON(invitations)
 }
 
+func (ctrl *NetworkController) GetSentInvitations(c *fiber.Ctx) error {
+	userIDStr := c.Locals("user_id").(string)
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	sent, err := ctrl.service.GetSentPendingInvitations(c.Context(), userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	res := make([]string, 0, len(sent))
+	for _, id := range sent {
+		res = append(res, id.Hex())
+	}
+
+	return c.JSON(res)
+}
+
 func (ctrl *NetworkController) GetConnections(c *fiber.Ctx) error {
 	userIDStr := c.Locals("user_id").(string)
 	userID, err := primitive.ObjectIDFromHex(userIDStr)

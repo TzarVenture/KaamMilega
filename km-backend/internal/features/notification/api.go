@@ -22,7 +22,13 @@ func (a *NotificationApi) Setup(app *fiber.App) {
 	group.Get("/", a.controller.GetNotifications)
 	group.Get("/unread-count", a.controller.GetUnreadCount)
 	group.Put("/read-all", a.controller.MarkAllAsRead)
+	group.Post("/read-all", a.controller.MarkAllAsRead)
+	group.Patch("/read-all", a.controller.MarkAllAsRead)
+
 	group.Put("/:id/read", a.controller.MarkAsRead)
+	group.Post("/:id/read", a.controller.MarkAsRead)
+	group.Patch("/:id/read", a.controller.MarkAsRead)
+
 	group.Delete("/:id", a.controller.DeleteNotification)
 
 	app.Use("/api/ws/notifications", func(c *fiber.Ctx) error {

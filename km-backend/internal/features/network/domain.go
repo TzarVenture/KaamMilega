@@ -36,6 +36,7 @@ type NetworkRepository interface {
 	CreateInvitation(ctx context.Context, invitation *ConnectionRequest) error
 	UpdateInvitationStatus(ctx context.Context, senderID, receiverID primitive.ObjectID, status ConnectionStatus) error
 	GetPendingInvitations(ctx context.Context, userID primitive.ObjectID) ([]ConnectionRequest, error)
+	GetSentPendingInvitations(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
 	GetConnections(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
 	GetConnectionStatus(ctx context.Context, userA, userB primitive.ObjectID) (ConnectionStatus, error)
 	DeleteInvitation(ctx context.Context, senderID, receiverID primitive.ObjectID) error
@@ -47,7 +48,9 @@ type NetworkService interface {
 	AcceptInvitation(ctx context.Context, receiverID primitive.ObjectID, senderID string) error
 	IgnoreInvitation(ctx context.Context, receiverID primitive.ObjectID, senderID string) error
 	GetPendingInvitations(ctx context.Context, userID primitive.ObjectID) ([]ConnectionRequest, error)
+	GetSentPendingInvitations(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
 	GetConnections(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
 	GetConnectionStatus(ctx context.Context, userA, userB string) (string, error)
 	DeleteConnection(ctx context.Context, userID primitive.ObjectID, otherID string) error
 }
+
