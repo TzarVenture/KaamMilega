@@ -41,11 +41,13 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const {
     unreadCount,
+    chatUnreadCount,
     recentNotifications,
     fetchNotifications,
     markAsRead,
     markAllAsRead,
   } = useNotifications();
+
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
   const [notifPopoverTab, setNotifPopoverTab] = useState<"unread" | "all">(
     "unread",
@@ -236,10 +238,16 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     aria-label={link.label}
                   >
                     {link.icon}
+                    {link.href === "/chat" && chatUnreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 bg-[#FF6B00] text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white shadow-2xs animate-in zoom-in-75 duration-150">
+                        {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
+                      </span>
+                    )}
                     {isActive && (
                       <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-km-primary rounded-full" />
                     )}
                   </Link>
+
 
                   {/* Custom Floating Tooltip */}
                   <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 translate-y-1 group-hover:translate-y-0 z-50">
@@ -784,11 +792,19 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileNavOpen(false)}
-                  className="flex items-center gap-4 px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary transition-colors"
+                  className="flex items-center justify-between px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary transition-colors"
                 >
-                  {link.icon} {link.label}
+                  <div className="flex items-center gap-4">
+                    {link.icon} {link.label}
+                  </div>
+                  {link.href === "/chat" && chatUnreadCount > 0 && (
+                    <span className="min-w-[18px] h-[18px] px-1.5 bg-[#FF6B00] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
+                    </span>
+                  )}
                 </Link>
               ))}
+
             </div>
 
             <hr className="border-gray-100" />

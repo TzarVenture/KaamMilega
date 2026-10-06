@@ -72,6 +72,7 @@ export const sanitizeNotificationLink = (rawLink?: string, notifItem?: Partial<N
 
 interface NotificationContextType {
     unreadCount: number;
+    chatUnreadCount: number;
     notifications: NotificationItem[];
     recentNotifications: NotificationItem[];
     loading: boolean;
@@ -81,13 +82,28 @@ interface NotificationContextType {
     markAllAsRead: () => Promise<void>;
     deleteNotification: (id: string) => Promise<void>;
     refreshUnreadCount: () => Promise<void>;
+    refreshChatUnreadCount: () => Promise<void>;
 }
+
+export const setActiveChatState = (convId: string | null, partnerId: string | null) => {
+    if (typeof window !== "undefined") {
+        (window as any).__km_active_chat_conv_id = convId;
+        (window as any).__km_active_chat_sender_id = partnerId;
+    }
+};
+
+export const notifyChatUnreadChanged = (total?: number) => {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("km:chat-unread-updated", { detail: { count: total } }));
+    }
+};
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const router = useRouter();
     const [unreadCount, setUnreadCount] = useState<number>(0);
+    const [chatUnreadCount, setChatUnreadCount] = useState<number>(0);
     const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [recentNotifications, setRecentNotifications] = useState<NotificationItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
@@ -121,6 +137,37 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             // Silently ignore if unauthenticated or network error
         }
     }, []);
+
+    // Refresh total unread chat messages for Navbar badge
+    const refreshChatUnreadCount = useCallback(async () => {
+        if (!isAuthenticated()) return;
+        try {
+            const data: any = await api.get("/chats/unread-count");
+            if (typeof data?.unread_count === "number") {
+                setChatUnreadCount(data.unread_count);
+            }
+        } catch {
+            // Silently ignore if unauthenticated or network error
+        }
+    }, []);
+
+    // Listen for custom chat-unread sync events across tabs / components
+    useEffect(() => {
+        refreshChatUnreadCount();
+        const handleChatUnreadSync = (e: Event) => {
+            const customEvent = e as CustomEvent<{ count?: number }>;
+            if (typeof customEvent.detail?.count === "number") {
+                setChatUnreadCount(customEvent.detail.count);
+            } else {
+                refreshChatUnreadCount();
+            }
+        };
+        window.addEventListener("km:chat-unread-updated", handleChatUnreadSync);
+        return () => {
+            window.removeEventListener("km:chat-unread-updated", handleChatUnreadSync);
+        };
+    }, [refreshChatUnreadCount]);
+
 
     // Fetch notifications list
     const fetchNotifications = useCallback(
@@ -254,42 +301,59 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                             const newNotif: NotificationItem = payload.notification;
 
                             // Active Chat Screen Suppression:
-                            // If recipient is currently active on /chat with this sender, auto-mark as read without alerting badge or toast
-                            const isCurrentlyChatting =
-                                typeof window !== "undefined" &&
-                                window.location.pathname.startsWith("/chat") &&
-                                newNotif.type === "chat_message" &&
-                                Boolean(newNotif.metadata?.sender_id && window.location.search.includes(String(newNotif.metadata.sender_id)));
+                            const isChatRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/chat");
+                            const activeChatConvId = typeof window !== "undefined" ? (window as any).__km_active_chat_conv_id : null;
+                            const activeChatSenderId = typeof window !== "undefined" ? (window as any).__km_active_chat_sender_id : null;
+
+                            const isWithActivePartner = Boolean(
+                                (activeChatConvId && newNotif.metadata?.conversation_id && String(newNotif.metadata.conversation_id) === String(activeChatConvId)) ||
+                                (activeChatSenderId && newNotif.metadata?.sender_id && String(newNotif.metadata.sender_id) === String(activeChatSenderId)) ||
+                                (newNotif.metadata?.sender_id && typeof window !== "undefined" && window.location.search.includes(String(newNotif.metadata.sender_id)))
+                            );
+
+                            const isCurrentlyChatting = isChatRoute && newNotif.type === "chat_message" && isWithActivePartner;
 
                             if (isCurrentlyChatting) {
-                                newNotif.is_read = true;
+                                // Active chat thread: auto-mark read silently on backend.
+                                // Do NOT play sound chime, do NOT show toast, do NOT increment bell count,
+                                // and do NOT clutter notifications list or bell dropdown.
                                 api.put(`/notifications/${newNotif.id}/read`).catch(() => {});
+                                return;
+                            }
+
+                            // If this is a chat message from another conversation:
+                            if (newNotif.type === "chat_message") {
+                                setChatUnreadCount((prev) => prev + 1);
+                                // If user is already on /chat screen, the in-app chat UI handles the sidebar indicator.
+                                // Suppress the floating toast alert to prevent obstructing the screen.
+                                if (isChatRoute) {
+                                    return;
+                                }
                             }
 
                             setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)]);
                             setRecentNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)].slice(0, 6));
 
-                            if (!isCurrentlyChatting) {
-                                if (typeof payload.unread_count === "number") {
-                                    setUnreadCount(payload.unread_count);
-                                } else {
-                                    setUnreadCount((prev) => prev + 1);
-                                }
-
-                                // 1. Audio chime on real-time notification (powered by uisfx)
-                                playNotificationSound();
-
-                                // 2. Floating toast alert in foreground
-                                setToasts((prev) => [
-                                    ...prev.slice(-3), // keep maximum 4 active toasts simultaneously
-                                    {
-                                        id: newNotif.id || String(Date.now()),
-                                        notification: newNotif,
-                                        createdAt: Date.now(),
-                                    },
-                                ]);
+                            if (typeof payload.unread_count === "number") {
+                                setUnreadCount(payload.unread_count);
+                            } else {
+                                setUnreadCount((prev) => prev + 1);
                             }
-                        } else if (payload.type === "NOTIFICATION_READ") {
+
+                            // 1. Audio chime on real-time notification (powered by uisfx)
+                            playNotificationSound();
+
+                            // 2. Floating toast alert in foreground
+                            setToasts((prev) => [
+                                ...prev.slice(-3), // keep maximum 4 active toasts simultaneously
+                                {
+                                    id: newNotif.id || String(Date.now()),
+                                    notification: newNotif,
+                                    createdAt: Date.now(),
+                                },
+                            ]);
+                        }
+ else if (payload.type === "NOTIFICATION_READ") {
                             if (payload.notification_id) {
                                 setNotifications((prev) =>
                                     prev.map((n) => (n.id === payload.notification_id ? { ...n, is_read: true } : n))
@@ -351,6 +415,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const pollInterval = setInterval(() => {
             if (isAuthenticated()) {
                 refreshUnreadCount();
+                refreshChatUnreadCount();
             }
         }, 45000);
 
@@ -363,12 +428,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 wsRef.current = null;
             }
         };
-    }, [refreshUnreadCount]);
+    }, [refreshUnreadCount, refreshChatUnreadCount]);
 
     return (
         <NotificationContext.Provider
             value={{
                 unreadCount,
+                chatUnreadCount,
                 notifications,
                 recentNotifications,
                 loading,
@@ -378,8 +444,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 markAllAsRead,
                 deleteNotification,
                 refreshUnreadCount,
+                refreshChatUnreadCount,
             }}
         >
+
             {children}
 
             {/* Floating Real-Time Toast Alerts Container */}

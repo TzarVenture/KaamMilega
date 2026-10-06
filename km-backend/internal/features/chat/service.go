@@ -3,12 +3,16 @@ package chat
 import (
 	"context"
 	"errors"
+	"math"
 	"strings"
+	"time"
 
 	"km-backend/internal/features/user"
 
+	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
 
 type service struct {
 	repo     ChatRepository
@@ -32,6 +36,16 @@ func (s *service) GetConversations(ctx context.Context, userID primitive.ObjectI
 
 	responses := make([]ConversationResponse, 0, len(convs))
 	for _, c := range convs {
+		// LinkedIn rule: If the user cleared/deleted this conversation, check if any newer message arrived
+		if c.ClearedAt != nil {
+			if clearedTime, ok := c.ClearedAt[userID.Hex()]; ok {
+				if !c.UpdatedAt.After(clearedTime) {
+					// Conversation was deleted by this user and has no newer activity: skip from inbox!
+					continue
+				}
+			}
+		}
+
 		var otherID primitive.ObjectID
 		for _, p := range c.Participants {
 			if p != userID {
@@ -90,9 +104,19 @@ func (s *service) GetConversations(ctx context.Context, userID primitive.ObjectI
 }
 
 func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, req CreateMessageRequest) (*Message, error) {
+	// Safety & Trust: Check if either party blocked the other
+	blocked, err := s.repo.IsBlockedEitherWay(ctx, senderID, req.ReceiverID)
+	if err != nil {
+		return nil, err
+	}
+	if blocked {
+		return nil, errors.New("cannot send message: messaging is blocked between these users")
+	}
+
 	// 1. Find or create conversation
 	participants := []primitive.ObjectID{senderID, req.ReceiverID}
 	conv, err := s.repo.GetConversationByParticipants(ctx, participants)
+
 	if err != nil {
 		return nil, err
 	}
@@ -136,7 +160,7 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 	return createdMsg, nil
 }
 
-func (s *service) GetMessages(ctx context.Context, conversationID primitive.ObjectID, userID primitive.ObjectID, limit, offset int) ([]Message, error) {
+func (s *service) GetMessages(ctx context.Context, conversationID primitive.ObjectID, userID primitive.ObjectID, limit int, beforeID *primitive.ObjectID) ([]Message, error) {
 	conv, err := s.repo.GetConversationByID(ctx, conversationID)
 	if err != nil {
 		return nil, err
@@ -154,8 +178,28 @@ func (s *service) GetMessages(ctx context.Context, conversationID primitive.Obje
 		return nil, nil
 	}
 
-	return s.repo.GetMessagesByConversationID(ctx, conversationID, limit, offset)
+	var since *time.Time
+	if conv.ClearedAt != nil {
+		if clearedTime, ok := conv.ClearedAt[userID.Hex()]; ok {
+			since = &clearedTime
+		}
+	}
+
+	return s.repo.GetMessagesByConversationID(ctx, conversationID, limit, beforeID, since)
 }
+
+func (s *service) GetTotalUnreadCount(ctx context.Context, userID primitive.ObjectID) (int, error) {
+	conversations, err := s.GetConversations(ctx, userID)
+	if err != nil {
+		return 0, err
+	}
+	total := 0
+	for _, conv := range conversations {
+		total += conv.UnreadCount
+	}
+	return total, nil
+}
+
 
 func (s *service) MarkConversationAsRead(ctx context.Context, conversationID, userID primitive.ObjectID) error {
 	return s.repo.MarkMessagesAsRead(ctx, conversationID, userID)
@@ -170,32 +214,23 @@ func (s *service) DeleteMessage(ctx context.Context, messageID, userID primitive
 		return errors.New("message not found")
 	}
 
+	// STRICT LINKEDIN RULE: Only the sender can delete their own message!
+	if msg.SenderID != userID {
+		return errors.New("unauthorized: you can only delete your own messages")
+	}
+
 	conv, err := s.repo.GetConversationByID(ctx, msg.ConversationID)
 	if err != nil || conv == nil {
 		return errors.New("conversation not found")
 	}
-	isParticipant := false
-	for _, p := range conv.Participants {
-		if p == userID {
-			isParticipant = true
-			break
-		}
-	}
-	if !isParticipant {
-		return errors.New("unauthorized")
-	}
 
-	if err := s.repo.DeleteMessage(ctx, messageID); err != nil {
+	// Mark as deleted (tombstone) rather than hard-deleting
+	if err := s.repo.MarkMessageDeleted(ctx, messageID); err != nil {
 		return err
 	}
 
 	if conv.LastMessageID == messageID {
-		latest, _ := s.repo.GetLatestMessage(ctx, conv.ID)
-		if latest != nil {
-			_ = s.repo.UpdateLastMessage(ctx, conv.ID, latest.ID, latest.Content)
-		} else {
-			_ = s.repo.UpdateLastMessage(ctx, conv.ID, primitive.NilObjectID, "")
-		}
+		_ = s.repo.UpdateLastMessage(ctx, conv.ID, conv.LastMessageID, "This message was deleted")
 	}
 
 	for _, p := range conv.Participants {
@@ -225,46 +260,228 @@ func (s *service) DeleteConversation(ctx context.Context, conversationID, userID
 		return errors.New("unauthorized")
 	}
 
-	if err := s.repo.DeleteConversation(ctx, conversationID); err != nil {
+	// LinkedIn rule: Remove/hide conversation only for the requesting user
+	if err := s.repo.ClearConversationForUser(ctx, conversationID, userID); err != nil {
 		return err
 	}
 
-	for _, p := range conv.Participants {
-		s.hub.Send(p.Hex(), map[string]interface{}{
-			"type":            "CONVERSATION_DELETED",
-			"conversation_id": conversationID.Hex(),
-		})
-	}
+	// Notify only the requesting user's client to remove it from their inbox
+	s.hub.Send(userID.Hex(), map[string]interface{}{
+		"type":            "CONVERSATION_DELETED",
+		"conversation_id": conversationID.Hex(),
+	})
 
 	return nil
 }
 
 func (s *service) ClearMessages(ctx context.Context, conversationID, userID primitive.ObjectID) error {
-	conv, err := s.repo.GetConversationByID(ctx, conversationID)
-	if err != nil || conv == nil {
-		return errors.New("conversation not found")
-	}
-	isParticipant := false
-	for _, p := range conv.Participants {
-		if p == userID {
-			isParticipant = true
-			break
-		}
-	}
-	if !isParticipant {
-		return errors.New("unauthorized")
-	}
+	return s.DeleteConversation(ctx, conversationID, userID)
+}
 
-	if err := s.repo.DeleteMessagesByConversationID(ctx, conversationID); err != nil {
+// Block & Safety service methods
+
+func (s *service) BlockUser(ctx context.Context, userID, targetUserID primitive.ObjectID) error {
+	if userID == targetUserID {
+		return errors.New("cannot block yourself")
+	}
+	err := s.repo.BlockUser(ctx, userID, targetUserID)
+	if err != nil {
 		return err
 	}
 
-	for _, p := range conv.Participants {
-		s.hub.Send(p.Hex(), map[string]interface{}{
-			"type":            "CHAT_CLEARED",
-			"conversation_id": conversationID.Hex(),
+	// Notify both users in real-time over WebSocket so their chat UIs update instantly
+	if s.hub != nil {
+		s.hub.Send(userID.Hex(), fiber.Map{
+			"type":            "USER_BLOCKED",
+			"blocked_user_id": targetUserID.Hex(),
+			"blocked_by_me":   true,
 		})
+		s.hub.Send(targetUserID.Hex(), fiber.Map{
+			"type":            "USER_BLOCKED",
+			"blocked_user_id": userID.Hex(),
+			"blocked_by_me":   false,
+		})
+	}
+	return nil
+}
+
+func (s *service) UnblockUser(ctx context.Context, userID, targetUserID primitive.ObjectID) error {
+	err := s.repo.UnblockUser(ctx, userID, targetUserID)
+	if err != nil {
+		return err
+	}
+
+	if s.hub != nil {
+		s.hub.Send(userID.Hex(), fiber.Map{
+			"type":              "USER_UNBLOCKED",
+			"unblocked_user_id": targetUserID.Hex(),
+			"unblocked_by_me":   true,
+		})
+		s.hub.Send(targetUserID.Hex(), fiber.Map{
+			"type":              "USER_UNBLOCKED",
+			"unblocked_user_id": userID.Hex(),
+			"unblocked_by_me":   false,
+		})
+	}
+	return nil
+}
+
+func (s *service) GetBlockStatus(ctx context.Context, userID, otherUserID primitive.ObjectID) (*BlockStatusResponse, error) {
+	byMe, byOther, err := s.repo.GetBlockStatus(ctx, userID, otherUserID)
+	if err != nil {
+		return nil, err
+	}
+	return &BlockStatusResponse{
+		IsBlockedByMe:    byMe,
+		IsBlockedByOther: byOther,
+	}, nil
+}
+
+// Report & Moderation service methods
+
+func (s *service) CreateChatReport(ctx context.Context, reporterID, conversationID primitive.ObjectID, req CreateReportRequest) (*ChatReport, error) {
+	conv, err := s.repo.GetConversationByID(ctx, conversationID)
+	if err != nil {
+		return nil, err
+	}
+	if conv == nil {
+		return nil, errors.New("conversation not found")
+	}
+
+	var targetUserID primitive.ObjectID
+	for _, p := range conv.Participants {
+		if p != reporterID {
+			targetUserID = p
+			break
+		}
+	}
+	if targetUserID.IsZero() {
+		return nil, errors.New("cannot identify reported user in this conversation")
+	}
+
+	reporterName := "User"
+	reporterRole := "user"
+	if s.userRepo != nil {
+		if u, err := s.userRepo.FindUserByID(ctx, reporterID.Hex()); err == nil && u != nil {
+			if u.Name != "" {
+				reporterName = u.Name
+			} else if u.FirstName != "" {
+				reporterName = strings.TrimSpace(u.FirstName + " " + u.LastName)
+			}
+			if len(u.Roles) > 0 {
+				reporterRole = u.Roles[0]
+			}
+		}
+	}
+
+	targetUserName := "User"
+	targetUserRole := "user"
+	if s.userRepo != nil {
+		if u, err := s.userRepo.FindUserByID(ctx, targetUserID.Hex()); err == nil && u != nil {
+			if u.Name != "" {
+				targetUserName = u.Name
+			} else if u.FirstName != "" {
+				targetUserName = strings.TrimSpace(u.FirstName + " " + u.LastName)
+			}
+			if len(u.Roles) > 0 {
+				targetUserRole = u.Roles[0]
+			}
+		}
+	}
+
+	// Capture recent conversation messages as evidence snapshot
+	evidenceMessages, _ := s.repo.GetMessagesByConversationID(ctx, conversationID, 25, nil, nil)
+	evidence := make([]ReportedMessageSnapshot, 0, len(evidenceMessages))
+	for _, m := range evidenceMessages {
+		senderName := targetUserName
+		if m.SenderID == reporterID {
+			senderName = reporterName
+		}
+		evidence = append(evidence, ReportedMessageSnapshot{
+			ID:            m.ID,
+			SenderID:      m.SenderID,
+			SenderName:    senderName,
+			Content:       m.Content,
+			AttachmentURL: m.AttachmentURL,
+			CreatedAt:     m.CreatedAt,
+		})
+	}
+
+	report := &ChatReport{
+		ReporterID:       reporterID,
+		ReporterName:     reporterName,
+		ReporterRole:     reporterRole,
+		ReportedUserID:   targetUserID,
+		ReportedUserName: targetUserName,
+		ReportedUserRole: targetUserRole,
+		ConversationID:   conversationID,
+		Reason:           req.Reason,
+		Description:      req.Description,
+		Evidence:         evidence,
+		Status:           "pending",
+	}
+
+	createdReport, err := s.repo.CreateChatReport(ctx, report)
+	if err != nil {
+		return nil, err
+	}
+
+	// If user also opted to block this user simultaneously
+	if req.BlockUser {
+		_ = s.BlockUser(ctx, reporterID, targetUserID)
+	}
+
+	return createdReport, nil
+}
+
+func (s *service) GetAdminChatReports(ctx context.Context, status string, page, limit int) (*ChatReportListResponse, error) {
+	reports, total, err := s.repo.GetChatReports(ctx, status, page, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	if limit <= 0 {
+		limit = 15
+	}
+	totalPages := int(math.Ceil(float64(total) / float64(limit)))
+	if totalPages < 1 {
+		totalPages = 1
+	}
+
+	return &ChatReportListResponse{
+		Reports:    reports,
+		Total:      total,
+		Page:       page,
+		TotalPages: totalPages,
+	}, nil
+}
+
+func (s *service) GetAdminChatReportByID(ctx context.Context, id primitive.ObjectID) (*ChatReport, error) {
+	return s.repo.GetChatReportByID(ctx, id)
+}
+
+func (s *service) ResolveAdminChatReport(ctx context.Context, id, adminID primitive.ObjectID, adminName string, req ResolveReportRequest) error {
+	report, err := s.repo.GetChatReportByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if report == nil {
+		return errors.New("report not found")
+	}
+
+	err = s.repo.ResolveChatReport(ctx, id, req.Status, req.ActionTaken, req.AdminNotes, &adminID, adminName)
+	if err != nil {
+		return err
+	}
+
+	// If admin action is to suspend the user, update their verification status
+	if req.ActionTaken == "user_suspended" && s.userRepo != nil {
+		if accusedUser, err := s.userRepo.FindUserByID(ctx, report.ReportedUserID.Hex()); err == nil && accusedUser != nil {
+			accusedUser.VerificationStatus = "suspended"
+			_, _ = s.userRepo.UpdateUser(ctx, accusedUser)
+		}
 	}
 
 	return nil
 }
+
