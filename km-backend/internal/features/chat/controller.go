@@ -271,9 +271,18 @@ func (c *Controller) GetMessages(ctx *fiber.Ctx) error {
 	}
 
 	limit := ctx.QueryInt("limit", 50)
-	offset := ctx.QueryInt("offset", 0)
+	if limit <= 0 || limit > 100 {
+		limit = 50
+	}
 
-	messages, err := c.service.GetMessages(ctx.Context(), conversationID, userID, limit, offset)
+	var beforeID *primitive.ObjectID
+	if beforeStr := ctx.Query("before"); beforeStr != "" {
+		if bid, err := primitive.ObjectIDFromHex(beforeStr); err == nil {
+			beforeID = &bid
+		}
+	}
+
+	messages, err := c.service.GetMessages(ctx.Context(), conversationID, userID, limit, beforeID)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -283,6 +292,25 @@ func (c *Controller) GetMessages(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(messages)
 }
+
+func (c *Controller) GetTotalUnreadCount(ctx *fiber.Ctx) error {
+	userIDStr, ok := ctx.Locals("user_id").(string)
+	if !ok || userIDStr == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid User ID"})
+	}
+
+	count, err := c.service.GetTotalUnreadCount(ctx.Context(), userID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(fiber.Map{"unread_count": count})
+}
+
 
 func (c *Controller) DeleteMessage(ctx *fiber.Ctx) error {
 	userIDStr := ctx.Locals("user_id").(string)
@@ -343,3 +371,214 @@ func (c *Controller) ClearMessages(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(fiber.Map{"message": "Chat cleared successfully"})
 }
+
+// Block & Safety handlers
+
+func (c *Controller) BlockUser(ctx *fiber.Ctx) error {
+	userIDStr, ok := ctx.Locals("user_id").(string)
+	if !ok || userIDStr == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid User ID"})
+	}
+
+	targetIDStr := ctx.Params("id")
+	if targetIDStr == "" {
+		var req struct {
+			TargetUserID string `json:"target_user_id"`
+		}
+		_ = ctx.BodyParser(&req)
+		targetIDStr = req.TargetUserID
+	}
+	if targetIDStr == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Target user ID is required"})
+	}
+
+	targetUserID, err := primitive.ObjectIDFromHex(targetIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid target user ID"})
+	}
+
+	if err := c.service.BlockUser(ctx.Context(), userID, targetUserID); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"message": "User blocked successfully",
+	})
+}
+
+func (c *Controller) UnblockUser(ctx *fiber.Ctx) error {
+	userIDStr, ok := ctx.Locals("user_id").(string)
+	if !ok || userIDStr == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid User ID"})
+	}
+
+	targetIDStr := ctx.Params("id")
+	if targetIDStr == "" {
+		var req struct {
+			TargetUserID string `json:"target_user_id"`
+		}
+		_ = ctx.BodyParser(&req)
+		targetIDStr = req.TargetUserID
+	}
+	if targetIDStr == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Target user ID is required"})
+	}
+
+	targetUserID, err := primitive.ObjectIDFromHex(targetIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid target user ID"})
+	}
+
+	if err := c.service.UnblockUser(ctx.Context(), userID, targetUserID); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(fiber.Map{
+		"success": true,
+		"message": "User unblocked successfully",
+	})
+}
+
+func (c *Controller) GetBlockStatus(ctx *fiber.Ctx) error {
+	userIDStr, ok := ctx.Locals("user_id").(string)
+	if !ok || userIDStr == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid User ID"})
+	}
+
+	targetIDStr := ctx.Params("id")
+	if targetIDStr == "" {
+		targetIDStr = ctx.Query("user_id")
+	}
+	if targetIDStr == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "User ID is required"})
+	}
+
+	targetUserID, err := primitive.ObjectIDFromHex(targetIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
+
+	status, err := c.service.GetBlockStatus(ctx.Context(), userID, targetUserID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(status)
+}
+
+func (c *Controller) CreateReport(ctx *fiber.Ctx) error {
+	userIDStr, ok := ctx.Locals("user_id").(string)
+	if !ok || userIDStr == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	reporterID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid User ID"})
+	}
+
+	conversationIDStr := ctx.Params("id")
+	if conversationIDStr == "" {
+		conversationIDStr = ctx.Query("conversation_id")
+	}
+	conversationID, err := primitive.ObjectIDFromHex(conversationIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid Conversation ID"})
+	}
+
+	var req CreateReportRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if req.Reason == "" {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Reason is required"})
+	}
+
+	report, err := c.service.CreateChatReport(ctx.Context(), reporterID, conversationID, req)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(report)
+}
+
+// Admin Chat Report Handlers
+
+func (c *Controller) GetAdminChatReports(ctx *fiber.Ctx) error {
+	status := ctx.Query("status", "")
+	page := ctx.QueryInt("page", 1)
+	limit := ctx.QueryInt("limit", 15)
+
+	res, err := c.service.GetAdminChatReports(ctx.Context(), status, page, limit)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(res)
+}
+
+func (c *Controller) GetAdminChatReportByID(ctx *fiber.Ctx) error {
+	idStr := ctx.Params("id")
+	id, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid report ID"})
+	}
+
+	report, err := c.service.GetAdminChatReportByID(ctx.Context(), id)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	if report == nil {
+		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Report not found"})
+	}
+
+	return ctx.JSON(report)
+}
+
+func (c *Controller) ResolveAdminChatReport(ctx *fiber.Ctx) error {
+	adminIDStr, ok := ctx.Locals("user_id").(string)
+	if !ok || adminIDStr == "" {
+		adminIDStr = "000000000000000000000000"
+	}
+	adminID, _ := primitive.ObjectIDFromHex(adminIDStr)
+
+	adminName := "Admin"
+	if email, ok := ctx.Locals("email").(string); ok && email != "" {
+		adminName = email
+	}
+
+	idStr := ctx.Params("id")
+	id, err := primitive.ObjectIDFromHex(idStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid report ID"})
+	}
+
+	var req ResolveReportRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	if req.Status == "" {
+		req.Status = "resolved"
+	}
+
+	if err := c.service.ResolveAdminChatReport(ctx.Context(), id, adminID, adminName, req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(fiber.Map{"success": true, "message": "Report resolved successfully"})
+}
+

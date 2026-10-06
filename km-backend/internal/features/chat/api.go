@@ -28,8 +28,12 @@ func (api *ChatApi) Setup(app *fiber.App) {
 	group.Post("/", api.controller.SendMessage)
 	group.Post("/messages", api.controller.SendMessage)
 
+	// Total unread count for navbar badge
+	group.Get("/unread-count", api.controller.GetTotalUnreadCount)
+
 	// Message fetching
 	group.Get("/:id/messages", api.controller.GetMessages)
+
 
 	// Flexible read receipts (supports PUT, POST, PATCH on /:id/read and /read)
 	group.Put("/:id/read", api.controller.MarkAsRead)
@@ -42,6 +46,21 @@ func (api *ChatApi) Setup(app *fiber.App) {
 	group.Delete("/messages/:id", api.controller.DeleteMessage)
 	group.Delete("/:id/messages", api.controller.ClearMessages)
 	group.Delete("/:id", api.controller.DeleteConversation)
+
+	// User Block & Safety (F59)
+	group.Post("/users/:id/block", api.controller.BlockUser)
+	group.Post("/users/:id/unblock", api.controller.UnblockUser)
+	group.Get("/users/:id/block-status", api.controller.GetBlockStatus)
+
+	// Conversation Reporting (F59)
+	group.Post("/:id/report", api.controller.CreateReport)
+
+	// Admin Chat Moderation & Reports (F59)
+	adminReports := app.Group("/api/admin/chat-reports", middleware.AuthMiddleware(api.controller.config.JWTSecret))
+	adminReports.Get("", api.controller.GetAdminChatReports)
+	adminReports.Get("/", api.controller.GetAdminChatReports)
+	adminReports.Get("/:id", api.controller.GetAdminChatReportByID)
+	adminReports.Put("/:id/resolve", api.controller.ResolveAdminChatReport)
 
 	app.Use("/api/ws/chats", func(c *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {

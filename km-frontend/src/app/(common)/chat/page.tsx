@@ -24,10 +24,28 @@ import {
   MoreVertical,
   Trash2,
   RotateCcw,
+  Ban,
+  Copy,
+  Flag,
+  CheckCircle2,
+  AlertTriangle,
+  ShieldAlert,
 } from "lucide-react";
+import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
 import { playMessageReceivedSound } from "@/lib/sound";
+import { setActiveChatState, notifyChatUnreadChanged } from "@/lib/notifications";
+
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-[330px] h-[370px] flex items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-xl">
+      <Loader2 className="w-6 h-6 animate-spin text-[#071A4D]" />
+    </div>
+  ),
+});
+
 
 // --- Interfaces ---
 interface User {
@@ -58,6 +76,8 @@ interface Message {
   content: string;
   created_at: string;
   is_read: boolean;
+  is_deleted?: boolean;
+  deleted_at?: string;
   attachment_url?: string;
   attachment_type?: string;
   attachment_name?: string;
@@ -73,137 +93,7 @@ interface PendingAttachment {
   sizeFormatted: string;
 }
 
-// --- Curated Emoji Dataset ---
-const EMOJI_CATEGORIES = {
-  smileys: {
-    label: "Smileys",
-    emojis: [
-      "😀",
-      "😁",
-      "😂",
-      "🤣",
-      "😃",
-      "😄",
-      "😅",
-      "😆",
-      "😉",
-      "😊",
-      "😋",
-      "😎",
-      "😍",
-      "🥰",
-      "😘",
-      "😚",
-      "🙂",
-      "🤗",
-      "🤩",
-      "🤔",
-      "🤨",
-      "😐",
-      "😶",
-      "🙄",
-      "😏",
-      "😴",
-      "😌",
-      "🥳",
-      "🥺",
-      "😇",
-      "🤠",
-      "🤐",
-      "😮",
-      "🤤",
-      "🫠",
-      "🙃",
-    ],
-  },
-  hands: {
-    label: "Hands",
-    emojis: [
-      "👍",
-      "👎",
-      "👌",
-      "✌️",
-      "🤞",
-      "🤟",
-      "🤘",
-      "🤙",
-      "👈",
-      "👉",
-      "👆",
-      "👇",
-      "✋",
-      "🖐️",
-      "🖖",
-      "👋",
-      "🤝",
-      "👏",
-      "🙌",
-      "👐",
-      "🤲",
-      "🙏",
-      "💪",
-      "👊",
-    ],
-  },
-  work: {
-    label: "Work",
-    emojis: [
-      "💼",
-      "📁",
-      "📄",
-      "📊",
-      "📈",
-      "📉",
-      "💻",
-      "🖥️",
-      "📱",
-      "✉️",
-      "📧",
-      "✍️",
-      "🎯",
-      "📌",
-      "📍",
-      "🔍",
-      "💡",
-      "⏱️",
-      "📅",
-      "🗓️",
-      "🏢",
-      "🧑‍💻",
-      "👨‍💼",
-      "👩‍💼",
-    ],
-  },
-  fun: {
-    label: "Fun & Symbols",
-    emojis: [
-      "🎉",
-      "🎊",
-      "🎈",
-      "🏆",
-      "🥇",
-      "⭐",
-      "🌟",
-      "✨",
-      "🚀",
-      "🔥",
-      "💯",
-      "🥂",
-      "🎁",
-      "💐",
-      "❤️",
-      "🧡",
-      "💙",
-      "🟢",
-      "✔️",
-      "✅",
-      "⚠️",
-      "❗",
-      "❓",
-      "🔔",
-    ],
-  },
-};
+
 
 
 
@@ -328,10 +218,12 @@ function ChatView() {
 
   // Emoji Picker state
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [emojiCategory, setEmojiCategory] = useState<
-    "smileys" | "hands" | "work" | "fun"
-  >("smileys");
   const emojiPickerRef = useRef<HTMLDivElement>(null);
+
+  // Pagination & Copy states
+  const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState<boolean>(false);
+  const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
   // Real-time typing states
   const [isOtherTyping, setIsOtherTyping] = useState(false);
@@ -346,6 +238,25 @@ function ChatView() {
   // Mobile slide-in view
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
 
+  // User Block & Safety states (F59)
+  const [isBlockedByMe, setIsBlockedByMe] = useState(false);
+  const [isBlockedByOther, setIsBlockedByOther] = useState(false);
+
+  // Report Modal state (F59)
+  const [reportModal, setReportModal] = useState<{
+    isOpen: boolean;
+    reason: string;
+    description: string;
+    blockAlso: boolean;
+    isSubmitting: boolean;
+  }>({
+    isOpen: false,
+    reason: "Spam or unwanted advertising",
+    description: "",
+    blockAlso: false,
+    isSubmitting: false,
+  });
+
   // DOM & State refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -354,6 +265,8 @@ function ChatView() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const prevMessagesLength = useRef(0);
   const prevActiveChatId = useRef<string | null>(null);
+  const prevLastMsgId = useRef<string | null>(null);
+
 
   // Chat options menu state
   const [showChatMenu, setShowChatMenu] = useState(false);
@@ -517,10 +430,12 @@ function ChatView() {
       setConversations((prev) =>
         prev.map((c) => (c.id === chat.id ? { ...c, unread_count: 0 } : c)),
       );
+      notifyChatUnreadChanged();
     } catch {
       // Silently ignore
     }
   };
+
 
   // 4. WebSocket setup
   useEffect(() => {
@@ -663,10 +578,24 @@ function ChatView() {
             }
           }
 
-          // Handle Message Deletion
+          // Handle Message Deletion (LinkedIn style tombstone)
           if (data.type === "MESSAGE_DELETED") {
             const deletedMsgId = data.message_id;
-            setMessages((prev) => prev.filter((m) => m.id !== deletedMsgId));
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === deletedMsgId
+                  ? {
+                      ...m,
+                      is_deleted: true,
+                      content: "",
+                      attachment_url: "",
+                      attachment_type: "",
+                      attachment_name: "",
+                      attachment_size: 0,
+                    }
+                  : m,
+              ),
+            );
             if (currentUser) {
               loadConversations(currentUser.id, false);
             }
@@ -692,6 +621,20 @@ function ChatView() {
               setActiveChat(null);
               setMessages([]);
               setMobileChatOpen(false);
+            }
+          }
+
+          // Handle Real-time User Block / Unblock (F59)
+          if (data.type === "USER_BLOCKED" || data.type === "USER_UNBLOCKED") {
+            if (currentActive && currentUser) {
+              const partner =
+                currentActive.other_user || currentActive.otherUser;
+              const partnerId =
+                partner?.id ||
+                currentActive.participants.find((p) => p !== currentUser.id);
+              if (partnerId) {
+                checkBlockStatus(partnerId);
+              }
             }
           }
         } catch (e) {
@@ -826,10 +769,54 @@ function ChatView() {
     selectOrStartChat();
   }, [searchParams, currentUser, loadingConversations]);
 
+  // Active chat notification suppression synchronization
+  useEffect(() => {
+    if (activeChat && currentUser) {
+      const other = activeChat.other_user || activeChat.otherUser;
+      const otherId =
+        other?.id || activeChat.participants.find((p) => p !== currentUser.id);
+      setActiveChatState(activeChat.id, otherId || null);
+    } else {
+      setActiveChatState(null, null);
+    }
+    return () => {
+      setActiveChatState(null, null);
+    };
+  }, [activeChat, currentUser]);
+
+  // Check user block status when active chat changes (F59)
+  const checkBlockStatus = async (otherUserId: string) => {
+    if (!otherUserId || otherUserId.startsWith("temp-")) return;
+    try {
+      const res: any = await api.get(`/chats/users/${otherUserId}/block-status`);
+      if (res) {
+        setIsBlockedByMe(Boolean(res.is_blocked_by_me));
+        setIsBlockedByOther(Boolean(res.is_blocked_by_other));
+      }
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    if (!activeChat || !currentUser) {
+      setIsBlockedByMe(false);
+      setIsBlockedByOther(false);
+      return;
+    }
+    const other = activeChat.other_user || activeChat.otherUser;
+    const otherId =
+      other?.id || activeChat.participants.find((p) => p !== currentUser.id);
+    if (otherId) {
+      checkBlockStatus(otherId);
+    }
+  }, [activeChat?.id, currentUser?.id]);
+
   // 7. Load messages when active chat changes
   useEffect(() => {
     if (!activeChat) {
       setMessages([]);
+      setHasMoreMessages(false);
       return;
     }
 
@@ -837,16 +824,22 @@ function ChatView() {
 
     if (activeChat.id.startsWith("temp-")) {
       setMessages([]);
+      setHasMoreMessages(false);
       return;
     }
 
     const fetchMessages = async () => {
       setLoadingMessages(true);
+      setHasMoreMessages(true);
       try {
         const res = (await api.get(
-          `/chats/${activeChat.id}/messages`,
+          `/chats/${activeChat.id}/messages?limit=50`,
         )) as Message[];
-        setMessages(res || []);
+        const batch = res || [];
+        setMessages(batch);
+        if (batch.length < 50) {
+          setHasMoreMessages(false);
+        }
         markAsRead(activeChat);
       } catch (e) {
         console.error("Failed to load messages", e);
@@ -858,6 +851,84 @@ function ChatView() {
     fetchMessages();
   }, [activeChat?.id]);
 
+  // Load older messages when scrolling to top (infinite reverse scroll)
+  const loadOlderMessages = async () => {
+    if (
+      !activeChat ||
+      loadingOlderMessages ||
+      !hasMoreMessages ||
+      messages.length === 0 ||
+      activeChat.id.startsWith("temp-")
+    ) {
+      return;
+    }
+
+    const oldestMessage = messages[0];
+    if (!oldestMessage || !oldestMessage.id) return;
+
+    const container = messagesContainerRef.current;
+    const prevScrollHeight = container ? container.scrollHeight : 0;
+
+    setLoadingOlderMessages(true);
+    try {
+      const res = (await api.get(
+        `/chats/${activeChat.id}/messages?limit=50&before=${oldestMessage.id}`,
+      )) as Message[];
+
+      if (!res || res.length === 0) {
+        setHasMoreMessages(false);
+      } else {
+        if (res.length < 50) {
+          setHasMoreMessages(false);
+        }
+        setMessages((prev) => {
+          const newItems = res.filter(
+            (m) => !prev.some((existing) => existing.id === m.id),
+          );
+          return [...newItems, ...prev];
+        });
+
+        // Maintain exact scroll position so view doesn't jump
+        requestAnimationFrame(() => {
+          if (container) {
+            container.scrollTop = container.scrollHeight - prevScrollHeight;
+          }
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load older messages", err);
+    } finally {
+      setLoadingOlderMessages(false);
+    }
+  };
+
+  const handleScroll = () => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    if (
+      container.scrollTop < 60 &&
+      hasMoreMessages &&
+      !loadingOlderMessages &&
+      !loadingMessages
+    ) {
+      loadOlderMessages();
+    }
+  };
+
+  // Copy message text to clipboard helper
+  const handleCopyMessage = async (msg: Message) => {
+    if (!msg.content || msg.is_deleted) return;
+    try {
+      await navigator.clipboard.writeText(msg.content);
+      setCopiedMessageId(msg.id);
+      setTimeout(() => {
+        setCopiedMessageId((prev) => (prev === msg.id ? null : prev));
+      }, 1800);
+    } catch (err) {
+      console.error("Failed to copy message", err);
+    }
+  };
+
   // 8. Auto-scroll on new messages (Container-level, never window-level)
   useEffect(() => {
     if (!activeChat) return;
@@ -865,17 +936,20 @@ function ChatView() {
     const container = messagesContainerRef.current;
     if (!container) return;
 
+    const lastMsgId =
+      messages.length > 0 ? messages[messages.length - 1].id : null;
+
     if (activeChat.id !== prevActiveChatId.current) {
       prevActiveChatId.current = activeChat.id;
-      prevMessagesLength.current = messages.length;
+      prevLastMsgId.current = lastMsgId;
       container.scrollTop = container.scrollHeight;
-    } else if (messages.length > prevMessagesLength.current) {
-      prevMessagesLength.current = messages.length;
+    } else if (lastMsgId && lastMsgId !== prevLastMsgId.current) {
+      // Only smooth scroll down when a message is added to the end
+      prevLastMsgId.current = lastMsgId;
       container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
-    } else {
-      prevMessagesLength.current = messages.length;
     }
   }, [messages, activeChat, isOtherTyping]);
+
 
   // 9. File attachment selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -926,6 +1000,15 @@ function ChatView() {
     const otherId =
       other?.id || activeChat.participants.find((p) => p !== currentUser.id);
     if (!otherId) return;
+
+    if (isBlockedByMe) {
+      toast.error("You have blocked this user. Unblock them to send messages.");
+      return;
+    }
+    if (isBlockedByOther) {
+      toast.error("You cannot send messages to this conversation.");
+      return;
+    }
 
     // Close emoji picker
     setShowEmojiPicker(false);
@@ -1122,66 +1205,175 @@ function ChatView() {
 
   const activePartner = activeChat?.other_user || activeChat?.otherUser;
 
-  // 13. Message & Conversation Deletion Handlers
-  const handleDeleteMessage = async (messageId: string) => {
-    if (!window.confirm("Delete this message for everyone?")) return;
-    try {
-      await api.delete(`/chats/messages/${messageId}`);
-      setMessages((prev) => prev.filter((m) => m.id !== messageId));
-      if (currentUser) {
-        loadConversations(currentUser.id, false);
-      }
-      toast.success("Message deleted");
-    } catch (e: any) {
-      console.error("Failed to delete message", e);
-      toast.error(e?.response?.data?.error || "Failed to delete message");
-    }
+  // 13. In-App Confirmation Modal & Handlers (Block, Unblock, Delete)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    type: "message" | "conversation" | "block" | "unblock";
+    targetId: string;
+    title: string;
+    description: string;
+    confirmLabel: string;
+  }>({
+    isOpen: false,
+    type: "message",
+    targetId: "",
+    title: "",
+    description: "",
+    confirmLabel: "Delete",
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const promptDeleteMessage = (messageId: string) => {
+    setConfirmModal({
+      isOpen: true,
+      type: "message",
+      targetId: messageId,
+      title: "Delete message?",
+      description: "This message will be deleted for everyone in this chat.",
+      confirmLabel: "Delete for everyone",
+    });
   };
 
-  const handleClearChat = async () => {
-    if (!activeChat) return;
-    if (
-      !window.confirm(
-        "Are you sure you want to clear all messages in this chat?",
-      )
-    )
-      return;
-    setShowChatMenu(false);
-    try {
-      await api.delete(`/chats/${activeChat.id}/messages`);
-      setMessages([]);
-      if (currentUser) {
-        loadConversations(currentUser.id, false);
-      }
-      toast.success("Chat cleared");
-    } catch (e: any) {
-      console.error("Failed to clear chat", e);
-      toast.error(e?.response?.data?.error || "Failed to clear chat");
-    }
-  };
-
-  const handleDeleteConversation = async (conversationId?: string) => {
+  const promptDeleteConversation = (conversationId?: string) => {
     const convId = conversationId || activeChat?.id;
     if (!convId) return;
-    if (
-      !window.confirm(
-        "Delete this conversation completely? All messages will be permanently deleted.",
-      )
-    )
-      return;
     setShowChatMenu(false);
+    setConfirmModal({
+      isOpen: true,
+      type: "conversation",
+      targetId: convId,
+      title: "Delete conversation?",
+      description:
+        "This will remove the conversation from your inbox. The other person will still see the conversation and messages.",
+      confirmLabel: "Delete conversation",
+    });
+  };
+
+  const promptBlockUser = () => {
+    const other = activeChat?.other_user || activeChat?.otherUser;
+    const otherId =
+      other?.id || (currentUser && activeChat?.participants.find((p) => p !== currentUser.id));
+    if (!otherId) return;
+    setShowChatMenu(false);
+    setConfirmModal({
+      isOpen: true,
+      type: "block",
+      targetId: otherId,
+      title: `Block ${other?.name || "this user"}?`,
+      description:
+        "They will not be able to send you messages on KaamMilega. You can unblock them at any time.",
+      confirmLabel: "Block user",
+    });
+  };
+
+  const promptUnblockUser = () => {
+    const other = activeChat?.other_user || activeChat?.otherUser;
+    const otherId =
+      other?.id || (currentUser && activeChat?.participants.find((p) => p !== currentUser.id));
+    if (!otherId) return;
+    setShowChatMenu(false);
+    setConfirmModal({
+      isOpen: true,
+      type: "unblock",
+      targetId: otherId,
+      title: `Unblock ${other?.name || "this user"}?`,
+      description:
+        "They will be able to send you messages and connect with you again on KaamMilega.",
+      confirmLabel: "Unblock user",
+    });
+  };
+
+  const openReportModal = () => {
+    setShowChatMenu(false);
+    setReportModal({
+      isOpen: true,
+      reason: "Spam or unwanted advertising",
+      description: "",
+      blockAlso: false,
+      isSubmitting: false,
+    });
+  };
+
+  const handleSubmitReport = async () => {
+    if (!activeChat) return;
+    setReportModal((prev) => ({ ...prev, isSubmitting: true }));
     try {
-      await api.delete(`/chats/${convId}`);
-      setConversations((prev) => prev.filter((c) => c.id !== convId));
-      if (activeChat?.id === convId) {
-        setActiveChat(null);
-        setMessages([]);
-        setMobileChatOpen(false);
+      await api.post(`/chats/${activeChat.id}/report`, {
+        reason: reportModal.reason,
+        description: reportModal.description.trim(),
+        block_user: reportModal.blockAlso,
+      });
+
+      toast.success(
+        "Thank you for letting us know. Our team will review this report.",
+      );
+
+      if (reportModal.blockAlso) {
+        setIsBlockedByMe(true);
       }
-      toast.success("Conversation deleted");
+
+      setReportModal((prev) => ({ ...prev, isOpen: false }));
+    } catch (err: any) {
+      console.error("Failed to submit chat report", err);
+      toast.error(err?.response?.data?.error || "Failed to submit report");
+    } finally {
+      setReportModal((prev) => ({ ...prev, isSubmitting: false }));
+    }
+  };
+
+  const handleConfirmAction = async () => {
+    if (isDeleting) return;
+    setIsDeleting(true);
+    try {
+      if (confirmModal.type === "message") {
+        const messageId = confirmModal.targetId;
+        await api.delete(`/chats/messages/${messageId}`);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId
+              ? {
+                  ...m,
+                  is_deleted: true,
+                  content: "",
+                  attachment_url: "",
+                  attachment_type: "",
+                  attachment_name: "",
+                  attachment_size: 0,
+                }
+              : m,
+          ),
+        );
+        if (currentUser) {
+          loadConversations(currentUser.id, false);
+        }
+        toast.success("Message deleted");
+      } else if (confirmModal.type === "conversation") {
+        const convId = confirmModal.targetId;
+        await api.delete(`/chats/${convId}`);
+        setConversations((prev) => prev.filter((c) => c.id !== convId));
+        if (activeChat?.id === convId) {
+          setActiveChat(null);
+          setMessages([]);
+          setMobileChatOpen(false);
+        }
+        toast.success("Conversation removed from your inbox");
+      } else if (confirmModal.type === "block") {
+        const targetUserId = confirmModal.targetId;
+        await api.post(`/chats/users/${targetUserId}/block`);
+        setIsBlockedByMe(true);
+        toast.success("User blocked");
+      } else if (confirmModal.type === "unblock") {
+        const targetUserId = confirmModal.targetId;
+        await api.post(`/chats/users/${targetUserId}/unblock`);
+        setIsBlockedByMe(false);
+        toast.success("User unblocked");
+      }
     } catch (e: any) {
-      console.error("Failed to delete conversation", e);
-      toast.error(e?.response?.data?.error || "Failed to delete conversation");
+      console.error("Action failed", e);
+      toast.error(e?.response?.data?.error || "Failed to complete request");
+    } finally {
+      setIsDeleting(false);
+      setConfirmModal((prev) => ({ ...prev, isOpen: false }));
     }
   };
 
@@ -1403,7 +1595,7 @@ function ChatView() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDeleteConversation(chat.id);
+                            promptDeleteConversation(chat.id);
                           }}
                           title="Delete conversation"
                           className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-all"
@@ -1548,16 +1740,37 @@ function ChatView() {
                   </button>
 
                   {showChatMenu && (
-                    <div className="absolute right-0 top-full mt-1.5 w-48 bg-white border border-[#D9E0EA] rounded-xl shadow-lg z-30 py-1 text-xs divide-y divide-[#F4F7FB]">
+                    <div className="absolute right-0 top-full mt-1.5 w-52 bg-white border border-[#D9E0EA] rounded-xl shadow-lg z-30 py-1 text-xs">
+                      {isBlockedByMe ? (
+                        <button
+                          onClick={promptUnblockUser}
+                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 transition-colors"
+                        >
+                          <CheckCircle2 size={14} />
+                          <span>Unblock user</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={promptBlockUser}
+                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 hover:bg-slate-50 transition-colors"
+                        >
+                          <Ban size={14} className="text-slate-500" />
+                          <span>Block user</span>
+                        </button>
+                      )}
+
                       <button
-                        onClick={handleClearChat}
-                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] transition-colors"
+                        onClick={openReportModal}
+                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 hover:bg-slate-50 transition-colors"
                       >
-                        <RotateCcw size={14} />
-                        <span>Clear messages</span>
+                        <Flag size={14} className="text-amber-500" />
+                        <span>Report conversation</span>
                       </button>
+
+                      <div className="my-1 border-t border-slate-100" />
+
                       <button
-                        onClick={() => handleDeleteConversation()}
+                        onClick={() => promptDeleteConversation()}
                         className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 transition-colors"
                       >
                         <Trash2 size={14} />
@@ -1572,8 +1785,19 @@ function ChatView() {
             {/* Messages Scroll Area */}
             <div
               ref={messagesContainerRef}
+              onScroll={handleScroll}
               className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-6 space-y-3.5 md:space-y-4 bg-[#F4F7FB]"
             >
+              {/* Top reverse loading spinner for infinite scroll */}
+              {loadingOlderMessages && (
+                <div className="flex items-center justify-center py-2 animate-in fade-in">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-white/90 rounded-full border border-[#D9E0EA] text-xs text-[#5B6472] shadow-xs">
+                    <Loader2 size={13} className="animate-spin text-[#FF6B00]" />
+                    <span>Loading older messages...</span>
+                  </div>
+                </div>
+              )}
+
               {loadingMessages ? (
                 <div className="flex flex-col items-center justify-center h-full text-xs text-[#5B6472] space-y-2">
                   <Loader2 size={24} className="animate-spin text-[#071A4D]" />
@@ -1631,16 +1855,45 @@ function ChatView() {
                           </div>
                         )}
 
-                        {/* Delete message button (for sender) */}
-                        {isMe && !msg.isOptimistic && (
-                          <button
-                            onClick={() => handleDeleteMessage(msg.id)}
-                            title="Delete message"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity self-center p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-[#D9E0EA] shadow-xs shrink-0"
+                        {/* Action buttons on hover (Copy for all text messages, Delete for sender) */}
+                        {!msg.is_deleted && !msg.isOptimistic && (
+                          <div
+                            className={`opacity-0 group-hover:opacity-100 transition-opacity self-center flex items-center gap-0.5 shrink-0 ${
+                              isMe ? "flex-row-reverse" : "flex-row"
+                            }`}
                           >
-                            <Trash2 size={13} />
-                          </button>
+                            {/* Copy Message Button (for messages with text content) */}
+                            {msg.content && (
+                              <button
+                                type="button"
+                                onClick={() => handleCopyMessage(msg)}
+                                title={copiedMessageId === msg.id ? "Copied!" : "Copy message"}
+                                aria-label="Copy message"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-[#071A4D] hover:bg-white border border-transparent hover:border-[#D9E0EA] shadow-xs transition-all"
+                              >
+                                {copiedMessageId === msg.id ? (
+                                  <Check size={13} className="text-emerald-600 animate-in zoom-in-75" />
+                                ) : (
+                                  <Copy size={13} />
+                                )}
+                              </button>
+                            )}
+
+                            {/* Delete message button (only for sender) */}
+                            {isMe && (
+                              <button
+                                type="button"
+                                onClick={() => promptDeleteMessage(msg.id)}
+                                title="Delete message"
+                                aria-label="Delete message"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-[#D9E0EA] shadow-xs transition-all"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
                         )}
+
 
                         <div
                           className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%] ${
@@ -1650,97 +1903,112 @@ function ChatView() {
                           {/* Message Box */}
                           <div
                             className={`rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-sm shadow-xs break-words ${
-                              isMe
+                              msg.is_deleted
+                                ? "bg-slate-100 text-slate-500 border border-slate-200 italic"
+                                : isMe
                                 ? "bg-[#071A4D] text-white rounded-tr-xs"
                                 : "bg-white text-[#111827] border border-[#D9E0EA] rounded-tl-xs"
                             }`}
                           >
-                            {/* Attachment: Image */}
-                            {msg.attachment_url &&
-                              (msg.attachment_type?.startsWith("image/") ||
-                                msg.attachment_url.match(
-                                  /\.(jpg|jpeg|png|webp|gif)$/i,
-                                )) && (
-                                <div className="mb-2 overflow-hidden rounded-xl">
-                                  <img
-                                    src={getFullMediaUrl(msg.attachment_url)}
-                                    alt={
-                                      msg.attachment_name || "Attached image"
-                                    }
-                                    onClick={() =>
-                                      setLightboxImage(
-                                        getFullMediaUrl(msg.attachment_url),
-                                      )
-                                    }
-                                    className="max-h-60 w-auto rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
-                                  />
-                                </div>
-                              )}
+                            {msg.is_deleted ? (
+                              <div className="flex items-center gap-1.5 py-0.5 select-none not-italic">
+                                <Ban size={13} className="text-slate-400 shrink-0" />
+                                <span className="text-[13px] text-slate-500 italic">This message was deleted</span>
+                              </div>
+                            ) : (
+                              <>
+                                {/* Attachment: Image */}
+                                {msg.attachment_url &&
+                                  (msg.attachment_type?.startsWith("image/") ||
+                                    msg.attachment_url.match(
+                                      /\.(jpg|jpeg|png|webp|gif)$/i,
+                                    )) && (
+                                    <div className="mb-2 overflow-hidden rounded-xl">
+                                      <img
+                                        src={getFullMediaUrl(msg.attachment_url)}
+                                        alt={
+                                          msg.attachment_name || "Attached image"
+                                        }
+                                        onClick={() =>
+                                          setLightboxImage(
+                                            getFullMediaUrl(msg.attachment_url),
+                                          )
+                                        }
+                                        className="max-h-60 w-auto rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                      />
+                                    </div>
+                                  )}
 
-                            {/* Attachment: File/Document */}
-                            {msg.attachment_url &&
-                              !msg.attachment_type?.startsWith("image/") &&
-                              !msg.attachment_url.match(
-                                /\.(jpg|jpeg|png|webp|gif)$/i,
-                              ) && (
-                                <a
-                                  href={getFullMediaUrl(msg.attachment_url)}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  download={msg.attachment_name || "document"}
-                                  className={`flex items-center gap-2.5 p-2 mb-2 rounded-xl border transition-colors ${
-                                    isMe
-                                      ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"
-                                      : "bg-[#F4F7FB] hover:bg-slate-200 border-[#D9E0EA] text-[#071A4D]"
-                                  }`}
-                                >
-                                  <div
-                                    className={`p-2 rounded-lg ${
-                                      isMe
-                                        ? "bg-white/20"
-                                        : "bg-white border border-[#D9E0EA]"
-                                    }`}
-                                  >
-                                    <FileText size={18} />
-                                  </div>
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-semibold truncate">
-                                      {msg.attachment_name ||
-                                        "Attached Document"}
-                                    </p>
-                                    {msg.attachment_size ? (
-                                      <p
-                                        className={`text-[10px] ${
+                                {/* Attachment: File/Document */}
+                                {msg.attachment_url &&
+                                  !msg.attachment_type?.startsWith("image/") &&
+                                  !msg.attachment_url.match(
+                                    /\.(jpg|jpeg|png|webp|gif)$/i,
+                                  ) && (
+                                    <a
+                                      href={getFullMediaUrl(msg.attachment_url)}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      download={msg.attachment_name || "document"}
+                                      className={`flex items-center gap-2.5 p-2 mb-2 rounded-xl border transition-colors ${
+                                        isMe
+                                          ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"
+                                          : "bg-[#F4F7FB] hover:bg-slate-200 border-[#D9E0EA] text-[#071A4D]"
+                                      }`}
+                                    >
+                                      <div
+                                        className={`p-2 rounded-lg ${
                                           isMe
-                                            ? "text-white/70"
-                                            : "text-[#5B6472]"
+                                            ? "bg-white/20"
+                                            : "bg-white border border-[#D9E0EA]"
                                         }`}
                                       >
-                                        {formatFileSize(msg.attachment_size)}
-                                      </p>
-                                    ) : null}
-                                  </div>
-                                  <Download size={15} className="shrink-0" />
-                                </a>
-                              )}
+                                        <FileText size={18} />
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <p className="text-xs font-semibold truncate">
+                                          {msg.attachment_name ||
+                                            "Attached Document"}
+                                        </p>
+                                        {msg.attachment_size ? (
+                                          <p
+                                            className={`text-[10px] ${
+                                              isMe
+                                                ? "text-white/70"
+                                                : "text-[#5B6472]"
+                                            }`}
+                                          >
+                                            {formatFileSize(msg.attachment_size)}
+                                          </p>
+                                        ) : null}
+                                      </div>
+                                      <Download size={15} className="shrink-0" />
+                                    </a>
+                                  )}
 
-                            {/* Text Content */}
-                            {msg.content && (
-                              <p className="whitespace-pre-wrap break-words leading-relaxed text-[13.5px]">
-                                {msg.content}
-                              </p>
+                                {/* Text Content */}
+                                {msg.content && (
+                                  <p className="whitespace-pre-wrap break-words leading-relaxed text-[13.5px]">
+                                    {msg.content}
+                                  </p>
+                                )}
+                              </>
                             )}
 
-                            {/* Time & Read Status - Generous padding to prevent trimming on double ticks */}
+                            {/* Time & Read Status */}
                             <div
                               className={`flex items-center gap-1.5 justify-end mt-1 text-[10px] select-none ${
-                                isMe ? "text-white/80" : "text-[#5B6472]"
+                                msg.is_deleted
+                                  ? "text-slate-400"
+                                  : isMe
+                                  ? "text-white/80"
+                                  : "text-[#5B6472]"
                               }`}
                             >
                               <span className="leading-none">
                                 {formatMessageTime(msg.created_at)}
                               </span>
-                              {isMe && (
+                              {isMe && !msg.is_deleted && (
                                 <span
                                   className="inline-flex items-center justify-center shrink-0 pl-0.5 pr-0.5"
                                   style={{ minWidth: "18px" }}
@@ -1844,123 +2112,121 @@ function ChatView() {
                 </div>
               )}
 
-              {/* Responsive Emoji Picker Popover */}
+              {/* Dynamic Comprehensive Emoji Picker Popover */}
               {showEmojiPicker && (
                 <div
                   ref={emojiPickerRef}
-                  className="absolute bottom-16 sm:bottom-20 left-3 sm:left-4 z-40 bg-white border border-[#D9E0EA] rounded-2xl shadow-xl w-72 sm:w-80 p-2.5 space-y-2 animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute bottom-16 sm:bottom-20 left-3 sm:left-4 z-50 shadow-2xl rounded-2xl overflow-hidden border border-[#D9E0EA] bg-white animate-in fade-in zoom-in-95 duration-150"
                 >
-                  {/* Category Tabs */}
-                  <div className="flex items-center gap-1 p-1 bg-[#F4F7FB] rounded-xl border border-[#D9E0EA]/60">
-                    {(
-                      Object.keys(
-                        EMOJI_CATEGORIES,
-                      ) as (keyof typeof EMOJI_CATEGORIES)[]
-                    ).map((cat) => (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setEmojiCategory(cat)}
-                        className={`flex-1 py-1 text-[11px] font-semibold rounded-lg transition-colors ${
-                          emojiCategory === cat
-                            ? "bg-[#071A4D] text-white shadow-xs"
-                            : "text-[#5B6472] hover:text-[#071A4D]"
-                        }`}
-                      >
-                        {EMOJI_CATEGORIES[cat].label}
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* Emoji Grid */}
-                  <div className="grid grid-cols-7 gap-1 max-h-48 overflow-y-auto p-1">
-                    {EMOJI_CATEGORIES[emojiCategory].emojis.map((em, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => insertEmoji(em)}
-                        className="p-1.5 text-lg hover:bg-[#F4F7FB] hover:scale-125 rounded-lg transition-transform flex items-center justify-center cursor-pointer select-none"
-                      >
-                        {em}
-                      </button>
-                    ))}
-                  </div>
+                  <EmojiPicker
+                    onEmojiClick={(emojiData) => {
+                      insertEmoji(emojiData.emoji);
+                    }}
+                    autoFocusSearch={false}
+                    lazyLoadEmojis={true}
+                    previewConfig={{ showPreview: false }}
+                    width={330}
+                    height={380}
+                  />
                 </div>
               )}
 
-              {/* Input Bar Capsule */}
-              <div className="flex items-end gap-1.5 sm:gap-2 bg-[#F4F7FB] rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 border border-[#D9E0EA] focus-within:border-[#071A4D] focus-within:bg-white transition-all">
-                {/* Hidden File Input */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.pdf,.doc,.docx,.txt"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
 
-                {/* Attachment Button */}
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  title="Attach image or file"
-                  disabled={isUploading}
-                  className="p-1.5 sm:p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 transition-colors shrink-0 mb-0.5"
-                >
-                  <Paperclip size={18} />
-                </button>
+              {/* Input Bar or Blocked Notice (F59) */}
+              {isBlockedByMe ? (
+                <div className="flex items-center justify-between gap-3 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-700 shadow-xs">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Ban size={17} className="text-slate-500 shrink-0" />
+                    <span className="truncate font-medium">You have blocked this user.</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={promptUnblockUser}
+                    className="px-3.5 py-1.5 font-semibold text-xs text-[#071A4D] bg-white hover:bg-slate-50 rounded-xl border border-slate-300 transition-colors shrink-0 shadow-xs"
+                  >
+                    Unblock
+                  </button>
+                </div>
+              ) : isBlockedByOther ? (
+                <div className="flex items-center gap-2.5 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-600 shadow-xs">
+                  <Ban size={17} className="text-slate-400 shrink-0" />
+                  <span className="font-medium">You cannot send messages to this conversation right now.</span>
+                </div>
+              ) : (
+                /* Input Bar Capsule */
+                <div className="flex items-end gap-1.5 sm:gap-2 bg-[#F4F7FB] rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 border border-[#D9E0EA] focus-within:border-[#071A4D] focus-within:bg-white transition-all">
+                  {/* Hidden File Input */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
 
-                {/* Emoji Toggle Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowEmojiPicker((prev) => !prev)}
-                  title="Insert emoji"
-                  className={`p-1.5 sm:p-2 rounded-xl transition-colors shrink-0 mb-0.5 ${
-                    showEmojiPicker
-                      ? "text-[#FF6B00] bg-orange-50"
-                      : "text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60"
-                  }`}
-                >
-                  <Smile size={19} />
-                </button>
+                  {/* Attachment Button */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    title="Attach image or file"
+                    disabled={isUploading}
+                    className="p-1.5 sm:p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 transition-colors shrink-0 mb-0.5"
+                  >
+                    <Paperclip size={18} />
+                  </button>
 
-                {/* Message Textarea */}
-                <textarea
-                  ref={textareaRef}
-                  rows={1}
-                  value={inputText}
-                  onChange={handleInputChange}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSendMessage();
+                  {/* Emoji Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker((prev) => !prev)}
+                    title="Insert emoji"
+                    className={`p-1.5 sm:p-2 rounded-xl transition-colors shrink-0 mb-0.5 ${
+                      showEmojiPicker
+                        ? "text-[#FF6B00] bg-orange-50"
+                        : "text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60"
+                    }`}
+                  >
+                    <Smile size={19} />
+                  </button>
+
+                  {/* Message Textarea */}
+                  <textarea
+                    ref={textareaRef}
+                    rows={1}
+                    value={inputText}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSendMessage();
+                      }
+                    }}
+                    placeholder="Type a message..."
+                    className="flex-1 bg-transparent border-none focus:outline-none text-sm text-[#111827] placeholder-[#5B6472] resize-none py-1.5 min-h-[38px] max-h-28 leading-normal"
+                    style={{ scrollbarWidth: "none" }}
+                  />
+
+                  {/* Send Button */}
+                  <button
+                    type="button"
+                    onClick={handleSendMessage}
+                    disabled={
+                      (!inputText.trim() && !pendingAttachment) || isUploading
                     }
-                  }}
-                  placeholder="Type a message..."
-                  className="flex-1 bg-transparent border-none focus:outline-none text-sm text-[#111827] placeholder-[#5B6472] resize-none py-1.5 min-h-[38px] max-h-28 leading-normal"
-                  style={{ scrollbarWidth: "none" }}
-                />
-
-                {/* Send Button */}
-                <button
-                  type="button"
-                  onClick={handleSendMessage}
-                  disabled={
-                    (!inputText.trim() && !pendingAttachment) || isUploading
-                  }
-                  className={`p-2 sm:p-2.5 rounded-xl transition-all shrink-0 mb-0.5 flex items-center justify-center ${
-                    (inputText.trim() || pendingAttachment) && !isUploading
-                      ? "bg-[#071A4D] text-white hover:bg-[#0B1F52] shadow-sm cursor-pointer"
-                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
-                  }`}
-                >
-                  {isUploading ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : (
-                    <Send size={18} />
-                  )}
-                </button>
-              </div>
+                    className={`p-2 sm:p-2.5 rounded-xl transition-all shrink-0 mb-0.5 flex items-center justify-center ${
+                      (inputText.trim() || pendingAttachment) && !isUploading
+                        ? "bg-[#071A4D] text-white hover:bg-[#0B1F52] shadow-sm cursor-pointer"
+                        : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                    }`}
+                  >
+                    {isUploading ? (
+                      <Loader2 size={18} className="animate-spin" />
+                    ) : (
+                      <Send size={18} />
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </>
         ) : (
@@ -1997,6 +2263,230 @@ function ChatView() {
             alt="Enlarged view"
             className="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl"
           />
+        </div>
+      )}
+      {/* ── PROFESSIONAL IN-APP CONFIRMATION POPUP MODAL ── */}
+      {confirmModal.isOpen && (
+        <div
+          onClick={() =>
+            !isDeleting &&
+            setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+          }
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div
+            className="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-[#D9E0EA] space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3.5">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                  confirmModal.type === "unblock"
+                    ? "bg-emerald-50 text-emerald-600"
+                    : confirmModal.type === "block"
+                      ? "bg-slate-100 text-slate-700"
+                      : "bg-red-50 text-red-600"
+                }`}
+              >
+                {confirmModal.type === "unblock" ? (
+                  <CheckCircle2 size={20} />
+                ) : confirmModal.type === "block" ? (
+                  <Ban size={20} />
+                ) : (
+                  <Trash2 size={20} />
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold text-[#111827]">
+                  {confirmModal.title}
+                </h3>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm text-[#5B6472] leading-relaxed">
+              {confirmModal.description}
+            </p>
+
+            <div className="flex items-center gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() =>
+                  setConfirmModal((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] border border-[#D9E0EA] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmAction}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white transition-colors shadow-xs flex items-center justify-center gap-2 disabled:opacity-70 ${
+                  confirmModal.type === "unblock"
+                    ? "bg-emerald-600 hover:bg-emerald-700"
+                    : confirmModal.type === "block"
+                      ? "bg-slate-800 hover:bg-slate-900"
+                      : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <span>{confirmModal.confirmLabel}</span>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── REPORT CONVERSATION POPUP MODAL (F59) ── */}
+      {reportModal.isOpen && (
+        <div
+          onClick={() =>
+            !reportModal.isSubmitting &&
+            setReportModal((prev) => ({ ...prev, isOpen: false }))
+          }
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div
+            className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-[#D9E0EA] space-y-4 animate-in zoom-in-95 duration-150"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                  <Flag size={20} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-[#111827]">
+                    Report conversation
+                  </h3>
+                  <p className="text-xs text-[#5B6472]">
+                    Help us keep KaamMilega safe and trustworthy
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={reportModal.isSubmitting}
+                onClick={() =>
+                  setReportModal((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-3 pt-1">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Why are you reporting this conversation?
+                </label>
+                <select
+                  value={reportModal.reason}
+                  onChange={(e) =>
+                    setReportModal((prev) => ({
+                      ...prev,
+                      reason: e.target.value,
+                    }))
+                  }
+                  className="w-full text-xs sm:text-sm bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-white transition-all"
+                >
+                  <option value="Spam or unwanted advertising">
+                    Spam or unwanted advertising
+                  </option>
+                  <option value="Harassment or inappropriate behavior">
+                    Harassment or inappropriate behavior
+                  </option>
+                  <option value="Fraud, scam, or fake job offer">
+                    Fraud, scam, or fake job offer
+                  </option>
+                  <option value="Asking for money or advance payment">
+                    Asking for money or advance payment
+                  </option>
+                  <option value="Hate speech or abusive language">
+                    Hate speech or abusive language
+                  </option>
+                  <option value="Other concern">Other concern</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Additional details{" "}
+                  <span className="font-normal text-slate-400">
+                    (optional)
+                  </span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={reportModal.description}
+                  onChange={(e) =>
+                    setReportModal((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
+                  }
+                  placeholder="Tell us what happened so our team can review this properly..."
+                  className="w-full text-xs sm:text-sm bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl p-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-white resize-none transition-all"
+                />
+              </div>
+
+              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/70 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={reportModal.blockAlso}
+                  onChange={(e) =>
+                    setReportModal((prev) => ({
+                      ...prev,
+                      blockAlso: e.target.checked,
+                    }))
+                  }
+                  className="mt-0.5 rounded border-slate-300 text-[#071A4D] focus:ring-[#071A4D]"
+                />
+                <span className="text-xs text-slate-600 leading-snug">
+                  <strong className="text-slate-800 block">
+                    Also block this user
+                  </strong>
+                  They will not be able to message you again on KaamMilega.
+                </span>
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={reportModal.isSubmitting}
+                onClick={() =>
+                  setReportModal((prev) => ({ ...prev, isOpen: false }))
+                }
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] border border-[#D9E0EA] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={reportModal.isSubmitting}
+                onClick={handleSubmitReport}
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700 transition-colors shadow-xs flex items-center justify-center gap-2 disabled:opacity-70"
+              >
+                {reportModal.isSubmitting ? (
+                  <>
+                    <Loader2 size={15} className="animate-spin" />
+                    <span>Submitting...</span>
+                  </>
+                ) : (
+                  <span>Submit report</span>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
