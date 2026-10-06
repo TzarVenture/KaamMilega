@@ -12,6 +12,7 @@ import {
   Check,
   CheckCheck,
   ChevronLeft,
+  ChevronDown,
   ExternalLink,
   X,
   Download,
@@ -35,7 +36,10 @@ import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
 import { playMessageReceivedSound } from "@/lib/sound";
-import { setActiveChatState, notifyChatUnreadChanged } from "@/lib/notifications";
+import {
+  setActiveChatState,
+  notifyChatUnreadChanged,
+} from "@/lib/notifications";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
   ssr: false,
@@ -45,7 +49,6 @@ const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
     </div>
   ),
 });
-
 
 // --- Interfaces ---
 interface User {
@@ -92,10 +95,6 @@ interface PendingAttachment {
   name: string;
   sizeFormatted: string;
 }
-
-
-
-
 
 // --- Formatters ---
 const formatFileSize = (bytes?: number): string => {
@@ -222,7 +221,8 @@ function ChatView() {
 
   // Pagination & Copy states
   const [hasMoreMessages, setHasMoreMessages] = useState<boolean>(true);
-  const [loadingOlderMessages, setLoadingOlderMessages] = useState<boolean>(false);
+  const [loadingOlderMessages, setLoadingOlderMessages] =
+    useState<boolean>(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
 
   // Real-time typing states
@@ -257,6 +257,14 @@ function ChatView() {
     isSubmitting: false,
   });
 
+  // Manual refresh loading state
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Active floating action pill for mobile tap / desktop hover
+  const [activeMessageMenuId, setActiveMessageMenuId] = useState<string | null>(
+    null,
+  );
+
   // DOM & State refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
@@ -266,7 +274,6 @@ function ChatView() {
   const prevMessagesLength = useRef(0);
   const prevActiveChatId = useRef<string | null>(null);
   const prevLastMsgId = useRef<string | null>(null);
-
 
   // Chat options menu state
   const [showChatMenu, setShowChatMenu] = useState(false);
@@ -317,6 +324,67 @@ function ChatView() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showEmojiPicker]);
+
+  // Floating jump-to-bottom FAB state
+  const [showScrollBottomButton, setShowScrollBottomButton] = useState(false);
+
+  // Close active message quick-action menu when tapping outside (Mobile friendly)
+  useEffect(() => {
+    const handleDocumentInteraction = (e: MouseEvent | TouchEvent) => {
+      if (activeMessageMenuId) {
+        const target = e.target as HTMLElement;
+        if (!target.closest('[data-message-actions="true"]')) {
+          setActiveMessageMenuId(null);
+        }
+      }
+    };
+    document.addEventListener("click", handleDocumentInteraction);
+    document.addEventListener("touchstart", handleDocumentInteraction, {
+      passive: true,
+    });
+    return () => {
+      document.removeEventListener("click", handleDocumentInteraction);
+      document.removeEventListener("touchstart", handleDocumentInteraction);
+    };
+  }, [activeMessageMenuId]);
+
+  // Open mobile chat view with browser back gesture synchronization
+  const openMobileChat = (chatToSelect?: Conversation) => {
+    if (chatToSelect) {
+      setActiveChat(chatToSelect);
+      markAsRead(chatToSelect);
+    }
+    if (typeof window !== "undefined" && window.innerWidth < 768) {
+      if (!window.history.state?.chatOpen) {
+        window.history.pushState({ chatOpen: true }, "");
+      }
+    }
+    setMobileChatOpen(true);
+  };
+
+  const closeMobileChat = () => {
+    if (typeof window !== "undefined" && window.history.state?.chatOpen) {
+      window.history.back();
+    } else {
+      setMobileChatOpen(false);
+    }
+  };
+
+  // Sync mobile back navigation gesture (e.g. Android hardware back, browser back)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handlePopState = () => {
+      if (mobileChatOpen) {
+        setMobileChatOpen(false);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [mobileChatOpen]);
 
   // 1. Initial User Profile & Conversations
   useEffect(() => {
@@ -383,6 +451,40 @@ function ChatView() {
     }
   };
 
+  // Manual refresh with visual spinner, active chat synchronization, and safety status reload
+  const handleManualRefresh = async () => {
+    if (!currentUser || isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      // 1. Refresh conversations list
+      await loadConversations(currentUser.id, false);
+
+      // 2. Refresh active chat messages if an active chat is selected
+      if (activeChat && !activeChat.id.startsWith("temp-")) {
+        const res = (await api.get(
+          `/chats/${activeChat.id}/messages?limit=50`,
+        )) as Message[];
+        if (res) {
+          setMessages(res);
+        }
+        const other = activeChat.other_user || activeChat.otherUser;
+        const otherId =
+          other?.id ||
+          activeChat.participants.find((p) => p !== currentUser.id);
+        if (otherId) {
+          checkBlockStatus(otherId);
+        }
+      }
+      toast.success("Updated", { autoClose: 1200 });
+    } catch (err) {
+      console.error("Refresh failed", err);
+    } finally {
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 500);
+    }
+  };
+
   // Smooth In-Memory Sidebar Update (Prevents unmounting or flicker on message send/receive)
   const updateConversationLastMessageLocally = (
     convId: string,
@@ -435,7 +537,6 @@ function ChatView() {
       // Silently ignore
     }
   };
-
 
   // 4. WebSocket setup
   useEffect(() => {
@@ -742,9 +843,7 @@ function ChatView() {
         c.participants.includes(targetUserId),
       );
       if (existing) {
-        setActiveChat(existing);
-        setMobileChatOpen(true);
-        markAsRead(existing);
+        openMobileChat(existing);
       } else {
         try {
           const targetUser = (await api.get(`/user/${targetUserId}`)) as User;
@@ -759,7 +858,7 @@ function ChatView() {
           };
           setActiveChat(draft);
           setMessages([]);
-          setMobileChatOpen(true);
+          openMobileChat();
         } catch (e) {
           console.error("Failed to resolve target user for chat deep-link", e);
         }
@@ -788,7 +887,9 @@ function ChatView() {
   const checkBlockStatus = async (otherUserId: string) => {
     if (!otherUserId || otherUserId.startsWith("temp-")) return;
     try {
-      const res: any = await api.get(`/chats/users/${otherUserId}/block-status`);
+      const res: any = await api.get(
+        `/chats/users/${otherUserId}/block-status`,
+      );
       if (res) {
         setIsBlockedByMe(Boolean(res.is_blocked_by_me));
         setIsBlockedByOther(Boolean(res.is_blocked_by_other));
@@ -913,6 +1014,19 @@ function ChatView() {
     ) {
       loadOlderMessages();
     }
+
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    setShowScrollBottomButton(distanceFromBottom > 220);
+  };
+
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: "smooth",
+      });
+    }
   };
 
   // Copy message text to clipboard helper
@@ -949,7 +1063,6 @@ function ChatView() {
       container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     }
   }, [messages, activeChat, isOtherTyping]);
-
 
   // 9. File attachment selection
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1165,8 +1278,7 @@ function ChatView() {
       c.participants.includes(user.id),
     );
     if (existing) {
-      setActiveChat(existing);
-      markAsRead(existing);
+      openMobileChat(existing);
     } else {
       const draft: Conversation = {
         id: `temp-${user.id}`,
@@ -1179,10 +1291,10 @@ function ChatView() {
       };
       setActiveChat(draft);
       setMessages([]);
+      openMobileChat();
     }
     setSearchQuery("");
     setPlatformSearchResults([]);
-    setMobileChatOpen(true);
   };
 
   // 12. Filtered conversation list
@@ -1252,7 +1364,9 @@ function ChatView() {
   const promptBlockUser = () => {
     const other = activeChat?.other_user || activeChat?.otherUser;
     const otherId =
-      other?.id || (currentUser && activeChat?.participants.find((p) => p !== currentUser.id));
+      other?.id ||
+      (currentUser &&
+        activeChat?.participants.find((p) => p !== currentUser.id));
     if (!otherId) return;
     setShowChatMenu(false);
     setConfirmModal({
@@ -1269,7 +1383,9 @@ function ChatView() {
   const promptUnblockUser = () => {
     const other = activeChat?.other_user || activeChat?.otherUser;
     const otherId =
-      other?.id || (currentUser && activeChat?.participants.find((p) => p !== currentUser.id));
+      other?.id ||
+      (currentUser &&
+        activeChat?.participants.find((p) => p !== currentUser.id));
     if (!otherId) return;
     setShowChatMenu(false);
     setConfirmModal({
@@ -1408,13 +1524,20 @@ function ChatView() {
               )}
             </div>
             <button
-              onClick={() =>
-                currentUser && loadConversations(currentUser.id, false)
-              }
+              onClick={handleManualRefresh}
+              disabled={isRefreshing}
               title="Refresh conversations"
-              className="p-1.5 rounded-lg text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] transition-colors"
+              aria-label="Refresh conversations"
+              className="p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] active:bg-slate-200 active:scale-95 transition-all disabled:opacity-60"
             >
-              <RefreshCw size={17} />
+              <RefreshCw
+                size={18}
+                className={
+                  isRefreshing
+                    ? "animate-spin text-[#FF6B00]"
+                    : "transition-transform"
+                }
+              />
             </button>
           </div>
 
@@ -1454,7 +1577,7 @@ function ChatView() {
               type="text"
               value={searchQuery}
               onChange={(e) => handlePlatformSearch(e.target.value)}
-              className="w-full bg-[#F4F7FB] rounded-xl py-2 pl-9 pr-8 text-sm text-[#111827] placeholder-[#5B6472] border border-[#D9E0EA] focus:border-[#071A4D] focus:bg-white focus:outline-none transition-all"
+              className="w-full bg-[#F4F7FB] rounded-xl py-2 pl-9 pr-8 text-base sm:text-sm text-[#111827] placeholder-[#5B6472] border border-[#D9E0EA] focus:border-[#071A4D] focus:bg-white focus:outline-none transition-all"
               placeholder="Search chats or find people..."
             />
             {searchQuery && (
@@ -1547,9 +1670,7 @@ function ChatView() {
                 <div
                   key={`${chat.id}-${idx}`}
                   onClick={() => {
-                    setActiveChat(chat);
-                    setMobileChatOpen(true);
-                    markAsRead(chat);
+                    openMobileChat(chat);
                   }}
                   className={`p-3.5 flex items-center gap-3 cursor-pointer transition-all group ${
                     isActive
@@ -1598,7 +1719,7 @@ function ChatView() {
                             promptDeleteConversation(chat.id);
                           }}
                           title="Delete conversation"
-                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-all"
+                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-all"
                         >
                           <Trash2 size={13} />
                         </button>
@@ -1661,8 +1782,8 @@ function ChatView() {
               <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                 {/* Mobile Back Button */}
                 <button
-                  onClick={() => setMobileChatOpen(false)}
-                  className="md:hidden p-1.5 -ml-1 rounded-lg text-[#5B6472] hover:bg-[#F4F7FB] transition-colors shrink-0"
+                  onClick={closeMobileChat}
+                  className="md:hidden p-2 -ml-1.5 rounded-xl text-[#071A4D] hover:bg-[#F4F7FB] active:bg-slate-200 transition-colors shrink-0 flex items-center justify-center"
                   aria-label="Back to messages"
                 >
                   <ChevronLeft size={22} />
@@ -1721,10 +1842,13 @@ function ChatView() {
                   <Link
                     href={`/profile/${activePartner.id}`}
                     target="_blank"
-                    className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-[#071A4D] bg-[#F4F7FB] hover:bg-slate-200 rounded-lg border border-[#D9E0EA] transition-colors"
+                    className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold text-[#071A4D] bg-[#F4F7FB] hover:bg-slate-200 active:bg-slate-300 rounded-xl border border-[#D9E0EA] transition-colors shrink-0"
+                    title="View profile"
+                    aria-label="View profile"
                   >
-                    <span className="hidden xs:inline">Profile</span>
-                    <ExternalLink size={13} />
+                    <UserIcon size={15} className="sm:hidden" />
+                    <span className="hidden sm:inline">Profile</span>
+                    <ExternalLink size={13} className="hidden sm:inline" />
                   </Link>
                 )}
 
@@ -1732,7 +1856,7 @@ function ChatView() {
                 <div className="relative" ref={chatMenuRef}>
                   <button
                     onClick={() => setShowChatMenu(!showChatMenu)}
-                    className="p-1.5 rounded-lg text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] transition-colors"
+                    className="p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] active:bg-slate-200 transition-colors shrink-0"
                     title="Chat options"
                     aria-label="Chat options"
                   >
@@ -1792,7 +1916,10 @@ function ChatView() {
               {loadingOlderMessages && (
                 <div className="flex items-center justify-center py-2 animate-in fade-in">
                   <div className="flex items-center gap-2 px-3 py-1 bg-white/90 rounded-full border border-[#D9E0EA] text-xs text-[#5B6472] shadow-xs">
-                    <Loader2 size={13} className="animate-spin text-[#FF6B00]" />
+                    <Loader2
+                      size={13}
+                      className="animate-spin text-[#FF6B00]"
+                    />
                     <span>Loading older messages...</span>
                   </div>
                 </div>
@@ -1855,65 +1982,104 @@ function ChatView() {
                           </div>
                         )}
 
-                        {/* Action buttons on hover (Copy for all text messages, Delete for sender) */}
-                        {!msg.is_deleted && !msg.isOptimistic && (
-                          <div
-                            className={`opacity-0 group-hover:opacity-100 transition-opacity self-center flex items-center gap-0.5 shrink-0 ${
-                              isMe ? "flex-row-reverse" : "flex-row"
-                            }`}
-                          >
-                            {/* Copy Message Button (for messages with text content) */}
-                            {msg.content && (
-                              <button
-                                type="button"
-                                onClick={() => handleCopyMessage(msg)}
-                                title={copiedMessageId === msg.id ? "Copied!" : "Copy message"}
-                                aria-label="Copy message"
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-[#071A4D] hover:bg-white border border-transparent hover:border-[#D9E0EA] shadow-xs transition-all"
-                              >
-                                {copiedMessageId === msg.id ? (
-                                  <Check size={13} className="text-emerald-600 animate-in zoom-in-75" />
-                                ) : (
-                                  <Copy size={13} />
-                                )}
-                              </button>
-                            )}
-
-                            {/* Delete message button (only for sender) */}
-                            {isMe && (
-                              <button
-                                type="button"
-                                onClick={() => promptDeleteMessage(msg.id)}
-                                title="Delete message"
-                                aria-label="Delete message"
-                                className="p-1.5 rounded-lg text-slate-400 hover:text-red-600 hover:bg-white border border-transparent hover:border-[#D9E0EA] shadow-xs transition-all"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            )}
-                          </div>
-                        )}
-
-
                         <div
-                          className={`flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%] ${
+                          className={`relative flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%] group/msg ${
                             isMe ? "items-end" : "items-start"
                           }`}
+                          data-message-actions="true"
                         >
+                          {/* Floating Quick Action Pill (Appears on hover on desktop, or tap on mobile) */}
+                          {!msg.is_deleted && !msg.isOptimistic && (
+                            <div
+                              className={`absolute -top-3.5 sm:-top-4 ${
+                                isMe ? "right-1 sm:right-2" : "left-1 sm:left-2"
+                              } z-20 items-center gap-1 bg-white border border-[#D9E0EA] rounded-full shadow-md py-0.5 px-1.5 sm:px-2 transition-all duration-150 ${
+                                activeMessageMenuId === msg.id
+                                  ? "flex opacity-100 scale-100 pointer-events-auto ring-1 ring-slate-300"
+                                  : "hidden md:group-hover/msg:flex md:opacity-0 md:group-hover/msg:opacity-100 pointer-events-none md:pointer-events-auto"
+                              }`}
+                            >
+                              {/* Copy Message Button */}
+                              {msg.content && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleCopyMessage(msg);
+                                    setActiveMessageMenuId(null);
+                                  }}
+                                  title={
+                                    copiedMessageId === msg.id
+                                      ? "Copied!"
+                                      : "Copy message"
+                                  }
+                                  aria-label="Copy message"
+                                  className="p-1.5 rounded-full text-slate-500 hover:text-[#071A4D] hover:bg-slate-100 active:scale-90 transition-all flex items-center justify-center"
+                                >
+                                  {copiedMessageId === msg.id ? (
+                                    <Check
+                                      size={13}
+                                      className="text-emerald-600 animate-in zoom-in-75"
+                                    />
+                                  ) : (
+                                    <Copy size={13} />
+                                  )}
+                                </button>
+                              )}
+
+                              {/* Delete Message Button (Sender Only) */}
+                              {isMe && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMessageMenuId(null);
+                                    promptDeleteMessage(msg.id);
+                                  }}
+                                  title="Delete message"
+                                  aria-label="Delete message"
+                                  className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 active:scale-90 transition-all flex items-center justify-center"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
+                          )}
+
                           {/* Message Box */}
                           <div
-                            className={`rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-sm shadow-xs break-words ${
+                            onClick={() => {
+                              if (!msg.is_deleted && !msg.isOptimistic) {
+                                setActiveMessageMenuId((prev) =>
+                                  prev === msg.id ? null : msg.id,
+                                );
+                              }
+                            }}
+                            className={`rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-sm shadow-xs break-words transition-all active:brightness-95 md:active:brightness-100 ${
                               msg.is_deleted
                                 ? "bg-slate-100 text-slate-500 border border-slate-200 italic"
                                 : isMe
-                                ? "bg-[#071A4D] text-white rounded-tr-xs"
-                                : "bg-white text-[#111827] border border-[#D9E0EA] rounded-tl-xs"
+                                  ? `bg-[#071A4D] text-white rounded-tr-xs ${
+                                      activeMessageMenuId === msg.id
+                                        ? "ring-2 ring-sky-300"
+                                        : ""
+                                    }`
+                                  : `bg-white text-[#111827] border border-[#D9E0EA] rounded-tl-xs ${
+                                      activeMessageMenuId === msg.id
+                                        ? "ring-2 ring-[#071A4D]/35"
+                                        : ""
+                                    }`
                             }`}
                           >
                             {msg.is_deleted ? (
                               <div className="flex items-center gap-1.5 py-0.5 select-none not-italic">
-                                <Ban size={13} className="text-slate-400 shrink-0" />
-                                <span className="text-[13px] text-slate-500 italic">This message was deleted</span>
+                                <Ban
+                                  size={13}
+                                  className="text-slate-400 shrink-0"
+                                />
+                                <span className="text-[13px] text-slate-500 italic">
+                                  This message was deleted
+                                </span>
                               </div>
                             ) : (
                               <>
@@ -1925,15 +2091,19 @@ function ChatView() {
                                     )) && (
                                     <div className="mb-2 overflow-hidden rounded-xl">
                                       <img
-                                        src={getFullMediaUrl(msg.attachment_url)}
+                                        src={getFullMediaUrl(
+                                          msg.attachment_url,
+                                        )}
                                         alt={
-                                          msg.attachment_name || "Attached image"
+                                          msg.attachment_name ||
+                                          "Attached image"
                                         }
-                                        onClick={() =>
+                                        onClick={(e) => {
+                                          e.stopPropagation();
                                           setLightboxImage(
                                             getFullMediaUrl(msg.attachment_url),
-                                          )
-                                        }
+                                          );
+                                        }}
                                         className="max-h-60 w-auto rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
                                       />
                                     </div>
@@ -1949,7 +2119,10 @@ function ChatView() {
                                       href={getFullMediaUrl(msg.attachment_url)}
                                       target="_blank"
                                       rel="noopener noreferrer"
-                                      download={msg.attachment_name || "document"}
+                                      download={
+                                        msg.attachment_name || "document"
+                                      }
+                                      onClick={(e) => e.stopPropagation()}
                                       className={`flex items-center gap-2.5 p-2 mb-2 rounded-xl border transition-colors ${
                                         isMe
                                           ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"
@@ -1978,11 +2151,16 @@ function ChatView() {
                                                 : "text-[#5B6472]"
                                             }`}
                                           >
-                                            {formatFileSize(msg.attachment_size)}
+                                            {formatFileSize(
+                                              msg.attachment_size,
+                                            )}
                                           </p>
                                         ) : null}
                                       </div>
-                                      <Download size={15} className="shrink-0" />
+                                      <Download
+                                        size={15}
+                                        className="shrink-0"
+                                      />
                                     </a>
                                   )}
 
@@ -2001,8 +2179,8 @@ function ChatView() {
                                 msg.is_deleted
                                   ? "text-slate-400"
                                   : isMe
-                                  ? "text-white/80"
-                                  : "text-[#5B6472]"
+                                    ? "text-white/80"
+                                    : "text-[#5B6472]"
                               }`}
                             >
                               <span className="leading-none">
@@ -2077,8 +2255,21 @@ function ChatView() {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Floating Scroll-To-Bottom FAB */}
+            {showScrollBottomButton && (
+              <button
+                type="button"
+                onClick={scrollToBottom}
+                title="Scroll to latest messages"
+                aria-label="Scroll to latest messages"
+                className="absolute bottom-20 sm:bottom-24 right-4 sm:right-6 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-[#D9E0EA] text-[#071A4D] shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all animate-in fade-in zoom-in-75"
+              >
+                <ChevronDown size={18} />
+              </button>
+            )}
+
             {/* Input Area */}
-            <div className="p-2.5 sm:p-3 md:p-4 bg-white border-t border-[#D9E0EA] space-y-2 shrink-0 relative">
+            <div className="p-2 sm:p-3 md:p-4 bg-white border-t border-[#D9E0EA] space-y-2 shrink-0 relative pb-[max(0.6rem,env(safe-area-inset-bottom))]">
               {/* Pending Attachment Draft Preview */}
               {pendingAttachment && (
                 <div className="flex items-center gap-3 p-2 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl">
@@ -2116,7 +2307,7 @@ function ChatView() {
               {showEmojiPicker && (
                 <div
                   ref={emojiPickerRef}
-                  className="absolute bottom-16 sm:bottom-20 left-3 sm:left-4 z-50 shadow-2xl rounded-2xl overflow-hidden border border-[#D9E0EA] bg-white animate-in fade-in zoom-in-95 duration-150"
+                  className="absolute bottom-16 sm:bottom-20 left-2 right-2 sm:right-auto sm:left-4 z-50 shadow-2xl rounded-2xl border border-[#D9E0EA] bg-white animate-in fade-in zoom-in-95 duration-150 max-w-[340px] mx-auto sm:mx-0 overflow-hidden"
                 >
                   <EmojiPicker
                     onEmojiClick={(emojiData) => {
@@ -2125,19 +2316,20 @@ function ChatView() {
                     autoFocusSearch={false}
                     lazyLoadEmojis={true}
                     previewConfig={{ showPreview: false }}
-                    width={330}
-                    height={380}
+                    width="100%"
+                    height={340}
                   />
                 </div>
               )}
-
 
               {/* Input Bar or Blocked Notice (F59) */}
               {isBlockedByMe ? (
                 <div className="flex items-center justify-between gap-3 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-700 shadow-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <Ban size={17} className="text-slate-500 shrink-0" />
-                    <span className="truncate font-medium">You have blocked this user.</span>
+                    <span className="truncate font-medium">
+                      You have blocked this user.
+                    </span>
                   </div>
                   <button
                     type="button"
@@ -2150,11 +2342,13 @@ function ChatView() {
               ) : isBlockedByOther ? (
                 <div className="flex items-center gap-2.5 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-600 shadow-xs">
                   <Ban size={17} className="text-slate-400 shrink-0" />
-                  <span className="font-medium">You cannot send messages to this conversation right now.</span>
+                  <span className="font-medium">
+                    You cannot send messages to this conversation right now.
+                  </span>
                 </div>
               ) : (
                 /* Input Bar Capsule */
-                <div className="flex items-end gap-1.5 sm:gap-2 bg-[#F4F7FB] rounded-2xl px-2.5 sm:px-3 py-1.5 sm:py-2 border border-[#D9E0EA] focus-within:border-[#071A4D] focus-within:bg-white transition-all">
+                <div className="flex items-end gap-1.5 sm:gap-2 bg-[#F4F7FB] rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 border border-[#D9E0EA] focus-within:border-[#071A4D] focus-within:bg-white transition-all">
                   {/* Hidden File Input */}
                   <input
                     ref={fileInputRef}
@@ -2170,7 +2364,7 @@ function ChatView() {
                     onClick={() => fileInputRef.current?.click()}
                     title="Attach image or file"
                     disabled={isUploading}
-                    className="p-1.5 sm:p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 transition-colors shrink-0 mb-0.5"
+                    className="p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 active:bg-slate-200 transition-colors shrink-0 mb-0.5"
                   >
                     <Paperclip size={18} />
                   </button>
@@ -2180,10 +2374,10 @@ function ChatView() {
                     type="button"
                     onClick={() => setShowEmojiPicker((prev) => !prev)}
                     title="Insert emoji"
-                    className={`p-1.5 sm:p-2 rounded-xl transition-colors shrink-0 mb-0.5 ${
+                    className={`p-2 rounded-xl transition-colors shrink-0 mb-0.5 ${
                       showEmojiPicker
                         ? "text-[#FF6B00] bg-orange-50"
-                        : "text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60"
+                        : "text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 active:bg-slate-200"
                     }`}
                   >
                     <Smile size={19} />
@@ -2202,7 +2396,7 @@ function ChatView() {
                       }
                     }}
                     placeholder="Type a message..."
-                    className="flex-1 bg-transparent border-none focus:outline-none text-sm text-[#111827] placeholder-[#5B6472] resize-none py-1.5 min-h-[38px] max-h-28 leading-normal"
+                    className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm text-[#111827] placeholder-[#5B6472] resize-none py-1.5 min-h-[38px] max-h-24 sm:max-h-28 leading-normal"
                     style={{ scrollbarWidth: "none" }}
                   />
 
@@ -2213,7 +2407,7 @@ function ChatView() {
                     disabled={
                       (!inputText.trim() && !pendingAttachment) || isUploading
                     }
-                    className={`p-2 sm:p-2.5 rounded-xl transition-all shrink-0 mb-0.5 flex items-center justify-center ${
+                    className={`p-2.5 sm:p-2.5 rounded-xl transition-all shrink-0 mb-0.5 flex items-center justify-center active:scale-95 ${
                       (inputText.trim() || pendingAttachment) && !isUploading
                         ? "bg-[#071A4D] text-white hover:bg-[#0B1F52] shadow-sm cursor-pointer"
                         : "bg-slate-200 text-slate-400 cursor-not-allowed"
@@ -2420,9 +2614,7 @@ function ChatView() {
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                   Additional details{" "}
-                  <span className="font-normal text-slate-400">
-                    (optional)
-                  </span>
+                  <span className="font-normal text-slate-400">(optional)</span>
                 </label>
                 <textarea
                   rows={3}
