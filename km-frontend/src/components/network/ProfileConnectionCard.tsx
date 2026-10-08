@@ -24,6 +24,12 @@ export interface ProfileCardUser {
     rating?: string | number;
     hourly_rate?: number;
     job_categories?: string[];
+    skills?: string[];
+    match_score?: number;
+    match_reasons?: string[];
+    primary_match_badge?: string;
+    mutual_skills?: string[];
+    mutual_connections_count?: number;
 }
 
 export interface ProfileConnectionCardProps {
@@ -77,11 +83,15 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
 
     const displayBadge = badgeText !== undefined
         ? badgeText
-        : user.mutual_connects && user.mutual_connects > 0
-            ? `${user.mutual_connects} Mutual Connects`
-            : user.rating
-                ? `${user.rating} ★ Rating`
-                : null;
+        : user.primary_match_badge
+            ? user.primary_match_badge
+            : (user.mutual_connections_count && user.mutual_connections_count > 0)
+                ? `${user.mutual_connections_count} Mutual ${user.mutual_connections_count === 1 ? 'Connect' : 'Connects'}`
+                : (user.mutual_connects && user.mutual_connects > 0)
+                    ? `${user.mutual_connects} Mutual Connects`
+                    : user.rating
+                        ? `${user.rating} ★ Rating`
+                        : null;
 
     const isGrid = variant === 'grid';
 
@@ -145,10 +155,26 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                     </div>
                 )}
 
+                {/* Mutual Skills Chips */}
+                {user.mutual_skills && user.mutual_skills.length > 0 && (
+                    <div className="flex flex-wrap items-center justify-center gap-1 mb-2 max-w-[95%]">
+                        {user.mutual_skills.slice(0, 2).map((sk) => (
+                            <span key={sk} className="text-[10px] font-semibold bg-[#F4F7FB] text-[#071A4D] px-2 py-0.5 rounded-md border border-[#D9E0EA] truncate max-w-[120px]">
+                                {sk}
+                            </span>
+                        ))}
+                        {user.mutual_skills.length > 2 && (
+                            <span className="text-[10px] font-bold text-[#5B6472]">
+                                +{user.mutual_skills.length - 2}
+                            </span>
+                        )}
+                    </div>
+                )}
+
                 {/* Badge text */}
                 {displayBadge && (
                     <div className="mb-2">
-                        <span className="text-[10px] font-bold tracking-wide text-[#0B5ED7] bg-[#0B5ED7]/10 px-2.5 py-0.5 rounded-full inline-block">
+                        <span className="text-[10px] font-bold tracking-wide text-[#0B5ED7] bg-[#0B5ED7]/10 px-2.5 py-0.5 rounded-full inline-block border border-[#0B5ED7]/15">
                             {displayBadge}
                         </span>
                     </div>

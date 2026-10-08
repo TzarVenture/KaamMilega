@@ -52,63 +52,13 @@ const ConnectionsPage = () => {
                 );
                 setConnections(enriched.filter(u => u !== null) as User[]);
 
-                // Helper to calculate distance
-                const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number) => {
-                    const R = 6371; // Radius of the earth in km
-                    const dLat = (lat2 - lat1) * Math.PI / 180;
-                    const dLon = (lon2 - lon1) * Math.PI / 180;
-                    const a =
-                        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-                    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                    return R * c;
-                };
-
                 try {
-                    const usersRes = (await api.get('/admin/users')) as User[];
-                    const currentUserStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-                    let currentUserId = '';
-                    if (currentUserStr) {
-                        try {
-                            const parsed = JSON.parse(currentUserStr);
-                            currentUserId = parsed.id || parsed._id;
-                        } catch (e) { }
-                    }
-
-                    const filteredSuggestions = (usersRes || []).filter(u =>
-                        u.id !== currentUserId &&
-                        u._id !== currentUserId &&
-                        !connsRes.includes(u.id || u._id || '')
-                    );
-
-                    if ('geolocation' in navigator) {
-                        navigator.geolocation.getCurrentPosition(
-                            (position) => {
-                                const { latitude, longitude } = position.coords;
-                                api.put('/user/location', { lat: latitude, lng: longitude }).catch((err) => {
-                                    console.warn("Location update failed", err);
-                                });
-
-                                const sorted = [...filteredSuggestions].sort((a, b) => {
-                                    const distA = (a.last_login_lat && a.last_login_lng)
-                                        ? getDistance(latitude, longitude, a.last_login_lat, a.last_login_lng)
-                                        : 999999;
-                                    const distB = (b.last_login_lat && b.last_login_lng)
-                                        ? getDistance(latitude, longitude, b.last_login_lat, b.last_login_lng)
-                                        : 999999;
-                                    return distA - distB;
-                                });
-                                setSuggestedConnections(sorted.slice(0, 8));
-                            },
-                            () => {
-                                setSuggestedConnections(filteredSuggestions.slice(0, 8));
-                            },
-                            { timeout: 10000, enableHighAccuracy: false, maximumAge: Infinity }
-                        );
-                    } else {
-                        setSuggestedConnections(filteredSuggestions.slice(0, 8));
-                    }
+                    const suggestionsRes = await api.get('/network/suggestions?limit=12') as any;
+                    const suggestionsList = (suggestionsRes?.suggestions || []).map((u: any) => ({
+                        ...u,
+                        id: u.id || u._id,
+                    }));
+                    setSuggestedConnections(suggestionsList);
                 } catch (e) {
                     console.error("Failed to fetch suggestions", e);
                 }
