@@ -16,6 +16,7 @@ import (
 	"km-backend/internal/features/notification"
 
 	"km-backend/internal/features/company"
+	"km-backend/internal/features/course"
 	"km-backend/internal/features/event"
 	"km-backend/internal/features/file"
 	"km-backend/internal/features/job"
@@ -154,6 +155,7 @@ func main() {
 			network.NewNetworkRepository,
 			event.NewEventRepository,
 			mentorship.NewMentorshipRepository,
+			course.NewCourseRepository,
 			subscription.NewSubscriptionRepository,
 			instant_work.NewInstantWorkRepository,
 			notification.NewNotificationRepository,
@@ -179,6 +181,7 @@ func main() {
 			event.NewEventService,
 			question.NewQuestionService,
 			mentorship.NewMentorshipService,
+			course.NewCourseService,
 			subscription.NewSubscriptionService,
 			instant_work.NewInstantWorkService,
 
@@ -199,6 +202,7 @@ func main() {
 			network.NewNetworkController,
 			event.NewEventController,
 			mentorship.NewMentorshipController,
+			course.NewCourseController,
 			subscription.NewSubscriptionController,
 			instant_work.NewInstantWorkController,
 			notification.NewNotificationController,
@@ -221,6 +225,7 @@ func main() {
 			AsRoute(network.NewNetworkApi),
 			AsRoute(event.NewEventApi),
 			AsRoute(mentorship.NewMentorshipApi),
+			AsRoute(course.NewCourseApi),
 			AsRoute(subscription.NewSubscriptionApi),
 			AsRoute(instant_work.NewInstantWorkApi),
 			AsRoute(notification.NewNotificationApi),
