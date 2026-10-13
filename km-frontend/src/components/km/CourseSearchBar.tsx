@@ -27,8 +27,8 @@ export default function CourseSearchBar({
     return (
         <div className="w-full space-y-3">
             {/* Input Bar */}
-            <div className="bg-white rounded-2xl border border-[#D9E0EA] p-2 sm:p-2.5 shadow-xs focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all flex items-center gap-3">
-                <div className="pl-2 sm:pl-3 text-[#5B6472] shrink-0">
+            <div className="w-full h-12 sm:h-13 bg-white rounded-2xl border border-[#D9E0EA] px-3.5 sm:px-4 shadow-xs focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all flex items-center gap-2.5 sm:gap-3 box-border">
+                <div className="text-[#5B6472] shrink-0 flex items-center justify-center">
                     <Search size={18} />
                 </div>
                 <input
@@ -36,21 +36,22 @@ export default function CourseSearchBar({
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className="w-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
+                    className="flex-1 min-w-0 h-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
                 />
-                {value && (
+                {value ? (
                     <button
                         type="button"
                         onClick={() => {
                             if (onClear) onClear();
                             else onChange("");
                         }}
-                        className="p-1.5 text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] rounded-full transition-colors shrink-0 mr-1"
+                        className="w-7 h-7 flex items-center justify-center text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] rounded-full transition-colors shrink-0 cursor-pointer"
                         title="Clear search"
+                        aria-label="Clear search"
                     >
                         <X size={15} />
                     </button>
-                )}
+                ) : null}
             </div>
 
             {/* Quick Category Filter Pills */}

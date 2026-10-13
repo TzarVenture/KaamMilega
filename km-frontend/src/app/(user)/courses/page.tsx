@@ -219,36 +219,41 @@ export default function CoursesExpertStudioPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F4F7FB] py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-6xl mx-auto space-y-8">
+        <main className="min-h-screen bg-[#F4F7FB] pb-20 font-sans">
+            {/* ─── Hero Header with Mentorship Theme Design Philosophy ─── */}
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+                        <div>
+                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
+                                Create & Manage <span className="text-[#FF6B00]">Courses</span>
+                            </h1>
+                            <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
+                                Publish training video sessions from YouTube directly to the Kaammilega Learning Marketplace.
+                            </p>
+                        </div>
 
-                {/* ─── Top Header ─── */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D9E0EA] pb-6">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-medium text-[#071A4D] tracking-tight">
-                            Create & Manage Courses
-                        </h1>
-                        <p className="text-xs sm:text-sm text-[#5B6472] mt-1">
-                            Publish training video sessions from YouTube directly to the Kaammilega Learning Marketplace.
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-2.5">
-                        <Link
-                            href="/courses/manage"
-                            className="text-xs sm:text-sm font-semibold text-[#071A4D] hover:text-[#0B5ED7] bg-white border border-[#D9E0EA] hover:border-[#0B5ED7]/50 px-4 py-2.5 rounded-xl shadow-2xs transition-all flex items-center gap-1.5"
-                        >
-                            <span>Manage My Courses</span>
-                        </Link>
-                        <Link
-                            href="/resources"
-                            className="text-xs sm:text-sm font-semibold text-[#0B5ED7] hover:text-[#071A4D] bg-white border border-[#D9E0EA] px-4 py-2.5 rounded-xl shadow-2xs transition-all flex items-center gap-1.5"
-                        >
-                            <span>Public Marketplace</span>
-                            <ExternalLink size={13} />
-                        </Link>
+                        <div className="flex items-center gap-2.5 shrink-0">
+                            <Link
+                                href="/courses/manage"
+                                className="text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                            >
+                                <span>Manage My Courses</span>
+                            </Link>
+                            <Link
+                                href="/resources"
+                                className="text-xs sm:text-sm font-semibold text-[#071A4D] bg-white hover:bg-white/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                            >
+                                <span>Public Marketplace</span>
+                                <ExternalLink size={13} />
+                            </Link>
+                        </div>
                     </div>
                 </div>
+            </section>
+
+            {/* ─── Content Body: Form & My Uploaded Courses ─── */}
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-8">
 
                 {/* ─── Top Half: Create New Course Form ─── */}
                 <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#D9E0EA] shadow-xs space-y-6">
@@ -533,6 +538,6 @@ export default function CoursesExpertStudioPage() {
                 </div>
 
             </div>
-        </div>
+        </main>
     );
 }
