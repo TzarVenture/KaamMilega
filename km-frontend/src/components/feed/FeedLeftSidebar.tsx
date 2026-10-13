@@ -54,7 +54,9 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
               {userName}
             </Link>
             {isVerified && (
-              <ShieldCheck size={16} className="text-[#0B5ED7] shrink-0" title="Verified Member" />
+              <span title="Verified Member" className="inline-flex">
+                <ShieldCheck size={16} className="text-[#0B5ED7] shrink-0" />
+              </span>
             )}
           </div>
           <p className="text-xs text-[#5B6472] mt-1 line-clamp-2 px-1 font-poppins font-normal leading-relaxed">

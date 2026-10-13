@@ -169,7 +169,9 @@ export const PostCard: React.FC<PostCardProps> = ({
                 {post.author.name}
               </h3>
               {post.author.isVerified && (
-                <ShieldCheck size={15} className="text-[#0B5ED7] shrink-0" title="Verified Member" />
+                <span title="Verified Member" className="inline-flex">
+                  <ShieldCheck size={15} className="text-[#0B5ED7] shrink-0" />
+                </span>
               )}
             </div>
 
