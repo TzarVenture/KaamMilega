@@ -15,6 +15,7 @@ import {
     Map,
     GraduationCap,
     Video,
+    MessageSquareQuote,
     LayoutPanelLeft,
     Search,
     Download,
@@ -33,6 +34,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const navItems = [
     { name: 'User Module', icon: Users, href: '/admin/users' },
     { name: 'Recruiter / Company', icon: Building2, href: '/admin/companies' },
+    { name: 'Testimonials', icon: MessageSquareQuote, href: '/admin/testimonials' },
     { name: 'Policies', icon: ShieldCheck, href: '/admin/policies' },
     { name: 'Questions', icon: HelpCircle, href: '/admin/questions' },
     { name: 'Jobs', icon: Briefcase, href: '/admin/jobs' },
