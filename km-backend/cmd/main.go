@@ -26,6 +26,7 @@ import (
 	"km-backend/internal/features/sms"
 	"km-backend/internal/features/system"
 	"km-backend/internal/features/subscription"
+	"km-backend/internal/features/testimonial"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -160,6 +161,7 @@ func main() {
 			instant_work.NewInstantWorkRepository,
 			notification.NewNotificationRepository,
 			notification.NewNotificationHub,
+			testimonial.NewTestimonialRepository,
 
 			// Services
 			notification.NewMailer,
@@ -184,6 +186,7 @@ func main() {
 			course.NewCourseService,
 			subscription.NewSubscriptionService,
 			instant_work.NewInstantWorkService,
+			testimonial.NewTestimonialService,
 
 			// controllers
 			file.NewFileController,
@@ -206,6 +209,7 @@ func main() {
 			subscription.NewSubscriptionController,
 			instant_work.NewInstantWorkController,
 			notification.NewNotificationController,
+			testimonial.NewTestimonialController,
 
 			// routes
 			AsRoute(file.NewFileApi),
@@ -229,6 +233,7 @@ func main() {
 			AsRoute(subscription.NewSubscriptionApi),
 			AsRoute(instant_work.NewInstantWorkApi),
 			AsRoute(notification.NewNotificationApi),
+			AsRoute(testimonial.NewTestimonialApi),
 		),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}

@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import {
   MessageCircle, Briefcase, CheckCircle, MapPin,
@@ -54,7 +54,7 @@ export default function LandingPage() {
         if (storedUser) {
           try {
             setCurrentUser(JSON.parse(storedUser));
-          } catch (e) {}
+          } catch (e) { }
         }
       }
     }
@@ -112,7 +112,7 @@ export default function LandingPage() {
           ]).then(([conns, sent]: [any, any]) => {
             if (Array.isArray(conns)) setConnectedIds(conns);
             if (Array.isArray(sent)) setPendingConnectIds(sent);
-          }).catch(() => {});
+          }).catch(() => { });
         }
 
         if (citiesRes.status === 'fulfilled') {
@@ -135,20 +135,20 @@ export default function LandingPage() {
           const s = (statsRes.value as any).stats || statsRes.value;
           setStats(s);
         }
-        
+
         if (usersRes.status === 'fulfilled') {
           const data = usersRes.value as any;
           const userList = Array.isArray(data) ? data : data.data || [];
-          
+
           let currentUserIdStr = '';
           try {
-             const stored = localStorage.getItem('user');
-             if (stored) {
-               const parsed = JSON.parse(stored);
-               currentUserIdStr = parsed.id || parsed._id || '';
-             }
-          } catch(e) {}
-          
+            const stored = localStorage.getItem('user');
+            if (stored) {
+              const parsed = JSON.parse(stored);
+              currentUserIdStr = parsed.id || parsed._id || '';
+            }
+          } catch (e) { }
+
           const suggestions = userList.filter((u: any) => u.id !== currentUserIdStr && u._id !== currentUserIdStr);
           setUsers(suggestions.slice(0, 8));
         }
@@ -163,7 +163,7 @@ export default function LandingPage() {
               const parsed = JSON.parse(stored);
               currentUserIdStr = parsed.id || parsed._id || '';
             }
-          } catch(e) {}
+          } catch (e) { }
           const filtered = expertList.filter((u: any) => u.id !== currentUserIdStr && u._id !== currentUserIdStr);
           setExperts(filtered.slice(0, 8));
         }
@@ -213,12 +213,12 @@ export default function LandingPage() {
       <JobRolesGrid skills={skills} />
       <CompaniesSlider companies={companies} />
       {users.length > 0 && (
-        <ConnectJustLikeYou 
-          users={users} 
+        <ConnectJustLikeYou
+          users={users}
           pendingIds={pendingConnectIds}
           connectedIds={connectedIds}
-          onChat={handleChat} 
-          onFollow={handleConnect} 
+          onChat={handleChat}
+          onFollow={handleConnect}
         />
       )}
       <FeaturedCompanies companies={companies} />
@@ -227,12 +227,12 @@ export default function LandingPage() {
       <DiversityBanner />
       <LearnSection />
       {experts.length > 0 && (
-        <ExpertSlider 
-          experts={experts} 
+        <ExpertSlider
+          experts={experts}
           pendingIds={pendingConnectIds}
           connectedIds={connectedIds}
-          onChat={handleChat} 
-          onFollow={handleConnect} 
+          onChat={handleChat}
+          onFollow={handleConnect}
         />
       )}
       <EventsSection events={events} />
@@ -376,13 +376,13 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {displayFeatured.map((hub, idx) => (
-            <Link 
-              key={idx} 
+            <Link
+              key={idx}
               href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
               className="snap-start shrink-0"
             >
               <div className="w-56 sm:w-64 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-km-primary/50 transition-all overflow-hidden cursor-pointer group/card flex flex-col h-full">
-                
+
                 {/* Landmark Photo Header */}
                 <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-slate-900 shrink-0">
                   <img
@@ -391,7 +391,7 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
                     className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500 ease-out"
                     loading="lazy"
                   />
-                  
+
                   {/* Subtle Gradient Scrim */}
                   <div className="absolute inset-0 bg-linear-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
 
@@ -560,7 +560,7 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
 
   // Match each trade with real DB skills where available
   const displayRoles = popularTradeConfig.map((item) => {
-    const matchedSkill = skills?.find((s: any) => 
+    const matchedSkill = skills?.find((s: any) =>
       item.keywords.some(kw => (s.name || '').toLowerCase().includes(kw))
     );
     return {
@@ -889,7 +889,7 @@ const ExpertSlider = ({
           const parsed = JSON.parse(storedUser);
           setCurrentUserId(parsed.id || parsed._id || '');
         }
-      } catch {}
+      } catch { }
     }
   }, []);
 
@@ -901,9 +901,9 @@ const ExpertSlider = ({
         <h2 className="text-2xl sm:text-3xl font-black text-center text-slate-900 mb-8 tracking-tight">
           Connect With Our <span className="text-km-primary">Experts</span>
         </h2>
-        <div 
+        <div
           ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" 
+          className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide"
         >
           {experts.map((expert, i) => {
             const expertId = expert.id || expert._id || '';
@@ -969,14 +969,14 @@ const EventsSection = ({ events }: { events: any[] }) => {
               <Link href={`/events/${event.id}`} key={i} className="min-w-70 sm:min-w-80 md:min-w-85 bg-white rounded-3xl md:rounded-4xl overflow-hidden shadow-lg border border-gray-50 flex flex-col group transition-all hover:shadow-xl">
                 <div className="h-40 bg-gray-200 relative overflow-hidden">
                   {event.image_url ? (
-                      <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                      <div className="w-full h-full bg-[#071A4D] flex items-center justify-center relative overflow-hidden">
-                          <div className="flex items-center justify-center opacity-60">
-                              <div className="w-10 h-10 bg-blue-400 clip-path-triangle transform -rotate-12 -translate-x-2" />
-                              <div className="w-8 h-8 bg-blue-300 clip-path-triangle translate-x-2 translate-y-2" />
-                          </div>
+                    <div className="w-full h-full bg-[#071A4D] flex items-center justify-center relative overflow-hidden">
+                      <div className="flex items-center justify-center opacity-60">
+                        <div className="w-10 h-10 bg-blue-400 clip-path-triangle transform -rotate-12 -translate-x-2" />
+                        <div className="w-8 h-8 bg-blue-300 clip-path-triangle translate-x-2 translate-y-2" />
                       </div>
+                    </div>
                   )}
                   <span className="absolute top-4 left-4 bg-black/60 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-md">{event.location || 'Online'}</span>
                 </div>
@@ -1031,34 +1031,34 @@ const WalletBanner = () => (
   </section>
 );
 
-// --- Success Stories & Stationary Video Testimonials ---
-interface VideoStory {
+// --- Verified Stories from Real Candidates (Horizontal Auto-Scroll Marquee) ---
+interface TestimonialItem {
   id: string;
   name: string;
   role: string;
   company: string;
   city: string;
-  tradeTag: string;
+  trade_tag?: string;
   rating: number;
-  salaryHike: string;
-  avatar: string;
-  story: string;
-  interviewNote: string;
+  review?: string;
+  youtube_url: string;
+  youtube_video_id: string;
+  thumbnail_url: string;
 }
 
-const verifiedStories: VideoStory[] = [
+const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
   {
     id: "story-1",
     name: "Dharmender Kumar",
     role: "Warehouse Operations Supervisor",
     company: "Technova Logistics",
     city: "Bhiwandi, Thane",
-    tradeTag: "Logistics & Warehousing",
+    trade_tag: "Logistics & Warehousing",
     rating: 5,
-    salaryHike: "+35% Hike",
-    avatar: "/asset/trades/warehouse.jpg",
-    story: "Applied on KaamMilega and received a direct video interview call from HR within 2 hours. Zero brokerage paid, formal offer received on platform.",
-    interviewNote: "Direct interview scheduled via KaamMilega portal. Onboarding completed in 48 hours.",
+    review: "Zero brokerage and direct HR call. Joined Technova in 3 days!",
+    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    youtube_video_id: "dQw4w9WgXcQ",
+    thumbnail_url: "/asset/trades/warehouse.jpg",
   },
   {
     id: "story-2",
@@ -1066,12 +1066,12 @@ const verifiedStories: VideoStory[] = [
     role: "Heavy Commercial Driver",
     company: "City Fleet Transport",
     city: "Surat, Gujarat",
-    tradeTag: "Commercial Transport",
+    trade_tag: "Commercial Transport",
     rating: 5,
-    salaryHike: "₹28,000/mo",
-    avatar: "/asset/trades/driver.jpg",
-    story: "Commercial driving license and background verification took just one day. Placed with fixed monthly salary and timely fuel allowances.",
-    interviewNote: "Verified driving badge issued. Placed in interstate commercial logistics route.",
+    review: "Verified company with punctual salary. Best job platform for drivers.",
+    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    youtube_video_id: "dQw4w9WgXcQ",
+    thumbnail_url: "/asset/trades/driver.jpg",
   },
   {
     id: "story-3",
@@ -1079,12 +1079,12 @@ const verifiedStories: VideoStory[] = [
     role: "Retail Store Executive",
     company: "Tata Croma",
     city: "Mumbai, Maharashtra",
-    tradeTag: "Retail & Customer Ops",
+    trade_tag: "Retail & Customer Ops",
     rating: 5,
-    salaryHike: "+28% Hike",
-    avatar: "/asset/trades/office-executive.jpg",
-    story: "The direct HR chat feature saved me weeks of agency hassle. Scheduled interview directly with the hiring manager without middleman fees.",
-    interviewNote: "Selected after direct HR interview on KaamMilega video portal. Full benefits included.",
+    review: "Instant interview schedule without middlemen. Very smooth onboarding.",
+    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    youtube_video_id: "dQw4w9WgXcQ",
+    thumbnail_url: "/asset/trades/office-executive.jpg",
   },
   {
     id: "story-4",
@@ -1092,175 +1092,139 @@ const verifiedStories: VideoStory[] = [
     role: "Certified Industrial Electrician",
     company: "InstantMilega™ Partner",
     city: "Delhi NCR",
-    tradeTag: "Technical Services",
+    trade_tag: "Technical Services",
     rating: 5,
-    salaryHike: "₹1,500/day",
-    avatar: "/asset/trades/electrician.jpg",
-    story: "With InstantMilega hourly dispatch, I get 2-3 emergency commercial trade calls daily. Wallet earnings transfer automatically to bank every evening.",
-    interviewNote: "Aadhaar and trade-certified technician with 100% completed job record.",
+    review: "Direct corporate booking and verified partner technical trade jobs.",
+    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+    youtube_video_id: "dQw4w9WgXcQ",
+    thumbnail_url: "/asset/trades/electrician.jpg",
   },
 ];
 
 const TestimonialsSection = () => {
-  const [selectedVideo, setSelectedVideo] = useState<VideoStory | null>(null);
+  const [stories, setStories] = useState<TestimonialItem[]>(DEFAULT_TESTIMONIALS);
+  const [selectedVideo, setSelectedVideo] = useState<TestimonialItem | null>(null);
+
+  useEffect(() => {
+    api.get("/testimonials")
+      .then((res: any) => {
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(list) && list.length > 0) {
+          setStories(list);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load testimonials:", err);
+      });
+  }, []);
+
+  // Split testimonials for two opposite-direction rows
+  const { row1, row2 } = useMemo(() => {
+    if (stories.length >= 10) {
+      // When 10 or more testimonials exist: split into two distinct unique rows without repeating across rows
+      const half = Math.ceil(stories.length / 2);
+      const row1Unique = stories.slice(0, half);
+      const row2Unique = stories.slice(half);
+
+      return {
+        row1: [...row1Unique, ...row1Unique],
+        row2: [...row2Unique, ...row2Unique],
+      };
+    }
+
+    // When fewer testimonials: distribute and repeat to ensure seamless infinite looping track
+    const r1: TestimonialItem[] = [];
+    const r2: TestimonialItem[] = [];
+    stories.forEach((item, index) => {
+      if (index % 2 === 0) r1.push(item);
+      else r2.push(item);
+    });
+
+    if (r2.length === 0 && r1.length > 0) {
+      r2.push(...r1);
+    }
+
+    const repeat1 = Math.max(2, Math.ceil(8 / Math.max(1, r1.length)));
+    const repeat2 = Math.max(2, Math.ceil(8 / Math.max(1, r2.length)));
+
+    const row1Out: TestimonialItem[] = [];
+    const row2Out: TestimonialItem[] = [];
+    for (let i = 0; i < repeat1; i++) row1Out.push(...r1);
+    for (let i = 0; i < repeat2; i++) row2Out.push(...r2);
+
+    return { row1: row1Out, row2: row2Out };
+  }, [stories]);
 
   return (
     <section className="py-12 sm:py-16 bg-slate-50/70 border-b border-slate-200/80 overflow-hidden font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Verified Stories from <span className="text-km-primary">Real Candidates</span>
-          </h2>
-          <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            Real workers across logistics, transportation, and technical trades hired with zero brokerage and direct HR calls.
-          </p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-10 text-center">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+          Verified Stories from <span className="text-km-primary">Real Candidates</span>
+        </h2>
+        <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
+          Real workers across logistics, transportation, and technical trades hired with zero brokerage and direct HR calls.
+        </p>
+      </div>
+
+      {/* Two Horizontal Lines of Auto-Scrolled Marquee moving in opposite directions */}
+      <div className="space-y-4 sm:space-y-5 py-1">
+        {/* Row 1: Moves Left */}
+        <div className="relative w-full overflow-hidden group/row1">
+          <div className="animate-km-marquee flex gap-4 w-max group-hover/row1:[animation-play-state:paused]">
+            {row1.map((story, i) => (
+              <CompactTestimonialCard
+                key={`row1-${story.id}-${i}`}
+                story={story}
+                onOpenVideo={setSelectedVideo}
+              />
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-          {verifiedStories.map((story) => (
-            <div
-              key={story.id}
-              onClick={() => setSelectedVideo(story)}
-              className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-2xs hover:shadow-lg hover:border-blue-500/40 transition-all cursor-pointer group/card flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-start gap-4 sm:gap-5 mb-5">
-                  {/* Avatar with Play Overlay */}
-                  <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden shrink-0 border border-slate-200 shadow-xs">
-                    <Image
-                      src={story.avatar}
-                      alt={story.name}
-                      fill
-                      sizes="80px"
-                      className="object-cover object-top group-hover/card:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute inset-0 bg-slate-950/40 flex items-center justify-center group-hover/card:bg-slate-950/25 transition-colors">
-                      <div className="w-8 h-8 rounded-full bg-white/90 text-km-primary flex items-center justify-center shadow-xs group-hover/card:scale-110 transition-transform">
-                        <Play size={14} className="fill-km-primary translate-x-0.5" />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Candidate Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-base sm:text-lg text-slate-900 group-hover/card:text-km-primary transition-colors truncate">
-                        {story.name}
-                      </h4>
-                      <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2.5 py-0.5 rounded-md shrink-0">
-                        {story.salaryHike}
-                      </span>
-                    </div>
-                    <p className="text-xs sm:text-sm font-semibold text-slate-700 mt-0.5 truncate">
-                      {story.role}
-                    </p>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      {story.company} • {story.city}
-                    </p>
-                    <div className="flex items-center gap-1 mt-2">
-                      {[...Array(story.rating)].map((_, idx) => (
-                        <Star key={idx} size={13} className="fill-amber-400 text-amber-400" />
-                      ))}
-                      <span className="text-xs font-bold text-slate-700 ml-1.5">5.0</span>
-                      <span className="text-xs text-slate-400 ml-1">• Verified Hire</span>
-                    </div>
-                  </div>
-                </div>
-
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed italic bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  &ldquo;{story.story}&rdquo;
-                </p>
-              </div>
-
-              <div className="mt-5 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
-                <span className="font-semibold text-slate-500">
-                  {story.tradeTag}
-                </span>
-                <span className="inline-flex items-center gap-1.5 font-bold text-km-primary group-hover/card:underline">
-                  <Play size={12} className="fill-km-primary" /> Watch Interview Story
-                </span>
-              </div>
-            </div>
-          ))}
+        {/* Row 2: Moves Right */}
+        <div className="relative w-full overflow-hidden group/row2">
+          <div className="animate-km-marquee-reverse flex gap-4 w-max group-hover/row2:[animation-play-state:paused]">
+            {row2.map((story, i) => (
+              <CompactTestimonialCard
+                key={`row2-${story.id}-${i}`}
+                story={story}
+                onOpenVideo={setSelectedVideo}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Stationary Video Modal */}
+      {/* In-App YouTube Embedded Streaming Video Modal (Simple & Elegant without glowing dot) */}
       {selectedVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs font-sans">
-          <div className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
-            {/* Close button */}
-            <button
-              type="button"
-              onClick={() => setSelectedVideo(null)}
-              className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white flex items-center justify-center transition-colors"
-              aria-label="Close story"
-            >
-              <X size={18} />
-            </button>
-
-            {/* Video Placeholder Container with Candidate Portrait */}
-            <div className="relative h-64 sm:h-72 w-full bg-slate-950 flex items-center justify-center overflow-hidden">
-              <Image
-                src={selectedVideo.avatar}
-                alt={selectedVideo.name}
-                fill
-                className="object-cover opacity-70"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-slate-950 via-slate-950/40 to-transparent" />
-              
-              <div className="relative z-10 text-center text-white px-6">
-                <div className="w-16 h-16 rounded-full bg-km-primary/90 text-white flex items-center justify-center mx-auto mb-3 shadow-lg ring-4 ring-white/30">
-                  <Play size={24} className="fill-white translate-x-0.5" />
-                </div>
-                <p className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                  Candidate Video Testimonial
-                </p>
-                <h3 className="text-lg sm:text-xl font-black mt-1">
-                  {selectedVideo.name}
-                </h3>
-                <p className="text-xs text-slate-300">
-                  {selectedVideo.role} at {selectedVideo.company}
-                </p>
-              </div>
-            </div>
-
-            {/* Video Details & Verified Status */}
-            <div className="p-6 sm:p-7">
-              <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={18} className="text-emerald-600" />
-                  <span className="text-xs font-bold text-slate-900">
-                    Aadhaar &amp; Skill Verified Placement
-                  </span>
-                </div>
-                <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-md">
-                  {selectedVideo.salaryHike}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
+          <div className="relative w-full max-w-3xl bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
+            {/* Top Bar with Candidate Info & Close (Clean & Elegant, no glowing dot) */}
+            <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 border-b border-slate-800 text-white">
+              <div className="flex items-center gap-2 pr-4 overflow-hidden">
+                <span className="text-xs sm:text-sm font-semibold text-white/90 truncate">
+                  {selectedVideo.name} | {selectedVideo.role} ({selectedVideo.company})
                 </span>
               </div>
+              <button
+                type="button"
+                onClick={() => setSelectedVideo(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                aria-label="Close video"
+              >
+                <X size={16} />
+              </button>
+            </div>
 
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed italic mb-5">
-                &ldquo;{selectedVideo.story}&rdquo;
-              </p>
-
-              <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-100 mb-6">
-                <strong className="text-slate-700">Placement Record:</strong> {selectedVideo.interviewNote}
-              </p>
-
-              <div className="flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedVideo(null)}
-                  className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors"
-                >
-                  Close
-                </button>
-                <Link href="/jobs">
-                  <button className="px-6 py-2.5 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-bold transition-colors shadow-xs">
-                    Apply for Similar Roles →
-                  </button>
-                </Link>
-              </div>
+            {/* Embedded YouTube Player */}
+            <div className="aspect-video w-full bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${selectedVideo.youtube_video_id || "dQw4w9WgXcQ"}?autoplay=1&rel=0`}
+                title={`${selectedVideo.name} Interview Story`}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
             </div>
           </div>
         </div>
@@ -1268,6 +1232,97 @@ const TestimonialsSection = () => {
     </section>
   );
 };
+
+// Compact Horizontal Rectangle Card (A few pixels bigger, badges on image removed, name on top, rating at bottom-left, untrimmed info with | separator)
+function CompactTestimonialCard({
+  story,
+  onOpenVideo,
+}: {
+  story: TestimonialItem;
+  onOpenVideo: (item: TestimonialItem) => void;
+}) {
+  const thumb =
+    story.thumbnail_url ||
+    (story.youtube_video_id
+      ? `https://img.youtube.com/vi/${story.youtube_video_id}/hqdefault.jpg`
+      : "/asset/trades/warehouse.jpg");
+
+  return (
+    <div className="w-[370px] sm:w-[400px] shrink-0 bg-white rounded-2xl border border-[#D9E0EA] p-3.5 sm:p-4 flex gap-3.5 sm:gap-4 hover:border-[#0B5ED7]/40 transition-all duration-150 shadow-xs hover:shadow-md shadow-slate-200/50 group">
+      {/* Thumbnail Section (Full-height match, eliminates whitespace underneath) */}
+      <div
+        onClick={() => onOpenVideo(story)}
+        className="relative w-28 sm:w-32 self-stretch min-h-[140px] rounded-xl overflow-hidden bg-slate-900 shrink-0 cursor-pointer group/thumb"
+      >
+        <img
+          src={thumb}
+          alt={story.name}
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300"
+          onError={(e) => {
+            if (story.youtube_video_id) {
+              (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${story.youtube_video_id}/hqdefault.jpg`;
+            }
+          }}
+        />
+
+        {/* Minimalist Play Icon in Center */}
+        <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover/thumb:bg-black/30 transition-colors">
+          <div className="w-8 h-8 bg-white/95 text-[#071A4D] rounded-full flex items-center justify-center shadow-md group-hover/thumb:scale-110 transition-transform">
+            <Play size={12} fill="currentColor" className="ml-0.5" />
+          </div>
+        </div>
+      </div>
+
+      {/* Info Section: Perfectly balanced, zero extra whitespace */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+        <div>
+          {/* Candidate Name */}
+          <h4 className="text-[15px] font-bold text-slate-900 leading-snug break-words tracking-tight">
+            {story.name}
+          </h4>
+
+          {/* Role */}
+          <p className="text-xs font-semibold text-slate-800 leading-snug mt-0.5 break-words">
+            {story.role}
+          </p>
+
+          {/* Company */}
+          <p className="text-[11px] text-slate-500 font-medium leading-snug mt-0.5 break-words">
+            {story.company}
+          </p>
+
+          {/* Candidate Review */}
+          {story.review && (
+            <p className="text-xs text-slate-700 italic leading-relaxed mt-2 break-words font-normal">
+              &ldquo;{story.review}&rdquo;
+            </p>
+          )}
+        </div>
+
+        {/* Star Rating at Bottom Left */}
+        <div className="pt-2 border-t border-slate-100 flex items-center gap-1.5 mt-2.5">
+          <div className="flex items-center gap-0.5">
+            {[1, 2, 3, 4, 5].map((starVal) => {
+              const currentRating = typeof story.rating === "number" ? story.rating : 5;
+              const isFilled = starVal <= Math.round(currentRating);
+              return (
+                <Star
+                  key={starVal}
+                  size={14}
+                  className={isFilled ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}
+                />
+              );
+            })}
+          </div>
+          <span className="text-xs font-bold text-slate-800 ml-0.5">
+            {Number(typeof story.rating === "number" ? story.rating : 5).toFixed(1)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // --- Premium Services Banner ---
 const PremiumServicesBanner = () => {
