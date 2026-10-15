@@ -864,7 +864,6 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
 const LearnSection = () => {
   const [videos, setVideos] = useState<LearnVideo[]>(DEFAULT_LEARN_VIDEOS);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [playingVideo, setPlayingVideo] = useState<LearnVideo | null>(null);
   const [isPaused, setIsPaused] = useState(false);
 
   // Fetch resource videos dynamically from /courses (same source as /resources)
@@ -943,11 +942,11 @@ const LearnSection = () => {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {/* Main Video Player (Left Side - Clean thumbnail with Play button in exact center) */}
-        <div
-          onClick={() => setPlayingVideo(activeVideo)}
-          className="w-full md:flex-1 aspect-video bg-slate-900 rounded-xl md:rounded-[10px] relative group cursor-pointer overflow-hidden shadow-xl border border-slate-200/80"
-          title={`Click to watch: ${activeVideo.title}`}
+        {/* Main Video Player (Left Side - Clean thumbnail with Play button in exact center, redirects to /resources) */}
+        <Link
+          href="/resources"
+          className="w-full md:flex-1 aspect-video bg-slate-900 rounded-xl md:rounded-[10px] relative group cursor-pointer overflow-hidden shadow-xl border border-slate-200/80 block"
+          title={`Click to explore courses: ${activeVideo.title}`}
         >
           {/* Main Thumbnail synced with active card (absolute background) */}
           <img
@@ -972,7 +971,7 @@ const LearnSection = () => {
               <Play size={28} fill="currentColor" className="ml-1" />
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Playlist (Right Side - 3 cards on md/lg, 4 cards on xl + Fixed Green Explore Button at Bottom) */}
         <div className="w-full md:w-105 xl:w-115 flex flex-col justify-between gap-2.5 sm:gap-3">
@@ -1042,37 +1041,6 @@ const LearnSection = () => {
         </div>
       </div>
 
-      {/* Embedded YouTube Player Modal when clicking play */}
-      {playingVideo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
-          <div className="relative w-full max-w-3xl bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
-            <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 border-b border-slate-800 text-white">
-              <div className="flex items-center gap-2 pr-4 overflow-hidden">
-                <span className="text-xs sm:text-sm font-semibold text-white/90 truncate">
-                  {playingVideo.title}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPlayingVideo(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                aria-label="Close video"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="aspect-video w-full bg-black">
-              <iframe
-                src={`https://www.youtube.com/embed/${playingVideo.youtube_video_id || "dQw4w9WgXcQ"}?autoplay=1&rel=0`}
-                title={playingVideo.title}
-                className="w-full h-full border-0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 };
