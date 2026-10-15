@@ -28,6 +28,7 @@ import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
 import { ImpressionWrapper } from '@/lib/telemetry';
+import { getYouTubeThumbnail, getYouTubeMaxResThumbnail, extractYouTubeVideoId } from '@/lib/youtube';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -815,51 +816,263 @@ const DiversityBanner = () => (
   </section>
 );
 
+interface LearnVideo {
+  id: string;
+  title: string;
+  time: string;
+  youtube_url: string;
+  youtube_video_id: string;
+  thumbnail: string;
+}
+
+const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
+  {
+    id: "learn-1",
+    title: "Resume Writing Secrets to Get Hired Fast",
+    time: "5 mins",
+    youtube_url: "https://www.youtube.com/watch?v=VPrT5JpXh0U",
+    youtube_video_id: "VPrT5JpXh0U",
+    thumbnail: "https://img.youtube.com/vi/VPrT5JpXh0U/hqdefault.jpg",
+  },
+  {
+    id: "learn-2",
+    title: "How to Ace Your Job Interview - Top Tips",
+    time: "5 mins",
+    youtube_url: "https://www.youtube.com/watch?v=1mHjMNZZvFo",
+    youtube_video_id: "1mHjMNZZvFo",
+    thumbnail: "https://img.youtube.com/vi/1mHjMNZZvFo/hqdefault.jpg",
+  },
+  {
+    id: "learn-3",
+    title: "Salary Negotiation Techniques for Job Seekers",
+    time: "6 mins",
+    youtube_url: "https://www.youtube.com/watch?v=KMbeK_6ATxQ",
+    youtube_video_id: "KMbeK_6ATxQ",
+    thumbnail: "https://img.youtube.com/vi/KMbeK_6ATxQ/hqdefault.jpg",
+  },
+  {
+    id: "learn-4",
+    title: "Top Common HR Interview Questions and Best Answers",
+    time: "5 mins",
+    youtube_url: "https://www.youtube.com/watch?v=7_aAfl_2aSA",
+    youtube_video_id: "7_aAfl_2aSA",
+    thumbnail: "https://img.youtube.com/vi/7_aAfl_2aSA/hqdefault.jpg",
+  },
+];
+
 // --- Video Learning Section ---
 const LearnSection = () => {
-  const playlist = [
-    { title: "How to prepare an interview-winning resume in 5 minutes.", time: "2min 20sec", active: true },
-    { title: "Crack your local HR call interview with high confidence.", time: "2min 22sec", active: false },
-    { title: "Salary negotiation secrets for freshers and experienced staff.", time: "2min 36sec", active: false },
-  ];
+  const [videos, setVideos] = useState<LearnVideo[]>(DEFAULT_LEARN_VIDEOS);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [playingVideo, setPlayingVideo] = useState<LearnVideo | null>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  // Fetch resource videos dynamically from /courses (same source as /resources)
+  useEffect(() => {
+    api.get("/courses?limit=20")
+      .then((res: any) => {
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        if (Array.isArray(list) && list.length > 0) {
+          // Pick 4 random videos from the resources list
+          const shuffled = [...list].sort(() => 0.5 - Math.random());
+          const selected: LearnVideo[] = shuffled.slice(0, 4).map((item: any, idx: number) => {
+            const videoId =
+              item.youtube_video_id ||
+              extractYouTubeVideoId(item.youtube_url || "") ||
+              DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].youtube_video_id;
+
+            const thumb =
+              item.thumbnail_url ||
+              (videoId ? getYouTubeThumbnail(videoId) : "") ||
+              DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].thumbnail;
+
+            return {
+              id: item.id || item._id || `backend-course-${idx}`,
+              title: item.title || DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].title,
+              time: item.duration ? (String(item.duration).match(/min|sec|hour|m|s/i) ? String(item.duration) : `${item.duration} mins`) : "5 mins",
+              youtube_url: item.youtube_url || (videoId ? `https://www.youtube.com/watch?v=${videoId}` : ""),
+              youtube_video_id: videoId,
+              thumbnail: thumb,
+            };
+          });
+
+          // Ensure exactly 4 cards are always available even if backend has fewer
+          while (selected.length < 4) {
+            const fallbackItem = DEFAULT_LEARN_VIDEOS[selected.length % DEFAULT_LEARN_VIDEOS.length];
+            selected.push({ ...fallbackItem, id: `fallback-${selected.length}` });
+          }
+
+          setVideos(selected);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load learn section courses from resources:", err);
+      });
+  }, []);
+
+  // Infinite cyclic rotation: advances to next card every 2.5s (pauses on hover)
+  useEffect(() => {
+    if (videos.length <= 1 || isPaused) return;
+
+    const timer = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % videos.length);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [videos.length, isPaused]);
+
+  const activeVideo = videos[activeIndex] || videos[0] || DEFAULT_LEARN_VIDEOS[0];
 
   return (
     <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
-      <h2 className="text-center text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight mb-8 sm:mb-12 flex items-center justify-center flex-wrap gap-2.5">
-        <span>Learn With</span>
-        <img
-          src="/kaammilega-logo-text.png"
-          alt="KaamMilega"
-          className="h-7 sm:h-8 md:h-9 w-auto inline-block object-contain"
-        />
-      </h2>
-      <div className="flex flex-col md:flex-row gap-6 md:gap-8 items-start">
-        {/* Main Video Player */}
-        <div className="w-full md:flex-1 aspect-video bg-[#071A4D] rounded-3xl md:rounded-[40px] flex items-center justify-center relative group cursor-pointer overflow-hidden shadow-md">
-          <Play size={50} className="text-white opacity-80 group-hover:scale-110 transition-transform" />
+      {/* Centered Section Header */}
+      <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center justify-center flex-wrap gap-2.5">
+          <span>Learn With</span>
+          <img
+            src="/kaammilega-logo-text.png"
+            alt="KaamMilega"
+            className="h-7 sm:h-8 md:h-9 w-auto inline-block object-contain"
+          />
+        </h2>
+      </div>
+
+      <div
+        className="flex flex-col md:flex-row gap-6 
+        md:gap-8 items-stretch"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+      >
+        {/* Main Video Player (Left Side - Clean thumbnail with Play button in exact center) */}
+        <div
+          onClick={() => setPlayingVideo(activeVideo)}
+          className="w-full md:flex-1 aspect-video bg-slate-900 rounded-xl md:rounded-[10px] relative group cursor-pointer overflow-hidden shadow-xl border border-slate-200/80"
+          title={`Click to watch: ${activeVideo.title}`}
+        >
+          {/* Main Thumbnail synced with active card (absolute background) */}
+          <img
+            key={activeVideo.id || activeVideo.thumbnail}
+            src={activeVideo.thumbnail}
+            alt={activeVideo.title}
+            referrerPolicy="no-referrer"
+            className="absolute inset-0 w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+            onError={(e) => {
+              if (activeVideo.youtube_video_id) {
+                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/hqdefault.jpg`;
+              }
+            }}
+          />
+
+          {/* Clean subtle hover tint */}
+          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/25 transition-colors" />
+
+          {/* Centered Large Play Button Logo - In exact dead center */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white text-[#071A4D] flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-[#071A4D] group-hover:text-white transition-all duration-300">
+              <Play size={28} fill="currentColor" className="ml-1" />
+            </div>
+          </div>
         </div>
 
-        {/* Playlist */}
-        <div className="w-full md:w-100 space-y-3 md:space-y-4">
-          {playlist.map((video, i) => (
-            <div
-              key={i}
-              className={`p-3 md:p-4 rounded-2xl md:rounded-3xl border transition-all cursor-pointer ${video.active ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100 hover:bg-gray-50'
-                }`}
-            >
-              <div className="flex gap-3 md:gap-4">
-                <div className={`w-16 md:w-20 h-10 md:h-12 rounded-lg md:rounded-xl shrink-0 flex items-center justify-center ${video.active ? 'bg-km-primary' : 'bg-gray-200'}`}>
-                  <Play size={14} className="text-white" fill="white" />
+        {/* Playlist (Right Side - 3 cards on md/lg, 4 cards on xl + Fixed Green Explore Button at Bottom) */}
+        <div className="w-full md:w-105 xl:w-115 flex flex-col justify-between gap-2.5 sm:gap-3">
+          <div className="space-y-2.5 sm:space-y-3">
+            {videos.map((video, i) => {
+              const isActive = i === activeIndex;
+              return (
+                <div
+                  key={video.id || i}
+                  onClick={() => setActiveIndex(i)}
+                  className={`p-2 sm:p-2 rounded-xl md:rounded-xl border transition-all cursor-pointer relative overflow-hidden group/card ${isActive
+                    ? 'bg-blue-50/90 border-[#0B5ED7] shadow-sm ring-1 ring-[#0B5ED7]/25'
+                    : 'bg-white border-slate-200/90 hover:bg-slate-50/90 hover:border-slate-300'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Thumbnail from resources / YouTube */}
+                    <div className="relative w-28 h-18 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-slate-200/60 shadow-2xs group-hover/card:scale-102 transition-transform">
+                      <img
+                        src={video.thumbnail}
+                        alt={video.title}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          if (video.youtube_video_id) {
+                            (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
+                        <div
+                          className={`w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${isActive ? 'bg-[#0B5ED7] text-white' : 'bg-white/95 text-[#071A4D]'
+                            }`}
+                        >
+                          <Play size={9} fill="currentColor" className="ml-0.5" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Title and Duration */}
+                    <div className="flex-1 min-w-0">
+                      <h4
+                        className={`text-xs md:text-sm font-bold leading-snug line-clamp-2 transition-colors ${isActive ? 'text-slate-950' : 'text-slate-800 group-hover/card:text-[#0B5ED7]'
+                          }`}
+                      >
+                        {video.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 font-medium mt-1 flex items-center gap-1">
+                        <Clock size={11} className="text-slate-400" />
+                        <span>{video.time}</span>
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-[12px] md:text-[13px] font-bold text-gray-800 leading-tight mb-1">{video.title}</h4>
-                  <p className="text-[10px] text-gray-400 font-medium">{video.time}</p>
-                </div>
-              </div>
-            </div>
-          ))}
+              );
+            })}
+          </div>
+
+          {/* Fixed Green Button as per Project Color Rules */}
+          <Link
+            href="/resources"
+            className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-2xl md:rounded-3xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer mt-auto"
+          >
+            <span>Explore All Resources</span>
+            <ArrowUpRight size={16} />
+          </Link>
         </div>
       </div>
+
+      {/* Embedded YouTube Player Modal when clicking play */}
+      {playingVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
+          <div className="relative w-full max-w-3xl bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 border-b border-slate-800 text-white">
+              <div className="flex items-center gap-2 pr-4 overflow-hidden">
+                <span className="text-xs sm:text-sm font-semibold text-white/90 truncate">
+                  {playingVideo.title}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPlayingVideo(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                aria-label="Close video"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className="aspect-video w-full bg-black">
+              <iframe
+                src={`https://www.youtube.com/embed/${playingVideo.youtube_video_id || "dQw4w9WgXcQ"}?autoplay=1&rel=0`}
+                title={playingVideo.title}
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
