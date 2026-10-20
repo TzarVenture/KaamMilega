@@ -193,9 +193,8 @@ const GuestNavbar = () => {
                                 setMobileSearchOpen(!mobileSearchOpen);
                                 if (mobileMenuOpen) setMobileMenuOpen(false);
                             }}
-                            className={`p-2 rounded-xl transition-colors cursor-pointer ${
-                                mobileSearchOpen ? 'bg-blue-50 text-km-primary' : 'text-slate-600 hover:bg-slate-100'
-                            }`}
+                            className={`p-2 rounded-xl transition-colors cursor-pointer ${mobileSearchOpen ? 'bg-blue-50 text-km-primary' : 'text-slate-600 hover:bg-slate-100'
+                                }`}
                             aria-label="Open search"
                         >
                             <Search size={19} />
@@ -211,9 +210,8 @@ const GuestNavbar = () => {
                                 setMobileMenuOpen(!mobileMenuOpen);
                                 if (mobileSearchOpen) setMobileSearchOpen(false);
                             }}
-                            className={`p-2 rounded-xl transition-colors ml-0.5 cursor-pointer ${
-                                mobileMenuOpen ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-100'
-                            }`}
+                            className={`p-2 rounded-xl transition-colors ml-0.5 cursor-pointer ${mobileMenuOpen ? 'bg-slate-100 text-slate-900' : 'text-slate-700 hover:bg-slate-100'
+                                }`}
                             aria-label="Toggle navigation menu"
                         >
                             {mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}
@@ -231,15 +229,14 @@ const GuestNavbar = () => {
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className={`relative flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${
-                                            active
+                                        className={`relative flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${active
                                                 ? item.isHighlighted
                                                     ? 'text-amber-900 bg-amber-100/80 font-bold shadow-xs'
                                                     : 'text-km-primary bg-blue-50/90 font-bold shadow-xs'
                                                 : item.isHighlighted
                                                     ? 'text-amber-700 hover:bg-amber-50/80'
                                                     : 'text-slate-600 hover:text-km-primary hover:bg-slate-50'
-                                        }`}
+                                            }`}
                                     >
                                         <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-primary') : (item.isHighlighted ? 'text-amber-600' : 'text-slate-400')}>
                                             {item.icon}
@@ -312,11 +309,10 @@ const GuestNavbar = () => {
                                         key={item.href}
                                         href={item.href}
                                         onClick={() => setMobileMenuOpen(false)}
-                                        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm font-semibold transition-colors ${
-                                            item.isHighlighted
+                                        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm font-semibold transition-colors ${item.isHighlighted
                                                 ? 'text-amber-800 bg-amber-50/80 font-bold border border-amber-200/60'
                                                 : 'text-slate-700 hover:bg-slate-50 hover:text-km-primary active:bg-slate-100'
-                                        }`}
+                                            }`}
                                     >
                                         <span className={item.isHighlighted ? 'text-amber-600' : 'text-slate-500'}>
                                             {item.icon}

@@ -16,6 +16,7 @@ import (
 	"km-backend/internal/features/notification"
 
 	"km-backend/internal/features/company"
+	"km-backend/internal/features/course"
 	"km-backend/internal/features/event"
 	"km-backend/internal/features/file"
 	"km-backend/internal/features/job"
@@ -25,6 +26,7 @@ import (
 	"km-backend/internal/features/sms"
 	"km-backend/internal/features/system"
 	"km-backend/internal/features/subscription"
+	"km-backend/internal/features/testimonial"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -154,10 +156,12 @@ func main() {
 			network.NewNetworkRepository,
 			event.NewEventRepository,
 			mentorship.NewMentorshipRepository,
+			course.NewCourseRepository,
 			subscription.NewSubscriptionRepository,
 			instant_work.NewInstantWorkRepository,
 			notification.NewNotificationRepository,
 			notification.NewNotificationHub,
+			testimonial.NewTestimonialRepository,
 
 			// Services
 			notification.NewMailer,
@@ -179,8 +183,10 @@ func main() {
 			event.NewEventService,
 			question.NewQuestionService,
 			mentorship.NewMentorshipService,
+			course.NewCourseService,
 			subscription.NewSubscriptionService,
 			instant_work.NewInstantWorkService,
+			testimonial.NewTestimonialService,
 
 			// controllers
 			file.NewFileController,
@@ -199,9 +205,11 @@ func main() {
 			network.NewNetworkController,
 			event.NewEventController,
 			mentorship.NewMentorshipController,
+			course.NewCourseController,
 			subscription.NewSubscriptionController,
 			instant_work.NewInstantWorkController,
 			notification.NewNotificationController,
+			testimonial.NewTestimonialController,
 
 			// routes
 			AsRoute(file.NewFileApi),
@@ -221,9 +229,11 @@ func main() {
 			AsRoute(network.NewNetworkApi),
 			AsRoute(event.NewEventApi),
 			AsRoute(mentorship.NewMentorshipApi),
+			AsRoute(course.NewCourseApi),
 			AsRoute(subscription.NewSubscriptionApi),
 			AsRoute(instant_work.NewInstantWorkApi),
 			AsRoute(notification.NewNotificationApi),
+			AsRoute(testimonial.NewTestimonialApi),
 		),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}

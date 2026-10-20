@@ -141,6 +141,30 @@ body {
   box-shadow: 0 6px 20px -2px rgba(7, 26, 77, 0.08);
 }
 
+/* Minimalist horizontal scrollbar in official Dark Navy Blue */
+.km-horizontal-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #071A4D #E5ECF5;
+}
+
+.km-horizontal-scrollbar::-webkit-scrollbar {
+  height: 5px;
+}
+
+.km-horizontal-scrollbar::-webkit-scrollbar-track {
+  background: #E5ECF5;
+  border-radius: 9999px;
+}
+
+.km-horizontal-scrollbar::-webkit-scrollbar-thumb {
+  background: #071A4D;
+  border-radius: 9999px;
+}
+
+.km-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #0B1F52;
+}
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -165,16 +189,35 @@ body {
   }
 }
 
+@keyframes kmMarqueeReverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
 .animate-km-marquee {
   display: flex;
   width: max-content;
-  animation: kmMarquee 45s linear infinite;
+  animation: kmMarquee 35s linear infinite;
+  will-change: transform;
+}
+
+.animate-km-marquee-reverse {
+  display: flex;
+  width: max-content;
+  animation: kmMarqueeReverse 35s linear infinite;
   will-change: transform;
 }
 
 .animate-km-marquee:hover,
 .animate-km-marquee:active,
-.animate-km-marquee:focus-within {
+.animate-km-marquee:focus-within,
+.animate-km-marquee-reverse:hover,
+.animate-km-marquee-reverse:active,
+.animate-km-marquee-reverse:focus-within {
   animation-play-state: paused;
 }
 
