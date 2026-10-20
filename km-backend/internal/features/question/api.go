@@ -22,7 +22,7 @@ func (api *QuestionApi) Setup(app *fiber.App) {
 	app.Get("/api/questions", api.controller.GetQuestions)
 	app.Get("/api/admin/questions", api.controller.GetQuestions)
 
-	protected := app.Group("/api/admin/questions", middleware.AuthMiddleware(api.config.JWTSecret))
+	protected := app.Group("/api/admin/questions", middleware.AuthMiddleware(api.config.JWTSecret), middleware.RequireRole("admin"))
 	protected.Get("/:id", api.controller.GetQuestion)
 	protected.Post("/", api.controller.CreateQuestion)
 	protected.Patch("/:id", api.controller.UpdateQuestion)

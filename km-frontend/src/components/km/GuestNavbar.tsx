@@ -7,6 +7,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
 import DownloadAppModal from './DownloadAppModal';
+import SearchHint from './SearchHint';
 import { FEATURES } from '@/config/features';
 
 const GuestNavbar = () => {
@@ -102,15 +103,16 @@ const GuestNavbar = () => {
                             variant="guest"
                         />
                         <div className="h-5 w-px bg-slate-300 mx-1 shrink-0" />
-                        <form onSubmit={handleSearch} className="flex items-center flex-1 min-w-0 pr-2">
+                        <form onSubmit={handleSearch} className="relative flex items-center flex-1 min-w-0 pr-2">
                             <Search size={16} className="text-slate-400 mr-2 shrink-0" />
                             <input
                                 type="text"
-                                placeholder="Search jobs, skills, or companies..."
+                                aria-label="Search jobs, skills, companies and more"
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
-                                className="bg-transparent text-xs sm:text-sm outline-none w-full text-slate-800 placeholder:text-slate-400"
+                                className="bg-transparent text-sm outline-none w-full text-slate-800"
                             />
+                            {!searchValue && <SearchHint className="left-6 right-2" />}
                             {searchValue && (
                                 <button
                                     type="button"
@@ -261,16 +263,17 @@ const GuestNavbar = () => {
                     />
                     <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 px-4 py-3.5 shadow-xl animate-in slide-in-from-top-2 duration-150">
                         <form onSubmit={handleSearch} className="flex items-center gap-2">
-                            <div className="flex items-center flex-1 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 focus-within:border-km-primary focus-within:bg-white focus-within:ring-1 focus-within:ring-km-primary transition-all">
+                            <div className="relative flex items-center flex-1 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 focus-within:border-km-primary focus-within:bg-white focus-within:ring-1 focus-within:ring-km-primary transition-all">
                                 <Search size={16} className="text-slate-400 mr-2 shrink-0" />
                                 <input
                                     type="text"
-                                    placeholder="Search jobs, skills, roles..."
+                                    aria-label="Search jobs, skills, companies and more"
                                     value={searchValue}
                                     autoFocus
                                     onChange={(e) => setSearchValue(e.target.value)}
-                                    className="bg-transparent text-xs sm:text-sm outline-none w-full text-slate-800 placeholder:text-slate-400"
+                                    className="bg-transparent text-sm outline-none w-full text-slate-800"
                                 />
+                                {!searchValue && <SearchHint className="left-9 right-3" />}
                             </div>
                             <button
                                 type="submit"

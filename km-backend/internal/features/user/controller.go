@@ -16,18 +16,23 @@ type UserController struct {
 	config  *config.Config
 }
 
+// Fields a user may not set on their own profile via PATCH /api/user/profile
+var selfUpdateBlockedFields = []string{"roles", "verification_status", "is_email_verified"}
+
 func NewUserController(service UserService, cfg *config.Config) *UserController {
 	return &UserController{service: service, config: cfg}
 }
 
 // setAuthCookies issues HttpOnly session token and readable role cookie
-func (ctrl *UserController) setAuthCookies(c *fiber.Ctx, token string, user *User) {
+func (ctrl *UserController) setAuthCookies(c *fiber.Ctx, token string, user *User, preferredRole string) {
 	if token == "" || user == nil {
 		return
 	}
 
 	primaryRole := RoleUser
-	if len(user.Roles) > 0 && user.Roles[0] != "" {
+	if preferredRole != "" {
+		primaryRole = preferredRole
+	} else if len(user.Roles) > 0 && user.Roles[0] != "" {
 		primaryRole = user.Roles[0]
 	}
 
@@ -152,7 +157,7 @@ func (ctrl *UserController) VerifyOTP(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ctrl.setAuthCookies(c, res.Token, res.User)
+	ctrl.setAuthCookies(c, res.Token, res.User, role)
 	return c.JSON(res)
 }
 
@@ -197,18 +202,39 @@ func (ctrl *UserController) Register(c *fiber.Ctx) error {
 func (ctrl *UserController) GetProfile(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	if userID == "" {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+		ctrl.clearAuthCookies(c)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
 	}
 
 	user, err := ctrl.service.GetProfile(c.Context(), userID)
 	if err != nil {
 		if err.Error() == "user not found" {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+			ctrl.clearAuthCookies(c)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.JSON(user)
+}
+
+func (ctrl *UserController) GetProfileCompletion(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		ctrl.clearAuthCookies(c)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	completion, err := ctrl.service.GetProfileCompletion(c.Context(), userID)
+	if err != nil {
+		if err.Error() == "user not found" {
+			ctrl.clearAuthCookies(c)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(completion)
 }
 
 // GetOtherUserProfile godoc
@@ -507,6 +533,12 @@ func (ctrl *UserController) UpdateProfile(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
+	// Privileged fields can only be changed by admins or verified server-side flows
+	// (email verification happens in VerifyEmailOTP).
+	for _, key := range selfUpdateBlockedFields {
+		delete(updates, key)
+	}
+
 	user, err := ctrl.service.UpdateProfile(c.Context(), userID, updates)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
@@ -563,9 +595,12 @@ func (ctrl *UserController) VerifyEmailOTP(c *fiber.Ctx) error {
 
 	userID, _ := c.Locals("user_id").(string)
 	if userID == "" {
-		authHeader := c.Get("Authorization")
-		if authHeader != "" {
-			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+		// Public route: identify a signed-in user from the bearer header or the HttpOnly session cookie
+		tokenString := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
+		if tokenString == "" {
+			tokenString = c.Cookies("km_auth_token")
+		}
+		if tokenString != "" {
 			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
 				return []byte(ctrl.config.JWTSecret), nil
 			})
@@ -717,7 +752,11 @@ func (ctrl *UserController) LoginWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ctrl.setAuthCookies(c, res.Token, res.User)
+	if res.RequiresPasswordSetup {
+		return c.Status(fiber.StatusOK).JSON(res)
+	}
+
+	ctrl.setAuthCookies(c, res.Token, res.User, "")
 	return c.JSON(res)
 }
 
@@ -741,7 +780,7 @@ func (ctrl *UserController) RegisterWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ctrl.setAuthCookies(c, res.Token, res.User)
+	ctrl.setAuthCookies(c, res.Token, res.User, "")
 	return c.JSON(res)
 }
 

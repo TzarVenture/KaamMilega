@@ -75,6 +75,7 @@ type User struct {
 	CompanyWebsite     string     `bson:"company_website,omitempty" json:"company_website,omitempty"`
 	GST                string     `bson:"gst,omitempty" json:"gst,omitempty"`
 	CompanyDocuments   []Document `bson:"company_documents,omitempty" json:"company_documents,omitempty"`
+	Industry           string     `bson:"industry,omitempty" json:"industry,omitempty"`
 	VerificationStatus string     `bson:"verification_status,omitempty" json:"verification_status,omitempty"` // e.g. "verified", "pending", "rejected"
 	LastActiveAt       time.Time  `bson:"last_active_at,omitempty" json:"last_active_at,omitempty"`
 	LastLoginLat       float64    `bson:"last_login_lat,omitempty" json:"last_login_lat,omitempty"`
@@ -136,6 +137,7 @@ type OTP struct {
 	Code      string             `bson:"code" json:"code"`
 	ExpiresAt time.Time          `bson:"expires_at" json:"expires_at"`
 	Used      bool               `bson:"used" json:"used"`
+	Attempts  int                `bson:"attempts" json:"-"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 }
 
@@ -162,6 +164,8 @@ type RegisterRequest struct {
 	Mobile           string   `json:"mobile"` // Should match token claim normally
 	Roles            []string `json:"roles"`
 	Name             string   `json:"name"`
+	Headline         string   `json:"headline"`
+	Skills           []string `json:"skills"`
 	Gender           string   `json:"gender"`
 	EducationLevel   string   `json:"education_level"`
 	WorkExperience   string   `json:"work_experience"`
@@ -169,8 +173,26 @@ type RegisterRequest struct {
 	JobCategories    []string `json:"job_categories"`
 	ExperienceDetail string   `json:"experience_detail"`
 	Email            string   `json:"email"`
+	Password         string   `json:"password,omitempty"`
 	IsEmailVerified  bool     `json:"is_email_verified"`
 	IsConsultant     bool     `json:"is_consultant"`
+	CompanyName      string   `json:"company_name,omitempty"`
+	CompanyWebsite   string   `json:"company_website,omitempty"`
+	CompanyLogo      string     `json:"company_logo,omitempty"`
+	GST              string     `json:"gst,omitempty"`
+	Industry         string     `json:"industry,omitempty"`
+	CompanyDocuments []Document `json:"company_documents,omitempty"`
+}
+
+type ProfileCompletion struct {
+	Score            int                `json:"score"`
+	Tier             int                `json:"tier"`
+	TierName         string             `json:"tier_name"`
+	MissingFields    []string           `json:"missing_fields"`
+	UnlockedServices []string           `json:"unlocked_services"`
+	Criteria         []ProfileCriterion `json:"criteria"`
+	ExperienceYears  float64            `json:"experience_years"`
+	ExpertEligible   bool               `json:"expert_eligible"`
 }
 
 type LoginResponse struct {
@@ -198,10 +220,10 @@ type UserFilter struct {
 }
 
 type ApplyExpertRequest struct {
-	ExpertCategory  string     `json:"expert_category"`
-	ExpertBio       string     `json:"expert_bio"`
-	ExpertPricing   float64    `json:"expert_pricing"`
-	ExpertDocuments []Document `json:"expert_documents"`
+	ExpertCategory    string     `json:"expert_category"`
+	ExpertBio         string     `json:"expert_bio"`
+	ExpertPricing     float64    `json:"expert_pricing"`
+	ExpertDocuments   []Document `json:"expert_documents"`
 }
 
 type ApproveExpertRequest struct {
@@ -228,9 +250,11 @@ type SetPasswordRequest struct {
 }
 
 type PasswordLoginResponse struct {
-	Token        string `json:"token"`
-	User         *User  `json:"user"`
-	IsRegistered bool   `json:"is_registered"`
+	Token                 string `json:"token,omitempty"`
+	User                  *User  `json:"user,omitempty"`
+	IsRegistered          bool   `json:"is_registered,omitempty"`
+	RequiresPasswordSetup bool   `json:"requires_password_setup,omitempty"`
+	Message               string `json:"message,omitempty"`
 }
 
 type ForgotPasswordRequest struct {

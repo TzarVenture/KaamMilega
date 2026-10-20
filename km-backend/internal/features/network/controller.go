@@ -150,3 +150,43 @@ func (ctrl *NetworkController) DeleteConnection(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"message": "Connection deleted"})
 }
+
+func (ctrl *NetworkController) GetSuggestions(c *fiber.Ctx) error {
+	userIDStr := c.Locals("user_id").(string)
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	filter := SuggestionsFilter{
+		Type:  c.Query("type", "all"),
+		Page:  c.QueryInt("page", 1),
+		Limit: c.QueryInt("limit", 20),
+	}
+
+	suggestions, err := ctrl.service.GetSuggestions(c.Context(), userID, filter)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(suggestions)
+}
+
+func (ctrl *NetworkController) DismissSuggestion(c *fiber.Ctx) error {
+	userIDStr := c.Locals("user_id").(string)
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	targetID := c.Params("id")
+	if targetID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Missing suggestion id"})
+	}
+
+	if err := ctrl.service.DismissSuggestion(c.Context(), userID, targetID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"message": "Suggestion dismissed"})
+}

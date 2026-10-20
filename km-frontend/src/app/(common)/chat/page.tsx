@@ -40,6 +40,7 @@ import {
   setActiveChatState,
   notifyChatUnreadChanged,
 } from "@/lib/notifications";
+import InstantPassModal from "@/components/instant-milega/InstantPassModal";
 
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
   ssr: false,
@@ -260,6 +261,15 @@ function ChatView() {
   // Manual refresh loading state
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Entitlement & ₹99 Pass Gate state
+  const [isPassModalOpen, setIsPassModalOpen] = useState(false);
+  const [chatEntitlement, setChatEntitlement] = useState<{
+    distinct_conversations: number;
+    free_remaining: number;
+    has_active_pass: boolean;
+    can_start_new: boolean;
+  } | null>(null);
+
   // Active floating action pill for mobile tap / desktop hover
   const [activeMessageMenuId, setActiveMessageMenuId] = useState<string | null>(
     null,
@@ -420,12 +430,27 @@ function ChatView() {
     initUser();
   }, []);
 
+  // Load Chat Entitlement Status (Free 3-Person Quota vs ₹99 Pass)
+  const loadChatEntitlement = async () => {
+    try {
+      const data: any = await api.get("/chats/entitlement");
+      if (data) {
+        setChatEntitlement(data);
+      }
+    } catch (e) {
+      // silently fallback
+    }
+  };
+
   // 2. Load conversations (Enriched in 1 single backend query)
   // Note: isInitial flag ensures the sidebar ONLY shows the spinner on cold start, NEVER on message exchange!
   const loadConversations = async (myId: string, isInitial = false) => {
     try {
       if (isInitial) setLoadingConversations(true);
-      const res = (await api.get("/chats")) as Conversation[];
+      const [res] = await Promise.all([
+        api.get("/chats") as Promise<Conversation[]>,
+        loadChatEntitlement(),
+      ]);
       // Normalize other_user / otherUser
       const list = (res || []).map((c) => {
         const partner = c.other_user || c.otherUser;
@@ -1241,7 +1266,14 @@ function ChatView() {
       }
     } catch (err: any) {
       console.error("Failed to send message", err);
-      toast.error(err?.message || "Failed to send message");
+      const errMsg = err?.message || "Failed to send message";
+
+      // Backend error for the 3-person free chat limit (chat/service.go SendMessage)
+      if (errMsg.toLowerCase().startsWith("free chat quota reached")) {
+        setIsPassModalOpen(true);
+        loadChatEntitlement();
+      }
+      toast.error(errMsg);
       // Remove optimistic message on failure
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     } finally {
@@ -1566,6 +1598,27 @@ function ChatView() {
                 0 && <span className="w-2 h-2 rounded-full bg-[#FF6B00]" />}
             </button>
           </div>
+
+          {/* Free Chat Quota / Universal Pass Entitlement Banner */}
+          {chatEntitlement && !chatEntitlement.has_active_pass && (
+            <div className="p-2.5 rounded-xl bg-orange-50/90 border border-orange-200/90 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#FF6B00]" />
+                <span className="text-[11px] font-semibold text-slate-700">
+                  {chatEntitlement.free_remaining > 0
+                    ? `${chatEntitlement.free_remaining} of 3 free contacts left`
+                    : "Free contacts limit reached (3/3)"}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPassModalOpen(true)}
+                className="text-[11px] font-bold text-[#FF6B00] hover:text-[#E05D00] underline cursor-pointer"
+              >
+                ₹99 Pass
+              </button>
+            </div>
+          )}
 
           {/* Search Input */}
           <div className="relative">
@@ -2681,6 +2734,15 @@ function ChatView() {
           </div>
         </div>
       )}
+
+      {/* Universal ₹99 Pass Modal */}
+      <InstantPassModal
+        isOpen={isPassModalOpen}
+        onClose={() => setIsPassModalOpen(false)}
+        onSuccess={() => {
+          loadChatEntitlement();
+        }}
+      />
     </div>
   );
 }

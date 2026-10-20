@@ -28,6 +28,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
                 // Check if user has recruiter role
                 if (roles.includes('recruiter')) {
+                    if (!user.company_name || !user.company_name.trim()) {
+                        router.push('/recruiter/register');
+                        return;
+                    }
                     setIsLoading(false);
                 } else {
                     // Redirect non-recruiters to home page

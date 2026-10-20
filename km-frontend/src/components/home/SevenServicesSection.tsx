@@ -33,7 +33,7 @@ export default function SevenServicesSection() {
         {
             number: '01',
             title: 'Jobs & Recruitment',
-            description: 'Verified full-time, part-time, and fresher openings with zero brokerage and direct HR calls.',
+            description: 'Full-time and part-time openings with direct hiring manager contact.',
             actionLabel: 'Explore Jobs',
             href: '/jobs',
             providerLabel: 'Post a Job',
@@ -46,7 +46,7 @@ export default function SevenServicesSection() {
         {
             number: '02',
             title: 'InstantMilega™',
-            description: 'Hyperlocal 15-minute gig dispatch for certified technicians with daily wallet payouts.',
+            description: 'Fast local help and on-demand shifts with verified start and finish codes.',
             actionLabel: 'Find Instant Gigs',
             href: '/instant-milega',
             providerLabel: 'Book Staff',
@@ -59,7 +59,7 @@ export default function SevenServicesSection() {
         {
             number: '03',
             title: 'Skills Marketplace',
-            description: 'Vocational trade courses, skill evaluation tests, and verified certifications to increase pay.',
+            description: 'Practical courses and certifications to build skills and boost earnings.',
             actionLabel: 'Browse Courses',
             href: '/resources',
             providerLabel: 'Accredited Tests',
@@ -72,7 +72,7 @@ export default function SevenServicesSection() {
         {
             number: '04',
             title: 'Experts & Mentors',
-            description: '1-on-1 private career advisory, mock interview coaching, and expert resume evaluation.',
+            description: 'One-on-one guidance, interview practice, and advice from industry professionals.',
             actionLabel: 'Book Mentor',
             href: '/mentorship',
             providerLabel: 'Become Mentor',
@@ -85,7 +85,7 @@ export default function SevenServicesSection() {
         {
             number: '05',
             title: 'Services Marketplace',
-            description: 'Fixed-price trade contracts and freelance services backed by milestone escrow protection.',
+            description: 'Direct project contracts and trade services for businesses and individuals.',
             actionLabel: 'Explore Services',
             href: '/jobs?type=service',
             providerLabel: 'List Service',
@@ -98,7 +98,7 @@ export default function SevenServicesSection() {
         {
             number: '06',
             title: 'Peer-to-Peer',
-            description: 'Connect directly with verified professionals across trades, share referrals, and grow reputation.',
+            description: 'Network with people in your trade, share opportunities, and stay connected.',
             actionLabel: 'Join Network',
             href: '/network',
             providerLabel: 'Create Post',
@@ -111,7 +111,7 @@ export default function SevenServicesSection() {
         {
             number: '07',
             title: 'Events & Community',
-            description: 'Attend physical mega hiring drives, vocational workshops, and virtual recruitment webinars.',
+            description: 'Hiring drives, industry workshops, and community skill sessions.',
             actionLabel: 'View Events',
             href: '/events',
             providerLabel: 'Host Drive',
@@ -135,12 +135,10 @@ export default function SevenServicesSection() {
                 {/* Section Header */}
                 <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-12">
                     <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111827] tracking-tight">
-                        {FEATURES.INSTANT_MILEGA ? 'Explore the Seven Core Services' : 'Explore Core Platform Services'}
+                        {FEATURES.INSTANT_MILEGA ? 'Explore Core Services' : 'Explore Platform Services'}
                     </h2>
                     <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-[#5B6472] leading-relaxed max-w-2xl mx-auto">
-                        {FEATURES.INSTANT_MILEGA
-                            ? 'A unified platform designed for jobs, instant gig dispatch, vocational upskilling, and verified professional hiring.'
-                            : 'A unified platform designed for verified jobs, vocational upskilling, trade services, and professional hiring.'}
+                        Everything you need to hire, work, and grow your career in one place.
                     </p>
                 </div>
 

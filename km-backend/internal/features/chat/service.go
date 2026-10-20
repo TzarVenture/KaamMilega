@@ -122,6 +122,15 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 	}
 
 	if conv == nil {
+		// Entitlement Gate: 3 distinct person chats free. 4th onwards requires active ₹99 Pass
+		canStart, err := s.repo.CanInitiateNewConversation(ctx, senderID)
+		if err != nil {
+			return nil, err
+		}
+		if !canStart {
+			return nil, errors.New("free chat quota reached: you have connected with 3 people for free. Unlock unlimited networking and 10 work credits with the ₹99 Universal Pass")
+		}
+
 		conv, err = s.repo.CreateConversation(ctx, participants)
 		if err != nil {
 			return nil, err
@@ -483,5 +492,10 @@ func (s *service) ResolveAdminChatReport(ctx context.Context, id, adminID primit
 	}
 
 	return nil
+}
+
+// GetChatEntitlement retrieves user's chat count, free quota remaining, and active pass status
+func (s *service) GetChatEntitlement(ctx context.Context, userID primitive.ObjectID) (*ChatEntitlementResponse, error) {
+	return s.repo.GetChatEntitlement(ctx, userID)
 }
 

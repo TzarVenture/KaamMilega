@@ -24,7 +24,7 @@ func (a *TestimonialApi) Setup(app *fiber.App) {
 	app.Get("/api/testimonials", a.ctrl.GetTestimonials)
 
 	// Admin Endpoints for Testimonial Management
-	admin := app.Group("/api/admin/testimonials", jwtAuth)
+	admin := app.Group("/api/admin/testimonials", jwtAuth, middleware.RequireRole("admin"))
 	admin.Get("/", a.ctrl.GetAdminTestimonials)
 	admin.Post("/", a.ctrl.CreateTestimonial)
 	admin.Put("/:id", a.ctrl.UpdateTestimonial)

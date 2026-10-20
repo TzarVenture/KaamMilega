@@ -54,7 +54,7 @@ type InstantPass struct {
 	RazorpayOrderID   string             `bson:"razorpay_order_id,omitempty" json:"razorpay_order_id,omitempty"`
 	RazorpayPaymentID string             `bson:"razorpay_payment_id,omitempty" json:"razorpay_payment_id,omitempty"`
 	ActivatedAt       time.Time          `bson:"activated_at" json:"activated_at"`
-	ExpiresAt         time.Time          `bson:"expires_at" json:"expires_at"` // 30-day validity
+	ExpiresAt         time.Time          `bson:"expires_at" json:"expires_at"` // 90-day validity
 	CreatedAt         time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt         time.Time          `bson:"updated_at" json:"updated_at"`
 }

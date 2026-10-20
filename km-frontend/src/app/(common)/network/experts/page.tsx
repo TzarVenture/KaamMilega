@@ -69,11 +69,11 @@ export default function ExpertsPage() {
                 );
                 setMyExperts(expertConnections);
 
-                // Fetch all users to suggest experts
+                // Fetch approved experts
                 try {
-                    const usersRes = await api.get('/admin/users') as ExpertUser[];
+                    const expertsRes = await api.get('/experts') as ExpertUser[];
                     
-                    const filteredSuggestions = (usersRes || []).filter(u => 
+                    const filteredSuggestions = (expertsRes || []).filter(u => 
                         u.roles?.includes('expert') && 
                         u.id !== currentUserId && 
                         u._id !== currentUserId &&

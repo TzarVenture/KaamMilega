@@ -39,7 +39,7 @@ export default function AdminLoginPage() {
         try {
             const response: any = await api.post('/auth/otp/verify', { mobile, code: otp, role: 'admin' });
             if (response.user) {
-                saveSession(response.user);
+                saveSession(response.user, 'admin');
                 router.push('/admin');
             } else {
                 setError('Invalid response from server.');
