@@ -333,10 +333,10 @@ func (r *InstantWorkRepositoryImpl) GetPassByOrderID(ctx context.Context, orderI
 	return &pass, nil
 }
 
-// ActivatePass activates the pass with 10 quota and 30-day validity upon verified payment
+// ActivatePass activates the pass with 10 quota and 90-day validity upon verified payment
 func (r *InstantWorkRepositoryImpl) ActivatePass(ctx context.Context, orderID string, paymentID string) (*InstantPass, error) {
 	now := time.Now()
-	expiresAt := now.Add(30 * 24 * time.Hour)
+	expiresAt := now.Add(90 * 24 * time.Hour)
 
 	filter := bson.M{"razorpay_order_id": orderID}
 	update := bson.M{

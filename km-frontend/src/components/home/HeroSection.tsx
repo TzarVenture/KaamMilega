@@ -97,14 +97,14 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         </div>
 
                         {/* Master Hero Headline */}
-                        <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-black text-slate-900 tracking-tight leading-[1.12] mb-3 sm:mb-4">
+                        <h1 className="text-3xl sm:text-5xl lg:text-[52px] font-bold text-slate-900 tracking-tight leading-[1.12] mb-3 sm:mb-4">
                             Kaam Dhoondo.{' '}
                             <span className="text-km-accent block sm:inline">Milega Yahin!</span>
                         </h1>
 
                         {/* Subtitle */}
                         <p className="text-sm sm:text-base text-slate-600 mb-6 sm:mb-8 max-w-xl leading-relaxed font-normal">
-                            India&apos;s verified platform for direct jobs, InstantMilega™ rapid gigs, industry skills, and career mentorship with zero brokerage.
+                            Connect directly with hiring managers, discover local jobs, and book on-demand services in your city.
                         </p>
 
                         {/* Search Console: Distinct Tabs + Clean Elevated Bar */}
@@ -336,7 +336,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             <p className="text-sm font-bold text-slate-800 tracking-tight leading-tight">
                                 Better Skills
                             </p>
-                            <p className="text-sm font-black text-km-primary tracking-tight leading-tight">
+                            <p className="text-sm font-bold text-km-primary tracking-tight leading-tight">
                                 Brighter Tomorrows
                             </p>
                             <svg className="w-28 h-3 text-km-accent mt-0.5" viewBox="0 0 100 12" fill="none">
@@ -415,7 +415,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             <Users size={20} className="hidden sm:block" />
                         </div>
                         <div>
-                            <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-tight font-poppins">
+                            <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 leading-tight font-poppins">
                                 {stats?.total_users ? `${stats.total_users}+ Users` : '120+ Users'}
                             </p>
                             <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Verified Community</p>
@@ -428,7 +428,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             <MapPin size={20} className="hidden sm:block" />
                         </div>
                         <div>
-                            <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-tight font-poppins">
+                            <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 leading-tight font-poppins">
                                 {stats?.cities || cities.length || 36}+ Cities
                             </p>
                             <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Verified Hubs</p>
@@ -441,7 +441,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             <Building2 size={20} className="hidden sm:block" />
                         </div>
                         <div>
-                            <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-tight font-poppins">
+                            <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 leading-tight font-poppins">
                                 {stats?.applications ? `${stats.applications}+ Placed` : '100% Free'}
                             </p>
                             <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">Direct Applications</p>
@@ -454,7 +454,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             <PhoneCall size={20} className="hidden sm:block" />
                         </div>
                         <div>
-                            <p className="text-sm sm:text-base lg:text-lg font-black text-slate-900 leading-tight font-poppins">Direct Calls</p>
+                            <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 leading-tight font-poppins">Direct Calls</p>
                             <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-tight mt-0.5">With HR Recruiters</p>
                         </div>
                     </div>

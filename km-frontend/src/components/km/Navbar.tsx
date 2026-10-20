@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import CitySelector from "./CitySelector";
 import BrandLogo from "./BrandLogo";
+import SearchHint from "./SearchHint";
 import CustomImage from "@/components/ui/CustomImage";
 import Image from "next/image";
 import Link from "next/link";
@@ -184,7 +185,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           </div>
 
           {/* Desktop: City selector + Search */}
-          <div className="hidden md:flex items-center gap-3 flex-1 min-w-0 max-w-md">
+          <div className="hidden md:flex items-center gap-3 flex-1 min-w-0 max-w-lg">
             {showCitySelector && (
               <CitySelector
                 selectedCity={selectedCity}
@@ -195,23 +196,24 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
             <form onSubmit={handleSearch} className="relative w-full">
               <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-                size={15}
+                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
+                size={17}
               />
               <input
                 type="text"
-                placeholder="Job Title, Skills or Category..."
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="w-full pl-9 pr-7 py-2 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-km-primary focus:bg-white focus:ring-2 focus:ring-km-primary/15 transition-all"
+                aria-label="Search jobs, skills, companies and more"
+                className="w-full pl-10 pr-9 py-2.5 bg-[#F4F7FB] border border-[#D9E0EA] rounded-full text-sm font-normal text-[#111827] focus:outline-none focus:border-[#071A4D] focus:bg-white focus:ring-2 focus:ring-[#071A4D]/10 transition-all shadow-2xs"
               />
+              {!searchValue && <SearchHint className="left-10 right-8" />}
               {searchValue && (
                 <button
                   type="button"
                   onClick={() => setSearchValue("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                 >
-                  <X size={13} />
+                  <X size={15} />
                 </button>
               )}
             </form>
@@ -726,20 +728,21 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 px-4 py-3 shadow-xl animate-in slide-in-from-top-2 duration-150">
             <form
               onSubmit={handleSearch}
-              className="flex items-center bg-slate-50 rounded-xl border border-slate-200 px-3.5 py-2 gap-2 focus-within:border-km-primary focus-within:bg-white focus-within:ring-1 focus-within:ring-km-primary transition-all"
+              className="relative flex items-center bg-[#F4F7FB] rounded-xl border border-[#D9E0EA] px-3.5 py-2.5 gap-2 focus-within:border-[#071A4D] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#071A4D]/10 transition-all"
             >
-              <Search size={16} className="text-slate-400 shrink-0" />
+              <Search size={18} className="text-slate-400 shrink-0" />
               <input
                 type="text"
-                placeholder="Job Title, Skills or Category..."
                 value={searchValue}
                 autoFocus
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="bg-transparent text-sm outline-none w-full text-slate-800 placeholder:text-slate-400"
+                aria-label="Search jobs, skills, companies and more"
+                className="bg-transparent text-sm outline-none w-full text-[#111827]"
               />
+              {!searchValue && <SearchHint className="left-10 right-16" />}
               <button
                 type="submit"
-                className="bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold px-3.5 py-1.5 rounded-lg shrink-0 transition-colors cursor-pointer shadow-2xs"
+                className="bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold px-4 py-2 rounded-lg shrink-0 transition-colors cursor-pointer shadow-2xs"
               >
                 Go
               </button>

@@ -89,13 +89,8 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
         setError(null);
         setVerifying(true);
         try {
+            // Server links the verified email to the signed-in account
             await api.post("/auth/otp/email/verify", { email: email.trim(), code });
-            
-            // Update email & is_email_verified on user profile
-            await api.patch("/user/profile", {
-                email: email.trim(),
-                is_email_verified: true
-            });
 
             // Fetch latest user profile from MongoDB to ensure clean sync
             const freshUser: any = await api.get("/user/profile");

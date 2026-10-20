@@ -582,3 +582,21 @@ func (c *Controller) ResolveAdminChatReport(ctx *fiber.Ctx) error {
 	return ctx.JSON(fiber.Map{"success": true, "message": "Report resolved successfully"})
 }
 
+func (c *Controller) GetChatEntitlement(ctx *fiber.Ctx) error {
+	userIDStr, ok := ctx.Locals("user_id").(string)
+	if !ok || userIDStr == "" {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	userID, err := primitive.ObjectIDFromHex(userIDStr)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid User ID"})
+	}
+
+	entitlement, err := c.service.GetChatEntitlement(ctx.Context(), userID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.JSON(entitlement)
+}
+

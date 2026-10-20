@@ -36,7 +36,7 @@ func (api *WalletApi) Setup(app *fiber.App) {
 	walletGroup.Get("/my/disputes", api.controller.GetMyDisputes)
 
 	// Admin Dispute Routes (F73)
-	adminDisputes := app.Group("/api/admin/disputes", jwtAuth)
+	adminDisputes := app.Group("/api/admin/disputes", jwtAuth, middleware.RequireRole("admin"))
 	adminDisputes.Get("/", api.controller.GetAdminDisputes)
 	adminDisputes.Put("/:id/resolve", api.controller.ResolveAdminDispute)
 }

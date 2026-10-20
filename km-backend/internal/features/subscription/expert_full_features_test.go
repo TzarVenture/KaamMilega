@@ -341,6 +341,7 @@ func TestCompleteExpertLifecycleAndFeatures(t *testing.T) {
 		Name:                 "John Senior Architect",
 		Email:                "john.expert@kaammilega.com",
 		Roles:                []string{user.RoleUser},
+		ExperienceDetail:     "3+ Years",
 		ExpertApprovalStatus: "none",
 		IsConsultant:         false,
 	}

@@ -32,7 +32,7 @@ func (api *CompanyApi) Setup(app *fiber.App) {
 	publicRoutes.Get("/", api.controller.GetTopCompanies)
 
 	// Group for admin company management
-	adminRoutes := app.Group("/api/admin/companies", middleware.AuthMiddleware(api.config.JWTSecret)) // Add Admin role check if needed
+	adminRoutes := app.Group("/api/admin/companies", middleware.AuthMiddleware(api.config.JWTSecret), middleware.RequireRole("admin"))
 
 	adminRoutes.Get("/", api.controller.GetCompanies)
 	adminRoutes.Post("/", api.controller.CreateCompany) // Create new profile

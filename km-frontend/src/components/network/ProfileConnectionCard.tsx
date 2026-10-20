@@ -97,7 +97,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
 
     const cardContent = (
         <div
-            className={`relative bg-white flex flex-col justify-between transition-all duration-200 group ${
+            className={`relative bg-white flex flex-col justify-between transition-all duration-200 group/card ${
                 isGrid
                     ? 'w-full p-5 rounded-2xl border border-[#D9E0EA] hover:border-[#0B5ED7]/50 hover:shadow-md h-full text-center'
                     : 'w-60 sm:w-64 p-5 rounded-2xl shrink-0 border border-[#D9E0EA] shadow-2xs hover:shadow-md hover:border-[#0B5ED7]/50 h-full text-center'
@@ -131,14 +131,14 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
             <Link href={profileHref} className="w-full flex flex-col items-center cursor-pointer">
                 {/* Avatar with online status */}
                 <div className="relative mb-2.5 shrink-0">
-                    <div className="w-16 h-16 rounded-full bg-[#F4F7FB] border-2 border-[#D9E0EA] group-hover:border-[#071A4D] flex items-center justify-center overflow-hidden shadow-2xs transition-colors">
+                    <div className="w-16 h-16 rounded-full bg-[#F4F7FB] border-2 border-[#D9E0EA] group-hover/card:border-[#071A4D] flex items-center justify-center overflow-hidden shadow-2xs transition-colors">
                         <UserAvatar src={user.profile_image} name={cleanName} />
                     </div>
                     <div className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
                 </div>
 
                 {/* Name */}
-                <h3 className="text-sm font-bold text-[#111827] group-hover:text-[#0B5ED7] transition-colors leading-tight mb-1 text-center line-clamp-1">
+                <h3 className="text-sm font-bold text-[#111827] group-hover/card:text-[#0B5ED7] transition-colors leading-tight mb-1 text-center line-clamp-1">
                     {cleanName}
                 </h3>
 

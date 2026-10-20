@@ -14,7 +14,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, getCurrentPortalRole } from '@/lib/auth';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
@@ -28,6 +28,7 @@ import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
 import { ImpressionWrapper } from '@/lib/telemetry';
+import CandidateProgressCard from '@/components/dashboard/CandidateProgressCard';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -206,6 +207,11 @@ export default function LandingPage() {
       <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
       <HeroSection cities={cities} stats={stats} />
       <SuccessTicker />
+      {isLoggedIn && currentUser && !['recruiter', 'admin'].includes(getCurrentPortalRole()) && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-6 pb-2">
+          <CandidateProgressCard userName={currentUser?.name} />
+        </section>
+      )}
       <SevenServicesSection />
       <LocationSection cities={cities} />
       <TrustCard isLoggedIn={isLoggedIn} user={currentUser} />
@@ -327,7 +333,7 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
     <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
       {/* Section Header */}
       <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight">
           Find Jobs by <span className="text-km-primary">Top Hubs</span>
         </h2>
         <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-700 leading-relaxed max-w-2xl mx-auto font-normal">
@@ -337,7 +343,7 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
 
       {/* Unified Cohesive Container */}
       <div className="bg-slate-50/90 rounded-3xl border border-slate-200/90 p-4 sm:p-6 lg:p-8 shadow-xs">
-        {/* Sub-header with Title & Responsive Prev/Next Controls */}
+        {/* Sub-header with Title & Count */}
         <div className="flex items-center justify-between mb-4 sm:mb-5 px-1">
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
@@ -347,81 +353,59 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
               {displayFeatured.length} Hubs
             </span>
           </div>
-
-          {/* Prev / Next Controls - Responsive on All Devices */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!canScrollLeft}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-km-primary hover:border-km-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs cursor-pointer active:scale-95"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!canScrollRight}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-km-primary hover:border-km-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs cursor-pointer active:scale-95"
-              aria-label="Scroll right"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
         </div>
 
-        {/* Scrollable Track */}
-        <div
-          ref={scrollRef}
-          className="flex gap-4 sm:gap-5 overflow-x-auto pb-3 scroll-smooth scrollbar-hide w-full snap-x snap-mandatory"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {displayFeatured.map((hub, idx) => (
-            <Link 
-              key={idx} 
-              href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
-              className="snap-start shrink-0"
-            >
-              <div className="w-56 sm:w-64 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-km-primary/50 transition-all overflow-hidden cursor-pointer group/card flex flex-col h-full">
-                
-                {/* Landmark Photo Header */}
-                <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-slate-900 shrink-0">
-                  <img
-                    src={hub.image}
-                    alt={`${hub.name} landmark`}
-                    className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500 ease-out"
-                    loading="lazy"
-                  />
-                  
-                  {/* Subtle Gradient Scrim */}
-                  <div className="absolute inset-0 bg-linear-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
+        {/* Infinite Marquee Track with Pause on Hover/Touch */}
+        <div className="relative overflow-hidden">
+          <div
+            className="animate-km-marquee flex gap-4 sm:gap-5 hover:[animation-play-state:paused] active:[animation-play-state:paused] touch-pan-x pb-3"
+          >
+            {[...displayFeatured, ...displayFeatured].map((hub, idx) => (
+              <Link 
+                key={`${hub.name}-${idx}`} 
+                href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
+                className="shrink-0"
+              >
+                <div className="w-56 sm:w-64 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-km-primary/50 transition-all overflow-hidden cursor-pointer group/card flex flex-col h-full">
+                  {/* Landmark Photo Header */}
+                  <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-slate-900 shrink-0">
+                    <img
+                      src={hub.image}
+                      alt={`${hub.name} landmark`}
+                      className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500 ease-out"
+                      loading="lazy"
+                    />
+                    
+                    {/* Subtle Gradient Scrim */}
+                    <div className="absolute inset-0 bg-linear-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
 
-                  {/* Clean Landmark Label */}
-                  {hub.landmark && (
-                    <span className="absolute bottom-2.5 left-3 text-[11px] font-medium text-white drop-shadow-xs truncate max-w-[90%]">
-                      {hub.landmark}
-                    </span>
-                  )}
-                </div>
-
-                {/* Card Content Body - High Contrast Readable Text */}
-                <div className="p-4 sm:p-5 text-center flex flex-col items-center justify-between flex-1">
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover/card:text-km-primary transition-colors tracking-tight">
-                      {hub.name}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-800 font-semibold mt-1">
-                      {hub.vacancies}
-                    </p>
+                    {/* Clean Landmark Label */}
+                    {hub.landmark && (
+                      <span className="absolute bottom-2.5 left-3 text-[11px] font-medium text-white drop-shadow-xs truncate max-w-[90%]">
+                        {hub.landmark}
+                      </span>
+                    )}
                   </div>
 
-                  <p className="text-xs text-slate-600 font-medium mt-3">
-                    {hub.sector}
-                  </p>
-                </div>
+                  {/* Card Content Body */}
+                  <div className="p-4 sm:p-5 text-center flex flex-col items-center justify-between flex-1">
+                    <div>
+                      <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover/card:text-km-primary transition-colors tracking-tight">
+                        {hub.name}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-slate-800 font-semibold mt-1">
+                        {hub.vacancies}
+                      </p>
+                    </div>
 
-              </div>
-            </Link>
-          ))}
+                    <p className="text-xs text-slate-600 font-medium mt-3">
+                      {hub.sector}
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
 
         {/* Connected Lower Shelf: More Regional Hubs */}
@@ -430,8 +414,8 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-km-primary shrink-0" />
-                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900">
-                  More Employment Hubs & Regional Zones ({displayOther.length})
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900">
+                  More Employment Hubs &amp; Regional Zones ({displayOther.length})
                 </h3>
               </div>
               <Link
@@ -468,18 +452,18 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
       <div className="bg-slate-900 rounded-3xl p-8 sm:p-10 text-white flex flex-col lg:flex-row items-center justify-between gap-8 shadow-xl">
         <div className="max-w-2xl text-center lg:text-left">
           <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
-            {isLoggedIn ? "Verified Candidate Hub" : "Platform Verification"}
+            {isLoggedIn ? "Verified Candidate Hub" : "Verified Platform"}
           </span>
           <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mt-3 mb-2 leading-snug">
             {isLoggedIn
-              ? `Welcome Back, ${user?.name || "Professional"}!`
-              : "Trusted by Over 10 Lakh Candidates & 5,000+ Verified Employers"
+              ? `Welcome back, ${user?.name || "Professional"}`
+              : "Direct hiring connections for verified employers and candidates"
             }
           </h3>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+          <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
             {isLoggedIn
-              ? "Your profile is verified. Connect directly with hiring managers, track your applications, and access high-paying trade gigs with zero brokerage."
-              : "Direct HR calls, zero brokerage fees, and biometric/Aadhaar-verified employment credentials across India."
+              ? "Connect directly with hiring managers, track your applications, and discover local on-demand opportunities."
+              : "Discover job vacancies, connect with hiring managers directly, and explore on-demand service opportunities across India."
             }
           </p>
         </div>
@@ -487,12 +471,12 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
           {isLoggedIn ? (
             <>
               <Link href="/jobs" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md">
+                <button className="w-full sm:w-auto bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md cursor-pointer">
                   Explore Matched Jobs
                 </button>
               </Link>
               <Link href="/user/applications" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto border border-slate-700 hover:border-slate-500 hover:bg-slate-800 text-white px-7 py-3.5 rounded-xl font-bold transition-all text-sm">
+                <button className="w-full sm:w-auto border border-slate-700 hover:border-slate-500 hover:bg-slate-800 text-white px-7 py-3.5 rounded-xl font-bold transition-all text-sm cursor-pointer">
                   View My Applications
                 </button>
               </Link>
@@ -500,12 +484,12 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
           ) : (
             <>
               <Link href="/register" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md">
+                <button className="w-full sm:w-auto bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md cursor-pointer">
                   Register Now
                 </button>
               </Link>
               <Link href="/jobs" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto border border-slate-700 hover:border-slate-500 hover:bg-slate-800 text-white px-7 py-3.5 rounded-xl font-bold transition-all text-sm">
+                <button className="w-full sm:w-auto border border-slate-700 hover:border-slate-500 hover:bg-slate-800 text-white px-7 py-3.5 rounded-xl font-bold transition-all text-sm cursor-pointer">
                   Explore Verified Openings
                 </button>
               </Link>
@@ -519,11 +503,11 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
 
 const FeatureBar = () => {
   const features = [
-    { icon: <ShieldCheck size={22} className="text-blue-600" />, title: "Zero Brokerage", desc: "100% free direct hiring" },
-    { icon: <PhoneCall size={22} className="text-amber-600" />, title: "Direct HR Calls", desc: "Fast interview scheduling" },
-    { icon: <Zap size={22} className="text-emerald-600" />, title: "15-Min Gig Dispatch", desc: "Hyperlocal on-demand jobs" },
-    { icon: <CheckCircle size={22} className="text-indigo-600" />, title: "Verified Badges", desc: "ID backed credentials" },
-    { icon: <Wallet size={22} className="text-rose-600" />, title: "Daily Escrow Payouts", desc: "Guaranteed wallet transfers" },
+    { icon: <PhoneCall size={22} className="text-[#071A4D]" />, title: "Direct Contact", desc: "Call or chat with employers directly" },
+    { icon: <ShieldCheck size={22} className="text-[#0B5ED7]" />, title: "Verified Profiles", desc: "Identity and credential verification" },
+    { icon: <Zap size={22} className="text-[#FF6B00]" />, title: "Instant Milega™", desc: "On-demand local service dispatches" },
+    { icon: <Briefcase size={22} className="text-emerald-600" />, title: "Local Jobs", desc: "Roles tailored to your city & skills" },
+    { icon: <Wallet size={22} className="text-indigo-600" />, title: "Digital Wallet", desc: "Transparent earnings and payouts" },
   ];
 
   return (
@@ -669,7 +653,7 @@ const FeaturedCompanies = ({ companies }: { companies: any[] }) => {
             Featured Companies <span className="text-km-primary">Actively Hiring</span>
           </h2>
           <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            Direct recruitment partnerships with leading enterprises across India offering verified compensation and zero brokerage fees.
+            Leading employers actively hiring for verified roles in your area.
           </p>
         </div>
 
@@ -710,7 +694,7 @@ const QualificationSearch = () => {
             Search Jobs Based On Your <span className="text-km-primary">Qualification</span>
           </h2>
           <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            Find verified roles matched specifically to your education background and vocational certifications.
+            Find roles matched to your education and vocational background.
           </p>
         </div>
 
@@ -752,7 +736,7 @@ const JobTypeSection = () => {
   return (
     <section className="py-12 md:py-20 bg-white px-4 md:px-6">
       <div className="max-w-5xl mx-auto text-center">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-8 md:mb-12">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-8 md:mb-12">
           What <span className="text-km-primary">Type Of Job</span> Do You Want?
         </h2>
 
@@ -800,7 +784,7 @@ const DiversityBanner = () => (
           <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">▲</div>
           <span className="text-xs font-bold">KaamMilega™ Verified Partner <Star size={10} className="inline fill-yellow-400 border-none" /> 4.8</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mb-4">
           Diversity And Inclusion At Every Workplace
         </h2>
         <button className="text-sm font-bold underline hover:text-km-accent-light transition-colors">Learn More</button>
@@ -898,33 +882,38 @@ const ExpertSlider = ({
   return (
     <section className="w-full py-10 px-6 bg-white overflow-hidden font-sans">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-black text-center text-slate-900 mb-8 tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center text-slate-900 mb-8 tracking-tight">
           Connect With Our <span className="text-km-primary">Experts</span>
         </h2>
-        <div 
-          ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide" 
-        >
-          {experts.map((expert, i) => {
-            const expertId = expert.id || expert._id || '';
-            const isSelf = Boolean(currentUserId && expertId === currentUserId);
-            const isPending = pendingIds.includes(expertId);
-            const isConnected = (connectedIds || []).includes(expertId);
 
-            return (
-              <ProfileConnectionCard
-                key={expertId || i}
-                user={expert}
-                variant="slider"
-                isSelf={isSelf}
-                isPending={isPending}
-                isConnected={isConnected}
-                entityType="expert"
-                onChat={onChat}
-                onFollow={onFollow}
-              />
-            );
-          })}
+        {/* Infinite Marquee Track with Pause on Hover/Touch */}
+        <div className="relative overflow-hidden">
+          <div 
+            ref={scrollContainerRef}
+            className="animate-km-marquee flex gap-6 hover:[animation-play-state:paused] active:[animation-play-state:paused] touch-pan-x pb-6" 
+          >
+            {[...experts, ...experts].map((expert, i) => {
+              const expertId = expert.id || expert._id || '';
+              const isSelf = Boolean(currentUserId && expertId === currentUserId);
+              const isPending = pendingIds.includes(expertId);
+              const isConnected = (connectedIds || []).includes(expertId);
+
+              return (
+                <div key={`${expertId}-${i}`} className="shrink-0">
+                  <ProfileConnectionCard
+                    user={expert}
+                    variant="slider"
+                    isSelf={isSelf}
+                    isPending={isPending}
+                    isConnected={isConnected}
+                    entityType="expert"
+                    onChat={onChat}
+                    onFollow={onFollow}
+                  />
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Custom Interactive Scrollbar */}
@@ -945,7 +934,7 @@ const EventsSection = ({ events }: { events: any[] }) => {
       <div className="flex flex-col lg:flex-row gap-8 md:gap-12">
         {/* Left Side: Content */}
         <div className="lg:w-1/3 text-left">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-4 md:mb-6 leading-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight">
             Upcoming <span className="text-km-primary">Events And Challenges</span>
           </h2>
           <p className="text-sm text-gray-400 leading-relaxed mb-6 md:mb-8">
@@ -958,48 +947,68 @@ const EventsSection = ({ events }: { events: any[] }) => {
           </Link>
         </div>
 
-        {/* Right Side: Slider (Moving Towards Right) */}
-        <div className="lg:w-2/3 overflow-hidden">
-          <motion.div
-            className="flex gap-4 md:gap-6"
-            animate={{ x: [0, -400] }}
-            transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
+        {/* Right Side: Smooth Infinite Marquee Track with Pause on Hover/Touch */}
+        <div className="lg:w-2/3 overflow-hidden relative">
+          <div
+            className="animate-km-marquee flex gap-4 md:gap-6 hover:[animation-play-state:paused] active:[animation-play-state:paused] touch-pan-x pb-2"
           >
-            {displayEvents.map((event, i) => (
-              <Link href={`/events/${event.id}`} key={i} className="min-w-70 sm:min-w-80 md:min-w-85 bg-white rounded-3xl md:rounded-4xl overflow-hidden shadow-lg border border-gray-50 flex flex-col group transition-all hover:shadow-xl">
-                <div className="h-40 bg-gray-200 relative overflow-hidden">
+            {[...displayEvents, ...displayEvents].map((event, i) => (
+              <Link
+                href={`/events/${event.id}`}
+                key={`${event.id}-${i}`}
+                className="min-w-70 sm:min-w-80 md:min-w-85 bg-white rounded-3xl md:rounded-4xl overflow-hidden shadow-sm border border-slate-200/80 flex flex-col group/event transition-all hover:shadow-md shrink-0 cursor-pointer"
+              >
+                <div className="h-40 bg-slate-100 relative overflow-hidden">
                   {event.image_url ? (
-                      <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img
+                      src={event.image_url}
+                      alt={event.title}
+                      className="w-full h-full object-cover group-hover/event:scale-105 transition-transform duration-500"
+                    />
                   ) : (
-                      <div className="w-full h-full bg-[#071A4D] flex items-center justify-center relative overflow-hidden">
-                          <div className="flex items-center justify-center opacity-60">
-                              <div className="w-10 h-10 bg-blue-400 clip-path-triangle transform -rotate-12 -translate-x-2" />
-                              <div className="w-8 h-8 bg-blue-300 clip-path-triangle translate-x-2 translate-y-2" />
-                          </div>
+                    <div className="w-full h-full bg-[#071A4D] flex items-center justify-center relative overflow-hidden">
+                      <div className="flex items-center justify-center opacity-60">
+                        <div className="w-10 h-10 bg-blue-400 clip-path-triangle transform -rotate-12 -translate-x-2" />
+                        <div className="w-8 h-8 bg-blue-300 clip-path-triangle translate-x-2 translate-y-2" />
                       </div>
+                    </div>
                   )}
-                  <span className="absolute top-4 left-4 bg-black/60 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-md">{event.location || 'Online'}</span>
+                  <span className="absolute top-4 left-4 bg-slate-900/80 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-xs font-medium">
+                    {event.location || 'Online'}
+                  </span>
                 </div>
-                <div className="p-6 md:p-8 flex flex-col flex-1">
+                <div className="p-6 md:p-7 flex flex-col flex-1">
                   <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-lg">{event.title?.[0] || '🎉'}</div>
+                    <div className="w-10 h-10 bg-orange-50 text-km-accent rounded-full flex items-center justify-center text-sm font-bold border border-orange-100 shrink-0">
+                      <Calendar size={18} />
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-black text-gray-900 text-sm md:text-base truncate">{event.title}</h4>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase truncate">By {event.organizer}</p>
+                      <h4 className="font-semibold text-slate-900 text-sm md:text-base truncate">
+                        {event.title}
+                      </h4>
+                      <p className="text-[10px] text-slate-500 font-medium truncate">
+                        By {event.organizer}
+                      </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-gray-400 font-bold mb-6 border-b border-gray-50 pb-4">
-                    <span className="flex items-center gap-1"><Calendar size={12} className="text-km-primary" /> {event.date}</span>
-                    <span className="flex items-center gap-1"><Users size={12} className="text-km-primary" /> 1K+ Joined</span>
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 font-medium mb-5 border-b border-slate-100 pb-3">
+                    <span className="flex items-center gap-1">
+                      <Calendar size={12} className="text-km-primary" /> {event.date}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Users size={12} className="text-km-primary" /> 1K+ Joined
+                    </span>
                   </div>
-                  <div className="flex justify-between items-center text-xs font-black mt-auto">
-                    <span className="text-km-accent">🔥 Selling Fast</span>
-                    <span className="text-km-primary bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-colors">Register</span>
+                  <div className="flex justify-between items-center text-xs font-semibold mt-auto">
+                    <span className="text-km-accent font-semibold">Priority Booking</span>
+                    <span className="text-km-primary bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-colors">
+                      Register
+                    </span>
                   </div>
                 </div>
               </Link>
             ))}
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>
@@ -1013,18 +1022,18 @@ const WalletBanner = () => (
       {/* Background Graphic situated on the right away from text */}
       <div className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none select-none flex items-center gap-4">
         <Wallet size={120} className="text-white hidden lg:block" />
-        <span className="text-5xl lg:text-7xl font-black uppercase tracking-widest text-white/30 hidden md:block">
-          WALLET
+        <span className="text-5xl lg:text-7xl font-bold tracking-wider text-white/20 hidden md:block">
+          Wallet
         </span>
       </div>
 
       <div className="relative z-10 text-center md:text-left max-w-xl">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-2 leading-tight">
-          Recharge Your <span className="text-amber-200">Wallet</span> And<br />Get Hired Faster
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2 leading-tight">
+          KaamMilega Digital <span className="text-amber-200">Wallet</span>
         </h2>
-        <p className="text-sm sm:text-base opacity-95 font-medium mb-6">Kaam Bhi. Skill Bhi. Kamaai Bhi.</p>
+        <p className="text-sm sm:text-base opacity-95 font-medium mb-6">Manage service passes, track earnings, and receive fast payouts.</p>
         <button className="bg-white text-orange-700 hover:bg-orange-50 px-6 sm:px-8 py-3 rounded-2xl font-bold flex items-center gap-2 mx-auto md:mx-0 shadow-xl transition-colors cursor-pointer">
-          <Wallet size={18} /> Recharge Now
+          <Wallet size={18} /> Open Wallet
         </button>
       </div>
     </div>
@@ -1213,10 +1222,10 @@ const TestimonialsSection = () => {
                 <div className="w-16 h-16 rounded-full bg-km-primary/90 text-white flex items-center justify-center mx-auto mb-3 shadow-lg ring-4 ring-white/30">
                   <Play size={24} className="fill-white translate-x-0.5" />
                 </div>
-                <p className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                <p className="text-xs font-semibold text-amber-400">
                   Candidate Video Testimonial
                 </p>
-                <h3 className="text-lg sm:text-xl font-black mt-1">
+                <h3 className="text-lg sm:text-xl font-bold mt-1">
                   {selectedVideo.name}
                 </h3>
                 <p className="text-xs text-slate-300">
@@ -1276,11 +1285,11 @@ const PremiumServicesBanner = () => {
       <div className="bg-white border-2 border-slate-200 rounded-3xl md:rounded-[40px] p-6 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative overflow-hidden shadow-sm">
         {/* Placeholder for Graphic */}
         <div className="w-full md:w-1/3 aspect-video bg-blue-50 rounded-2xl md:rounded-3xl flex items-center justify-center border-2 border-dashed border-blue-200">
-          <span className="text-km-primary font-black uppercase tracking-widest text-xs md:text-sm">InstantMilega &amp; ATS</span>
+          <span className="text-km-primary font-semibold text-xs md:text-sm">InstantMilega &amp; ATS</span>
         </div>
 
         <div className="flex-1 text-center md:text-left">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 mb-3 md:mb-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 md:mb-4">
             Accelerate Your Job Search With Premium Services
           </h2>
           <p className="text-sm text-gray-400 leading-relaxed mb-5 md:mb-8 max-w-xl">

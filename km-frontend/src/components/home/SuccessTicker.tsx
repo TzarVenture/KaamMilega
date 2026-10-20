@@ -1,10 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Play, X, CheckCircle2, Briefcase, MapPin, Building2, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { Briefcase, CheckCircle2, Zap, UserPlus, MapPin, Building2, X } from 'lucide-react';
 import api from '@/lib/axios';
+
+/**
+ * Social-proof strip under the hero: a slow, continuous row of recent hiring outcomes and platform
+ * activity ("Priya S. got an interview · Store Executive, Mumbai"). Success stories open a detail card.
+ */
 
 export interface TickerUpdate {
     id: string;
@@ -13,253 +17,288 @@ export interface TickerUpdate {
     role: string;
     company: string;
     city: string;
-    thumbnail?: string;
     quote?: string;
+}
+
+type Tone = 'jobs' | 'success' | 'instant' | 'network';
+
+interface TickerItem {
+    id: string;
+    tone: Tone;
+    person?: string;
+    action: string;
+    context: string;
+    story?: TickerUpdate;
 }
 
 interface SuccessTickerProps {
     updates?: TickerUpdate[];
 }
 
+// Service colours from design.md §3
+const TONE_STYLE: Record<Tone, { icon: React.ReactNode; bg: string; text: string }> = {
+    jobs: { icon: <Briefcase size={15} />, bg: 'bg-[#0B5ED7]/10', text: 'text-[#0B5ED7]' },
+    success: { icon: <CheckCircle2 size={15} />, bg: 'bg-[#16A34A]/10', text: 'text-[#16A34A]' },
+    instant: { icon: <Zap size={15} />, bg: 'bg-[#FF6B00]/10', text: 'text-[#FF6B00]' },
+    network: { icon: <UserPlus size={15} />, bg: 'bg-[#0F9D8A]/10', text: 'text-[#0F9D8A]' },
+};
+
 const defaultUpdates: TickerUpdate[] = [
     {
-        id: '1',
-        name: 'Dharmender Kumar',
-        status: 'Fixed An Interview',
+        id: 's1',
+        name: 'Dharmender K.',
+        status: 'interview',
         role: 'Warehouse Executive',
         company: 'Technova Logistics',
-        city: 'Bhiwandi, Thane',
-        quote: 'Scheduled a direct video interview with HR within 2 hours of applying on KaamMilega with zero brokerage.',
+        city: 'Bhiwandi',
+        quote: 'Scheduled a direct interview with HR within 2 hours of applying.',
     },
     {
-        id: '2',
-        name: 'Roshan Yadav',
-        status: 'Selected for Role',
+        id: 's2',
+        name: 'Roshan Y.',
+        status: 'selected',
         role: 'Shift Supervisor',
         company: 'Reliance Supply Chain',
-        city: 'Surat, Gujarat',
-        quote: 'Got a call directly from the hiring manager. Accepted offer with 25% salary hike.',
+        city: 'Surat',
+        quote: 'Got a call directly from the hiring manager and accepted the offer.',
     },
     {
-        id: '3',
-        name: 'Priya Sharma',
-        status: 'Fixed An Interview',
+        id: 's3',
+        name: 'Priya S.',
+        status: 'interview',
         role: 'Store Executive',
         company: 'Tata Croma',
-        city: 'Mumbai, Maharashtra',
-        quote: 'Clean verification and direct HR chat helped me schedule my interview for tomorrow morning.',
+        city: 'Mumbai',
+        quote: 'Direct HR chat helped me schedule my interview for the next morning.',
     },
     {
-        id: '4',
-        name: 'Sachin Singh',
-        status: 'Selected for Role',
+        id: 's4',
+        name: 'Sachin S.',
+        status: 'selected',
         role: 'Commercial Driver',
         company: 'City Fleet Transport',
-        city: 'Surat, Gujarat',
-        quote: 'Instant gig dispatch and verified commercial driving job with guaranteed daily payouts.',
+        city: 'Surat',
+        quote: 'Found a verified driving job with daily payouts.',
     },
     {
-        id: '5',
-        name: 'Basina Akhil',
-        status: 'Fixed An Interview',
-        role: 'Software Associate',
-        company: 'Technova Solutions',
-        city: 'Bhiwandi, Maharashtra',
-        quote: 'Applied directly with verified resume. HR reviewed within 30 minutes.',
-    },
-    {
-        id: '6',
-        name: 'Raju Yadav',
-        status: 'Completed Instant Gig',
-        role: 'Lead Electrician',
-        company: 'InstantMilega™ Partner',
+        id: 's5',
+        name: 'Raju Y.',
+        status: 'gig',
+        role: 'Electrician',
+        company: 'Instant Milega',
         city: 'Delhi NCR',
-        quote: 'Received an emergency commercial electrical repair gig 15 minutes after going online.',
+        quote: 'Received a repair gig 15 minutes after going online.',
     },
 ];
 
-function formatStatus(status: string) {
-    if (!status) return '';
-    const lower = status.toLowerCase();
-    const words = lower.split(/\s+/);
-    return words
-        .map((w, i) => {
-            if (i > 0 && ['an', 'a', 'the', 'for', 'of', 'in', 'on', 'with'].includes(w)) {
-                return w;
-            }
-            return w.charAt(0).toUpperCase() + w.slice(1);
-        })
-        .join(' ');
+function storyToItem(story: TickerUpdate): TickerItem {
+    const s = story.status.toLowerCase();
+    const tone: Tone = s.includes('gig') || s.includes('instant') ? 'instant' : s.includes('select') ? 'success' : 'jobs';
+    const action = tone === 'instant' ? 'completed an Instant Milega gig' : tone === 'success' ? 'got selected' : 'got an interview';
+    return { id: story.id, tone, person: story.name, action, context: `${story.role}, ${story.city}`, story };
 }
 
-function getStatusStyle(status: string) {
-    const s = (status || '').toLowerCase();
-    if (s.includes('interview')) {
-        return 'bg-blue-50 text-km-blue border-blue-100';
+// Interview "location" can be a meeting link; backend fills unknown values with placeholders
+const isLinkLike = (v?: string) => !!v && (/^https?:/i.test(v) || /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(v.trim()));
+const PLACEHOLDER_VALUES = new Set(['General Trade', 'India']);
+const realValue = (v?: string) => (v && !PLACEHOLDER_VALUES.has(v) ? v : undefined);
+
+function liveEventToItem(ev: any, idx: number): TickerItem | null {
+    const id = `live-${ev?.id || idx}`;
+    switch (ev?.type) {
+        case 'interview':
+            return {
+                id,
+                tone: 'jobs',
+                action: 'Interview scheduled with an employer',
+                context: !ev.place || isLinkLike(ev.place) || ev.place === 'Online Video' ? 'Online interview' : ev.place,
+            };
+        case 'application':
+            return { id, tone: 'jobs', action: 'New job application sent', context: 'Direct to the employer' };
+        case 'member':
+            return {
+                id,
+                tone: 'network',
+                person: ev.person,
+                action: 'joined KaamMilega',
+                context: [realValue(ev.trade), realValue(ev.place)].filter(Boolean).join(', '),
+            };
+        default:
+            return null;
     }
-    if (s.includes('gig') || s.includes('instant')) {
-        return 'bg-orange-50 text-km-accent border-orange-100';
+}
+
+function TickerEntry({ item, onOpen }: { item: TickerItem; onOpen: (story: TickerUpdate) => void }) {
+    const tone = TONE_STYLE[item.tone];
+    const content = (
+        <>
+            <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${tone.bg} ${tone.text}`}>
+                {tone.icon}
+            </span>
+            <span className="flex flex-col text-left">
+                <span className="text-sm text-[#111827] leading-5">
+                    {item.person && <span className="font-semibold">{item.person} </span>}
+                    {item.action}
+                </span>
+                {item.context && <span className="text-xs text-[#5B6472] leading-4">{item.context}</span>}
+            </span>
+        </>
+    );
+
+    if (item.story) {
+        const story = item.story;
+        return (
+            <button
+                type="button"
+                onClick={() => onOpen(story)}
+                className="flex items-center gap-3 rounded-xl px-2 py-1.5 -mx-2 cursor-pointer hover:bg-[#F4F7FB] focus-visible:outline-2 focus-visible:outline-[#0B5ED7]"
+            >
+                {content}
+            </button>
+        );
     }
-    if (s.includes('selected') || s.includes('placed') || s.includes('completed')) {
-        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-    }
-    return 'bg-slate-100 text-slate-700 border-slate-200';
+    return <span className="flex items-center gap-3 py-1.5">{content}</span>;
 }
 
 export default function SuccessTicker({ updates }: SuccessTickerProps) {
     const [selectedStory, setSelectedStory] = useState<TickerUpdate | null>(null);
-    const [liveUpdates, setLiveUpdates] = useState<TickerUpdate[]>([]);
+    const [liveItems, setLiveItems] = useState<TickerItem[]>([]);
 
     useEffect(() => {
-        const fetchLive = async () => {
-            try {
-                const res: any = await api.get('/platform/live-activity');
-                const events = res?.events || [];
-                if (Array.isArray(events) && events.length > 0) {
-                    const formatted: TickerUpdate[] = events.map((ev: any, idx: number) => ({
-                        id: String(ev.id || idx),
-                        name: ev.title || 'Verified Member',
-                        status: ev.tag || 'Platform Milestone',
-                        role: ev.badge || 'Verified',
-                        company: ev.time || 'KaamMilega',
-                        city: ev.time || 'India',
-                        quote: ev.description || 'Zero-brokerage verified opportunity on KaamMilega.',
-                    }));
-                    setLiveUpdates(formatted);
-                }
-            } catch (e) {
-                // fallback to default updates seamlessly
-            }
-        };
-        fetchLive();
+        api.get('/platform/live-activity')
+            .then((res: any) => {
+                const events = Array.isArray(res?.events) ? res.events : [];
+                setLiveItems(events.map(liveEventToItem).filter(Boolean) as TickerItem[]);
+            })
+            .catch(() => {});
     }, []);
 
-    const items = liveUpdates.length > 0 
-        ? [...liveUpdates, ...defaultUpdates] 
-        : (updates && updates.length > 0 ? updates : defaultUpdates);
+    useEffect(() => {
+        if (!selectedStory) return;
+        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSelectedStory(null);
+        window.addEventListener('keydown', onKey);
+        return () => window.removeEventListener('keydown', onKey);
+    }, [selectedStory]);
+
+    const stories = updates && updates.length > 0 ? updates : defaultUpdates;
+    // Live events are often identical ("New job application sent"); show each distinct line once
+    const seen = new Set<string>();
+    const items = [...liveItems, ...stories.map(storyToItem)].filter((item) => {
+        const key = `${item.tone}|${item.person ?? ''}|${item.action}|${item.context}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+    // About 6s per entry keeps the reading speed the same however many entries there are
+    const duration = `${Math.max(30, items.length * 6)}s`;
 
     return (
         <>
-            <div className="relative bg-slate-50/70 py-3 sm:py-3.5 overflow-hidden font-sans border-b border-slate-200/80">
-                {/* Subtle side edge fade vignettes */}
-                <div className="pointer-events-none absolute inset-y-0 left-0 w-12 sm:w-24 bg-gradient-to-r from-white via-white/80 to-transparent z-10" />
-                <div className="pointer-events-none absolute inset-y-0 right-0 w-12 sm:w-24 bg-gradient-to-l from-white via-white/80 to-transparent z-10" />
+            <section aria-label="Recent activity on KaamMilega" className="bg-white border-b border-[#D9E0EA] font-sans">
+                <div className="max-w-7xl mx-auto flex items-center">
+                    <p className="hidden md:block shrink-0 pl-6 lg:pl-12 pr-5 py-1 text-sm font-semibold text-[#071A4D] border-r border-[#D9E0EA]">
+                        Recent activity
+                    </p>
 
-                <div className="animate-km-marquee flex gap-4 sm:gap-6 items-center">
-                    {[...items, ...items].map((item, idx) => (
-                        <button
-                            key={`${item.id}-${idx}`}
-                            type="button"
-                            onClick={() => setSelectedStory(item)}
-                            className="group flex items-center gap-3.5 bg-white hover:bg-slate-50/90 border border-slate-200/90 hover:border-slate-300 rounded-2xl px-4 py-2.5 shadow-2xs hover:shadow-xs transition-all text-left shrink-0 cursor-pointer"
-                        >
-                            {/* Circular Play Button Icon (Client Signature Element) */}
-                            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-km-primary group-hover:bg-km-primary-dark rounded-full flex items-center justify-center text-white shrink-0 shadow-xs group-hover:scale-105 transition-all">
-                                <Play size={14} className="fill-white translate-x-0.5" />
-                            </div>
+                    <div className="relative flex-1 min-w-0 overflow-hidden py-2.5">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent z-10" />
+                        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent z-10" />
 
-                            {/* Details */}
-                            <div className="flex flex-col">
-                                <div className="flex items-center">
-                                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold border ${getStatusStyle(item.status)}`}>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70 shrink-0" />
-                                        <span>{formatStatus(item.status)}</span>
-                                    </span>
-                                </div>
-                                <span className="text-xs sm:text-sm font-bold text-slate-900 mt-1 leading-tight group-hover:text-km-primary transition-colors">
-                                    {item.name}
-                                </span>
-                                <span className="text-[11px] text-slate-500 font-medium leading-none mt-1 flex items-center gap-1">
-                                    <span>{item.role}</span>
-                                    <span className="text-slate-300">•</span>
-                                    <span>{item.city}</span>
-                                </span>
-                            </div>
-                        </button>
-                    ))}
+                        <ul className="animate-km-marquee" style={{ animationDuration: duration }}>
+                            {[0, 1].map((copy) =>
+                                items.map((item) => (
+                                    // Second copy completes the seamless loop and is hidden from assistive tech
+                                    <li
+                                        key={`${copy}-${item.id}`}
+                                        aria-hidden={copy === 1 || undefined}
+                                        className="flex items-center shrink-0 pl-6"
+                                    >
+                                        <TickerEntry item={item} onOpen={setSelectedStory} />
+                                        <span className="ml-6 h-8 w-px bg-[#D9E0EA]" aria-hidden="true" />
+                                    </li>
+                                ))
+                            )}
+                        </ul>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            {/* Video Story Modal (Opens on Click of Any Ticker Update) */}
-            <AnimatePresence>
-                {selectedStory && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl border border-slate-200 font-sans"
+            {selectedStory && (
+                <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071A4D]/50"
+                    onClick={() => setSelectedStory(null)}
+                >
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="ticker-story-title"
+                        onClick={(e) => e.stopPropagation()}
+                        className="relative w-full max-w-md bg-white rounded-2xl border border-[#D9E0EA] shadow-lg p-6 font-sans"
+                    >
+                        <button
+                            type="button"
+                            onClick={() => setSelectedStory(null)}
+                            aria-label="Close"
+                            className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-[#5B6472] hover:bg-[#F4F7FB] cursor-pointer"
                         >
-                            {/* Close Button */}
+                            <X size={18} />
+                        </button>
+
+                        {(() => {
+                            const item = storyToItem(selectedStory);
+                            const tone = TONE_STYLE[item.tone];
+                            return (
+                                <div className="flex items-center gap-3 pr-8">
+                                    <span className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tone.bg} ${tone.text}`}>
+                                        {tone.icon}
+                                    </span>
+                                    <h3 id="ticker-story-title" className="text-lg font-semibold text-[#111827]">
+                                        {selectedStory.name} {item.action}
+                                    </h3>
+                                </div>
+                            );
+                        })()}
+
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 text-sm text-[#5B6472]">
+                            <span className="inline-flex items-center gap-1.5">
+                                <Briefcase size={14} className="text-[#071A4D]" />
+                                {selectedStory.role}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                                <Building2 size={14} className="text-[#071A4D]" />
+                                {selectedStory.company}
+                            </span>
+                            <span className="inline-flex items-center gap-1.5">
+                                <MapPin size={14} className="text-[#071A4D]" />
+                                {selectedStory.city}
+                            </span>
+                        </div>
+
+                        {selectedStory.quote && (
+                            <p className="mt-4 pt-4 border-t border-[#D9E0EA] text-sm text-[#111827] leading-relaxed">
+                                &ldquo;{selectedStory.quote}&rdquo;
+                            </p>
+                        )}
+
+                        <div className="flex justify-end gap-2 mt-6">
                             <button
                                 type="button"
                                 onClick={() => setSelectedStory(null)}
-                                className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-slate-900/60 hover:bg-slate-900 text-white flex items-center justify-center transition-colors"
+                                className="px-4 py-2.5 text-sm font-semibold text-[#5B6472] rounded-xl hover:bg-[#F4F7FB] cursor-pointer"
                             >
-                                <X size={18} />
+                                Close
                             </button>
-
-                            {/* Video Player Frame */}
-                            <div className="relative aspect-video bg-slate-900 flex items-center justify-center overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent" />
-                                
-                                {/* Centered Play Icon */}
-                                <div className="relative z-10 w-16 h-16 rounded-full bg-km-primary/90 text-white flex items-center justify-center shadow-xl border-2 border-white/30">
-                                    <Play size={28} className="fill-white translate-x-0.5" />
-                                </div>
-
-                                <div className="absolute bottom-4 left-4 right-4 z-10 text-white">
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-500/30">
-                                        Verified Candidate Story
-                                    </span>
-                                    <h3 className="text-base font-bold mt-1 text-white leading-snug">
-                                        {selectedStory.name} — {selectedStory.status}
-                                    </h3>
-                                </div>
-                            </div>
-
-                            {/* Details & Quote Content */}
-                            <div className="p-6">
-                                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-600 mb-4 pb-4 border-b border-slate-100">
-                                    <span className="inline-flex items-center gap-1 font-semibold text-slate-900">
-                                        <Briefcase size={14} className="text-km-primary" />
-                                        {selectedStory.role}
-                                    </span>
-                                    <span className="inline-flex items-center gap-1 font-semibold text-slate-900">
-                                        <Building2 size={14} className="text-km-primary" />
-                                        {selectedStory.company}
-                                    </span>
-                                    <span className="inline-flex items-center gap-1 text-slate-500">
-                                        <MapPin size={14} />
-                                        {selectedStory.city}
-                                    </span>
-                                </div>
-
-                                <blockquote className="text-sm text-slate-700 italic leading-relaxed mb-6">
-                                    &ldquo;{selectedStory.quote}&rdquo;
-                                </blockquote>
-
-                                <div className="flex items-center justify-end gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setSelectedStory(null)}
-                                        className="px-4 py-2 text-xs font-bold text-slate-600 hover:text-slate-900 rounded-xl transition-colors"
-                                    >
-                                        Close
-                                    </button>
-                                    <Link
-                                        href={`/jobs?q=${encodeURIComponent(selectedStory.role)}`}
-                                        onClick={() => setSelectedStory(null)}
-                                        className="bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm"
-                                    >
-                                        View Matching Jobs →
-                                    </Link>
-                                </div>
-                            </div>
-                        </motion.div>
+                            <Link
+                                href={`/jobs?q=${encodeURIComponent(selectedStory.role)}`}
+                                onClick={() => setSelectedStory(null)}
+                                className="px-5 py-2.5 text-sm font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] rounded-xl"
+                            >
+                                View matching jobs
+                            </Link>
+                        </div>
                     </div>
-                )}
-            </AnimatePresence>
+                </div>
+            )}
         </>
     );
 }

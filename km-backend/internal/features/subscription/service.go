@@ -136,6 +136,11 @@ func (s *SubscriptionServiceImpl) CreateOrder(ctx context.Context, userID string
 		return nil, errors.New("invalid plan_type: must be 'monthly' or 'yearly'")
 	}
 
+	// Check eligibility before any payment is taken
+	if err := s.checkExpertEligibility(ctx, userID); err != nil {
+		return nil, err
+	}
+
 	keyID := s.cfg.RazorpayKeyID
 	keySecret := s.cfg.RazorpayKeySecret
 	if keyID == "" || keySecret == "" {
@@ -290,6 +295,11 @@ func (s *SubscriptionServiceImpl) SubscribeWithWallet(ctx context.Context, userI
 		return nil, nil, errors.New("invalid plan_type: must be 'monthly' or 'yearly'")
 	}
 
+	// Check eligibility before the wallet is debited
+	if err := s.checkExpertEligibility(ctx, userID); err != nil {
+		return nil, nil, err
+	}
+
 	uid, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, nil, errors.New("invalid user id")
@@ -350,6 +360,21 @@ func (s *SubscriptionServiceImpl) SubscribeWithWallet(ctx context.Context, userI
 	_ = s.grantExpertRole(ctx, userID)
 
 	return created, updatedSummary, nil
+}
+
+// checkExpertEligibility enforces the client rule that an Expert needs 2+ years of experience
+func (s *SubscriptionServiceImpl) checkExpertEligibility(ctx context.Context, userID string) error {
+	u, err := s.userRepo.FindUserByID(ctx, userID)
+	if err != nil {
+		return err
+	}
+	if u == nil {
+		return errors.New("user not found")
+	}
+	if user.ExperienceYears(u) < user.MinExpertExperienceYears {
+		return user.ErrExpertExperienceRequired
+	}
+	return nil
 }
 
 func (s *SubscriptionServiceImpl) grantExpertRole(ctx context.Context, userID string) error {

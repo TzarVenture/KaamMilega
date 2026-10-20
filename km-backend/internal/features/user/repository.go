@@ -28,6 +28,8 @@ type UserRepository interface {
 	GetLatestOTP(ctx context.Context, mobile string) (*OTP, error)
 	GetLatestEmailOTP(ctx context.Context, email string) (*OTP, error)
 	MarkOTPUsed(ctx context.Context, id primitive.ObjectID) error
+	IncrementOTPAttempts(ctx context.Context, id primitive.ObjectID) error
+	CountMobileOTPsSince(ctx context.Context, mobile string, since time.Time) (int64, error)
 
 	FindUsers(ctx context.Context, filter UserFilter) ([]*User, int64, error)
 	ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error)
@@ -38,6 +40,7 @@ type UserRepository interface {
 	IncrementPostImpressions(ctx context.Context, authorCounts map[string]int) error
 	FindUserByUsername(ctx context.Context, username string) (*User, error)
 	BackfillUsernames(ctx context.Context) error
+	HasActivePassOrSubscription(ctx context.Context, userID string) (bool, error)
 }
 
 type UserRepositoryImpl struct {
@@ -250,6 +253,18 @@ func (r *UserRepositoryImpl) MarkOTPUsed(ctx context.Context, id primitive.Objec
 	return err
 }
 
+func (r *UserRepositoryImpl) IncrementOTPAttempts(ctx context.Context, id primitive.ObjectID) error {
+	_, err := r.otpColl.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$inc": bson.M{"attempts": 1}})
+	return err
+}
+
+func (r *UserRepositoryImpl) CountMobileOTPsSince(ctx context.Context, mobile string, since time.Time) (int64, error) {
+	return r.otpColl.CountDocuments(ctx, bson.M{
+		"mobile":     mobile,
+		"created_at": bson.M{"$gte": since},
+	})
+}
+
 func (r *UserRepositoryImpl) GetLatestEmailOTP(ctx context.Context, email string) (*OTP, error) {
 	filter := bson.M{
 		"email":      email,
@@ -439,6 +454,19 @@ func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]i
 	}, nil
 }
 
+// publicDisplayName shortens "Rahul Kumar Sharma" to "Rahul S." for public listings
+func publicDisplayName(full string) string {
+	parts := strings.Fields(strings.TrimSuffix(strings.TrimSpace(full), "."))
+	if len(parts) == 0 {
+		return ""
+	}
+	if len(parts) == 1 {
+		return parts[0]
+	}
+	last := []rune(parts[len(parts)-1])
+	return parts[0] + " " + strings.ToUpper(string(last[0])) + "."
+}
+
 func (r *UserRepositoryImpl) GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error) {
 	var activities []map[string]interface{}
 
@@ -455,6 +483,7 @@ func (r *UserRepositoryImpl) GetLiveActivity(ctx context.Context) ([]map[string]
 				activities = append(activities, map[string]interface{}{
 					"id":          item["_id"],
 					"type":        "interview",
+					"place":       loc,
 					"tag":         "Interview Fixed",
 					"title":       "Direct HR Interview Scheduled",
 					"description": "Verified candidate interview confirmed (" + loc + ") with zero brokerage.",
@@ -484,15 +513,15 @@ func (r *UserRepositoryImpl) GetLiveActivity(ctx context.Context) ([]map[string]
 		}
 	}
 
-	// 3. Fetch real newly registered candidates
-	userCursor, err := r.userColl.Find(ctx, bson.M{"roles": "user"}, options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(6))
+	// 3. Fetch real newly registered candidates (public endpoint: first name + last initial only)
+	userCursor, err := r.userColl.Find(ctx, bson.M{"roles": "user", "is_registered": true, "name": bson.M{"$ne": ""}}, options.Find().SetSort(bson.M{"created_at": -1}).SetLimit(6))
 	if err == nil {
 		var users []bson.M
 		if err := userCursor.All(ctx, &users); err == nil {
 			for _, item := range users {
-				name := "Verified Candidate"
-				if n, ok := item["name"].(string); ok && n != "" {
-					name = strings.TrimSpace(strings.TrimSuffix(n, "."))
+				name := "A new member"
+				if n, ok := item["name"].(string); ok && strings.TrimSpace(n) != "" {
+					name = publicDisplayName(n)
 				}
 				city := "India"
 				if c, ok := item["city"].(string); ok && c != "" {
@@ -507,6 +536,9 @@ func (r *UserRepositoryImpl) GetLiveActivity(ctx context.Context) ([]map[string]
 				activities = append(activities, map[string]interface{}{
 					"id":          item["_id"],
 					"type":        "member",
+					"person":      name,
+					"place":       city,
+					"trade":       trade,
 					"tag":         "Talent Network",
 					"title":       name + " joined from " + city,
 					"description": "Verified profile active in " + trade + " with zero-brokerage contact.",
@@ -634,4 +666,38 @@ func GenerateDefaultUsername(name, idHex string) string {
 	}
 
 	return fmt.Sprintf("%s-%s", base, suffix)
+}
+
+// HasActivePassOrSubscription checks if the user has an active ₹99 InstantPass or active Pro Expert Subscription
+func (r *UserRepositoryImpl) HasActivePassOrSubscription(ctx context.Context, userID string) (bool, error) {
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return false, err
+	}
+	now := time.Now()
+
+	// 1. Check instant_passes
+	passCount, err := r.db.DB.Collection("instant_passes").CountDocuments(ctx, bson.M{
+		"user_id":         objID,
+		"has_active_pass": true,
+		"expires_at":      bson.M{"$gte": now},
+	})
+	if err != nil {
+		return false, err
+	}
+	if passCount > 0 {
+		return true, nil
+	}
+
+	// 2. Check expert_subscriptions
+	subCount, err := r.db.DB.Collection("expert_subscriptions").CountDocuments(ctx, bson.M{
+		"user_id":    objID,
+		"status":     "active",
+		"expires_at": bson.M{"$gte": now},
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return subCount > 0, nil
 }

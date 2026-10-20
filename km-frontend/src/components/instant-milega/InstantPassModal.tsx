@@ -198,17 +198,17 @@ export default function InstantPassModal({
                     {/* Price Tag Box */}
                     <div className="flex items-center justify-between p-4 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]">
                         <div>
-                            <span className="text-xs font-semibold text-[#5B6472] uppercase tracking-wider block">Candidate Access Pass</span>
+                            <span className="text-xs font-semibold text-[#5B6472] block">Universal Access Pass</span>
                             <div className="flex items-baseline gap-1 mt-0.5">
                                 <span className="text-3xl font-bold text-[#071A4D]">₹99</span>
-                                <span className="text-xs text-[#5B6472]">/ 10 Gigs Access</span>
+                                <span className="text-xs text-[#5B6472]">/ 10 Work Credits</span>
                             </div>
                         </div>
                         <div className="text-right">
                             <span className="inline-block bg-[#FF6B00] text-white font-bold text-xs px-2.5 py-1 rounded-md">
-                                ₹9.90 / Gig
+                                ₹9.90 / Credit
                             </span>
-                            <span className="block text-xs text-[#5B6472] mt-1 font-medium">30 Days Validity</span>
+                            <span className="block text-xs text-[#5B6472] mt-1 font-medium">90 Days Validity</span>
                         </div>
                     </div>
 
@@ -279,7 +279,7 @@ export default function InstantPassModal({
                                 <Check size={11} strokeWidth={3} />
                             </div>
                             <p className="text-xs text-[#5B6472]">
-                                <strong className="text-[#111827]">10 Guaranteed Spot Dispatches</strong>: Quota decrements only when you claim an accepted gig.
+                                <strong className="text-[#111827]">10 Work Credits</strong>: One credit is used per accepted Instant Milega gig.
                             </p>
                         </div>
 
@@ -288,7 +288,7 @@ export default function InstantPassModal({
                                 <Check size={11} strokeWidth={3} />
                             </div>
                             <p className="text-xs text-[#5B6472]">
-                                <strong className="text-[#111827]">Direct Employer Connect</strong>: Speak directly to nearby employers with 1-click calls.
+                                <strong className="text-[#111827]">Unlimited Direct Chats</strong>: Unlocks direct messaging beyond the free 3-contact limit.
                             </p>
                         </div>
 
@@ -297,7 +297,7 @@ export default function InstantPassModal({
                                 <Check size={11} strokeWidth={3} />
                             </div>
                             <p className="text-xs text-[#5B6472]">
-                                <strong className="text-[#111827]">0% Platform Commission</strong>: Keep 100% of your earnings.
+                                <strong className="text-[#111827]">Expert application</strong>: Apply as an Expert if you have 2+ years of experience. 0% commission on your service earnings.
                             </p>
                         </div>
                     </div>

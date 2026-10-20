@@ -32,6 +32,7 @@ func (api *UserApi) Setup(app *fiber.App) {
 	// Protected routes
 	protected := app.Group("/api/user", middleware.AuthMiddleware(api.controller.config.JWTSecret))
 	protected.Get("/profile", api.controller.GetProfile)
+	protected.Get("/profile-completion", api.controller.GetProfileCompletion)
 	protected.Get("/search", api.controller.SearchUsers)
 	protected.Post("/register", api.controller.Register)
 	protected.Put("/password", api.controller.SetPassword)
@@ -69,8 +70,8 @@ func (api *UserApi) Setup(app *fiber.App) {
 	settings.Put("/me", api.controller.UpdateSettings)
 	settings.Post("/me", api.controller.UpdateSettings)
 
-	// Admin routes (should add role middleware later)
-	admin := app.Group("/api/admin", middleware.AuthMiddleware(api.controller.config.JWTSecret))
+	// Admin routes
+	admin := app.Group("/api/admin", middleware.AuthMiddleware(api.controller.config.JWTSecret), middleware.RequireRole(RoleAdmin))
 	admin.Get("/users", api.controller.GetAllUsers)
 	admin.Patch("/users/:id/roles", api.controller.UpdateUserRoles)
 	admin.Patch("/users/:id", api.controller.AdminUpdateUserProfile)
