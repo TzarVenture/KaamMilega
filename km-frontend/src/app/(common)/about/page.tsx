@@ -12,7 +12,7 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen bg-km-surface font-sans antialiased text-km-text-primary">
       {/* ── 1. HERO: WHO WE ARE ── */}
-      <section className="bg-gradient-to-b from-[#F0F5FB] via-[#F4F7FB] to-white pt-12 pb-16 sm:pt-16 sm:pb-20 border-b border-km-border">
+      <section className="bg-gradient-to-b from-[#F0F5FB] via-[#F4F7FB] to-white pt-12 pb-16 sm:pt-16 sm:pb-20 border-b border-km-border dark:from-km-surface dark:via-km-surface dark:to-km-surface-card">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <p className="text-xs sm:text-sm font-bold uppercase tracking-wider text-km-link mb-3">
             About Kaammilega™
@@ -143,7 +143,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-white/5">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#FF6B00] flex items-center justify-center mb-3.5">
                   <SealCheckIcon size={20} />
@@ -156,7 +156,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-white/5">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-blue-50 text-km-link flex items-center justify-center mb-3.5">
                   <PhoneCallIcon size={20} />
@@ -169,7 +169,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-white/5">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#16A34A] flex items-center justify-center mb-3.5">
                   <HandHeartIcon size={20} />
@@ -182,9 +182,9 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-white/5">
               <div>
-                <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#7C3AED] flex items-center justify-center mb-3.5">
+                <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#7C3AED] flex items-center justify-center mb-3.5 dark:text-violet-400">
                   <ShieldCheckIcon size={20} />
                 </div>
                 <h3 className="text-base font-bold text-km-text-primary mb-1.5">Verified Safety</h3>
@@ -320,7 +320,7 @@ export default function AboutPage() {
             <div className="mt-6 pt-4 border-t border-km-border">
               <Link
                 href="/recruiter/login"
-                className="text-xs font-semibold text-km-link hover:text-[#0B1F52] inline-flex items-center gap-1.5 transition-colors"
+                className="text-xs font-semibold text-km-link hover:text-[#0B1F52] inline-flex items-center gap-1.5 transition-colors dark:hover:text-km-heading"
               >
                 <span>Access Recruiter ATS Portal</span>
                 <ArrowRightIcon weight="bold" size={13} />
@@ -332,7 +332,7 @@ export default function AboutPage() {
 
       {/* ── 6. CLEAN, FOCUSED CTA BANNER ── */}
       <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
-        <div className="p-8 sm:p-12 rounded-3xl bg-[#071A4D] text-white shadow-sm">
+        <div className="p-8 sm:p-12 rounded-3xl bg-[#071A4D] text-white shadow-sm dark:ring-1 dark:ring-inset dark:ring-white/10">
           <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
             Ready to Experience Zero Brokerage?
           </h3>

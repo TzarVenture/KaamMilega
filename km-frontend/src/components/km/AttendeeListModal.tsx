@@ -115,7 +115,7 @@ export default function AttendeeListModal({
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* ─── Modal Header ─── */}
-                <div className="relative px-6 pt-6 pb-4 border-b border-slate-100 bg-linear-to-r from-slate-50 via-white to-blue-50/40">
+                <div className="relative px-6 pt-6 pb-4 border-b border-slate-100 bg-linear-to-r from-slate-50 via-white to-blue-50/40 dark:via-km-surface-card">
                     <button
                         type="button"
                         onClick={onClose}
@@ -126,7 +126,7 @@ export default function AttendeeListModal({
                     </button>
 
                     <div className="flex items-center gap-2 mb-1.5">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#071A4D]/10 text-km-heading">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#071A4D]/10 text-km-heading dark:bg-km-primary">
                             <UsersIcon weight="bold" size={12} />
                             <span>Confirmed Attendees</span>
                         </span>
@@ -150,7 +150,7 @@ export default function AttendeeListModal({
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search attendees by name, role, or city..."
-                            className="w-full pl-9 pr-4 py-2 bg-km-surface-card border border-km-border rounded-xl text-xs font-medium text-km-text-primary placeholder-[#5B6472] focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all shadow-xs"
+                            className="w-full pl-9 pr-4 py-2 bg-km-surface-card border border-km-border rounded-xl text-xs font-medium text-km-text-primary placeholder-[#5B6472] focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all shadow-xs dark:placeholder-km-text-muted"
                         />
                         {searchQuery && (
                             <button
@@ -168,12 +168,12 @@ export default function AttendeeListModal({
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2.5 divide-y divide-slate-100">
                     {loading ? (
                         <div className="py-12 flex flex-col items-center justify-center gap-3">
-                            <div className="w-8 h-8 border-3 border-[#071A4D]/20 border-t-[#071A4D] rounded-full animate-spin" />
+                            <div className="w-8 h-8 border-3 border-[#071A4D]/20 border-t-[#071A4D] rounded-full animate-spin dark:border-km-link" />
                             <p className="text-xs font-medium text-slate-500">Loading attendee list...</p>
                         </div>
                     ) : error ? (
                         <div className="py-10 text-center space-y-2">
-                            <p className="text-xs font-semibold text-rose-600">{error}</p>
+                            <p className="text-xs font-semibold text-rose-600 dark:text-rose-400">{error}</p>
                             <button
                                 type="button"
                                 onClick={() => {
@@ -258,7 +258,7 @@ export default function AttendeeListModal({
                                 <div className="shrink-0">
                                     <Link
                                         href={`/profile/${attendee.id}`}
-                                        className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 bg-km-surface-card border border-km-border hover:border-[#071A4D] text-km-text-primary hover:text-km-heading rounded-xl transition-all shadow-2xs hover:shadow-xs active:scale-95"
+                                        className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 bg-km-surface-card border border-km-border hover:border-[#071A4D] text-km-text-primary hover:text-km-heading rounded-xl transition-all shadow-2xs hover:shadow-xs active:scale-95 dark:hover:border-km-link"
                                         title="View member profile"
                                     >
                                         <span>View</span>

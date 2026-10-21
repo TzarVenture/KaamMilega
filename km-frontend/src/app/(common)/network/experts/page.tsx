@@ -224,7 +224,7 @@ export default function ExpertsPage() {
                                         setSortBy(e.target.value as any);
                                         setCurrentPage(1);
                                     }}
-                                    className="px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-text-primary hover:border-[#071A4D] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none transition-colors cursor-pointer"
+                                    className="px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-text-primary hover:border-[#071A4D] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none transition-colors cursor-pointer dark:hover:border-km-link"
                                 >
                                     <option value="recent">Recently added</option>
                                     <option value="name_asc">Name (A – Z)</option>
@@ -261,7 +261,7 @@ export default function ExpertsPage() {
                             <button
                                 type="button"
                                 onClick={() => router.push('/mentorship')}
-                                className="mt-4 px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer"
+                                className="mt-4 px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                             >
                                 Browse Mentors
                             </button>

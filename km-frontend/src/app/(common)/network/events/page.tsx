@@ -25,7 +25,7 @@ export const EventCard = ({ event }: { event: Event }) => {
     return (
         <div className="flex flex-col sm:flex-row gap-5 p-4 sm:p-5 border-b border-km-border/70 last:border-0 hover:bg-km-surface/40 transition-colors group rounded-xl">
             {/* Event Image */}
-            <div className="w-full sm:w-44 h-36 sm:h-28 bg-[#071A4D] rounded-xl flex items-center justify-center relative overflow-hidden shrink-0 border border-slate-700 shadow-2xs">
+            <div className="w-full sm:w-44 h-36 sm:h-28 bg-[#071A4D] rounded-xl flex items-center justify-center relative overflow-hidden shrink-0 border border-slate-700 shadow-2xs dark:bg-km-primary">
                 {event.image_url ? (
                     <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
                 ) : (
@@ -164,7 +164,7 @@ export default function EventsPage() {
                             <select 
                                 value={sortOrder}
                                 onChange={handleSortChange}
-                                className="px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-text-primary hover:border-[#071A4D] focus:border-[#F59E0B] focus:ring-2 focus:ring-[#F59E0B]/20 outline-none transition-colors cursor-pointer"
+                                className="px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-text-primary hover:border-[#071A4D] focus:border-[#F59E0B] focus:ring-2 focus:ring-[#F59E0B]/20 outline-none transition-colors cursor-pointer dark:hover:border-km-link"
                             >
                                 <option value="Recently added">Recently added</option>
                                 <option value="Upcoming">Upcoming</option>

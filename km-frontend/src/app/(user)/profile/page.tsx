@@ -331,7 +331,7 @@ const ProfilePage = () => {
                                 <CustomImage src={user.cover_image} alt="Cover" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                    <div className="w-24 h-24 bg-km-surface-card/20 rotate-45"></div>
+                                    <div className="w-24 h-24 bg-white/20 rotate-45"></div>
                                 </div>
                             )}
                             <button
@@ -348,7 +348,7 @@ const ProfilePage = () => {
                             <div className="relative flex justify-between items-end -mt-12 sm:-mt-16 mb-4">
                                 <div
                                     onClick={() => setModals((m) => ({ ...m, photo: true }))}
-                                    className="w-24 h-24 sm:w-32 sm:h-32 bg-km-ink rounded-full border-4 border-white flex items-center justify-center overflow-hidden cursor-pointer group shadow-md"
+                                    className="w-24 h-24 sm:w-32 sm:h-32 bg-km-ink rounded-full border-4 border-white flex items-center justify-center overflow-hidden cursor-pointer group shadow-md dark:border-km-surface-card"
                                     title="Update profile picture"
                                 >
                                     {user?.profile_image ? (
@@ -391,7 +391,7 @@ const ProfilePage = () => {
                                             href={user.portfolio_url.startsWith('http') ? user.portfolio_url : `https://${user.portfolio_url}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-km-heading hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1"
+                                            className="text-km-heading hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1 dark:hover:text-km-link"
                                         >
                                             <span>{user?.portfolio_label || "Portfolio / Website"}</span>
                                             <ArrowSquareOutIcon weight="bold" size={12} />
@@ -409,7 +409,7 @@ const ProfilePage = () => {
                                     <button
                                         type="button"
                                         onClick={() => setModals((m) => ({ ...m, portfolioLink: true }))}
-                                        className="text-km-heading hover:text-km-primary-dark font-semibold hover:underline inline-flex items-center gap-1 text-xs cursor-pointer py-0.5"
+                                        className="text-km-heading hover:text-km-primary-dark font-semibold hover:underline inline-flex items-center gap-1 text-xs cursor-pointer py-0.5 dark:hover:text-km-link"
                                     >
                                         <GlobeIcon weight="bold" size={13} />
                                         <span>+ Add Portfolio / Website Link</span>
@@ -421,7 +421,7 @@ const ProfilePage = () => {
                             <div className="mt-3 inline-flex items-center gap-2">
                                 {user?.is_email_verified ? (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-bold">
-                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-600" /> Email Verified: {user?.email}
+                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-600 dark:text-emerald-400" /> Email Verified: {user?.email}
                                     </span>
                                 ) : (
                                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-semibold">
@@ -666,7 +666,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 {copiedLink && (
-                                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full flex items-center gap-1 animate-in fade-in">
+                                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full flex items-center gap-1 animate-in fade-in dark:text-emerald-400">
                                         <CheckIcon weight="bold" size={14} /> Link Copied!
                                     </span>
                                 )}
@@ -916,7 +916,7 @@ const ProfilePage = () => {
                                                     onClick={() => handleDeleteExperience(exp.id)}
                                                     disabled={deletingExpId === exp.id}
                                                     title="Delete experience"
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
                                                 >
                                                     <TrashIcon weight="bold" size={15} />
                                                 </button>
@@ -1018,7 +1018,7 @@ const ProfilePage = () => {
                                                     onClick={() => handleDeleteEducation(edu.id)}
                                                     disabled={deletingEduId === edu.id}
                                                     title="Delete education"
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
                                                 >
                                                     <TrashIcon weight="bold" size={15} />
                                                 </button>
@@ -1111,7 +1111,7 @@ const ProfilePage = () => {
                                                     onClick={() => handleDeleteProject(proj.id)}
                                                     disabled={deletingProjectId === proj.id}
                                                     title="Delete project"
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
                                                 >
                                                     <TrashIcon weight="bold" size={15} />
                                                 </button>
@@ -1145,7 +1145,7 @@ const ProfilePage = () => {
                                                     href={proj.project_url.startsWith('http') ? proj.project_url : `https://${proj.project_url}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline border border-blue-200 bg-km-surface-card px-3 py-1.5 rounded-full shadow-2xs hover:shadow-xs transition-all"
+                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline border border-blue-200 bg-km-surface-card px-3 py-1.5 rounded-full shadow-2xs hover:shadow-xs transition-all dark:hover:text-km-link"
                                                 >
                                                     <span>Show Project</span>
                                                     <ArrowSquareOutIcon weight="bold" size={12} />
@@ -1203,7 +1203,7 @@ const ProfilePage = () => {
                                             onClick={() => handleDeleteSkill(skill)}
                                             disabled={deletingSkill === skill}
                                             title={`Remove ${skill}`}
-                                            className="text-gray-400 hover:text-red-600 transition-colors p-0.5 rounded cursor-pointer disabled:opacity-50"
+                                            className="text-gray-400 hover:text-red-600 transition-colors p-0.5 rounded cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
                                         >
                                             <XIcon weight="bold" size={13} />
                                         </button>
@@ -1223,7 +1223,7 @@ const ProfilePage = () => {
                 <div className="lg:col-span-4 space-y-6">
 
                     {/* Wallet Card */}
-                    <div className="bg-linear-to-br from-km-primary-dark via-[#071A4D] to-slate-900 rounded-xl p-5 sm:p-6 text-white flex justify-between items-center shadow-lg border border-blue-900/40">
+                    <div className="bg-linear-to-br from-km-primary-dark via-[#071A4D] to-[#0F172A] rounded-xl p-5 sm:p-6 text-white flex justify-between items-center shadow-lg border border-blue-900/40">
                         <div>
                             <p className="text-xs font-medium text-blue-200">Wallet Balance</p>
                             <p className="text-2xl sm:text-3xl font-black mt-1">₹{walletBalance.toFixed(2)}</p>
@@ -1263,7 +1263,7 @@ const ProfilePage = () => {
                                     title="Copy public profile link"
                                     aria-label="Copy public profile link"
                                 >
-                                    {copiedLink ? <CheckIcon weight="bold" size={16} className="text-emerald-600" /> : <CopyIcon weight="bold" size={16} />}
+                                    {copiedLink ? <CheckIcon weight="bold" size={16} className="text-emerald-600 dark:text-emerald-400" /> : <CopyIcon weight="bold" size={16} />}
                                 </button>
                                 <button
                                     onClick={() => setIsEditUrlModalOpen(true)}

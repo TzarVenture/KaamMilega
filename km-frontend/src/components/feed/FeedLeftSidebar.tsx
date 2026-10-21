@@ -36,12 +36,12 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
         {/* Avatar & Identity Info */}
         <div className="px-5 pb-5 text-center relative pt-0">
           <div className="relative -mt-9 inline-block mb-3">
-            <div className="w-18 h-18 rounded-full border-2 border-white shadow-sm overflow-hidden bg-km-surface">
+            <div className="w-18 h-18 rounded-full border-2 border-white shadow-sm overflow-hidden bg-km-surface dark:border-km-surface-card">
               <UserAvatar src={userAvatar} name={userName} className="w-full h-full object-cover" />
             </div>
             {/* Online indicator per design.md */}
             <span
-              className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-[#10B981] border-2 border-white rounded-full"
+              className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-[#10B981] border-2 border-white rounded-full dark:border-km-surface-card"
               title="Online now"
             />
           </div>
@@ -86,7 +86,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             onClick={() => onFilterChange?.('all')}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all ${
               activeFilter === 'all'
-                ? 'bg-[#071A4D] text-white shadow-xs'
+                ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
                 : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
             }`}
           >
@@ -98,7 +98,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             onClick={() => onFilterChange?.('saved')}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all ${
               activeFilter === 'saved'
-                ? 'bg-[#071A4D] text-white shadow-xs'
+                ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
                 : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
             }`}
           >
@@ -109,7 +109,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             {savedCount > 0 && (
               <span
                 className={`px-1.5 py-0.5 rounded-full text-[10px] font-inter ${
-                  activeFilter === 'saved' ? 'bg-km-surface-card/20 text-white' : 'bg-[#D9E0EA] text-km-text-primary'
+                  activeFilter === 'saved' ? 'bg-km-surface-card/20 text-white' : 'bg-[#D9E0EA] text-km-text-primary dark:bg-white/10'
                 }`}
               >
                 {savedCount}
@@ -122,7 +122,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             onClick={() => onFilterChange?.('my-posts')}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all ${
               activeFilter === 'my-posts'
-                ? 'bg-[#071A4D] text-white shadow-xs'
+                ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
                 : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
             }`}
           >

@@ -63,7 +63,7 @@ export default function InstantMilegaLandingShowcase() {
     return (
         <div className="flex flex-col min-h-screen bg-km-surface font-sans antialiased">
             {/* ─── Hero Section with Deep Navy, Art & Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-0 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-0 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden dark:border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end">
                         {/* Left Column: Instant Milega Branding, Headline, Human-friendly copy & CTAs */}
@@ -215,7 +215,7 @@ export default function InstantMilegaLandingShowcase() {
                                 <button
                                     type="button"
                                     onClick={() => setIsDownloadModalOpen(true)}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer"
+                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
                                     <DownloadSimpleIcon weight="bold" size={15} />
                                     <span>Try live radar on the app</span>
@@ -344,7 +344,7 @@ export default function InstantMilegaLandingShowcase() {
                 </section>
 
                 {/* 4. App Download Showcase Banner (Urban Company Style) */}
-                <section className="bg-[#071A4D] text-white rounded-3xl border border-[#0B1F52] p-8 sm:p-12 relative overflow-hidden">
+                <section className="bg-[#071A4D] text-white rounded-3xl border border-[#0B1F52] p-8 sm:p-12 relative overflow-hidden dark:border-km-link dark:ring-1 dark:ring-inset dark:ring-white/10">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
                         <div className="lg:col-span-8 space-y-4">
                             <span className="text-xs font-semibold text-[#FF6B00]">

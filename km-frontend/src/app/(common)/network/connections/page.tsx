@@ -192,7 +192,7 @@ const ConnectionsPage = () => {
                                         setSortBy(e.target.value as any);
                                         setCurrentPage(1);
                                     }}
-                                    className="px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-text-primary hover:border-[#071A4D] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none transition-colors cursor-pointer"
+                                    className="px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-text-primary hover:border-[#071A4D] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none transition-colors cursor-pointer dark:hover:border-km-link"
                                 >
                                     <option value="recent">Recently added</option>
                                     <option value="name_asc">Name (A – Z)</option>

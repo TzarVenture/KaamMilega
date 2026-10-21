@@ -73,7 +73,7 @@ export default function JobDetailsPage() {
                     </Link>
                     <button
                         onClick={handleDelete}
-                        className="flex items-center gap-2 px-4 py-2 border border-red-100 bg-red-50 rounded-xl text-red-600 font-bold hover:bg-red-100 transition-all"
+                        className="flex items-center gap-2 px-4 py-2 border border-red-100 bg-red-50 rounded-xl text-red-600 font-bold hover:bg-red-100 transition-all dark:text-red-400"
                     >
                         <TrashIcon weight="bold" className="w-4 h-4" />
                         Delete
@@ -132,7 +132,7 @@ export default function JobDetailsPage() {
                     {/* Requirements Section */}
                     <div className="bg-km-surface-card p-8 rounded-2xl shadow-sm border border-gray-100">
                         <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <CheckCircleIcon className="w-5 h-5 text-blue-600" />
+                            <CheckCircleIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                             Requirements
                         </h3>
                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -149,7 +149,7 @@ export default function JobDetailsPage() {
                     {job.we_offer?.length > 0 && (
                         <div className="bg-km-surface-card p-8 rounded-2xl shadow-sm border border-gray-100">
                             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                                <CurrencyInrIcon className="w-5 h-5 text-green-600" />
+                                <CurrencyInrIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 Perks & Benefits
                             </h3>
                             <div className="flex flex-wrap gap-3">
@@ -167,7 +167,7 @@ export default function JobDetailsPage() {
                 <div className="space-y-6">
                     <div className="bg-blue-600 p-8 rounded-3xl shadow-xl shadow-blue-200 text-white overflow-hidden relative">
                         <div className="relative z-10">
-                            <div className="p-3 bg-km-surface-card/20 w-fit rounded-2xl mb-4">
+                            <div className="p-3 bg-white/20 w-fit rounded-2xl mb-4">
                                 <UsersIcon className="w-8 h-8 text-white" />
                             </div>
                             <h4 className="text-xl font-bold mb-1">Applications</h4>
@@ -175,12 +175,12 @@ export default function JobDetailsPage() {
                             <div className="text-5xl font-black mb-8">0</div>
                             <Link
                                 href={`/recruiter/applications?jobId=${jobId}`}
-                                className="block w-full text-center py-4 bg-km-surface-card text-blue-600 rounded-2xl font-black hover:bg-blue-50 transition-all shadow-lg"
+                                className="block w-full text-center py-4 bg-km-surface-card text-blue-600 rounded-2xl font-black hover:bg-blue-50 transition-all shadow-lg dark:text-blue-400"
                             >
                                 View Applications
                             </Link>
                         </div>
-                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-km-surface-card/10 rounded-full blur-3xl" />
+                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
                     </div>
 
                     <div className="bg-km-surface-card p-6 rounded-2xl shadow-sm border border-gray-100">

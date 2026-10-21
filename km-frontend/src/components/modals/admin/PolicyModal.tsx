@@ -84,7 +84,7 @@ const PolicyModal = ({ isOpen, onClose, mode, policyData, onSave }: PolicyModalP
                 <div className="flex items-center justify-between pt-4">
                     <button
                         type="button"
-                        className="flex items-center gap-2 text-purple-600 font-bold text-sm hover:underline"
+                        className="flex items-center gap-2 text-purple-600 font-bold text-sm hover:underline dark:text-purple-400"
                     >
                         <PlusIcon weight="bold" size={16} />
                         Policy Page

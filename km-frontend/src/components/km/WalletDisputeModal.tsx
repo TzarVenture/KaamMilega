@@ -178,7 +178,7 @@ export default function WalletDisputeModal({
 
                     {/* Policy Disclaimer */}
                     <div className="p-3 bg-amber-50/70 border border-amber-200/70 rounded-2xl flex items-start gap-2.5">
-                        <WarningCircleIcon weight="bold" className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <WarningCircleIcon weight="bold" className="w-4 h-4 text-amber-600 shrink-0 mt-0.5 dark:text-amber-400" />
                         <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
                             Disputes are thoroughly investigated by platform admins within <strong>24 to 48 hours</strong>. Upon approval, funds are immediately credited back to your <strong>Main Balance</strong>.
                         </p>

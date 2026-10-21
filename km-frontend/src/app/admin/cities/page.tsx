@@ -135,7 +135,7 @@ export default function CitiesPage() {
                             <tr>
                                 <td colSpan={4} className="px-8 py-20 text-center">
                                     <div className="flex flex-col items-center gap-3">
-                                        <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin" />
+                                        <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin dark:text-purple-400" />
                                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Updating inventory</p>
                                     </div>
                                 </td>
@@ -167,7 +167,7 @@ export default function CitiesPage() {
                                     <td className="px-8 py-5 text-right relative">
                                         <button
                                             onClick={() => setActiveActionMenu(activeActionMenu === city.id ? null : city.id)}
-                                            className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                            className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all dark:hover:text-purple-400"
                                         >
                                             <DotsThreeVerticalIcon size={20} />
                                         </button>
@@ -187,13 +187,13 @@ export default function CitiesPage() {
                                                     >
                                                         <button
                                                             onClick={() => handleEdit(city)}
-                                                            className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition-colors"
+                                                            className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition-colors dark:hover:text-purple-400"
                                                         >
                                                             Edit City
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(city.id)}
-                                                            className="w-full px-4 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t border-slate-50"
+                                                            className="w-full px-4 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t border-slate-50 dark:text-red-400"
                                                         >
                                                             <TrashIcon weight="bold" size={16} />
                                                             Remove City

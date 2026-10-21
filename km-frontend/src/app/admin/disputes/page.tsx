@@ -220,7 +220,7 @@ export default function AdminDisputesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
-                        <ShieldWarningIcon className="w-6 h-6 text-purple-600" />
+                        <ShieldWarningIcon className="w-6 h-6 text-purple-600 dark:text-purple-400" />
                         <span>Wallet Disputes & Refunds</span>
                     </h1>
                     <p className="text-xs sm:text-sm text-gray-500 mt-1">
@@ -233,7 +233,7 @@ export default function AdminDisputesPage() {
                     disabled={loading}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 bg-km-surface-card text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-xs self-start sm:self-auto cursor-pointer"
                 >
-                    <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600" : "text-gray-500"} />
+                    <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600 dark:text-purple-400" : "text-gray-500"} />
                     <span>Refresh</span>
                 </button>
             </div>
@@ -433,7 +433,7 @@ export default function AdminDisputesPage() {
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                    <ShieldWarningIcon className="text-purple-600 w-5 h-5" />
+                                    <ShieldWarningIcon className="text-purple-600 w-5 h-5 dark:text-purple-400" />
                                     <span>Resolve Dispute {selectedDispute.dispute_number}</span>
                                 </h3>
                                 <p className="text-xs text-gray-400 mt-0.5">
@@ -522,7 +522,7 @@ export default function AdminDisputesPage() {
 
                                 {resolveStatus === 'approved' && (
                                     <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 flex items-start gap-2">
-                                        <ArrowUUpLeftIcon weight="bold" className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
+                                        <ArrowUUpLeftIcon weight="bold" className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5 dark:text-emerald-400" aria-hidden="true" />
                                         <p>
                                             <strong>Automated Atomic Refund:</strong> Approving will immediately credit <strong>₹{selectedDispute.amount}</strong> to user&apos;s Main Balance and log a permanent ledger transaction.
                                         </p>

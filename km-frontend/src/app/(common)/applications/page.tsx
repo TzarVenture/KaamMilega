@@ -131,7 +131,7 @@ export default function ApplicationsPage() {
     if (error) {
         return (
             <div className="max-w-4xl mx-auto mt-20 p-8 bg-red-50 border border-red-100 rounded-3xl text-center">
-                <WarningCircleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <WarningCircleIcon className="w-12 h-12 text-red-500 mx-auto mb-4 dark:text-red-400" />
                 <h2 className="text-xl font-bold text-red-900 mb-2">Oops! Something went wrong</h2>
                 <p className="text-red-700">{error}</p>
                 <button
@@ -164,7 +164,7 @@ export default function ApplicationsPage() {
     }
 
     return (
-        <div className="bg-[#fcfcff] min-h-screen">
+        <div className="bg-[#fcfcff] min-h-screen dark:bg-white/5">
             <div className="max-w-350 mx-auto p-4 md:p-10">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar: Application List */}
@@ -195,7 +195,7 @@ export default function ApplicationsPage() {
                                     </h3>
                                     <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
                                         <span>{app?.job?.company}</span>
-                                        <div className="flex items-center gap-0.5 text-amber-500 font-medium">
+                                        <div className="flex items-center gap-0.5 text-amber-500 font-medium dark:text-amber-400">
                                             <StarIcon weight="fill" className="w-3.5 h-3.5 fill-current" />
                                             <span>{app?.job?.rating}</span>
                                         </div>
@@ -228,7 +228,7 @@ export default function ApplicationsPage() {
                                     </h1>
                                     <div className="flex items-center gap-3 text-slate-500 font-medium">
                                         <span className="text-slate-900 font-bold">{selectedApp?.job?.company}</span>
-                                        <div className="flex items-center gap-1 text-amber-500">
+                                        <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
                                             <StarIcon weight="fill" className="w-4 h-4 fill-current" />
                                             <span>{selectedApp?.job?.rating}</span>
                                         </div>

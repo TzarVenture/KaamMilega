@@ -100,7 +100,7 @@ export default function CourseCard({
 
                     {/* Category Badge on Top-Left matching reference screenshot */}
                     {course.category && (
-                        <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-[10px] font-semibold px-2.5 py-1 rounded-tl-xl rounded-br-xl shadow-xs z-10">
+                        <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-[10px] font-semibold px-2.5 py-1 rounded-tl-xl rounded-br-xl shadow-xs z-10 dark:bg-km-primary">
                             {course.category}
                         </span>
                     )}
@@ -169,13 +169,13 @@ export default function CourseCard({
 
                 {/* Category Badge on Top-Left matching reference screenshot */}
                 {course.category && (
-                    <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-xs font-semibold px-3.5 py-1.5 rounded-tl-xl rounded-br-2xl shadow-xs z-10">
+                    <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-xs font-semibold px-3.5 py-1.5 rounded-tl-xl rounded-br-2xl shadow-xs z-10 dark:bg-km-primary">
                         {course.category}
                     </span>
                 )}
 
                 {/* Duration Badge on bottom-right of thumbnail */}
-                <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1">
+                <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 dark:bg-km-primary">
                     <ClockIcon weight="bold" size={11} /> {course.duration || "30 Min"}
                 </span>
 
@@ -224,7 +224,7 @@ export default function CourseCard({
                                             e.stopPropagation();
                                             onDelete(course.id);
                                         }}
-                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition dark:text-red-400"
                                         title="Delete Course"
                                     >
                                         <TrashIcon weight="bold" size={15} />

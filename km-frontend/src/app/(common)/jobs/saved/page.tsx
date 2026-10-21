@@ -175,7 +175,7 @@ export default function SavedJobsPage() {
                                     </Link>
                                     <p className="text-km-text-secondary font-medium text-xs mb-3 flex items-center gap-2">
                                         <span>{job.company}</span>
-                                        <span className="w-1 h-1 rounded-full bg-[#D9E0EA]" />
+                                        <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-white/10" />
                                         <span className="text-km-link font-semibold">Saved Item</span>
                                     </p>
 
@@ -205,7 +205,7 @@ export default function SavedJobsPage() {
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveBookmark(job.id)}
-                                        className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center text-xs font-semibold gap-1.5 border border-rose-200 cursor-pointer"
+                                        className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center text-xs font-semibold gap-1.5 border border-rose-200 cursor-pointer dark:text-rose-400"
                                         title="Remove from saved"
                                     >
                                         <TrashIcon weight="bold" size={15} />

@@ -168,7 +168,7 @@ export default function ManageJobsPage() {
                                                 </Link>
                                                 <button
                                                     onClick={() => handleDelete(job.id)}
-                                                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors dark:hover:text-red-400"
                                                     title="Delete"
                                                 >
                                                     <TrashIcon weight="bold" className="w-4 h-4" />

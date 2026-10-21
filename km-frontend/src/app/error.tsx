@@ -36,7 +36,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="max-w-lg w-full text-center">
           {/* Status Icon */}
-          <WarningIcon size={36} weight="duotone" className="text-amber-600 mx-auto mb-6" aria-hidden="true" />
+          <WarningIcon size={36} weight="duotone" className="text-amber-600 mx-auto mb-6 dark:text-amber-400" aria-hidden="true" />
 
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50/80 border border-amber-200 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3">
             Temporary System Exception

@@ -51,7 +51,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <div className="bg-km-surface-card rounded-2xl border-2 border-[#071A4D] shadow-xs p-5 sm:p-6">
+            <div className="bg-km-surface-card rounded-2xl border-2 border-[#071A4D] shadow-xs p-5 sm:p-6 dark:border-km-link">
                 {/* Header Strip */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-km-border">
                     <div className="flex items-center gap-2.5">
@@ -67,7 +67,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                     </div>
 
                     <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <span className="px-3 py-1 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#16A34A]/30 text-xs font-bold flex items-center gap-1.5">
+                        <span className="px-3 py-1 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#16A34A]/30 text-xs font-bold flex items-center gap-1.5 dark:bg-white/5">
                             <ShieldCheckIcon weight="bold" size={14} className="text-[#16A34A]" />
                             <span>Match Confirmed</span>
                         </span>
@@ -106,7 +106,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                             {job.recruiter_mobile ? (
                                 <a
                                     href={`tel:${job.recruiter_mobile}`}
-                                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
                                     <PhoneIcon weight="fill" size={14} className="fill-white" />
                                     <span>Call Employer: {job.recruiter_mobile}</span>
@@ -115,7 +115,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                                 <button
                                     type="button"
                                     onClick={() => toast.info('Connecting with employer...')}
-                                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
                                     <PhoneIcon weight="fill" size={14} className="fill-white" />
                                     <span>Call Employer</span>
@@ -124,7 +124,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
 
                             <Link
                                 href={`/chat?user=${job.recruiter_id}`}
-                                className="inline-flex items-center gap-2 bg-km-surface-card hover:bg-km-surface border border-[#071A4D] text-km-heading font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-2 bg-km-surface-card hover:bg-km-surface border border-[#071A4D] text-km-heading font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer dark:border-km-link"
                             >
                                 <ChatIcon weight="bold" size={14} className="text-km-heading" />
                                 <span>In-App Chat</span>
@@ -149,8 +149,8 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
 
                         <div className="mt-4 pt-3 border-t border-km-border">
                             {isFinished ? (
-                                <div className="p-2.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 text-center">
-                                    <p className="text-xs font-semibold text-[#B45309]">Awaiting Employer Approval</p>
+                                <div className="p-2.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 text-center dark:bg-amber-500/15">
+                                    <p className="text-xs font-semibold text-[#B45309] dark:text-orange-400">Awaiting Employer Approval</p>
                                     <p className="text-[11px] text-km-text-secondary mt-0.5">
                                         Funds will credit automatically to your wallet upon confirmation.
                                     </p>

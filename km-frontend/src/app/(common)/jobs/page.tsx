@@ -144,7 +144,7 @@ const FilterPanelContent = ({
                 <h2 className="text-xs font-bold text-km-text-primary">Refine Filters</h2>
             </div>
             {activeFilterCount > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full bg-[#EBF3FE] text-km-link text-[11px] font-bold border border-[#BFDBFE]">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#EBF3FE] text-km-link text-[11px] font-bold border border-[#BFDBFE] dark:bg-blue-500/15 dark:border-blue-500/30">
                     {activeFilterCount} Active
                 </span>
             )}
@@ -159,7 +159,7 @@ const FilterPanelContent = ({
                             key={type}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -185,7 +185,7 @@ const FilterPanelContent = ({
                             key={range.value}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -212,7 +212,7 @@ const FilterPanelContent = ({
                             key={exp.value}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -239,7 +239,7 @@ const FilterPanelContent = ({
                             key={g}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -265,7 +265,7 @@ const FilterPanelContent = ({
                             key={q}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -325,7 +325,7 @@ const JobCard = ({
                 <div className="flex-1 min-w-0 w-full">
                     {/* Header: Company Avatar & Title */}
                     <div className="flex items-start gap-3.5 mb-3.5">
-                        <div className="w-12 h-12 rounded-xl bg-[#071A4D] border border-[#0B1F52] text-white font-bold text-base flex items-center justify-center shrink-0 shadow-xs">
+                        <div className="w-12 h-12 rounded-xl bg-[#071A4D] border border-[#0B1F52] text-white font-bold text-base flex items-center justify-center shrink-0 shadow-xs dark:bg-km-primary dark:border-km-link">
                             {companyInitial}
                         </div>
                         <div className="min-w-0 flex-1">
@@ -336,7 +336,7 @@ const JobCard = ({
                             </Link>
                             <p className="text-km-text-secondary font-medium text-xs mt-1 flex items-center gap-2">
                                 <span>{job.company}</span>
-                                <span className="w-1 h-1 rounded-full bg-[#D9E0EA]" />
+                                <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-white/10" />
                                 <span className="text-km-link font-semibold">Active Opening</span>
                             </p>
                         </div>
@@ -380,7 +380,7 @@ const JobCard = ({
                             <ClockIcon weight="bold" size={12} className="text-km-text-secondary" />
                             <span>{job.experience_min === 0 ? 'Fresher Friendly' : `${job.experience_min}+ yrs exp`}</span>
                         </span>
-                        <span className="px-2.5 py-1 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold rounded-lg flex items-center gap-1">
+                        <span className="px-2.5 py-1 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold rounded-lg flex items-center gap-1 dark:bg-blue-500/15 dark:border-blue-500/30">
                             <CheckCircleIcon weight="bold" size={12} className="text-km-link" />
                             <span>KM Verified Employer</span>
                         </span>
@@ -396,11 +396,11 @@ const JobCard = ({
                             title={isBookmarked ? 'Remove Bookmark' : 'Save / Bookmark Job'}
                             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer border ${
                                 isBookmarked
-                                    ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE]'
+                                    ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-blue-500/15 dark:border-blue-500/30'
                                     : 'bg-km-surface-card text-km-text-secondary hover:bg-km-surface hover:text-km-heading border-km-border'
                             }`}
                         >
-                            {isBookmarked ? <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-km-link" /> : <BookmarkSimpleIcon weight="bold" size={16} />}
+                            {isBookmarked ? <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-km-link dark:fill-blue-400" /> : <BookmarkSimpleIcon weight="bold" size={16} />}
                         </button>
 
                         {hasApplied ? (
@@ -408,7 +408,7 @@ const JobCard = ({
                                 href="/applications"
                                 className="h-10 px-4 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1.5 flex-1 lg:flex-initial whitespace-nowrap shadow-xs"
                             >
-                                <CheckCircleIcon weight="bold" size={14} className="text-emerald-600" />
+                                <CheckCircleIcon weight="bold" size={14} className="text-emerald-600 dark:text-emerald-400" />
                                 <span>Applied • Track</span>
                             </Link>
                         ) : (
@@ -693,7 +693,7 @@ const JobsPageContent = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsMobileFilterOpen(false)}
-                            className="fixed inset-0 bg-[#071A4D]/60 z-40 lg:hidden"
+                            className="fixed inset-0 bg-[#071A4D]/60 z-40 lg:hidden dark:bg-km-primary"
                         />
                         <motion.div
                             initial={{ x: '-100%' }}
@@ -727,13 +727,13 @@ const JobsPageContent = () => {
             </AnimatePresence>
 
             {/* ─── Jobs Hero Section with Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans">
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end">
                         {/* Left Column: Category, Heading, Subhead & Key Value Props */}
                         <div className="lg:col-span-5 xl:col-span-5 text-left pb-2 sm:pb-4 lg:pb-6">
                             {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-3.5 sm:mb-4">
+                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-3.5 sm:mb-4 dark:bg-blue-500/15 dark:border-blue-500/30">
                                 <BriefcaseIcon weight="bold" size={14} className="text-km-link" />
                                 <span>Verified Direct Employment</span>
                             </div>
@@ -752,14 +752,14 @@ const JobsPageContent = () => {
                             <div className="flex flex-wrap items-center gap-3 mt-5 sm:mt-6">
                                 <Link
                                     href="/jobs/saved"
-                                    className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-km-surface-card/10 hover:border-white transition-all shadow-xs"
+                                    className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card"
                                 >
                                     <BookmarkSimpleIcon weight="fill" size={15} className="text-[#FF6B00]" />
                                     <span>Saved Jobs ({bookmarkedJobIds.size})</span>
                                 </Link>
                                 <Link
                                     href="/recruiter"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/20 text-white/90 hover:bg-km-surface-card/10 hover:text-white transition-all shadow-xs"
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/20 text-white/90 hover:bg-white/10 hover:text-white transition-all shadow-xs"
                                 >
                                     <span>Post a Job as Employer</span>
                                     <ArrowRightIcon weight="bold" size={13} />
@@ -864,7 +864,7 @@ const JobsPageContent = () => {
                                 key={term}
                                 type="button"
                                 onClick={() => handleSuggestionClick(term)}
-                                className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer"
+                                className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-blue-500/15"
                             >
                                 {term}
                             </button>
@@ -927,7 +927,7 @@ const JobsPageContent = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsMobileFilterOpen(true)}
-                                    className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 bg-[#EBF3FE] border border-[#BFDBFE] text-km-link rounded-xl text-xs font-semibold hover:bg-blue-100 transition-colors shrink-0 cursor-pointer"
+                                    className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 bg-[#EBF3FE] border border-[#BFDBFE] text-km-link rounded-xl text-xs font-semibold hover:bg-blue-100 transition-colors shrink-0 cursor-pointer dark:bg-blue-500/15 dark:border-blue-500/30"
                                 >
                                     <SlidersHorizontalIcon weight="bold" size={13} />
                                     <span>Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</span>
@@ -971,7 +971,7 @@ const JobsPageContent = () => {
                                                     key={term}
                                                     type="button"
                                                     onClick={() => handleSuggestionClick(term)}
-                                                    className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer"
+                                                    className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-blue-500/15"
                                                 >
                                                     {term}
                                                 </button>
@@ -1017,7 +1017,7 @@ const JobsPageContent = () => {
                                                             onClick={() => handlePageChange(pageNum)}
                                                             className={`w-9 h-9 rounded-xl font-bold text-xs transition-all cursor-pointer ${
                                                                 currentPage === pageNum
-                                                                    ? 'bg-[#071A4D] text-white shadow-xs'
+                                                                    ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
                                                                     : 'bg-km-surface-card text-km-text-secondary border border-km-border hover:border-[#0B5ED7] shadow-xs'
                                                             }`}
                                                         >

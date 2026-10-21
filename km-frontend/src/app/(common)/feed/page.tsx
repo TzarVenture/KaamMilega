@@ -138,7 +138,7 @@ export default function FeedPage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-km-surface py-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#071A4D]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#071A4D] dark:border-km-link" />
       </div>
     );
   }
@@ -220,7 +220,7 @@ export default function FeedPage() {
                   setSidebarFilter('all');
                   setSelectedCategory('all');
                 }}
-                className="mt-2 px-5 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold shadow-xs transition-all"
+                className="mt-2 px-5 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold shadow-xs transition-all dark:bg-km-primary dark:hover:bg-km-primary-dark"
               >
                 Reset Filters & View All
               </button>

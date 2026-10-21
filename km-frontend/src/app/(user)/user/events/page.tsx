@@ -48,7 +48,7 @@ const EventsPage = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen">
+        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen dark:bg-white/5">
 
             {/* Left Content: Events List */}
             <div className="flex-1">
@@ -89,7 +89,7 @@ const EventsPage = () => {
                                     <div>
                                         <h2 className="text-xl font-bold text-gray-900 mb-1">{event.title}</h2>
                                         <p className="text-xs text-gray-500 font-medium">
-                                            Event By <span className="text-purple-600 cursor-pointer hover:underline">{event.organizer}</span>
+                                            Event By <span className="text-purple-600 cursor-pointer hover:underline dark:text-purple-400">{event.organizer}</span>
                                         </p>
                                     </div>
                                     <button className="p-2 text-purple-400 hover:text-purple-700 bg-purple-50 rounded-lg transition-colors">
@@ -100,11 +100,11 @@ const EventsPage = () => {
                                 {/* Metadata Row */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                                     <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                                        <CalendarBlankIcon weight="bold" size={14} className="text-purple-500 shrink-0" />
+                                        <CalendarBlankIcon weight="bold" size={14} className="text-purple-500 shrink-0 dark:text-purple-400" />
                                         <span className="truncate">{event.date} {event.time}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                                        <MapPinIcon weight="bold" size={14} className="text-purple-500 shrink-0" />
+                                        <MapPinIcon weight="bold" size={14} className="text-purple-500 shrink-0 dark:text-purple-400" />
                                         <span className="truncate">{event.location}</span>
                                     </div>
                                 </div>

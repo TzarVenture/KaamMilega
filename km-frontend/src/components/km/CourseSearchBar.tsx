@@ -66,7 +66,7 @@ export default function CourseSearchBar({
                                 onClick={() => onSelectCategory(cat)}
                                 className={`text-xs font-semibold px-3 py-1.5 rounded-full shrink-0 transition-all ${
                                     isActive
-                                        ? "bg-[#071A4D] text-white shadow-xs"
+                                        ? "bg-[#071A4D] text-white shadow-xs dark:bg-km-primary"
                                         : "bg-km-surface-card text-km-text-secondary border border-km-border hover:border-[#0B5ED7]/50 hover:text-km-heading"
                                 }`}
                             >

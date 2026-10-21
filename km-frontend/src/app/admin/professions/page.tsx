@@ -205,9 +205,9 @@ export default function ProfessionsPage() {
                 >
                     <div className="flex items-center gap-2.5">
                         {statusBanner.type === 'success' ? (
-                            <CheckCircleIcon weight="bold" size={18} className="text-emerald-600 shrink-0" />
+                            <CheckCircleIcon weight="bold" size={18} className="text-emerald-600 shrink-0 dark:text-emerald-400" />
                         ) : (
-                            <WarningCircleIcon weight="bold" size={18} className="text-rose-600 shrink-0" />
+                            <WarningCircleIcon weight="bold" size={18} className="text-rose-600 shrink-0 dark:text-rose-400" />
                         )}
                         <span>{statusBanner.message}</span>
                     </div>
@@ -366,14 +366,14 @@ export default function ProfessionsPage() {
             <main>
                 {isLoading ? (
                     <div className="bg-km-surface-card rounded-[32px] p-20 flex flex-col items-center justify-center gap-4 border border-purple-100/60 shadow-sm">
-                        <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin" />
+                        <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin dark:text-purple-400" />
                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">
                             Loading master catalog from database...
                         </p>
                     </div>
                 ) : filteredSkills.length === 0 ? (
                     <div className="bg-km-surface-card rounded-[32px] p-16 text-center border border-dashed border-purple-200 shadow-sm">
-                        <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-4">
+                        <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-4 dark:text-purple-400">
                             🏷️
                         </div>
                         <h3 className="text-lg font-black text-slate-900">No Professions or Skills Found</h3>
@@ -441,7 +441,7 @@ export default function ProfessionsPage() {
                                             >
                                                 <td className="px-6 py-4">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm shrink-0 border border-purple-100">
+                                                        <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm shrink-0 border border-purple-100 dark:text-purple-400">
                                                             {skill.name.charAt(0).toUpperCase()}
                                                         </div>
                                                         <span className="font-bold text-slate-900 text-sm group-hover:text-purple-700 transition-colors">
@@ -466,7 +466,7 @@ export default function ProfessionsPage() {
                                                     <div className="flex items-center justify-end gap-2">
                                                         <button
                                                             onClick={() => openEditModal(skill)}
-                                                            className="p-2 hover:bg-purple-50 text-slate-400 hover:text-purple-600 rounded-xl transition-colors"
+                                                            className="p-2 hover:bg-purple-50 text-slate-400 hover:text-purple-600 rounded-xl transition-colors dark:hover:text-purple-400"
                                                             title="Edit profession"
                                                         >
                                                             <PencilSimpleIcon weight="bold" size={16} />
@@ -474,11 +474,11 @@ export default function ProfessionsPage() {
                                                         <button
                                                             onClick={() => handleDeleteSkill(skill.id, skill.name)}
                                                             disabled={isDeleting}
-                                                            className="p-2 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-xl transition-colors disabled:opacity-50"
+                                                            className="p-2 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-xl transition-colors disabled:opacity-50 dark:hover:text-rose-400"
                                                             title="Delete profession"
                                                         >
                                                             {isDeleting ? (
-                                                                <CircleNotchIcon weight="bold" size={16} className="animate-spin text-rose-600" />
+                                                                <CircleNotchIcon weight="bold" size={16} className="animate-spin text-rose-600 dark:text-rose-400" />
                                                             ) : (
                                                                 <TrashIcon weight="bold" size={16} />
                                                             )}

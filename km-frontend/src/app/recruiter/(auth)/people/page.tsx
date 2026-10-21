@@ -52,7 +52,7 @@ const PersonCard = () => (
 
         <div className="relative mb-3">
             <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center text-white">▲</div>
-            <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+            <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full dark:border-km-surface-card"></div>
         </div>
 
         <h3 className="font-bold text-gray-900 text-sm">Person Name</h3>
@@ -84,7 +84,7 @@ const PopularPersonRow = () => (
 
         <div className="relative shrink-0">
             <div className="w-14 h-14 bg-km-primary-dark rounded-full flex items-center justify-center text-white text-xs">▲</div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></div>
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full dark:border-km-surface-card"></div>
         </div>
 
         <div className="flex-1 min-w-0">

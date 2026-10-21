@@ -76,7 +76,7 @@ export default function ExpertRequestsPage() {
                                     <td className="px-6 py-4 text-sm text-gray-500">
                                         <div className="flex flex-col gap-1">
                                             {req.expert_documents?.map((doc: any, i: number) => (
-                                                <a key={i} href={doc.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                                                <a key={i} href={doc.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">
                                                     {doc.name}
                                                 </a>
                                             ))}
@@ -85,14 +85,14 @@ export default function ExpertRequestsPage() {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
                                             onClick={() => handleAction(req.id, "approved")}
-                                            className="text-green-600 hover:text-green-900 mr-4 focus:outline-none"
+                                            className="text-green-600 hover:text-green-900 mr-4 focus:outline-none dark:text-green-400"
                                             title="Approve"
                                         >
                                             <CheckIcon className="w-5 h-5 inline-block" />
                                         </button>
                                         <button
                                             onClick={() => handleAction(req.id, "rejected")}
-                                            className="text-red-600 hover:text-red-900 focus:outline-none"
+                                            className="text-red-600 hover:text-red-900 focus:outline-none dark:text-red-400"
                                             title="Reject"
                                         >
                                             <XIcon className="w-5 h-5 inline-block" />

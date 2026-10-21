@@ -185,9 +185,9 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                 {/* Video URL */}
                 <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-gray-800 flex items-center justify-between">
-                        <span>Video URL <span className="text-red-500">*</span></span>
+                        <span>Video URL <span className="text-red-500 dark:text-red-400">*</span></span>
                         {detectedVideoId && (
-                            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full dark:text-emerald-400">
                                 ✓ YouTube ID: {detectedVideoId}
                             </span>
                         )}
@@ -208,7 +208,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                 {/* Title */}
                 <div className="space-y-1.5">
                     <label className="text-sm font-semibold text-gray-800">
-                        Video Title <span className="text-red-500">*</span>
+                        Video Title <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <input
                         type="text"
@@ -226,7 +226,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                     {/* Category */}
                     <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-800">
-                            Category <span className="text-red-500">*</span>
+                            Category <span className="text-red-500 dark:text-red-400">*</span>
                         </label>
                         <input
                             type="text"
@@ -257,7 +257,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                     {/* Duration */}
                     <div className="space-y-1.5">
                         <label className="text-sm font-semibold text-gray-800">
-                            Duration <span className="text-red-500">*</span>
+                            Duration <span className="text-red-500 dark:text-red-400">*</span>
                         </label>
                         <input
                             type="text"
@@ -290,14 +290,14 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
                         <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
-                            <ImageIcon weight="bold" size={16} className="text-purple-600" />
+                            <ImageIcon weight="bold" size={16} className="text-purple-600 dark:text-purple-400" />
                             Thumbnail
                         </label>
                         {detectedVideoId && (
                             <button
                                 type="button"
                                 onClick={handleResetThumbnail}
-                                className="text-xs text-purple-600 hover:text-purple-700 font-semibold flex items-center gap-1 hover:underline"
+                                className="text-xs text-purple-600 hover:text-purple-700 font-semibold flex items-center gap-1 hover:underline dark:text-purple-400"
                             >
                                 <YoutubeLogoIcon weight="bold" size={12} /> Auto-fill from YouTube
                             </button>

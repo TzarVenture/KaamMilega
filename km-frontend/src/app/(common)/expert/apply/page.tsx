@@ -239,17 +239,17 @@ export default function ExpertProSubscriptionPage() {
   const isWalletSufficient = walletBalance >= selectedPlan.price;
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800">
+    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-white/5">
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
       {/* Hero Banner */}
-      <section className="bg-linear-to-br from-slate-950 via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
+      <section className="bg-linear-to-br from-[#020617] via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-km-surface-card/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-6 border border-white/10 backdrop-blur-xs">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-6 border border-white/10 backdrop-blur-xs">
               <span>KaamMilega Pro Expert Program</span>
             </div>
 
@@ -270,7 +270,7 @@ export default function ExpertProSubscriptionPage() {
         {activeSub && (
           <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-8 sm:mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-km-surface-card/20 flex items-center justify-center text-white shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white shrink-0">
                 <MedalIcon size={26} />
               </div>
               <div>
@@ -319,11 +319,11 @@ export default function ExpertProSubscriptionPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1a2b8c]">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1a2b8c] dark:text-blue-400">
                       {isYearly ? <MedalIcon size={26} /> : <LightningIcon size={26} />}
                     </div>
                     {isYearly && (
-                      <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
+                      <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 dark:text-emerald-400">
                         Save 25% Annually
                       </span>
                     )}
@@ -348,7 +348,7 @@ export default function ExpertProSubscriptionPage() {
                     </p>
                     {plan.perks.map((perk, i) => (
                       <div key={i} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                        <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5 dark:text-emerald-400" />
                         <span>{perk}</span>
                       </div>
                     ))}
@@ -425,19 +425,19 @@ export default function ExpertProSubscriptionPage() {
                   onClick={() => !paymentProcessing && setPaymentMethod("razorpay")}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     paymentMethod === "razorpay"
-                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c]"
+                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c] dark:border-km-link dark:ring-km-link"
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <CreditCardIcon size={22} className="text-[#1a2b8c]" aria-hidden="true" />
+                    <CreditCardIcon size={22} className="text-[#1a2b8c] dark:text-blue-400" aria-hidden="true" />
                     <div>
                       <div className="font-bold text-xs text-slate-900">Razorpay Online Payment</div>
                       <div className="text-[10px] text-slate-500">UPI (GPay/PhonePe), Cards, NetBanking</div>
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
+                    paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c] dark:border-km-link" : "border-slate-300"
                   }`}>
                     {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                   </div>
@@ -448,7 +448,7 @@ export default function ExpertProSubscriptionPage() {
                   onClick={() => !paymentProcessing && setPaymentMethod("wallet")}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     paymentMethod === "wallet"
-                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c]"
+                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c] dark:border-km-link dark:ring-km-link"
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
@@ -462,7 +462,7 @@ export default function ExpertProSubscriptionPage() {
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
+                    paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c] dark:border-km-link" : "border-slate-300"
                   }`}>
                     {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                   </div>

@@ -84,10 +84,10 @@ export default function AdsPublishedPage() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="flex-1 flex items-center gap-6">
                     <div className="flex items-center gap-2 text-sm font-bold text-slate-800 whitespace-nowrap">
-                        Sort by: <span className="flex items-center gap-1 text-slate-500 cursor-pointer hover:text-purple-600 transition-colors">Recently added <CaretDownIcon weight="bold" size={14} /></span>
+                        Sort by: <span className="flex items-center gap-1 text-slate-500 cursor-pointer hover:text-purple-600 transition-colors dark:hover:text-purple-400">Recently added <CaretDownIcon weight="bold" size={14} /></span>
                     </div>
                     <div className="relative flex-1 max-w-xl group">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                         <input
                             type="text"
                             placeholder="Find Ad..."
@@ -139,7 +139,7 @@ export default function AdsPublishedPage() {
                                             <div className="w-10 h-10 bg-km-ink rounded-full flex items-center justify-center text-white ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
                                                 <span className="text-xs font-bold italic rotate-45">▲▲</span>
                                             </div>
-                                            <button className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all ml-4">
+                                            <button className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all ml-4 dark:hover:text-purple-400">
                                                 <DotsThreeVerticalIcon size={20} />
                                             </button>
                                         </div>

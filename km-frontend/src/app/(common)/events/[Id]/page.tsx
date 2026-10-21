@@ -57,7 +57,7 @@ interface WalletSummary {
 // ─── Design.md Shimmer Skeleton ───
 const DetailSkeleton = () => (
     <div className="bg-km-surface min-h-screen">
-        <div className="relative h-64 md:h-80 bg-[#E5ECF5] animate-shimmer w-full" />
+        <div className="relative h-64 md:h-80 bg-[#E5ECF5] animate-shimmer w-full dark:bg-white/5" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8 -mt-16 relative z-20">
             <div className="flex-1 space-y-6">
                 <div className="bg-km-surface-card rounded-2xl p-8 border border-km-border space-y-4">
@@ -350,7 +350,7 @@ const EventDetailsPage = () => {
             <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
             {/* ─── Hero Banner with Master Deep Navy ─── */}
-            <div className="relative h-60 sm:h-72 lg:h-80 w-full bg-[#071A4D] overflow-hidden border-b border-[#0B1F52]">
+            <div className="relative h-60 sm:h-72 lg:h-80 w-full bg-[#071A4D] overflow-hidden border-b border-[#0B1F52] dark:border-km-link">
                 {event.image_url ? (
                     <img
                         src={event.image_url}
@@ -358,8 +358,8 @@ const EventDetailsPage = () => {
                         className="w-full h-full object-cover opacity-35"
                     />
                 ) : (
-                    <div className="w-full h-full bg-[#071A4D] flex items-center justify-center">
-                        <div className="w-20 h-20 rounded-2xl bg-km-surface-card/5 border border-white/10 flex items-center justify-center text-[#F59E0B]">
+                    <div className="w-full h-full bg-[#071A4D] flex items-center justify-center dark:bg-km-primary">
+                        <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#F59E0B]">
                             <CalendarBlankIcon size={40} />
                         </div>
                     </div>
@@ -369,7 +369,7 @@ const EventDetailsPage = () => {
                 <div className="absolute top-6 left-4 sm:left-8 z-20">
                     <Link
                         href="/events"
-                        className="inline-flex items-center gap-2 bg-km-surface-card/10 hover:bg-km-surface-card/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all border border-white/20 shadow-xs"
+                        className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all border border-white/20 shadow-xs"
                     >
                         <ArrowLeftIcon weight="bold" size={15} /> Back to Workshops
                     </Link>
@@ -384,19 +384,19 @@ const EventDetailsPage = () => {
                     <div className="bg-km-surface-card rounded-2xl p-6 sm:p-8 border border-km-border shadow-xs">
                         {/* Event Tags */}
                         <div className="flex flex-wrap items-center gap-2.5 mb-3.5">
-                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md">
+                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-amber-500/15">
                                 {event.category || 'Skill Workshop'}
                             </span>
                             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md ${
                                 isPaid
                                     ? 'bg-[#FF6B00] text-white'
-                                    : 'bg-[#071A4D] text-white'
+                                    : 'bg-[#071A4D] text-white dark:bg-km-primary'
                             }`}>
                                 {isPaid ? `Paid Masterclass • ₹${event.price}` : 'Free Entry Pass'}
                             </span>
                             {isOnlineSession && (
                                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
-                                    <VideoCameraIcon weight="bold" size={12} className="text-emerald-600" /> Live Video Session
+                                    <VideoCameraIcon weight="bold" size={12} className="text-emerald-600 dark:text-emerald-400" /> Live Video Session
                                 </span>
                             )}
                         </div>
@@ -425,7 +425,7 @@ const EventDetailsPage = () => {
                         <div className="bg-km-surface-card rounded-2xl p-6 sm:p-7 border-2 border-[#10B981]/40 shadow-xs space-y-4">
                             <div className="flex items-center justify-between flex-wrap gap-2">
                                 <div className="flex items-center gap-2.5 text-emerald-700 font-bold text-sm">
-                                    <VideoCameraIcon size={20} className="text-emerald-600 shrink-0" aria-hidden="true" />
+                                    <VideoCameraIcon size={20} className="text-emerald-600 shrink-0 dark:text-emerald-400" aria-hidden="true" />
                                     <span>Live Video Conference & Room Access</span>
                                 </div>
                                 <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
@@ -467,16 +467,16 @@ const EventDetailsPage = () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="bg-[#FFFBEB] rounded-2xl p-5 sm:p-6 border border-[#FDE68A] shadow-xs">
+                        <div className="bg-[#FFFBEB] rounded-2xl p-5 sm:p-6 border border-[#FDE68A] shadow-xs dark:bg-amber-500/15">
                             <div className="flex items-start gap-3.5">
-                                <LockIcon size={22} className="text-[#B45309] shrink-0 mt-0.5" aria-hidden="true" />
+                                <LockIcon size={22} className="text-[#B45309] shrink-0 mt-0.5 dark:text-orange-400" aria-hidden="true" />
                                 <div className="flex-1">
                                     <h4 className="text-sm font-bold text-km-text-primary">Live Session Meeting Room (Google Meet / Zoom)</h4>
                                     <p className="text-xs text-km-text-secondary mt-1 leading-relaxed">
                                         The direct video conference link, meeting ID, and workshop handouts unlock automatically for your account once you reserve a pass for this session.
                                     </p>
                                     <div className="mt-3 flex items-center gap-2">
-                                        <span className="text-[11px] font-semibold text-[#B45309] bg-km-surface-card border border-[#FDE68A] px-2.5 py-1 rounded-lg">
+                                        <span className="text-[11px] font-semibold text-[#B45309] bg-km-surface-card border border-[#FDE68A] px-2.5 py-1 rounded-lg dark:text-orange-400">
                                             Locked for Registered Learners
                                         </span>
                                     </div>
@@ -547,7 +547,7 @@ const EventDetailsPage = () => {
                             <div className="flex items-center justify-between mb-5 pb-3 border-b border-km-border">
                                 <h3 className="text-base font-bold text-km-text-primary">Workshop Pass</h3>
                                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
-                                    isPaid ? 'bg-[#FF6B00] text-white' : 'bg-[#071A4D] text-white'
+                                    isPaid ? 'bg-[#FF6B00] text-white' : 'bg-[#071A4D] text-white dark:bg-km-primary'
                                 }`}>
                                     {isPaid ? `₹${event.price}` : 'Free Entry'}
                                 </span>
@@ -632,7 +632,7 @@ const EventDetailsPage = () => {
                                 </div>
                             ) : isPaid ? (
                                 isSoldOut ? (
-                                    <button disabled className="w-full py-3.5 bg-[#E5ECF5] text-km-text-secondary rounded-xl font-bold text-sm cursor-not-allowed">
+                                    <button disabled className="w-full py-3.5 bg-[#E5ECF5] text-km-text-secondary rounded-xl font-bold text-sm cursor-not-allowed dark:bg-white/5">
                                         Workshop Full
                                     </button>
                                 ) : (
@@ -680,7 +680,7 @@ const EventDetailsPage = () => {
                                     type="button"
                                     onClick={() => !paymentProcessing && setCheckoutModalOpen(false)}
                                     disabled={paymentProcessing}
-                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer"
+                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-white/10"
                                 >
                                     <XIcon weight="bold" size={16} />
                                 </button>
@@ -743,7 +743,7 @@ const EventDetailsPage = () => {
                                         onClick={() => !paymentProcessing && setPaymentMethod("razorpay")}
                                         className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                                             paymentMethod === "razorpay"
-                                                ? "border-[#071A4D] bg-[#071A4D]/5 ring-1 ring-[#071A4D]"
+                                                ? "border-[#071A4D] bg-[#071A4D]/5 ring-1 ring-[#071A4D] dark:border-km-link dark:bg-km-primary dark:ring-km-link"
                                                 : "border-km-border hover:border-slate-300"
                                         }`}
                                     >
@@ -755,7 +755,7 @@ const EventDetailsPage = () => {
                                             </div>
                                         </div>
                                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                            paymentMethod === "razorpay" ? "border-[#071A4D] bg-[#071A4D]" : "border-slate-300"
+                                            paymentMethod === "razorpay" ? "border-[#071A4D] bg-[#071A4D] dark:border-km-link dark:bg-km-primary" : "border-slate-300"
                                         }`}>
                                             {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                                         </div>
@@ -766,7 +766,7 @@ const EventDetailsPage = () => {
                                         onClick={() => !paymentProcessing && setPaymentMethod("wallet")}
                                         className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                                             paymentMethod === "wallet"
-                                                ? "border-[#071A4D] bg-[#071A4D]/5 ring-1 ring-[#071A4D]"
+                                                ? "border-[#071A4D] bg-[#071A4D]/5 ring-1 ring-[#071A4D] dark:border-km-link dark:bg-km-primary dark:ring-km-link"
                                                 : "border-km-border hover:border-slate-300"
                                         }`}
                                     >
@@ -780,7 +780,7 @@ const EventDetailsPage = () => {
                                             </div>
                                         </div>
                                         <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                            paymentMethod === "wallet" ? "border-[#071A4D] bg-[#071A4D]" : "border-slate-300"
+                                            paymentMethod === "wallet" ? "border-[#071A4D] bg-[#071A4D] dark:border-km-link dark:bg-km-primary" : "border-slate-300"
                                         }`}>
                                             {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                                         </div>
@@ -788,7 +788,7 @@ const EventDetailsPage = () => {
 
                                     {paymentMethod === "wallet" && !isWalletSufficient && (
                                         <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center gap-1.5">
-                                            <WarningCircleIcon weight="bold" size={13} className="text-amber-600 shrink-0" />
+                                            <WarningCircleIcon weight="bold" size={13} className="text-amber-600 shrink-0 dark:text-amber-400" />
                                             <span>Insufficient wallet balance. Please select Razorpay or refill wallet.</span>
                                         </div>
                                     )}
@@ -869,7 +869,7 @@ const EventDetailsPage = () => {
                                 <button
                                     type="button"
                                     onClick={() => setTicketModalOpen(false)}
-                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer"
+                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-white/10"
                                 >
                                     <XIcon weight="bold" size={16} />
                                 </button>
@@ -881,7 +881,7 @@ const EventDetailsPage = () => {
                                 <div className="flex items-start justify-between gap-3 mb-4">
                                     <div>
                                         <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1 mb-1">
-                                            <CheckCircleIcon weight="bold" size={11} className="text-emerald-600" /> Pass Confirmed
+                                            <CheckCircleIcon weight="bold" size={11} className="text-emerald-600 dark:text-emerald-400" /> Pass Confirmed
                                         </span>
                                         <h3 className="font-bold text-base text-km-text-primary leading-snug line-clamp-2">
                                             {ticket.event_title || event.title}
@@ -957,7 +957,7 @@ const EventDetailsPage = () => {
 
                                     {/* QR Code Container */}
                                     <div className="flex flex-col items-center bg-km-surface-card p-2 rounded-xl border border-km-border shadow-2xs shrink-0">
-                                        <div className="w-20 h-20 bg-[#071A4D] p-1.5 rounded-lg flex items-center justify-center text-white">
+                                        <div className="w-20 h-20 bg-[#071A4D] p-1.5 rounded-lg flex items-center justify-center text-white dark:bg-km-primary">
                                             <QrCodeIcon size={64} className="text-white" />
                                         </div>
                                         <span className="text-[8px] font-bold uppercase text-km-text-secondary tracking-wider mt-1">
@@ -970,7 +970,7 @@ const EventDetailsPage = () => {
                             {/* Ticket Actions Footer */}
                             <div className="px-5 py-3.5 bg-km-surface border-t border-km-border flex items-center justify-between gap-3 shrink-0">
                                 <span className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1.5">
-                                    <ShieldCheckIcon weight="bold" size={15} className="text-emerald-600" /> Verified KaamMilega Pass
+                                    <ShieldCheckIcon weight="bold" size={15} className="text-emerald-600 dark:text-emerald-400" /> Verified KaamMilega Pass
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <button

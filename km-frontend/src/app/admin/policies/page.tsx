@@ -73,7 +73,7 @@ export default function PoliciesPage() {
 
                 <div className="flex items-center gap-3">
                     <div className="relative group">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                         <input
                             type="text"
                             placeholder="Find Policy..."
@@ -112,7 +112,7 @@ export default function PoliciesPage() {
                             {/* Individual edit button appears on hover */}
                             <button
                                 onClick={() => handleEditPolicy(policy)}
-                                className="absolute -right-2 -top-2 p-2 bg-km-surface-card border border-purple-100 rounded-xl text-purple-600 opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-purple-50 scale-90"
+                                className="absolute -right-2 -top-2 p-2 bg-km-surface-card border border-purple-100 rounded-xl text-purple-600 opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-purple-50 scale-90 dark:text-purple-400"
                             >
                                 <NotePencilIcon weight="bold" size={16} />
                             </button>

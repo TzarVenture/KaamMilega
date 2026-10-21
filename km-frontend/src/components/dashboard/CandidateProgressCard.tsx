@@ -84,7 +84,7 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
                 </div>
                 <Link
                     href="/profile"
-                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-sm font-semibold shrink-0"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-sm font-semibold shrink-0 dark:bg-km-primary dark:hover:bg-km-primary-dark"
                 >
                     <span>{isFull ? 'View profile' : 'Complete profile'}</span>
                     <ArrowRightIcon weight="bold" size={15} />
@@ -98,7 +98,7 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
                 aria-valuemin={0}
                 aria-valuemax={100}
             >
-                <div className="h-full bg-[#071A4D] rounded-full" style={{ width: `${Math.max(4, Math.min(100, score))}%` }} />
+                <div className="h-full bg-[#071A4D] rounded-full dark:bg-km-primary" style={{ width: `${Math.max(4, Math.min(100, score))}%` }} />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

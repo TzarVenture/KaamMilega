@@ -94,13 +94,13 @@ export default function MentorshipPage() {
   return (
     <main className="min-h-screen bg-km-surface pb-20 font-sans">
       {/* ─── Mentorship Hero Section with Expert Art & Rounded Bottom ─── */}
-      <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
+      <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
             {/* Left Column: Headlines, Search & Value Props */}
             <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
               {/* Category Indicator */}
-              <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
+              <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4 dark:bg-amber-500/15 dark:text-orange-400">
                 <GraduationCapIcon weight="bold" size={14} className="text-[#F59E0B]" />
                 <span>1-on-1 Expert Mentorship</span>
               </div>
@@ -138,7 +138,7 @@ export default function MentorshipPage() {
                 </div>
                 <Link
                   href="/expert/apply"
-                  className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-km-surface-card/10 hover:border-white transition-all whitespace-nowrap shadow-xs"
+                  className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all whitespace-nowrap shadow-xs dark:hover:border-km-surface-card"
                 >
                   <span>Become an Expert & Host</span>
                   <ArrowRightIcon weight="bold" size={13} />
@@ -244,7 +244,7 @@ export default function MentorshipPage() {
             href="/mentorship/my-sessions"
             className="inline-flex items-center gap-2 bg-km-surface-card hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
           >
-            <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c]" />
+            <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c] dark:text-blue-400" />
             <span>My Booked Sessions</span>
             {myBookingsCount > 0 && (
               <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-orange-500 text-white">
@@ -296,7 +296,7 @@ export default function MentorshipPage() {
                         desc="Engage in meaningful conversations and get answers to your specific career questions." 
                     />
                     <BenefitItem 
-                        icon={<CheckCircleIcon size={24} className="text-emerald-500" />} 
+                        icon={<CheckCircleIcon size={24} className="text-emerald-500 dark:text-emerald-400" />} 
                         title="Practical Roadmaps" 
                         desc="Learn real-world strategies, negotiate better compensation, and avoid common traps." 
                     />
@@ -351,7 +351,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
             <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-800">
               <StarIcon weight="fill" size={11} className="fill-amber-400 text-amber-400" />
               <span>{mentorship?.rating ? Number(mentorship.rating).toFixed(1) : '5.0'}</span>
-              <span className="text-amber-600 font-medium">({mentorship?.reviews || 0})</span>
+              <span className="text-amber-600 font-medium dark:text-amber-400">({mentorship?.reviews || 0})</span>
             </div>
           </div>
         </div>
@@ -371,7 +371,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
             <span className="text-xs font-semibold">{mentorship?.duration || 45} Mins</span>
           </div>
           <div className="flex items-center gap-1.5 text-slate-500">
-            <UsersIcon weight="bold" size={14} className="text-emerald-600" />
+            <UsersIcon weight="bold" size={14} className="text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-semibold">1-on-1 Session</span>
           </div>
         </div>

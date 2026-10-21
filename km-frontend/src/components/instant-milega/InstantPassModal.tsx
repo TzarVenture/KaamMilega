@@ -178,7 +178,7 @@ export default function InstantPassModal({
                     <button
                         onClick={onClose}
                         disabled={loading || walletLoading}
-                        className="w-8 h-8 rounded-lg bg-km-surface-card/10 hover:bg-km-surface-card/20 flex items-center justify-center transition-colors text-white cursor-pointer"
+                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white cursor-pointer"
                         aria-label="Close"
                     >
                         <XIcon weight="bold" size={16} />
@@ -214,14 +214,14 @@ export default function InstantPassModal({
                                 onClick={() => setSelectedMethod('wallet')}
                                 className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
                                     selectedMethod === 'wallet'
-                                        ? 'border-[#071A4D] bg-km-surface ring-1 ring-[#071A4D]'
-                                        : 'border-km-border hover:border-[#071A4D]/40 bg-km-surface-card'
+                                        ? 'border-[#071A4D] bg-km-surface ring-1 ring-[#071A4D] dark:border-km-link dark:ring-km-link'
+                                        : 'border-km-border hover:border-[#071A4D]/40 bg-km-surface-card dark:hover:border-km-link'
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
                                     <WalletIcon size={24} weight={selectedMethod === 'wallet' ? 'duotone' : 'regular'} className="text-km-heading" aria-hidden="true" />
                                     {selectedMethod === 'wallet' && (
-                                        <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center">
+                                        <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center dark:bg-km-primary">
                                             <CheckIcon weight="bold" size={11} />
                                         </div>
                                     )}
@@ -240,14 +240,14 @@ export default function InstantPassModal({
                                 onClick={() => setSelectedMethod('razorpay')}
                                 className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
                                     selectedMethod === 'razorpay'
-                                        ? 'border-[#071A4D] bg-km-surface ring-1 ring-[#071A4D]'
-                                        : 'border-km-border hover:border-[#071A4D]/40 bg-km-surface-card'
+                                        ? 'border-[#071A4D] bg-km-surface ring-1 ring-[#071A4D] dark:border-km-link dark:ring-km-link'
+                                        : 'border-km-border hover:border-[#071A4D]/40 bg-km-surface-card dark:hover:border-km-link'
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
                                     <CreditCardIcon size={24} weight={selectedMethod === 'razorpay' ? 'duotone' : 'regular'} className="text-km-heading" aria-hidden="true" />
                                     {selectedMethod === 'razorpay' && (
-                                        <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center">
+                                        <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center dark:bg-km-primary">
                                             <CheckIcon weight="bold" size={11} />
                                         </div>
                                     )}
@@ -292,7 +292,7 @@ export default function InstantPassModal({
                                     type="button"
                                     onClick={handlePayFromWallet}
                                     disabled={walletLoading}
-                                    className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 shadow-xs"
+                                    className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 shadow-xs dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
                                     {walletLoading ? (
                                         <span>Processing Wallet Debit...</span>

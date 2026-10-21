@@ -40,21 +40,29 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
     );
 }
 
-/** Compact navbar button: moon in light mode, sun in dark mode; flips to the other theme */
+/**
+ * Compact navbar button: moon in light mode, sun in dark mode; flips to the other theme.
+ * Both icons render and CSS picks one, so the server render never shows the wrong icon
+ * (the theme class is set before first paint).
+ */
 export function ThemeIconButton({ className = '' }: { className?: string }) {
-    const { isDark, setPreference } = useTheme();
-    const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
-    const Icon = isDark ? SunIcon : MoonIcon;
+    const { setPreference } = useTheme();
 
     return (
         <button
             type="button"
-            onClick={() => setPreference(isDark ? 'light' : 'dark')}
-            aria-label={label}
-            title={label}
+            onClick={(e) => {
+                const dark = document.documentElement.classList.contains('dark');
+                // Reveal grows from the button's centre (keyboard clicks have no pointer position)
+                const box = e.currentTarget.getBoundingClientRect();
+                setPreference(dark ? 'light' : 'dark', { x: box.left + box.width / 2, y: box.top + box.height / 2 });
+            }}
+            aria-label="Toggle dark mode"
+            title="Toggle dark mode"
             className={`w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-km-surface hover:text-km-heading transition-colors cursor-pointer ${className}`}
         >
-            <Icon size={22} weight="duotone" aria-hidden="true" />
+            <MoonIcon size={22} weight="duotone" aria-hidden="true" className="dark:hidden" />
+            <SunIcon size={22} weight="duotone" aria-hidden="true" className="hidden dark:block" />
         </button>
     );
 }

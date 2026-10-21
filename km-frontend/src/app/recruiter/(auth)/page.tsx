@@ -86,7 +86,7 @@ export default function RecruiterDashboard() {
             <ToastContainer />
 
             {/* ── RECRUITER WELCOME BANNER ── */}
-            <div className="bg-linear-to-r from-slate-950 via-km-primary-dark to-slate-950 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+            <div className="bg-linear-to-r from-[#020617] via-km-primary-dark to-[#020617] text-white rounded-3xl p-6 sm:p-8 border border-[#1E293B] shadow-xl relative overflow-hidden">
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
@@ -123,7 +123,7 @@ export default function RecruiterDashboard() {
                         </Link>
                         <Link
                             href="/recruiter/applications"
-                            className="px-5 py-3.5 bg-km-surface-card/10 hover:bg-km-surface-card/20 backdrop-blur-md border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-2"
+                            className="px-5 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-2"
                         >
                             <KanbanIcon weight="bold" size={16} /> Kanban Board
                         </Link>
@@ -146,7 +146,7 @@ export default function RecruiterDashboard() {
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Applications</p>
                         <h3 className="text-3xl font-black text-km-heading">{totalApplications}</h3>
-                        <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                        <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1 dark:text-emerald-400">
                             <TrendUpIcon weight="bold" size={12} /> Active candidates
                         </p>
                     </div>
@@ -156,19 +156,19 @@ export default function RecruiterDashboard() {
                 <div className="bg-km-surface-card p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Interviews Scheduled</p>
-                        <h3 className="text-3xl font-black text-amber-600">{interviewingCount}</h3>
+                        <h3 className="text-3xl font-black text-amber-600 dark:text-amber-400">{interviewingCount}</h3>
                         <p className="text-[11px] text-slate-500 font-semibold mt-1">Scheduled sessions</p>
                     </div>
-                    <CalendarBlankIcon size={28} weight="duotone" className="text-amber-600 shrink-0" aria-hidden="true" />
+                    <CalendarBlankIcon size={28} weight="duotone" className="text-amber-600 shrink-0 dark:text-amber-400" aria-hidden="true" />
                 </div>
 
                 <div className="bg-km-surface-card p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Successful Hires</p>
-                        <h3 className="text-3xl font-black text-emerald-600">{hiredCount}</h3>
-                        <p className="text-[11px] text-emerald-600 font-semibold mt-1">Completed recruitment</p>
+                        <h3 className="text-3xl font-black text-emerald-600 dark:text-emerald-400">{hiredCount}</h3>
+                        <p className="text-[11px] text-emerald-600 font-semibold mt-1 dark:text-emerald-400">Completed recruitment</p>
                     </div>
-                    <UserCheckIcon size={28} weight="duotone" className="text-emerald-600 shrink-0" aria-hidden="true" />
+                    <UserCheckIcon size={28} weight="duotone" className="text-emerald-600 shrink-0 dark:text-emerald-400" aria-hidden="true" />
                 </div>
             </div>
 
@@ -181,7 +181,7 @@ export default function RecruiterDashboard() {
                     </div>
                     <Link
                         href="/recruiter/jobs/list"
-                        className="text-xs font-bold text-km-heading hover:text-km-primary-dark flex items-center gap-1 group"
+                        className="text-xs font-bold text-km-heading hover:text-km-primary-dark flex items-center gap-1 group dark:hover:text-km-link"
                     >
                         View All Jobs ({jobs.length})
                         <CaretRightIcon weight="bold" size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -266,7 +266,7 @@ export default function RecruiterDashboard() {
                     </div>
                     <Link
                         href="/recruiter/applications"
-                        className="text-xs font-bold text-km-heading hover:text-km-primary-dark flex items-center gap-1 group"
+                        className="text-xs font-bold text-km-heading hover:text-km-primary-dark flex items-center gap-1 group dark:hover:text-km-link"
                     >
                         Kanban Pipeline Board
                         <CaretRightIcon weight="bold" size={14} className="group-hover:translate-x-0.5 transition-transform" />

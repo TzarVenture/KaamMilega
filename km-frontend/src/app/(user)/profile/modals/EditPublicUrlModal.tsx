@@ -196,13 +196,13 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                             <div className="mt-2.5 flex items-center gap-1.5 text-xs font-medium">
                                 {availability.available ? (
                                     <>
-                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-500 shrink-0" />
-                                        <span className="text-emerald-600 font-semibold">{availability.message}</span>
+                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-500 shrink-0 dark:text-emerald-400" />
+                                        <span className="text-emerald-600 font-semibold dark:text-emerald-400">{availability.message}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <WarningCircleIcon weight="bold" size={14} className="text-rose-500 shrink-0" />
-                                        <span className="text-rose-500 font-medium">{availability.message}</span>
+                                        <WarningCircleIcon weight="bold" size={14} className="text-rose-500 shrink-0 dark:text-rose-400" />
+                                        <span className="text-rose-500 font-medium dark:text-rose-400">{availability.message}</span>
                                     </>
                                 )}
                             </div>
@@ -224,7 +224,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                         >
                             {copied ? (
                                 <>
-                                    <CheckIcon weight="bold" size={12} className="text-emerald-500" />
+                                    <CheckIcon weight="bold" size={12} className="text-emerald-500 dark:text-emerald-400" />
                                     <span>Copied</span>
                                 </>
                             ) : (

@@ -71,7 +71,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
         <ModalWrapper isOpen={isOpen} onClose={onClose} title="Custom Portfolio Link">
             <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold dark:text-red-400">
                         {error}
                     </div>
                 )}
@@ -82,7 +82,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
 
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Website / Portfolio URL <span className="text-red-500">*</span>
+                        Website / Portfolio URL <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <div className="relative">
                         <LinkIcon weight="bold" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -119,7 +119,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
                             type="button"
                             onClick={handleRemove}
                             disabled={loading}
-                            className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-bold rounded-full transition-colors"
+                            className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-bold rounded-full transition-colors dark:text-red-400"
                         >
                             Remove Link
                         </button>

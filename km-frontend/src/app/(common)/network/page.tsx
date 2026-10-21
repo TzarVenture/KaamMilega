@@ -208,7 +208,7 @@ const NetworkPage = () => {
         <div className="space-y-6">
             {/* Profile Guidance Callout */}
             {hasIncompleteProfile && (
-                <div className="bg-gradient-to-r from-blue-50/80 via-white to-amber-50/40 rounded-2xl border border-km-border p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
+                <div className="bg-gradient-to-r from-blue-50/80 via-white to-amber-50/40 rounded-2xl border border-km-border p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs dark:via-km-surface-card">
                     <div className="flex items-start gap-3.5">
                         <TargetIcon size={28} weight="duotone" className="text-km-link shrink-0" aria-hidden="true" />
                         <div>
@@ -222,7 +222,7 @@ const NetworkPage = () => {
                     </div>
                     <Link
                         href="/profile/edit"
-                        className="whitespace-nowrap px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer flex items-center gap-1.5 self-end sm:self-auto"
+                        className="whitespace-nowrap px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer flex items-center gap-1.5 self-end sm:self-auto dark:bg-km-primary dark:hover:bg-km-primary-dark"
                     >
                         <span>Update Skills</span>
                         <ArrowRightIcon weight="bold" size={13} />
@@ -301,8 +301,8 @@ const NetworkPage = () => {
                                 onClick={() => handleFilterSelect(tab.id)}
                                 className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer shrink-0 border ${
                                     isActive
-                                        ? 'bg-[#071A4D] text-white border-[#071A4D] shadow-2xs'
-                                        : 'bg-km-surface text-km-text-secondary border-km-border hover:bg-km-surface-card hover:text-km-text-primary hover:border-[#071A4D]/30'
+                                        ? 'bg-[#071A4D] text-white border-[#071A4D] shadow-2xs dark:bg-km-primary dark:border-km-link'
+                                        : 'bg-km-surface text-km-text-secondary border-km-border hover:bg-km-surface-card hover:text-km-text-primary hover:border-[#071A4D]/30 dark:hover:border-km-link'
                                 }`}
                             >
                                 <Icon size={12} className={isActive ? 'text-[#FF6B00]' : 'text-km-text-secondary'} />
@@ -346,7 +346,7 @@ const NetworkPage = () => {
                             <button
                                 type="button"
                                 onClick={() => handleFilterSelect('all')}
-                                className="px-4 py-1.5 bg-[#071A4D] text-white rounded-xl text-xs font-semibold hover:bg-[#0B1F52] transition-colors cursor-pointer"
+                                className="px-4 py-1.5 bg-[#071A4D] text-white rounded-xl text-xs font-semibold hover:bg-[#0B1F52] transition-colors cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                             >
                                 Show All Recommended
                             </button>
@@ -428,7 +428,7 @@ const InvitationRow = ({
                 <button 
                     type="button"
                     onClick={onAccept} 
-                    className="bg-[#071A4D] hover:bg-[#0B1F52] text-white px-5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer"
+                    className="bg-[#071A4D] hover:bg-[#0B1F52] text-white px-5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                 >
                     Accept
                 </button>

@@ -10,7 +10,7 @@ interface FeedHeaderFiltersProps {
 }
 
 const CATEGORIES: { id: FeedCategory; label: string; icon: React.ReactNode; activeColor: string }[] = [
-  { id: 'all', label: 'All Updates', icon: <SquaresFourIcon weight="bold" size={14} />, activeColor: 'bg-[#071A4D] text-white' },
+  { id: 'all', label: 'All Updates', icon: <SquaresFourIcon weight="bold" size={14} />, activeColor: 'bg-[#071A4D] text-white dark:bg-km-primary' },
   { id: 'jobs', label: 'Jobs & Hiring', icon: <BriefcaseIcon weight="bold" size={14} />, activeColor: 'bg-[#0B5ED7] text-white' },
   { id: 'skills', label: 'Skills & Learning', icon: <GraduationCapIcon weight="bold" size={14} />, activeColor: 'bg-[#16A34A] text-white' },
   { id: 'mentors', label: 'Mentorship', icon: <StarIcon weight="bold" size={14} />, activeColor: 'bg-[#7C3AED] text-white' },

@@ -153,7 +153,7 @@ export default function CreateJobPage() {
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-6 bg-km-surface-card p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
-                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
+                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4 dark:text-blue-400">
                                 <InfoIcon className="w-5 h-5" />
                                 <span>Basic Information</span>
                             </div>
@@ -178,7 +178,7 @@ export default function CreateJobPage() {
                                     <label className="text-sm font-semibold text-gray-700">Company Name</label>
                                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
                                         <div className="w-10 h-10 rounded-lg bg-km-surface-card flex items-center justify-center shadow-sm border border-gray-100">
-                                            <BuildingOfficeIcon className="w-5 h-5 text-blue-600" />
+                                            <BuildingOfficeIcon className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                         </div>
                                         <div className="flex-1">
                                             <p className="text-sm font-bold text-gray-900">{formData.company || "Not Set"}</p>
@@ -279,13 +279,13 @@ export default function CreateJobPage() {
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-8 bg-km-surface-card p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
-                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
+                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4 dark:text-blue-400">
                                 <CurrencyInrIcon className="w-5 h-5" />
                                 <span>Compensation & Experience</span>
                             </div>
 
                             <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 flex gap-4">
-                                <ShieldCheckIcon className="w-8 h-8 text-blue-600 shrink-0" />
+                                <ShieldCheckIcon className="w-8 h-8 text-blue-600 shrink-0 dark:text-blue-400" />
                                 <div>
                                     <h4 className="font-bold text-blue-900">Fair Pay Policy</h4>
                                     <p className="text-sm text-blue-700 mt-1">Providing honest salary ranges helps you attract the right talent and improves your job ranking.</p>
@@ -395,7 +395,7 @@ export default function CreateJobPage() {
                             exit={{ opacity: 0, x: -20 }}
                             className="space-y-6 bg-km-surface-card p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
-                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
+                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4 dark:text-blue-400">
                                 <PencilSimpleIcon className="w-5 h-5" />
                                 <span>Core Details</span>
                             </div>

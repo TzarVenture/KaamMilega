@@ -319,7 +319,7 @@ export default function AdminChatReportsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, reason..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all text-slate-800"
+              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all text-slate-800 dark:focus:border-km-link"
             />
           </div>
         </div>
@@ -489,7 +489,7 @@ export default function AdminChatReportsPage() {
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <FlagIcon size={24} weight="duotone" className="text-amber-600 shrink-0" aria-hidden="true" />
+                <FlagIcon size={24} weight="duotone" className="text-amber-600 shrink-0 dark:text-amber-400" aria-hidden="true" />
                 <div>
                   <h3 className="text-base font-bold text-km-text-primary">
                     Review Chat Report
@@ -526,7 +526,7 @@ export default function AdminChatReportsPage() {
                 </div>
 
                 <div className="p-3 bg-red-50/50 rounded-xl border border-red-200">
-                  <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider">
+                  <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider dark:text-red-400">
                     Reported User
                   </p>
                   <p className="text-sm font-bold text-slate-900 mt-0.5">
@@ -541,7 +541,7 @@ export default function AdminChatReportsPage() {
               {/* Reported Reason & Description */}
               <div className="p-3.5 bg-amber-50/40 rounded-xl border border-amber-200">
                 <p className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                  <WarningIcon weight="bold" size={14} className="text-amber-600 shrink-0" />
+                  <WarningIcon weight="bold" size={14} className="text-amber-600 shrink-0 dark:text-amber-400" />
                   Reason: {selectedReport.reason}
                 </p>
                 {selectedReport.description ? (
@@ -611,7 +611,7 @@ export default function AdminChatReportsPage() {
                               href={msg.attachment_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline mt-1 font-semibold"
+                              className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline mt-1 font-semibold dark:text-blue-400"
                             >
                               <PaperclipIcon weight="bold" size={12} />
                               View Attachment
@@ -639,7 +639,7 @@ export default function AdminChatReportsPage() {
                     <select
                       value={resolveStatus}
                       onChange={(e) => setResolveStatus(e.target.value as any)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all dark:focus:border-km-link"
                     >
                       <option value="resolved">Resolved (Action completed)</option>
                       <option value="under_review">Keep Under Review</option>
@@ -654,7 +654,7 @@ export default function AdminChatReportsPage() {
                     <select
                       value={actionTaken}
                       onChange={(e) => setActionTaken(e.target.value as any)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all dark:focus:border-km-link"
                     >
                       <option value="warning">Issue Warning to User</option>
                       <option value="user_suspended">Suspend Account (Block access)</option>
@@ -673,7 +673,7 @@ export default function AdminChatReportsPage() {
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                     placeholder="Enter reason or notes for other moderators..."
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card resize-none transition-all"
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card resize-none transition-all dark:focus:border-km-link"
                   />
                 </div>
               </div>
@@ -693,7 +693,7 @@ export default function AdminChatReportsPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleResolveSubmit}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] transition-colors shadow-xs flex items-center gap-1.5 disabled:opacity-70"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] transition-colors shadow-xs flex items-center gap-1.5 disabled:opacity-70 dark:bg-km-primary dark:hover:bg-km-primary-dark"
               >
                 {isSubmitting ? (
                   <>

@@ -515,7 +515,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                                         <p className="text-xs font-bold text-slate-900 truncate">
                                             {notif.actor_name || notif.title || "KaamMilega Notification"}
                                         </p>
-                                        <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded-full shrink-0">
+                                        <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded-full shrink-0 dark:text-blue-400">
                                             New
                                         </span>
                                     </div>

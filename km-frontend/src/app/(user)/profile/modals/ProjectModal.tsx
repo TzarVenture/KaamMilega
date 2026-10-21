@@ -194,7 +194,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
         >
             <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold dark:text-red-400">
                         {error}
                     </div>
                 )}
@@ -202,7 +202,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                 {/* Project Title */}
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Project / Work Name <span className="text-red-500">*</span>
+                        Project / Work Name <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <input
                         type="text"

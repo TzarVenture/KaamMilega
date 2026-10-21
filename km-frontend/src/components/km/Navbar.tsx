@@ -30,7 +30,7 @@ interface NavLink {
 // Desktop nav item: duotone icon in a rounded hit area; the active item sits on a soft blue tile
 const navItemClass = (isActive: boolean) =>
   `relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
-    isActive ? "bg-[#EAF1FC] text-km-heading" : "text-slate-600 hover:bg-km-surface hover:text-km-heading"
+    isActive ? "bg-[#EAF1FC] text-km-heading dark:bg-blue-500/15" : "text-slate-600 hover:bg-km-surface hover:text-km-heading"
   }`;
 
 // Dark hover tooltip under a nav item (the item's wrapper needs the `group` class)
@@ -41,7 +41,7 @@ const NavTooltip = ({ label, align = "center" }: { label: string; align?: "cente
     }`}
     aria-hidden="true"
   >
-    <span className="block bg-[#071A4D] text-white text-xs font-medium py-1 px-2 rounded-md shadow-md whitespace-nowrap">
+    <span className="block bg-[#071A4D] text-white text-xs font-medium py-1 px-2 rounded-md shadow-md whitespace-nowrap dark:bg-km-primary">
       {label}
     </span>
   </span>
@@ -210,7 +210,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 aria-label="Search jobs, skills, companies and more"
-                className="w-full pl-10 pr-9 py-2.5 bg-km-surface border border-km-border rounded-full text-sm font-normal text-km-text-primary focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card focus:ring-2 focus:ring-[#071A4D]/10 transition-all shadow-2xs"
+                className="w-full pl-10 pr-9 py-2.5 bg-km-surface border border-km-border rounded-full text-sm font-normal text-km-text-primary focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card focus:ring-2 focus:ring-[#071A4D]/10 transition-all shadow-2xs dark:focus:border-km-link dark:focus:ring-km-link"
               />
               {!searchValue && <SearchHint className="left-10 right-8" />}
               {searchValue && (
@@ -242,7 +242,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     <span className="relative">
                       <Icon size={22} weight="duotone" className={accent ? "text-[#FF6B00]" : undefined} aria-hidden="true" />
                       {href === "/chat" && chatUnreadCount > 0 && (
-                        <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-[#FF6B00] text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white">
+                        <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-[#FF6B00] text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white dark:border-km-surface-card">
                           {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
                         </span>
                       )}
@@ -274,7 +274,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 <span className="relative">
                   <BellIcon size={22} weight="duotone" aria-hidden="true" />
                   {unreadCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white">
+                    <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white dark:border-km-surface-card">
                       {unreadCount > 99 ? "99+" : unreadCount}
                     </span>
                   )}
@@ -329,7 +329,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                           e.stopPropagation();
                           markAllAsRead();
                         }}
-                        className="text-xs font-semibold text-km-heading hover:text-km-primary-dark transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                        className="text-xs font-semibold text-km-heading hover:text-km-primary-dark transition-colors cursor-pointer flex items-center gap-1 shrink-0 dark:hover:text-km-link"
                       >
                         <CheckIcon weight="bold" size={13} />
                         Mark all read
@@ -351,7 +351,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                       <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
                         {displayedNotifications.length === 0 ? (
                           <div className="p-8 text-center text-slate-400">
-                            <CheckCircleIcon size={32} weight="duotone" className="text-emerald-600 mx-auto mb-2" aria-hidden="true" />
+                            <CheckCircleIcon size={32} weight="duotone" className="text-emerald-600 mx-auto mb-2 dark:text-emerald-400" aria-hidden="true" />
                             <p className="text-xs font-semibold text-slate-700">
                               All caught up!
                             </p>
@@ -448,7 +448,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     <Link
                       href="/notifications"
                       onClick={() => setNotifDropdownOpen(false)}
-                      className="text-xs font-bold text-km-heading hover:text-km-primary-dark transition-colors py-1 block"
+                      className="text-xs font-bold text-km-heading hover:text-km-primary-dark transition-colors py-1 block dark:hover:text-km-link"
                     >
                       View all notifications
                     </Link>
@@ -462,7 +462,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           <div className="relative group" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`flex items-center gap-1 p-1.5 rounded-xl transition-colors cursor-pointer ${isMenuOpen ? "bg-[#EAF1FC]" : "hover:bg-km-surface"}`}
+              className={`flex items-center gap-1 p-1.5 rounded-xl transition-colors cursor-pointer ${isMenuOpen ? "bg-[#EAF1FC] dark:bg-blue-500/15" : "hover:bg-km-surface"}`}
               aria-label="Account and settings"
               aria-expanded={isMenuOpen}
             >
@@ -661,7 +661,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 }
               />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white shadow-2xs">
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white shadow-2xs dark:border-km-surface-card">
                   {unreadCount > 99 ? "99+" : unreadCount}
                 </span>
               )}
@@ -695,7 +695,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 px-4 py-3 shadow-xl animate-in slide-in-from-top-2 duration-150">
             <form
               onSubmit={handleSearch}
-              className="relative flex items-center bg-km-surface rounded-xl border border-km-border px-3.5 py-2.5 gap-2 focus-within:border-[#071A4D] focus-within:bg-km-surface-card focus-within:ring-2 focus-within:ring-[#071A4D]/10 transition-all"
+              className="relative flex items-center bg-km-surface rounded-xl border border-km-border px-3.5 py-2.5 gap-2 focus-within:border-[#071A4D] focus-within:bg-km-surface-card focus-within:ring-2 focus-within:ring-[#071A4D]/10 transition-all dark:focus-within:border-km-link dark:focus-within:ring-km-link"
             >
               <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 shrink-0" />
               <input
@@ -709,7 +709,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
               {!searchValue && <SearchHint className="left-10 right-16" />}
               <button
                 type="submit"
-                className="bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold px-4 py-2 rounded-lg shrink-0 transition-colors cursor-pointer shadow-2xs"
+                className="bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold px-4 py-2 rounded-lg shrink-0 transition-colors cursor-pointer shadow-2xs dark:bg-km-primary dark:hover:bg-km-primary-dark"
               >
                 Go
               </button>
@@ -887,7 +887,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   await clearSession();
                   window.location.href = "/login";
                 }}
-                className="w-full text-center py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+                className="w-full text-center py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer dark:text-red-400"
               >
                 Sign Out
               </button>

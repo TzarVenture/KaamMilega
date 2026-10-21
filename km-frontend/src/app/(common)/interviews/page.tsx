@@ -34,7 +34,7 @@ export default function UserInterviewsPage() {
     }
 
     return (
-        <div className="bg-[#F8FAFC] min-h-screen pb-20 font-sans">
+        <div className="bg-[#F8FAFC] min-h-screen pb-20 font-sans dark:bg-white/5">
             <div className="max-w-5xl mx-auto p-6 md:p-12">
                 <header className="mb-10">
                     <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">My Interviews</h1>
@@ -64,7 +64,7 @@ export default function UserInterviewsPage() {
                                     {/* Header: Company & Job */}
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-14 h-14 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 rounded-2xl flex items-center justify-center border border-slate-700 shadow-xs">
+                                            <div className="w-14 h-14 bg-linear-to-br from-[#020617] via-km-primary-dark to-[#020617] rounded-2xl flex items-center justify-center border border-slate-700 shadow-xs">
                                                 <BuildingOfficeIcon className="w-7 h-7 text-white" />
                                             </div>
                                             <div>
@@ -109,8 +109,8 @@ export default function UserInterviewsPage() {
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
                                                 {inview.type === 'Video' ? <VideoCameraIcon className="w-5 h-5 text-km-heading" /> :
-                                                    inview.type === 'Phone' ? <PhoneIcon className="w-5 h-5 text-emerald-600" /> :
-                                                        <MapPinIcon className="w-5 h-5 text-amber-600" />}
+                                                    inview.type === 'Phone' ? <PhoneIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> :
+                                                        <MapPinIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{inview.type} INTERVIEW</p>

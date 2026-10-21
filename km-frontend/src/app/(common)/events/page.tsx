@@ -170,13 +170,13 @@ const PublicEventsPage = () => {
         <div className="bg-km-surface min-h-screen pb-20 font-sans">
 
             {/* ─── Events & Bootcamps Hero Section with Art & Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans">
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
                         {/* Left Column: Headlines, Simple Copy, CTAs & Value Props */}
                         <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
                             {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
+                            <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4 dark:bg-amber-500/15 dark:text-orange-400">
                                 <CalendarBlankIcon weight="bold" size={14} className="text-[#F59E0B]" />
                                 <span>Events & Bootcamps</span>
                             </div>
@@ -201,7 +201,7 @@ const PublicEventsPage = () => {
                                 </a>
                                 <Link
                                     href="/expert/apply"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-km-surface-card/10 hover:border-white transition-all shadow-xs"
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card"
                                 >
                                     <span>Host an Event</span>
                                     <ArrowRightIcon weight="bold" size={13} />
@@ -311,7 +311,7 @@ const PublicEventsPage = () => {
                                 onClick={() => setPricingFilter('all')}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                                     pricingFilter === 'all'
-                                        ? 'bg-[#071A4D] text-white shadow-2xs'
+                                        ? 'bg-[#071A4D] text-white shadow-2xs dark:bg-km-primary'
                                         : 'bg-km-surface text-km-text-secondary hover:text-km-text-primary'
                                 }`}
                             >
@@ -322,7 +322,7 @@ const PublicEventsPage = () => {
                                 onClick={() => setPricingFilter('free')}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                                     pricingFilter === 'free'
-                                        ? 'bg-[#071A4D] text-white shadow-2xs'
+                                        ? 'bg-[#071A4D] text-white shadow-2xs dark:bg-km-primary'
                                         : 'bg-km-surface text-km-text-secondary hover:text-km-text-primary'
                                 }`}
                             >
@@ -410,7 +410,7 @@ const PublicEventsPage = () => {
 
                                         {/* Pricing Badge */}
                                         <span className={`absolute bottom-3 right-3 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1 ${
-                                            isPaid ? 'bg-[#FF6B00]' : 'bg-[#071A4D]'
+                                            isPaid ? 'bg-[#FF6B00]' : 'bg-[#071A4D] dark:bg-km-primary'
                                         }`}>
                                             {isPaid && <TicketIcon weight="bold" size={12} />}
                                             {priceText}
@@ -421,7 +421,7 @@ const PublicEventsPage = () => {
                                     <div className="p-5 flex flex-col flex-1">
                                         {/* Category Badge */}
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md">
+                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-amber-500/15">
                                                 {event.category || 'Live Workshop'}
                                             </span>
                                         </div>
@@ -498,7 +498,7 @@ const PublicEventsPage = () => {
                 {/* Loading Indicator for Subsequent Pages */}
                 {loading && events.length > 0 && (
                     <div className="flex justify-center mt-8">
-                        <div className="w-8 h-8 border-3 border-[#071A4D]/20 border-t-[#071A4D] rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-3 border-[#071A4D]/20 border-t-[#071A4D] rounded-full animate-spin dark:border-km-link" />
                     </div>
                 )}
 

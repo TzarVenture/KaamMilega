@@ -71,8 +71,8 @@ const Pagination: React.FC<PaginationProps> = ({ current, total, onPageChange })
                         aria-current={isActive ? 'page' : undefined}
                         className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xs font-semibold transition-all cursor-pointer ${
                             isActive
-                                ? 'bg-[#071A4D] text-white shadow-xs'
-                                : 'text-km-text-secondary border border-km-border hover:border-[#071A4D] hover:text-km-heading hover:bg-km-surface bg-km-surface-card'
+                                ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
+                                : 'text-km-text-secondary border border-km-border hover:border-[#071A4D] hover:text-km-heading hover:bg-km-surface bg-km-surface-card dark:hover:border-km-link'
                         }`}
                         onClick={() => onPageChange(item)}
                     >

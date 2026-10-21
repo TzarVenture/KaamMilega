@@ -22,21 +22,21 @@ export default function HowWeWorkPage() {
       title: 'Direct Smart Match & Apply',
       desc: 'Browse thousands of verified job vacancies across 100+ cities. Filter by sector, salary, experience, and apply with a single tap.',
       icon: MagnifyingGlassIcon,
-      color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      color: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:text-emerald-400',
     },
     {
       step: '03',
       title: 'Direct HR Call & Interview',
       desc: 'No consultants, no middle agents. Receive calls directly from company recruiters, confirm interview slots, and discuss offers transparently.',
       icon: PhoneCallIcon,
-      color: 'bg-purple-50 text-purple-600 border-purple-200',
+      color: 'bg-purple-50 text-purple-600 border-purple-200 dark:text-purple-400',
     },
     {
       step: '04',
       title: 'Get Hired & Instant Payouts',
       desc: 'Join full-time roles or take on InstantMilega™ short gigs with guaranteed escrow payouts directly to your bank account or wallet.',
       icon: CoinsIcon,
-      color: 'bg-amber-50 text-amber-600 border-amber-200',
+      color: 'bg-amber-50 text-amber-600 border-amber-200 dark:text-amber-400',
     },
   ];
 
@@ -53,21 +53,21 @@ export default function HowWeWorkPage() {
       title: 'Post Jobs & Instant Shifts',
       desc: 'Post full-time, contract, or urgent shifts. Detail requirements, salary ranges, benefits, and local area preferences with zero hidden charges.',
       icon: SealCheckIcon,
-      color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      color: 'bg-emerald-50 text-emerald-600 border-emerald-200 dark:text-emerald-400',
     },
     {
       step: '03',
       title: 'Access Active Candidate Pool',
       desc: 'Review biometric-vetted candidates matched by AI based on proximity and role competencies. View verifiable video intros and skill certifications.',
       icon: UsersThreeIcon,
-      color: 'bg-purple-50 text-purple-600 border-purple-200',
+      color: 'bg-purple-50 text-purple-600 border-purple-200 dark:text-purple-400',
     },
     {
       step: '04',
       title: 'Hire Faster with Zero Commission',
       desc: 'Directly chat, schedule interviews, and finalize hires. Keep 100% of your budget focused on candidate wages without third-party recruitment markups.',
       icon: CheckCircleIcon,
-      color: 'bg-amber-50 text-amber-600 border-amber-200',
+      color: 'bg-amber-50 text-amber-600 border-amber-200 dark:text-amber-400',
     },
   ];
 
@@ -101,7 +101,7 @@ export default function HowWeWorkPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2.5 bg-km-surface-card/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
+          <div className="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
             <Image
               src="/kaammilega-logo-icon.png"
               alt="KaamMilega Icon"
@@ -132,7 +132,7 @@ export default function HowWeWorkPage() {
             </Link>
             <Link
               href="/register"
-              className="px-6 py-3 bg-km-surface-card/15 hover:bg-km-surface-card/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
+              className="px-6 py-3 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
             >
               Hire Candidates
             </Link>
@@ -232,7 +232,7 @@ export default function HowWeWorkPage() {
       <section className="py-16 sm:py-20 bg-km-surface-card px-4 sm:px-6 lg:px-8 border-y border-slate-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 dark:text-emerald-400">
               Platform Integrity
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -278,7 +278,7 @@ export default function HowWeWorkPage() {
             </Link>
             <Link
               href="/about"
-              className="px-8 py-3.5 bg-km-surface-card/10 hover:bg-km-surface-card/20 border border-white/25 text-white font-bold rounded-full text-sm transition-all"
+              className="px-8 py-3.5 bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold rounded-full text-sm transition-all"
             >
               Learn More About Us
             </Link>

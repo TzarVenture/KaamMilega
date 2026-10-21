@@ -30,7 +30,7 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-km-surface-card/10 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-amber-300 shrink-0">
+                    <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-amber-300 shrink-0">
                         <span className="font-medium tracking-wide">Har Kaam, Har Mauka™</span>
                     </div>
                 </div>
@@ -169,9 +169,9 @@ export default function Footer() {
                 </div>
 
                 {/* Bottom */}
-                <div className="mt-14 pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-xs">
+                <div className="mt-14 pt-8 border-t border-[#1E293B]/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-xs">
                     <p>All Rights Reserved © {new Date().getFullYear()} KaamMilega™ — India&apos;s Most Trusted Work &amp; Skill Platform</p>
-                    <p className="text-slate-500">Kaam Bhi. Skill Bhi. Kamaai Bhi.</p>
+                    <p className="text-slate-400">Kaam Bhi. Skill Bhi. Kamaai Bhi.</p>
                 </div>
             </div>
         </footer>

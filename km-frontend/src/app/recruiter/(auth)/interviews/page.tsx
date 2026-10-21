@@ -110,9 +110,9 @@ export default function InterviewsPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {inview.type === 'Video' && <VideoCameraIcon className="w-5 h-5 text-purple-500" />}
-                                            {inview.type === 'Phone' && <PhoneIcon className="w-5 h-5 text-emerald-500" />}
-                                            {inview.type === 'In-person' && <MapPinIcon className="w-5 h-5 text-rose-500" />}
+                                            {inview.type === 'Video' && <VideoCameraIcon className="w-5 h-5 text-purple-500 dark:text-purple-400" />}
+                                            {inview.type === 'Phone' && <PhoneIcon className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />}
+                                            {inview.type === 'In-person' && <MapPinIcon className="w-5 h-5 text-rose-500 dark:text-rose-400" />}
                                             <span className="font-bold text-gray-700">{inview.type} Interview</span>
                                         </div>
                                     </div>

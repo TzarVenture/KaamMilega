@@ -35,16 +35,16 @@ interface Job {
 // ─── Design.md Shimmer Skeleton Loader ───
 const JobDetailSkeleton = () => (
     <div className="bg-km-surface min-h-screen font-sans pb-20">
-        <div className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 pb-12 rounded-b-[32px] sm:rounded-b-[44px]">
+        <div className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 pb-12 rounded-b-[32px] sm:rounded-b-[44px] dark:border-white/10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-                <div className="h-4 bg-km-surface-card/10 rounded-md w-32 animate-shimmer" />
-                <div className="h-8 bg-km-surface-card/10 rounded-lg w-2/3 animate-shimmer" />
-                <div className="h-4 bg-km-surface-card/10 rounded-md w-1/3 animate-shimmer" />
+                <div className="h-4 bg-white/10 rounded-md w-32 animate-shimmer" />
+                <div className="h-8 bg-white/10 rounded-lg w-2/3 animate-shimmer" />
+                <div className="h-4 bg-white/10 rounded-md w-1/3 animate-shimmer" />
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
-                    <div className="h-16 bg-km-surface-card/10 rounded-xl animate-shimmer" />
-                    <div className="h-16 bg-km-surface-card/10 rounded-xl animate-shimmer" />
-                    <div className="h-16 bg-km-surface-card/10 rounded-xl animate-shimmer" />
-                    <div className="h-16 bg-km-surface-card/10 rounded-xl animate-shimmer" />
+                    <div className="h-16 bg-white/10 rounded-xl animate-shimmer" />
+                    <div className="h-16 bg-white/10 rounded-xl animate-shimmer" />
+                    <div className="h-16 bg-white/10 rounded-xl animate-shimmer" />
+                    <div className="h-16 bg-white/10 rounded-xl animate-shimmer" />
                 </div>
             </div>
         </div>
@@ -275,7 +275,7 @@ const JobDetailPage = () => {
             <ToastContainer />
 
             {/* ─── Hero Section with Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-8 sm:pb-10 lg:pb-12 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans">
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-8 sm:pb-10 lg:pb-12 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Back Link */}
                     <div className="mb-4">
@@ -292,8 +292,8 @@ const JobDetailPage = () => {
                         {/* Left Header Content */}
                         <div className="flex-1 min-w-0">
                             {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3 py-1 rounded-full mb-3">
-                                <BriefcaseIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7]/20" />
+                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3 py-1 rounded-full mb-3 dark:bg-blue-500/15 dark:border-blue-500/30">
+                                <BriefcaseIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
                                 <span>Verified Direct Job Opening</span>
                             </div>
 
@@ -303,9 +303,9 @@ const JobDetailPage = () => {
 
                             <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
                                 <span className="text-white font-semibold text-sm">{job.company}</span>
-                                <span className="w-1 h-1 rounded-full bg-km-surface-card/40" />
+                                <span className="w-1 h-1 rounded-full bg-white/40" />
                                 <span className="flex items-center gap-1">
-                                    <MapPinIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7]" />
+                                    <MapPinIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7] dark:fill-blue-400" />
                                     <span>
                                         {job.location ? `${job.location}, ` : ''}
                                         {job.city_name || 'All India'}
@@ -313,7 +313,7 @@ const JobDetailPage = () => {
                                 </span>
                                 {job.created_at && (
                                     <>
-                                        <span className="w-1 h-1 rounded-full bg-km-surface-card/40" />
+                                        <span className="w-1 h-1 rounded-full bg-white/40" />
                                         <span className="flex items-center gap-1">
                                             <CalendarBlankIcon weight="fill" size={13} className="text-white/60 fill-white/20" />
                                             <span>Posted {formatDate(job.created_at)}</span>
@@ -324,25 +324,25 @@ const JobDetailPage = () => {
 
                             {/* Key Metrics Chips Grid inside Hero */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mt-6 pt-5 border-t border-white/10">
-                                <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3">
+                                <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3 dark:bg-km-primary-dark">
                                     <p className="text-[11px] font-medium text-white/60">Monthly Salary</p>
                                     <p className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">
                                         ₹{job.salary_min?.toLocaleString('en-IN') || 0} - ₹{job.salary_max?.toLocaleString('en-IN') || 0}
                                     </p>
                                 </div>
-                                <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3">
+                                <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3 dark:bg-km-primary-dark">
                                     <p className="text-[11px] font-medium text-white/60">Job Type</p>
                                     <p className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">
                                         {job.job_type}
                                     </p>
                                 </div>
-                                <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3">
+                                <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3 dark:bg-km-primary-dark">
                                     <p className="text-[11px] font-medium text-white/60">Experience</p>
                                     <p className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">
                                         {job.experience_min === 0 ? 'Fresher Friendly' : `${job.experience_min} - ${job.experience_max} Yrs`}
                                     </p>
                                 </div>
-                                <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3">
+                                <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3 dark:bg-km-primary-dark">
                                     <p className="text-[11px] font-medium text-white/60">Openings</p>
                                     <p className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">
                                         {job.vacancies || 1} Positions
@@ -359,7 +359,7 @@ const JobDetailPage = () => {
                                     href="/applications"
                                     className="h-11 px-5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
                                 >
-                                    <CheckCircleIcon weight="fill" size={15} className="fill-white text-emerald-600" />
+                                    <CheckCircleIcon weight="fill" size={15} className="fill-white text-emerald-600 dark:text-emerald-400" />
                                     <span>Application Submitted • Track Status</span>
                                 </Link>
                             ) : (
@@ -384,7 +384,7 @@ const JobDetailPage = () => {
                                             ? 'bg-[#0B5ED7] hover:bg-[#094bb3] text-white border-transparent'
                                             : connectionStatus === 'pending'
                                             ? 'bg-km-surface-card/10 text-white/70 border-white/20 cursor-default'
-                                            : 'bg-[#0B1F52] hover:bg-km-surface-card/10 text-white border-white/20'
+                                            : 'bg-[#0B1F52] hover:bg-white/10 text-white border-white/20 dark:bg-km-primary-dark'
                                     }`}
                                 >
                                     {connectionStatus === 'accepted' ? (
@@ -413,12 +413,12 @@ const JobDetailPage = () => {
                                 title={isBookmarked ? 'Remove from saved' : 'Save this job'}
                                 className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-colors cursor-pointer shadow-xs ${
                                     isBookmarked
-                                        ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE]'
-                                        : 'bg-[#0B1F52] text-white/90 hover:text-white hover:bg-km-surface-card/10 border-white/20'
+                                        ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-blue-500/15 dark:border-blue-500/30'
+                                        : 'bg-[#0B1F52] text-white/90 hover:text-white hover:bg-white/10 border-white/20 dark:bg-km-primary-dark'
                                 }`}
                             >
                                 {isBookmarked ? (
-                                    <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-km-link" />
+                                    <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-km-link dark:fill-blue-400" />
                                 ) : (
                                     <BookmarkSimpleIcon weight="fill" size={16} className="fill-white/10 text-white/90" />
                                 )}
@@ -429,7 +429,7 @@ const JobDetailPage = () => {
                                 type="button"
                                 onClick={handleShare}
                                 title="Share this job"
-                                className="w-11 h-11 rounded-xl bg-[#0B1F52] border border-white/20 text-white/90 hover:text-white hover:bg-km-surface-card/10 transition-colors flex items-center justify-center cursor-pointer shadow-xs"
+                                className="w-11 h-11 rounded-xl bg-[#0B1F52] border border-white/20 text-white/90 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center cursor-pointer shadow-xs dark:bg-km-primary-dark"
                             >
                                 <ShareNetworkIcon weight="bold" size={16} />
                             </button>
@@ -446,7 +446,7 @@ const JobDetailPage = () => {
                         {/* Job Specifications Card */}
                         <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
                             <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
-                                <BriefcaseIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20" />
+                                <BriefcaseIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
                                 <span>Role Overview & Specifications</span>
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -492,7 +492,7 @@ const JobDetailPage = () => {
                         {/* Description Card */}
                         <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
                             <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
-                                <FileTextIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20" />
+                                <FileTextIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
                                 <span>Detailed Job Description</span>
                             </h2>
                             <div className="text-sm text-km-text-primary leading-relaxed whitespace-pre-wrap font-normal">
@@ -504,7 +504,7 @@ const JobDetailPage = () => {
                         {job.requirements && job.requirements.length > 0 && (
                             <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
                                 <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
-                                    <MedalIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20" />
+                                    <MedalIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
                                     <span>Key Requirements & Skills</span>
                                 </h2>
                                 <div className="flex flex-wrap gap-2">
@@ -513,7 +513,7 @@ const JobDetailPage = () => {
                                             key={skill}
                                             className="px-3 py-1.5 bg-km-surface border border-km-border text-km-heading rounded-xl text-xs font-medium flex items-center gap-1.5"
                                         >
-                                            <CheckCircleIcon weight="bold" size={13} className="fill-[#0B5ED7] text-white" />
+                                            <CheckCircleIcon weight="bold" size={13} className="fill-[#0B5ED7] text-white dark:fill-blue-400" />
                                             <span>{skill}</span>
                                         </span>
                                     ))}
@@ -560,7 +560,7 @@ const JobDetailPage = () => {
                                         href="/applications"
                                         className="w-full h-11 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
                                     >
-                                        <CheckCircleIcon weight="fill" size={15} className="fill-white text-emerald-600" />
+                                        <CheckCircleIcon weight="fill" size={15} className="fill-white text-emerald-600 dark:text-emerald-400" />
                                         <span>Application Submitted • Track Status</span>
                                     </Link>
                                 ) : (
@@ -594,7 +594,7 @@ const JobDetailPage = () => {
                                             </>
                                         ) : connectionStatus === 'pending' ? (
                                             <>
-                                                <ClockIcon weight="fill" size={14} className="fill-amber-500/20 text-amber-500" />
+                                                <ClockIcon weight="fill" size={14} className="fill-amber-500/20 text-amber-500 dark:text-amber-400" />
                                                 <span>Connection Pending</span>
                                             </>
                                         ) : (
@@ -632,13 +632,13 @@ const JobDetailPage = () => {
                             {/* Company Info Box */}
                             <div className="pt-4 border-t border-km-border">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[#071A4D] text-white font-bold text-sm flex items-center justify-center shrink-0 border border-[#0B1F52]">
+                                    <div className="w-10 h-10 rounded-xl bg-[#071A4D] text-white font-bold text-sm flex items-center justify-center shrink-0 border border-[#0B1F52] dark:bg-km-primary dark:border-km-link">
                                         {job.company ? job.company.charAt(0).toUpperCase() : 'C'}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs font-bold text-km-text-primary truncate">{job.company}</p>
                                         <p className="text-[11px] text-km-link font-semibold flex items-center gap-1">
-                                            <CheckCircleIcon weight="bold" size={11} className="fill-[#0B5ED7] text-white" /> Verified Employer
+                                            <CheckCircleIcon weight="bold" size={11} className="fill-[#0B5ED7] text-white dark:fill-blue-400" /> Verified Employer
                                         </p>
                                     </div>
                                 </div>
@@ -652,7 +652,7 @@ const JobDetailPage = () => {
                             </h3>
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-blue-500/15">
                                         1
                                     </div>
                                     <div>
@@ -661,7 +661,7 @@ const JobDetailPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-blue-500/15">
                                         2
                                     </div>
                                     <div>
@@ -670,7 +670,7 @@ const JobDetailPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-blue-500/15">
                                         3
                                     </div>
                                     <div>
@@ -693,7 +693,7 @@ const JobDetailPage = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsApplyModalOpen(false)}
-                            className="fixed inset-0 bg-[#071A4D]/60 backdrop-blur-xs"
+                            className="fixed inset-0 bg-[#071A4D]/60 backdrop-blur-xs dark:bg-km-primary"
                         />
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -724,7 +724,7 @@ const JobDetailPage = () => {
                                 {/* Compact Candidate Profile Strip */}
                                 <div className="bg-km-surface border border-km-border rounded-xl p-3 flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-2.5 min-w-0">
-                                        <div className="w-9 h-9 rounded-xl bg-[#071A4D] text-white font-bold text-xs flex items-center justify-center shrink-0 border border-[#0B1F52]">
+                                        <div className="w-9 h-9 rounded-xl bg-[#071A4D] text-white font-bold text-xs flex items-center justify-center shrink-0 border border-[#0B1F52] dark:bg-km-primary dark:border-km-link">
                                             {(user?.name || user?.first_name || 'C').charAt(0).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
@@ -770,7 +770,7 @@ const JobDetailPage = () => {
                                     {!resumeFile ? (
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="border-2 border-dashed border-km-border hover:border-[#0B5ED7] hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group"
+                                            className="border-2 border-dashed border-km-border hover:border-[#0B5ED7] hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group dark:hover:bg-blue-500/15"
                                         >
                                             <CloudArrowUpIcon size={20} className="text-km-link mx-auto mb-1.5" aria-hidden="true" />
                                             <p className="text-xs font-semibold text-km-text-primary">
@@ -781,7 +781,7 @@ const JobDetailPage = () => {
                                             </p>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center justify-between p-3 bg-km-surface border border-[#BFDBFE] rounded-xl">
+                                        <div className="flex items-center justify-between p-3 bg-km-surface border border-[#BFDBFE] rounded-xl dark:border-blue-500/30">
                                             <div className="flex items-center gap-2.5 min-w-0">
                                                 <FileTextIcon size={20} className="text-km-link shrink-0" aria-hidden="true" />
                                                 <div className="min-w-0">
@@ -796,7 +796,7 @@ const JobDetailPage = () => {
                                             <button
                                                 type="button"
                                                 onClick={handleRemoveFile}
-                                                className="p-1.5 text-km-text-secondary hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                                                className="p-1.5 text-km-text-secondary hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer dark:hover:text-rose-400"
                                                 title="Remove attached resume"
                                             >
                                                 <TrashIcon weight="bold" size={15} />

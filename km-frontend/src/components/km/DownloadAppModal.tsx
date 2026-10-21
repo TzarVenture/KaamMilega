@@ -109,7 +109,7 @@ export default function DownloadAppModal({ isOpen, onClose }: DownloadAppModalPr
                         </label>
                         {isSent ? (
                             <div className="flex items-center justify-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-medium">
-                                <CheckCircleIcon weight="bold" size={16} className="text-emerald-600 shrink-0" />
+                                <CheckCircleIcon weight="bold" size={16} className="text-emerald-600 shrink-0 dark:text-emerald-400" />
                                 <span>Download link sent to +91 {phone}</span>
                             </div>
                         ) : (

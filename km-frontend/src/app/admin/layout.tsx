@@ -113,7 +113,7 @@ export default function AdminLayout({
                 <div className={`p-4 mx-2 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-4 shadow-lg shadow-purple-900/10 transition-all ${collapsed && 'px-2'}`}>
                     <motion.div
                         whileHover={{ scale: 1.05 }}
-                        className="w-10 h-10 bg-km-surface-card/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20"
+                        className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20"
                     >
                         <span className="text-white text-lg font-bold rotate-45">▲▲</span>
                     </motion.div>
@@ -146,7 +146,7 @@ export default function AdminLayout({
                                     whileTap={{ scale: 0.98 }}
                                     className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all relative ${isActive
                                         ? 'bg-purple-50 text-purple-700 font-bold'
-                                        : 'text-slate-500 hover:text-purple-600'
+                                        : 'text-slate-500 hover:text-purple-600 dark:hover:text-purple-400'
                                         }`}
                                 >
                                     {isActive && (
@@ -155,7 +155,7 @@ export default function AdminLayout({
                                             className="absolute left-0 w-1.5 h-6 bg-purple-600 rounded-r-full"
                                         />
                                     )}
-                                    <item.icon size={22} className={`${isActive ? 'text-purple-600' : 'text-slate-400 group-hover:text-purple-600'} transition-colors`} />
+                                    <item.icon size={22} className={`${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'} transition-colors`} />
                                     <AnimatePresence mode="wait">
                                         {!collapsed && (
                                             <motion.span
@@ -178,7 +178,7 @@ export default function AdminLayout({
             <div className="p-4 border-t border-purple-50">
                 <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all font-semibold"
+                    className="w-full flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all font-semibold dark:hover:text-red-400"
                 >
                     <SignOutIcon size={22} />
                     {!collapsed && <span className="text-[14px]">Sign Out</span>}
@@ -188,7 +188,7 @@ export default function AdminLayout({
     );
 
     return (
-        <div className="min-h-screen bg-[#FDFCFE] flex font-sans selection:bg-purple-200">
+        <div className="min-h-screen bg-[#FDFCFE] flex font-sans selection:bg-purple-200 dark:bg-white/5">
             {/* ── DESKTOP SIDEBAR ── */}
             <motion.aside
                 initial={false}
@@ -266,7 +266,7 @@ export default function AdminLayout({
 
                         <div className="flex items-center flex-1 max-w-xl">
                             <div className="relative w-full group">
-                                <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                                <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Search intelligence..."
@@ -286,8 +286,8 @@ export default function AdminLayout({
                             </motion.button>
                             <div className="h-8 w-px bg-purple-100 hidden sm:block"></div>
                             <div className="relative cursor-pointer">
-                                <BellIcon size={22} className="text-slate-400 hover:text-purple-600 transition-colors" />
-                                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                                <BellIcon size={22} className="text-slate-400 hover:text-purple-600 transition-colors dark:hover:text-purple-400" />
+                                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full dark:border-km-surface-card"></span>
                             </div>
                             <div className="flex items-center gap-2 cursor-pointer group">
                                 <div className="w-9 h-9 sm:w-10 sm:h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 text-xs font-bold ring-2 ring-purple-500/10 group-hover:ring-purple-500/20 transition-all shadow-sm">
@@ -297,7 +297,7 @@ export default function AdminLayout({
                                     <p className="text-[13px] font-bold text-slate-800 leading-none">{adminUser?.name || 'Admin'}</p>
                                     <p className="text-[10px] text-slate-400 font-medium mt-1">Administrator</p>
                                 </div>
-                                <CaretDownIcon weight="bold" size={14} className="text-slate-400 group-hover:text-purple-600 transition-colors hidden md:block" />
+                                <CaretDownIcon weight="bold" size={14} className="text-slate-400 group-hover:text-purple-600 transition-colors hidden md:block dark:group-hover:text-purple-400" />
                             </div>
                         </div>
                     </header>

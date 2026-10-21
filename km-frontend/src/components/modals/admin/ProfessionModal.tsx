@@ -112,7 +112,7 @@ const ProfessionModal = ({
             <form onSubmit={handleSave} className="space-y-6">
                 {errorMessage && (
                     <div className="flex items-center gap-2.5 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold">
-                        <WarningCircleIcon weight="bold" size={18} className="shrink-0 text-red-500" />
+                        <WarningCircleIcon weight="bold" size={18} className="shrink-0 text-red-500 dark:text-red-400" />
                         <span>{errorMessage}</span>
                     </div>
                 )}
@@ -120,7 +120,7 @@ const ProfessionModal = ({
                 {/* Name Input */}
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
-                        Profession / Skill Name <span className="text-red-500">*</span>
+                        Profession / Skill Name <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <div className="relative">
                         <input
@@ -138,7 +138,7 @@ const ProfessionModal = ({
                 {/* Category Selection */}
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
-                        Industry Category <span className="text-red-500">*</span>
+                        Industry Category <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <select
                         value={isCustomCategory ? '__custom__' : category}

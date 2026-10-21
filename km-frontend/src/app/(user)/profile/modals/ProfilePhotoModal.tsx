@@ -112,7 +112,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
           {/* Delete Button */}
           <button
             onClick={handleDelete}
-            className="p-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group"
+            className="p-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group dark:hover:text-red-400"
           >
             <TrashIcon size={20} className="group-hover:shake" />
           </button>

@@ -22,7 +22,7 @@ export default function CompanyDetailPage() {
                         href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-500 text-sm hover:underline"
+                        className="text-blue-500 text-sm hover:underline dark:text-blue-400"
                     >
                         {company.website || "N/A"}
                     </a>

@@ -71,7 +71,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
     ];
 
     return (
-        <section className="relative overflow-hidden bg-linear-to-b from-[#EAF1FA] to-[#F4F7FB] pt-4 pb-6 sm:pt-10 sm:pb-12 lg:pt-12 lg:pb-14 border-b border-km-border-subtle font-sans">
+        <section className="relative overflow-hidden bg-linear-to-b from-[#EAF1FA] to-[#F4F7FB] pt-4 pb-6 sm:pt-10 sm:pb-12 lg:pt-12 lg:pb-14 border-b border-km-border-subtle font-sans dark:from-km-surface dark:to-km-surface">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Main Hero Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-6 items-center">
@@ -394,7 +394,13 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                         src="/kaammilega-logo-text.png"
                                         alt="Kaammilega™"
                                         fill
-                                        className="object-contain object-left"
+                                        className="object-contain object-left dark:hidden"
+                                    />
+                                    <Image
+                                        src="/kaammilega-logo-text-dark.png"
+                                        alt="Kaammilega™"
+                                        fill
+                                        className="object-contain object-left hidden dark:block"
                                     />
                                 </div>
                             </div>

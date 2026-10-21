@@ -57,7 +57,7 @@ export default function RecruiterSidebar() {
                     </div>
                     <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-slate-900 truncate">{companyName}</p>
-                        <p className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
+                        <p className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1 dark:text-emerald-400">
                             <ShieldCheckIcon weight="bold" size={11} /> Verified Partner
                         </p>
                     </div>
@@ -96,7 +96,7 @@ export default function RecruiterSidebar() {
                         await clearSession();
                         window.location.href = "/recruiter/login";
                     }}
-                    className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-2xl border border-transparent hover:border-rose-100 transition-all"
+                    className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-2xl border border-transparent hover:border-rose-100 transition-all dark:text-rose-400"
                 >
                     <SignOutIcon weight="bold" className="w-4 h-4" />
                     <span>Sign Out Session</span>

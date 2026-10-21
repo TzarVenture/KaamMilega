@@ -178,7 +178,7 @@ export default function AdminTestimonialsPage() {
                 <button
                     type="button"
                     onClick={handleOpenCreate}
-                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0 dark:bg-km-primary dark:hover:bg-km-primary-dark"
                 >
                     <PlusIcon weight="bold" size={16} />
                     <span>Add New Story</span>
@@ -250,7 +250,7 @@ export default function AdminTestimonialsPage() {
                                                     />
                                                     <div className="absolute inset-0 bg-black/15 flex items-center justify-center group-hover/thumb:bg-black/25 transition-colors">
                                                         <div className="w-6 h-6 rounded-full bg-km-surface-card text-km-heading flex items-center justify-center shadow-xs group-hover/thumb:scale-110 transition-transform">
-                                                            <PlayIcon weight="bold" size={10} className="fill-[#071A4D] ml-0.5" />
+                                                            <PlayIcon weight="bold" size={10} className="fill-[#071A4D] ml-0.5 dark:fill-km-heading" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -261,7 +261,7 @@ export default function AdminTestimonialsPage() {
                                                 <div className="font-bold text-sm text-slate-900">
                                                     {item.name}
                                                 </div>
-                                                <div className="flex items-center gap-1.5 text-amber-500 mt-1">
+                                                <div className="flex items-center gap-1.5 text-amber-500 mt-1 dark:text-amber-400">
                                                     <div className="flex items-center gap-0.5">
                                                         {[1, 2, 3, 4, 5].map((s) => (
                                                             <StarIcon weight="fill"
@@ -331,7 +331,7 @@ export default function AdminTestimonialsPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDelete(item.id, item.name)}
-                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer dark:hover:text-red-400"
                                                         title="Delete Story"
                                                     >
                                                         <TrashIcon weight="bold" size={14} />
@@ -375,7 +375,7 @@ export default function AdminTestimonialsPage() {
                                     {/* Candidate Name */}
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-slate-700">
-                                            Candidate Name <span className="text-red-500">*</span>
+                                            Candidate Name <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -390,7 +390,7 @@ export default function AdminTestimonialsPage() {
                                     {/* Role */}
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-slate-700">
-                                            Role / Designation <span className="text-red-500">*</span>
+                                            Role / Designation <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -405,7 +405,7 @@ export default function AdminTestimonialsPage() {
                                     {/* Company */}
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-slate-700">
-                                            Hiring Company <span className="text-red-500">*</span>
+                                            Hiring Company <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -438,9 +438,9 @@ export default function AdminTestimonialsPage() {
                                 <div className="space-y-1">
                                     <div className="flex items-center justify-between">
                                         <label className="text-xs font-semibold text-slate-700">
-                                            Candidate Review / Feedback <span className="text-red-500">*</span>
+                                            Candidate Review / Feedback <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
-                                        <span className={`text-[11px] font-semibold ${review.length > 100 ? "text-red-500" : "text-slate-400"}`}>
+                                        <span className={`text-[11px] font-semibold ${review.length > 100 ? "text-red-500 dark:text-red-400" : "text-slate-400"}`}>
                                             {review.length}/100
                                         </span>
                                     </div>
@@ -461,7 +461,7 @@ export default function AdminTestimonialsPage() {
                                 {/* YouTube URL */}
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-700">
-                                        YouTube Video URL / Embed Link <span className="text-red-500">*</span>
+                                        YouTube Video URL / Embed Link <span className="text-red-500 dark:text-red-400">*</span>
                                     </label>
                                     <input
                                         type="url"
@@ -536,7 +536,7 @@ export default function AdminTestimonialsPage() {
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="px-6 py-2.5 text-xs font-bold text-white bg-[#071A4D] hover:bg-[#0B1F52] rounded-xl shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer flex items-center gap-1.5"
+                                        className="px-6 py-2.5 text-xs font-bold text-white bg-[#071A4D] hover:bg-[#0B1F52] rounded-xl shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer flex items-center gap-1.5 dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                     >
                                         {saving ? (
                                             <>
@@ -562,7 +562,7 @@ export default function AdminTestimonialsPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="relative w-full max-w-3xl bg-black rounded-3xl overflow-hidden shadow-2xl border border-slate-800"
+                            className="relative w-full max-w-3xl bg-black rounded-3xl overflow-hidden shadow-2xl border border-[#1E293B]"
                         >
                             <button
                                 type="button"

@@ -29,7 +29,7 @@ const ResourceDetailsPage = () => {
                                 <PlayIcon weight="fill" className="text-slate-400 fill-slate-400 ml-1" size={32} />
                             </div>
                         </div>
-                        <button className="absolute top-6 right-6 p-3 bg-km-surface-card/20 backdrop-blur-md rounded-xl text-white hover:bg-km-surface-card/40">
+                        <button className="absolute top-6 right-6 p-3 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/40">
                             <BookmarkSimpleIcon size={20} />
                         </button>
                     </div>
@@ -47,7 +47,7 @@ const ResourceDetailsPage = () => {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-16 h-16 rounded-full bg-km-primary-dark relative flex items-center justify-center shadow-inner">
-                                        <div className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                                        <div className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full dark:border-km-surface-card" />
                                     </div>
                                     <div>
                                         <h4 className="text-lg font-bold">Expert Name</h4>
@@ -82,7 +82,7 @@ const ResourceDetailsPage = () => {
                                     <h4 className="font-bold text-slate-900">Learners</h4>
                                     <div className="flex items-center gap-3">
                                         <div className="flex -space-x-2">
-                                            {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-300" />)}
+                                            {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-300 dark:border-km-surface-card" />)}
                                         </div>
                                         <span className="text-xs text-slate-400 font-medium">90 people interested in this</span>
                                     </div>
@@ -140,7 +140,7 @@ const ResourceDetailsPage = () => {
                                             <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-km-heading">
                                                 <ThumbsUpIcon weight="bold" size={16} /> Like
                                             </button>
-                                            <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-rose-500">
+                                            <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-rose-500 dark:hover:text-rose-400">
                                                 <FlagIcon weight="bold" size={16} /> Report
                                             </button>
                                         </div>

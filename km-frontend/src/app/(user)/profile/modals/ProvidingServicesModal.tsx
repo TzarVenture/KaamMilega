@@ -248,7 +248,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                                 type="button"
                                 onClick={handleRemove}
                                 disabled={removing || saving}
-                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5"
+                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5 dark:text-rose-400"
                             >
                                 {removing ? <CircleNotchIcon weight="bold" size={14} className="animate-spin" /> : <TrashIcon weight="bold" size={14} />}
                                 <span>Remove Services</span>

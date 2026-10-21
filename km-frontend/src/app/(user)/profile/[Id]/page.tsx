@@ -174,7 +174,7 @@ const OtherUserProfilePage = () => {
                                     <CustomImage src={user.cover_image} alt="Cover" className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                        <div className="w-24 h-24 bg-km-surface-card/20 rotate-45"></div>
+                                        <div className="w-24 h-24 bg-white/20 rotate-45"></div>
                                     </div>
                                 )}
                             </div>
@@ -182,7 +182,7 @@ const OtherUserProfilePage = () => {
                             {/* Profile Info */}
                             <div className="px-4 sm:px-8 pb-6 sm:pb-8">
                                 <div className="relative flex justify-between items-end -mt-12 sm:-mt-16 mb-4">
-                                    <div className="w-24 h-24 sm:w-32 sm:h-32 bg-km-ink rounded-full border-4 border-white flex items-center justify-center overflow-hidden shadow-md">
+                                    <div className="w-24 h-24 sm:w-32 sm:h-32 bg-km-ink rounded-full border-4 border-white flex items-center justify-center overflow-hidden shadow-md dark:border-km-surface-card">
                                         {user?.profile_image ? (
                                             <CustomImage src={user?.profile_image} alt={user?.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -226,7 +226,7 @@ const OtherUserProfilePage = () => {
                                                 href={user.portfolio_url.startsWith('http') ? user.portfolio_url : `https://${user.portfolio_url}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-km-heading hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1"
+                                                className="text-km-heading hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1 dark:hover:text-km-link"
                                             >
                                                 <span>{user?.portfolio_label || "Portfolio / Website"}</span>
                                                 <ArrowSquareOutIcon weight="bold" size={12} />
@@ -449,7 +449,7 @@ const OtherUserProfilePage = () => {
                                                         href={proj.project_url.startsWith('http') ? proj.project_url : `https://${proj.project_url}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline border border-blue-200 bg-km-surface-card px-3 py-1.5 rounded-full shadow-2xs transition-all"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline border border-blue-200 bg-km-surface-card px-3 py-1.5 rounded-full shadow-2xs transition-all dark:hover:text-km-link"
                                                     >
                                                         <span>Show Project</span>
                                                         <ArrowSquareOutIcon weight="bold" size={12} />

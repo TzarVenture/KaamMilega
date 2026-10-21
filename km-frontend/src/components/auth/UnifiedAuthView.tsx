@@ -387,7 +387,7 @@ export default function UnifiedAuthView({
                             {/* Error Banner */}
                             {error && (
                                 <div className="mb-4 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-700 font-medium">
-                                    <WarningCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-red-600" />
+                                    <WarningCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
                                     <span>{error}</span>
                                 </div>
                             )}
@@ -395,7 +395,7 @@ export default function UnifiedAuthView({
                             {/* Success Banner */}
                             {successMsg && (
                                 <div className="mb-4 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5 text-xs text-emerald-800 font-medium">
-                                    <CheckCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-emerald-600" />
+                                    <CheckCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
                                     <span>{successMsg}</span>
                                 </div>
                             )}
@@ -436,7 +436,7 @@ export default function UnifiedAuthView({
                                                             setMobile(val);
                                                             setError(null);
                                                         }}
-                                                        className="w-full h-11 pl-14 pr-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all tracking-wide"
+                                                        className="w-full h-11 pl-14 pr-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all tracking-wide dark:focus:border-km-link dark:focus:ring-km-link"
                                                         autoFocus
                                                     />
                                                 </div>
@@ -447,7 +447,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || mobile.replace(/\D/g, '').length !== 10}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
                                                     mobile.replace(/\D/g, '').length === 10 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -571,7 +571,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || otp.join('').length !== 4}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-2 shadow-xs ${
                                                     otp.join('').length === 4 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -616,7 +616,7 @@ export default function UnifiedAuthView({
                                                             setFullName(e.target.value);
                                                             setError(null);
                                                         }}
-                                                        className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                        className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                         autoFocus
                                                     />
                                                 </div>
@@ -638,7 +638,7 @@ export default function UnifiedAuthView({
                                                         setCity(e.target.value);
                                                         setError(null);
                                                     }}
-                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                 />
                                                 <datalist id="signup-city-options">
                                                     {cityOptions.map((name) => (
@@ -652,7 +652,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || fullName.trim().length < 2 || !city.trim()}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
                                                     fullName.trim().length >= 2 && city.trim() && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -698,7 +698,7 @@ export default function UnifiedAuthView({
                                                 setIdentifier(e.target.value);
                                                 setError(null);
                                             }}
-                                            className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                            className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                             autoFocus
                                         />
                                     </div>
@@ -730,7 +730,7 @@ export default function UnifiedAuthView({
                                                     setPassword(e.target.value);
                                                     setError(null);
                                                 }}
-                                                className="w-full h-11 pl-3.5 pr-10 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                className="w-full h-11 pl-3.5 pr-10 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                             />
                                             <button
                                                 type="button"
@@ -763,7 +763,7 @@ export default function UnifiedAuthView({
                                         disabled={loading || !identifier.trim() || !password}
                                         className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-2 shadow-xs ${
                                             identifier.trim() && password && !loading
-                                                ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                 : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                         }`}
                                     >
@@ -809,7 +809,7 @@ export default function UnifiedAuthView({
                                                         setForgotEmail(e.target.value);
                                                         setError(null);
                                                     }}
-                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                     autoFocus
                                                 />
                                             </div>
@@ -819,7 +819,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || !forgotEmail.trim()}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
                                                     forgotEmail.trim() && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -864,7 +864,7 @@ export default function UnifiedAuthView({
                                                         setForgotCode(e.target.value.replace(/\D/g, ''));
                                                         setError(null);
                                                     }}
-                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-semibold tracking-widest text-km-text-primary text-center focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-semibold tracking-widest text-km-text-primary text-center focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                     autoFocus
                                                 />
                                             </div>
@@ -884,7 +884,7 @@ export default function UnifiedAuthView({
                                                             setNewPassword(e.target.value);
                                                             setError(null);
                                                         }}
-                                                        className="w-full h-11 pl-3.5 pr-10 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                        className="w-full h-11 pl-3.5 pr-10 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                     />
                                                     <button
                                                         type="button"
@@ -901,7 +901,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || forgotCode.length !== 4 || newPassword.length < 6}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
                                                     forgotCode.length === 4 && newPassword.length >= 6 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >

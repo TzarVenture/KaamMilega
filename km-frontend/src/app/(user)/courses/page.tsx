@@ -179,7 +179,7 @@ export default function CoursesExpertStudioPage() {
         return (
             <div className="min-h-screen bg-km-surface py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
                 <div className="max-w-md w-full bg-km-surface-card rounded-3xl p-8 border border-km-border shadow-lg text-center space-y-5">
-                    <GraduationCapIcon size={36} weight="duotone" className="text-[#7C3AED] mx-auto" aria-hidden="true" />
+                    <GraduationCapIcon size={36} weight="duotone" className="text-[#7C3AED] mx-auto dark:text-violet-400" aria-hidden="true" />
                     <div className="space-y-2">
                         <h2 className="text-2xl font-black text-km-heading">
                             Expert Portal Only
@@ -192,7 +192,7 @@ export default function CoursesExpertStudioPage() {
                         <button
                             type="button"
                             onClick={() => router.push("/expert/apply")}
-                            className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
+                            className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm dark:bg-km-primary dark:hover:bg-km-primary-dark"
                         >
                             <span>Apply to Become an Expert</span>
                             <ArrowRightIcon weight="bold" size={16} />
@@ -206,7 +206,7 @@ export default function CoursesExpertStudioPage() {
     return (
         <main className="min-h-screen bg-km-surface pb-20 font-sans">
             {/* ─── Hero Header with Mentorship Theme Design Philosophy ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden dark:border-white/10">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                         <div>
@@ -221,13 +221,13 @@ export default function CoursesExpertStudioPage() {
                         <div className="flex items-center gap-2.5 shrink-0">
                             <Link
                                 href="/courses/manage"
-                                className="text-xs sm:text-sm font-semibold text-white bg-km-surface-card/10 hover:bg-km-surface-card/20 border border-white/20 px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                                className="text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
                             >
                                 <span>Manage My Courses</span>
                             </Link>
                             <Link
                                 href="/resources"
-                                className="text-xs sm:text-sm font-semibold text-km-heading bg-km-surface-card hover:bg-km-surface-card/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                                className="text-xs sm:text-sm font-semibold text-km-heading bg-km-surface-card hover:bg-km-surface-card/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 dark:border-km-surface-card"
                             >
                                 <span>Public Marketplace</span>
                                 <ArrowSquareOutIcon weight="bold" size={13} />
@@ -262,7 +262,7 @@ export default function CoursesExpertStudioPage() {
                                     <label className="block text-xs font-semibold text-km-heading">
                                         Course Title <span className="text-[#FF6B00]">*</span>
                                     </label>
-                                    <span className={`text-[11px] ${titleWordCount > 10 ? "text-red-500 font-semibold" : "text-km-text-secondary"}`}>
+                                    <span className={`text-[11px] ${titleWordCount > 10 ? "text-red-500 font-semibold dark:text-red-400" : "text-km-text-secondary"}`}>
                                         {titleWordCount} / 10 words
                                     </span>
                                 </div>
@@ -279,7 +279,7 @@ export default function CoursesExpertStudioPage() {
                                     }`}
                                 />
                                 {titleWordCount > 10 && (
-                                    <p className="text-[11px] text-red-500">
+                                    <p className="text-[11px] text-red-500 dark:text-red-400">
                                         Title cannot exceed 10 words. Please shorten your title.
                                     </p>
                                 )}
@@ -359,7 +359,7 @@ export default function CoursesExpertStudioPage() {
                                     <label className="block text-xs font-semibold text-km-heading">
                                         Course Description & Highlights
                                     </label>
-                                    <span className={`text-[11px] ${descWordCount > 50 ? "text-red-500 font-semibold" : "text-km-text-secondary"}`}>
+                                    <span className={`text-[11px] ${descWordCount > 50 ? "text-red-500 font-semibold dark:text-red-400" : "text-km-text-secondary"}`}>
                                         {descWordCount} / 50 words
                                     </span>
                                 </div>
@@ -375,7 +375,7 @@ export default function CoursesExpertStudioPage() {
                                     }`}
                                 />
                                 {descWordCount > 50 && (
-                                    <p className="text-[11px] text-red-500">
+                                    <p className="text-[11px] text-red-500 dark:text-red-400">
                                         Description cannot exceed 50 words. Please shorten your description.
                                     </p>
                                 )}
@@ -384,7 +384,7 @@ export default function CoursesExpertStudioPage() {
 
                         {/* Real-Time Thumbnail Preview Box */}
                         {extractedVideoId ? (
-                            <div className="p-4 bg-[#F0FDF4] border border-[#16A34A]/30 rounded-2xl flex flex-col sm:flex-row items-center gap-4">
+                            <div className="p-4 bg-[#F0FDF4] border border-[#16A34A]/30 rounded-2xl flex flex-col sm:flex-row items-center gap-4 dark:bg-white/5">
                                 <div className="relative w-full sm:w-44 h-26 rounded-xl overflow-hidden bg-slate-200 shrink-0 shadow-xs">
                                     <img
                                         src={getYouTubeThumbnail(extractedVideoId)}
@@ -420,7 +420,7 @@ export default function CoursesExpertStudioPage() {
                                 className={`w-full sm:w-auto px-7 py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 ${
                                     submitting || !extractedVideoId
                                         ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                                        : "bg-[#071A4D] hover:bg-[#0B1F52] text-white shadow-[#071A4D]/20 active:scale-[0.98] cursor-pointer"
+                                        : "bg-[#071A4D] hover:bg-[#0B1F52] text-white shadow-[#071A4D]/20 active:scale-[0.98] cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 }`}
                             >
                                 {submitting ? (
@@ -454,7 +454,7 @@ export default function CoursesExpertStudioPage() {
                         {/* View All Course Button */}
                         <Link
                             href="/courses/manage"
-                            className="inline-flex items-center justify-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs md:text-sm font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-xs transition-all cursor-pointer active:scale-[0.98] shrink-0 whitespace-nowrap"
+                            className="inline-flex items-center justify-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs md:text-sm font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-xs transition-all cursor-pointer active:scale-[0.98] shrink-0 whitespace-nowrap dark:bg-km-primary dark:hover:bg-km-primary-dark"
                         >
                             <span>View All Course</span>
                             <ArrowRightIcon weight="bold" size={12} className="shrink-0" />
@@ -482,7 +482,7 @@ export default function CoursesExpertStudioPage() {
                                 type="button"
                                 onClick={handleScrollLeft}
                                 aria-label="Scroll left"
-                                className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-[#071A4D] hover:text-white border border-km-border shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100"
+                                className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-[#071A4D] hover:text-white border border-km-border shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100 dark:hover:bg-km-primary"
                                 title="Scroll left"
                             >
                                 <CaretLeftIcon weight="bold" size={18} />
@@ -509,7 +509,7 @@ export default function CoursesExpertStudioPage() {
                                 type="button"
                                 onClick={handleScrollRight}
                                 aria-label="Scroll right"
-                                className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-[#071A4D] hover:text-white border border-km-border shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100"
+                                className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-[#071A4D] hover:text-white border border-km-border shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100 dark:hover:bg-km-primary"
                                 title="Scroll right"
                             >
                                 <CaretRightIcon weight="bold" size={18} />

@@ -178,10 +178,10 @@ export default function UsersPage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {[
-                    { label: 'Total Registered', value: totalUsersCount.toString(), icon: UsersIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
-                    { label: 'Platform Admins', value: adminCount.toString(), icon: ShieldIcon, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                    { label: 'Verified Employers', value: recruiterCount.toString(), icon: BuildingOfficeIcon, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Active Candidates', value: candidateCount.toString(), icon: UserIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    { label: 'Total Registered', value: totalUsersCount.toString(), icon: UsersIcon, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50' },
+                    { label: 'Platform Admins', value: adminCount.toString(), icon: ShieldIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50' },
+                    { label: 'Verified Employers', value: recruiterCount.toString(), icon: BuildingOfficeIcon, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50' },
+                    { label: 'Active Candidates', value: candidateCount.toString(), icon: UserIcon, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50' },
                 ].map((stat, i) => (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -210,7 +210,7 @@ export default function UsersPage() {
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="relative group flex-1">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                         <input
                             type="text"
                             placeholder="Search by name, mobile, role..."
@@ -257,7 +257,7 @@ export default function UsersPage() {
                             {isLoading ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-16 text-center text-slate-500">
-                                        <CircleNotchIcon className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3" />
+                                        <CircleNotchIcon className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3 dark:text-purple-400" />
                                         <p className="text-sm font-medium">Loading platform users...</p>
                                     </td>
                                 </tr>
@@ -334,7 +334,7 @@ export default function UsersPage() {
                                         <td className="px-8 py-5 text-right">
                                             <button
                                                 onClick={() => handleEditUser(user)}
-                                                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all border border-transparent hover:border-purple-100"
+                                                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all border border-transparent hover:border-purple-100 dark:hover:text-purple-400"
                                                 title="Edit Profile"
                                             >
                                                 <NotePencilIcon weight="bold" size={16} />

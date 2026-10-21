@@ -52,7 +52,7 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#FDFCFE] flex items-center justify-center p-6 selection:bg-purple-200">
+        <div className="min-h-screen bg-[#FDFCFE] flex items-center justify-center p-6 selection:bg-purple-200 dark:bg-white/5">
             <div className="absolute top-8 left-8">
                 <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-purple-700 transition-colors font-semibold text-sm">
                     <ArrowLeftIcon weight="bold" size={18} />
@@ -73,7 +73,7 @@ export default function AdminLoginPage() {
                                 <div className="w-20 h-20 bg-linear-to-tr from-purple-600 to-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-purple-200 rotate-12">
                                     <ShieldCheckIcon size={40} />
                                 </div>
-                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center">
+                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center dark:border-km-surface-card">
                                     <div className="w-2 h-2 bg-km-surface-card rounded-full"></div>
                                 </div>
                             </div>
@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
-                            className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-bold"
+                            className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-bold dark:text-red-400"
                         >
                             <div className="w-2 h-2 bg-red-600 rounded-full"></div>
                             {error}
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
                             <div className="space-y-2">
                                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Mobile Number</label>
                                 <div className="relative group">
-                                    <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={20} />
+                                    <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={20} />
                                     <input
                                         type="tel"
                                         required
@@ -113,10 +113,10 @@ export default function AdminLoginPage() {
                             <div className="space-y-2">
                                 <div className="flex justify-between items-center px-1">
                                     <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Verification Code</label>
-                                    <button type="button" onClick={() => setStep('SEND_OTP')} className="text-[11px] font-bold text-purple-600 hover:underline">Change Number?</button>
+                                    <button type="button" onClick={() => setStep('SEND_OTP')} className="text-[11px] font-bold text-purple-600 hover:underline dark:text-purple-400">Change Number?</button>
                                 </div>
                                 <div className="relative group">
-                                    <KeyIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={20} />
+                                    <KeyIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={20} />
                                     <input
                                         type="text"
                                         required

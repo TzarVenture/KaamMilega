@@ -92,7 +92,7 @@ export default function CareerPage() {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-km-surface-card/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
             <BriefcaseIcon weight="bold" size={16} className="text-amber-400" />
             <span className="text-xs sm:text-sm font-semibold tracking-wide text-white">
               We&apos;re Hiring Across Engineering, Product &amp; Growth
@@ -117,7 +117,7 @@ export default function CareerPage() {
             </a>
             <Link
               href="/about"
-              className="px-6 py-3 bg-km-surface-card/15 hover:bg-km-surface-card/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
+              className="px-6 py-3 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
             >
               Our Mission
             </Link>
@@ -141,7 +141,7 @@ export default function CareerPage() {
             <p className="text-xs font-semibold text-slate-500 mt-1">Indian Cities Covered</p>
           </div>
           <div>
-            <p className="text-2xl sm:text-3xl font-black text-emerald-600">0%</p>
+            <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">0%</p>
             <p className="text-xs font-semibold text-slate-500 mt-1">Worker Brokerage Taken</p>
           </div>
         </div>
@@ -236,7 +236,7 @@ export default function CareerPage() {
 
                 <a
                   href={`mailto:careers@kaammilega.com?subject=Application for ${encodeURIComponent(job.title)}`}
-                  className="px-6 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-bold rounded-full text-xs sm:text-sm transition-all shadow-xs shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer"
+                  className="px-6 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-bold rounded-full text-xs sm:text-sm transition-all shadow-xs shrink-0 flex items-center gap-1.5 active:scale-95 cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                 >
                   <span>Apply Now</span>
                   <ArrowRightIcon weight="bold" size={14} />
@@ -250,7 +250,7 @@ export default function CareerPage() {
       {/* Direct Contact Banner */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
         <div className="bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] rounded-3xl p-8 sm:p-12 text-white shadow-xl">
-          <div className="w-14 h-14 rounded-full bg-km-surface-card/10 backdrop-blur-md border border-white/20 flex items-center justify-center mx-auto mb-4 text-white">
+          <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mx-auto mb-4 text-white">
             <EnvelopeSimpleIcon size={24} />
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">

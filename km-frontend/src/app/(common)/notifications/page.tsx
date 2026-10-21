@@ -320,7 +320,7 @@ export default function NotificationsPage() {
                     {actionLabel && (
                         <button
                             onClick={(e) => handleActionClick(e, item)}
-                            className="hidden sm:inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold text-km-heading hover:text-km-primary-dark bg-blue-50/90 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                            className="hidden sm:inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold text-km-heading hover:text-km-primary-dark bg-blue-50/90 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer dark:hover:text-km-link"
                         >
                             {actionLabel}
                         </button>
@@ -339,7 +339,7 @@ export default function NotificationsPage() {
                     <button
                         onClick={(e) => handleDelete(e, item.id)}
                         title="Delete notification"
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 dark:hover:text-red-400"
                     >
                         <TrashIcon weight="bold" size={14} />
                     </button>
@@ -368,7 +368,7 @@ export default function NotificationsPage() {
                         <div className="flex items-center justify-between mb-3 px-1">
                             <h2 className="text-sm font-bold text-slate-900">Notifications</h2>
                             {unreadCount > 0 && (
-                                <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full border border-red-100">
+                                <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full border border-red-100 dark:text-red-400">
                                     {unreadCount} unread
                                 </span>
                             )}
@@ -398,7 +398,7 @@ export default function NotificationsPage() {
                                         {count > 0 && (
                                             <span
                                                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                                                    isActive ? "bg-km-surface-card/20 text-white" : "bg-red-50 text-red-600"
+                                                    isActive ? "bg-white/20 text-white" : "bg-red-50 text-red-600 dark:text-red-400"
                                                 }`}
                                             >
                                                 {count}
@@ -437,7 +437,7 @@ export default function NotificationsPage() {
                                 onChange={(e) => setUnreadOnly(e.target.checked)}
                                 className="sr-only peer"
                             />
-                            <div className="w-10 h-5.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-km-surface-card after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-km-primary"></div>
+                            <div className="w-10 h-5.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-km-surface-card after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-km-primary dark:peer-checked:after:border-km-surface-card"></div>
                         </label>
                     </div>
                 </aside>
@@ -458,7 +458,7 @@ export default function NotificationsPage() {
                         {unreadCount > 0 && (
                             <button
                                 onClick={handleMarkAllRead}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark transition-colors cursor-pointer dark:hover:text-km-link"
                             >
                                 <ChecksIcon weight="bold" size={15} />
                                 <span>Mark all as read</span>
@@ -564,7 +564,7 @@ export default function NotificationsPage() {
                                         <button
                                             onClick={handleLoadMore}
                                             disabled={loadingMore}
-                                            className="px-5 py-2 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:bg-blue-50 border border-blue-200 rounded-xl transition-all cursor-pointer inline-flex items-center gap-2"
+                                            className="px-5 py-2 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:bg-blue-50 border border-blue-200 rounded-xl transition-all cursor-pointer inline-flex items-center gap-2 dark:hover:text-km-link"
                                         >
                                             {loadingMore ? (
                                                 <>

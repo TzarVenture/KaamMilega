@@ -143,7 +143,7 @@ export default function NearbySpotGigsFeed({
                             Nearby Spot Gigs
                         </h2>
                         {isFiltered && (
-                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/30">
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/30 dark:bg-orange-500/15">
                                 {activeSkill}
                             </span>
                         )}
@@ -168,7 +168,7 @@ export default function NearbySpotGigsFeed({
                         type="button"
                         onClick={() => fetchGigs()}
                         disabled={loading}
-                        className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#071A4D] text-km-heading hover:bg-km-surface text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                        className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#071A4D] text-km-heading hover:bg-km-surface text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 dark:border-km-link"
                     >
                         <ArrowsClockwiseIcon weight="bold" size={13} className={loading ? 'animate-spin text-[#FF6B00]' : ''} />
                         <span>Refresh</span>
@@ -195,7 +195,7 @@ export default function NearbySpotGigsFeed({
                             <button
                                 type="button"
                                 onClick={onResetCategory}
-                                className="bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-xs"
+                                className="bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-xs dark:bg-km-primary dark:hover:bg-km-primary-dark"
                             >
                                 View All Categories
                             </button>
@@ -203,7 +203,7 @@ export default function NearbySpotGigsFeed({
                         <button
                             type="button"
                             onClick={() => fetchGigs()}
-                            className="bg-km-surface hover:bg-[#D9E0EA] text-km-heading font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer border border-km-border"
+                            className="bg-km-surface hover:bg-[#D9E0EA] text-km-heading font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer border border-km-border dark:hover:bg-white/10"
                         >
                             Scan Perimeter Again
                         </button>
@@ -221,11 +221,11 @@ export default function NearbySpotGigsFeed({
                         return (
                             <div
                                 key={job.id}
-                                className="bg-km-surface-card rounded-2xl border border-km-border hover:border-[#071A4D]/40 hover:shadow-xs transition-all duration-150 flex flex-col justify-between p-5 sm:p-6"
+                                className="bg-km-surface-card rounded-2xl border border-km-border hover:border-[#071A4D]/40 hover:shadow-xs transition-all duration-150 flex flex-col justify-between p-5 sm:p-6 dark:hover:border-km-link"
                             >
                                 <div>
                                     <div className="flex items-center justify-between gap-2 mb-3">
-                                        <span className="px-2.5 py-1 rounded-md bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/20 text-xs font-bold">
+                                        <span className="px-2.5 py-1 rounded-md bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/20 text-xs font-bold dark:bg-orange-500/15">
                                             {job.skill}
                                         </span>
 

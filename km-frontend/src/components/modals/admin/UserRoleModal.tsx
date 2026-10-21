@@ -22,21 +22,21 @@ const AVAILABLE_ROLES = [
         title: 'Platform Administrator',
         description: 'Full platform access: moderate vacancies, verify companies, and manage all users.',
         icon: ShieldIcon,
-        color: 'text-purple-600 bg-purple-50 border-purple-200'
+        color: 'text-purple-600 bg-purple-50 border-purple-200 dark:text-purple-400'
     },
     {
         id: 'recruiter',
         title: 'Recruiter / Employer',
         description: 'Can post vacancies, inspect applicant resumes, and manage company profile.',
         icon: BuildingOfficeIcon,
-        color: 'text-emerald-600 bg-emerald-50 border-emerald-200'
+        color: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400'
     },
     {
         id: 'user',
         title: 'Job Seeker / Candidate',
         description: 'Standard account: can browse jobs, apply to vacancies, and create profile.',
         icon: UserIcon,
-        color: 'text-blue-600 bg-blue-50 border-blue-200'
+        color: 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400'
     }
 ];
 

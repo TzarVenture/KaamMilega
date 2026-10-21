@@ -119,7 +119,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
 
                 {infoMsg && (
                     <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-3 rounded-xl flex items-center gap-2 text-xs font-bold">
-                        <CheckCircleIcon weight="bold" className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <CheckCircleIcon weight="bold" className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                         <span>{infoMsg}</span>
                     </div>
                 )}

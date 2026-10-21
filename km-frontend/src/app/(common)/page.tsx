@@ -319,7 +319,7 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
                   tabIndex={idx >= displayFeatured.length ? -1 : undefined}
                   className="shrink-0 mr-5 w-56 sm:w-64 bg-km-surface-card rounded-2xl border border-km-border overflow-hidden group/card hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
                 >
-                  <div className="relative h-32 sm:h-36 overflow-hidden bg-[#0B1F52]">
+                  <div className="relative h-32 sm:h-36 overflow-hidden bg-[#0B1F52] dark:bg-km-primary-dark">
                     <img
                       src={hub.image}
                       alt=""
@@ -387,7 +387,7 @@ const TRUST_FEATURES = [
 const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) => (
   <section className={SECTION} aria-label="Why KaamMilega">
     <div className={CONTAINER}>
-      <div className="relative overflow-hidden rounded-3xl bg-[#071A4D] text-white">
+      <div className="relative overflow-hidden rounded-3xl bg-[#071A4D] text-white dark:ring-1 dark:ring-inset dark:ring-white/10">
         {/* Soft grid texture, fading towards the copy */}
         <svg className="absolute inset-0 h-full w-full text-white/[0.06] [mask-image:linear-gradient(to_left,#000,transparent_70%)]" aria-hidden="true">
           <defs>
@@ -426,7 +426,7 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
               </Link>
               <Link
                 href={isLoggedIn ? "/applications" : "/jobs"}
-                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/25 hover:bg-km-surface-card/10 text-white text-sm font-semibold transition-colors"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/25 hover:bg-white/10 text-white text-sm font-semibold transition-colors"
               >
                 {isLoggedIn ? "My applications" : "Browse openings"}
               </Link>
@@ -487,7 +487,7 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
         {displayRoles.map((role, i) => (
           <Link key={i} href={`/jobs?role=${encodeURIComponent(role.title)}`}>
-            <div className="relative h-48 sm:h-56 rounded-2xl overflow-hidden group cursor-pointer border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-300">
+            <div className="km-on-dark relative h-48 sm:h-56 rounded-2xl overflow-hidden group cursor-pointer border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-300">
               <Image
                 src={role.img}
                 alt={role.title}
@@ -495,7 +495,7 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                 className="object-cover object-top"
               />
-              <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-slate-950/30 to-transparent z-10" />
+              <div className="absolute inset-0 bg-linear-to-t from-[#020617]/90 via-[#020617]/30 to-transparent z-10" />
               <div className="absolute bottom-3.5 left-3.5 right-3.5 z-20 text-white">
                 <h4 className="font-bold text-sm sm:text-base leading-snug group-hover:text-amber-300 transition-colors">
                   {role.title}
@@ -570,7 +570,7 @@ const QualificationSearch = () => (
             href={`/jobs?qualification=${encodeURIComponent(label)}`}
             className="group/card bg-km-surface-card rounded-2xl border border-km-border p-5 hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
           >
-            <Art className="h-16 w-auto -ml-1" />
+            <Art className="h-16 w-auto -ml-1 dark:ml-0 dark:rounded-xl dark:bg-[#E9EEF6] dark:p-1.5 dark:brightness-95" />
             <h3 className="mt-4 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
               {label}
             </h3>
@@ -607,7 +607,7 @@ const JobTypeSection = () => (
             href={`/jobs?job_type=${encodeURIComponent(label)}`}
             className="group/card flex lg:flex-col items-start gap-4 lg:gap-0 bg-km-surface-card rounded-2xl border border-km-border p-5 hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
           >
-            <Art className="h-14 lg:h-16 w-auto shrink-0 -ml-1" />
+            <Art className="h-14 lg:h-16 w-auto shrink-0 -ml-1 dark:ml-0 dark:rounded-xl dark:bg-[#E9EEF6] dark:p-1.5 dark:brightness-95" />
             <div className="lg:mt-4 min-w-0">
               <h3 className="flex items-center gap-1 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
                 {label}
@@ -637,7 +637,7 @@ const DiversityBanner = () => {
   return (
     <section className={SECTION} aria-labelledby="about-km-title">
       <div className={CONTAINER}>
-        <div className="relative overflow-hidden rounded-3xl bg-[#071A4D] text-white">
+        <div className="relative overflow-hidden rounded-3xl bg-[#071A4D] text-white dark:ring-1 dark:ring-inset dark:ring-white/10">
           {/* Same soft grid texture as the "Direct hiring" card */}
           <svg className="absolute inset-0 h-full w-full text-white/[0.06] [mask-image:linear-gradient(to_left,#000,transparent_75%)]" aria-hidden="true">
             <defs>
@@ -685,7 +685,7 @@ const DiversityBanner = () => {
                     alt=""
                     className="absolute inset-0 w-full h-full object-cover"
                   />
-                  <span className="absolute inset-0 bg-[#071A4D]/25 group-hover:bg-[#071A4D]/40 transition-colors" />
+                  <span className="absolute inset-0 bg-[#071A4D]/25 group-hover:bg-[#071A4D]/40 transition-colors dark:bg-km-primary dark:group-hover:bg-km-primary" />
                   <span className="absolute inset-0 flex items-center justify-center">
                     <span className="w-16 h-16 rounded-full bg-km-surface-card text-km-heading flex items-center justify-center shadow-lg">
                       <PlayIcon size={26} weight="fill" className="ml-1" aria-hidden="true" />
@@ -695,8 +695,9 @@ const DiversityBanner = () => {
               ) : (
                 /* Branded poster until the real video is added */
                 <span className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(#E3E9F1_1px,transparent_1px)] [background-size:16px_16px]">
-                  <img src="/kaammilega-logo-text.png" alt="" className="h-7 sm:h-8 w-auto" />
-                  <span className="w-14 h-14 rounded-full bg-[#071A4D] text-white flex items-center justify-center">
+                  <img src="/kaammilega-logo-text.png" alt="" className="h-7 sm:h-8 w-auto dark:hidden" />
+                  <img src="/kaammilega-logo-text-dark.png" alt="" className="h-7 sm:h-8 w-auto hidden dark:block" />
+                  <span className="w-14 h-14 rounded-full bg-[#071A4D] text-white flex items-center justify-center dark:bg-km-primary">
                     <PlayIcon size={24} weight="fill" className="ml-0.5" aria-hidden="true" />
                   </span>
                   <span className="text-sm font-medium text-km-text-secondary">Video coming soon</span>
@@ -709,7 +710,7 @@ const DiversityBanner = () => {
 
       {isPlaying && hasVideo && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071A4D]/80"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071A4D]/80 dark:bg-km-primary"
           onClick={() => setIsPlaying(false)}
         >
           <div className="relative w-full max-w-3xl rounded-2xl overflow-hidden bg-black" onClick={(e) => e.stopPropagation()}>
@@ -855,7 +856,12 @@ const LearnSection = () => {
             <img
               src="/kaammilega-logo-text.png"
               alt="KaamMilega"
-              className="inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em]"
+              className="inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em] dark:hidden"
+            />
+            <img
+              src="/kaammilega-logo-text-dark.png"
+              alt="KaamMilega"
+              className="hidden dark:inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em]"
             />
           </>
         }
@@ -897,7 +903,7 @@ const LearnSection = () => {
 
           {/* Centered Large Play Button Logo - In exact dead center */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-km-surface-card text-km-heading flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-[#071A4D] group-hover:text-white transition-all duration-300">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-km-surface-card text-km-heading flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-[#071A4D] group-hover:text-white transition-all duration-300 dark:group-hover:bg-km-primary">
               <PlayIcon weight="fill" size={28} className="ml-1" />
             </div>
           </div>
@@ -979,8 +985,8 @@ const LearnSection = () => {
       {/* Embedded YouTube Player Modal when clicking play */}
       {playingVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
-          <div className="relative w-full max-w-3xl bg-km-ink rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
-            <div className="flex items-center justify-between px-5 py-3.5 bg-km-ink border-b border-slate-800 text-white">
+          <div className="relative w-full max-w-3xl bg-km-ink rounded-3xl overflow-hidden shadow-2xl border border-[#1E293B] flex flex-col">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-km-ink border-b border-[#1E293B] text-white">
               <div className="flex items-center gap-2 pr-4 overflow-hidden">
                 <span className="text-xs sm:text-sm font-semibold text-white/90 truncate">
                   {playingVideo.title}
@@ -1110,7 +1116,7 @@ const EventDatePlaceholder = ({ date }: { date?: string }) => {
   const parsed = parseEventDate(date);
   const gridId = useId();
   return (
-    <div className="w-full h-full bg-[#071A4D] relative overflow-hidden flex items-center justify-center">
+    <div className="w-full h-full bg-[#071A4D] relative overflow-hidden flex items-center justify-center dark:bg-km-primary">
       <svg className="absolute inset-0 w-full h-full opacity-[0.08]" aria-hidden="true">
         <defs>
           <pattern id={gridId} width="24" height="24" patternUnits="userSpaceOnUse">
@@ -1411,9 +1417,9 @@ const TestimonialsSection = () => {
       {/* In-App YouTube Embedded Streaming Video Modal (Simple & Elegant without glowing dot) */}
       {selectedVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
-          <div className="relative w-full max-w-3xl bg-km-ink rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
+          <div className="relative w-full max-w-3xl bg-km-ink rounded-3xl overflow-hidden shadow-2xl border border-[#1E293B] flex flex-col">
             {/* Top Bar with Candidate Info & Close (Clean & Elegant, no glowing dot) */}
-            <div className="flex items-center justify-between px-5 py-3.5 bg-km-ink border-b border-slate-800 text-white">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-km-ink border-b border-[#1E293B] text-white">
               <div className="flex items-center gap-2 pr-4 overflow-hidden">
                 <span className="text-xs sm:text-sm font-semibold text-white/90 truncate">
                   {selectedVideo.name} | {selectedVideo.role} ({selectedVideo.company})
@@ -1545,7 +1551,7 @@ const PremiumServicesBanner = () => {
     <section className={SECTION} aria-labelledby="premium-title">
       <div className={CONTAINER}>
         <div className="bg-km-surface-card border border-km-border rounded-3xl p-6 sm:p-8 lg:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-          <ProfileBoostArt className="w-full md:w-1/3 max-w-sm shrink-0" />
+          <ProfileBoostArt className="w-full md:w-1/3 max-w-sm shrink-0 dark:rounded-2xl dark:bg-[#E9EEF6] dark:p-3 dark:brightness-95" />
 
           <div className="flex-1 text-center md:text-left">
             <h2 id="premium-title" className="text-xl sm:text-2xl lg:text-[28px] font-bold tracking-[-0.02em] leading-tight text-km-text-primary">
@@ -1570,7 +1576,7 @@ const PremiumServicesBanner = () => {
 
           <Link
             href="/resources/premium"
-            className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-sm font-semibold transition-colors"
+            className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-sm font-semibold transition-colors dark:bg-km-primary dark:hover:bg-km-primary-dark"
           >
             Learn more
             <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />

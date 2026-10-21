@@ -73,7 +73,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
             title={mode === 'add' ? 'Add Profile' : 'Edit User Profile'}
         >
             <form onSubmit={handleSubmit} className="space-y-6">
-                <p className="text-xs text-purple-600 font-medium">* Indicates required</p>
+                <p className="text-xs text-purple-600 font-medium dark:text-purple-400">* Indicates required</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
@@ -129,7 +129,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Let others know how to refer to you.</p>
                     <p className="text-xs text-gray-500">
-                        Learn More About <a href="#" className="text-purple-600 font-semibold hover:underline">Gender Pronouns.</a>
+                        Learn More About <a href="#" className="text-purple-600 font-semibold hover:underline dark:text-purple-400">Gender Pronouns.</a>
                     </p>
                 </div>
 

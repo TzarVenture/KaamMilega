@@ -34,7 +34,7 @@ function ServiceBanner({ Art, tintHex, children }: Pick<ServiceDefinition, 'Art'
     const { ref, inView } = useInViewOnce<HTMLDivElement>();
     useReplayOnHover(ref, inView, '.group');
     return (
-        <div ref={ref} data-inview={inView} className="relative h-32 rounded-xl overflow-hidden" style={{ backgroundColor: tintHex }}>
+        <div ref={ref} data-inview={inView} className="km-on-light relative h-32 rounded-xl overflow-hidden dark:brightness-90" style={{ backgroundColor: tintHex }}>
             <Art className="absolute inset-0 w-full h-full transition-transform duration-300 group-hover:-translate-y-1" />
             {children}
         </div>
@@ -170,7 +170,7 @@ export default function SevenServicesSection() {
                                         <div className="pt-4 border-t border-km-border/60 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
                                             <Link
                                                 href={service.href}
-                                                className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-km-heading hover:text-km-primary-dark transition-colors"
+                                                className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-km-heading hover:text-km-primary-dark transition-colors dark:hover:text-km-link"
                                             >
                                                 <span>{service.actionLabel}</span>
                                                 <ArrowRightIcon weight="bold"

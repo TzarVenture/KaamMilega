@@ -83,7 +83,7 @@ const AddAdsModal = ({ isOpen, onClose, onSave }: AddAdsModalProps) => {
                 {/* Creative Upload Placeholder */}
                 <div className="pt-4 flex flex-col items-center">
                     <div className="w-full aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-3 text-slate-400 group hover:border-purple-200 hover:bg-purple-50 transition-all cursor-pointer">
-                        <CameraIcon size={36} weight="duotone" className="text-purple-600" aria-hidden="true" />
+                        <CameraIcon size={36} weight="duotone" className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                         <span className="text-xs font-bold uppercase tracking-widest">Upload Advertisement Creative</span>
                     </div>
                 </div>

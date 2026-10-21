@@ -35,7 +35,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                 </div>
                 <Link
                     href="/jobs"
-                    className="text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline inline-flex items-center gap-0.5"
+                    className="text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline inline-flex items-center gap-0.5 dark:hover:text-km-link"
                 >
                     <span>Browse Jobs</span>
                     <CaretRightIcon weight="bold" size={14} />
@@ -53,7 +53,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                         >
                             <div className="flex items-start gap-3">
                                 {/* Company Logo / Icon */}
-                                <div className={`w-11 h-11 rounded-xl border p-1.5 shrink-0 flex items-center justify-center bg-km-surface-card shadow-2xs ${comp.bgClass || 'border-gray-200'}`}>
+                                <div className={`w-11 h-11 rounded-xl border p-1.5 shrink-0 flex items-center justify-center bg-white shadow-2xs ${comp.bgClass || 'border-gray-200'}`}>
                                     {comp.logo ? (
                                         <CustomImage
                                             src={comp.logo}
@@ -74,7 +74,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                                             {comp.name}
                                         </Link>
                                         {comp.verified && (
-                                            <span title="Verified Enterprise Partner" className="shrink-0 text-blue-500">
+                                            <span title="Verified Enterprise Partner" className="shrink-0 text-blue-500 dark:text-blue-400">
                                                 <CheckCircleIcon weight="fill" size={13} className="fill-blue-500 text-white" />
                                             </span>
                                         )}

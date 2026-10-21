@@ -22,7 +22,7 @@ const REACTION_CONFIG: Record<
 > = {
   like: {
     label: 'Like',
-    icon: <ThumbsUpIcon weight="bold" size={15} className="fill-[#0B5ED7] text-km-link" />,
+    icon: <ThumbsUpIcon weight="bold" size={15} className="fill-[#0B5ED7] text-km-link dark:fill-blue-400" />,
     color: 'text-km-link',
     badgeBg: 'bg-[#0B5ED7]',
   },
@@ -215,7 +215,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                     setMenuOpen(false);
                     toast.success('Post deleted');
                   }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors border-t border-km-border"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors border-t border-km-border dark:text-red-400"
                 >
                   <TrashIcon weight="bold" size={15} />
                   <span>Delete Post</span>
@@ -410,7 +410,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 <div className="flex justify-end">
                   <button
                     type="submit"
-                    className="px-4 py-1.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-poppins font-semibold shadow-xs transition-all"
+                    className="px-4 py-1.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-poppins font-semibold shadow-xs transition-all dark:bg-km-primary dark:hover:bg-km-primary-dark"
                   >
                     Post Comment
                   </button>

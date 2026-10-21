@@ -100,13 +100,13 @@ const DocumentsListModal = ({
                             className="w-full flex items-center justify-between p-4 bg-slate-50/80 hover:bg-purple-50 rounded-2xl transition-all group border border-slate-100 hover:border-purple-200"
                         >
                             <div className="flex items-center gap-3">
-                                <FileTextIcon size={24} weight="duotone" className="text-purple-600" aria-hidden="true" />
+                                <FileTextIcon size={24} weight="duotone" className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                 <div className="text-left">
                                     <span className="font-bold text-slate-800 text-sm block">{doc.name || 'Document'}</span>
-                                    <span className="text-[11px] text-purple-600 font-semibold group-hover:underline">Click to view document &rarr;</span>
+                                    <span className="text-[11px] text-purple-600 font-semibold group-hover:underline dark:text-purple-400">Click to view document &rarr;</span>
                                 </div>
                             </div>
-                            <CaretRightIcon weight="bold" size={18} className="text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
+                            <CaretRightIcon weight="bold" size={18} className="text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all dark:group-hover:text-purple-400" />
                         </button>
                     ))
                 )}
@@ -119,7 +119,7 @@ const DocumentsListModal = ({
                         type="button"
                         disabled={isUpdating}
                         onClick={() => handleAction('rejected')}
-                        className="w-full sm:w-auto px-6 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full sm:w-auto px-6 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 dark:text-rose-400"
                     >
                         <XCircleIcon weight="bold" size={16} />
                         <span>Reject Application</span>

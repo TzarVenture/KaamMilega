@@ -243,7 +243,7 @@ const GuestNavbar = () => {
                                                     : 'text-slate-600 hover:text-km-heading hover:bg-slate-50'
                                             }`}
                                     >
-                                        <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-heading') : (item.isHighlighted ? 'text-amber-600' : 'text-slate-400')}>
+                                        <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-heading') : (item.isHighlighted ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400')}>
                                             {item.icon}
                                         </span>
                                         <span>{item.label}</span>
@@ -319,7 +319,7 @@ const GuestNavbar = () => {
                                                 : 'text-slate-700 hover:bg-slate-50 hover:text-km-heading active:bg-slate-100'
                                             }`}
                                     >
-                                        <span className={item.isHighlighted ? 'text-amber-600' : 'text-slate-500'}>
+                                        <span className={item.isHighlighted ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500'}>
                                             {item.icon}
                                         </span>
                                         <span>{item.label}</span>

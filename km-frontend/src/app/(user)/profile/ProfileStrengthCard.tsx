@@ -118,12 +118,12 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                     aria-valuemax={100}
                     aria-label="Profile completeness"
                 >
-                    <div className="h-full rounded-full bg-[#071A4D]" style={{ width: `${Math.max(score, 3)}%` }} />
+                    <div className="h-full rounded-full bg-[#071A4D] dark:bg-km-primary" style={{ width: `${Math.max(score, 3)}%` }} />
                     {MILESTONES.slice(0, 2).map((m) => (
                         <span
                             key={m.score}
-                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                                score >= m.score ? 'bg-[#071A4D]' : 'bg-[#D9E0EA]'
+                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-km-surface-card ${
+                                score >= m.score ? 'bg-[#071A4D] dark:bg-km-primary' : 'bg-[#D9E0EA] dark:bg-white/10'
                             }`}
                             style={{ left: `${m.score}%` }}
                         />

@@ -15,7 +15,7 @@ export default function InstantMilegaPage() {
             fallback={
                 <div className="min-h-[60vh] bg-km-surface flex items-center justify-center">
                     <div className="flex flex-col items-center gap-3">
-                        <div className="w-8 h-8 border-2 border-[#071A4D] border-t-[#FF6B00] rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-2 border-[#071A4D] border-t-[#FF6B00] rounded-full animate-spin dark:border-km-link" />
                         <p className="text-xs font-semibold text-km-text-secondary">Loading Instant Milega...</p>
                     </div>
                 </div>

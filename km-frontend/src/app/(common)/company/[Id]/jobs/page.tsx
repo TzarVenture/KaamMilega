@@ -146,7 +146,7 @@ const JobCard = ({ job }: { job: Job }) => {
                     {job.vacancies} Vacancies
                 </span>
                 <div className="flex items-center space-x-1 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200">
-                    <CheckCircleIcon weight="fill" size={12} className="text-emerald-500" />
+                    <CheckCircleIcon weight="fill" size={12} className="text-emerald-500 dark:text-emerald-400" />
                     <span>KM Verified</span>
                 </div>
             </div>

@@ -211,7 +211,7 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
                                         className="flex items-center shrink-0 pl-6"
                                     >
                                         <TickerEntry item={item} onOpen={setSelectedStory} />
-                                        <span className="ml-6 h-8 w-px bg-[#D9E0EA]" aria-hidden="true" />
+                                        <span className="ml-6 h-8 w-px bg-[#D9E0EA] dark:bg-white/10" aria-hidden="true" />
                                     </li>
                                 ))
                             )}
@@ -222,7 +222,7 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
 
             {selectedStory && (
                 <div
-                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071A4D]/50"
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071A4D]/50 dark:bg-km-primary"
                     onClick={() => setSelectedStory(null)}
                 >
                     <div
@@ -286,7 +286,7 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
                             <Link
                                 href={`/jobs?q=${encodeURIComponent(selectedStory.role)}`}
                                 onClick={() => setSelectedStory(null)}
-                                className="px-5 py-2.5 text-sm font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] rounded-xl"
+                                className="px-5 py-2.5 text-sm font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] rounded-xl dark:bg-km-primary dark:hover:bg-km-primary-dark"
                             >
                                 View matching jobs
                             </Link>

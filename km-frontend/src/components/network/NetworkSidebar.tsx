@@ -130,7 +130,7 @@ export const NetworkSidebar: React.FC = () => {
               href={item.href}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 active:scale-[0.98] ${
                 item.isActive
-                  ? 'bg-[#071A4D] text-white shadow-xs'
+                  ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
                   : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
               }`}
             >
@@ -169,7 +169,7 @@ export const NetworkSidebar: React.FC = () => {
                 href={item.href}
                 className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 group active:scale-[0.98] ${
                   item.isActive
-                    ? 'bg-[#071A4D] text-white shadow-xs'
+                    ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
                     : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
                 }`}
               >
@@ -203,7 +203,7 @@ export const NetworkSidebar: React.FC = () => {
       </div>
 
       {/* Desktop Brand Promotion Box: Become an Expert */}
-      <div className="hidden lg:block bg-[#071A4D] border border-slate-700/60 rounded-2xl p-5 text-white shadow-sm">
+      <div className="hidden lg:block bg-[#071A4D] border border-slate-700/60 rounded-2xl p-5 text-white shadow-sm dark:bg-km-primary">
         <div className="flex items-center gap-2 mb-3">
           <MedalIcon size={16} weight="bold" className="text-amber-300" aria-hidden="true" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">

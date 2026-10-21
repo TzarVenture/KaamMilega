@@ -294,20 +294,20 @@ export default function WalletPage() {
                             disabled={loading}
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-km-surface-card text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-60"
                         >
-                            <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600" : "text-slate-500"} />
+                            <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600 dark:text-purple-400" : "text-slate-500"} />
                             <span>Refresh</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Hero Total Balance Card */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-purple-950 to-indigo-950 p-6 sm:p-8 lg:p-10 text-white shadow-xl shadow-purple-950/20">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#020617] via-purple-950 to-indigo-950 p-6 sm:p-8 lg:p-10 text-white shadow-xl shadow-purple-950/20">
                     <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
                     <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8">
                         <div className="space-y-2 sm:space-y-3">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-km-surface-card/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/10">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/10">
                                 <ShieldCheckIcon weight="bold" size={13} className="text-emerald-400" />
                                 <span>Total Balance</span>
                             </div>
@@ -339,7 +339,7 @@ export default function WalletPage() {
 
                             <button
                                 onClick={() => setIsWithdrawModalOpen(true)}
-                                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-km-surface-card/10 hover:bg-km-surface-card/20 text-white text-sm font-bold backdrop-blur-md border border-white/15 transition active:scale-95 cursor-pointer"
+                                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold backdrop-blur-md border border-white/15 transition active:scale-95 cursor-pointer"
                             >
                                 <ArrowUpRightIcon weight="bold" size={18} />
                                 <span>Withdraw</span>
@@ -362,7 +362,7 @@ export default function WalletPage() {
                         <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <CreditCardIcon size={24} className="text-blue-600" aria-hidden="true" />
+                                    <CreditCardIcon size={24} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full">
                                         Available
                                     </span>
@@ -400,13 +400,13 @@ export default function WalletPage() {
                         <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <LockIcon size={24} className="text-amber-600" aria-hidden="true" />
+                                    <LockIcon size={24} className="text-amber-600 dark:text-amber-400" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">
                                         Protected
                                     </span>
                                 </div>
                                 <p className="text-xs font-semibold text-slate-500">In Escrow</p>
-                                <p className="text-2xl sm:text-3xl font-bold text-amber-600 mt-1 font-mono">
+                                <p className="text-2xl sm:text-3xl font-bold text-amber-600 mt-1 font-mono dark:text-amber-400">
                                     {formatCurrency(wallet?.locked_balance)}
                                 </p>
                             </div>
@@ -419,7 +419,7 @@ export default function WalletPage() {
                         <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <GiftIcon size={24} className="text-purple-600" aria-hidden="true" />
+                                    <GiftIcon size={24} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full">
                                         Discounts
                                     </span>
@@ -444,7 +444,7 @@ export default function WalletPage() {
                             <LightningIcon size={140} />
                         </div>
                         <div className="relative z-10">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-km-surface-card/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
                                 <LightningIcon weight="bold" size={13} />
                                 <span>Platform Pass</span>
                             </div>
@@ -470,7 +470,7 @@ export default function WalletPage() {
                             <UsersIcon size={140} />
                         </div>
                         <div className="relative z-10">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-km-surface-card/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
                                 <UsersIcon weight="bold" size={13} />
                                 <span>Career Growth</span>
                             </div>
@@ -515,7 +515,7 @@ export default function WalletPage() {
                                 : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
-                        <ShieldWarningIcon weight="bold" size={15} className="text-amber-600" />
+                        <ShieldWarningIcon weight="bold" size={15} className="text-amber-600 dark:text-amber-400" />
                         <span>Refunds & Disputes</span>
                     </button>
                 </div>
@@ -540,7 +540,7 @@ export default function WalletPage() {
                     <div className="bg-km-surface-card rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-6">
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <CreditCardIcon weight="bold" size={18} className="text-purple-600" />
+                                <CreditCardIcon weight="bold" size={18} className="text-purple-600 dark:text-purple-400" />
                                 <span>Add Money to Wallet</span>
                             </h3>
                             <button 
@@ -587,7 +587,7 @@ export default function WalletPage() {
 
                             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600 space-y-1">
                                 <p className="font-semibold text-slate-800 flex items-center gap-1.5">
-                                    <CheckCircleIcon weight="bold" size={14} className="text-emerald-500" />
+                                    <CheckCircleIcon weight="bold" size={14} className="text-emerald-500 dark:text-emerald-400" />
                                     <span>Instant recharge via UPI, Cards & NetBanking</span>
                                 </p>
                                 <p className="text-[11px] text-slate-400 pl-5">
@@ -862,7 +862,7 @@ export default function WalletPage() {
 
                             {/* Info Callout */}
                             <div className="flex items-start gap-2 p-3 bg-amber-50/80 rounded-2xl border border-amber-200/60 text-amber-900 text-xs leading-relaxed">
-                                <WarningCircleIcon weight="bold" size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                                <WarningCircleIcon weight="bold" size={15} className="text-amber-600 shrink-0 mt-0.5 dark:text-amber-400" />
                                 <p>
                                     Requested amount is deducted immediately from your earnings to prevent double-spending, and recorded in your immutable ledger below. Payout is disbursed by admin via IMPS/UPI.
                                 </p>
