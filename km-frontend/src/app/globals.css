@@ -349,9 +349,10 @@ body {
 }
 
 /* ─── Illustration micro-animations ───────────────────────────────────────────
-   Parts of an SVG illustration carry a km-a-* class; they animate once when an
-   ancestor gets data-inview="true" (see useInViewOnce). Elements marked km-a-hide
-   stay invisible until then so they appear instead of jumping. */
+   Parts of an illustration (SVG or HTML) carry a km-a-* class; they animate once when
+   an ancestor gets data-inview="true" (see useInViewOnce) and replay on hover via
+   useReplayOnHover. Elements marked km-a-hide stay invisible until then so they
+   appear instead of jumping. */
 .km-art [class*="km-a-"] {
   transform-box: fill-box;
   transform-origin: center;
@@ -441,16 +442,51 @@ body {
   to { stroke-dashoffset: 0; }
 }
 
+[data-inview="true"] .km-a-float {
+  animation: kmArtFloat 6s ease-in-out 1.2s infinite;
+}
+@keyframes kmArtFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
 /* Reduced motion: no movement, hidden parts simply fade in */
 @media (prefers-reduced-motion: reduce) {
-  [data-inview] .km-art [class*="km-a-"] {
+  [data-inview] [class*="km-a-"] {
     animation: none;
   }
-  [data-inview="true"] .km-art .km-a-hide {
+  [data-inview="true"] .km-a-hide {
     animation: kmArtFade 0.4s ease-out both;
   }
 }
 @keyframes kmArtFade {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+/* ─── Animated InstantMilega bolt (AnimatedBoltIcon) ───────────────────────── */
+.km-bolt {
+  overflow: visible;
+  animation: kmBoltGlow 2.8s ease-in-out infinite;
+}
+.km-bolt-shine {
+  animation: kmBoltShine 2.8s ease-in-out infinite;
+}
+@keyframes kmBoltGlow {
+  0%, 100% { filter: drop-shadow(0 0 0.5px rgba(255, 107, 0, 0.35)); }
+  45% { filter: drop-shadow(0 0 5px rgba(255, 138, 0, 0.75)); }
+}
+@keyframes kmBoltShine {
+  0%, 25% { transform: translateX(-14px); }
+  60%, 100% { transform: translateX(14px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .km-bolt {
+    animation: none;
+    filter: drop-shadow(0 0 3px rgba(255, 107, 0, 0.5));
+  }
+  .km-bolt-shine {
+    animation: none;
+    opacity: 0;
+  }
 }

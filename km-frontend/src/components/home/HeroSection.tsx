@@ -7,6 +7,8 @@ import { BriefcaseIcon, BuildingOfficeIcon, CaretRightIcon, ClockIcon, Graduatio
 
 import CitySelector from '@/components/km/CitySelector';
 import { FEATURES } from '@/config/features';
+import { useInViewOnce } from '@/lib/useInViewOnce';
+import { useReplayOnHover } from '@/lib/useReplayOnHover';
 
 interface HeroSectionProps {
     cities?: any[];
@@ -17,6 +19,11 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
     const router = useRouter();
 
     const [activeTab, setActiveTab] = useState<'jobs' | 'instant' | 'skills' | 'mentors'>('jobs');
+    // Slogan and floating card animate on first view and replay on hover
+    const { ref: sloganRef, inView: sloganInView } = useInViewOnce<HTMLDivElement>(0.2);
+    const { ref: featureCardRef, inView: featureCardInView } = useInViewOnce<HTMLDivElement>(0.2);
+    useReplayOnHover(sloganRef, sloganInView);
+    useReplayOnHover(featureCardRef, featureCardInView);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCity, setSelectedCity] = useState('');
     const [tradeType, setTradeType] = useState('Electrician');
@@ -318,15 +325,19 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         </div>
 
                         {/* Motivational Slogan Accent */}
-                        <div className="absolute top-2 left-0 sm:-left-2 z-20 select-none hidden lg:block transform -rotate-6">
-                            <p className="text-sm font-bold text-slate-800 tracking-tight leading-tight">
+                        <div
+                            ref={sloganRef}
+                            data-inview={sloganInView}
+                            className="absolute top-2 left-0 sm:-left-2 z-20 select-none hidden lg:block transform -rotate-6 cursor-default"
+                        >
+                            <p className="km-a-rise km-a-hide text-sm font-bold text-slate-800 tracking-tight leading-tight" style={{ animationDelay: '300ms' }}>
                                 Better Skills
                             </p>
-                            <p className="text-sm font-bold text-km-primary tracking-tight leading-tight">
+                            <p className="km-a-rise km-a-hide text-sm font-bold text-km-primary tracking-tight leading-tight" style={{ animationDelay: '500ms' }}>
                                 Brighter Tomorrows
                             </p>
-                            <svg className="w-28 h-3 text-km-accent mt-0.5" viewBox="0 0 100 12" fill="none">
-                                <path d="M2 8C28 2 72 2 98 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                            <svg className="w-28 h-3 text-km-accent mt-0.5 overflow-visible" viewBox="0 0 100 12" fill="none">
+                                <path className="km-a-draw km-a-hide" pathLength={1} style={{ animationDelay: '800ms' }} d="M2 8C28 2 72 2 98 9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                             </svg>
                         </div>
 
@@ -342,30 +353,41 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             />
                         </div>
 
-                        {/* Floating Feature Card (Using kaammilega-logo-text.png, no hover animation) */}
-                        <div className="absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none">
-                            <div className="flex items-center gap-2 sm:gap-2.5">
-                                <BriefcaseIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                        {/* Floating Feature Card: rows slide in one by one, icons pop, the card floats gently */}
+                        <div
+                            ref={featureCardRef}
+                            data-inview={featureCardInView}
+                            className="km-a-float absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none">
+                            <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '400ms' }}>
+                                <span className="km-a-pop inline-flex" style={{ animationDelay: '650ms' }}>
+                                    <BriefcaseIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                                </span>
                                 <span className="text-xs sm:text-sm font-bold text-slate-800">Jobs</span>
                             </div>
 
-                            <div className="flex items-center gap-2 sm:gap-2.5">
-                                <GraduationCapIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                            <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '520ms' }}>
+                                <span className="km-a-pop inline-flex" style={{ animationDelay: '770ms' }}>
+                                    <GraduationCapIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                                </span>
                                 <span className="text-xs sm:text-sm font-bold text-slate-800">Skills</span>
                             </div>
 
-                            <div className="flex items-center gap-2 sm:gap-2.5">
-                                <UsersIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                            <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '640ms' }}>
+                                <span className="km-a-pop inline-flex" style={{ animationDelay: '890ms' }}>
+                                    <UsersIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                                </span>
                                 <span className="text-xs sm:text-sm font-bold text-slate-800">Opportunities</span>
                             </div>
 
-                            <div className="flex items-center gap-2 sm:gap-2.5">
-                                <TrendUpIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                            <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '760ms' }}>
+                                <span className="km-a-pop inline-flex" style={{ animationDelay: '1010ms' }}>
+                                    <TrendUpIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                                </span>
                                 <span className="text-xs sm:text-sm font-bold text-slate-800">Growth</span>
                             </div>
 
                             {/* Brand Lockup Baseline with kaammilega-logo-text.png */}
-                            <div className="pt-1.5 sm:pt-2 border-t border-slate-100 flex items-center gap-1 sm:gap-1.5">
+                            <div className="km-a-rise km-a-hide pt-1.5 sm:pt-2 border-t border-slate-100 flex items-center gap-1 sm:gap-1.5" style={{ animationDelay: '950ms' }}>
                                 <span className="text-xs font-semibold text-slate-500 shrink-0">All at</span>
                                 <div className="relative h-3 w-16 sm:h-4 sm:w-20">
                                     <Image
