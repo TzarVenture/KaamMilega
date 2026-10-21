@@ -1,16 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { 
-    AlertCircle, 
-    X, 
-    ShieldAlert, 
-    CheckCircle2, 
-    FileText, 
-    HelpCircle,
-    ReceiptText,
-    RefreshCw
-} from 'lucide-react';
+import { ArrowsClockwiseIcon, FileTextIcon, QuestionIcon, ShieldWarningIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
 import { TransactionItem } from './WalletTransactionsList';
@@ -96,9 +87,7 @@ export default function WalletDisputeModal({
                 {/* Header */}
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-700 border border-amber-100">
-                            <ShieldAlert className="w-5 h-5" />
-                        </div>
+                        <ShieldWarningIcon size={24} className="text-amber-700" aria-hidden="true" />
                         <div>
                             <h3 className="text-lg font-bold text-slate-900">
                                 Request Refund / Raise Dispute
@@ -114,7 +103,7 @@ export default function WalletDisputeModal({
                         className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer disabled:opacity-50"
                         aria-label="Close modal"
                     >
-                        <X size={18} />
+                        <XIcon weight="bold" size={18} />
                     </button>
                 </div>
 
@@ -148,7 +137,7 @@ export default function WalletDisputeModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                            <HelpCircle size={13} className="text-slate-400" />
+                            <QuestionIcon weight="bold" size={13} className="text-slate-400" />
                             <span>Reason for Dispute</span>
                         </label>
                         <select
@@ -169,7 +158,7 @@ export default function WalletDisputeModal({
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                            <FileText size={13} className="text-slate-400" />
+                            <FileTextIcon weight="bold" size={13} className="text-slate-400" />
                             <span>Detailed Explanation</span>
                         </label>
                         <textarea
@@ -189,7 +178,7 @@ export default function WalletDisputeModal({
 
                     {/* Policy Disclaimer */}
                     <div className="p-3 bg-amber-50/70 border border-amber-200/70 rounded-2xl flex items-start gap-2.5">
-                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <WarningCircleIcon weight="bold" className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                         <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
                             Disputes are thoroughly investigated by platform admins within <strong>24 to 48 hours</strong>. Upon approval, funds are immediately credited back to your <strong>Main Balance</strong>.
                         </p>
@@ -212,7 +201,7 @@ export default function WalletDisputeModal({
                         >
                             {isSubmitting ? (
                                 <>
-                                    <RefreshCw size={14} className="animate-spin" />
+                                    <ArrowsClockwiseIcon weight="bold" size={14} className="animate-spin" />
                                     <span>Submitting...</span>
                                 </>
                             ) : (

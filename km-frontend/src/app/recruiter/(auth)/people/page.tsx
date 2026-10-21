@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, MessageCircle, X } from 'lucide-react';
+import { ChatCircleIcon, MapPinIcon, XIcon } from '@phosphor-icons/react/ssr';
 
 const PeopleSection: React.FC = () => {
     return (
@@ -47,7 +47,7 @@ export default PeopleSection;
 const PersonCard = () => (
     <div className="bg-white border border-gray-100 rounded-3xl p-5 flex flex-col items-center relative shadow-sm hover:shadow-md transition">
         <button className="absolute top-3 right-3 text-gray-300 hover:text-gray-500">
-            <X size={16} />
+            <XIcon weight="bold" size={16} />
         </button>
 
         <div className="relative mb-3">
@@ -59,14 +59,14 @@ const PersonCard = () => (
         <p className="text-[10px] text-gray-400 uppercase mb-2">Person Designation</p>
 
         <div className="flex items-center text-gray-500 text-[10px] mb-1">
-            <MapPin size={10} className="mr-1" />
+            <MapPinIcon weight="bold" size={10} className="mr-1" />
             <span>Location</span>
         </div>
         <p className="text-[10px] text-gray-400 mb-4 cursor-default">10 Mutual Connects</p>
 
         <div className="w-full space-y-2">
             <button className="w-full py-2 border border-km-primary text-km-primary rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
-                <MessageCircle size={12} />
+                <ChatCircleIcon weight="bold" size={12} />
                 <span>Chat</span>
             </button>
             <button className="w-full py-2 bg-km-primary text-white rounded-xl text-xs font-semibold hover:bg-km-primary-dark transition-colors shadow-sm">
@@ -79,7 +79,7 @@ const PersonCard = () => (
 const PopularPersonRow = () => (
     <div className="flex items-start space-x-3 relative group">
         <button className="absolute -top-1 -right-1 text-gray-300 opacity-0 group-hover:opacity-100 transition">
-            <X size={14} />
+            <XIcon weight="bold" size={14} />
         </button>
 
         <div className="relative shrink-0">
@@ -91,14 +91,14 @@ const PopularPersonRow = () => (
             <h3 className="font-bold text-gray-900 text-sm truncate">Person Name</h3>
             <p className="text-[10px] text-gray-400">Person Designation</p>
             <div className="flex items-center text-gray-500 text-[10px] mt-1">
-                <MapPin size={10} className="mr-1" />
+                <MapPinIcon weight="bold" size={10} className="mr-1" />
                 <span>Location</span>
             </div>
             <p className="text-[9px] text-gray-400 mt-1">10 Mutual Connects</p>
 
             <div className="flex space-x-2 mt-3">
                 <button className="flex-1 py-1.5 border border-km-primary text-km-primary rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
-                    <MessageCircle size={10} />
+                    <ChatCircleIcon weight="bold" size={10} />
                     <span>Chat</span>
                 </button>
                 <button className="flex-1 py-1.5 bg-km-primary text-white rounded-xl text-[10px] font-bold hover:bg-km-primary-dark transition-colors shadow-sm">

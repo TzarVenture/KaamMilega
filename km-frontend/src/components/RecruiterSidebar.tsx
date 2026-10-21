@@ -3,30 +3,18 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-    LayoutDashboard,
-    Briefcase,
-    PlusCircle,
-    FileText,
-    Users,
-    LogOut,
-    Building2,
-    ShieldCheck,
-    ChevronRight,
-    Settings,
-    Wallet
-} from "lucide-react";
+import { BriefcaseIcon, CaretRightIcon, FileTextIcon, GearSixIcon, PlusCircleIcon, ShieldCheckIcon, SignOutIcon, SquaresFourIcon, UsersIcon, WalletIcon } from '@phosphor-icons/react';
 import api from "@/lib/axios";
 import { clearSession } from "@/lib/auth";
 
 const sidebarItems = [
-    { name: "Dashboard Overview", href: "/recruiter", icon: LayoutDashboard },
-    { name: "Post New Job", href: "/recruiter/jobs/create", icon: PlusCircle },
-    { name: "Manage Job Posts", href: "/recruiter/jobs/list", icon: Briefcase },
-    { name: "Applicant Kanban", href: "/recruiter/applications", icon: FileText },
-    { name: "Interviews", href: "/recruiter/interviews", icon: Users },
-    { name: "Billing & Wallet", href: "/wallet", icon: Wallet },
-    { name: "Account Settings", href: "/recruiter/settings", icon: Settings },
+    { name: "Dashboard Overview", href: "/recruiter", icon: SquaresFourIcon },
+    { name: "Post New Job", href: "/recruiter/jobs/create", icon: PlusCircleIcon },
+    { name: "Manage Job Posts", href: "/recruiter/jobs/list", icon: BriefcaseIcon },
+    { name: "Applicant Kanban", href: "/recruiter/applications", icon: FileTextIcon },
+    { name: "Interviews", href: "/recruiter/interviews", icon: UsersIcon },
+    { name: "Billing & Wallet", href: "/wallet", icon: WalletIcon },
+    { name: "Account Settings", href: "/recruiter/settings", icon: GearSixIcon },
 ];
 
 export default function RecruiterSidebar() {
@@ -52,7 +40,7 @@ export default function RecruiterSidebar() {
             <div className="p-6 border-b border-slate-100">
                 <Link href="/recruiter" className="flex items-center gap-3 group">
                     <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-km-primary to-km-primary-dark text-white flex items-center justify-center font-black shadow-md shadow-blue-900/20 group-hover:scale-105 transition-transform">
-                        <Briefcase className="w-5 h-5" />
+                        <BriefcaseIcon className="w-5 h-5" />
                     </div>
                     <div>
                         <span className="font-black text-lg text-slate-900 tracking-tight block leading-none">Kaam Milega</span>
@@ -70,7 +58,7 @@ export default function RecruiterSidebar() {
                     <div className="min-w-0 flex-1">
                         <p className="text-xs font-bold text-slate-900 truncate">{companyName}</p>
                         <p className="text-[10px] font-semibold text-emerald-600 flex items-center gap-1">
-                            <ShieldCheck size={11} /> Verified Partner
+                            <ShieldCheckIcon weight="bold" size={11} /> Verified Partner
                         </p>
                     </div>
                 </div>
@@ -95,7 +83,7 @@ export default function RecruiterSidebar() {
                                 <item.icon className={`w-4 h-4 transition-colors ${isActive ? "text-km-primary" : "text-slate-400"}`} />
                                 <span>{item.name}</span>
                             </div>
-                            <ChevronRight className={`w-3.5 h-3.5 transition-opacity ${isActive ? "opacity-100 text-km-primary" : "opacity-0"}`} />
+                            <CaretRightIcon weight="bold" className={`w-3.5 h-3.5 transition-opacity ${isActive ? "opacity-100 text-km-primary" : "opacity-0"}`} />
                         </Link>
                     );
                 })}
@@ -110,7 +98,7 @@ export default function RecruiterSidebar() {
                     }}
                     className="flex items-center gap-2.5 w-full px-4 py-3 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-2xl border border-transparent hover:border-rose-100 transition-all"
                 >
-                    <LogOut className="w-4 h-4" />
+                    <SignOutIcon weight="bold" className="w-4 h-4" />
                     <span>Sign Out Session</span>
                 </button>
             </div>

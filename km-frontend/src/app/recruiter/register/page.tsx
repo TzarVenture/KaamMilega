@@ -6,32 +6,13 @@ import Link from 'next/link';
 import api from '@/lib/axios';
 import { isAuthenticated, saveSession } from '@/lib/auth';
 import AuthNavbar from '@/components/auth/AuthNavbar';
-import {
-    Building2,
-    Mail,
-    ShieldCheck,
-    CheckCircle2,
-    AlertCircle,
-    UploadCloud,
-    FileText,
-    CreditCard,
-    ArrowRight,
-    ArrowLeft,
-    Check,
-    Briefcase,
-    User,
-    Globe,
-    Award,
-    Store,
-    PhoneCall,
-    CheckCircle,
-} from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, CheckIcon, CloudArrowUpIcon, CreditCardIcon, EnvelopeSimpleIcon, FileTextIcon, GlobeIcon, MedalIcon, ShieldCheckIcon, StorefrontIcon, UserIcon, WarningCircleIcon } from '@phosphor-icons/react';
 
 interface DocumentTypeOption {
     id: string;
     name: string;
     description: string;
-    icon: typeof FileText;
+    icon: typeof FileTextIcon;
 }
 
 const DOCUMENT_TYPES: DocumentTypeOption[] = [
@@ -39,31 +20,31 @@ const DOCUMENT_TYPES: DocumentTypeOption[] = [
         id: 'gst',
         name: 'GST Certificate',
         description: '15-digit Goods & Services Tax identification',
-        icon: FileText,
+        icon: FileTextIcon,
     },
     {
         id: 'pan',
         name: 'Company PAN Card',
         description: '10-digit PAN for corporate entities',
-        icon: CreditCard,
+        icon: CreditCardIcon,
     },
     {
         id: 'incorporation',
         name: 'Certificate of Incorporation',
         description: 'Ministry of Corporate Affairs CIN registration',
-        icon: Building2,
+        icon: BuildingOfficeIcon,
     },
     {
         id: 'msme',
         name: 'MSME / Udyam Certificate',
         description: 'Udyam registration for MSMEs',
-        icon: Award,
+        icon: MedalIcon,
     },
     {
         id: 'shop',
         name: 'Shop & Establishment License',
         description: 'Municipal state commercial license',
-        icon: Store,
+        icon: StorefrontIcon,
     },
 ];
 
@@ -397,7 +378,7 @@ export default function RecruiterRegisterPage() {
                                                 : 'bg-slate-100 text-slate-500'
                                         }`}
                                     >
-                                        {currentStep > 1 ? <Check size={12} /> : '1'}
+                                        {currentStep > 1 ? <CheckIcon weight="bold" size={12} /> : '1'}
                                     </span>
                                     <span
                                         className={`text-xs font-medium ${
@@ -420,7 +401,7 @@ export default function RecruiterRegisterPage() {
                                                 : 'bg-slate-100 text-slate-500'
                                         }`}
                                     >
-                                        {currentStep > 2 ? <Check size={12} /> : '2'}
+                                        {currentStep > 2 ? <CheckIcon weight="bold" size={12} /> : '2'}
                                     </span>
                                     <span
                                         className={`text-xs font-medium ${
@@ -467,14 +448,14 @@ export default function RecruiterRegisterPage() {
                         {/* Alerts */}
                         {error && (
                             <div className="mb-5 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2 text-xs text-red-800">
-                                <AlertCircle size={15} className="text-red-600 shrink-0 mt-0.5" />
+                                <WarningCircleIcon weight="bold" size={15} className="text-red-600 shrink-0 mt-0.5" />
                                 <div className="flex-1 font-medium">{error}</div>
                             </div>
                         )}
 
                         {successMsg && (
                             <div className="mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-2 text-xs text-emerald-800">
-                                <CheckCircle2 size={15} className="text-emerald-600 shrink-0 mt-0.5" />
+                                <CheckCircleIcon weight="bold" size={15} className="text-emerald-600 shrink-0 mt-0.5" />
                                 <div className="flex-1 font-medium">{successMsg}</div>
                             </div>
                         )}
@@ -498,7 +479,7 @@ export default function RecruiterRegisterPage() {
                                         Full Name <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
-                                        <User size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                        <UserIcon weight="bold" size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                                         <input
                                             type="text"
                                             required
@@ -518,7 +499,7 @@ export default function RecruiterRegisterPage() {
                                         Designation / Role in Company
                                     </label>
                                     <div className="relative">
-                                        <Briefcase size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                        <BriefcaseIcon weight="bold" size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                                         <input
                                             type="text"
                                             value={designation}
@@ -547,7 +528,7 @@ export default function RecruiterRegisterPage() {
                                             }`}
                                         >
                                             <div className="flex items-center gap-1.5 mb-1">
-                                                <Building2
+                                                <BuildingOfficeIcon weight="bold"
                                                     size={15}
                                                     className={isConsultant === false ? 'text-[#0B5ED7]' : 'text-slate-500'}
                                                 />
@@ -573,7 +554,7 @@ export default function RecruiterRegisterPage() {
                                             }`}
                                         >
                                             <div className="flex items-center gap-1.5 mb-1">
-                                                <Briefcase
+                                                <BriefcaseIcon weight="bold"
                                                     size={15}
                                                     className={isConsultant === true ? 'text-[#0B5ED7]' : 'text-slate-500'}
                                                 />
@@ -594,7 +575,7 @@ export default function RecruiterRegisterPage() {
                                         className="w-full flex items-center justify-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl py-3 px-4 font-semibold text-sm transition shadow-sm cursor-pointer"
                                     >
                                         <span>Continue to Email Verification</span>
-                                        <ArrowRight size={16} />
+                                        <ArrowRightIcon weight="bold" size={16} />
                                     </button>
                                 </div>
                             </form>
@@ -611,7 +592,7 @@ export default function RecruiterRegisterPage() {
                                         onClick={() => setCurrentStep(1)}
                                         className="inline-flex items-center gap-1 text-xs text-[#5B6472] hover:text-[#071A4D] font-medium mb-1 cursor-pointer"
                                     >
-                                        <ArrowLeft size={13} />
+                                        <ArrowLeftIcon weight="bold" size={13} />
                                         <span>Back to details</span>
                                     </button>
                                     <h2 className="text-xl font-bold text-[#071A4D] tracking-tight">
@@ -628,7 +609,7 @@ export default function RecruiterRegisterPage() {
                                     </label>
                                     <div className="flex gap-2">
                                         <div className="relative flex-1">
-                                            <Mail size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                            <EnvelopeSimpleIcon weight="bold" size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                                             <input
                                                 type="email"
                                                 disabled={isEmailVerified || (otpSent && resendTimer > 0)}
@@ -669,7 +650,7 @@ export default function RecruiterRegisterPage() {
                                 {isEmailVerified && (
                                     <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <CheckCircle2 size={16} className="text-emerald-600" />
+                                            <CheckCircleIcon weight="bold" size={16} className="text-emerald-600" />
                                             <span className="text-xs font-semibold text-emerald-800 truncate">
                                                 Verified: {email}
                                             </span>
@@ -748,7 +729,7 @@ export default function RecruiterRegisterPage() {
                                             className="flex items-center gap-1.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl py-2 px-4 text-xs font-semibold transition shadow-sm cursor-pointer"
                                         >
                                             <span>Next: Company</span>
-                                            <ArrowRight size={14} />
+                                            <ArrowRightIcon weight="bold" size={14} />
                                         </button>
                                     )}
                                 </div>
@@ -766,7 +747,7 @@ export default function RecruiterRegisterPage() {
                                         onClick={() => setCurrentStep(2)}
                                         className="inline-flex items-center gap-1 text-xs text-[#5B6472] hover:text-[#071A4D] font-medium mb-1 cursor-pointer"
                                     >
-                                        <ArrowLeft size={13} />
+                                        <ArrowLeftIcon weight="bold" size={13} />
                                         <span>Back to email</span>
                                     </button>
                                     <h2 className="text-xl font-bold text-[#071A4D] tracking-tight">
@@ -783,7 +764,7 @@ export default function RecruiterRegisterPage() {
                                             Company Legal Name <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative">
-                                            <Building2 size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                            <BuildingOfficeIcon weight="bold" size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                                             <input
                                                 type="text"
                                                 required
@@ -803,7 +784,7 @@ export default function RecruiterRegisterPage() {
                                             Company Website
                                         </label>
                                         <div className="relative">
-                                            <Globe size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                            <GlobeIcon weight="bold" size={16} className="text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                                             <input
                                                 type="url"
                                                 value={companyWebsite}
@@ -846,7 +827,7 @@ export default function RecruiterRegisterPage() {
                                                         className="w-full h-full object-contain"
                                                     />
                                                 ) : (
-                                                    <Building2 size={20} className="text-slate-300" />
+                                                    <BuildingOfficeIcon size={20} className="text-slate-300" />
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -861,7 +842,7 @@ export default function RecruiterRegisterPage() {
                                                     htmlFor="company-logo-input"
                                                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#071A4D] hover:text-[#0B5ED7] cursor-pointer py-1 px-2.5 rounded-lg border border-[#D9E0EA] bg-white shadow-xs"
                                                 >
-                                                    <UploadCloud size={13} />
+                                                    <CloudArrowUpIcon weight="bold" size={13} />
                                                     <span>{logoFile ? 'Change Logo' : 'Upload Logo'}</span>
                                                 </label>
                                                 <p className="text-[10px] text-[#5B6472] mt-0.5 truncate">
@@ -926,7 +907,7 @@ export default function RecruiterRegisterPage() {
                                         {/* Document File Attachment */}
                                         <div className="p-2.5 border border-dashed border-[#D9E0EA] rounded-xl bg-slate-50/50 flex items-center justify-between">
                                             <div className="flex items-center gap-2 min-w-0">
-                                                <FileText size={16} className="text-slate-400 shrink-0" />
+                                                <FileTextIcon weight="bold" size={16} className="text-slate-400 shrink-0" />
                                                 <div className="truncate">
                                                     <p className="text-[11px] font-medium text-[#111827] truncate">
                                                         {docFile ? docFile.name : 'Attach Document (.pdf, .jpg)'}
@@ -948,7 +929,7 @@ export default function RecruiterRegisterPage() {
                                                     htmlFor="company-doc-input"
                                                     className="inline-flex items-center gap-1 text-xs font-semibold text-[#071A4D] hover:text-[#0B5ED7] cursor-pointer py-1 px-2.5 rounded-lg border border-[#D9E0EA] bg-white shadow-xs"
                                                 >
-                                                    <UploadCloud size={13} />
+                                                    <CloudArrowUpIcon weight="bold" size={13} />
                                                     <span>{docFile ? 'Replace' : 'Upload'}</span>
                                                 </label>
                                             </div>
@@ -963,7 +944,7 @@ export default function RecruiterRegisterPage() {
                                         onClick={() => handleFinalSubmit(false)}
                                         className="w-full flex items-center justify-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] disabled:bg-slate-300 text-white rounded-xl py-3 px-4 font-semibold text-sm transition shadow-sm cursor-pointer"
                                     >
-                                        <ShieldCheck size={16} />
+                                        <ShieldCheckIcon weight="bold" size={16} />
                                         <span>{loading ? 'Saving Profile...' : 'Complete Company Setup'}</span>
                                     </button>
 

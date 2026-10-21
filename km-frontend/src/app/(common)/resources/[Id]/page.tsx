@@ -1,9 +1,6 @@
 // pages/resources/[id].tsx
 import React from 'react';
-import {
-    Play, Bookmark, ChevronDown, MessageCircle,
-    ThumbsUp, Flag, Star, StarHalf, MoreVertical
-} from 'lucide-react';
+import { BookmarkSimpleIcon, CaretDownIcon, ChatCircleIcon, DotsThreeVerticalIcon, FlagIcon, PlayIcon, StarHalfIcon, StarIcon, ThumbsUpIcon } from '@phosphor-icons/react/ssr';
 
 const ResourceDetailsPage = () => {
     return (
@@ -29,11 +26,11 @@ const ResourceDetailsPage = () => {
                     <div className="aspect-video bg-linear-to-br from-slate-200 to-slate-400 relative group cursor-pointer">
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform">
-                                <Play className="text-slate-400 fill-slate-400 ml-1" size={32} />
+                                <PlayIcon weight="fill" className="text-slate-400 fill-slate-400 ml-1" size={32} />
                             </div>
                         </div>
                         <button className="absolute top-6 right-6 p-3 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/40">
-                            <Bookmark size={20} />
+                            <BookmarkSimpleIcon size={20} />
                         </button>
                     </div>
 
@@ -59,7 +56,7 @@ const ResourceDetailsPage = () => {
                                 </div>
                                 <div className="flex gap-3">
                                     <button className="flex items-center gap-2 px-6 py-2.5 border border-km-primary rounded-xl text-km-primary font-bold hover:bg-blue-50 transition">
-                                        <MessageCircle size={18} /> Chat
+                                        <ChatCircleIcon weight="bold" size={18} /> Chat
                                     </button>
                                     <button className="px-8 py-2.5 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-md shadow-blue-900/10">
                                         Follow
@@ -100,11 +97,11 @@ const ResourceDetailsPage = () => {
                                         <div className="text-6xl font-black text-km-primary">4.2</div>
                                         <div className="text-slate-500 font-bold mt-2">Out Of 5</div>
                                         <div className="flex gap-1 justify-center mt-3 text-amber-400">
-                                            <Star size={20} fill="currentColor" />
-                                            <Star size={20} fill="currentColor" />
-                                            <Star size={20} fill="currentColor" />
-                                            <Star size={20} fill="currentColor" />
-                                            <StarHalf size={20} fill="currentColor" />
+                                            <StarIcon weight="fill" size={20} />
+                                            <StarIcon weight="fill" size={20} />
+                                            <StarIcon weight="fill" size={20} />
+                                            <StarIcon weight="fill" size={20} />
+                                            <StarHalfIcon weight="fill" size={20} />
                                         </div>
                                     </div>
                                     <div className="flex-1 w-full space-y-2">
@@ -126,13 +123,13 @@ const ResourceDetailsPage = () => {
                                                 <p className="text-xs text-slate-500 italic">Person Designation</p>
                                             </div>
                                         </div>
-                                        <button className="text-slate-400 hover:text-slate-600"><MoreVertical size={20} /></button>
+                                        <button className="text-slate-400 hover:text-slate-600"><DotsThreeVerticalIcon size={20} /></button>
                                     </div>
                                     <div className="flex flex-col gap-4">
                                         <div className="flex items-center gap-4">
                                             <div className="flex gap-1 text-amber-400">
-                                                {[1, 2, 3, 4].map(i => <Star key={i} size={16} fill="currentColor" />)}
-                                                <StarHalf size={16} fill="currentColor" />
+                                                {[1, 2, 3, 4].map(i => <StarIcon weight="fill" key={i} size={16} />)}
+                                                <StarHalfIcon weight="fill" size={16} />
                                             </div>
                                             <span className="text-xs text-slate-400">October 11, 2023</span>
                                         </div>
@@ -141,10 +138,10 @@ const ResourceDetailsPage = () => {
                                         </p>
                                         <div className="flex gap-6 pt-2">
                                             <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-km-primary">
-                                                <ThumbsUp size={16} /> Like
+                                                <ThumbsUpIcon weight="bold" size={16} /> Like
                                             </button>
                                             <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-rose-500">
-                                                <Flag size={16} /> Report
+                                                <FlagIcon weight="bold" size={16} /> Report
                                             </button>
                                         </div>
                                     </div>
@@ -164,14 +161,14 @@ const ResourceDetailsPage = () => {
                             <div key={i} className="flex gap-3 group cursor-pointer">
                                 <div className="w-24 h-16 bg-slate-200 rounded-lg shrink-0 relative overflow-hidden">
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Play size={16} className="text-white fill-white" />
+                                        <PlayIcon weight="fill" size={16} className="text-white fill-white" />
                                     </div>
                                 </div>
                                 <div className="flex-1">
                                     <h4 className="text-xs font-bold text-slate-800 leading-snug line-clamp-2">Lorem Ipsum Video Title Display Here</h4>
                                     <div className="flex items-center justify-between mt-1">
                                         <span className="text-[10px] text-slate-400">10K Viewers</span>
-                                        <Bookmark size={12} className="text-km-primary" />
+                                        <BookmarkSimpleIcon weight="bold" size={12} className="text-km-primary" />
                                     </div>
                                 </div>
                             </div>
@@ -195,7 +192,7 @@ const AccordionItem = ({ title, subtitle, active = false }: any) => (
     <div className={`p-4 rounded-xl border transition-all cursor-pointer ${active ? 'bg-blue-50 border-blue-100' : 'bg-white border-transparent hover:bg-slate-50'}`}>
         <div className="flex items-center justify-between">
             <span className={`text-sm font-bold ${active ? 'text-km-primary' : 'text-slate-800'}`}>{title}</span>
-            <ChevronDown size={16} className={active ? 'text-km-primary' : 'text-slate-400'} />
+            <CaretDownIcon weight="bold" size={16} className={active ? 'text-km-primary' : 'text-slate-400'} />
         </div>
         {subtitle && <p className="text-[10px] text-km-primary/70 mt-2 font-medium leading-relaxed">{subtitle}</p>}
     </div>

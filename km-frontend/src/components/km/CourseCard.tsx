@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Play, Eye, Calendar, User, Clock, ExternalLink, Trash2, Pencil } from "lucide-react";
+import { CalendarBlankIcon, ClockIcon, EyeIcon, PencilSimpleIcon, PlayIcon, TrashIcon, UserIcon } from '@phosphor-icons/react';
 import { openYouTubeVideo, getYouTubeThumbnail } from "@/lib/youtube";
 
 export interface CourseData {
@@ -108,7 +108,7 @@ export default function CourseCard({
                     {/* Minimalist Play Icon in Center */}
                     <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
                         <div className="w-8 h-8 bg-white text-[#071A4D] rounded-full flex items-center justify-center shadow-xs">
-                            <Play size={12} fill="currentColor" className="ml-0.5" />
+                            <PlayIcon weight="fill" size={12} className="ml-0.5" />
                         </div>
                     </div>
                 </div>
@@ -119,7 +119,7 @@ export default function CourseCard({
                         {/* Views Count */}
                         <div className="flex items-center justify-end mb-1">
                             <span className="text-[11px] font-semibold text-[#071A4D] flex items-center gap-1">
-                                <Eye size={11} className="text-[#0B5ED7]" />
+                                <EyeIcon weight="bold" size={11} className="text-[#0B5ED7]" />
                                 {formattedViews}
                             </span>
                         </div>
@@ -136,7 +136,7 @@ export default function CourseCard({
                     {/* Bottom Metadata & Duration */}
                     <div className="flex items-center justify-between pt-1 border-t border-[#D9E0EA]/60 text-[11px] text-[#5B6472]">
                         <span className="flex items-center gap-1 font-medium text-[#111827]">
-                            <Clock size={11} className="text-[#0B5ED7]" />
+                            <ClockIcon weight="bold" size={11} className="text-[#0B5ED7]" />
                             {course.duration || "30 Min"}
                         </span>
                     </div>
@@ -176,13 +176,13 @@ export default function CourseCard({
 
                 {/* Duration Badge on bottom-right of thumbnail */}
                 <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1">
-                    <Clock size={11} /> {course.duration || "30 Min"}
+                    <ClockIcon weight="bold" size={11} /> {course.duration || "30 Min"}
                 </span>
 
                 {/* Minimalist Play Icon in Center */}
                 <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
                     <div className="w-11 h-11 bg-white text-[#071A4D] rounded-full flex items-center justify-center shadow-xs">
-                        <Play size={16} fill="currentColor" className="ml-0.5" />
+                        <PlayIcon weight="fill" size={16} className="ml-0.5" />
                     </div>
                 </div>
             </div>
@@ -214,7 +214,7 @@ export default function CourseCard({
                                         className="p-1.5 text-[#0B5ED7] hover:bg-blue-50 rounded-lg transition"
                                         title="Edit Course"
                                     >
-                                        <Pencil size={15} />
+                                        <PencilSimpleIcon weight="bold" size={15} />
                                     </button>
                                 )}
                                 {onDelete && (
@@ -227,7 +227,7 @@ export default function CourseCard({
                                         className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
                                         title="Delete Course"
                                     >
-                                        <Trash2 size={15} />
+                                        <TrashIcon weight="bold" size={15} />
                                     </button>
                                 )}
                             </div>
@@ -246,7 +246,7 @@ export default function CourseCard({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-2.5 gap-x-4 pt-3.5 mt-4 border-t border-[#D9E0EA]">
                     {/* (A) Video Duration (Replaced Watch Video area) */}
                     <div className="flex items-center gap-1.5 text-xs text-[#5B6472]">
-                        <Clock size={14} className="text-[#0B5ED7] shrink-0" />
+                        <ClockIcon weight="bold" size={14} className="text-[#0B5ED7] shrink-0" />
                         <span>Duration: <strong className="text-[#111827]">{course.duration || "30 Min"}</strong></span>
                     </div>
 
@@ -266,7 +266,7 @@ export default function CourseCard({
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <User size={12} className="text-[#071A4D]" />
+                                    <UserIcon weight="bold" size={12} className="text-[#071A4D]" />
                                 )}
                             </div>
                             <span className="truncate group-hover/profile:underline">
@@ -277,13 +277,13 @@ export default function CourseCard({
 
                     {/* (C) Live Viewers Count */}
                     <div className="flex items-center gap-1.5 text-xs text-[#071A4D] font-bold">
-                        <Eye size={14} className="text-[#0B5ED7] shrink-0" />
+                        <EyeIcon weight="bold" size={14} className="text-[#0B5ED7] shrink-0" />
                         <span>{formattedViews}</span>
                     </div>
 
                     {/* (D) Release Date */}
                     <div className="flex items-center gap-1.5 text-xs text-[#5B6472]">
-                        <Calendar size={14} className="text-[#5B6472]/70 shrink-0" />
+                        <CalendarBlankIcon weight="bold" size={14} className="text-[#5B6472]/70 shrink-0" />
                         <span>Released {formattedDate}</span>
                     </div>
                 </div>

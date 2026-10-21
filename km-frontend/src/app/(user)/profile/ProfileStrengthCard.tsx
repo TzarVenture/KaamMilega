@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, ChevronDown, ChevronUp, Circle, CircleDashed } from 'lucide-react';
+import { CaretDownIcon, CaretUpIcon, CheckCircleIcon, CircleDashedIcon, CircleIcon } from '@phosphor-icons/react';
 import {
     CRITERION_META,
     fetchProfileCompletion,
@@ -153,9 +153,9 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                         return (
                             <li key={item.id} className="flex items-center gap-3 px-4 py-3">
                                 {partial ? (
-                                    <CircleDashed size={18} className="text-[#FF6B00] shrink-0" aria-label="Partly done" />
+                                    <CircleDashedIcon weight="bold" size={18} className="text-[#FF6B00] shrink-0" aria-label="Partly done" />
                                 ) : (
-                                    <Circle size={18} className="text-[#D9E0EA] shrink-0" aria-hidden="true" />
+                                    <CircleIcon weight="bold" size={18} className="text-[#D9E0EA] shrink-0" aria-hidden="true" />
                                 )}
                                 <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium text-[#111827]">{meta.title}</p>
@@ -187,7 +187,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                         className="inline-flex items-center gap-1 text-xs font-semibold text-[#5B6472] hover:text-[#071A4D] cursor-pointer"
                     >
                         {showCompleted ? 'Hide' : 'Show'} {completed.length} completed
-                        {showCompleted ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                        {showCompleted ? <CaretUpIcon weight="bold" size={14} /> : <CaretDownIcon weight="bold" size={14} />}
                     </button>
                     {showCompleted && (
                         <ul className="mt-2 flex flex-wrap gap-2">
@@ -196,7 +196,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                                     key={item.id}
                                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F4F7FB] text-xs font-medium text-[#111827]"
                                 >
-                                    <CheckCircle2 size={13} className="text-[#16A34A]" />
+                                    <CheckCircleIcon weight="bold" size={13} className="text-[#16A34A]" />
                                     {CRITERION_META[item.id].title}
                                 </li>
                             ))}

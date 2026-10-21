@@ -1,12 +1,7 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, Calendar, Clock, Edit, Trash2, Check, X,
-  ChevronRight, ArrowLeft, User, MessageCircle, Info,
-  CheckCircle2, Video, ExternalLink, Wallet, DollarSign,
-  AlertCircle, Link2, ArrowUpRight, ShieldCheck
-} from 'lucide-react';
+import { ArrowSquareOutIcon, ArrowUpRightIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, LinkSimpleIcon, NotePencilIcon, PlusIcon, ShieldCheckIcon, TrashIcon, UserIcon, VideoCameraIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import Link from 'next/link';
 import { toast, ToastContainer } from 'react-toastify';
@@ -100,12 +95,12 @@ export default function ExpertMentorshipManagement() {
               href="/wallet"
               className="bg-km-primary hover:bg-km-primary-dark text-white px-4 py-2.5 rounded-xl font-bold transition-all shadow-md flex items-center gap-1.5 text-xs md:text-sm whitespace-nowrap"
             >
-              <Wallet size={16} /> Wallet & Payouts (F71) <ArrowUpRight size={14} />
+              <WalletIcon weight="bold" size={16} /> Wallet & Payouts (F71) <ArrowUpRightIcon weight="bold" size={14} />
             </Link>
 
             {activeTab === 'sessions' && (
               <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 md:px-5 py-2.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2 text-xs md:text-sm">
-                <Plus size={16} /> Create Session
+                <PlusIcon weight="bold" size={16} /> Create Session
               </button>
             )}
           </div>
@@ -114,9 +109,9 @@ export default function ExpertMentorshipManagement() {
         {/* Tabs */}
         <div className="flex border-b border-gray-200 mb-5 md:mb-6 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           {[
-            { id: 'bookings', label: 'Booked Sessions', icon: <User size={14} />, count: bookings.length },
-            { id: 'sessions', label: 'My Sessions', icon: <Plus size={14} />, count: mentorships.length },
-            { id: 'availability', label: 'Availability Hours', icon: <Calendar size={14} /> }
+            { id: 'bookings', label: 'Booked Sessions', icon: <UserIcon weight="bold" size={14} />, count: bookings.length },
+            { id: 'sessions', label: 'My Sessions', icon: <PlusIcon weight="bold" size={14} />, count: mentorships.length },
+            { id: 'availability', label: 'Availability Hours', icon: <CalendarBlankIcon weight="bold" size={14} /> }
           ].map((tab) => (
             <button
               key={tab.id}
@@ -160,9 +155,7 @@ function SessionsList({ mentorships }: { mentorships: any[] }) {
   if (mentorships.length === 0) {
     return (
       <div className="bg-white p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
-        <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
-          <Plus className="text-gray-300" size={24} />
-        </div>
+        <PlusIcon size={28} weight="duotone" className="text-gray-300 mx-auto mb-4" aria-hidden="true" />
         <h3 className="text-lg font-bold text-gray-800 mb-2">No Mentorship Sessions</h3>
         <p className="text-xs md:text-sm text-gray-500 mb-6 md:mb-8 max-w-xs mx-auto">Create your first session to start helping others and growing your professional network.</p>
         <button className="text-purple-600 text-xs md:text-sm font-bold border border-purple-200 px-5 py-2 rounded-full hover:bg-purple-50">Create Now</button>
@@ -177,14 +170,14 @@ function SessionsList({ mentorships }: { mentorships: any[] }) {
           <div className="flex justify-between items-start mb-4">
             <div className="bg-purple-50 text-purple-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">{m.category}</div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-500 transition-colors"><Edit size={14} /></button>
-              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-500 transition-colors"><NotePencilIcon weight="bold" size={14} /></button>
+              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><TrashIcon weight="bold" size={14} /></button>
             </div>
           </div>
           <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3 md:mb-4">{m.title}</h3>
           <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-gray-50">
             <div className="flex items-center gap-1.5 text-gray-400 text-[10px] font-bold uppercase">
-              <Clock size={12} /> {m.duration} Mins
+              <ClockIcon weight="bold" size={12} /> {m.duration} Mins
             </div>
             <div className="text-base md:text-lg font-black text-gray-900">₹{m.price}</div>
           </div>
@@ -241,9 +234,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
   if (bookings.length === 0) {
     return (
       <div className="bg-white p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
-        <div className="w-12 h-12 md:w-16 md:h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
-          <User className="text-gray-300" size={24} />
-        </div>
+        <UserIcon size={40} weight="duotone" className="text-gray-300 mx-auto mb-4 md:mb-6" aria-hidden="true" />
         <h3 className="text-lg font-bold text-gray-800 mb-2">No Bookings Yet</h3>
         <p className="text-xs md:text-sm text-gray-500 max-w-xs mx-auto">When candidates book sessions with you, they will appear here. Funds are held in Escrow until you complete the call.</p>
       </div>
@@ -265,7 +256,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
             {/* Left: Mentee & Session info */}
             <div className="flex gap-3.5 items-start">
               <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 font-black text-sm">
-                {b.mentee_name ? b.mentee_name.charAt(0).toUpperCase() : <User size={20} />}
+                {b.mentee_name ? b.mentee_name.charAt(0).toUpperCase() : <UserIcon size={20} />}
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -293,12 +284,12 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                 
                 <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[11px] text-gray-500">
                   <span className="flex items-center gap-1 font-medium">
-                    <Calendar size={12} className="text-gray-400" />
+                    <CalendarBlankIcon weight="bold" size={12} className="text-gray-400" />
                     {new Date(b.scheduled_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                   </span>
                   
                   <span className="flex items-center gap-1 font-bold text-emerald-600">
-                    <ShieldCheck size={13} />
+                    <ShieldCheckIcon weight="bold" size={13} />
                     ₹{b.amount || 0} {isCompleted ? 'Credited to Earnings' : 'Held in Escrow'}
                   </span>
                 </div>
@@ -316,7 +307,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                   rel="noopener noreferrer"
                   className="bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border border-purple-200"
                 >
-                  <Video size={13} /> Join Meeting <ExternalLink size={11} />
+                  <VideoCameraIcon weight="bold" size={13} /> Join Meeting <ArrowSquareOutIcon weight="bold" size={11} />
                 </a>
               ) : (
                 isConfirmed && (
@@ -327,7 +318,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                     }}
                     className="text-gray-500 hover:text-purple-600 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-gray-50 border border-dashed border-gray-300 flex items-center gap-1"
                   >
-                    <Link2 size={13} /> Add Meet Link
+                    <LinkSimpleIcon weight="bold" size={13} /> Add Meet Link
                   </button>
                 )
               )}
@@ -340,14 +331,14 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                     onClick={() => handleStatus(b, 'confirmed')}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all shadow-sm disabled:opacity-50"
                   >
-                    <Check size={14} /> Accept
+                    <CheckIcon weight="bold" size={14} /> Accept
                   </button>
                   <button 
                     disabled={isLoading}
                     onClick={() => handleStatus(b, 'cancelled')}
                     className="bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
                   >
-                    <X size={14} /> Decline
+                    <XIcon weight="bold" size={14} /> Decline
                   </button>
                 </div>
               )}
@@ -362,7 +353,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                     {isLoading ? (
                       <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <CheckCircle2 size={14} />
+                      <CheckCircleIcon weight="bold" size={14} />
                     )}
                     Mark Completed & Release ₹{b.amount}
                   </button>
@@ -377,14 +368,14 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                     className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg transition-colors"
                     title="Cancel Session & Refund"
                   >
-                    <X size={16} />
+                    <XIcon weight="bold" size={16} />
                   </button>
                 </div>
               )}
 
               {isCompleted && (
                 <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
-                  <CheckCircle2 size={14} /> ₹{b.amount} Released to Earnings
+                  <CheckCircleIcon weight="bold" size={14} /> ₹{b.amount} Released to Earnings
                 </div>
               )}
 
@@ -409,13 +400,11 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
           >
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                  <Video size={16} />
-                </div>
+                <VideoCameraIcon size={20} className="text-purple-600" aria-hidden="true" />
                 <h3 className="font-black text-gray-900 text-base">Add Meeting Link</h3>
               </div>
               <button onClick={() => setMeetingModalBooking(null)} className="text-gray-400 hover:text-gray-600 p-1">
-                <X size={18} />
+                <XIcon weight="bold" size={18} />
               </button>
             </div>
             
@@ -583,7 +572,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
 
             <div className="flex-1 flex items-center gap-2 md:gap-3">
               <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
-                <Clock size={12} className="text-gray-400" />
+                <ClockIcon weight="bold" size={12} className="text-gray-400" />
                 <input 
                   type="time" 
                   value={item.startTime}
@@ -596,7 +585,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
               <span className="text-gray-400 text-xs font-medium">to</span>
 
               <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
-                <Clock size={12} className="text-gray-400" />
+                <ClockIcon weight="bold" size={12} className="text-gray-400" />
                 <input 
                   type="time" 
                   value={item.endTime}
@@ -654,7 +643,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
             </>
           ) : (
             <>
-              <Check size={14} />
+              <CheckIcon weight="bold" size={14} />
               <span>Save Availability</span>
             </>
           )}

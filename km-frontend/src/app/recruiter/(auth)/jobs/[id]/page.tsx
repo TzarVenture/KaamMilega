@@ -3,11 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import api from "@/lib/axios";
-import {
-    Briefcase, MapPin, DollarSign, Clock,
-    ArrowLeft, Edit, Trash2, Calendar,
-    CheckCircle2, AlertCircle, Building2, Users
-} from "lucide-react";
+import { ArrowLeftIcon, BuildingOfficeIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, CurrencyInrIcon, NotePencilIcon, TrashIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { toast } from "react-toastify";
 
@@ -64,7 +60,7 @@ export default function JobDetailsPage() {
             {/* Top Bar */}
             <div className="flex items-center justify-between mb-8">
                 <Link href="/recruiter/jobs/list" className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors font-medium">
-                    <ArrowLeft className="w-5 h-5" />
+                    <ArrowLeftIcon className="w-5 h-5" />
                     Back to All Jobs
                 </Link>
                 <div className="flex gap-3">
@@ -72,14 +68,14 @@ export default function JobDetailsPage() {
                         href={`/recruiter/jobs/${jobId}/edit`}
                         className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition-all"
                     >
-                        <Edit className="w-4 h-4" />
+                        <NotePencilIcon weight="bold" className="w-4 h-4" />
                         Edit Job
                     </Link>
                     <button
                         onClick={handleDelete}
                         className="flex items-center gap-2 px-4 py-2 border border-red-100 bg-red-50 rounded-xl text-red-600 font-bold hover:bg-red-100 transition-all"
                     >
-                        <Trash2 className="w-4 h-4" />
+                        <TrashIcon weight="bold" className="w-4 h-4" />
                         Delete
                     </button>
                 </div>
@@ -96,7 +92,7 @@ export default function JobDetailsPage() {
                                 <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
                                 <div className="flex items-center gap-4 mt-2">
                                     <span className="flex items-center gap-1.5 text-gray-500 font-medium">
-                                        <Building2 className="w-4 h-4" />
+                                        <BuildingOfficeIcon weight="bold" className="w-4 h-4" />
                                         {job.company}
                                     </span>
                                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${job.status === 'Open' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
@@ -136,7 +132,7 @@ export default function JobDetailsPage() {
                     {/* Requirements Section */}
                     <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                         <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                            <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                            <CheckCircleIcon className="w-5 h-5 text-blue-600" />
                             Requirements
                         </h3>
                         <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -153,7 +149,7 @@ export default function JobDetailsPage() {
                     {job.we_offer?.length > 0 && (
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
-                                <DollarSign className="w-5 h-5 text-green-600" />
+                                <CurrencyInrIcon className="w-5 h-5 text-green-600" />
                                 Perks & Benefits
                             </h3>
                             <div className="flex flex-wrap gap-3">
@@ -172,7 +168,7 @@ export default function JobDetailsPage() {
                     <div className="bg-blue-600 p-8 rounded-3xl shadow-xl shadow-blue-200 text-white overflow-hidden relative">
                         <div className="relative z-10">
                             <div className="p-3 bg-white/20 w-fit rounded-2xl mb-4">
-                                <Users className="w-8 h-8 text-white" />
+                                <UsersIcon className="w-8 h-8 text-white" />
                             </div>
                             <h4 className="text-xl font-bold mb-1">Applications</h4>
                             <p className="text-blue-100 text-sm mb-6">Total candidates applied for this position.</p>
@@ -191,21 +187,21 @@ export default function JobDetailsPage() {
                         <h4 className="font-bold text-gray-900 mb-4 border-b pb-3">Posting Details</h4>
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
-                                <Calendar className="w-5 h-5 text-gray-400" />
+                                <CalendarBlankIcon className="w-5 h-5 text-gray-400" />
                                 <div>
                                     <p className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Posted On</p>
                                     <p className="text-sm font-bold text-gray-700">{new Date(job.created_at).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <Clock className="w-5 h-5 text-gray-400" />
+                                <ClockIcon className="w-5 h-5 text-gray-400" />
                                 <div>
                                     <p className="text-[10px] uppercase font-black text-gray-400 tracking-widest">Last Updated</p>
                                     <p className="text-sm font-bold text-gray-700">{new Date(job.updated_at).toLocaleDateString(undefined, { dateStyle: 'long' })}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3 pt-2">
-                                <AlertCircle className="w-5 h-5 text-gray-400" />
+                                <WarningCircleIcon className="w-5 h-5 text-gray-400" />
                                 <p className="text-xs text-gray-500 italic">Job ID: {job.id}</p>
                             </div>
                         </div>

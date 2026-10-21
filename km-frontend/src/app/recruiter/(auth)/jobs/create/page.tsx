@@ -3,11 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
-import {
-    Briefcase, MapPin, DollarSign, List, Edit2,
-    CheckCircle, ArrowLeft, ArrowRight, Building2,
-    Clock, Info, ShieldCheck, Search
-} from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, ClockIcon, CurrencyInrIcon, InfoIcon, MagnifyingGlassIcon, MapPinIcon, PencilSimpleIcon, ShieldCheckIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
@@ -123,7 +119,7 @@ export default function CreateJobPage() {
             <div className="mb-8 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link href="/recruiter" className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-gray-400 hover:text-gray-600 transition-all">
-                        <ArrowLeft className="w-5 h-5" />
+                        <ArrowLeftIcon className="w-5 h-5" />
                     </Link>
                     <div>
                         <h1 className="text-2xl font-bold text-gray-900">Post a New Job</h1>
@@ -138,7 +134,7 @@ export default function CreateJobPage() {
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${step === s ? "bg-blue-600 text-white shadow-md scale-110" :
                                 step > s ? "bg-green-500 text-white" : "bg-gray-200 text-gray-500"
                                 }`}>
-                                {step > s ? <CheckCircle className="w-5 h-5" /> : s}
+                                {step > s ? <CheckCircleIcon className="w-5 h-5" /> : s}
                             </div>
                             {s < 3 && <div className={`w-12 h-1 ${step > s ? "bg-green-500" : "bg-gray-200"} transition-all`} />}
                         </div>
@@ -158,7 +154,7 @@ export default function CreateJobPage() {
                             className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
                             <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
-                                <Info className="w-5 h-5" />
+                                <InfoIcon className="w-5 h-5" />
                                 <span>Basic Information</span>
                             </div>
 
@@ -166,7 +162,7 @@ export default function CreateJobPage() {
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-gray-700">Job Title</label>
                                     <div className="relative">
-                                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <BriefcaseIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="text"
                                             name="title"
@@ -182,7 +178,7 @@ export default function CreateJobPage() {
                                     <label className="text-sm font-semibold text-gray-700">Company Name</label>
                                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
                                         <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm border border-gray-100">
-                                            <Building2 className="w-5 h-5 text-blue-600" />
+                                            <BuildingOfficeIcon className="w-5 h-5 text-blue-600" />
                                         </div>
                                         <div className="flex-1">
                                             <p className="text-sm font-bold text-gray-900">{formData.company || "Not Set"}</p>
@@ -197,7 +193,7 @@ export default function CreateJobPage() {
                                 <div className="space-y-2" ref={cityRef}>
                                     <label className="text-sm font-semibold text-gray-700">City / Location</label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <button
                                             type="button"
                                             onClick={() => setIsCityOpen(!isCityOpen)}
@@ -210,7 +206,7 @@ export default function CreateJobPage() {
                                             <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                                                 <div className="p-2 border-b">
                                                     <div className="relative">
-                                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                                         <input
                                                             type="text"
                                                             placeholder="Search city..."
@@ -243,7 +239,7 @@ export default function CreateJobPage() {
                                 <div className="space-y-2">
                                     <label className="text-sm font-semibold text-gray-700">Employment Type</label>
                                     <div className="relative">
-                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                        <ClockIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                                         <select
                                             name="job_type"
                                             className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none bg-white font-medium"
@@ -284,12 +280,12 @@ export default function CreateJobPage() {
                             className="space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
                             <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
-                                <DollarSign className="w-5 h-5" />
+                                <CurrencyInrIcon className="w-5 h-5" />
                                 <span>Compensation & Experience</span>
                             </div>
 
                             <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 flex gap-4">
-                                <ShieldCheck className="w-8 h-8 text-blue-600 shrink-0" />
+                                <ShieldCheckIcon className="w-8 h-8 text-blue-600 shrink-0" />
                                 <div>
                                     <h4 className="font-bold text-blue-900">Fair Pay Policy</h4>
                                     <p className="text-sm text-blue-700 mt-1">Providing honest salary ranges helps you attract the right talent and improves your job ranking.</p>
@@ -400,7 +396,7 @@ export default function CreateJobPage() {
                             className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
                             <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
-                                <Edit2 className="w-5 h-5" />
+                                <PencilSimpleIcon className="w-5 h-5" />
                                 <span>Core Details</span>
                             </div>
 
@@ -459,7 +455,7 @@ export default function CreateJobPage() {
                             onClick={prevStep}
                             className="flex items-center gap-2 px-6 py-3 text-gray-500 font-bold hover:text-gray-900 transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5" />
+                            <ArrowLeftIcon className="w-5 h-5" />
                             Back
                         </button>
                     ) : (
@@ -482,13 +478,13 @@ export default function CreateJobPage() {
                                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : step === 3 ? (
                                 <>
-                                    <CheckCircle className="w-5 h-5" />
+                                    <CheckCircleIcon className="w-5 h-5" />
                                     Post Job Now
                                 </>
                             ) : (
                                 <>
                                     Continue
-                                    <ArrowRight className="w-5 h-5" />
+                                    <ArrowRightIcon className="w-5 h-5" />
                                 </>
                             )}
                         </button>

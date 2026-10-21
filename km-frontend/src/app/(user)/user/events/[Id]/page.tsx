@@ -1,9 +1,6 @@
 // pages/events/[id].tsx
 import React from 'react';
-import {
-    Calendar, Video, Users, Bookmark, Share2,
-    MapPin, Clock, MessageCircle, MoreVertical, CheckCircle2
-} from 'lucide-react';
+import { BookmarkSimpleIcon, CalendarBlankIcon, ChatCircleIcon, ShareNetworkIcon, UsersIcon, VideoCameraIcon } from '@phosphor-icons/react/ssr';
 
 const EventDetailsPage = () => {
     return (
@@ -23,10 +20,10 @@ const EventDetailsPage = () => {
                         {/* Action Buttons on Cover */}
                         <div className="absolute bottom-6 right-6 flex gap-3">
                             <button className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white hover:bg-white/20 transition-all">
-                                <Bookmark size={20} />
+                                <BookmarkSimpleIcon size={20} />
                             </button>
                             <button className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white hover:bg-white/20 transition-all">
-                                <Share2 size={20} />
+                                <ShareNetworkIcon size={20} />
                             </button>
                         </div>
                     </div>
@@ -44,9 +41,7 @@ const EventDetailsPage = () => {
 
                         <div className="flex flex-wrap items-center gap-y-4 gap-x-12 py-4 border-y border-gray-50">
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-purple-50 rounded-xl text-purple-600">
-                                    <Calendar size={20} />
-                                </div>
+                                <CalendarBlankIcon size={24} className="text-purple-600" aria-hidden="true" />
                                 <div>
                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Date & Time</p>
                                     <p className="text-sm font-bold text-gray-800">Thu, Oct 12, 2023, 8:30 PM</p>
@@ -54,9 +49,7 @@ const EventDetailsPage = () => {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-purple-50 rounded-xl text-purple-600">
-                                    <Video size={20} />
-                                </div>
+                                <VideoCameraIcon size={24} className="text-purple-600" aria-hidden="true" />
                                 <div>
                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Event Format</p>
                                     <p className="text-sm font-bold text-gray-800">Online Event</p>
@@ -64,9 +57,7 @@ const EventDetailsPage = () => {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-purple-50 rounded-xl text-purple-600">
-                                    <Users size={20} />
-                                </div>
+                                <UsersIcon size={24} className="text-purple-600" aria-hidden="true" />
                                 <div>
                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Attendance</p>
                                     <p className="text-sm font-bold text-gray-800">18,000+ Attendees</p>
@@ -153,7 +144,7 @@ const EventDetailsPage = () => {
                                     </div>
                                 </div>
                                 <button className="text-gray-300 hover:text-purple-600">
-                                    <MessageCircle size={16} />
+                                    <ChatCircleIcon weight="bold" size={16} />
                                 </button>
                             </div>
                         ))}

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ChevronDown, Smartphone, LogIn, ExternalLink, Menu, X, Briefcase, Zap, GraduationCap, Calendar, Users } from 'lucide-react';
+import { ArrowSquareOutIcon, BriefcaseIcon, CalendarBlankIcon, CaretDownIcon, DeviceMobileIcon, GraduationCapIcon, LightningIcon, ListIcon, MagnifyingGlassIcon, SignInIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
@@ -68,11 +68,11 @@ const GuestNavbar = () => {
     };
 
     const navLinks = [
-        { label: 'Jobs', href: '/jobs', icon: <Briefcase size={15} /> },
-        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', icon: <Zap size={15} className="text-[#FF6B00] fill-[#FF6B00]" />, isHighlighted: true }] : []),
-        { label: 'Mentors', href: '/mentorship', icon: <GraduationCap size={15} /> },
-        { label: 'Events', href: '/events', icon: <Calendar size={15} /> },
-        { label: 'Network', href: '/network', icon: <Users size={15} /> },
+        { label: 'Jobs', href: '/jobs', icon: <BriefcaseIcon weight="bold" size={15} /> },
+        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', icon: <LightningIcon weight="bold" size={15} className="text-[#FF6B00] fill-[#FF6B00]" />, isHighlighted: true }] : []),
+        { label: 'Mentors', href: '/mentorship', icon: <GraduationCapIcon weight="bold" size={15} /> },
+        { label: 'Events', href: '/events', icon: <CalendarBlankIcon weight="bold" size={15} /> },
+        { label: 'Network', href: '/network', icon: <UsersIcon weight="bold" size={15} /> },
     ];
 
     const isLinkActive = (item: { href: string }) => {
@@ -104,7 +104,7 @@ const GuestNavbar = () => {
                         />
                         <div className="h-5 w-px bg-slate-300 mx-1 shrink-0" />
                         <form onSubmit={handleSearch} className="relative flex items-center flex-1 min-w-0 pr-2">
-                            <Search size={16} className="text-slate-400 mr-2 shrink-0" />
+                            <MagnifyingGlassIcon weight="bold" size={16} className="text-slate-400 mr-2 shrink-0" />
                             <input
                                 type="text"
                                 aria-label="Search jobs, skills, companies and more"
@@ -119,7 +119,7 @@ const GuestNavbar = () => {
                                     onClick={() => setSearchValue('')}
                                     className="text-slate-400 hover:text-slate-600 p-1"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             )}
                         </form>
@@ -133,7 +133,7 @@ const GuestNavbar = () => {
                             onClick={() => setIsDownloadModalOpen(true)}
                             className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
                         >
-                            <Smartphone size={16} className="text-slate-500" />
+                            <DeviceMobileIcon weight="bold" size={16} className="text-slate-500" />
                             <span>App</span>
                         </button>
 
@@ -145,7 +145,7 @@ const GuestNavbar = () => {
                                 className="flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
                             >
                                 <span>{selectedLang}</span>
-                                <ChevronDown size={14} className={`transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
+                                <CaretDownIcon weight="bold" size={14} className={`transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
                             </button>
                             {isLangOpen && (
                                 <div className="absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
@@ -172,7 +172,7 @@ const GuestNavbar = () => {
                             href="/login"
                             className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-3 rounded-lg hover:bg-slate-50"
                         >
-                            <LogIn size={15} />
+                            <SignInIcon weight="bold" size={15} />
                             <span>Sign In</span>
                         </Link>
 
@@ -182,7 +182,7 @@ const GuestNavbar = () => {
                             className="bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all shadow-xs hover:shadow-sm active:scale-98"
                         >
                             <span>Hire Staff</span>
-                            <ExternalLink size={13} />
+                            <ArrowSquareOutIcon weight="bold" size={13} />
                         </Link>
                     </div>
 
@@ -197,7 +197,7 @@ const GuestNavbar = () => {
                                 }`}
                             aria-label="Open search"
                         >
-                            <Search size={19} />
+                            <MagnifyingGlassIcon size={19} />
                         </button>
                         <Link
                             href="/login"
@@ -214,7 +214,7 @@ const GuestNavbar = () => {
                                 }`}
                             aria-label="Toggle navigation menu"
                         >
-                            {mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}
+                            {mobileMenuOpen ? <XIcon size={21} /> : <ListIcon size={21} />}
                         </button>
                     </div>
                 </div>
@@ -264,7 +264,7 @@ const GuestNavbar = () => {
                     <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 px-4 py-3.5 shadow-xl animate-in slide-in-from-top-2 duration-150">
                         <form onSubmit={handleSearch} className="flex items-center gap-2">
                             <div className="relative flex items-center flex-1 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 focus-within:border-km-primary focus-within:bg-white focus-within:ring-1 focus-within:ring-km-primary transition-all">
-                                <Search size={16} className="text-slate-400 mr-2 shrink-0" />
+                                <MagnifyingGlassIcon weight="bold" size={16} className="text-slate-400 mr-2 shrink-0" />
                                 <input
                                     type="text"
                                     aria-label="Search jobs, skills, companies and more"
@@ -330,7 +330,7 @@ const GuestNavbar = () => {
                                 onClick={() => setMobileMenuOpen(false)}
                                 className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
                             >
-                                <LogIn size={16} />
+                                <SignInIcon weight="bold" size={16} />
                                 <span>Sign In as Candidate</span>
                             </Link>
                             <Link
@@ -339,7 +339,7 @@ const GuestNavbar = () => {
                                 className="w-full flex items-center justify-center gap-2 py-3 bg-km-primary hover:bg-km-primary-dark text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-blue-900/15 cursor-pointer"
                             >
                                 <span>Hire Local Staff (Recruiter Portal)</span>
-                                <ExternalLink size={15} />
+                                <ArrowSquareOutIcon weight="bold" size={15} />
                             </Link>
                         </div>
 
@@ -350,7 +350,7 @@ const GuestNavbar = () => {
                                 onClick={() => { setMobileMenuOpen(false); setIsDownloadModalOpen(true); }}
                                 className="flex items-center gap-2 font-bold text-slate-700 hover:text-km-primary py-1 cursor-pointer"
                             >
-                                <Smartphone size={16} className="text-slate-500" />
+                                <DeviceMobileIcon weight="bold" size={16} className="text-slate-500" />
                                 <span>Install Mobile App</span>
                             </button>
                             <button

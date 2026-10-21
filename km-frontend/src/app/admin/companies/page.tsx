@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, MoreVertical, Eye, Building2, ShieldCheck, FileCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { BuildingOfficeIcon, DotsThreeVerticalIcon, EyeIcon, FunnelSimpleIcon, MagnifyingGlassIcon, PlusIcon, SealCheckIcon, ShieldCheckIcon } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import DocumentsListModal from '@/components/modals/admin/DocumentsListModal';
@@ -145,10 +145,10 @@ export default function CompaniesPage() {
             {/* Quick Stats - could be fetched from API/stats endpoint later */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Companies', value: '428', icon: Building2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                    { label: 'Pending Verification', value: '12', icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'Verified Partners', value: '382', icon: FileCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Rejected Applications', value: '34', icon: MoreVertical, color: 'text-rose-600', bg: 'bg-rose-50' },
+                    { label: 'Total Companies', value: '428', icon: BuildingOfficeIcon, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    { label: 'Pending Verification', value: '12', icon: ShieldCheckIcon, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { label: 'Verified Partners', value: '382', icon: SealCheckIcon, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    { label: 'Rejected Applications', value: '34', icon: DotsThreeVerticalIcon, color: 'text-rose-600', bg: 'bg-rose-50' },
                 ].map((stat, i) => (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -162,9 +162,7 @@ export default function CompaniesPage() {
                                 <p className="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
                                 <h3 className="text-2xl font-bold text-slate-900">{stat.value}</h3>
                             </div>
-                            <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl group-hover:scale-110 transition-transform`}>
-                                <stat.icon size={22} />
-                            </div>
+                            <stat.icon size={28} weight="duotone" className={`${stat.color} shrink-0`} aria-hidden="true" />
                         </div>
                     </motion.div>
                 ))}
@@ -179,7 +177,7 @@ export default function CompaniesPage() {
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative group max-sm:w-full">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Search by company name..."
@@ -189,7 +187,7 @@ export default function CompaniesPage() {
                         />
                     </div>
                     <button className="flex items-center gap-2 px-5 py-2.5 text-slate-600 bg-white border border-purple-100 rounded-2xl text-sm font-bold hover:bg-purple-50 transition-all shadow-sm active:scale-95">
-                        <Filter size={18} />
+                        <FunnelSimpleIcon weight="bold" size={18} />
                         <span>Filter</span>
                     </button>
                     <motion.button
@@ -197,7 +195,7 @@ export default function CompaniesPage() {
                         whileTap={{ scale: 0.98 }}
                         className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold hover:bg-purple-700 transition-all"
                     >
-                        <Plus size={18} />
+                        <PlusIcon weight="bold" size={18} />
                         <span>Add Profile</span>
                     </motion.button>
                 </div>
@@ -258,7 +256,7 @@ export default function CompaniesPage() {
                                                 onClick={() => handleAccessDocuments(company)}
                                                 className="text-purple-600 text-[13px] font-bold hover:underline underline-offset-4 flex items-center gap-1.5"
                                             >
-                                                <Eye size={16} />
+                                                <EyeIcon weight="bold" size={16} />
                                                 Access Profile
                                             </button>
                                         </td>
@@ -275,7 +273,7 @@ export default function CompaniesPage() {
                                                 {company.status === 'rejected' && <span className="px-2 py-1 text-xs font-medium text-rose-700 bg-rose-100 rounded-lg">Rejected</span>}
 
                                                 <button className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all shadow-sm bg-white border border-purple-50 ml-2">
-                                                    <MoreVertical size={18} />
+                                                    <DotsThreeVerticalIcon weight="bold" size={18} />
                                                 </button>
                                             </div>
                                         </td>

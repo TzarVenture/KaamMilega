@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { MapPin, MessageCircle, X } from 'lucide-react';
+import { ChatCircleIcon, MapPinIcon } from '@phosphor-icons/react';
 import { useCompany } from "../CompanyContext";
 import api from '@/lib/axios';
 import Link from 'next/link';
@@ -109,7 +109,7 @@ const PersonCard = ({ person }: { person: Person }) => (
         <p className="text-[10px] text-gray-400 uppercase mb-2 text-center w-full truncate font-semibold">{person.designation || 'Member'}</p>
 
         <div className="flex items-center text-gray-500 text-[10px] mb-1 font-medium">
-            <MapPin size={10} className="mr-1 text-km-primary" />
+            <MapPinIcon weight="bold" size={10} className="mr-1 text-km-primary" />
             <span>{person.location || 'Location N/A'}</span>
         </div>
         <p className="text-[10px] text-gray-400 mb-4 cursor-default">{person.mutual_connects || 0} Mutual Connects</p>
@@ -130,7 +130,7 @@ const PersonCard = ({ person }: { person: Person }) => (
                     <>
                         <Link href={`/chat?userId=${person.id}`}>
                             <button className="w-full py-2 border border-km-primary text-km-primary rounded-xl text-xs font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
-                                <MessageCircle size={12} />
+                                <ChatCircleIcon weight="bold" size={12} />
                                 <span>Chat</span>
                             </button>
                         </Link>

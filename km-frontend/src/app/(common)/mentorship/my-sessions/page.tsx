@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calendar, Clock, Video, ExternalLink, ShieldCheck, Star, 
-  AlertCircle, CheckCircle2, X, RefreshCw, ArrowLeft, BookOpen,
-  Users, MessageSquare
-} from 'lucide-react';
+import { ArrowLeftIcon, ArrowSquareOutIcon, ArrowsClockwiseIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, ShieldCheckIcon, StarIcon, VideoCameraIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
@@ -106,7 +102,7 @@ export default function MyMentorshipSessionsPage() {
             href="/mentorship"
             className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#1a2b8c] transition-colors mb-4 group"
           >
-            <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowLeftIcon weight="bold" size={14} className="group-hover:-translate-x-0.5 transition-transform" />
             <span>Back to Mentorship Marketplace</span>
           </Link>
 
@@ -134,7 +130,7 @@ export default function MyMentorshipSessionsPage() {
                 disabled={loading}
                 className="inline-flex items-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50"
               >
-                <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                <ArrowsClockwiseIcon weight="bold" size={13} className={loading ? "animate-spin" : ""} />
                 <span>Refresh</span>
               </button>
               <Link
@@ -153,7 +149,7 @@ export default function MyMentorshipSessionsPage() {
         {/* Escrow Guarantee Banner */}
         <div className="bg-linear-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-8 flex items-start gap-4 shadow-2xs">
           <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-            <ShieldCheck size={22} />
+            <ShieldCheckIcon size={22} />
           </div>
           <div>
             <h4 className="font-black text-slate-900 text-sm md:text-base">100% Escrow-Protected Guarantee</h4>
@@ -210,9 +206,7 @@ export default function MyMentorshipSessionsPage() {
         {/* Dynamic States */}
         {!isLoggedIn ? (
           <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-8 shadow-xs max-w-lg mx-auto">
-            <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-orange-500">
-              <Calendar size={32} />
-            </div>
+            <CalendarBlankIcon size={36} weight="duotone" className="text-orange-500 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-bold text-slate-900 mb-2">Log In to View Your Sessions</h3>
             <p className="text-xs text-slate-500 mb-6 leading-relaxed">
               Please sign in to your KaamMilega candidate account to view scheduled calls, join video meetings, and manage bookings.
@@ -242,9 +236,7 @@ export default function MyMentorshipSessionsPage() {
           </div>
         ) : (
           <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8">
-            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="text-slate-400" size={32} />
-            </div>
+            <CalendarBlankIcon size={36} weight="duotone" className="text-slate-400 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-bold text-slate-800 mb-1">No Bookings Found</h3>
             <p className="text-xs text-slate-500 max-w-xs mx-auto mb-6">
               {bookingFilter === 'all' 
@@ -278,7 +270,7 @@ export default function MyMentorshipSessionsPage() {
                   onClick={() => setReviewModalBooking(null)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
                 >
-                  <X size={16} />
+                  <XIcon weight="bold" size={16} />
                 </button>
               </div>
 
@@ -297,7 +289,7 @@ export default function MyMentorshipSessionsPage() {
                       onClick={() => setReviewRating(star)}
                       className="p-1.5 rounded-lg hover:bg-amber-50 transition-all cursor-pointer"
                     >
-                      <Star
+                      <StarIcon weight="fill"
                         size={28}
                         className={`transition-colors ${
                           star <= reviewRating
@@ -393,28 +385,28 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
       case 'confirmed':
         return (
           <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
-            <ShieldCheck size={13} className="text-emerald-600" />
+            <ShieldCheckIcon weight="bold" size={13} className="text-emerald-600" />
             <span>Confirmed (Escrow Protected)</span>
           </span>
         );
       case 'completed':
         return (
           <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
-            <CheckCircle2 size={13} className="text-blue-600" />
+            <CheckCircleIcon weight="bold" size={13} className="text-blue-600" />
             <span>Completed</span>
           </span>
         );
       case 'cancelled':
         return (
           <span className="bg-red-50 text-red-700 border border-red-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
-            <AlertCircle size={13} className="text-red-500" />
+            <WarningCircleIcon weight="bold" size={13} className="text-red-500" />
             <span>Cancelled (Refunded)</span>
           </span>
         );
       default:
         return (
           <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
-            <Clock size={13} className="text-amber-500" />
+            <ClockIcon weight="bold" size={13} className="text-amber-500" />
             <span>Pending Payment</span>
           </span>
         );
@@ -427,10 +419,10 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
         {/* Top Header: Date/Time + Status */}
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
           <div className="flex items-center gap-2 text-slate-800 text-xs font-bold">
-            <Calendar size={14} className="text-[#1a2b8c]" />
+            <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c]" />
             <span>{formatDate(booking.scheduled_at)}</span>
             <span className="text-slate-300">•</span>
-            <Clock size={14} className="text-orange-500" />
+            <ClockIcon weight="bold" size={14} className="text-orange-500" />
             <span>{formatTime(booking.scheduled_at)}</span>
           </div>
           {getStatusBadge()}
@@ -472,7 +464,7 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
         {booking.rating ? (
           <div className="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 mb-4">
             <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs mb-1">
-              <Star size={13} className="fill-amber-400 text-amber-400" />
+              <StarIcon weight="fill" size={13} className="fill-amber-400 text-amber-400" />
               <span>You Rated: {booking.rating} / 5</span>
             </div>
             {booking.review && (
@@ -492,13 +484,13 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
             rel="noopener noreferrer"
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 md:px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
           >
-            <Video size={15} />
+            <VideoCameraIcon weight="bold" size={15} />
             <span>Join Meeting</span>
-            <ExternalLink size={13} />
+            <ArrowSquareOutIcon weight="bold" size={13} />
           </a>
         ) : booking.status === 'confirmed' ? (
           <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50/80 px-3 py-2 rounded-xl border border-amber-200/50">
-            <Clock size={13} className="shrink-0 text-amber-600" />
+            <ClockIcon weight="bold" size={13} className="shrink-0 text-amber-600" />
             <span>Mentor will share meeting link prior to the call</span>
           </div>
         ) : (
@@ -512,7 +504,7 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
             onClick={() => onLeaveReview(booking)}
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
           >
-            <Star size={13} />
+            <StarIcon weight="bold" size={13} />
             <span>Leave a Review</span>
           </button>
         )}

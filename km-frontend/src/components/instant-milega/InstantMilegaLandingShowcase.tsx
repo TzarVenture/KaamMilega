@@ -2,24 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {
-    Download,
-    Zap,
-    Clock,
-    ShieldCheck,
-    CheckCircle2,
-    Wrench,
-    Package,
-    Truck,
-    Briefcase,
-    Store,
-    Plane,
-    Building2,
-    Smartphone,
-    ArrowRight,
-    Navigation,
-    Compass,
-} from 'lucide-react';
+import { ArrowRightIcon, CheckCircleIcon, ClockIcon, DeviceMobileIcon, DownloadSimpleIcon, MapPinAreaIcon, PasswordIcon, PathIcon, ShieldCheckIcon, TimerIcon } from '@phosphor-icons/react';
 import DownloadAppModal from '@/components/km/DownloadAppModal';
 
 // Popular on-demand services available on the mobile app
@@ -27,56 +10,48 @@ const POPULAR_SERVICES = [
     {
         id: 'plumber',
         title: 'Plumber',
-        icon: Wrench,
         subtitle: 'Leaks, fittings & pipe repairs',
         img: '/asset/trades/plumber.jpg',
     },
     {
         id: 'electrician',
         title: 'Electrician',
-        icon: Zap,
         subtitle: 'Wiring, fixtures & power fixes',
         img: '/asset/trades/electrician.jpg',
     },
     {
         id: 'warehouse',
         title: 'Warehouse Worker',
-        icon: Package,
         subtitle: 'Inventory, staging & packing',
         img: '/asset/trades/warehouse.jpg',
     },
     {
         id: 'loader',
         title: 'Loader-Unloader',
-        icon: Truck,
         subtitle: 'Loading, heavy goods & transit',
         img: '/asset/trades/labour.jpg',
     },
     {
         id: 'office-boy',
         title: 'Office Boy',
-        icon: Briefcase,
         subtitle: 'Daily errands & pantry support',
         img: '/asset/trades/office-executive.jpg',
     },
     {
         id: 'retail',
         title: 'Retail Executive',
-        icon: Store,
         subtitle: 'Counter sales & shelf stocking',
         img: '/asset/trades/delivery.jpg',
     },
     {
         id: 'airport',
         title: 'Airport Assistant',
-        icon: Plane,
         subtitle: 'Luggage help & terminal support',
         img: '/asset/trades/driver.jpg',
     },
     {
         id: 'mall',
         title: 'Mall Assistant',
-        icon: Building2,
         subtitle: 'Floor help & customer guidance',
         img: '/asset/trades/security.jpg',
     },
@@ -124,7 +99,7 @@ export default function InstantMilegaLandingShowcase() {
                                     onClick={() => setIsDownloadModalOpen(true)}
                                     className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#FF6B00] hover:bg-[#FF8A00] text-white font-semibold text-sm transition-all shadow-md cursor-pointer active:scale-98"
                                 >
-                                    <Download size={16} />
+                                    <DownloadSimpleIcon weight="bold" size={16} />
                                     <span>Download App</span>
                                 </button>
                                 <span className="text-xs text-white/70 font-medium">
@@ -135,15 +110,15 @@ export default function InstantMilegaLandingShowcase() {
                             {/* Simple Trust Points */}
                             <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-5 pt-4 border-t border-white/10 text-xs text-white/90 font-medium">
                                 <div className="flex items-center gap-1.5">
-                                    <Clock size={14} className="text-[#10B981] shrink-0" />
+                                    <ClockIcon weight="bold" size={14} className="text-[#10B981] shrink-0" />
                                     <span>120s Fast Matching</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <ShieldCheck size={14} className="text-[#10B981] shrink-0" />
+                                    <ShieldCheckIcon weight="bold" size={14} className="text-[#10B981] shrink-0" />
                                     <span>Double OTP Security</span>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <CheckCircle2 size={14} className="text-[#10B981] shrink-0" />
+                                    <CheckCircleIcon weight="bold" size={14} className="text-[#10B981] shrink-0" />
                                     <span>0% Commission</span>
                                 </div>
                             </div>
@@ -200,9 +175,7 @@ export default function InstantMilegaLandingShowcase() {
 
                             <div className="space-y-4 pt-1">
                                 <div className="flex items-start gap-3.5">
-                                    <div className="w-11 h-11 rounded-xl bg-[#FFF7ED] text-[#FF6B00] flex items-center justify-center shrink-0">
-                                        <Navigation size={22} />
-                                    </div>
+                                    <MapPinAreaIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
                                     <div>
                                         <h3 className="text-sm font-bold text-[#111827]">
                                             Nearby pro radar
@@ -214,9 +187,7 @@ export default function InstantMilegaLandingShowcase() {
                                 </div>
 
                                 <div className="flex items-start gap-3.5">
-                                    <div className="w-11 h-11 rounded-xl bg-blue-50 text-[#0B5ED7] flex items-center justify-center shrink-0">
-                                        <Zap size={22} />
-                                    </div>
+                                    <TimerIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
                                     <div>
                                         <h3 className="text-sm font-bold text-[#111827]">
                                             Fast 120-second match
@@ -228,9 +199,7 @@ export default function InstantMilegaLandingShowcase() {
                                 </div>
 
                                 <div className="flex items-start gap-3.5">
-                                    <div className="w-11 h-11 rounded-xl bg-emerald-50 text-[#16A34A] flex items-center justify-center shrink-0">
-                                        <Compass size={22} />
-                                    </div>
+                                    <PathIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
                                     <div>
                                         <h3 className="text-sm font-bold text-[#111827]">
                                             Doorstep route tracking
@@ -248,7 +217,7 @@ export default function InstantMilegaLandingShowcase() {
                                     onClick={() => setIsDownloadModalOpen(true)}
                                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer"
                                 >
-                                    <Download size={15} />
+                                    <DownloadSimpleIcon weight="bold" size={15} />
                                     <span>Try live radar on the app</span>
                                 </button>
                             </div>
@@ -276,13 +245,12 @@ export default function InstantMilegaLandingShowcase() {
                             className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#071A4D] hover:text-[#0B5ED7] transition-colors self-start sm:self-auto cursor-pointer"
                         >
                             <span>Download app to browse all</span>
-                            <ArrowRight size={14} />
+                            <ArrowRightIcon weight="bold" size={14} />
                         </button>
                     </div>
 
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
                         {POPULAR_SERVICES.map((service) => {
-                            const IconComponent = service.icon;
                             return (
                                 <button
                                     key={service.id}
@@ -299,12 +267,7 @@ export default function InstantMilegaLandingShowcase() {
                                     {/* Subtle Bottom Contrast Gradient for Legibility */}
                                     <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 via-black/45 to-transparent z-1" />
 
-                                    {/* Top Content: Icon with Solid Brand Orange Fill */}
-                                    <div className="relative z-10">
-                                        <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#FF6B00] text-white flex items-center justify-center shadow-md">
-                                            <IconComponent size={22} className="text-white" />
-                                        </div>
-                                    </div>
+                                    <span aria-hidden="true" />
 
                                     {/* Bottom Content: Main Service Title in Semi-Bold Orange on the Image */}
                                     <div className="relative z-10">
@@ -339,10 +302,8 @@ export default function InstantMilegaLandingShowcase() {
                         {/* Step 1 */}
                         <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs flex flex-col justify-between">
                             <div>
-                                <div className="w-12 h-12 rounded-xl bg-blue-50 text-[#0B5ED7] flex items-center justify-center mb-4">
-                                    <Smartphone size={24} />
-                                </div>
-                                <span className="text-xs font-semibold text-[#0B5ED7]">Step 1</span>
+                                <DeviceMobileIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
+                                <span className="text-xs font-semibold text-km-primary">Step 1</span>
                                 <h3 className="text-base font-bold text-[#111827] mt-1">
                                     Pick your service
                                 </h3>
@@ -355,10 +316,8 @@ export default function InstantMilegaLandingShowcase() {
                         {/* Step 2 */}
                         <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs flex flex-col justify-between">
                             <div>
-                                <div className="w-12 h-12 rounded-xl bg-[#FFF7ED] text-[#FF6B00] flex items-center justify-center mb-4">
-                                    <ShieldCheck size={24} />
-                                </div>
-                                <span className="text-xs font-semibold text-[#FF6B00]">Step 2</span>
+                                <PasswordIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
+                                <span className="text-xs font-semibold text-km-primary">Step 2</span>
                                 <h3 className="text-base font-bold text-[#111827] mt-1">
                                     Share the start code
                                 </h3>
@@ -371,10 +330,8 @@ export default function InstantMilegaLandingShowcase() {
                         {/* Step 3 */}
                         <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs flex flex-col justify-between">
                             <div>
-                                <div className="w-12 h-12 rounded-xl bg-emerald-50 text-[#16A34A] flex items-center justify-center mb-4">
-                                    <CheckCircle2 size={24} />
-                                </div>
-                                <span className="text-xs font-semibold text-[#16A34A]">Step 3</span>
+                                <CheckCircleIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
+                                <span className="text-xs font-semibold text-km-primary">Step 3</span>
                                 <h3 className="text-base font-bold text-[#111827] mt-1">
                                     Finish code &amp; pay
                                 </h3>
@@ -406,7 +363,7 @@ export default function InstantMilegaLandingShowcase() {
                                     onClick={() => setIsDownloadModalOpen(true)}
                                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF6B00] hover:bg-[#FF8A00] text-white text-sm font-semibold transition-all shadow-md cursor-pointer active:scale-98"
                                 >
-                                    <Download size={16} />
+                                    <DownloadSimpleIcon weight="bold" size={16} />
                                     <span>Download App</span>
                                 </button>
                                 <span className="text-xs text-white/70">

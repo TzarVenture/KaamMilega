@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { ChevronDown, Camera } from 'lucide-react';
+import { CameraIcon, CaretDownIcon } from '@phosphor-icons/react';
 
 interface AddAdsModalProps {
     isOpen: boolean;
@@ -52,7 +52,7 @@ const AddAdsModal = ({ isOpen, onClose, onSave }: AddAdsModalProps) => {
                                 <option key={type} value={type}>{type}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                        <CaretDownIcon weight="bold" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                     </div>
                 </div>
 
@@ -83,9 +83,7 @@ const AddAdsModal = ({ isOpen, onClose, onSave }: AddAdsModalProps) => {
                 {/* Creative Upload Placeholder */}
                 <div className="pt-4 flex flex-col items-center">
                     <div className="w-full aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center gap-3 text-slate-400 group hover:border-purple-200 hover:bg-purple-50 transition-all cursor-pointer">
-                        <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                            <Camera size={32} className="text-purple-600" />
-                        </div>
+                        <CameraIcon size={36} weight="duotone" className="text-purple-600" aria-hidden="true" />
                         <span className="text-xs font-bold uppercase tracking-widest">Upload Advertisement Creative</span>
                     </div>
                 </div>

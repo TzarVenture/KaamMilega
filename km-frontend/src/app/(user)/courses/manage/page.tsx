@@ -2,25 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-    Video, 
-    ArrowLeft, 
-    Plus, 
-    Pencil, 
-    Trash2, 
-    Eye, 
-    Calendar, 
-    Clock, 
-    ExternalLink, 
-    Sparkles, 
-    Loader2, 
-    X, 
-    Save, 
-    AlertTriangle,
-    GraduationCap,
-    ArrowRight,
-    Play
-} from "lucide-react";
+import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CircleNotchIcon, ClockIcon, EyeIcon, GraduationCapIcon, PencilSimpleIcon, PlayIcon, PlusIcon, TrashIcon, VideoCameraIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
@@ -193,9 +175,7 @@ export default function ManageCoursesPage() {
         return (
             <div className="min-h-screen bg-[#F4F7FB] py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
                 <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-[#D9E0EA] shadow-lg text-center space-y-5">
-                    <div className="w-16 h-16 bg-[#FAF5FF] text-[#7C3AED] rounded-2xl flex items-center justify-center mx-auto border border-[#7C3AED]/20 shadow-xs">
-                        <GraduationCap size={32} />
-                    </div>
+                    <GraduationCapIcon size={36} weight="duotone" className="text-[#7C3AED] mx-auto" aria-hidden="true" />
                     <div className="space-y-2">
                         <h2 className="text-2xl font-black text-[#071A4D]">
                             Expert Portal Only
@@ -211,7 +191,7 @@ export default function ManageCoursesPage() {
                             className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
                         >
                             <span>Apply to Become an Expert</span>
-                            <ArrowRight size={16} />
+                            <ArrowRightIcon weight="bold" size={16} />
                         </button>
                     </div>
                 </div>
@@ -231,7 +211,7 @@ export default function ManageCoursesPage() {
                             onClick={() => router.push("/courses")}
                             className="text-xs font-bold text-[#0B5ED7] hover:underline flex items-center gap-1.5 mb-1"
                         >
-                            <ArrowLeft size={14} /> Back to Course Studio
+                            <ArrowLeftIcon weight="bold" size={14} /> Back to Course Studio
                         </button>
                         <h1 className="text-2xl sm:text-3xl font-medium text-[#071A4D] tracking-tight">
                             Manage All My Courses
@@ -247,7 +227,7 @@ export default function ManageCoursesPage() {
                             onClick={() => router.push("/courses")}
                             className="bg-[#071A4D] hover:bg-[#0B1F52] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 active:scale-[0.98]"
                         >
-                            <Plus size={16} />
+                            <PlusIcon weight="bold" size={16} />
                             <span>Add New Course</span>
                         </button>
                         <button
@@ -263,14 +243,12 @@ export default function ManageCoursesPage() {
                 {/* ─── Courses List ─── */}
                 {loading ? (
                     <div className="py-20 flex flex-col justify-center items-center space-y-3">
-                        <Loader2 size={32} className="animate-spin text-[#0B5ED7]" />
+                        <CircleNotchIcon size={32} className="animate-spin text-[#0B5ED7]" />
                         <p className="text-xs text-[#5B6472] font-medium">Loading your courses...</p>
                     </div>
                 ) : courses.length === 0 ? (
                     <div className="bg-white rounded-3xl border border-dashed border-[#D9E0EA] p-12 text-center space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-[#F4F7FB] text-[#5B6472] flex items-center justify-center mx-auto">
-                            <Video size={28} />
-                        </div>
+                        <VideoCameraIcon size={36} weight="duotone" className="text-[#5B6472] mx-auto" aria-hidden="true" />
                         <div className="space-y-1">
                             <h3 className="text-lg font-bold text-[#111827]">
                                 No Courses Published Yet
@@ -284,7 +262,7 @@ export default function ManageCoursesPage() {
                             onClick={() => router.push("/courses")}
                             className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all"
                         >
-                            <Plus size={16} /> Add Your First Course
+                            <PlusIcon weight="bold" size={16} /> Add Your First Course
                         </button>
                     </div>
                 ) : (
@@ -318,13 +296,13 @@ export default function ManageCoursesPage() {
                                             {/* Minimalist Play Icon in Center */}
                                             <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
                                                 <div className="w-10 h-10 bg-white text-[#071A4D] rounded-full flex items-center justify-center shadow-xs">
-                                                    <Play size={15} fill="currentColor" className="ml-0.5" />
+                                                    <PlayIcon weight="fill" size={15} className="ml-0.5" />
                                                 </div>
                                             </div>
 
                                             {/* Duration */}
                                             <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1">
-                                                <Clock size={11} /> {course.duration || "30 Min"}
+                                                <ClockIcon weight="bold" size={11} /> {course.duration || "30 Min"}
                                             </span>
                                         </div>
 
@@ -342,7 +320,7 @@ export default function ManageCoursesPage() {
 
                                             <div className="flex items-center justify-between pt-2 border-t border-[#D9E0EA]/60 text-xs text-[#5B6472]">
                                                 <div className="flex items-center gap-1 font-bold text-[#071A4D]">
-                                                    <Eye size={13} className="text-[#0B5ED7]" />
+                                                    <EyeIcon weight="bold" size={13} className="text-[#0B5ED7]" />
                                                     <span>{formattedViews} Viewers</span>
                                                 </div>
 
@@ -352,7 +330,7 @@ export default function ManageCoursesPage() {
                                                     className="text-[#FF6B00] hover:underline flex items-center gap-1 font-semibold"
                                                 >
                                                     <span>Watch</span>
-                                                    <ExternalLink size={11} />
+                                                    <ArrowSquareOutIcon weight="bold" size={11} />
                                                 </button>
                                             </div>
                                         </div>
@@ -365,7 +343,7 @@ export default function ManageCoursesPage() {
                                             onClick={() => handleOpenEdit(course)}
                                             className="flex-1 py-2 px-3 bg-white hover:bg-blue-50 border border-[#D9E0EA] hover:border-[#0B5ED7]/50 text-[#071A4D] hover:text-[#0B5ED7] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs"
                                         >
-                                            <Pencil size={13} />
+                                            <PencilSimpleIcon weight="bold" size={13} />
                                             <span>Edit</span>
                                         </button>
 
@@ -374,7 +352,7 @@ export default function ManageCoursesPage() {
                                             onClick={() => setDeletingCourse(course)}
                                             className="flex-1 py-2 px-3 bg-white hover:bg-red-50 border border-[#D9E0EA] hover:border-red-300 text-red-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs"
                                         >
-                                            <Trash2 size={13} />
+                                            <TrashIcon weight="bold" size={13} />
                                             <span>Delete</span>
                                         </button>
                                     </div>
@@ -406,9 +384,7 @@ export default function ManageCoursesPage() {
                     <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-[#D9E0EA] shadow-2xl space-y-5 animate-in fade-in zoom-in duration-150">
                         <div className="flex items-center justify-between border-b border-[#D9E0EA] pb-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#0B5ED7] flex items-center justify-center">
-                                    <Pencil size={16} />
-                                </div>
+                                <PencilSimpleIcon size={20} className="text-[#0B5ED7]" aria-hidden="true" />
                                 <h3 className="text-lg font-bold text-[#071A4D]">
                                     Update Course Details
                                 </h3>
@@ -418,7 +394,7 @@ export default function ManageCoursesPage() {
                                 onClick={() => setEditingCourse(null)}
                                 className="p-1.5 text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] rounded-full transition"
                             >
-                                <X size={18} />
+                                <XIcon weight="bold" size={18} />
                             </button>
                         </div>
 
@@ -536,7 +512,7 @@ export default function ManageCoursesPage() {
                                     disabled={saving}
                                     className="px-6 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5"
                                 >
-                                    {saving && <Loader2 size={14} className="animate-spin" />}
+                                    {saving && <CircleNotchIcon weight="bold" size={14} className="animate-spin" />}
                                     <span>{saving ? "Saving Changes..." : "Save Updates"}</span>
                                 </button>
                             </div>
@@ -549,9 +525,7 @@ export default function ManageCoursesPage() {
             {deletingCourse && (
                 <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl max-w-sm w-full p-6 border border-[#D9E0EA] shadow-2xl text-center space-y-4">
-                        <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
-                            <AlertTriangle size={24} />
-                        </div>
+                        <WarningIcon size={28} weight="duotone" className="text-red-600 mx-auto" aria-hidden="true" />
                         <div className="space-y-1">
                             <h3 className="text-base font-bold text-[#111827]">
                                 Delete This Course?
@@ -574,7 +548,7 @@ export default function ManageCoursesPage() {
                                 disabled={deleting}
                                 className="flex-1 py-2.5 px-4 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5"
                             >
-                                {deleting && <Loader2 size={13} className="animate-spin" />}
+                                {deleting && <CircleNotchIcon weight="bold" size={13} className="animate-spin" />}
                                 <span>{deleting ? "Deleting..." : "Yes, Delete"}</span>
                             </button>
                         </div>

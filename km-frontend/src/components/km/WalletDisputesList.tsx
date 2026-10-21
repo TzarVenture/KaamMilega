@@ -1,19 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    ShieldAlert, 
-    Clock, 
-    CheckCircle2, 
-    XCircle, 
-    AlertCircle, 
-    ChevronLeft, 
-    ChevronRight, 
-    ReceiptText,
-    RefreshCw,
-    Sparkles,
-    Shield
-} from 'lucide-react';
+import { CaretLeftIcon, CaretRightIcon, CheckCircleIcon, ClockIcon, ShieldIcon, ShieldWarningIcon, ArrowUUpLeftIcon, XCircleIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 
 export interface DisputeItem {
@@ -123,31 +111,31 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
                 return {
                     label: 'Pending Review',
                     bg: 'bg-amber-100 text-amber-800 border-amber-200',
-                    icon: Clock,
+                    icon: ClockIcon,
                 };
             case 'under_review':
                 return {
                     label: 'Under Review',
                     bg: 'bg-blue-100 text-blue-800 border-blue-200',
-                    icon: Shield,
+                    icon: ShieldIcon,
                 };
             case 'approved':
                 return {
                     label: 'Approved & Refunded',
                     bg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                    icon: CheckCircle2,
+                    icon: CheckCircleIcon,
                 };
             case 'rejected':
                 return {
                     label: 'Dispute Rejected',
                     bg: 'bg-rose-100 text-rose-800 border-rose-200',
-                    icon: XCircle,
+                    icon: XCircleIcon,
                 };
             default:
                 return {
                     label: status,
                     bg: 'bg-slate-100 text-slate-700 border-slate-200',
-                    icon: Clock,
+                    icon: ClockIcon,
                 };
         }
     };
@@ -157,9 +145,7 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
             {/* Header & Filter Tabs */}
             <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-800 flex items-center justify-center">
-                        <ShieldAlert className="w-5 h-5" />
-                    </div>
+                    <ShieldWarningIcon size={24} className="text-amber-800" aria-hidden="true" />
                     <div>
                         <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                             Disputes & Refund Requests
@@ -210,9 +196,7 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
                     </div>
                 ) : disputes.length === 0 ? (
                     <div className="py-12 sm:py-16 text-center space-y-3">
-                        <div className="w-16 h-16 rounded-3xl bg-slate-50 border border-slate-200 text-slate-400 mx-auto flex items-center justify-center shadow-inner">
-                            <ShieldAlert className="w-7 h-7 text-slate-300" />
-                        </div>
+                        <ShieldWarningIcon size={36} weight="duotone" className="text-slate-300 mx-auto" aria-hidden="true" />
                         <h3 className="text-base sm:text-lg font-bold text-slate-800">
                             No Disputes Found
                         </h3>
@@ -289,7 +273,7 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
                                             </p>
                                             {dispute.status === 'approved' && (
                                                 <p className="font-semibold text-emerald-800 text-[11px] flex items-center gap-1 pt-0.5">
-                                                    <Sparkles size={12} />
+                                                    <ArrowUUpLeftIcon weight="bold" size={12} aria-hidden="true" />
                                                     <span>₹{dispute.amount} has been automatically credited back to your Main Balance.</span>
                                                 </p>
                                             )}
@@ -325,7 +309,7 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
                                 className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                                 aria-label="Previous page"
                             >
-                                <ChevronLeft size={14} />
+                                <CaretLeftIcon weight="bold" size={14} />
                             </button>
 
                             <button
@@ -334,7 +318,7 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
                                 className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                                 aria-label="Next page"
                             >
-                                <ChevronRight size={14} />
+                                <CaretRightIcon weight="bold" size={14} />
                             </button>
                         </div>
                     </div>

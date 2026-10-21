@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { ChevronDown } from 'lucide-react';
+import { CaretDownIcon } from '@phosphor-icons/react';
 
 interface UserProfileModalProps {
     isOpen: boolean;
@@ -125,7 +125,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                                 <option key={option} value={option}>{option}</option>
                             ))}
                         </select>
-                        <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
+                        <CaretDownIcon weight="bold" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={18} />
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Let others know how to refer to you.</p>
                     <p className="text-xs text-gray-500">

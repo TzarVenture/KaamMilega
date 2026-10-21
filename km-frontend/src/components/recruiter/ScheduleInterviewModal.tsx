@@ -3,7 +3,7 @@ import { useState } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import { toast } from 'react-toastify';
-import { Calendar, Clock, MapPin, FileText, Video, Phone } from 'lucide-react';
+import { CalendarBlankIcon, ClockIcon, FileTextIcon, MapPinIcon, PhoneIcon, VideoCameraIcon } from '@phosphor-icons/react';
 
 interface ScheduleInterviewModalProps {
     isOpen: boolean;
@@ -54,7 +54,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
+                            <CalendarBlankIcon weight="bold" className="w-4 h-4 text-gray-400" />
                             Date
                         </label>
                         <input
@@ -67,7 +67,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                     </div>
                     <div>
                         <label className="text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-gray-400" />
+                            <ClockIcon weight="bold" className="w-4 h-4 text-gray-400" />
                             Time
                         </label>
                         <input
@@ -84,9 +84,9 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Interview Type</label>
                     <div className="grid grid-cols-3 gap-3">
                         {[
-                            { value: 'Video', icon: Video },
-                            { value: 'Phone', icon: Phone },
-                            { value: 'In-person', icon: MapPin }
+                            { value: 'Video', icon: VideoCameraIcon },
+                            { value: 'Phone', icon: PhoneIcon },
+                            { value: 'In-person', icon: MapPinIcon }
                         ].map((item) => (
                             <button
                                 key={item.value}
@@ -106,7 +106,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
 
                 <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <MapPinIcon weight="bold" className="w-4 h-4 text-gray-400" />
                         {formData.type === 'Video' ? 'Meeting Link' : formData.type === 'Phone' ? 'Phone Number' : 'Meeting Address'}
                     </label>
                     <input
@@ -121,7 +121,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
 
                 <div>
                     <label className="text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-gray-400" />
+                        <FileTextIcon weight="bold" className="w-4 h-4 text-gray-400" />
                         Notes to Candidate (Optional)
                     </label>
                     <textarea

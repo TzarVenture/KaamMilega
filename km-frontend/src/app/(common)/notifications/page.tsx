@@ -3,30 +3,16 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import {
-    Bell,
-    MessageSquare,
-    Briefcase,
-    Users,
-    Calendar,
-    Check,
-    CheckCheck,
-    Trash2,
-    SlidersHorizontal,
-    ArrowUpRight,
-    RefreshCw,
-    Search,
-    X,
-} from "lucide-react";
+import { ArrowUpRightIcon, ArrowsClockwiseIcon, BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, CheckIcon, ChecksIcon, MagnifyingGlassIcon, SlidersHorizontalIcon, TrashIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import CustomImage from "@/components/ui/CustomImage";
 import { useNotifications, NotificationItem, sanitizeNotificationLink } from "@/lib/notifications";
 
 const CATEGORIES = [
-    { id: "all", label: "All", icon: Bell },
-    { id: "messages", label: "Messages & Chat", icon: MessageSquare },
-    { id: "jobs", label: "Jobs & Applications", icon: Briefcase },
-    { id: "network", label: "Network & Invites", icon: Users },
-    { id: "system", label: "System & Alerts", icon: Bell },
+    { id: "all", label: "All", icon: BellIcon },
+    { id: "messages", label: "Messages & Chat", icon: ChatIcon },
+    { id: "jobs", label: "Jobs & Applications", icon: BriefcaseIcon },
+    { id: "network", label: "Network & Invites", icon: UsersIcon },
+    { id: "system", label: "System & Alerts", icon: BellIcon },
 ] as const;
 
 const PAGE_SIZE = 20;
@@ -200,36 +186,26 @@ export default function NotificationsPage() {
     const renderCategoryIcon = (category: string, type: string) => {
         if (type === "interview_scheduled") {
             return (
-                <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
-                    <Calendar size={16} className="fill-indigo-700" />
-                </div>
+                <CalendarBlankIcon size={22} weight="duotone" className="text-indigo-700 shrink-0" aria-hidden="true" />
             );
         }
         if (category === "messages") {
             return (
-                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 shrink-0">
-                    <MessageSquare size={16} className="fill-blue-700" />
-                </div>
+                <ChatIcon size={22} weight="duotone" className="text-blue-700 shrink-0" aria-hidden="true" />
             );
         }
         if (category === "jobs") {
             return (
-                <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 shrink-0">
-                    <Briefcase size={16} className="fill-amber-700" />
-                </div>
+                <BriefcaseIcon size={22} weight="duotone" className="text-amber-700 shrink-0" aria-hidden="true" />
             );
         }
         if (category === "network") {
             return (
-                <div className="w-9 h-9 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                    <Users size={16} className="fill-emerald-700" />
-                </div>
+                <UsersIcon size={22} weight="duotone" className="text-emerald-700 shrink-0" aria-hidden="true" />
             );
         }
         return (
-            <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 shrink-0">
-                <Bell size={16} className="fill-slate-700" />
-            </div>
+            <BellIcon size={22} weight="duotone" className="text-slate-700 shrink-0" aria-hidden="true" />
         );
     };
 
@@ -356,7 +332,7 @@ export default function NotificationsPage() {
                             title="Mark as read"
                             className="p-1.5 text-slate-400 hover:text-km-primary hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                         >
-                            <Check size={14} />
+                            <CheckIcon weight="bold" size={14} />
                         </button>
                     )}
 
@@ -365,7 +341,7 @@ export default function NotificationsPage() {
                         title="Delete notification"
                         className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
                     >
-                        <Trash2 size={14} />
+                        <TrashIcon weight="bold" size={14} />
                     </button>
 
                     {/* Unread Indicator Dot */}
@@ -416,7 +392,7 @@ export default function NotificationsPage() {
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5">
-                                            <Icon size={15} className={isActive ? "fill-white text-white" : "fill-slate-500 text-slate-500"} />
+                                            <Icon size={15} weight={isActive ? "fill" : "regular"} className={isActive ? "text-white" : "text-slate-500"} aria-hidden="true" />
                                             <span>{cat.label}</span>
                                         </div>
                                         {count > 0 && (
@@ -441,10 +417,10 @@ export default function NotificationsPage() {
                             className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
                         >
                             <div className="flex items-center gap-2">
-                                <SlidersHorizontal size={14} className="text-slate-600" />
+                                <SlidersHorizontalIcon weight="bold" size={14} className="text-slate-600" />
                                 <span>Notification Settings</span>
                             </div>
-                            <ArrowUpRight size={13} className="text-slate-400" />
+                            <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400" />
                         </Link>
                     </div>
 
@@ -484,7 +460,7 @@ export default function NotificationsPage() {
                                 onClick={handleMarkAllRead}
                                 className="inline-flex items-center gap-1.5 text-xs font-bold text-km-primary hover:text-km-primary-dark transition-colors cursor-pointer"
                             >
-                                <CheckCheck size={15} />
+                                <ChecksIcon weight="bold" size={15} />
                                 <span>Mark all as read</span>
                             </button>
                         )}
@@ -492,7 +468,7 @@ export default function NotificationsPage() {
 
                     {/* Optional Keyword Search Input (filter by user name, company, or message) */}
                     <div className="bg-white rounded-2xl p-2.5 sm:px-4 sm:py-3 border border-slate-200 shadow-xs flex items-center gap-2.5">
-                        <Search size={16} className="text-slate-400 shrink-0" />
+                        <MagnifyingGlassIcon weight="bold" size={16} className="text-slate-400 shrink-0" />
                         <input
                             type="text"
                             value={searchQuery}
@@ -507,7 +483,7 @@ export default function NotificationsPage() {
                                 className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors shrink-0"
                                 aria-label="Clear search"
                             >
-                                <X size={14} />
+                                <XIcon weight="bold" size={14} />
                             </button>
                         )}
                     </div>
@@ -522,7 +498,7 @@ export default function NotificationsPage() {
                         ) : filteredFeedItems.length === 0 ? (
                             <div className="p-12 text-center text-slate-400">
                                 <div className="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400">
-                                    {searchQuery ? <Search size={20} className="text-slate-400" /> : <Bell size={20} className="fill-slate-400 text-slate-400" />}
+                                    {searchQuery ? <MagnifyingGlassIcon size={20} className="text-slate-400" /> : <BellIcon weight="fill" size={20} className="fill-slate-400 text-slate-400" />}
                                 </div>
                                 <h3 className="text-sm font-bold text-slate-800">
                                     {searchQuery ? "No matching notifications" : "You're all caught up!"}
@@ -597,7 +573,7 @@ export default function NotificationsPage() {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <RefreshCw size={13} />
+                                                    <ArrowsClockwiseIcon weight="bold" size={13} />
                                                     <span>Load more notifications ({totalCount - feedItems.length} remaining)</span>
                                                 </>
                                             )}

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { MessageSquare, MessageCircle, MapPin, CheckCircle2, UserPlus, Trash2, X, Calendar, UserMinus } from 'lucide-react';
+import { CalendarBlankIcon, ChatIcon, CheckCircleIcon, MapPinIcon, TrashIcon, UserMinusIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { ImpressionWrapper } from '@/lib/telemetry';
 
@@ -111,7 +111,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                     className="absolute top-3 right-3 text-slate-300 hover:text-slate-600 transition-colors p-1.5 rounded-lg cursor-pointer"
                     aria-label="Dismiss recommendation"
                 >
-                    <X size={15} />
+                    <XIcon weight="bold" size={15} />
                 </button>
             )}
 
@@ -124,7 +124,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                     aria-label="Remove connection"
                     title="Remove connection"
                 >
-                    <Trash2 size={15} />
+                    <TrashIcon weight="bold" size={15} />
                 </button>
             )}
 
@@ -143,14 +143,14 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 </h3>
 
                 {/* Headline */}
-                <p className="text-[11px] text-[#5B6472] mb-1.5 font-medium text-center line-clamp-2 max-w-[95%]">
+                <p className="text-xs text-[#5B6472] mb-1.5 font-medium text-center line-clamp-2 max-w-[95%]">
                     {headline}
                 </p>
 
                 {/* Location */}
                 {user.city && (
-                    <div className="flex items-center gap-1 text-[#5B6472] text-[10px] font-semibold mb-1.5">
-                        <MapPin size={11} className="text-[#071A4D] shrink-0" />
+                    <div className="flex items-center gap-1 text-[#5B6472] text-xs font-semibold mb-1.5">
+                        <MapPinIcon weight="bold" size={11} className="text-[#071A4D] shrink-0" />
                         <span className="line-clamp-1">{user.city}</span>
                     </div>
                 )}
@@ -159,12 +159,12 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 {user.mutual_skills && user.mutual_skills.length > 0 && (
                     <div className="flex flex-wrap items-center justify-center gap-1 mb-2 max-w-[95%]">
                         {user.mutual_skills.slice(0, 2).map((sk) => (
-                            <span key={sk} className="text-[10px] font-semibold bg-[#F4F7FB] text-[#071A4D] px-2 py-0.5 rounded-md border border-[#D9E0EA] truncate max-w-[120px]">
+                            <span key={sk} className="text-xs font-semibold bg-[#F4F7FB] text-[#071A4D] px-2 py-0.5 rounded-md border border-[#D9E0EA] truncate max-w-[120px]">
                                 {sk}
                             </span>
                         ))}
                         {user.mutual_skills.length > 2 && (
-                            <span className="text-[10px] font-bold text-[#5B6472]">
+                            <span className="text-xs font-bold text-[#5B6472]">
                                 +{user.mutual_skills.length - 2}
                             </span>
                         )}
@@ -174,7 +174,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 {/* Badge text */}
                 {displayBadge && (
                     <div className="mb-2">
-                        <span className="text-[10px] font-bold tracking-wide text-[#0B5ED7] bg-[#0B5ED7]/10 px-2.5 py-0.5 rounded-full inline-block border border-[#0B5ED7]/15">
+                        <span className="text-xs font-bold tracking-wide text-[#0B5ED7] bg-[#0B5ED7]/10 px-2.5 py-0.5 rounded-full inline-block border border-[#0B5ED7]/15">
                             {displayBadge}
                         </span>
                     </div>
@@ -193,7 +193,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                     onClick={() => onChat(userId)}
                                     className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
                                 >
-                                    <MessageSquare size={14} />
+                                    <ChatIcon weight="bold" size={14} />
                                     <span>Message</span>
                                 </button>
                                 {onRemove && (
@@ -202,7 +202,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                         onClick={() => onRemove(userId)}
                                         className="w-full py-1.5 bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-xl text-xs font-medium border border-slate-200 hover:border-red-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.98]"
                                     >
-                                        <UserMinus size={13} />
+                                        <UserMinusIcon weight="bold" size={13} />
                                         <span>Remove Connection</span>
                                     </button>
                                 )}
@@ -213,7 +213,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                     href={`/expert/${userId}`}
                                     className="w-full py-2 bg-[#FF6B00] hover:bg-[#E05E00] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
                                 >
-                                    <Calendar size={14} />
+                                    <CalendarBlankIcon weight="bold" size={14} />
                                     <span>Book Session</span>
                                 </Link>
                                 <button
@@ -221,7 +221,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                     onClick={() => onChat(userId)}
                                     className="w-full py-1.5 rounded-xl border border-[#D9E0EA] text-[#071A4D] text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-[#F4F7FB] hover:border-[#071A4D] transition-all cursor-pointer active:scale-[0.98]"
                                 >
-                                    <MessageSquare size={14} />
+                                    <ChatIcon weight="bold" size={14} />
                                     <span>Chat</span>
                                 </button>
                             </div>
@@ -234,7 +234,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                         disabled
                                         className="w-full py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-default border border-slate-200"
                                     >
-                                        <CheckCircle2 size={13} className="text-emerald-500" />
+                                        <CheckCircleIcon weight="bold" size={13} className="text-emerald-500" />
                                         <span>Pending</span>
                                     </button>
                                 ) : (
@@ -243,7 +243,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                         onClick={() => handleConnectAction(userId, cleanName)}
                                         className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
                                     >
-                                        <UserPlus size={14} />
+                                        <UserPlusIcon weight="bold" size={14} />
                                         <span>Connect</span>
                                     </button>
                                 )

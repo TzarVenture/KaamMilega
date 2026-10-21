@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, CheckCircle, AlertCircle, Loader2, Globe, Copy, Check } from 'lucide-react';
+import { CheckCircleIcon, CheckIcon, CircleNotchIcon, CopyIcon, GlobeIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
 
@@ -151,9 +151,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary flex items-center justify-center border border-blue-100">
-                            <Globe size={18} />
-                        </div>
+                        <GlobeIcon size={22} className="text-km-primary" aria-hidden="true" />
                         <div>
                             <h3 className="text-base font-black text-slate-900">Edit Custom URL</h3>
                             <p className="text-xs text-slate-500 font-medium">Personalize your public profile link</p>
@@ -164,7 +162,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                         className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                         aria-label="Close modal"
                     >
-                        <X size={18} />
+                        <XIcon weight="bold" size={18} />
                     </button>
                 </div>
 
@@ -189,7 +187,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                                 autoFocus
                             />
                             {checking && (
-                                <Loader2 size={16} className="text-slate-400 animate-spin mr-3 shrink-0" />
+                                <CircleNotchIcon weight="bold" size={16} className="text-slate-400 animate-spin mr-3 shrink-0" />
                             )}
                         </div>
 
@@ -198,12 +196,12 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                             <div className="mt-2.5 flex items-center gap-1.5 text-xs font-medium">
                                 {availability.available ? (
                                     <>
-                                        <CheckCircle size={14} className="text-emerald-500 shrink-0" />
+                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-500 shrink-0" />
                                         <span className="text-emerald-600 font-semibold">{availability.message}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <AlertCircle size={14} className="text-rose-500 shrink-0" />
+                                        <WarningCircleIcon weight="bold" size={14} className="text-rose-500 shrink-0" />
                                         <span className="text-rose-500 font-medium">{availability.message}</span>
                                     </>
                                 )}
@@ -226,12 +224,12 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                         >
                             {copied ? (
                                 <>
-                                    <Check size={12} className="text-emerald-500" />
+                                    <CheckIcon weight="bold" size={12} className="text-emerald-500" />
                                     <span>Copied</span>
                                 </>
                             ) : (
                                 <>
-                                    <Copy size={12} />
+                                    <CopyIcon weight="bold" size={12} />
                                     <span>Copy</span>
                                 </>
                             )}
@@ -260,7 +258,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                             disabled={isSaveDisabled}
                             className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-km-primary hover:bg-km-primary-dark transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                         >
-                            {saving && <Loader2 size={14} className="animate-spin" />}
+                            {saving && <CircleNotchIcon weight="bold" size={14} className="animate-spin" />}
                             <span>Save URL</span>
                         </button>
                     </div>

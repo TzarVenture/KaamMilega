@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Image as ImageIcon, Hash, Globe, Users, Sparkles, Check, AlertCircle } from 'lucide-react';
+import { GlobeIcon, HashIcon, ImageIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { getCurrentUser } from '@/lib/auth';
 import { FeedCategory } from './feedTypes';
@@ -128,7 +128,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               onClick={onClose}
               className="p-1.5 text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] rounded-full transition-colors"
             >
-              <X size={20} />
+              <XIcon size={20} />
             </button>
           </div>
 
@@ -150,11 +150,11 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 >
                   {visibility === 'public' ? (
                     <>
-                      <Globe size={11} className="text-[#0B5ED7]" /> Anyone (Public)
+                      <GlobeIcon weight="bold" size={11} className="text-[#0B5ED7]" /> Anyone (Public)
                     </>
                   ) : (
                     <>
-                      <Users size={11} className="text-[#16A34A]" /> Connections Only
+                      <UsersIcon weight="bold" size={11} className="text-[#16A34A]" /> Connections Only
                     </>
                   )}
                 </button>
@@ -199,7 +199,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   }}
                   className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full transition-colors"
                 >
-                  <X size={16} />
+                  <XIcon weight="bold" size={16} />
                 </button>
               </div>
             )}
@@ -207,7 +207,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             {/* Hashtag Suggestions */}
             <div className="pt-2 border-t border-[#D9E0EA]/60">
               <p className="text-[11px] font-poppins font-semibold text-[#5B6472] mb-1.5 flex items-center gap-1">
-                <Sparkles size={12} className="text-[#FF6B00]" /> Suggested Hashtags:
+                <HashIcon weight="bold" size={12} aria-hidden="true" /> Suggested Hashtags:
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {POPULAR_HASHTAGS.map((tag) => (
@@ -250,7 +250,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 className="p-2 text-[#5B6472] hover:text-[#FF6B00] hover:bg-white rounded-xl border border-transparent hover:border-[#D9E0EA] transition-all"
                 title="Add hashtag"
               >
-                <Hash size={20} />
+                <HashIcon size={20} />
               </button>
             </div>
 

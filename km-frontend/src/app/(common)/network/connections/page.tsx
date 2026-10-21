@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, ArrowLeft } from 'lucide-react';
+import { ArrowLeftIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import Pagination from '@/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
@@ -172,7 +172,7 @@ const ConnectionsPage = () => {
                             onClick={() => router.back()}
                             aria-label="Back to network"
                         >
-                            <ArrowLeft size={18} />
+                            <ArrowLeftIcon weight="bold" size={18} />
                         </button>
                         <div>
                             <h1 className="text-lg sm:text-xl font-bold text-[#111827]">
@@ -202,7 +202,7 @@ const ConnectionsPage = () => {
                         </div>
 
                         <div className="relative w-full sm:w-72">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6472]" size={16} />
+                            <MagnifyingGlassIcon weight="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6472]" size={16} />
                             <input
                                 type="text"
                                 placeholder="Search connections..."
@@ -221,9 +221,7 @@ const ConnectionsPage = () => {
                 <div className="p-5 sm:p-6 min-h-[300px]">
                     {currentList.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                            <div className="w-12 h-12 rounded-2xl bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center text-[#5B6472] mb-3">
-                                <Search size={20} />
-                            </div>
+                            <MagnifyingGlassIcon size={28} weight="duotone" className="text-[#5B6472] mb-3" aria-hidden="true" />
                             <p className="text-sm font-semibold text-[#111827]">
                                 {searchQuery ? "No connections found matching your search." : "You don't have any connections yet."}
                             </p>

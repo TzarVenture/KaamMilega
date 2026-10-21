@@ -3,35 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import {
-  Search,
-  Send,
-  Paperclip,
-  Image as ImageIcon,
-  FileText,
-  Check,
-  CheckCheck,
-  ChevronLeft,
-  ChevronDown,
-  ExternalLink,
-  X,
-  Download,
-  Loader2,
-  MessageSquare,
-  Clock,
-  User as UserIcon,
-  RefreshCw,
-  Smile,
-  MoreVertical,
-  Trash2,
-  RotateCcw,
-  Ban,
-  Copy,
-  Flag,
-  CheckCircle2,
-  AlertTriangle,
-  ShieldAlert,
-} from "lucide-react";
+import { ArrowSquareOutIcon, ArrowsClockwiseIcon, CaretDownIcon, CaretLeftIcon, ChatIcon, CheckCircleIcon, CheckIcon, ChecksIcon, CircleNotchIcon, ClockIcon, CopyIcon, DotsThreeVerticalIcon, DownloadSimpleIcon, FileTextIcon, FlagIcon, MagnifyingGlassIcon, PaperPlaneRightIcon, PaperclipIcon, ProhibitIcon, SmileyIcon, TrashIcon, UserIcon, XIcon } from '@phosphor-icons/react';
 import dynamic from "next/dynamic";
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
@@ -46,7 +18,7 @@ const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
   ssr: false,
   loading: () => (
     <div className="w-[330px] h-[370px] flex items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-xl">
-      <Loader2 className="w-6 h-6 animate-spin text-[#071A4D]" />
+      <CircleNotchIcon className="w-6 h-6 animate-spin text-[#071A4D]" />
     </div>
   ),
 });
@@ -1562,7 +1534,7 @@ function ChatView() {
               aria-label="Refresh conversations"
               className="p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] active:bg-slate-200 active:scale-95 transition-all disabled:opacity-60"
             >
-              <RefreshCw
+              <ArrowsClockwiseIcon weight="bold"
                 size={18}
                 className={
                   isRefreshing
@@ -1622,7 +1594,7 @@ function ChatView() {
 
           {/* Search Input */}
           <div className="relative">
-            <Search
+            <MagnifyingGlassIcon weight="bold"
               className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B6472]"
               size={16}
             />
@@ -1641,7 +1613,7 @@ function ChatView() {
                 }}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5B6472] hover:text-[#111827]"
               >
-                <X size={15} />
+                <XIcon weight="bold" size={15} />
               </button>
             )}
 
@@ -1653,7 +1625,7 @@ function ChatView() {
                 </div>
                 {isSearchingPlatform ? (
                   <div className="p-4 text-center text-xs text-[#5B6472] flex items-center justify-center gap-2">
-                    <Loader2
+                    <CircleNotchIcon weight="bold"
                       size={14}
                       className="animate-spin text-[#071A4D]"
                     />
@@ -1706,7 +1678,7 @@ function ChatView() {
         <div className="flex-1 overflow-y-auto divide-y divide-[#F4F7FB]">
           {loadingConversations ? (
             <div className="p-6 text-center text-xs text-[#5B6472] space-y-2">
-              <Loader2
+              <CircleNotchIcon
                 size={20}
                 className="animate-spin mx-auto text-[#071A4D]"
               />
@@ -1774,7 +1746,7 @@ function ChatView() {
                           title="Delete conversation"
                           className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-all"
                         >
-                          <Trash2 size={13} />
+                          <TrashIcon weight="bold" size={13} />
                         </button>
                       </div>
                     </div>
@@ -1806,7 +1778,7 @@ function ChatView() {
             })
           ) : (
             <div className="p-8 text-center text-[#5B6472] space-y-2">
-              <MessageSquare size={32} className="mx-auto text-[#D9E0EA]" />
+              <ChatIcon size={32} className="mx-auto text-[#D9E0EA]" />
               <p className="text-sm font-semibold text-[#111827]">
                 No conversations found
               </p>
@@ -1839,7 +1811,7 @@ function ChatView() {
                   className="md:hidden p-2 -ml-1.5 rounded-xl text-[#071A4D] hover:bg-[#F4F7FB] active:bg-slate-200 transition-colors shrink-0 flex items-center justify-center"
                   aria-label="Back to messages"
                 >
-                  <ChevronLeft size={22} />
+                  <CaretLeftIcon size={22} />
                 </button>
 
                 {/* Contact Avatar */}
@@ -1899,9 +1871,9 @@ function ChatView() {
                     title="View profile"
                     aria-label="View profile"
                   >
-                    <UserIcon size={15} className="sm:hidden" />
+                    <UserIcon weight="bold" size={15} className="sm:hidden" />
                     <span className="hidden sm:inline">Profile</span>
-                    <ExternalLink size={13} className="hidden sm:inline" />
+                    <ArrowSquareOutIcon weight="bold" size={13} className="hidden sm:inline" />
                   </Link>
                 )}
 
@@ -1913,7 +1885,7 @@ function ChatView() {
                     title="Chat options"
                     aria-label="Chat options"
                   >
-                    <MoreVertical size={18} />
+                    <DotsThreeVerticalIcon weight="bold" size={18} />
                   </button>
 
                   {showChatMenu && (
@@ -1923,7 +1895,7 @@ function ChatView() {
                           onClick={promptUnblockUser}
                           className="w-full px-3 py-2 text-left flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 transition-colors"
                         >
-                          <CheckCircle2 size={14} />
+                          <CheckCircleIcon weight="bold" size={14} />
                           <span>Unblock user</span>
                         </button>
                       ) : (
@@ -1931,7 +1903,7 @@ function ChatView() {
                           onClick={promptBlockUser}
                           className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 hover:bg-slate-50 transition-colors"
                         >
-                          <Ban size={14} className="text-slate-500" />
+                          <ProhibitIcon weight="bold" size={14} className="text-slate-500" />
                           <span>Block user</span>
                         </button>
                       )}
@@ -1940,7 +1912,7 @@ function ChatView() {
                         onClick={openReportModal}
                         className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 hover:bg-slate-50 transition-colors"
                       >
-                        <Flag size={14} className="text-amber-500" />
+                        <FlagIcon weight="bold" size={14} className="text-amber-500" />
                         <span>Report conversation</span>
                       </button>
 
@@ -1950,7 +1922,7 @@ function ChatView() {
                         onClick={() => promptDeleteConversation()}
                         className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 transition-colors"
                       >
-                        <Trash2 size={14} />
+                        <TrashIcon weight="bold" size={14} />
                         <span>Delete conversation</span>
                       </button>
                     </div>
@@ -1969,7 +1941,7 @@ function ChatView() {
               {loadingOlderMessages && (
                 <div className="flex items-center justify-center py-2 animate-in fade-in">
                   <div className="flex items-center gap-2 px-3 py-1 bg-white/90 rounded-full border border-[#D9E0EA] text-xs text-[#5B6472] shadow-xs">
-                    <Loader2
+                    <CircleNotchIcon weight="bold"
                       size={13}
                       className="animate-spin text-[#FF6B00]"
                     />
@@ -1980,14 +1952,12 @@ function ChatView() {
 
               {loadingMessages ? (
                 <div className="flex flex-col items-center justify-center h-full text-xs text-[#5B6472] space-y-2">
-                  <Loader2 size={24} className="animate-spin text-[#071A4D]" />
+                  <CircleNotchIcon size={24} className="animate-spin text-[#071A4D]" />
                   <p>Loading messages...</p>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-3">
-                  <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center border border-[#D9E0EA] shadow-xs">
-                    <MessageSquare size={24} className="text-[#071A4D]" />
-                  </div>
+                  <ChatIcon size={32} weight="duotone" className="text-[#071A4D]" aria-hidden="true" />
                   <p className="text-sm font-bold text-[#111827]">
                     Say hello to {activePartner?.name || "your contact"}!
                   </p>
@@ -2070,12 +2040,12 @@ function ChatView() {
                                   className="p-1.5 rounded-full text-slate-500 hover:text-[#071A4D] hover:bg-slate-100 active:scale-90 transition-all flex items-center justify-center"
                                 >
                                   {copiedMessageId === msg.id ? (
-                                    <Check
+                                    <CheckIcon weight="bold"
                                       size={13}
                                       className="text-emerald-600 animate-in zoom-in-75"
                                     />
                                   ) : (
-                                    <Copy size={13} />
+                                    <CopyIcon weight="bold" size={13} />
                                   )}
                                 </button>
                               )}
@@ -2093,7 +2063,7 @@ function ChatView() {
                                   aria-label="Delete message"
                                   className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 active:scale-90 transition-all flex items-center justify-center"
                                 >
-                                  <Trash2 size={13} />
+                                  <TrashIcon weight="bold" size={13} />
                                 </button>
                               )}
                             </div>
@@ -2126,7 +2096,7 @@ function ChatView() {
                           >
                             {msg.is_deleted ? (
                               <div className="flex items-center gap-1.5 py-0.5 select-none not-italic">
-                                <Ban
+                                <ProhibitIcon weight="bold"
                                   size={13}
                                   className="text-slate-400 shrink-0"
                                 />
@@ -2189,7 +2159,7 @@ function ChatView() {
                                             : "bg-white border border-[#D9E0EA]"
                                         }`}
                                       >
-                                        <FileText size={18} />
+                                        <FileTextIcon weight="bold" size={18} />
                                       </div>
                                       <div className="min-w-0 flex-1">
                                         <p className="text-xs font-semibold truncate">
@@ -2210,7 +2180,7 @@ function ChatView() {
                                           </p>
                                         ) : null}
                                       </div>
-                                      <Download
+                                      <DownloadSimpleIcon weight="bold"
                                         size={15}
                                         className="shrink-0"
                                       />
@@ -2245,7 +2215,7 @@ function ChatView() {
                                   style={{ minWidth: "18px" }}
                                 >
                                   {msg.isOptimistic ? (
-                                    <Clock
+                                    <ClockIcon weight="bold"
                                       size={12}
                                       className="text-white/70"
                                     />
@@ -2254,9 +2224,8 @@ function ChatView() {
                                       title="Read"
                                       className="inline-flex items-center"
                                     >
-                                      <CheckCheck
+                                      <ChecksIcon weight="bold"
                                         size={16}
-                                        strokeWidth={2.4}
                                         className="text-[#38BDF8] shrink-0"
                                       />
                                     </span>
@@ -2265,9 +2234,8 @@ function ChatView() {
                                       title="Sent"
                                       className="inline-flex items-center"
                                     >
-                                      <Check
+                                      <CheckIcon weight="bold"
                                         size={14}
-                                        strokeWidth={2.2}
                                         className="text-white/70 shrink-0"
                                       />
                                     </span>
@@ -2317,7 +2285,7 @@ function ChatView() {
                 aria-label="Scroll to latest messages"
                 className="absolute bottom-20 sm:bottom-24 right-4 sm:right-6 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-[#D9E0EA] text-[#071A4D] shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all animate-in fade-in zoom-in-75"
               >
-                <ChevronDown size={18} />
+                <CaretDownIcon weight="bold" size={18} />
               </button>
             )}
 
@@ -2333,9 +2301,7 @@ function ChatView() {
                       className="w-12 h-12 object-cover rounded-lg border border-[#D9E0EA]"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-lg bg-white border border-[#D9E0EA] flex items-center justify-center text-[#071A4D]">
-                      <FileText size={20} />
-                    </div>
+                    <FileTextIcon size={24} weight="duotone" className="text-[#071A4D]" aria-hidden="true" />
                   )}
                   <div className="min-w-0 flex-1">
                     <p className="text-xs font-semibold text-[#111827] truncate">
@@ -2351,7 +2317,7 @@ function ChatView() {
                     className="p-1 rounded-lg text-[#5B6472] hover:text-red-500 hover:bg-white transition-colors"
                     title="Remove file"
                   >
-                    <X size={16} />
+                    <XIcon weight="bold" size={16} />
                   </button>
                 </div>
               )}
@@ -2379,7 +2345,7 @@ function ChatView() {
               {isBlockedByMe ? (
                 <div className="flex items-center justify-between gap-3 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-700 shadow-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Ban size={17} className="text-slate-500 shrink-0" />
+                    <ProhibitIcon weight="bold" size={17} className="text-slate-500 shrink-0" />
                     <span className="truncate font-medium">
                       You have blocked this user.
                     </span>
@@ -2394,7 +2360,7 @@ function ChatView() {
                 </div>
               ) : isBlockedByOther ? (
                 <div className="flex items-center gap-2.5 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-600 shadow-xs">
-                  <Ban size={17} className="text-slate-400 shrink-0" />
+                  <ProhibitIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
                   <span className="font-medium">
                     You cannot send messages to this conversation right now.
                   </span>
@@ -2419,7 +2385,7 @@ function ChatView() {
                     disabled={isUploading}
                     className="p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 active:bg-slate-200 transition-colors shrink-0 mb-0.5"
                   >
-                    <Paperclip size={18} />
+                    <PaperclipIcon weight="bold" size={18} />
                   </button>
 
                   {/* Emoji Toggle Button */}
@@ -2433,7 +2399,7 @@ function ChatView() {
                         : "text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 active:bg-slate-200"
                     }`}
                   >
-                    <Smile size={19} />
+                    <SmileyIcon size={19} />
                   </button>
 
                   {/* Message Textarea */}
@@ -2467,9 +2433,9 @@ function ChatView() {
                     }`}
                   >
                     {isUploading ? (
-                      <Loader2 size={18} className="animate-spin" />
+                      <CircleNotchIcon weight="bold" size={18} className="animate-spin" />
                     ) : (
-                      <Send size={18} />
+                      <PaperPlaneRightIcon weight="bold" size={18} />
                     )}
                   </button>
                 </div>
@@ -2479,9 +2445,7 @@ function ChatView() {
         ) : (
           /* Desktop Empty State */
           <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 text-center bg-white h-full">
-            <div className="w-20 h-20 bg-[#F4F7FB] border border-[#D9E0EA] rounded-full flex items-center justify-center mb-4 text-[#071A4D] shadow-xs">
-              <Send size={32} className="ml-1" />
-            </div>
+            <PaperPlaneRightIcon size={48} weight="duotone" className="text-[#071A4D] mb-4" aria-hidden="true" />
             <h2 className="text-xl font-bold text-[#071A4D] font-poppins">
               Select a conversation
             </h2>
@@ -2503,7 +2467,7 @@ function ChatView() {
             onClick={() => setLightboxImage(null)}
             className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors"
           >
-            <X size={20} />
+            <XIcon size={20} />
           </button>
           <img
             src={lightboxImage}
@@ -2536,11 +2500,11 @@ function ChatView() {
                 }`}
               >
                 {confirmModal.type === "unblock" ? (
-                  <CheckCircle2 size={20} />
+                  <CheckCircleIcon size={20} />
                 ) : confirmModal.type === "block" ? (
-                  <Ban size={20} />
+                  <ProhibitIcon size={20} />
                 ) : (
-                  <Trash2 size={20} />
+                  <TrashIcon size={20} />
                 )}
               </div>
               <div className="min-w-0 flex-1">
@@ -2579,7 +2543,7 @@ function ChatView() {
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" />
+                    <CircleNotchIcon weight="bold" size={15} className="animate-spin" />
                     <span>Processing...</span>
                   </>
                 ) : (
@@ -2606,9 +2570,7 @@ function ChatView() {
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                  <Flag size={20} />
-                </div>
+                <FlagIcon size={24} weight="duotone" className="text-amber-600 shrink-0" aria-hidden="true" />
                 <div>
                   <h3 className="text-base font-bold text-[#111827]">
                     Report conversation
@@ -2626,7 +2588,7 @@ function ChatView() {
                 }
                 className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               >
-                <X size={18} />
+                <XIcon weight="bold" size={18} />
               </button>
             </div>
 
@@ -2723,7 +2685,7 @@ function ChatView() {
               >
                 {reportModal.isSubmitting ? (
                   <>
-                    <Loader2 size={15} className="animate-spin" />
+                    <CircleNotchIcon weight="bold" size={15} className="animate-spin" />
                     <span>Submitting...</span>
                   </>
                 ) : (
@@ -2752,7 +2714,7 @@ function ChatLoadingFallback() {
   return (
     <div className="flex h-[calc(100dvh-64px)] items-center justify-center bg-[#F4F7FB]">
       <div className="text-center space-y-3">
-        <Loader2 size={32} className="animate-spin text-[#071A4D] mx-auto" />
+        <CircleNotchIcon size={32} className="animate-spin text-[#071A4D] mx-auto" />
         <p className="text-sm font-semibold text-[#071A4D]">
           Loading conversations...
         </p>

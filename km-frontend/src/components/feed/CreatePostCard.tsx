@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Image as ImageIcon, Briefcase, Award } from 'lucide-react';
+import { BriefcaseIcon, ImageIcon, MedalIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { getCurrentUser } from '@/lib/auth';
 import { FeedCategory } from './feedTypes';
@@ -39,7 +39,7 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) =
           onClick={() => onOpenModal('all')}
           className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-[#5B6472] hover:bg-[#EFF6FF] hover:text-[#0B5ED7] transition-all"
         >
-          <ImageIcon size={18} className="text-[#0B5ED7]" />
+          <ImageIcon weight="bold" size={18} className="text-[#0B5ED7]" />
           <span className="hidden sm:inline">Photo / Media</span>
           <span className="sm:hidden">Photo</span>
         </button>
@@ -49,7 +49,7 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) =
           onClick={() => onOpenModal('jobs')}
           className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-[#5B6472] hover:bg-[#FFF7ED] hover:text-[#FF6B00] transition-all"
         >
-          <Briefcase size={18} className="text-[#FF6B00]" />
+          <BriefcaseIcon weight="bold" size={18} className="text-[#FF6B00]" />
           <span className="hidden sm:inline">Hiring / Job</span>
           <span className="sm:hidden">Job</span>
         </button>
@@ -59,7 +59,7 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) =
           onClick={() => onOpenModal('skills')}
           className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-[#5B6472] hover:bg-[#F0FDF4] hover:text-[#16A34A] transition-all"
         >
-          <Award size={18} className="text-[#16A34A]" />
+          <MedalIcon weight="bold" size={18} className="text-[#16A34A]" />
           <span className="hidden sm:inline">Celebration</span>
           <span className="sm:hidden">Milestone</span>
         </button>

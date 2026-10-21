@@ -26,7 +26,7 @@ const FeedSection: React.FC = () => {
 
 export default FeedSection;
 
-import { MoreVertical, ThumbsUp, MessageSquare, Repeat2 } from 'lucide-react';
+import { ChatIcon, DotsThreeVerticalIcon, RepeatIcon, ThumbsUpIcon } from '@phosphor-icons/react/ssr';
 
 const PostCard = () => {
     return (
@@ -43,7 +43,7 @@ const PostCard = () => {
                     </div>
                 </div>
                 <button className="text-gray-400 hover:bg-gray-100 p-2 rounded-full transition">
-                    <MoreVertical size={20} />
+                    <DotsThreeVerticalIcon size={20} />
                 </button>
             </div>
 
@@ -64,9 +64,9 @@ const PostCard = () => {
 
             {/* Action Buttons */}
             <div className="flex px-4 py-2">
-                <ActionButton icon={<ThumbsUp size={20} />} label="Like" />
-                <ActionButton icon={<MessageSquare size={20} />} label="Comment" />
-                <ActionButton icon={<Repeat2 size={20} />} label="Reshare" />
+                <ActionButton icon={<ThumbsUpIcon size={20} />} label="Like" />
+                <ActionButton icon={<ChatIcon size={20} />} label="Comment" />
+                <ActionButton icon={<RepeatIcon size={20} />} label="Reshare" />
             </div>
         </div>
     );

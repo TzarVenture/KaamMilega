@@ -2,15 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import {
-    Bell,
-    MessageSquare,
-    Briefcase,
-    Users,
-    Calendar,
-    X,
-    ArrowUpRight,
-} from "lucide-react";
+import { ArrowUpRightIcon, BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import CustomImage from "@/components/ui/CustomImage";
 import api from "./axios";
 import { isAuthenticated } from "./auth";
@@ -495,25 +487,25 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                                             />
                                         </div>
                                     ) : isInterview ? (
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700">
-                                            <Calendar size={15} className="fill-indigo-700" />
-                                        </div>
+                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                          <CalendarBlankIcon size={22} weight="duotone" />
+                                        </span>
                                     ) : isMessage ? (
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700">
-                                            <MessageSquare size={15} className="fill-blue-700" />
-                                        </div>
+                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                          <ChatIcon size={22} weight="duotone" />
+                                        </span>
                                     ) : isJob ? (
-                                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
-                                            <Briefcase size={15} className="fill-amber-700" />
-                                        </div>
+                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                          <BriefcaseIcon size={22} weight="duotone" />
+                                        </span>
                                     ) : isNetwork ? (
-                                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
-                                            <Users size={15} className="fill-emerald-700" />
-                                        </div>
+                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                          <UsersIcon size={22} weight="duotone" />
+                                        </span>
                                     ) : (
-                                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700">
-                                            <Bell size={15} className="fill-slate-700" />
-                                        </div>
+                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                          <BellIcon size={22} weight="duotone" />
+                                        </span>
                                     )}
                                 </div>
 
@@ -533,7 +525,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                                     <div className="mt-1.5 flex items-center gap-1.5">
                                         <span className="text-[11px] font-semibold text-km-primary group-hover:underline flex items-center gap-0.5">
                                             {isMessage ? "Reply" : "View details"}
-                                            <ArrowUpRight size={11} />
+                                            <ArrowUpRightIcon weight="bold" size={11} />
                                         </span>
                                     </div>
                                 </div>
@@ -548,7 +540,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                                     className="shrink-0 p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
                                     aria-label="Dismiss alert"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             </div>
                         );

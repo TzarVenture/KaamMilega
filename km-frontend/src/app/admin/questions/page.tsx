@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit3, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { CaretDownIcon, CircleNotchIcon, PlusIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import QuestionModal from '@/components/modals/admin/QuestionModal';
 import Pagination from '@/components/ui/Pagination';
@@ -95,14 +95,14 @@ export default function QuestionsPage() {
                     onClick={handleAdd}
                     className="flex items-center justify-center gap-2 px-6 py-3.5 bg-purple-600 text-white font-bold rounded-2xl shadow-xl shadow-purple-600/20 hover:bg-purple-700 transition-all"
                 >
-                    <Plus size={20} strokeWidth={3} />
+                    <PlusIcon weight="bold" size={20} />
                     <span>Add New Question</span>
                 </motion.button>
             </div>
 
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-                    <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+                    <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin" />
                     <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Synchronizing knowledge base</p>
                 </div>
             ) : questions.length === 0 ? (
@@ -153,7 +153,7 @@ export default function QuestionsPage() {
                                         Delete
                                     </button>
                                     <div className={`transition-transform duration-300 ${expandedIds.has(q.id) ? 'rotate-180 text-purple-600' : 'text-slate-300'}`}>
-                                        <ChevronDown size={24} />
+                                        <CaretDownIcon size={24} />
                                     </div>
                                 </div>
                             </div>

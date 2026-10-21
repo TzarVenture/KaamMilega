@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Briefcase, CheckCircle2, Zap, UserPlus, MapPin, Building2, X } from 'lucide-react';
+import { BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, LightningIcon, MapPinIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 
 /**
@@ -36,11 +37,11 @@ interface SuccessTickerProps {
 }
 
 // Service colours from design.md §3
-const TONE_STYLE: Record<Tone, { icon: React.ReactNode; bg: string; text: string }> = {
-    jobs: { icon: <Briefcase size={15} />, bg: 'bg-[#0B5ED7]/10', text: 'text-[#0B5ED7]' },
-    success: { icon: <CheckCircle2 size={15} />, bg: 'bg-[#16A34A]/10', text: 'text-[#16A34A]' },
-    instant: { icon: <Zap size={15} />, bg: 'bg-[#FF6B00]/10', text: 'text-[#FF6B00]' },
-    network: { icon: <UserPlus size={15} />, bg: 'bg-[#0F9D8A]/10', text: 'text-[#0F9D8A]' },
+const TONE_STYLE: Record<Tone, { Icon: Icon; text: string }> = {
+    jobs: { Icon: BriefcaseIcon, text: 'text-km-primary' },
+    success: { Icon: CheckCircleIcon, text: 'text-km-primary' },
+    instant: { Icon: LightningIcon, text: 'text-km-primary' },
+    network: { Icon: UserPlusIcon, text: 'text-km-primary' },
 };
 
 const defaultUpdates: TickerUpdate[] = [
@@ -132,9 +133,7 @@ function TickerEntry({ item, onOpen }: { item: TickerItem; onOpen: (story: Ticke
     const tone = TONE_STYLE[item.tone];
     const content = (
         <>
-            <span className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${tone.bg} ${tone.text}`}>
-                {tone.icon}
-            </span>
+            <tone.Icon size={24} weight="duotone" className={`shrink-0 ${tone.text}`} aria-hidden="true" />
             <span className="flex flex-col text-left">
                 <span className="text-sm text-[#111827] leading-5">
                     {item.person && <span className="font-semibold">{item.person} </span>}
@@ -201,8 +200,6 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
                     </p>
 
                     <div className="relative flex-1 min-w-0 overflow-hidden py-2.5">
-                        <div className="pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-white to-transparent z-10" />
-                        <div className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-white to-transparent z-10" />
 
                         <ul className="animate-km-marquee" style={{ animationDuration: duration }}>
                             {[0, 1].map((copy) =>
@@ -241,7 +238,7 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
                             aria-label="Close"
                             className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-[#5B6472] hover:bg-[#F4F7FB] cursor-pointer"
                         >
-                            <X size={18} />
+                            <XIcon weight="bold" size={18} />
                         </button>
 
                         {(() => {
@@ -249,9 +246,7 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
                             const tone = TONE_STYLE[item.tone];
                             return (
                                 <div className="flex items-center gap-3 pr-8">
-                                    <span className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${tone.bg} ${tone.text}`}>
-                                        {tone.icon}
-                                    </span>
+                                    <tone.Icon size={32} weight="duotone" className={`shrink-0 ${tone.text}`} aria-hidden="true" />
                                     <h3 id="ticker-story-title" className="text-lg font-semibold text-[#111827]">
                                         {selectedStory.name} {item.action}
                                     </h3>
@@ -261,15 +256,15 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
 
                         <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 text-sm text-[#5B6472]">
                             <span className="inline-flex items-center gap-1.5">
-                                <Briefcase size={14} className="text-[#071A4D]" />
+                                <BriefcaseIcon weight="bold" size={14} className="text-[#071A4D]" />
                                 {selectedStory.role}
                             </span>
                             <span className="inline-flex items-center gap-1.5">
-                                <Building2 size={14} className="text-[#071A4D]" />
+                                <BuildingOfficeIcon weight="bold" size={14} className="text-[#071A4D]" />
                                 {selectedStory.company}
                             </span>
                             <span className="inline-flex items-center gap-1.5">
-                                <MapPin size={14} className="text-[#071A4D]" />
+                                <MapPinIcon weight="bold" size={14} className="text-[#071A4D]" />
                                 {selectedStory.city}
                             </span>
                         </div>

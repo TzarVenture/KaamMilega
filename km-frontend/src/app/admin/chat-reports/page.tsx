@@ -1,27 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Flag,
-  ShieldAlert,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Search,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  X,
-  AlertCircle,
-  User,
-  MessageSquare,
-  ExternalLink,
-  Loader2,
-  AlertTriangle,
-  Paperclip,
-  Check,
-} from "lucide-react";
+import { ArrowSquareOutIcon, ArrowsClockwiseIcon, CaretLeftIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, CheckIcon, CircleNotchIcon, ClockIcon, FlagIcon, MagnifyingGlassIcon, PaperclipIcon, ShieldIcon, WarningIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from "@/lib/axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -144,31 +124,31 @@ export default function AdminChatReportsPage() {
         return {
           label: "Needs Review",
           bg: "bg-amber-100 text-amber-800 border-amber-200",
-          icon: Clock,
+          icon: ClockIcon,
         };
       case "under_review":
         return {
           label: "Under Review",
           bg: "bg-blue-100 text-blue-800 border-blue-200",
-          icon: Shield,
+          icon: ShieldIcon,
         };
       case "resolved":
         return {
           label: "Action Taken",
           bg: "bg-emerald-100 text-emerald-800 border-emerald-200",
-          icon: CheckCircle2,
+          icon: CheckCircleIcon,
         };
       case "dismissed":
         return {
           label: "Dismissed",
           bg: "bg-slate-100 text-slate-700 border-slate-200",
-          icon: XCircle,
+          icon: XCircleIcon,
         };
       default:
         return {
           label: status,
           bg: "bg-slate-100 text-slate-700 border-slate-200",
-          icon: Clock,
+          icon: ClockIcon,
         };
     }
   };
@@ -252,7 +232,7 @@ export default function AdminChatReportsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[#071A4D] font-poppins flex items-center gap-2.5">
-            <Flag className="text-[#FF6B00]" size={26} />
+            <FlagIcon className="text-[#FF6B00]" size={26} />
             Chat Reports & Safety
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -264,7 +244,7 @@ export default function AdminChatReportsPage() {
           onClick={() => fetchReports(page, statusFilter)}
           className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#071A4D] bg-white border border-slate-200 hover:bg-slate-50 rounded-xl shadow-xs transition-colors"
         >
-          <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+          <ArrowsClockwiseIcon weight="bold" size={15} className={loading ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
@@ -330,7 +310,7 @@ export default function AdminChatReportsPage() {
 
           {/* Search box */}
           <div className="relative min-w-[260px]">
-            <Search
+            <MagnifyingGlassIcon weight="bold"
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
@@ -362,16 +342,14 @@ export default function AdminChatReportsPage() {
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <Loader2 size={24} className="animate-spin text-[#071A4D] mx-auto mb-2" />
+                    <CircleNotchIcon size={24} className="animate-spin text-[#071A4D] mx-auto mb-2" />
                     Loading reports...
                   </td>
                 </tr>
               ) : displayedReports.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400">
-                      <Flag size={20} />
-                    </div>
+                    <FlagIcon size={28} weight="duotone" className="text-slate-400 mx-auto mb-2" aria-hidden="true" />
                     No chat reports found for this filter.
                   </td>
                 </tr>
@@ -435,7 +413,7 @@ export default function AdminChatReportsPage() {
                       {/* Evidence */}
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                          <MessageSquare size={12} />
+                          <ChatIcon weight="bold" size={12} />
                           {evidenceCount} message{evidenceCount === 1 ? "" : "s"}
                         </span>
                       </td>
@@ -484,14 +462,14 @@ export default function AdminChatReportsPage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="p-1.5 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50"
               >
-                <ChevronLeft size={16} />
+                <CaretLeftIcon weight="bold" size={16} />
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className="p-1.5 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50"
               >
-                <ChevronRight size={16} />
+                <CaretRightIcon weight="bold" size={16} />
               </button>
             </div>
           </div>
@@ -511,9 +489,7 @@ export default function AdminChatReportsPage() {
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                  <Flag size={20} />
-                </div>
+                <FlagIcon size={24} weight="duotone" className="text-amber-600 shrink-0" aria-hidden="true" />
                 <div>
                   <h3 className="text-base font-bold text-[#111827]">
                     Review Chat Report
@@ -529,7 +505,7 @@ export default function AdminChatReportsPage() {
                 onClick={() => setSelectedReport(null)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               >
-                <X size={18} />
+                <XIcon weight="bold" size={18} />
               </button>
             </div>
 
@@ -565,7 +541,7 @@ export default function AdminChatReportsPage() {
               {/* Reported Reason & Description */}
               <div className="p-3.5 bg-amber-50/40 rounded-xl border border-amber-200">
                 <p className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                  <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+                  <WarningIcon weight="bold" size={14} className="text-amber-600 shrink-0" />
                   Reason: {selectedReport.reason}
                 </p>
                 {selectedReport.description ? (
@@ -583,7 +559,7 @@ export default function AdminChatReportsPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <MessageSquare size={14} className="text-[#071A4D]" />
+                    <ChatIcon weight="bold" size={14} className="text-[#071A4D]" />
                     Chat Evidence Snapshot ({selectedReport.evidence?.length || 0} messages)
                   </h4>
                   <span className="text-[11px] text-slate-400">
@@ -637,9 +613,9 @@ export default function AdminChatReportsPage() {
                               rel="noreferrer"
                               className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline mt-1 font-semibold"
                             >
-                              <Paperclip size={12} />
+                              <PaperclipIcon weight="bold" size={12} />
                               View Attachment
-                              <ExternalLink size={10} />
+                              <ArrowSquareOutIcon weight="bold" size={10} />
                             </a>
                           )}
                         </div>
@@ -721,12 +697,12 @@ export default function AdminChatReportsPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" />
+                    <CircleNotchIcon weight="bold" size={14} className="animate-spin" />
                     <span>Saving...</span>
                   </>
                 ) : (
                   <>
-                    <Check size={14} />
+                    <CheckIcon weight="bold" size={14} />
                     <span>Save Decision</span>
                   </>
                 )}

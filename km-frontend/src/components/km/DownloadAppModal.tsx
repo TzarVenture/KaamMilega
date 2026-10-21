@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Smartphone, CheckCircle } from 'lucide-react';
+import { CheckCircleIcon, DeviceMobileIcon, XIcon } from '@phosphor-icons/react';
 
 interface DownloadAppModalProps {
     isOpen: boolean;
@@ -51,9 +51,7 @@ export default function DownloadAppModal({ isOpen, onClose }: DownloadAppModalPr
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 pt-6 pb-2">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-[#FFF7ED] border border-[#FFEDD5] flex items-center justify-center text-[#FF6B00] shrink-0">
-                            <Smartphone size={20} />
-                        </div>
+                        <DeviceMobileIcon size={24} weight="duotone" className="text-[#FF6B00] shrink-0" aria-hidden="true" />
                         <div>
                             <h3 className="text-base sm:text-lg font-semibold text-[#111827] tracking-tight">
                                 Get the KaamMilega App
@@ -68,7 +66,7 @@ export default function DownloadAppModal({ isOpen, onClose }: DownloadAppModalPr
                         className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-[#F4F7FB] transition-colors cursor-pointer"
                         aria-label="Close dialog"
                     >
-                        <X size={18} />
+                        <XIcon weight="bold" size={18} />
                     </button>
                 </div>
 
@@ -111,7 +109,7 @@ export default function DownloadAppModal({ isOpen, onClose }: DownloadAppModalPr
                         </label>
                         {isSent ? (
                             <div className="flex items-center justify-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-medium">
-                                <CheckCircle size={16} className="text-emerald-600 shrink-0" />
+                                <CheckCircleIcon weight="bold" size={16} className="text-emerald-600 shrink-0" />
                                 <span>Download link sent to +91 {phone}</span>
                             </div>
                         ) : (

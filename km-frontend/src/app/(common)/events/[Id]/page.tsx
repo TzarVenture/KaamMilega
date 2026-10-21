@@ -2,31 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
-    Calendar, 
-    MapPin, 
-    Users, 
-    Share2, 
-    ArrowLeft,
-    Clock, 
-    CheckCircle2, 
-    Ticket, 
-    Wallet, 
-    Lock, 
-    X,
-    ShieldCheck, 
-    QrCode, 
-    Download, 
-    Printer,
-    CreditCard, 
-    AlertCircle,
-    Video,
-    ExternalLink,
-    Award,
-    ArrowRight,
-    Check,
-    Radio
-} from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, CreditCardIcon, LockIcon, PrinterIcon, QrCodeIcon, ShieldCheckIcon, TicketIcon, UsersIcon, VideoCameraIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
@@ -384,7 +360,7 @@ const EventDetailsPage = () => {
                 ) : (
                     <div className="w-full h-full bg-[#071A4D] flex items-center justify-center">
                         <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#F59E0B]">
-                            <Calendar size={40} />
+                            <CalendarBlankIcon size={40} />
                         </div>
                     </div>
                 )}
@@ -395,7 +371,7 @@ const EventDetailsPage = () => {
                         href="/events"
                         className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all border border-white/20 shadow-xs"
                     >
-                        <ArrowLeft size={15} /> Back to Workshops
+                        <ArrowLeftIcon weight="bold" size={15} /> Back to Workshops
                     </Link>
                 </div>
             </div>
@@ -420,7 +396,7 @@ const EventDetailsPage = () => {
                             </span>
                             {isOnlineSession && (
                                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
-                                    <Video size={12} className="text-emerald-600" /> Live Video Session
+                                    <VideoCameraIcon weight="bold" size={12} className="text-emerald-600" /> Live Video Session
                                 </span>
                             )}
                         </div>
@@ -449,13 +425,11 @@ const EventDetailsPage = () => {
                         <div className="bg-white rounded-2xl p-6 sm:p-7 border-2 border-[#10B981]/40 shadow-xs space-y-4">
                             <div className="flex items-center justify-between flex-wrap gap-2">
                                 <div className="flex items-center gap-2.5 text-emerald-700 font-bold text-sm">
-                                    <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                                        <Video size={18} />
-                                    </div>
+                                    <VideoCameraIcon size={20} className="text-emerald-600 shrink-0" aria-hidden="true" />
                                     <span>Live Video Conference & Room Access</span>
                                 </div>
                                 <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                                    <CheckCircle2 size={12} /> Entry Pass Active
+                                    <CheckCircleIcon weight="bold" size={12} /> Entry Pass Active
                                 </span>
                             </div>
 
@@ -465,9 +439,7 @@ const EventDetailsPage = () => {
 
                             <div className="p-4 bg-[#F4F7FB] rounded-xl border border-[#D9E0EA] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-10 h-10 rounded-xl bg-white border border-[#D9E0EA] flex items-center justify-center text-[#071A4D] shrink-0 shadow-2xs">
-                                        <Video size={20} className="text-[#0B5ED7]" />
-                                    </div>
+                                    <VideoCameraIcon size={24} weight="duotone" className="text-[#0B5ED7] shrink-0" aria-hidden="true" />
                                     <div className="min-w-0">
                                         <p className="text-xs font-bold text-[#111827] truncate">
                                             {isOnlineSession ? "Interactive Google Meet / Zoom Room" : event.location}
@@ -484,9 +456,9 @@ const EventDetailsPage = () => {
                                     rel="noopener noreferrer"
                                     className="btn-accent text-xs px-4 py-2.5 shrink-0 inline-flex items-center gap-1.5 shadow-xs"
                                 >
-                                    <Video size={14} />
+                                    <VideoCameraIcon weight="bold" size={14} />
                                     <span>Join Meeting Room</span>
-                                    <ExternalLink size={12} />
+                                    <ArrowSquareOutIcon weight="bold" size={12} />
                                 </a>
                             </div>
 
@@ -497,9 +469,7 @@ const EventDetailsPage = () => {
                     ) : (
                         <div className="bg-[#FFFBEB] rounded-2xl p-5 sm:p-6 border border-[#FDE68A] shadow-xs">
                             <div className="flex items-start gap-3.5">
-                                <div className="w-9 h-9 rounded-xl bg-amber-100 text-[#B45309] flex items-center justify-center shrink-0 mt-0.5">
-                                    <Lock size={17} />
-                                </div>
+                                <LockIcon size={22} className="text-[#B45309] shrink-0 mt-0.5" aria-hidden="true" />
                                 <div className="flex-1">
                                     <h4 className="text-sm font-bold text-[#111827]">Live Session Meeting Room (Google Meet / Zoom)</h4>
                                     <p className="text-xs text-[#5B6472] mt-1 leading-relaxed">
@@ -520,28 +490,28 @@ const EventDetailsPage = () => {
                         <h3 className="text-base font-bold text-[#111827] mb-4">Workshop Deliverables</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs text-[#5B6472]">
                             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]/70">
-                                <Check size={16} className="text-[#10B981] shrink-0 mt-0.5" />
+                                <CheckIcon weight="bold" size={16} className="text-[#10B981] shrink-0 mt-0.5" />
                                 <div>
                                     <p className="font-semibold text-[#111827]">Direct Live Interaction</p>
                                     <p className="text-[11px] text-[#5B6472] mt-0.5">Interactive Q&A with real-time feedback from the expert.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]/70">
-                                <Check size={16} className="text-[#10B981] shrink-0 mt-0.5" />
+                                <CheckIcon weight="bold" size={16} className="text-[#10B981] shrink-0 mt-0.5" />
                                 <div>
                                     <p className="font-semibold text-[#111827]">Verified Skill Takeaways</p>
                                     <p className="text-[11px] text-[#5B6472] mt-0.5">Practical knowledge you can immediately apply to jobs.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]/70">
-                                <Check size={16} className="text-[#10B981] shrink-0 mt-0.5" />
+                                <CheckIcon weight="bold" size={16} className="text-[#10B981] shrink-0 mt-0.5" />
                                 <div>
                                     <p className="font-semibold text-[#111827]">Digital Boarding Pass</p>
                                     <p className="text-[11px] text-[#5B6472] mt-0.5">Unique QR-verified pass stored inside your account.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-2.5 p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]/70">
-                                <Check size={16} className="text-[#10B981] shrink-0 mt-0.5" />
+                                <CheckIcon weight="bold" size={16} className="text-[#10B981] shrink-0 mt-0.5" />
                                 <div>
                                     <p className="font-semibold text-[#111827]">Direct Mentorship Connect</p>
                                     <p className="text-[11px] text-[#5B6472] mt-0.5">Opportunity to book follow-up 1-on-1 expert sessions.</p>
@@ -564,7 +534,7 @@ const EventDetailsPage = () => {
                                 className="btn-outline text-xs px-4 py-2 shrink-0 inline-flex items-center gap-1.5"
                             >
                                 <span>Apply as Expert</span>
-                                <ArrowRight size={13} />
+                                <ArrowRightIcon weight="bold" size={13} />
                             </Link>
                         </div>
                     </div>
@@ -586,27 +556,21 @@ const EventDetailsPage = () => {
                             {/* Meta Info */}
                             <div className="space-y-3.5 mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[#FFFBEB] text-[#F59E0B] border border-[#FDE68A] flex items-center justify-center shrink-0">
-                                        <Calendar size={18} />
-                                    </div>
+                                    <CalendarBlankIcon size={24} weight="duotone" className="text-[#F59E0B] shrink-0" aria-hidden="true" />
                                     <div>
                                         <p className="text-[10px] font-semibold text-[#5B6472] uppercase tracking-wider">Date</p>
                                         <p className="text-sm font-bold text-[#111827]">{event.date}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[#F4F7FB] text-[#071A4D] border border-[#D9E0EA] flex items-center justify-center shrink-0">
-                                        <Clock size={18} />
-                                    </div>
+                                    <ClockIcon size={24} weight="duotone" className="text-[#071A4D] shrink-0" aria-hidden="true" />
                                     <div>
                                         <p className="text-[10px] font-semibold text-[#5B6472] uppercase tracking-wider">Time</p>
                                         <p className="text-sm font-bold text-[#111827]">{event.time || 'TBA'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[#FFF7ED] text-[#FF6B00] border border-[#FFEDD5] flex items-center justify-center shrink-0">
-                                        <Video size={18} />
-                                    </div>
+                                    <VideoCameraIcon size={24} weight="duotone" className="text-[#FF6B00] shrink-0" aria-hidden="true" />
                                     <div>
                                         <p className="text-[10px] font-semibold text-[#5B6472] uppercase tracking-wider">Format</p>
                                         <p className="text-sm font-bold text-[#111827]">
@@ -623,7 +587,7 @@ const EventDetailsPage = () => {
                                 title="Click to view confirmed attendees"
                             >
                                 <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-[#111827] group-hover:text-[#0B5ED7] transition-colors flex-wrap">
-                                    <Users size={14} className="text-[#071A4D] group-hover:scale-110 transition-transform" />
+                                    <UsersIcon weight="bold" size={14} className="text-[#071A4D] group-hover:scale-110 transition-transform" />
                                     <span className="text-[#071A4D] font-bold">{participantCount}</span> 
                                     <span>{participantCount === 1 ? 'learner has' : 'learners have'} registered</span>
                                     <span className="text-[10px] text-[#071A4D] bg-white border border-[#D9E0EA] px-2 py-0.5 rounded-full font-bold ml-1 transition-all">
@@ -641,7 +605,7 @@ const EventDetailsPage = () => {
                             {isRegistered ? (
                                 <div className="space-y-3">
                                     <div className="w-full py-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs flex items-center justify-center gap-2">
-                                        <CheckCircle2 size={16} /> You're Registered!
+                                        <CheckCircleIcon weight="bold" size={16} /> You're Registered!
                                     </div>
                                     <button
                                         type="button"
@@ -651,7 +615,7 @@ const EventDetailsPage = () => {
                                         }}
                                         className="btn-primary w-full py-3.5 text-xs shadow-md cursor-pointer"
                                     >
-                                        <QrCode size={16} />
+                                        <QrCodeIcon weight="bold" size={16} />
                                         <span>View Digital Pass & QR</span>
                                     </button>
                                     {isOnlineSession && (
@@ -661,7 +625,7 @@ const EventDetailsPage = () => {
                                             rel="noopener noreferrer"
                                             className="btn-accent w-full py-3 text-xs shadow-md inline-flex items-center justify-center gap-2"
                                         >
-                                            <Video size={15} />
+                                            <VideoCameraIcon weight="bold" size={15} />
                                             <span>Join Live Session</span>
                                         </a>
                                     )}
@@ -677,7 +641,7 @@ const EventDetailsPage = () => {
                                         onClick={handleOpenCheckout}
                                         className="btn-accent w-full py-3.5 text-sm shadow-md cursor-pointer"
                                     >
-                                        <Ticket size={16} />
+                                        <TicketIcon weight="bold" size={16} />
                                         <span>Book Pass • ₹{event.price}</span>
                                     </button>
                                 )
@@ -709,9 +673,7 @@ const EventDetailsPage = () => {
                             {/* Modal Header */}
                             <div className="flex justify-between items-center px-5 py-3.5 border-b border-[#D9E0EA] shrink-0 bg-white">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-xl bg-[#FFFBEB] text-[#F59E0B] border border-[#FDE68A] flex items-center justify-center">
-                                        <Ticket size={17} />
-                                    </div>
+                                    <TicketIcon size={20} className="text-[#F59E0B]" aria-hidden="true" />
                                     <h3 className="text-base font-bold text-[#111827]">Workshop Pass Checkout</h3>
                                 </div>
                                 <button
@@ -720,7 +682,7 @@ const EventDetailsPage = () => {
                                     disabled={paymentProcessing}
                                     className="w-8 h-8 rounded-full bg-[#F4F7FB] hover:bg-[#D9E0EA] flex items-center justify-center text-[#5B6472] transition-colors cursor-pointer"
                                 >
-                                    <X size={16} />
+                                    <XIcon weight="bold" size={16} />
                                 </button>
                             </div>
 
@@ -786,9 +748,7 @@ const EventDetailsPage = () => {
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#071A4D] flex items-center justify-center shrink-0 border border-blue-100">
-                                                <CreditCard size={15} />
-                                            </div>
+                                            <CreditCardIcon size={20} className="text-[#071A4D] shrink-0" aria-hidden="true" />
                                             <div>
                                                 <div className="font-bold text-xs text-[#111827]">Razorpay Online Checkout</div>
                                                 <div className="text-[10px] text-[#5B6472]">UPI, Cards, NetBanking</div>
@@ -811,9 +771,7 @@ const EventDetailsPage = () => {
                                         }`}
                                     >
                                         <div className="flex items-center gap-2.5">
-                                            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-100">
-                                                <Wallet size={15} />
-                                            </div>
+                                            <WalletIcon size={20} className="text-emerald-700 shrink-0" aria-hidden="true" />
                                             <div>
                                                 <div className="font-bold text-xs text-[#111827]">KaamMilega Wallet</div>
                                                 <div className="text-[10px] text-[#5B6472]">
@@ -830,7 +788,7 @@ const EventDetailsPage = () => {
 
                                     {paymentMethod === "wallet" && !isWalletSufficient && (
                                         <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center gap-1.5">
-                                            <AlertCircle size={13} className="text-amber-600 shrink-0" />
+                                            <WarningCircleIcon weight="bold" size={13} className="text-amber-600 shrink-0" />
                                             <span>Insufficient wallet balance. Please select Razorpay or refill wallet.</span>
                                         </div>
                                     )}
@@ -862,7 +820,7 @@ const EventDetailsPage = () => {
                                             </>
                                         ) : (
                                             <>
-                                                <Lock size={13} />
+                                                <LockIcon weight="bold" size={13} />
                                                 <span>Pay ₹{event.price} with Razorpay</span>
                                             </>
                                         )}
@@ -881,7 +839,7 @@ const EventDetailsPage = () => {
                                             </>
                                         ) : (
                                             <>
-                                                <Wallet size={13} />
+                                                <WalletIcon weight="bold" size={13} />
                                                 <span>Confirm & Pay from Wallet</span>
                                             </>
                                         )}
@@ -906,14 +864,14 @@ const EventDetailsPage = () => {
                             {/* Modal Action Bar */}
                             <div className="flex justify-between items-center px-5 py-3 border-b border-[#D9E0EA] bg-white">
                                 <span className="text-xs font-bold text-[#111827] flex items-center gap-1.5 uppercase tracking-wider">
-                                    <Ticket size={14} className="text-[#FF6B00]" /> Digital Workshop Pass
+                                    <TicketIcon weight="bold" size={14} className="text-[#FF6B00]" /> Digital Workshop Pass
                                 </span>
                                 <button
                                     type="button"
                                     onClick={() => setTicketModalOpen(false)}
                                     className="w-8 h-8 rounded-full bg-[#F4F7FB] hover:bg-[#D9E0EA] flex items-center justify-center text-[#5B6472] transition-colors cursor-pointer"
                                 >
-                                    <X size={16} />
+                                    <XIcon weight="bold" size={16} />
                                 </button>
                             </div>
 
@@ -923,7 +881,7 @@ const EventDetailsPage = () => {
                                 <div className="flex items-start justify-between gap-3 mb-4">
                                     <div>
                                         <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full inline-flex items-center gap-1 mb-1">
-                                            <CheckCircle2 size={11} className="text-emerald-600" /> Pass Confirmed
+                                            <CheckCircleIcon weight="bold" size={11} className="text-emerald-600" /> Pass Confirmed
                                         </span>
                                         <h3 className="font-bold text-base text-[#111827] leading-snug line-clamp-2">
                                             {ticket.event_title || event.title}
@@ -943,9 +901,7 @@ const EventDetailsPage = () => {
                                 {/* Event Schedule Strip */}
                                 <div className="grid grid-cols-2 gap-2 p-3 bg-[#F4F7FB] rounded-xl mb-3 text-xs border border-[#D9E0EA]">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-lg bg-[#FFFBEB] text-[#F59E0B] flex items-center justify-center shrink-0">
-                                            <Calendar size={12} />
-                                        </div>
+                                        <CalendarBlankIcon weight="bold" size={16} className="text-[#F59E0B] shrink-0" aria-hidden="true" />
                                         <div className="min-w-0">
                                             <span className="text-[9px] font-semibold text-[#5B6472] block uppercase">Date</span>
                                             <span className="font-bold text-[11px] text-[#111827] truncate block">
@@ -954,9 +910,7 @@ const EventDetailsPage = () => {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-lg bg-blue-100 text-[#071A4D] flex items-center justify-center shrink-0">
-                                            <Clock size={12} />
-                                        </div>
+                                        <ClockIcon weight="bold" size={16} className="text-[#071A4D] shrink-0" aria-hidden="true" />
                                         <div className="min-w-0">
                                             <span className="text-[9px] font-semibold text-[#5B6472] block uppercase">Time</span>
                                             <span className="font-bold text-[11px] text-[#111827] truncate block">
@@ -965,9 +919,7 @@ const EventDetailsPage = () => {
                                         </div>
                                     </div>
                                     <div className="col-span-2 pt-2 border-t border-[#D9E0EA] flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                                            <Video size={12} />
-                                        </div>
+                                        <VideoCameraIcon weight="bold" size={16} className="text-emerald-700 shrink-0" aria-hidden="true" />
                                         <div className="min-w-0 flex-1">
                                             <span className="text-[9px] font-semibold text-[#5B6472] block uppercase">Room / Location</span>
                                             <span className="font-semibold text-[11px] text-[#111827] truncate block">
@@ -1006,7 +958,7 @@ const EventDetailsPage = () => {
                                     {/* QR Code Container */}
                                     <div className="flex flex-col items-center bg-white p-2 rounded-xl border border-[#D9E0EA] shadow-2xs shrink-0">
                                         <div className="w-20 h-20 bg-[#071A4D] p-1.5 rounded-lg flex items-center justify-center text-white">
-                                            <QrCode size={64} className="text-white" />
+                                            <QrCodeIcon size={64} className="text-white" />
                                         </div>
                                         <span className="text-[8px] font-bold uppercase text-[#5B6472] tracking-wider mt-1">
                                             Pass Verification
@@ -1018,7 +970,7 @@ const EventDetailsPage = () => {
                             {/* Ticket Actions Footer */}
                             <div className="px-5 py-3.5 bg-[#F4F7FB] border-t border-[#D9E0EA] flex items-center justify-between gap-3 shrink-0">
                                 <span className="text-[11px] font-semibold text-emerald-800 flex items-center gap-1.5">
-                                    <ShieldCheck size={15} className="text-emerald-600" /> Verified KaamMilega Pass
+                                    <ShieldCheckIcon weight="bold" size={15} className="text-emerald-600" /> Verified KaamMilega Pass
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -1026,7 +978,7 @@ const EventDetailsPage = () => {
                                         onClick={handlePrintTicket}
                                         className="px-3.5 py-1.5 bg-white hover:bg-[#F4F7FB] text-[#111827] rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 border border-[#D9E0EA] cursor-pointer shadow-2xs"
                                     >
-                                        <Printer size={13} />
+                                        <PrinterIcon weight="bold" size={13} />
                                         <span>Print</span>
                                     </button>
                                     <button

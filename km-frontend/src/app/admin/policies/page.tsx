@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Plus, Edit } from 'lucide-react';
+import { MagnifyingGlassIcon, NotePencilIcon, PlusIcon } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 import PolicyModal from '@/components/modals/admin/PolicyModal';
 
@@ -73,7 +73,7 @@ export default function PoliciesPage() {
 
                 <div className="flex items-center gap-3">
                     <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Find Policy..."
@@ -86,7 +86,7 @@ export default function PoliciesPage() {
                         onClick={handleAddPolicy}
                         className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200"
                     >
-                        <Plus size={18} />
+                        <PlusIcon weight="bold" size={18} />
                         <span>Add Policies</span>
                     </motion.button>
                 </div>
@@ -114,7 +114,7 @@ export default function PoliciesPage() {
                                 onClick={() => handleEditPolicy(policy)}
                                 className="absolute -right-2 -top-2 p-2 bg-white border border-purple-100 rounded-xl text-purple-600 opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-purple-50 scale-90"
                             >
-                                <Edit size={16} />
+                                <NotePencilIcon weight="bold" size={16} />
                             </button>
                         </div>
                     ))}

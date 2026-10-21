@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Shield, Building2, User, Check, Loader2 } from 'lucide-react';
+import { BuildingOfficeIcon, CheckIcon, CircleNotchIcon, ShieldIcon, UserIcon } from '@phosphor-icons/react';
 
 interface UserRoleModalProps {
     isOpen: boolean;
@@ -21,21 +21,21 @@ const AVAILABLE_ROLES = [
         id: 'admin',
         title: 'Platform Administrator',
         description: 'Full platform access: moderate vacancies, verify companies, and manage all users.',
-        icon: Shield,
+        icon: ShieldIcon,
         color: 'text-purple-600 bg-purple-50 border-purple-200'
     },
     {
         id: 'recruiter',
         title: 'Recruiter / Employer',
         description: 'Can post vacancies, inspect applicant resumes, and manage company profile.',
-        icon: Building2,
+        icon: BuildingOfficeIcon,
         color: 'text-emerald-600 bg-emerald-50 border-emerald-200'
     },
     {
         id: 'user',
         title: 'Job Seeker / Candidate',
         description: 'Standard account: can browse jobs, apply to vacancies, and create profile.',
-        icon: User,
+        icon: UserIcon,
         color: 'text-blue-600 bg-blue-50 border-blue-200'
     }
 ];
@@ -126,7 +126,7 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
                                         ? 'bg-purple-600 border-purple-600 text-white'
                                         : 'border-slate-300 bg-white'
                                     }`}>
-                                        {isSelected && <Check size={14} strokeWidth={3} />}
+                                        {isSelected && <CheckIcon weight="bold" size={14} />}
                                     </div>
                                 </button>
                             );
@@ -150,7 +150,7 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
                     >
                         {isSaving ? (
                             <>
-                                <Loader2 size={16} className="animate-spin" />
+                                <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
                                 <span>Updating Permissions...</span>
                             </>
                         ) : (

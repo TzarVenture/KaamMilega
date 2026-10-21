@@ -2,12 +2,7 @@
 
 import FooterLink from "@/components/ui/FooterLink";
 import BrandLogo from "@/components/km/BrandLogo";
-import {
-    Instagram,
-    Facebook,
-    Linkedin,
-    Youtube,
-} from "lucide-react";
+import { FacebookLogoIcon, InstagramLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon } from '@phosphor-icons/react';
 
 import { usePathname } from "next/navigation";
 import { FEATURES } from "@/config/features";
@@ -101,19 +96,19 @@ export default function Footer() {
 
                             <div className="space-y-3 text-slate-300 text-sm">
                                 <div className="flex items-center gap-3 hover:text-white transition-colors cursor-pointer">
-                                    <Instagram size={18} />
+                                    <InstagramLogoIcon weight="bold" size={18} />
                                     <span>Instagram</span>
                                 </div>
                                 <div className="flex items-center gap-3 hover:text-white transition-colors cursor-pointer">
-                                    <Facebook size={18} />
+                                    <FacebookLogoIcon weight="bold" size={18} />
                                     <span>Facebook</span>
                                 </div>
                                 <div className="flex items-center gap-3 hover:text-white transition-colors cursor-pointer">
-                                    <Linkedin size={18} />
+                                    <LinkedinLogoIcon weight="bold" size={18} />
                                     <span>LinkedIn</span>
                                 </div>
                                 <div className="flex items-center gap-3 hover:text-white transition-colors cursor-pointer">
-                                    <Youtube size={18} />
+                                    <YoutubeLogoIcon weight="bold" size={18} />
                                     <span>Youtube</span>
                                 </div>
                             </div>

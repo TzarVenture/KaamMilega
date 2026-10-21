@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, ChevronDown, MoreVertical, PlayCircle, Eye, Trash2, ShieldCheck, Info } from 'lucide-react';
+import { CaretDownIcon, DotsThreeVerticalIcon, EyeIcon, InfoIcon, MagnifyingGlassIcon, PlayCircleIcon, ShieldCheckIcon, TrashIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import LearnVideoModal from '@/components/modals/admin/LearnVideoModal';
 
@@ -68,10 +68,10 @@ export default function LearnVideosPage() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-6 rounded-[32px] border border-purple-50 shadow-sm">
                 <div className="flex-1 flex flex-col sm:flex-row items-start sm:items-center gap-4">
                     <div className="flex items-center gap-2 text-sm font-bold text-slate-800 whitespace-nowrap">
-                        Sort by: <span className="flex items-center gap-1 text-slate-500 cursor-pointer hover:text-purple-600 transition-colors">Recently added <ChevronDown size={14} /></span>
+                        Sort by: <span className="flex items-center gap-1 text-slate-500 cursor-pointer hover:text-purple-600 transition-colors">Recently added <CaretDownIcon weight="bold" size={14} /></span>
                     </div>
                     <div className="relative flex-1 w-full max-w-xl group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Find video..."
@@ -110,7 +110,7 @@ export default function LearnVideosPage() {
                                 )}
                                 <div className="absolute inset-0 flex items-center justify-center bg-black/10 group-hover:bg-black/0 transition-colors">
                                     <div className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white ring-1 ring-white/50 group-hover:scale-110 transition-transform">
-                                        <PlayCircle size={24} fill="currentColor" />
+                                        <PlayCircleIcon weight="fill" size={24} />
                                     </div>
                                 </div>
                             </div>
@@ -142,7 +142,7 @@ export default function LearnVideosPage() {
                                     onClick={() => setActiveMenu(activeMenu === video.id ? null : video.id)}
                                     className="p-3 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-2xl transition-all"
                                 >
-                                    <MoreVertical size={20} />
+                                    <DotsThreeVerticalIcon size={20} />
                                 </button>
 
                                 {/* Dropdown Menu */}
@@ -158,16 +158,16 @@ export default function LearnVideosPage() {
                                             >
                                                 <div className="p-2 space-y-1 text-sm font-bold text-slate-600">
                                                     <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-purple-50 rounded-xl hover:text-purple-700 transition-all text-left">
-                                                        <Eye size={16} /> Check Profile Posted
+                                                        <EyeIcon weight="bold" size={16} /> Check Profile Posted
                                                     </button>
                                                     <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-amber-50 rounded-xl hover:text-amber-700 transition-all text-left">
-                                                        <ShieldCheck size={16} /> Remove Recommended
+                                                        <ShieldCheckIcon weight="bold" size={16} /> Remove Recommended
                                                     </button>
                                                     <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-red-50 rounded-xl hover:text-red-700 transition-all text-left">
-                                                        <Trash2 size={16} /> Delete Video
+                                                        <TrashIcon weight="bold" size={16} /> Delete Video
                                                     </button>
                                                     <button className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-blue-50 rounded-xl hover:text-blue-700 transition-all text-left border-t border-slate-50 mt-1">
-                                                        <Info size={16} /> About This Video
+                                                        <InfoIcon weight="bold" size={16} /> About This Video
                                                     </button>
                                                 </div>
                                             </motion.div>

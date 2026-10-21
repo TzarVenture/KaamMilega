@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import ModalWrapper from "@/components/ui/ModalWrapper";
 import OtpInput from "@/components/ui/OtpInput";
 import api from "@/lib/axios";
-import { Mail, CheckCircle2, AlertCircle } from "lucide-react";
+import { CheckCircleIcon, EnvelopeSimpleIcon, WarningCircleIcon } from '@phosphor-icons/react';
 
 interface Props {
     isOpen: boolean;
@@ -112,14 +112,14 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
             <div className="space-y-5 py-2">
                 {error && (
                     <div className="bg-rose-50 border border-rose-200 text-rose-700 p-3 rounded-xl flex items-center gap-2 text-xs font-bold">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <WarningCircleIcon weight="bold" className="w-4 h-4 shrink-0" />
                         <span>{error}</span>
                     </div>
                 )}
 
                 {infoMsg && (
                     <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-3 rounded-xl flex items-center gap-2 text-xs font-bold">
-                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <CheckCircleIcon weight="bold" className="w-4 h-4 shrink-0 text-emerald-600" />
                         <span>{infoMsg}</span>
                     </div>
                 )}
@@ -134,7 +134,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                                 Email Address *
                             </label>
                             <div className="relative">
-                                <Mail className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
+                                <EnvelopeSimpleIcon className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
                                 <input
                                      type="email"
                                      placeholder="yourname@gmail.com"
@@ -165,9 +165,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                     </div>
                 ) : (
                     <div className="space-y-4 text-center">
-                        <div className="w-10 h-10 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto">
-                            <CheckCircle2 className="w-5 h-5" />
-                        </div>
+                        <CheckCircleIcon size={24} weight="duotone" className="text-km-primary mx-auto" aria-hidden="true" />
                         <p className="text-xs font-bold text-slate-600">
                             Enter the 4-digit code sent to <span className="text-km-primary font-extrabold">{email}</span>
                         </p>

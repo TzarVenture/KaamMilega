@@ -3,14 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-    CheckCircle2,
-    PhoneCall,
-    ArrowRight,
-    AlertCircle,
-    Eye,
-    EyeOff,
-} from 'lucide-react';
+import { ArrowRightIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, PhoneCallIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import AuthNavbar from '@/components/auth/AuthNavbar';
 import OtpInput from '@/components/ui/OtpInput';
 import api from '@/lib/axios';
@@ -394,7 +387,7 @@ export default function UnifiedAuthView({
                             {/* Error Banner */}
                             {error && (
                                 <div className="mb-4 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-700 font-medium">
-                                    <AlertCircle size={16} className="shrink-0 mt-0.5 text-red-600" />
+                                    <WarningCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-red-600" />
                                     <span>{error}</span>
                                 </div>
                             )}
@@ -402,7 +395,7 @@ export default function UnifiedAuthView({
                             {/* Success Banner */}
                             {successMsg && (
                                 <div className="mb-4 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5 text-xs text-emerald-800 font-medium">
-                                    <CheckCircle2 size={16} className="shrink-0 mt-0.5 text-emerald-600" />
+                                    <CheckCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-emerald-600" />
                                     <span>{successMsg}</span>
                                 </div>
                             )}
@@ -466,7 +459,7 @@ export default function UnifiedAuthView({
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1.5">
                                                         <span>Get Verification Code</span>
-                                                        <ArrowRight size={16} />
+                                                        <ArrowRightIcon weight="bold" size={16} />
                                                     </span>
                                                 )}
                                             </button>
@@ -590,7 +583,7 @@ export default function UnifiedAuthView({
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1.5">
                                                         <span>Verify &amp; Continue</span>
-                                                        <ArrowRight size={16} />
+                                                        <ArrowRightIcon weight="bold" size={16} />
                                                     </span>
                                                 )}
                                             </button>
@@ -671,7 +664,7 @@ export default function UnifiedAuthView({
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1.5">
                                                         <span>Get Started</span>
-                                                        <ArrowRight size={16} />
+                                                        <ArrowRightIcon weight="bold" size={16} />
                                                     </span>
                                                 )}
                                             </button>
@@ -744,7 +737,7 @@ export default function UnifiedAuthView({
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6472] hover:text-[#111827] p-1 cursor-pointer"
                                             >
-                                                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                {showPassword ? <EyeSlashIcon weight="bold" size={16} /> : <EyeIcon weight="bold" size={16} />}
                                             </button>
                                         </div>
                                     </div>
@@ -760,7 +753,7 @@ export default function UnifiedAuthView({
                                             }}
                                             className="text-xs font-semibold text-[#071A4D] hover:underline inline-flex items-center gap-1.5 cursor-pointer py-1"
                                         >
-                                            <PhoneCall size={14} className="text-[#071A4D]" />
+                                            <PhoneCallIcon weight="bold" size={14} className="text-[#071A4D]" />
                                             <span>Sign in with Mobile OTP instead</span>
                                         </button>
                                     </div>
@@ -782,7 +775,7 @@ export default function UnifiedAuthView({
                                         ) : (
                                             <span className="inline-flex items-center gap-1.5">
                                                 <span>Sign In</span>
-                                                <ArrowRight size={16} />
+                                                <ArrowRightIcon weight="bold" size={16} />
                                             </span>
                                         )}
                                     </button>
@@ -898,7 +891,7 @@ export default function UnifiedAuthView({
                                                         onClick={() => setShowNewPassword(!showNewPassword)}
                                                         className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6472] hover:text-[#111827] p-1 cursor-pointer"
                                                     >
-                                                        {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                        {showNewPassword ? <EyeSlashIcon weight="bold" size={16} /> : <EyeIcon weight="bold" size={16} />}
                                                     </button>
                                                 </div>
                                             </div>

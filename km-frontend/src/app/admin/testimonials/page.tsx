@@ -1,21 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-    Search, 
-    Plus, 
-    Pencil, 
-    Trash2, 
-    Play, 
-    ExternalLink, 
-    CheckCircle2, 
-    XCircle, 
-    Loader2, 
-    Star, 
-    Video, 
-    X,
-    Eye
-} from "lucide-react";
+import { CheckCircleIcon, CircleNotchIcon, EyeIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlayIcon, PlusIcon, StarIcon, TrashIcon, VideoCameraIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
@@ -194,14 +180,14 @@ export default function AdminTestimonialsPage() {
                     onClick={handleOpenCreate}
                     className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
                 >
-                    <Plus size={16} />
+                    <PlusIcon weight="bold" size={16} />
                     <span>Add New Story</span>
                 </button>
             </div>
 
             {/* Search Input */}
             <div className="bg-white rounded-2xl border border-slate-200 p-2.5 flex items-center gap-3 shadow-xs">
-                <Search size={18} className="text-slate-400 ml-2" />
+                <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 ml-2" />
                 <input
                     type="text"
                     value={search}
@@ -214,12 +200,12 @@ export default function AdminTestimonialsPage() {
             {/* List / Table */}
             {loading ? (
                 <div className="py-20 flex flex-col justify-center items-center space-y-3 bg-white rounded-3xl border border-slate-200">
-                    <Loader2 size={32} className="animate-spin text-[#0B5ED7]" />
+                    <CircleNotchIcon size={32} className="animate-spin text-[#0B5ED7]" />
                     <p className="text-xs text-slate-500 font-medium">Loading candidate stories...</p>
                 </div>
             ) : filtered.length === 0 ? (
                 <div className="bg-white rounded-3xl border border-dashed border-slate-200 p-12 text-center space-y-3">
-                    <Video size={36} className="text-slate-400 mx-auto" />
+                    <VideoCameraIcon size={36} className="text-slate-400 mx-auto" />
                     <h3 className="text-base font-bold text-slate-800">No Candidate Stories Found</h3>
                     <p className="text-xs text-slate-500 max-w-sm mx-auto">
                         Add candidate video testimonials using the button above to feature them on the homepage.
@@ -264,7 +250,7 @@ export default function AdminTestimonialsPage() {
                                                     />
                                                     <div className="absolute inset-0 bg-black/15 flex items-center justify-center group-hover/thumb:bg-black/25 transition-colors">
                                                         <div className="w-6 h-6 rounded-full bg-white text-[#071A4D] flex items-center justify-center shadow-xs group-hover/thumb:scale-110 transition-transform">
-                                                            <Play size={10} className="fill-[#071A4D] ml-0.5" />
+                                                            <PlayIcon weight="bold" size={10} className="fill-[#071A4D] ml-0.5" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -278,7 +264,7 @@ export default function AdminTestimonialsPage() {
                                                 <div className="flex items-center gap-1.5 text-amber-500 mt-1">
                                                     <div className="flex items-center gap-0.5">
                                                         {[1, 2, 3, 4, 5].map((s) => (
-                                                            <Star
+                                                            <StarIcon weight="fill"
                                                                 key={s}
                                                                 size={13}
                                                                 className={s <= Math.round(item.rating || 5) ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}
@@ -314,11 +300,11 @@ export default function AdminTestimonialsPage() {
                                             <td className="py-3 px-4">
                                                 {item.is_active ? (
                                                     <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                                        <CheckCircle2 size={11} /> Active
+                                                        <CheckCircleIcon weight="bold" size={11} /> Active
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                                        <XCircle size={11} /> Inactive
+                                                        <XCircleIcon weight="bold" size={11} /> Inactive
                                                     </span>
                                                 )}
                                             </td>
@@ -332,7 +318,7 @@ export default function AdminTestimonialsPage() {
                                                         className="p-1.5 text-slate-400 hover:text-[#0B5ED7] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                                         title="Preview Video"
                                                     >
-                                                        <Eye size={14} />
+                                                        <EyeIcon weight="bold" size={14} />
                                                     </button>
                                                     <button
                                                         type="button"
@@ -340,7 +326,7 @@ export default function AdminTestimonialsPage() {
                                                         className="p-1.5 text-slate-400 hover:text-[#0B5ED7] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                                         title="Edit Story"
                                                     >
-                                                        <Pencil size={14} />
+                                                        <PencilSimpleIcon weight="bold" size={14} />
                                                     </button>
                                                     <button
                                                         type="button"
@@ -348,7 +334,7 @@ export default function AdminTestimonialsPage() {
                                                         className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
                                                         title="Delete Story"
                                                     >
-                                                        <Trash2 size={14} />
+                                                        <TrashIcon weight="bold" size={14} />
                                                     </button>
                                                 </div>
                                             </td>
@@ -380,7 +366,7 @@ export default function AdminTestimonialsPage() {
                                     onClick={() => setIsModalOpen(false)}
                                     className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
                                 >
-                                    <X size={18} />
+                                    <XIcon weight="bold" size={18} />
                                 </button>
                             </div>
 
@@ -500,7 +486,7 @@ export default function AdminTestimonialsPage() {
                                         />
                                         <div className="flex-1 min-w-0">
                                             <div className="text-xs font-bold text-emerald-800 flex items-center gap-1">
-                                                <CheckCircle2 size={13} />
+                                                <CheckCircleIcon weight="bold" size={13} />
                                                 <span>Verified YouTube Video ID: {extractedId}</span>
                                             </div>
                                             <p className="text-[11px] text-emerald-700 mt-0.5">
@@ -554,7 +540,7 @@ export default function AdminTestimonialsPage() {
                                     >
                                         {saving ? (
                                             <>
-                                                <Loader2 size={14} className="animate-spin" />
+                                                <CircleNotchIcon weight="bold" size={14} className="animate-spin" />
                                                 <span>Saving...</span>
                                             </>
                                         ) : (
@@ -584,7 +570,7 @@ export default function AdminTestimonialsPage() {
                                 className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors cursor-pointer"
                                 aria-label="Close"
                             >
-                                <X size={18} />
+                                <XIcon weight="bold" size={18} />
                             </button>
                             <div className="aspect-video w-full">
                                 <iframe

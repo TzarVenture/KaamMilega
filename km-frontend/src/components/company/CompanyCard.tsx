@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Building2, ChevronRight, CheckCircle2, Check, Plus } from 'lucide-react';
+import { BuildingOfficeIcon, CaretRightIcon, CheckIcon, PlusIcon, SealCheckIcon } from '@phosphor-icons/react';
 import CustomImage from '@/components/ui/CustomImage';
 import { HiringCompany } from '@/lib/constants/companies';
 
@@ -36,108 +36,99 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
         }
     };
 
+    // Logo in a neutral tile so every brand sits on the same surface
+    const logoTile = (sizeClass: string, iconSize: number) => (
+        <span className={`${sizeClass} rounded-xl border border-[#E3E9F1] bg-white p-2 flex items-center justify-center shrink-0`}>
+            {company.logo ? (
+                <CustomImage
+                    src={company.logo}
+                    alt=""
+                    className="max-h-full max-w-full object-contain"
+                />
+            ) : (
+                <BuildingOfficeIcon size={iconSize} className="text-km-primary" aria-hidden="true" />
+            )}
+        </span>
+    );
+
+    const verifiedSeal = (size: number) =>
+        company.verified ? (
+            <SealCheckIcon weight="fill" size={size} className="text-[#0B5ED7] shrink-0" aria-label="Verified employer" role="img" />
+        ) : null;
+
     if (variant === 'expanded') {
         return (
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-400 transition-all flex flex-col justify-between group/card">
-                <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3.5">
-                            <div className={`w-13 h-13 rounded-xl border p-2 flex items-center justify-center shrink-0 bg-white shadow-2xs ${company.bgClass || 'border-slate-200'}`}>
-                                {company.logo ? (
-                                    <CustomImage
-                                        src={company.logo}
-                                        alt={company.name}
-                                        className={`object-contain ${company.imgClass || 'max-h-full max-w-full'}`}
-                                    />
-                                ) : (
-                                    <Building2 size={24} className="text-km-primary" />
-                                )}
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-1.5">
-                                    <h4 className="text-base font-bold text-slate-900 group-hover/card:text-km-primary transition-colors leading-tight">
-                                        {company.name}
-                                    </h4>
-                                    {company.verified && (
-                                        <CheckCircle2 size={15} className="fill-blue-500 text-white shrink-0" />
-                                    )}
-                                </div>
-                                <p className="text-xs text-slate-500 mt-1">
-                                    {company.category}
-                                </p>
-                            </div>
+            <Link
+                href={searchHref}
+                className="group/card bg-white rounded-2xl border border-[#D9E0EA] p-5 flex flex-col hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+            >
+                <div className="flex items-center gap-4">
+                    {logoTile('w-14 h-14', 24)}
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                            <h3 className="text-base font-semibold text-[#111827] group-hover/card:text-km-primary transition-colors truncate">
+                                {company.name}
+                            </h3>
+                            {verifiedSeal(16)}
                         </div>
-                        <span className="text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full shrink-0">
-                            Verified Employer
-                        </span>
+                        <p className="mt-0.5 text-sm text-[#5B6472] truncate">
+                            {[company.category, company.location].filter(Boolean).join(' · ')}
+                        </p>
                     </div>
                 </div>
 
-                <Link href={searchHref} className="mt-4">
-                    <button className="w-full py-2.5 bg-slate-50 group-hover/card:bg-km-primary group-hover/card:text-white text-slate-700 border border-slate-200 group-hover/card:border-km-primary rounded-xl text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer">
-                        View Jobs →
-                    </button>
-                </Link>
-            </div>
+                <div className="mt-5 pt-4 border-t border-[#E3E9F1] flex items-center justify-between text-sm">
+                    <span className="font-medium text-[#16A34A]">{company.openings}</span>
+                    <span className="inline-flex items-center gap-1 font-semibold text-km-primary">
+                        View jobs
+                        <CaretRightIcon weight="bold" size={14} className="transition-transform group-hover/card:translate-x-0.5" aria-hidden="true" />
+                    </span>
+                </div>
+            </Link>
         );
     }
 
     return (
-        <div className="p-4 rounded-xl border border-gray-200/90 bg-white hover:border-blue-400 hover:shadow-xs transition-all flex flex-col justify-between group">
-            <div className="flex items-center gap-3 mb-3">
-                <div className={`w-11 h-11 rounded-xl border p-2 shrink-0 flex items-center justify-center bg-white shadow-2xs ${company.bgClass || 'border-gray-200'}`}>
-                    {company.logo ? (
-                        <CustomImage
-                            src={company.logo}
-                            alt={company.name}
-                            className={`object-contain ${company.imgClass || 'max-h-full max-w-full'}`}
-                        />
-                    ) : (
-                        <Building2 size={20} className="text-km-primary" />
-                    )}
-                </div>
+        <div className="group bg-white rounded-2xl border border-[#D9E0EA] p-4 flex flex-col hover:border-[#0B5ED7]/40 hover:shadow-md transition-all">
+            <div className="flex items-center gap-3">
+                {logoTile('w-11 h-11', 20)}
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
-                        <Link href={searchHref} className="font-bold text-sm text-gray-900 group-hover:text-km-primary transition-colors truncate">
+                        <Link href={searchHref} className="text-sm font-semibold text-[#111827] group-hover:text-km-primary transition-colors truncate">
                             {company.name}
                         </Link>
-                        {company.verified && (
-                            <span title="Verified Employer" className="text-blue-500 shrink-0">
-                                <CheckCircle2 size={13} className="fill-blue-500 text-white" />
-                            </span>
-                        )}
+                        {verifiedSeal(14)}
                     </div>
-                    <p className="text-xs text-gray-500 truncate mt-0.5">{company.category}</p>
+                    <p className="text-xs text-[#5B6472] truncate mt-0.5">{company.category}</p>
                 </div>
             </div>
 
-            {/* Clean action bar without line-wrapped fake numbers */}
-            <div className="flex items-center justify-between pt-2.5 border-t border-gray-100 text-xs">
+            <div className="mt-3 pt-3 border-t border-[#E3E9F1] flex items-center justify-between text-xs">
                 <Link
                     href={searchHref}
-                    className="text-gray-500 hover:text-km-primary font-semibold transition-colors inline-flex items-center gap-0.5"
+                    className="inline-flex items-center gap-0.5 font-semibold text-km-primary hover:text-km-blue transition-colors"
                 >
-                    <span>View Jobs</span>
-                    <ChevronRight size={13} />
+                    View jobs
+                    <CaretRightIcon weight="bold" size={12} aria-hidden="true" />
                 </Link>
                 <button
                     type="button"
                     onClick={handleFollowClick}
-                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
                         isFollowing
-                            ? 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200/70'
-                            : 'border border-km-primary text-km-primary hover:bg-blue-50'
+                            ? 'bg-[#F4F7FB] text-[#111827] border border-[#D9E0EA] hover:bg-[#E3E9F1]'
+                            : 'border border-km-primary text-km-primary hover:bg-[#F4F7FB]'
                     }`}
                 >
                     {isFollowing ? (
                         <>
-                            <Check size={12} className="text-emerald-600" />
-                            <span>Following</span>
+                            <CheckIcon weight="bold" size={12} className="text-[#16A34A]" aria-hidden="true" />
+                            Following
                         </>
                     ) : (
                         <>
-                            <Plus size={12} />
-                            <span>Follow</span>
+                            <PlusIcon weight="bold" size={12} aria-hidden="true" />
+                            Follow
                         </>
                     )}
                 </button>

@@ -1,5 +1,5 @@
 'use client';
-import { Search, CheckCircle2, X } from 'lucide-react';
+import { CheckCircleIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
@@ -61,7 +61,7 @@ const SkillModal = ({ isOpen, onClose, onSuccess }: SkillModalProps) => {
 
                 <p className="text-sm text-gray-500">Search for a skill to add to your profile. (Pre-defined skills only)</p>
                 <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                     <input
                         type="text"
                         autoFocus
@@ -93,7 +93,7 @@ const SkillModal = ({ isOpen, onClose, onSuccess }: SkillModalProps) => {
                             className="w-full text-left p-3 hover:bg-blue-50 rounded-xl flex items-center justify-between group transition-colors"
                         >
                             <span className="font-medium text-gray-700">{skill.name}</span>
-                            <CheckCircle2 size={16} className="text-km-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <CheckCircleIcon weight="bold" size={16} className="text-km-primary opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                     ))}
 

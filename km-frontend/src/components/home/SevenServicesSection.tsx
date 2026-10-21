@@ -2,16 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import {
-    Briefcase,
-    Zap,
-    GraduationCap,
-    UserCheck,
-    Store,
-    Users,
-    Calendar,
-    ArrowRight,
-} from 'lucide-react';
+import { ArrowRightIcon, BriefcaseIcon, CalendarBlankIcon, GraduationCapIcon, LightningIcon, StorefrontIcon, UserCheckIcon, UsersIcon } from '@phosphor-icons/react';
+import SectionHeader from './SectionHeader';
 import { FEATURES } from '@/config/features';
 
 interface ServiceDefinition {
@@ -24,7 +16,6 @@ interface ServiceDefinition {
     providerHref: string;
     icon: React.ReactNode;
     colorHex: string;
-    iconBg: string;
     borderColor: string;
 }
 
@@ -38,9 +29,8 @@ export default function SevenServicesSection() {
             href: '/jobs',
             providerLabel: 'Post a Job',
             providerHref: '/recruiter/login',
-            icon: <Briefcase size={24} />,
+            icon: <BriefcaseIcon size={36} weight="duotone" />,
             colorHex: '#0B5ED7',
-            iconBg: 'bg-[#EFF6FF] text-[#0B5ED7]',
             borderColor: 'hover:border-[#0B5ED7]/40',
         },
         {
@@ -51,9 +41,8 @@ export default function SevenServicesSection() {
             href: '/instant-milega',
             providerLabel: 'Book Staff',
             providerHref: '/instant-milega?mode=hire',
-            icon: <Zap size={24} />,
+            icon: <LightningIcon size={36} weight="duotone" />,
             colorHex: '#FF6B00',
-            iconBg: 'bg-[#FFF7ED] text-[#FF6B00]',
             borderColor: 'hover:border-[#FF6B00]/40',
         },
         {
@@ -64,9 +53,8 @@ export default function SevenServicesSection() {
             href: '/resources',
             providerLabel: 'Accredited Tests',
             providerHref: '/resources',
-            icon: <GraduationCap size={24} />,
+            icon: <GraduationCapIcon size={36} weight="duotone" />,
             colorHex: '#16A34A',
-            iconBg: 'bg-[#F0FDF4] text-[#16A34A]',
             borderColor: 'hover:border-[#16A34A]/40',
         },
         {
@@ -77,9 +65,8 @@ export default function SevenServicesSection() {
             href: '/mentorship',
             providerLabel: 'Become Mentor',
             providerHref: '/mentorship',
-            icon: <UserCheck size={24} />,
+            icon: <UserCheckIcon size={36} weight="duotone" />,
             colorHex: '#7C3AED',
-            iconBg: 'bg-[#FAF5FF] text-[#7C3AED]',
             borderColor: 'hover:border-[#7C3AED]/40',
         },
         {
@@ -90,9 +77,8 @@ export default function SevenServicesSection() {
             href: '/jobs?type=service',
             providerLabel: 'List Service',
             providerHref: '/jobs/create',
-            icon: <Store size={24} />,
+            icon: <StorefrontIcon size={36} weight="duotone" />,
             colorHex: '#EF4444',
-            iconBg: 'bg-[#FEF2F2] text-[#EF4444]',
             borderColor: 'hover:border-[#EF4444]/40',
         },
         {
@@ -103,9 +89,8 @@ export default function SevenServicesSection() {
             href: '/network',
             providerLabel: 'Create Post',
             providerHref: '/network',
-            icon: <Users size={24} />,
+            icon: <UsersIcon size={36} weight="duotone" />,
             colorHex: '#0F9D8A',
-            iconBg: 'bg-[#F0FDFA] text-[#0F9D8A]',
             borderColor: 'hover:border-[#0F9D8A]/40',
         },
         {
@@ -116,9 +101,8 @@ export default function SevenServicesSection() {
             href: '/events',
             providerLabel: 'Host Drive',
             providerHref: '/events',
-            icon: <Calendar size={24} />,
+            icon: <CalendarBlankIcon size={36} weight="duotone" />,
             colorHex: '#F59E0B',
-            iconBg: 'bg-[#FFFBEB] text-[#F59E0B]',
             borderColor: 'hover:border-[#F59E0B]/40',
         },
     ];
@@ -130,37 +114,30 @@ export default function SevenServicesSection() {
             .map((s, idx) => ({ ...s, number: `0${idx + 1}` }));
 
     return (
-        <section className="py-12 sm:py-16 bg-white border-b border-[#D9E0EA] font-sans">
+        <section className="py-8 sm:py-10 lg:py-12 font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Section Header */}
-                <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-12">
-                    <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111827] tracking-tight">
-                        {FEATURES.INSTANT_MILEGA ? 'Explore Core Services' : 'Explore Platform Services'}
-                    </h2>
-                    <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-[#5B6472] leading-relaxed max-w-2xl mx-auto">
-                        Everything you need to hire, work, and grow your career in one place.
-                    </p>
-                </div>
+                <SectionHeader
+                    title={FEATURES.INSTANT_MILEGA ? 'Explore core services' : 'Explore platform services'}
+                    description="Everything you need to hire, work, and grow your career in one place."
+                />
 
                 {/* Services Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="flex flex-wrap justify-center gap-6">
                     {services.map((service) => {
                         return (
                             <div
                                 key={service.number}
-                                className={`group relative bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
+                                className={`group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
                             >
-                                {/* Header: Number & Vector Icon */}
+                                {/* Header: service icon in its design.md colour, number as a quiet label */}
                                 <div>
-                                    <div className="flex items-center justify-between mb-6">
-                                        <span className="text-sm font-mono font-bold tracking-wider text-slate-400">
+                                    <div className="flex items-start justify-between mb-5">
+                                        <span className="leading-none" style={{ color: service.colorHex }} aria-hidden="true">
+                                            {service.icon}
+                                        </span>
+                                        <span className="text-xs font-medium tabular-nums text-slate-400">
                                             {service.number}
                                         </span>
-                                        <div
-                                            className={`w-12 h-12 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 ${service.iconBg}`}
-                                        >
-                                            {service.icon}
-                                        </div>
                                     </div>
 
                                     {/* Service Title */}
@@ -181,7 +158,7 @@ export default function SevenServicesSection() {
                                         className="inline-flex items-center gap-1.5 text-sm font-bold text-km-primary hover:text-km-primary-dark transition-colors"
                                     >
                                         <span>{service.actionLabel}</span>
-                                        <ArrowRight
+                                        <ArrowRightIcon weight="bold"
                                             size={16}
                                             className="transition-transform group-hover:translate-x-1 shrink-0"
                                         />

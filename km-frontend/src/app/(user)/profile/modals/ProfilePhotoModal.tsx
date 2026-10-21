@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Pencil, Camera, Trash2 } from 'lucide-react';
+import { CameraIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import CustomImage from '@/components/ui/CustomImage';
 
@@ -97,7 +97,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
               onClick={() => fileInputRef.current?.click()}
               className="p-3 border border-blue-200 rounded-full text-km-primary hover:bg-blue-50 transition-colors group"
             >
-              <Pencil size={20} className="group-hover:scale-110 transition-transform" />
+              <PencilSimpleIcon size={20} className="group-hover:scale-110 transition-transform" />
             </button>
 
             {/* Camera Button */}
@@ -105,7 +105,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
               onClick={() => fileInputRef.current?.click()}
               className="p-3 border border-blue-200 rounded-full text-km-primary hover:bg-blue-50 transition-colors group"
             >
-              <Camera size={20} className="group-hover:scale-110 transition-transform" />
+              <CameraIcon size={20} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
 
@@ -114,7 +114,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
             onClick={handleDelete}
             className="p-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group"
           >
-            <Trash2 size={20} className="group-hover:shake" />
+            <TrashIcon size={20} className="group-hover:shake" />
           </button>
         </div>
       </div>

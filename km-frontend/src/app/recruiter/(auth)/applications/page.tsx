@@ -7,24 +7,7 @@ import api from "@/lib/axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { KanbanSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
-import {
-    FileText,
-    Search,
-    User,
-    Briefcase,
-    Calendar,
-    Kanban,
-    List,
-    Mail,
-    Phone,
-    MoveRight,
-    MapPin,
-    CheckCircle2,
-    Clock,
-    XCircle,
-    UserCheck,
-    CalendarPlus
-} from "lucide-react";
+import { BriefcaseIcon, ClockIcon, FileTextIcon, KanbanIcon, ListBulletsIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import ScheduleInterviewModal from "@/components/recruiter/ScheduleInterviewModal";
 
 const KANBAN_COLUMNS = [
@@ -161,7 +144,7 @@ function ApplicationsContent() {
                                     : "text-gray-600 hover:text-gray-900"
                             }`}
                         >
-                            <Kanban size={15} /> Kanban Board
+                            <KanbanIcon weight="bold" size={15} /> Kanban Board
                         </button>
                         <button
                             onClick={() => setViewMode("list")}
@@ -171,7 +154,7 @@ function ApplicationsContent() {
                                     : "text-gray-600 hover:text-gray-900"
                             }`}
                         >
-                            <List size={15} /> Table View
+                            <ListBulletsIcon weight="bold" size={15} /> Table View
                         </button>
                     </div>
                 </div>
@@ -180,7 +163,7 @@ function ApplicationsContent() {
             {/* Search Bar */}
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
                 <div className="flex-1 relative">
-                    <Search className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
+                    <MagnifyingGlassIcon weight="bold" className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Filter by candidate name, email, headline, or job title..."
@@ -270,7 +253,7 @@ function ApplicationsContent() {
                                                 {/* Job Applied */}
                                                 {app.job && (
                                                     <div className="my-2 p-2 bg-gray-50 rounded-xl text-[11px] text-gray-600 font-medium flex items-center gap-1.5 border border-gray-100">
-                                                        <Briefcase size={12} className="text-km-primary shrink-0" />
+                                                        <BriefcaseIcon weight="bold" size={12} className="text-km-primary shrink-0" />
                                                         <span className="truncate">{app.job.title}</span>
                                                     </div>
                                                 )}
@@ -285,7 +268,7 @@ function ApplicationsContent() {
                                                 {/* Meta details */}
                                                 <div className="flex items-center justify-between text-[10px] text-gray-400 mt-3 pt-2 border-t border-gray-50">
                                                     <span className="flex items-center gap-1">
-                                                        <Clock size={11} className="fill-gray-400/20" /> {new Date(app.created_at).toLocaleDateString()}
+                                                        <ClockIcon weight="fill" size={11} className="fill-gray-400/20" /> {new Date(app.created_at).toLocaleDateString()}
                                                     </span>
 
                                                     {app.resume_url && (
@@ -295,7 +278,7 @@ function ApplicationsContent() {
                                                             rel="noreferrer"
                                                             className="text-km-primary hover:underline font-bold flex items-center gap-1"
                                                         >
-                                                            <FileText size={11} className="fill-km-primary/20" /> Resume
+                                                            <FileTextIcon weight="fill" size={11} className="fill-km-primary/20" /> Resume
                                                         </a>
                                                     )}
                                                 </div>
@@ -389,7 +372,7 @@ function ApplicationsContent() {
                                                         rel="noreferrer"
                                                         className="text-km-primary hover:underline font-bold text-xs flex items-center gap-1"
                                                     >
-                                                        <FileText size={14} /> Resume
+                                                        <FileTextIcon weight="bold" size={14} /> Resume
                                                     </a>
                                                 ) : (
                                                     <span className="text-xs text-gray-400">None</span>

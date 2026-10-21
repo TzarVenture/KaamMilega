@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Search, Clock, Star, BookOpen, Users,
-  ChevronRight, Award, CheckCircle, CheckCircle2, ArrowRight, MessageSquare,
-  Calendar, Video, ExternalLink, ShieldCheck, GraduationCap, X
-} from 'lucide-react';
+import { ArrowRightIcon, BookOpenIcon, CalendarBlankIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, ClockIcon, GraduationCapIcon, MagnifyingGlassIcon, MedalIcon, StarIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
@@ -105,7 +101,7 @@ export default function MentorshipPage() {
             <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
               {/* Category Indicator */}
               <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
-                <GraduationCap size={14} className="text-[#F59E0B]" />
+                <GraduationCapIcon weight="bold" size={14} className="text-[#F59E0B]" />
                 <span>1-on-1 Expert Mentorship</span>
               </div>
 
@@ -122,7 +118,7 @@ export default function MentorshipPage() {
               {/* Search Bar + Become a Mentor CTA */}
               <div className="flex flex-col sm:flex-row gap-3 max-w-xl mt-6">
                 <div className="flex-1 flex items-center bg-white rounded-xl px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-[#0B5ED7]/20 transition-all shadow-xs">
-                  <Search size={17} className="text-slate-400 mr-2.5 shrink-0" />
+                  <MagnifyingGlassIcon weight="bold" size={17} className="text-slate-400 mr-2.5 shrink-0" />
                   <input 
                     type="text" 
                     placeholder="Search by mentor name, trade, or skill..." 
@@ -136,7 +132,7 @@ export default function MentorshipPage() {
                       onClick={() => setSearchQuery('')}
                       className="text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
                     >
-                      <X size={14} />
+                      <XIcon weight="bold" size={14} />
                     </button>
                   )}
                 </div>
@@ -145,22 +141,22 @@ export default function MentorshipPage() {
                   className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all whitespace-nowrap shadow-xs"
                 >
                   <span>Become an Expert & Host</span>
-                  <ArrowRight size={13} />
+                  <ArrowRightIcon weight="bold" size={13} />
                 </Link>
               </div>
 
               {/* Key Benefits / Trust Chips */}
               <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
                 <div className="flex items-center gap-2">
-                  <Video size={15} className="text-[#10B981] shrink-0" />
+                  <VideoCameraIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                   <span>Live Google Meet & Zoom Access</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-[#10B981] shrink-0" />
+                  <CheckCircleIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                   <span>Verified Industry Practitioners</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Award size={15} className="text-[#10B981] shrink-0" />
+                  <MedalIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                   <span>Personalized Career Roadmap</span>
                 </div>
               </div>
@@ -209,7 +205,7 @@ export default function MentorshipPage() {
           <div className="bg-linear-to-r from-orange-50 via-amber-50 to-blue-50 border border-orange-200/80 rounded-2xl p-4 md:p-5 mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
             <div className="flex items-center gap-3.5">
               <div className="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-orange-500 text-white flex items-center justify-center shrink-0 shadow-sm">
-                <Video size={18} />
+                <VideoCameraIcon weight="bold" size={18} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -230,7 +226,7 @@ export default function MentorshipPage() {
               className="bg-[#1a2b8c] hover:bg-[#152370] text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs self-start sm:self-auto flex items-center gap-1.5 whitespace-nowrap active:scale-95"
             >
               <span>View Session / Join Call</span>
-              <ArrowRight size={13} />
+              <ArrowRightIcon weight="bold" size={13} />
             </Link>
           </div>
         )}
@@ -248,14 +244,14 @@ export default function MentorshipPage() {
             href="/mentorship/my-sessions"
             className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
           >
-            <Calendar size={14} className="text-[#1a2b8c]" />
+            <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c]" />
             <span>My Booked Sessions</span>
             {myBookingsCount > 0 && (
               <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-orange-500 text-white">
                 {myBookingsCount}
               </span>
             )}
-            <ArrowRight size={13} className="text-slate-400" />
+            <ArrowRightIcon weight="bold" size={13} className="text-slate-400" />
           </Link>
         </div>
 
@@ -274,9 +270,7 @@ export default function MentorshipPage() {
           </div>
         ) : (
           <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8">
-            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <BookOpen className="text-slate-400" size={32} />
-            </div>
+            <BookOpenIcon size={36} weight="duotone" className="text-slate-400 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-bold text-slate-800 mb-1">No Mentorships Found</h3>
             <p className="text-xs text-slate-500 max-w-xs mx-auto">Try adjusting your category filter or search query to find what you are looking for.</p>
           </div>
@@ -292,17 +286,17 @@ export default function MentorshipPage() {
                 </h2>
                 <div className="space-y-4">
                     <BenefitItem 
-                        icon={<Award className="text-km-accent" />} 
+                        icon={<MedalIcon size={24} className="text-km-accent" />} 
                         title="Vetted Industry Leaders" 
                         desc="All mentors undergo a screening process to ensure practical, quality guidance." 
                     />
                     <BenefitItem 
-                        icon={<MessageSquare className="text-km-blue" />} 
+                        icon={<ChatIcon size={24} className="text-km-blue" />} 
                         title="Interactive 1-on-1 Sessions" 
                         desc="Engage in meaningful conversations and get answers to your specific career questions." 
                     />
                     <BenefitItem 
-                        icon={<CheckCircle className="text-emerald-500" />} 
+                        icon={<CheckCircleIcon size={24} className="text-emerald-500" />} 
                         title="Practical Roadmaps" 
                         desc="Learn real-world strategies, negotiate better compensation, and avoid common traps." 
                     />
@@ -310,9 +304,7 @@ export default function MentorshipPage() {
             </div>
             <div className="md:w-1/2 flex justify-center">
                 <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm max-w-sm w-full space-y-4 text-center">
-                    <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto text-km-primary">
-                        <Users size={32} />
-                    </div>
+                    <UsersIcon size={36} weight="duotone" className="text-km-primary mx-auto" aria-hidden="true" />
                     <h3 className="text-lg font-bold text-slate-900">Are You an Industry Expert?</h3>
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Share your knowledge, mentor aspiring candidates, and earn by hosting 1-on-1 sessions.
@@ -357,7 +349,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
               {mentorship?.category || "Mentorship"}
             </span>
             <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-800">
-              <Star size={11} className="fill-amber-400 text-amber-400" />
+              <StarIcon weight="fill" size={11} className="fill-amber-400 text-amber-400" />
               <span>{mentorship?.rating ? Number(mentorship.rating).toFixed(1) : '5.0'}</span>
               <span className="text-amber-600 font-medium">({mentorship?.reviews || 0})</span>
             </div>
@@ -375,11 +367,11 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
  
         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 mt-auto">
           <div className="flex items-center gap-1.5 text-slate-500">
-            <Clock size={14} className="text-km-primary" />
+            <ClockIcon weight="bold" size={14} className="text-km-primary" />
             <span className="text-xs font-semibold">{mentorship?.duration || 45} Mins</span>
           </div>
           <div className="flex items-center gap-1.5 text-slate-500">
-            <Users size={14} className="text-emerald-600" />
+            <UsersIcon weight="bold" size={14} className="text-emerald-600" />
             <span className="text-xs font-semibold">1-on-1 Session</span>
           </div>
         </div>
@@ -396,7 +388,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
             className="bg-km-primary hover:bg-km-primary-dark text-white px-4 md:px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
             <span>Book Session</span> 
-            <ChevronRight size={14} />
+            <CaretRightIcon weight="bold" size={14} />
           </button>
         </Link>
       </div>
@@ -407,9 +399,9 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
 function BenefitItem({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
     return (
         <div className="flex gap-3.5 p-3 rounded-2xl hover:bg-white transition-colors">
-            <div className="w-10 h-10 bg-white rounded-xl shadow-xs border border-slate-100 flex items-center justify-center shrink-0">
+            <span className="w-6 flex justify-center shrink-0 pt-0.5" aria-hidden="true">
                 {icon}
-            </div>
+            </span>
             <div>
                 <h4 className="font-bold text-slate-900 text-sm mb-0.5">{title}</h4>
                 <p className="text-xs text-slate-500 font-medium leading-relaxed">{desc}</p>

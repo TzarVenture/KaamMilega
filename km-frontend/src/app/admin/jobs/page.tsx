@@ -1,29 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import {
-    Search,
-    Filter,
-    MapPin,
-    Briefcase,
-    DollarSign,
-    Users,
-    ChevronLeft,
-    MoreVertical,
-    Calendar,
-    Star,
-    ArrowRight,
-    FileText,
-    UserCheck,
-    Building2,
-    Plus,
-    PauseCircle,
-    PlayCircle,
-    Trash2,
-    CheckCircle2,
-    AlertCircle,
-    Loader2
-} from 'lucide-react';
+import { ArrowRightIcon, BriefcaseIcon, CalendarBlankIcon, CaretLeftIcon, CircleNotchIcon, CurrencyInrIcon, DotsThreeVerticalIcon, FileTextIcon, FunnelSimpleIcon, MagnifyingGlassIcon, MapPinIcon, PauseCircleIcon, PlayCircleIcon, StarIcon, TrashIcon, UserCheckIcon, UsersIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import ResumeModal from '@/components/modals/admin/ResumeModal';
@@ -209,7 +187,7 @@ export default function JobsPage() {
                                 onClick={() => setView('jobs')}
                                 className="p-2 hover:bg-purple-50 rounded-xl text-purple-600 transition-colors mr-2 border border-purple-100"
                             >
-                                <ChevronLeft size={22} />
+                                <CaretLeftIcon size={22} />
                             </button>
                         )}
                         <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-900 to-indigo-700 bg-clip-text text-transparent">
@@ -225,7 +203,7 @@ export default function JobsPage() {
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder={view === 'jobs' ? "Search title, company..." : "Search candidates..."}
@@ -235,7 +213,7 @@ export default function JobsPage() {
                         />
                     </div>
                     <button className="flex items-center gap-2 px-5 py-2.5 text-slate-600 bg-white border border-purple-100 rounded-2xl text-sm font-bold hover:bg-purple-50 transition-all shadow-sm">
-                        <Filter size={18} />
+                        <FunnelSimpleIcon weight="bold" size={18} />
                         <span>Filter</span>
                     </button>
                 </div>
@@ -253,12 +231,12 @@ export default function JobsPage() {
                         >
                             {isLoadingJobs ? (
                                 <div className="text-center py-16 bg-white rounded-3xl border border-purple-50">
-                                    <Loader2 className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3" />
+                                    <CircleNotchIcon className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3" />
                                     <p className="text-slate-500 font-medium text-sm">Loading job vacancies...</p>
                                 </div>
                             ) : filteredJobs.length === 0 ? (
                                 <div className="text-center py-16 bg-white rounded-3xl border border-purple-50">
-                                    <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                                    <BriefcaseIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                                     <h4 className="text-base font-bold text-slate-700">No Job Listings Found</h4>
                                     <p className="text-slate-400 text-sm mt-1">Try adjusting your search filters.</p>
                                 </div>
@@ -287,15 +265,15 @@ export default function JobsPage() {
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                                                         <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                                                            <DollarSign size={16} className="text-purple-600" />
+                                                            <CurrencyInrIcon weight="bold" size={16} className="text-purple-600" />
                                                             <span>{job.salary}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                                                            <MapPin size={16} className="text-purple-600" />
+                                                            <MapPinIcon weight="bold" size={16} className="text-purple-600" />
                                                             <span>{job.location}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                                                            <Briefcase size={16} className="text-purple-600" />
+                                                            <BriefcaseIcon weight="bold" size={16} className="text-purple-600" />
                                                             <span>{job.type}</span>
                                                         </div>
                                                     </div>
@@ -308,7 +286,7 @@ export default function JobsPage() {
                                                     className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95"
                                                 >
                                                     <span>View Candidates</span>
-                                                    <ArrowRight size={15} />
+                                                    <ArrowRightIcon weight="bold" size={15} />
                                                 </button>
 
                                                 {/* More Moderation Actions Trigger */}
@@ -326,9 +304,9 @@ export default function JobsPage() {
                                                         title="Moderate Job"
                                                     >
                                                         {processingJobId === job.id ? (
-                                                            <Loader2 size={18} className="animate-spin text-purple-600" />
+                                                            <CircleNotchIcon weight="bold" size={18} className="animate-spin text-purple-600" />
                                                         ) : (
-                                                            <MoreVertical size={18} />
+                                                            <DotsThreeVerticalIcon weight="bold" size={18} />
                                                         )}
                                                     </button>
 
@@ -349,12 +327,12 @@ export default function JobsPage() {
                                                                 >
                                                                     {job.status === 'Active' ? (
                                                                         <>
-                                                                            <PauseCircle size={16} className="text-amber-600" />
+                                                                            <PauseCircleIcon weight="bold" size={16} className="text-amber-600" />
                                                                             <span>Close Vacancy</span>
                                                                         </>
                                                                     ) : (
                                                                         <>
-                                                                            <PlayCircle size={16} className="text-emerald-600" />
+                                                                            <PlayCircleIcon weight="bold" size={16} className="text-emerald-600" />
                                                                             <span>Re-open Vacancy</span>
                                                                         </>
                                                                     )}
@@ -364,7 +342,7 @@ export default function JobsPage() {
                                                                     onClick={(e) => handleDeleteJob(e, job)}
                                                                     className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors text-left"
                                                                 >
-                                                                    <Trash2 size={16} />
+                                                                    <TrashIcon weight="bold" size={16} />
                                                                     <span>Delete Job Vacancy</span>
                                                                 </button>
                                                             </motion.div>
@@ -390,7 +368,7 @@ export default function JobsPage() {
 
                                             <div className="flex items-center gap-4 text-xs font-medium text-slate-400">
                                                 <div className="flex items-center gap-1">
-                                                    <Users size={14} />
+                                                    <UsersIcon weight="bold" size={14} />
                                                     <span>{job.candidatesCount} applications</span>
                                                 </div>
                                                 <span>•</span>
@@ -419,7 +397,7 @@ export default function JobsPage() {
                             <div className="divide-y divide-purple-50/50">
                                 {candidates.length === 0 ? (
                                     <div className="text-center py-16">
-                                        <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                                        <UsersIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                                         <p className="text-sm font-medium text-slate-500">No candidates have applied for this vacancy yet.</p>
                                     </div>
                                 ) : (
@@ -431,7 +409,7 @@ export default function JobsPage() {
                                                         <img src={candidate.photo} alt={candidate.name} className="w-full h-full object-cover" />
                                                     </div>
                                                     <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-2 border-white p-1.5 rounded-2xl shadow-sm">
-                                                        <UserCheck size={14} className="text-white" />
+                                                        <UserCheckIcon weight="bold" size={14} className="text-white" />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
@@ -439,7 +417,7 @@ export default function JobsPage() {
                                                     <p className="text-sm font-bold text-slate-500 italic">{candidate.role} • {candidate.location}</p>
                                                     <div className="flex items-center gap-4 mt-2">
                                                         <div className="flex items-center gap-1.5 text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full uppercase tracking-tighter">
-                                                            <Star size={12} fill="currentColor" />
+                                                            <StarIcon weight="fill" size={12} />
                                                             Experience: {candidate.experience}
                                                         </div>
                                                     </div>
@@ -451,14 +429,14 @@ export default function JobsPage() {
                                                     onClick={() => handleViewResume(candidate)}
                                                     className="px-6 py-2.5 bg-white border border-purple-200 text-purple-700 rounded-xl text-xs font-bold hover:bg-purple-50 transition-all flex items-center gap-2 shadow-sm"
                                                 >
-                                                    <FileText size={16} />
+                                                    <FileTextIcon weight="bold" size={16} />
                                                     View Resume
                                                 </button>
                                                 <button
                                                     className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 uppercase tracking-tight"
                                                 >
                                                     Assign Interview
-                                                    <Calendar size={16} />
+                                                    <CalendarBlankIcon weight="bold" size={16} />
                                                 </button>
                                             </div>
                                         </div>

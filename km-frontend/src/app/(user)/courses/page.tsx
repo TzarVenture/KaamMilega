@@ -3,20 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-    Video, 
-    Upload, 
-    CheckCircle2, 
-    AlertCircle, 
-    Sparkles, 
-    ArrowRight, 
-    GraduationCap, 
-    Play, 
-    ChevronRight,
-    ChevronLeft,
-    Loader2,
-    ExternalLink
-} from "lucide-react";
+import { ArrowRightIcon, ArrowSquareOutIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, CircleNotchIcon, GraduationCapIcon, PlayIcon, UploadSimpleIcon, VideoCameraIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
@@ -192,9 +179,7 @@ export default function CoursesExpertStudioPage() {
         return (
             <div className="min-h-screen bg-[#F4F7FB] py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
                 <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-[#D9E0EA] shadow-lg text-center space-y-5">
-                    <div className="w-16 h-16 bg-[#FAF5FF] text-[#7C3AED] rounded-2xl flex items-center justify-center mx-auto border border-[#7C3AED]/20 shadow-xs">
-                        <GraduationCap size={32} />
-                    </div>
+                    <GraduationCapIcon size={36} weight="duotone" className="text-[#7C3AED] mx-auto" aria-hidden="true" />
                     <div className="space-y-2">
                         <h2 className="text-2xl font-black text-[#071A4D]">
                             Expert Portal Only
@@ -210,7 +195,7 @@ export default function CoursesExpertStudioPage() {
                             className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
                         >
                             <span>Apply to Become an Expert</span>
-                            <ArrowRight size={16} />
+                            <ArrowRightIcon weight="bold" size={16} />
                         </button>
                     </div>
                 </div>
@@ -245,7 +230,7 @@ export default function CoursesExpertStudioPage() {
                                 className="text-xs sm:text-sm font-semibold text-[#071A4D] bg-white hover:bg-white/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
                             >
                                 <span>Public Marketplace</span>
-                                <ExternalLink size={13} />
+                                <ArrowSquareOutIcon weight="bold" size={13} />
                             </Link>
                         </div>
                     </div>
@@ -258,9 +243,7 @@ export default function CoursesExpertStudioPage() {
                 {/* ─── Top Half: Create New Course Form ─── */}
                 <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#D9E0EA] shadow-xs space-y-6">
                     <div className="flex items-center gap-2.5 border-b border-[#D9E0EA]/60 pb-4">
-                        <div className="w-9 h-9 rounded-xl bg-[#FFF7ED] text-[#FF6B00] flex items-center justify-center font-bold">
-                            <Video size={18} />
-                        </div>
+                        <VideoCameraIcon size={22} className="text-[#FF6B00]" aria-hidden="true" />
                         <div>
                             <h2 className="text-base sm:text-lg font-bold text-[#111827]">
                                 Publish a New Course Video
@@ -409,12 +392,12 @@ export default function CoursesExpertStudioPage() {
                                         className="w-full h-full object-cover"
                                     />
                                     <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                        <Play size={20} className="text-white fill-white" />
+                                        <PlayIcon weight="fill" size={20} className="text-white fill-white" />
                                     </div>
                                 </div>
                                 <div className="flex-1 space-y-1 text-center sm:text-left">
                                     <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-[#16A34A]">
-                                        <CheckCircle2 size={16} />
+                                        <CheckCircleIcon weight="bold" size={16} />
                                         <span>Verified YouTube Video ID: {extractedVideoId}</span>
                                     </div>
                                     <p className="text-xs text-[#5B6472]">
@@ -424,7 +407,7 @@ export default function CoursesExpertStudioPage() {
                             </div>
                         ) : youtubeUrl.trim() ? (
                             <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-xs text-amber-700">
-                                <AlertCircle size={16} className="shrink-0" />
+                                <WarningCircleIcon weight="bold" size={16} className="shrink-0" />
                                 <span>Checking YouTube link... Please ensure it is a valid YouTube video URL.</span>
                             </div>
                         ) : null}
@@ -442,12 +425,12 @@ export default function CoursesExpertStudioPage() {
                             >
                                 {submitting ? (
                                     <>
-                                        <Loader2 size={16} className="animate-spin" />
+                                        <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
                                         <span>Publishing Course...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Upload size={16} />
+                                        <UploadSimpleIcon weight="bold" size={16} />
                                         <span>Publish Course to Marketplace</span>
                                     </>
                                 )}
@@ -474,7 +457,7 @@ export default function CoursesExpertStudioPage() {
                             className="inline-flex items-center justify-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs md:text-sm font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-xs transition-all cursor-pointer active:scale-[0.98] shrink-0 whitespace-nowrap"
                         >
                             <span>View All Course</span>
-                            <ArrowRight size={12} className="shrink-0" />
+                            <ArrowRightIcon weight="bold" size={12} className="shrink-0" />
                         </Link>
                     </div>
 
@@ -484,9 +467,7 @@ export default function CoursesExpertStudioPage() {
                         </div>
                     ) : myCourses.length === 0 ? (
                         <div className="bg-white rounded-2xl border border-dashed border-[#D9E0EA] p-8 text-center space-y-2">
-                            <div className="w-12 h-12 rounded-full bg-[#F4F7FB] text-[#5B6472] flex items-center justify-center mx-auto">
-                                <Video size={20} />
-                            </div>
+                            <VideoCameraIcon size={28} weight="duotone" className="text-[#5B6472] mx-auto" aria-hidden="true" />
                             <h3 className="text-sm font-bold text-[#111827]">
                                 No Courses Published Yet
                             </h3>
@@ -504,7 +485,7 @@ export default function CoursesExpertStudioPage() {
                                 className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white text-[#071A4D] hover:bg-[#071A4D] hover:text-white border border-[#D9E0EA] shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100"
                                 title="Scroll left"
                             >
-                                <ChevronLeft size={18} />
+                                <CaretLeftIcon weight="bold" size={18} />
                             </button>
 
                             {/* Horizontal scroll container with custom Navy Blue scrollbar */}
@@ -531,7 +512,7 @@ export default function CoursesExpertStudioPage() {
                                 className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white text-[#071A4D] hover:bg-[#071A4D] hover:text-white border border-[#D9E0EA] shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100"
                                 title="Scroll right"
                             >
-                                <ChevronRight size={18} />
+                                <CaretRightIcon weight="bold" size={18} />
                             </button>
                         </div>
                     )}

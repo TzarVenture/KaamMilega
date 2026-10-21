@@ -2,22 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import {
-    Search,
-    ArrowLeft,
-    MapPin,
-    Briefcase,
-    DollarSign,
-    Users,
-    Loader2,
-    Building2,
-    TrendingUp,
-    Map,
-    CheckCircle2,
-    AlertCircle,
-    RefreshCw,
-    Globe2
-} from 'lucide-react';
+import { ArrowLeftIcon, ArrowsClockwiseIcon, BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, CurrencyInrIcon, GlobeHemisphereEastIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, TrendUpIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
 
@@ -213,9 +198,9 @@ function JobCityWiseContent() {
                 >
                     <div className="flex items-center gap-2.5">
                         {actionMessage.type === 'success' ? (
-                            <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                            <CheckCircleIcon weight="bold" size={18} className="text-emerald-600 shrink-0" />
                         ) : (
-                            <AlertCircle size={18} className="text-rose-600 shrink-0" />
+                            <WarningCircleIcon weight="bold" size={18} className="text-rose-600 shrink-0" />
                         )}
                         <span>{actionMessage.message}</span>
                     </div>
@@ -237,14 +222,12 @@ function JobCityWiseContent() {
                             className="p-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-2xl transition-all border border-purple-200 shadow-sm"
                             title="Back to all cities"
                         >
-                            <ArrowLeft size={20} />
+                            <ArrowLeftIcon size={20} />
                         </button>
                     )}
                     <div className="space-y-1">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-700 shrink-0">
-                                <Map size={24} />
-                            </div>
+                            <MapTrifoldIcon size={28} weight="duotone" className="text-purple-700 shrink-0" aria-hidden="true" />
                             <div>
                                 <h1 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-900 bg-clip-text text-transparent">
                                     {view === 'cities' ? 'Job City Mapping & Vacancy Aggregator' : `${activeCityName} Job Listings`}
@@ -265,7 +248,7 @@ function JobCityWiseContent() {
                         disabled={isLoading || isJobsLoading}
                         className="flex items-center gap-2 px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-2xl text-xs font-bold transition-all disabled:opacity-50"
                     >
-                        <RefreshCw size={15} className={isLoading || isJobsLoading ? 'animate-spin' : ''} />
+                        <ArrowsClockwiseIcon weight="bold" size={15} className={isLoading || isJobsLoading ? 'animate-spin' : ''} />
                         <span>Refresh Data</span>
                     </button>
                 </div>
@@ -275,9 +258,7 @@ function JobCityWiseContent() {
             {view === 'cities' && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-700 shrink-0">
-                            <Globe2 size={22} />
-                        </div>
+                        <GlobeHemisphereEastIcon size={28} weight="duotone" className="text-purple-700 shrink-0" aria-hidden="true" />
                         <div>
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Monitored Cities</p>
                             <p className="text-2xl font-black text-slate-900 mt-0.5">{cities.length}</p>
@@ -285,9 +266,7 @@ function JobCityWiseContent() {
                     </div>
 
                     <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                            <Briefcase size={22} />
-                        </div>
+                        <BriefcaseIcon size={28} weight="duotone" className="text-emerald-700 shrink-0" aria-hidden="true" />
                         <div>
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Open Vacancies</p>
                             <p className="text-2xl font-black text-emerald-700 mt-0.5">{totalVacanciesCount}</p>
@@ -295,9 +274,7 @@ function JobCityWiseContent() {
                     </div>
 
                     <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
-                            <TrendingUp size={22} />
-                        </div>
+                        <TrendUpIcon size={28} weight="duotone" className="text-indigo-700 shrink-0" aria-hidden="true" />
                         <div>
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Hiring Hub</p>
                             <p className="text-xl font-black text-indigo-900 mt-0.5 truncate">
@@ -311,7 +288,7 @@ function JobCityWiseContent() {
             {/* Filter & Search Bar */}
             <div className="bg-white p-6 rounded-[28px] border border-purple-100/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="relative w-full md:w-96">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
                         type="text"
                         placeholder={view === 'cities' ? "Search city or state..." : `Search jobs in ${activeCityName}...`}
@@ -384,7 +361,7 @@ function JobCityWiseContent() {
                                             <tr>
                                                 <td colSpan={4} className="px-8 py-20 text-center">
                                                     <div className="flex flex-col items-center gap-3">
-                                                        <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
+                                                        <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin" />
                                                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">
                                                             Aggregating job vacancies per city...
                                                         </p>
@@ -409,7 +386,7 @@ function JobCityWiseContent() {
                                                         <td className="px-6 sm:px-8 py-4">
                                                             <div className="flex items-center gap-3">
                                                                 <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 border ${hasJobs ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                                                                    <MapPin size={18} />
+                                                                    <MapPinIcon weight="bold" size={18} />
                                                                 </div>
                                                                 <div>
                                                                     <span className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
@@ -466,7 +443,7 @@ function JobCityWiseContent() {
                         >
                             {isJobsLoading ? (
                                 <div className="bg-white rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
-                                    <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+                                    <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin" />
                                     <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">
                                         Retrieving real-time jobs in {activeCityName}...
                                     </p>
@@ -505,7 +482,7 @@ function JobCityWiseContent() {
                                                     <div>
                                                         <h3 className="text-lg font-black text-slate-900">{job.title}</h3>
                                                         <p className="text-xs sm:text-sm font-semibold text-slate-500 flex items-center gap-1.5 mt-0.5">
-                                                            <Building2 size={15} className="text-purple-600" />
+                                                            <BuildingOfficeIcon weight="bold" size={15} className="text-purple-600" />
                                                             <span>{job.company}</span>
                                                         </p>
                                                     </div>
@@ -522,15 +499,15 @@ function JobCityWiseContent() {
 
                                                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-bold text-slate-600">
                                                     <div className="flex items-center gap-1.5">
-                                                        <DollarSign size={15} className="text-purple-600" />
+                                                        <CurrencyInrIcon weight="bold" size={15} className="text-purple-600" />
                                                         <span>{salaryDisplay}</span>
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
-                                                        <MapPin size={15} className="text-purple-600" />
+                                                        <MapPinIcon weight="bold" size={15} className="text-purple-600" />
                                                         <span>{job.location || job.city_name || activeCityName}</span>
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
-                                                        <Users size={15} className="text-purple-600" />
+                                                        <UsersIcon weight="bold" size={15} className="text-purple-600" />
                                                         <span>{job.applicant_count || 0} Applicants</span>
                                                     </div>
                                                 </div>
@@ -580,7 +557,7 @@ export default function JobCityWisePage() {
     return (
         <Suspense fallback={
             <div className="bg-white rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
-                <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
+                <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin" />
                 <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Loading city mapping...</p>
             </div>
         }>

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Search, X, SlidersHorizontal } from "lucide-react";
+import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react';
 
 interface CourseSearchBarProps {
     value: string;
@@ -29,7 +29,7 @@ export default function CourseSearchBar({
             {/* Input Bar */}
             <div className="w-full h-12 sm:h-13 bg-white rounded-2xl border border-[#D9E0EA] px-3.5 sm:px-4 shadow-xs focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all flex items-center gap-2.5 sm:gap-3 box-border">
                 <div className="text-[#5B6472] shrink-0 flex items-center justify-center">
-                    <Search size={18} />
+                    <MagnifyingGlassIcon weight="bold" size={18} />
                 </div>
                 <input
                     type="text"
@@ -49,7 +49,7 @@ export default function CourseSearchBar({
                         title="Clear search"
                         aria-label="Clear search"
                     >
-                        <X size={15} />
+                        <XIcon weight="bold" size={15} />
                     </button>
                 ) : null}
             </div>
