@@ -53,13 +53,13 @@ func (s *CourseServiceImpl) CreateCourse(ctx context.Context, expertID string, r
 	if title == "" {
 		return nil, errors.New("course title is required")
 	}
-	if len(strings.Fields(title)) > 10 {
-		return nil, errors.New("course title cannot exceed 10 words")
+	if len(strings.Fields(title)) > 25 {
+		return nil, errors.New("course title cannot exceed 25 words")
 	}
 
 	description := strings.TrimSpace(req.Description)
-	if description != "" && len(strings.Fields(description)) > 50 {
-		return nil, errors.New("course description cannot exceed 50 words")
+	if description != "" && len(strings.Fields(description)) > 100 {
+		return nil, errors.New("course description cannot exceed 100 words")
 	}
 
 	if strings.TrimSpace(req.YouTubeURL) == "" {
@@ -102,6 +102,9 @@ func (s *CourseServiceImpl) CreateCourse(ctx context.Context, expertID string, r
 	// Standard clean YouTube Watch URL
 	cleanYouTubeURL := fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
 	thumbnailURL := fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", videoID)
+	if strings.TrimSpace(req.ThumbnailURL) != "" {
+		thumbnailURL = strings.TrimSpace(req.ThumbnailURL)
+	}
 
 	c := &Course{
 		Title:          strings.TrimSpace(req.Title),
@@ -249,6 +252,22 @@ func (s *CourseServiceImpl) RecordView(ctx context.Context, id string, viewerID 
 	return s.repo.IncrementViews(ctx, objID)
 }
 
+func (s *CourseServiceImpl) isUserAdmin(ctx context.Context, userID string) bool {
+	if userID == "" {
+		return false
+	}
+	u, err := s.userRepo.FindUserByID(ctx, userID)
+	if err != nil || u == nil {
+		return false
+	}
+	for _, r := range u.Roles {
+		if strings.EqualFold(r, "admin") {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *CourseServiceImpl) UpdateCourse(ctx context.Context, id string, expertID string, req UpdateCourseRequest) (*Course, error) {
 	courseObjID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
@@ -263,14 +282,15 @@ func (s *CourseServiceImpl) UpdateCourse(ctx context.Context, id string, expertI
 		return nil, errors.New("course not found")
 	}
 
-	if course.ExpertID.Hex() != expertID {
+	isAdmin := s.isUserAdmin(ctx, expertID)
+	if course.ExpertID.Hex() != expertID && !isAdmin {
 		return nil, errors.New("unauthorized: you can only update your own courses")
 	}
 
 	if strings.TrimSpace(req.Title) != "" {
 		trimmedTitle := strings.TrimSpace(req.Title)
-		if len(strings.Fields(trimmedTitle)) > 10 {
-			return nil, errors.New("course title cannot exceed 10 words")
+		if len(strings.Fields(trimmedTitle)) > 25 {
+			return nil, errors.New("course title cannot exceed 25 words")
 		}
 		course.Title = trimmedTitle
 	}
@@ -281,17 +301,23 @@ func (s *CourseServiceImpl) UpdateCourse(ctx context.Context, id string, expertI
 		course.Category = strings.TrimSpace(req.Category)
 	}
 	trimmedDesc := strings.TrimSpace(req.Description)
-	if trimmedDesc != "" && len(strings.Fields(trimmedDesc)) > 50 {
-		return nil, errors.New("course description cannot exceed 50 words")
+	if trimmedDesc != "" && len(strings.Fields(trimmedDesc)) > 100 {
+		return nil, errors.New("course description cannot exceed 100 words")
 	}
 	course.Description = trimmedDesc
+
+	if strings.TrimSpace(req.ThumbnailURL) != "" {
+		course.ThumbnailURL = strings.TrimSpace(req.ThumbnailURL)
+	}
 
 	if strings.TrimSpace(req.YouTubeURL) != "" && req.YouTubeURL != course.YouTubeURL {
 		videoID, err := ExtractYouTubeVideoID(req.YouTubeURL)
 		if err == nil && videoID != "" {
 			course.YouTubeVideoID = videoID
 			course.YouTubeURL = fmt.Sprintf("https://www.youtube.com/watch?v=%s", videoID)
-			course.ThumbnailURL = fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", videoID)
+			if strings.TrimSpace(req.ThumbnailURL) == "" {
+				course.ThumbnailURL = fmt.Sprintf("https://img.youtube.com/vi/%s/hqdefault.jpg", videoID)
+			}
 		}
 	}
 
@@ -307,10 +333,18 @@ func (s *CourseServiceImpl) DeleteCourse(ctx context.Context, id string, expertI
 		return errors.New("invalid course ID")
 	}
 
-	expertObjID, err := primitive.ObjectIDFromHex(expertID)
+	course, err := s.repo.FindByID(ctx, courseObjID)
 	if err != nil {
-		return errors.New("invalid expert ID")
+		return err
+	}
+	if course == nil {
+		return errors.New("course not found")
 	}
 
-	return s.repo.Delete(ctx, courseObjID, expertObjID)
+	isAdmin := s.isUserAdmin(ctx, expertID)
+	if course.ExpertID.Hex() != expertID && !isAdmin {
+		return errors.New("unauthorized: you can only delete your own courses")
+	}
+
+	return s.repo.DeleteAny(ctx, courseObjID)
 }

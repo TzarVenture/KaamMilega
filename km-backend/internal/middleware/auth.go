@@ -23,6 +23,11 @@ func AuthMiddleware(jwtSecret string) fiber.Handler {
 			tokenString = c.Cookies("km_auth_token")
 		}
 
+		// 3. Fallback: Check query parameter (?token=...) for direct browser download links
+		if tokenString == "" {
+			tokenString = c.Query("token")
+		}
+
 		if tokenString == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Missing authorization token"})
 		}

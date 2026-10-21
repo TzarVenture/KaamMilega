@@ -16,7 +16,6 @@ import {
   Calendar,
   Zap,
   Check,
-  MessageSquareQuote,
 } from "lucide-react";
 import CitySelector from "./CitySelector";
 import BrandLogo from "./BrandLogo";
@@ -180,16 +179,8 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
       <nav className="bg-white border-b border-slate-200 px-4 md:px-6 h-16 flex items-center justify-between sticky top-0 z-50 shadow-xs font-sans">
         {/* Left Section: Logo & Search */}
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="shrink-0 flex items-center gap-2.5">
+          <div className="shrink-0 flex items-center">
             <BrandLogo size="sm" showTextOnMobile={true} />
-            <Link
-              href="/admin/testimonials"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-blue-50 hover:text-km-primary border border-slate-200 transition-colors shadow-2xs"
-              title="Admin Testimonials Portal"
-            >
-              <MessageSquareQuote size={14} className="text-km-primary" />
-              <span className="hidden sm:inline">Testimonials</span>
-            </Link>
           </div>
 
           {/* Desktop: City selector + Search */}

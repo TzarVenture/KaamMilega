@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, MoreVertical, Edit, UserPlus, Mail, Shield, Zap, Users, Building2, User, Loader2, CheckCircle2 } from 'lucide-react';
+import { Search, Plus, MoreVertical, Edit, UserPlus, Mail, Shield, Zap, Users, Building2, User, Loader2, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import UserProfileModal from '@/components/modals/admin/UserProfileModal';

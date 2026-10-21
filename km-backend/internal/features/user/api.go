@@ -76,6 +76,9 @@ func (api *UserApi) Setup(app *fiber.App) {
 	admin.Patch("/users/:id", api.controller.AdminUpdateUserProfile)
 	admin.Put("/experts/:id/approve", api.controller.ApproveExpert)
 	admin.Get("/expert-requests", api.controller.GetExpertRequests)
+	admin.Get("/reports/export/users", api.controller.ExportUsersCSV)
+	admin.Get("/reports/export/jobs", api.controller.ExportJobsCSV)
+	admin.Get("/reports/export/revenue", api.controller.ExportRevenueCSV)
 
 	// Public user discovery & platform activity endpoints
 	app.Get("/api/experts", api.controller.GetExperts)

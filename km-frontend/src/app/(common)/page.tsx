@@ -674,17 +674,21 @@ const FeaturedCompanies = ({ companies }: { companies: any[] }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        {/* 6 cards on same line for md+, 3 cards per line for mobile devices */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5 sm:gap-3 md:gap-3 lg:gap-4">
           {enterprisePartners.map((co, i) => (
             <CompanyCard key={co.name || i} company={co} variant="expanded" />
           ))}
         </div>
 
-        <div className="text-center mt-8 sm:mt-10">
-          <Link href="/jobs">
-            <button className="px-8 py-3 border-2 border-km-primary text-km-primary hover:bg-km-primary hover:text-white rounded-xl text-sm font-bold transition-all shadow-2xs">
-              View All 5,000+ Enterprise Employers →
-            </button>
+        {/* Explore All Button matching 'Learn With KaamMilega' style */}
+        <div className="text-center mt-8 sm:mt-10 flex justify-center">
+          <Link
+            href="/jobs"
+            className="py-3 px-6 sm:px-8 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-2xl md:rounded-3xl text-xs sm:text-sm font-bold inline-flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+          >
+            <span>View All 5,000+ Enterprise Employers</span>
+            <ArrowUpRight size={16} />
           </Link>
         </div>
       </div>
@@ -791,30 +795,106 @@ const JobTypeSection = () => {
 
 
 // --- Diversity & Inclusion Banner ---
-const DiversityBanner = () => (
-  <section className="px-3 md:px-6 py-6 md:py-10 max-w-7xl mx-auto">
-    <div className="relative min-h-70 md:h-75 rounded-3xl md:rounded-[40px] overflow-hidden flex items-center px-6 md:px-12 text-white py-8 md:py-0">
-      <div className="absolute inset-0 bg-linear-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] z-10" />
+// --- Diversity & Inclusion Banner ---
+const DiversityBanner = () => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const INTRO_YOUTUBE_ID = "1mHjMNZZvFo"; // Official site introduction / tutorial video ID
+  const thumbnailUrl = `https://img.youtube.com/vi/${INTRO_YOUTUBE_ID}/hqdefault.jpg`;
 
-      <div className="relative z-20 max-w-lg">
-        <div className="flex items-center gap-2 mb-3 md:mb-4">
-          <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">▲</div>
-          <span className="text-xs font-bold">KaamMilega™ Verified Partner <Star size={10} className="inline fill-yellow-400 border-none" /> 4.8</span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight mb-4">
-          Diversity And Inclusion At Every Workplace
-        </h2>
-        <button className="text-sm font-bold underline hover:text-km-accent-light transition-colors">Learn More</button>
-      </div>
+  return (
+    <section className="px-3 md:px-6 py-6 md:py-10 max-w-7xl mx-auto font-sans">
+      <div className="relative min-h-75 md:min-h-85 md:h-auto lg:h-92 rounded-3xl md:rounded-[40px] overflow-hidden flex flex-col md:flex-row items-center justify-between px-6 md:px-10 lg:px-12 text-white py-8 md:py-8 gap-6">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] z-10" />
 
-      <div className="hidden md:flex absolute right-12 z-20 w-72 h-44 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl items-center justify-center">
-        <div className="w-12 h-12 bg-km-accent hover:bg-km-accent-dark rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg shadow-orange-950/30">
-          <Play fill="white" size={20} className="ml-1" />
+        {/* Left Content */}
+        <div className="relative z-20 max-w-lg">
+          {/* Brand Logo & Icon Header */}
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <div className="w-9 h-9 rounded-full bg-white p-1.5 shadow-sm flex items-center justify-center shrink-0">
+              <Image
+                src="/kaammilega-logo-icon.png"
+                alt="KaamMilega Icon"
+                width={28}
+                height={28}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="bg-white/95 backdrop-blur-md px-3 py-1 rounded-xl shadow-xs flex items-center">
+              <Image
+                src="/kaammilega-logo-text.png"
+                alt="KaamMilega"
+                width={110}
+                height={24}
+                className="h-5 sm:h-5.5 w-auto object-contain"
+              />
+            </div>
+          </div>
+
+          {/* Verified Partner Badge & 4.8 Rating */}
+          <div className="flex items-center gap-2 mb-3.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-xs font-bold text-white shadow-xs">
+              <CheckCircle2 size={13} className="fill-emerald-400 text-[#071A4D]" />
+              <span>Verified Partner</span>
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-xs font-bold text-white shadow-xs">
+              <Star size={11} className="fill-yellow-400 text-yellow-400" />
+              <span>4.8</span>
+            </span>
+          </div>
+
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight mb-4">
+            Diversity And Inclusion At Every Workplace
+          </h2>
+          <Link
+            href="/about"
+            className="text-sm font-bold underline hover:text-km-accent-light transition-colors inline-block"
+          >
+            Learn More
+          </Link>
+        </div>
+
+        {/* Right Section: In-Web / In-App Video Player */}
+        <div className="relative z-20 w-full sm:w-80 md:w-[420px] lg:w-[480px] xl:w-[520px] aspect-video bg-black/40 backdrop-blur-md border border-white/20 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center shrink-0">
+          {isPlaying ? (
+            <div className="relative w-full h-full">
+              <iframe
+                src={`https://www.youtube.com/embed/${INTRO_YOUTUBE_ID}?autoplay=1&rel=0`}
+                title="KaamMilega Introduction Video"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+              <button
+                type="button"
+                onClick={() => setIsPlaying(false)}
+                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition-colors cursor-pointer z-30"
+                title="Close video"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div
+              onClick={() => setIsPlaying(true)}
+              className="relative w-full h-full cursor-pointer group flex items-center justify-center"
+              title="Click to play site introduction video"
+            >
+              <img
+                src={thumbnailUrl}
+                alt="KaamMilega Introduction Video"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+              <div className="absolute inset-0 bg-black/35 group-hover:bg-black/45 transition-colors" />
+              <div className="relative z-10 w-13 h-13 sm:w-14 sm:h-14 bg-km-accent hover:bg-km-accent-dark rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg shadow-orange-950/40">
+                <Play fill="white" size={22} className="ml-1 text-white" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  </section>
-);
+    </section>
+  );
+};
 
 interface LearnVideo {
   id: string;
@@ -832,7 +912,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=VPrT5JpXh0U",
     youtube_video_id: "VPrT5JpXh0U",
-    thumbnail: "https://img.youtube.com/vi/VPrT5JpXh0U/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/VPrT5JpXh0U/maxresdefault.jpg",
   },
   {
     id: "learn-2",
@@ -840,7 +920,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=1mHjMNZZvFo",
     youtube_video_id: "1mHjMNZZvFo",
-    thumbnail: "https://img.youtube.com/vi/1mHjMNZZvFo/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/1mHjMNZZvFo/maxresdefault.jpg",
   },
   {
     id: "learn-3",
@@ -848,7 +928,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "6 mins",
     youtube_url: "https://www.youtube.com/watch?v=KMbeK_6ATxQ",
     youtube_video_id: "KMbeK_6ATxQ",
-    thumbnail: "https://img.youtube.com/vi/KMbeK_6ATxQ/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/KMbeK_6ATxQ/maxresdefault.jpg",
   },
   {
     id: "learn-4",
@@ -856,7 +936,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=7_aAfl_2aSA",
     youtube_video_id: "7_aAfl_2aSA",
-    thumbnail: "https://img.youtube.com/vi/7_aAfl_2aSA/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/7_aAfl_2aSA/maxresdefault.jpg",
   },
 ];
 
@@ -881,9 +961,10 @@ const LearnSection = () => {
               extractYouTubeVideoId(item.youtube_url || "") ||
               DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].youtube_video_id;
 
+            // Prefer true 16:9 maxresdefault thumbnail over 4:3 letterboxed hqdefault
             const thumb =
-              item.thumbnail_url ||
-              (videoId ? getYouTubeThumbnail(videoId) : "") ||
+              (videoId ? getYouTubeMaxResThumbnail(videoId) : "") ||
+              (item.thumbnail_url && !item.thumbnail_url.includes("hqdefault.jpg") ? item.thumbnail_url : "") ||
               DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].thumbnail;
 
             return {
@@ -938,27 +1019,31 @@ const LearnSection = () => {
       </div>
 
       <div
-        className="flex flex-col md:flex-row gap-6 
-        md:gap-8 items-stretch"
+        className="flex flex-col md:flex-row gap-6 md:gap-8 items-start md:items-center"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Main Video Player (Left Side - Clean thumbnail with Play button in exact center) */}
         <div
           onClick={() => setPlayingVideo(activeVideo)}
-          className="w-full md:flex-1 aspect-video bg-slate-900 rounded-xl md:rounded-[10px] relative group cursor-pointer overflow-hidden shadow-xl border border-slate-200/80"
+          className="w-full md:flex-1 aspect-video bg-slate-900 rounded-2xl md:rounded-3xl relative group cursor-pointer overflow-hidden shadow-xl border border-slate-200/80"
           title={`Click to watch: ${activeVideo.title}`}
         >
           {/* Main Thumbnail synced with active card (absolute background) */}
           <img
             key={activeVideo.id || activeVideo.thumbnail}
-            src={activeVideo.thumbnail}
+            src={activeVideo.youtube_video_id ? getYouTubeMaxResThumbnail(activeVideo.youtube_video_id) : activeVideo.thumbnail}
             alt={activeVideo.title}
             referrerPolicy="no-referrer"
-            className="absolute inset-0 w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             onError={(e) => {
+              const target = e.target as HTMLImageElement;
               if (activeVideo.youtube_video_id) {
-                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/hqdefault.jpg`;
+                if (target.src.includes('maxresdefault.jpg')) {
+                  target.src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/mqdefault.jpg`;
+                } else if (target.src.includes('mqdefault.jpg')) {
+                  target.src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/hqdefault.jpg`;
+                }
               }
             }}
           />
@@ -974,56 +1059,67 @@ const LearnSection = () => {
           </div>
         </div>
 
-        {/* Playlist (Right Side - 3 cards on md/lg, 4 cards on xl + Fixed Green Explore Button at Bottom) */}
-        <div className="w-full md:w-105 xl:w-115 flex flex-col justify-between gap-2.5 sm:gap-3">
-          <div className="space-y-2.5 sm:space-y-3">
+        {/* Playlist (Right Side - 4 cards + Fixed Green Explore Button at Bottom) */}
+        <div className="w-full md:w-80 lg:w-92 xl:w-96 flex flex-col justify-between gap-3">
+          <div className="space-y-2.5">
             {videos.map((video, i) => {
               const isActive = i === activeIndex;
               return (
                 <div
                   key={video.id || i}
                   onClick={() => setActiveIndex(i)}
-                  className={`p-2 sm:p-2 rounded-xl md:rounded-xl border transition-all cursor-pointer relative overflow-hidden group/card ${isActive
-                    ? 'bg-blue-50/90 border-[#0B5ED7] shadow-sm ring-1 ring-[#0B5ED7]/25'
-                    : 'bg-white border-slate-200/90 hover:bg-slate-50/90 hover:border-slate-300'
+                  className={`p-1.5 pl-2 pr-5 rounded-full border transition-all duration-200 cursor-pointer relative overflow-hidden group/card flex items-center gap-3 ${isActive
+                    ? 'bg-blue-50/90 border-[#0B5ED7] shadow-xs ring-1 ring-[#0B5ED7]/25'
+                    : 'bg-white border-[#D9E0EA] hover:bg-slate-50/90 hover:border-slate-300 hover:shadow-xs'
                     }`}
                 >
-                  <div className="flex items-center gap-3">
-                    {/* Thumbnail from resources / YouTube */}
-                    <div className="relative w-28 h-18 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-slate-200/60 shadow-2xs group-hover/card:scale-102 transition-transform">
-                      <img
-                        src={video.thumbnail}
-                        alt={video.title}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          if (video.youtube_video_id) {
-                            (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+                  {/* Thumbnail with concentric rounded curve */}
+                  <div className="relative w-22 sm:w-24 aspect-video rounded-[22px] overflow-hidden bg-slate-900 shrink-0 border border-slate-200/70 shadow-2xs group-hover/card:scale-102 transition-transform">
+                    <img
+                      src={video.youtube_video_id ? getYouTubeMaxResThumbnail(video.youtube_video_id) : video.thumbnail}
+                      alt={video.title}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (video.youtube_video_id) {
+                          if (target.src.includes('maxresdefault.jpg')) {
+                            target.src = `https://img.youtube.com/vi/${video.youtube_video_id}/mqdefault.jpg`;
+                          } else if (target.src.includes('mqdefault.jpg')) {
+                            target.src = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
                           }
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
-                        <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${isActive ? 'bg-[#0B5ED7] text-white' : 'bg-white/95 text-[#071A4D]'
-                            }`}
-                        >
-                          <Play size={9} fill="currentColor" className="ml-0.5" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Title and Duration */}
-                    <div className="flex-1 min-w-0">
-                      <h4
-                        className={`text-xs md:text-sm font-bold leading-snug line-clamp-2 transition-colors ${isActive ? 'text-slate-950' : 'text-slate-800 group-hover/card:text-[#0B5ED7]'
+                        }
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shadow-xs transition-transform ${isActive ? 'bg-[#0B5ED7] text-white' : 'bg-white/95 text-[#071A4D]'
                           }`}
                       >
-                        {video.title}
-                      </h4>
-                      <p className="text-[11px] text-slate-500 font-medium mt-1 flex items-center gap-1">
-                        <Clock size={11} className="text-slate-400" />
+                        <Play size={9} fill="currentColor" className="ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Title and Duration */}
+                  <div className="flex-1 min-w-0 pr-1">
+                    <h4
+                      className={`text-xs sm:text-[13px] font-bold leading-tight truncate transition-colors ${isActive ? 'text-[#071A4D]' : 'text-slate-800 group-hover/card:text-[#0B5ED7]'
+                        }`}
+                      title={video.title}
+                    >
+                      {video.title}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-[11px] text-slate-500 font-medium flex items-center gap-1">
+                        <Clock size={11} className={isActive ? 'text-[#0B5ED7]' : 'text-slate-400'} />
                         <span>{video.time}</span>
-                      </p>
+                      </span>
+                      {isActive && (
+                        <span className="text-[10px] font-bold text-[#0B5ED7] bg-blue-100/70 px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                          Playing
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1031,10 +1127,10 @@ const LearnSection = () => {
             })}
           </div>
 
-          {/* Fixed Green Button as per Project Color Rules */}
+          {/* Fixed Green Button matching Project Color Rules */}
           <Link
             href="/resources"
-            className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-2xl md:rounded-3xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer mt-auto"
+            className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs hover:shadow-md transition-all cursor-pointer mt-1"
           >
             <span>Explore All Resources</span>
             <ArrowUpRight size={16} />

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, MoreVertical, Eye, Building2, ShieldCheck, FileCheck, CheckCircle2, XCircle } from 'lucide-react';
+import { Search, Plus, MoreVertical, Eye, Building2, ShieldCheck, FileCheck, CheckCircle2, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import DocumentsListModal from '@/components/modals/admin/DocumentsListModal';
@@ -53,19 +53,35 @@ export default function CompaniesPage() {
         return () => clearTimeout(timer);
     }, [search]);
 
+    const [totalCompaniesCount, setTotalCompaniesCount] = useState<number | null>(null);
+
     const fetchCompanies = async () => {
         setLoading(true);
         try {
-            const res: any = await api.get('/admin/companies', {
-                params: {
-                    page,
-                    limit: 10,
-                    search: debouncedSearch
+            const [compRes, statsRes]: any = await Promise.allSettled([
+                api.get('/admin/companies', {
+                    params: {
+                        page,
+                        limit: 10,
+                        search: debouncedSearch
+                    }
+                }),
+                api.get('/platform/stats')
+            ]);
+
+            if (compRes.status === 'fulfilled' && compRes.value?.data) {
+                setCompanies(compRes.value.data);
+                setTotalPages(Math.ceil((compRes.value.total || compRes.value.data.length || 1) / 10));
+                if (compRes.value.total !== undefined) {
+                    setTotalCompaniesCount(compRes.value.total);
                 }
-            });
-            if (res.data) {
-                setCompanies(res.data);
-                setTotalPages(Math.ceil(res.total / 10)); // limit is 10
+            }
+
+            if (statsRes.status === 'fulfilled') {
+                const s = statsRes.value?.data?.stats || statsRes.value?.data || {};
+                if (s.recruiters !== undefined) {
+                    setTotalCompaniesCount(s.recruiters);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch companies", error);
@@ -142,13 +158,37 @@ export default function CompaniesPage() {
                 documentUrl={selectedDoc?.url || ''}
             />
 
-            {/* Quick Stats - could be fetched from API/stats endpoint later */}
+            {/* Real Operational Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Companies', value: '428', icon: Building2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                    { label: 'Pending Verification', value: '12', icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'Verified Partners', value: '382', icon: FileCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Rejected Applications', value: '34', icon: MoreVertical, color: 'text-rose-600', bg: 'bg-rose-50' },
+                    {
+                        label: 'Total Companies',
+                        value: totalCompaniesCount !== null ? totalCompaniesCount.toLocaleString() : (loading ? '...' : (companies.length > 0 ? String(companies.length) : '0')),
+                        icon: Building2,
+                        color: 'text-indigo-600',
+                        bg: 'bg-indigo-50'
+                    },
+                    {
+                        label: 'Pending Verification',
+                        value: loading ? '...' : String(companies.filter(c => c.status === 'pending').length),
+                        icon: ShieldCheck,
+                        color: 'text-amber-600',
+                        bg: 'bg-amber-50'
+                    },
+                    {
+                        label: 'Verified Partners',
+                        value: loading ? '...' : String(companies.filter(c => c.status === 'verified').length),
+                        icon: FileCheck,
+                        color: 'text-emerald-600',
+                        bg: 'bg-emerald-50'
+                    },
+                    {
+                        label: 'Rejected Applications',
+                        value: loading ? '...' : String(companies.filter(c => c.status === 'rejected').length),
+                        icon: MoreVertical,
+                        color: 'text-rose-600',
+                        bg: 'bg-rose-50'
+                    },
                 ].map((stat, i) => (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -188,10 +228,6 @@ export default function CompaniesPage() {
                             className="w-full sm:w-80 pl-11 pr-4 py-2.5 bg-white border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all shadow-sm"
                         />
                     </div>
-                    <button className="flex items-center gap-2 px-5 py-2.5 text-slate-600 bg-white border border-purple-100 rounded-2xl text-sm font-bold hover:bg-purple-50 transition-all shadow-sm active:scale-95">
-                        <Filter size={18} />
-                        <span>Filter</span>
-                    </button>
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}

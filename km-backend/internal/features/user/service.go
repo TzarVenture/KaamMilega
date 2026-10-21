@@ -66,6 +66,9 @@ type UserService interface {
 	CheckUsernameAvailability(ctx context.Context, currentUserID, username string) (bool, string, error)
 	UpdateOpenToWork(ctx context.Context, userID string, prefs OpenToWorkPreferences) (*User, error)
 	UpdateProvidingServices(ctx context.Context, userID string, prefs ProvidingServicesPreferences) (*User, error)
+	ExportUsersCSV(ctx context.Context, role string) ([]byte, error)
+	ExportJobsCSV(ctx context.Context, status string) ([]byte, error)
+	ExportRevenueCSV(ctx context.Context, status string) ([]byte, error)
 }
 
 type UserServiceImpl struct {
@@ -1587,4 +1590,16 @@ func (s *UserServiceImpl) UpdateProvidingServices(ctx context.Context, userID st
 
 	user.ProvidingServices = &prefs
 	return s.repo.UpdateUser(ctx, user)
+}
+
+func (s *UserServiceImpl) ExportUsersCSV(ctx context.Context, role string) ([]byte, error) {
+	return s.repo.ExportUsersCSV(ctx, role)
+}
+
+func (s *UserServiceImpl) ExportJobsCSV(ctx context.Context, status string) ([]byte, error) {
+	return s.repo.ExportJobsCSV(ctx, status)
+}
+
+func (s *UserServiceImpl) ExportRevenueCSV(ctx context.Context, status string) ([]byte, error) {
+	return s.repo.ExportRevenueCSV(ctx, status)
 }

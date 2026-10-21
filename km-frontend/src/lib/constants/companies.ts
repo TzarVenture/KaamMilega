@@ -25,7 +25,7 @@ export const ENTERPRISE_COMPANIES: HiringCompany[] = [
         rating: "4.8",
         reviews: "3.7k Reviews",
         verified: true,
-        bgClass: "bg-rose-50/80 border-rose-200/70",
+        bgClass: "bg-rose-50 border-rose-200/80",
         imgClass: "h-5 w-auto max-w-[85%]",
     },
     {
@@ -38,7 +38,7 @@ export const ENTERPRISE_COMPANIES: HiringCompany[] = [
         rating: "4.7",
         reviews: "5.1k Reviews",
         verified: true,
-        bgClass: "bg-orange-50/80 border-orange-200/70",
+        bgClass: "bg-orange-50 border-orange-200/80",
         imgClass: "h-7 w-auto",
     },
     {
@@ -51,7 +51,7 @@ export const ENTERPRISE_COMPANIES: HiringCompany[] = [
         rating: "4.8",
         reviews: "8.5k Reviews",
         verified: true,
-        bgClass: "bg-amber-50/60 border-amber-200/70",
+        bgClass: "bg-amber-50 border-amber-200/80",
         imgClass: "h-5 w-auto max-w-[85%]",
     },
     {
@@ -64,7 +64,7 @@ export const ENTERPRISE_COMPANIES: HiringCompany[] = [
         rating: "4.7",
         reviews: "6.2k Reviews",
         verified: true,
-        bgClass: "bg-slate-50 border-slate-200",
+        bgClass: "bg-zinc-100 border-zinc-200/90",
         imgClass: "h-4 w-auto max-w-[85%]",
     },
     {
@@ -77,7 +77,7 @@ export const ENTERPRISE_COMPANIES: HiringCompany[] = [
         rating: "4.7",
         reviews: "4.3k Reviews",
         verified: true,
-        bgClass: "bg-red-50/80 border-red-200/70",
+        bgClass: "bg-red-50 border-red-200/80",
         imgClass: "h-6 w-auto",
     },
     {
@@ -90,7 +90,7 @@ export const ENTERPRISE_COMPANIES: HiringCompany[] = [
         rating: "4.6",
         reviews: "3.9k Reviews",
         verified: true,
-        bgClass: "bg-blue-50/80 border-blue-200/70",
+        bgClass: "bg-blue-50 border-blue-200/80",
         imgClass: "h-7 w-auto",
     },
 ];

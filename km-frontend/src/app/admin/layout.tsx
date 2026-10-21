@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import BrandLogo from '@/components/km/BrandLogo';
 import { clearSession, isAuthenticated } from '@/lib/auth';
 import {
+    LayoutDashboard,
     Users,
     Building2,
     ShieldCheck,
@@ -26,12 +27,15 @@ import {
     Shield,
     X,
     ShieldAlert,
-    Flag
+    Flag,
+    FileSpreadsheet
 } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
+    { name: 'Analytics & Overview', icon: LayoutDashboard, href: '/admin' },
+    { name: 'Reports & Analytics', icon: FileSpreadsheet, href: '/admin/reports' },
     { name: 'User Module', icon: Users, href: '/admin/users' },
     { name: 'Recruiter / Company', icon: Building2, href: '/admin/companies' },
     { name: 'Testimonials', icon: MessageSquareQuote, href: '/admin/testimonials' },

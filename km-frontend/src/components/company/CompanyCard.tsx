@@ -38,47 +38,55 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
 
     if (variant === 'expanded') {
         return (
-            <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-400 transition-all flex flex-col justify-between group/card">
-                <div>
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3.5">
-                            <div className={`w-13 h-13 rounded-xl border p-2 flex items-center justify-center shrink-0 bg-white shadow-2xs ${company.bgClass || 'border-slate-200'}`}>
-                                {company.logo ? (
-                                    <CustomImage
-                                        src={company.logo}
-                                        alt={company.name}
-                                        className={`object-contain ${company.imgClass || 'max-h-full max-w-full'}`}
-                                    />
-                                ) : (
-                                    <Building2 size={24} className="text-km-primary" />
-                                )}
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-1.5">
-                                    <h4 className="text-base font-bold text-slate-900 group-hover/card:text-km-primary transition-colors leading-tight">
-                                        {company.name}
-                                    </h4>
-                                    {company.verified && (
-                                        <CheckCircle2 size={15} className="fill-blue-500 text-white shrink-0" />
-                                    )}
-                                </div>
-                                <p className="text-xs text-slate-500 mt-1">
-                                    {company.category}
-                                </p>
-                            </div>
-                        </div>
-                        <span className="text-[11px] font-bold text-slate-600 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-full shrink-0">
-                            Verified Employer
+            <Link
+                href={searchHref}
+                className="bg-gradient-to-b from-white via-white to-[#F4F7FB] rounded-2xl p-2.5 sm:p-3.5 md:p-3 lg:p-3.5 border border-slate-200 shadow-sm shadow-gray-400 hover:border-[#0B5ED7]/60 transition-all flex flex-col items-center justify-between text-center group/card cursor-pointer"
+            >
+                <div className="w-full flex flex-col items-center">
+                    {/* Company Logo Tile with distinctive Brand Tint */}
+                    <div className={`w-11 h-11 sm:w-12 sm:h-12 md:w-11 md:h-11 lg:w-12 lg:h-12 rounded-xl border p-1.5 sm:p-2 flex items-center justify-center shrink-0 shadow-2xs transition-transform group-hover/card:scale-105 ${company.bgClass || 'bg-slate-50 border-slate-200'}`}>
+                        {company.logo ? (
+                            <CustomImage
+                                src={company.logo}
+                                alt={company.name}
+                                className={`object-contain ${company.imgClass || 'max-h-full max-w-full'}`}
+                            />
+                        ) : (
+                            <Building2 size={22} className="text-km-primary" />
+                        )}
+                    </div>
+
+                    {/* Company Name & Verified Badge */}
+                    <div className="flex items-center justify-center gap-1 mt-2.5 w-full px-0.5">
+                        <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover/card:text-[#071A4D] transition-colors leading-tight truncate">
+                            {company.name}
+                        </h4>
+                        {company.verified && (
+                            <CheckCircle2 size={13} className="fill-[#0B5ED7] text-white shrink-0" />
+                        )}
+                    </div>
+
+                    {/* Category */}
+                    <p className="text-[10px] sm:text-[11px] text-slate-500 font-medium truncate w-full px-0.5 mt-0.5">
+                        {company.category}
+                    </p>
+
+                    {/* Active Hiring Badge */}
+                    <div className="mt-1.5">
+                        <span className="inline-flex items-center gap-1 text-[9px] sm:text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/70 px-1.5 sm:px-2 py-0.5 rounded-full leading-none whitespace-nowrap">
+                            <span>Active Hiring</span>
                         </span>
                     </div>
                 </div>
 
-                <Link href={searchHref} className="mt-4">
-                    <button className="w-full py-2.5 bg-slate-50 group-hover/card:bg-km-primary group-hover/card:text-white text-slate-700 border border-slate-200 group-hover/card:border-km-primary rounded-xl text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer">
-                        View Jobs →
-                    </button>
-                </Link>
-            </div>
+                {/* Brand Blue to Deep Navy CTA Pill (Single Line) */}
+                <div className="w-full mt-2.5 sm:mt-3 pt-2 sm:pt-2.5 border-t border-slate-100 flex items-center justify-center">
+                    <span className="w-full py-1.5 px-1 sm:px-2 bg-blue-50/80 group-hover/card:bg-[#071A4D] text-[#0B5ED7] group-hover/card:text-white border border-blue-200/60 group-hover/card:border-[#071A4D] rounded-lg sm:rounded-xl text-[10px] sm:text-xs font-bold transition-all text-center flex items-center justify-center gap-0.5 sm:gap-1 whitespace-nowrap shadow-2xs">
+                        <span>View Jobs</span>
+                        <ChevronRight size={11} className="group-hover/card:translate-x-0.5 transition-transform shrink-0" />
+                    </span>
+                </div>
+            </Link>
         );
     }
 
@@ -123,11 +131,10 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 <button
                     type="button"
                     onClick={handleFollowClick}
-                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                        isFollowing
-                            ? 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200/70'
-                            : 'border border-km-primary text-km-primary hover:bg-blue-50'
-                    }`}
+                    className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${isFollowing
+                        ? 'bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200/70'
+                        : 'border border-km-primary text-km-primary hover:bg-blue-50'
+                        }`}
                 >
                     {isFollowing ? (
                         <>
