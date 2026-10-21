@@ -150,11 +150,11 @@ func (ctrl *Controller) Reactivate(c *fiber.Ctx) error {
 	if err := ctrl.service.Reactivate(c.Context(), userID); err != nil {
 		return fail(c, err)
 	}
-	token, err := ctrl.resumeSession(c, userID)
-	if err != nil {
+	// The token travels only in the HttpOnly cookie; it is never handed to page scripts
+	if _, err := ctrl.resumeSession(c, userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Account reactivated. Please sign in again."})
 	}
-	return c.JSON(fiber.Map{"message": "Welcome back! Your account is active again.", "token": token})
+	return c.JSON(fiber.Map{"message": "Welcome back! Your account is active again."})
 }
 
 // RequestDeletion godoc
@@ -202,11 +202,10 @@ func (ctrl *Controller) CancelDeletion(c *fiber.Ctx) error {
 	if err := ctrl.service.CancelDeletion(c.Context(), userID); err != nil {
 		return fail(c, err)
 	}
-	token, err := ctrl.resumeSession(c, userID)
-	if err != nil {
+	if _, err := ctrl.resumeSession(c, userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Deletion cancelled. Please sign in again."})
 	}
-	return c.JSON(fiber.Map{"message": "Deletion cancelled. Your account is active again.", "token": token})
+	return c.JSON(fiber.Map{"message": "Deletion cancelled. Your account is active again."})
 }
 
 // Export godoc

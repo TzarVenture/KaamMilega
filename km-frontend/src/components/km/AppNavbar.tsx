@@ -5,6 +5,7 @@ import Navbar from './Navbar';
 import GuestNavbar from './GuestNavbar';
 import api from '@/lib/axios';
 import { isAuthenticated, clearSession } from '@/lib/auth';
+import { ACCOUNT_RESTORE_PATH, needsAccountRestore } from '@/lib/account';
 
 function AppNavbarContent() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -28,6 +29,12 @@ function AppNavbarContent() {
             try {
                 const userData: any = await api.get(`/user/profile`);
                 setUser(userData);
+
+                // A deactivated or pending-deletion account has to restore itself first
+                if (needsAccountRestore(userData) && !window.location.pathname.startsWith(ACCOUNT_RESTORE_PATH)) {
+                    router.replace(ACCOUNT_RESTORE_PATH);
+                    return;
+                }
 
                 // A candidate who verified OTP but never finished the name step resumes it
                 const roles: string[] = Array.isArray(userData?.roles) ? userData.roles : [];

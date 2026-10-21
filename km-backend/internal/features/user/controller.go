@@ -832,11 +832,11 @@ func (ctrl *UserController) SetPassword(c *fiber.Ctx) error {
 	}
 
 	// Other devices were signed out; keep this one signed in with a fresh token
-	token, err := ctrl.reissueSession(c, userID)
-	if err != nil {
+	// The token travels only in the HttpOnly cookie; it is never handed to page scripts
+	if _, err := ctrl.reissueSession(c, userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Password updated. Please sign in again."})
 	}
-	return c.JSON(fiber.Map{"message": "Password updated. Other devices have been signed out.", "token": token})
+	return c.JSON(fiber.Map{"message": "Password updated. Other devices have been signed out."})
 }
 
 // RevokeOtherSessions godoc
@@ -853,11 +853,10 @@ func (ctrl *UserController) RevokeOtherSessions(c *fiber.Ctx) error {
 	if err := ctrl.service.RevokeSessions(c.Context(), userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not sign out other devices"})
 	}
-	token, err := ctrl.reissueSession(c, userID)
-	if err != nil {
+	if _, err := ctrl.reissueSession(c, userID); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Signed out everywhere. Please sign in again."})
 	}
-	return c.JSON(fiber.Map{"message": "Signed out of all other devices", "token": token})
+	return c.JSON(fiber.Map{"message": "Signed out of all other devices"})
 }
 
 // reissueSession issues a token for the current session version and refreshes the auth cookies
