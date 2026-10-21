@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowRightIcon, BriefcaseIcon, CalendarBlankIcon, CaretLeftIcon, CircleNotchIcon, CurrencyInrIcon, DotsThreeVerticalIcon, FileTextIcon, FunnelSimpleIcon, MagnifyingGlassIcon, MapPinIcon, PauseCircleIcon, PlayCircleIcon, StarIcon, TrashIcon, UserCheckIcon, UsersIcon } from '@phosphor-icons/react';
+
+import { ArrowRightIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CaretLeftIcon, CheckCircleIcon, CircleNotchIcon, CurrencyInrIcon, DotsThreeVerticalIcon, FileTextIcon, FunnelSimpleIcon, MagnifyingGlassIcon, MapPinIcon, PauseCircleIcon, PlayCircleIcon, PlusIcon, StarIcon, TrashIcon, UserCheckIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import ResumeModal from '@/components/modals/admin/ResumeModal';
@@ -212,10 +213,6 @@ export default function JobsPage() {
                             className="w-full sm:w-64 pl-11 pr-4 py-2.5 bg-white border border-purple-100 rounded-2xl text-sm focus:outline-none focus:border-purple-300 transition-all shadow-sm"
                         />
                     </div>
-                    <button className="flex items-center gap-2 px-5 py-2.5 text-slate-600 bg-white border border-purple-100 rounded-2xl text-sm font-bold hover:bg-purple-50 transition-all shadow-sm">
-                        <FunnelSimpleIcon weight="bold" size={18} />
-                        <span>Filter</span>
-                    </button>
                 </div>
             </div>
 

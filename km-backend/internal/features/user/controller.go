@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -1072,4 +1073,49 @@ func (ctrl *UserController) UpdateProvidingServices(c *fiber.Ctx) error {
 		"providing_services": updated.ProvidingServices,
 		"user":               updated,
 	})
+}
+
+func (ctrl *UserController) ExportUsersCSV(c *fiber.Ctx) error {
+	role := c.Query("role")
+	data, err := ctrl.service.ExportUsersCSV(c.Context(), role)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate users export: " + err.Error(),
+		})
+	}
+
+	filename := fmt.Sprintf("km_users_%s.csv", time.Now().Format("20060102_150405"))
+	c.Set("Content-Type", "text/csv; charset=utf-8")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	return c.Send(data)
+}
+
+func (ctrl *UserController) ExportJobsCSV(c *fiber.Ctx) error {
+	status := c.Query("status")
+	data, err := ctrl.service.ExportJobsCSV(c.Context(), status)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate jobs export: " + err.Error(),
+		})
+	}
+
+	filename := fmt.Sprintf("km_jobs_%s.csv", time.Now().Format("20060102_150405"))
+	c.Set("Content-Type", "text/csv; charset=utf-8")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	return c.Send(data)
+}
+
+func (ctrl *UserController) ExportRevenueCSV(c *fiber.Ctx) error {
+	status := c.Query("status")
+	data, err := ctrl.service.ExportRevenueCSV(c.Context(), status)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate revenue export: " + err.Error(),
+		})
+	}
+
+	filename := fmt.Sprintf("km_revenue_%s.csv", time.Now().Format("20060102_150405"))
+	c.Set("Content-Type", "text/csv; charset=utf-8")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	return c.Send(data)
 }

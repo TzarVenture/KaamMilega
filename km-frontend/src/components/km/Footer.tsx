@@ -70,12 +70,12 @@ export default function Footer() {
                     <div>
                         <h3 className="text-base sm:text-lg font-bold text-white mb-5 tracking-wide">Solutions</h3>
                         <div className="space-y-3">
-                            <FooterLink>Connect Like You</FooterLink>
-                            <FooterLink>Premium Job Search</FooterLink>
-                            {FEATURES.INSTANT_MILEGA && <FooterLink>InstantMilega™</FooterLink>}
-                            <FooterLink>Learn With KM</FooterLink>
-                            <FooterLink>Promotion (Ad Network)</FooterLink>
-                            <FooterLink>How We Work</FooterLink>
+                            <FooterLink href="/network">Connect Like You</FooterLink>
+                            <FooterLink href="/jobs">Premium Job Search</FooterLink>
+                            {FEATURES.INSTANT_MILEGA && <FooterLink href="/instant-milega">InstantMilega™</FooterLink>}
+                            <FooterLink href="/resources">Learn With KM</FooterLink>
+                            <FooterLink href="/jobs">Promotion (Ad Network)</FooterLink>
+                            <FooterLink href="/how-we-work">How We Work</FooterLink>
                         </div>
                     </div>
 
@@ -83,10 +83,10 @@ export default function Footer() {
                     <div>
                         <h3 className="text-base sm:text-lg font-bold text-white mb-5 tracking-wide">Connect</h3>
                         <div className="space-y-3">
-                            <FooterLink>About</FooterLink>
-                            <FooterLink>How We Work</FooterLink>
-                            <FooterLink>Support</FooterLink>
-                            <FooterLink>Career</FooterLink>
+                            <FooterLink href="/about">About</FooterLink>
+                            <FooterLink href="/how-we-work">How We Work</FooterLink>
+                            <FooterLink href="/support">Support</FooterLink>
+                            <FooterLink href="/career">Career</FooterLink>
                         </div>
 
                         <div className="mt-8">
@@ -122,10 +122,10 @@ export default function Footer() {
                         </h3>
 
                         <div className="space-y-3">
-                            <FooterLink>Hire Local Staff</FooterLink>
-                            <FooterLink>Post A Job</FooterLink>
-                            <FooterLink>Build Brand Image</FooterLink>
-                            <FooterLink>Contact Support</FooterLink>
+                            <FooterLink href="/register">Hire Local Staff</FooterLink>
+                            <FooterLink href="/register">Post A Job</FooterLink>
+                            <FooterLink href="/about">Build Brand Image</FooterLink>
+                            <FooterLink href="/support">Contact Support</FooterLink>
                         </div>
 
                         <div className="mt-10">

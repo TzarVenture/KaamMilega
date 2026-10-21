@@ -104,15 +104,16 @@ export default function AdminDisputesPage() {
         });
     };
 
-    const getReasonLabel = (reason: string) => {
-        switch (reason) {
-            case 'service_not_provided': return 'Service Not Delivered';
-            case 'session_cancelled': return 'Session Cancelled';
-            case 'duplicate_charge': return 'Duplicate Deduction';
-            case 'technical_failure': return 'Technical Failure';
-            case 'dissatisfied': return 'Quality / Dissatisfied';
-            default: return 'Other Reason';
+    const getReasonLabel = (reason?: string) => {
+        if (!reason || !reason.trim()) return 'Dispute';
+        // Dynamically format snake_case or display backend string directly
+        if (reason.includes('_')) {
+            return reason
+                .split('_')
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                .join(' ');
         }
+        return reason.charAt(0).toUpperCase() + reason.slice(1);
     };
 
     const getStatusBadge = (status: string) => {
@@ -355,9 +356,15 @@ export default function AdminDisputesPage() {
                                             <td className="px-6 py-4 max-w-xs">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-gray-900">{getReasonLabel(disp.reason)}</span>
-                                                    <p className="text-[11px] text-gray-500 truncate max-w-xs mt-0.5" title={disp.description}>
-                                                        {disp.description}
-                                                    </p>
+                                                    {disp.description ? (
+                                                        <p className="text-[11px] text-gray-500 truncate max-w-xs mt-0.5" title={disp.description}>
+                                                            {disp.description}
+                                                        </p>
+                                                    ) : (
+                                                        <p className="text-[11px] text-gray-400 italic mt-0.5">
+                                                            No explanation provided
+                                                        </p>
+                                                    )}
                                                     {disp.admin_notes && (
                                                         <span className="text-[10px] text-purple-700 font-medium mt-1 truncate">
                                                             Note: {disp.admin_notes}

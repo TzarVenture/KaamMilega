@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BuildingOfficeIcon, CircleNotchIcon, MagnifyingGlassIcon, NotePencilIcon, ShieldIcon, UserIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
+
+import { BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, DotsThreeVerticalIcon, EnvelopeSimpleIcon, LightningIcon, MagnifyingGlassIcon, NotePencilIcon, PlusIcon, ShieldIcon, UserIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import UserProfileModal from '@/components/modals/admin/UserProfileModal';

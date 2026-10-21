@@ -5,11 +5,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import BrandLogo from '@/components/km/BrandLogo';
 import { clearSession, isAuthenticated } from '@/lib/auth';
-import { BellIcon, BriefcaseIcon, BuildingOfficeIcon, CaretDownIcon, DownloadSimpleIcon, FlagIcon, GraduationCapIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, QuestionIcon, QuotesIcon, ShieldCheckIcon, ShieldWarningIcon, SidebarSimpleIcon, SignOutIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
+
+import { BellIcon, BriefcaseIcon, BuildingOfficeIcon, CaretDownIcon, DownloadSimpleIcon, FileXlsIcon, FlagIcon, GraduationCapIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, QuestionIcon, QuotesIcon, ShieldCheckIcon, ShieldIcon, ShieldWarningIcon, SidebarSimpleIcon, SignOutIcon, SquaresFourIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
+    { name: 'Analytics & Overview', icon: SquaresFourIcon, href: '/admin' },
+    { name: 'Reports & Analytics', icon: FileXlsIcon, href: '/admin/reports' },
     { name: 'User Module', icon: UsersIcon, href: '/admin/users' },
     { name: 'Recruiter / Company', icon: BuildingOfficeIcon, href: '/admin/companies' },
     { name: 'Testimonials', icon: QuotesIcon, href: '/admin/testimonials' },

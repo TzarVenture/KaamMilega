@@ -29,7 +29,7 @@ import {
   BelowTenthArt, TenthPassArt, TwelfthPassArt, DiplomaItiArt, GraduateArt, PostGraduateArt,
   WorkFromHomeArt, PartTimeArt, FullTimeArt, FresherArt, WomenJobsArt,
 } from '@/components/home/illustrations/CategoryArt';
-import { getYouTubeThumbnail, getYouTubeMaxResThumbnail, extractYouTubeVideoId } from '@/lib/youtube';
+import { getYouTubeMaxResThumbnail, extractYouTubeVideoId } from '@/lib/youtube';
 
 export default function LandingPage() {
   const router = useRouter();
@@ -706,10 +706,10 @@ const DiversityBanner = () => {
                   <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
                 </button>
               ) : (
-                <a href="#faq" className={learnMoreClass}>
+                <Link href="/about" className={learnMoreClass}>
                   Learn more
                   <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
-                </a>
+                </Link>
               )}
             </div>
 
@@ -796,7 +796,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=VPrT5JpXh0U",
     youtube_video_id: "VPrT5JpXh0U",
-    thumbnail: "https://img.youtube.com/vi/VPrT5JpXh0U/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/VPrT5JpXh0U/maxresdefault.jpg",
   },
   {
     id: "learn-2",
@@ -804,7 +804,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=1mHjMNZZvFo",
     youtube_video_id: "1mHjMNZZvFo",
-    thumbnail: "https://img.youtube.com/vi/1mHjMNZZvFo/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/1mHjMNZZvFo/maxresdefault.jpg",
   },
   {
     id: "learn-3",
@@ -812,7 +812,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "6 mins",
     youtube_url: "https://www.youtube.com/watch?v=KMbeK_6ATxQ",
     youtube_video_id: "KMbeK_6ATxQ",
-    thumbnail: "https://img.youtube.com/vi/KMbeK_6ATxQ/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/KMbeK_6ATxQ/maxresdefault.jpg",
   },
   {
     id: "learn-4",
@@ -820,7 +820,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=7_aAfl_2aSA",
     youtube_video_id: "7_aAfl_2aSA",
-    thumbnail: "https://img.youtube.com/vi/7_aAfl_2aSA/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/7_aAfl_2aSA/maxresdefault.jpg",
   },
 ];
 
@@ -845,9 +845,10 @@ const LearnSection = () => {
               extractYouTubeVideoId(item.youtube_url || "") ||
               DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].youtube_video_id;
 
+            // Prefer a custom thumbnail, then the true 16:9 maxresdefault over the 4:3 letterboxed hqdefault
             const thumb =
-              item.thumbnail_url ||
-              (videoId ? getYouTubeThumbnail(videoId) : "") ||
+              (item.thumbnail_url && !item.thumbnail_url.includes("hqdefault.jpg") ? item.thumbnail_url : "") ||
+              (videoId ? getYouTubeMaxResThumbnail(videoId) : "") ||
               DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].thumbnail;
 
             return {
@@ -923,8 +924,13 @@ const LearnSection = () => {
             referrerPolicy="no-referrer"
             className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => {
+              const target = e.target as HTMLImageElement;
               if (activeVideo.youtube_video_id) {
-                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/hqdefault.jpg`;
+                if (target.src.includes('maxresdefault.jpg')) {
+                  target.src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/mqdefault.jpg`;
+                } else if (target.src.includes('mqdefault.jpg')) {
+                  target.src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/hqdefault.jpg`;
+                }
               }
             }}
           />
@@ -963,8 +969,13 @@ const LearnSection = () => {
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                         onError={(e) => {
+                          const target = e.target as HTMLImageElement;
                           if (video.youtube_video_id) {
-                            (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+                            if (target.src.includes('maxresdefault.jpg')) {
+                              target.src = `https://img.youtube.com/vi/${video.youtube_video_id}/mqdefault.jpg`;
+                            } else if (target.src.includes('mqdefault.jpg')) {
+                              target.src = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+                            }
                           }
                         }}
                       />
