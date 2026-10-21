@@ -15,6 +15,7 @@ import {
 } from './illustrations/ServiceArt';
 import { FEATURES } from '@/config/features';
 import { useInViewOnce } from '@/lib/useInViewOnce';
+import { useReplayOnHover } from '@/lib/useReplayOnHover';
 
 interface ServiceDefinition {
     number: string;
@@ -31,6 +32,7 @@ interface ServiceDefinition {
 
 function ServiceBanner({ Art, tintHex, children }: Pick<ServiceDefinition, 'Art' | 'tintHex'> & { children: React.ReactNode }) {
     const { ref, inView } = useInViewOnce<HTMLDivElement>();
+    useReplayOnHover(ref, inView, '.group');
     return (
         <div ref={ref} data-inview={inView} className="relative h-32 rounded-xl overflow-hidden" style={{ backgroundColor: tintHex }}>
             <Art className="absolute inset-0 w-full h-full transition-transform duration-300 group-hover:-translate-y-1" />
@@ -149,7 +151,7 @@ export default function SevenServicesSection() {
                                 key={service.number}
                                 className={`group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] bg-white rounded-2xl border border-[#D9E0EA] p-3 flex flex-col transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
                             >
-                                {/* Illustrated banner on a soft tint of the service colour; its art animates once in view */}
+                                {/* Illustrated banner on a soft tint of the service colour; its art animates in view and on card hover */}
                                 <ServiceBanner Art={service.Art} tintHex={service.tintHex}>
                                     <span className="absolute top-2.5 right-2.5 text-xs font-semibold tabular-nums text-slate-500 bg-white/80 px-2 py-0.5 rounded-full">
                                         {service.number}

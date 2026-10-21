@@ -1,10 +1,11 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
 
-import { ArrowUpRightIcon, BellIcon, BooksIcon, BriefcaseIcon, CardsThreeIcon, CalendarDotsIcon, CaretDownIcon, ChalkboardTeacherIcon, ChatCircleDotsIcon, ChatIcon, CheckCircleIcon, CheckIcon, HouseSimpleIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, PersonSimpleRunIcon, UsersIcon, UsersThreeIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowUpRightIcon, BellIcon, BooksIcon, BriefcaseIcon, CardsThreeIcon, CalendarDotsIcon, CaretDownIcon, ChalkboardTeacherIcon, ChatCircleDotsIcon, ChatIcon, CheckCircleIcon, CheckIcon, HouseSimpleIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, UsersIcon, UsersThreeIcon, XIcon } from '@phosphor-icons/react';
 import type { Icon } from '@phosphor-icons/react';
 import CitySelector from "./CitySelector";
 import BrandLogo from "./BrandLogo";
+import AnimatedBoltIcon from "./AnimatedBoltIcon";
 import SearchHint from "./SearchHint";
 import CustomImage from "@/components/ui/CustomImage";
 import Image from "next/image";
@@ -19,9 +20,9 @@ import {
 
 interface NavLink {
   href: string;
-  Icon: Icon;
+  Icon: Icon | typeof AnimatedBoltIcon;
   label: string;
-  /** Brand-coloured icon (InstantMilega™) */
+  /** Brand-coloured icon */
   accent?: boolean;
 }
 
@@ -166,7 +167,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
     { href: "/", Icon: HouseSimpleIcon, label: "Home" },
     { href: "/feed", Icon: CardsThreeIcon, label: "Feed" },
     ...(FEATURES.INSTANT_MILEGA
-      ? [{ href: "/instant-milega", Icon: PersonSimpleRunIcon, label: "InstantMilega™", accent: true }]
+      ? [{ href: "/instant-milega", Icon: AnimatedBoltIcon, label: "InstantMilega™" }]
       : []),
     { href: "/network", Icon: UsersThreeIcon, label: "Network" },
     { href: "/events", Icon: CalendarDotsIcon, label: "Events" },
