@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState, useMemo, useId } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRightIcon, ArrowUpRightIcon, BookOpenIcon, BookOpenTextIcon, BriefcaseIcon, CertificateIcon, ExamIcon, GenderFemaleIcon, HouseLineIcon, NotebookIcon, PlantIcon, StudentIcon, BuildingsIcon, CalendarBlankIcon, CaretDownIcon, CaretRightIcon, CaretUpIcon, ClockIcon, GraduationCapIcon, HouseIcon, LightningIcon, MedalIcon, PhoneCallIcon, PlayIcon, ScrollIcon, SealCheckIcon, ShieldCheckIcon, StarIcon, UserIcon, UsersIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 
@@ -218,7 +218,6 @@ export default function LandingPage() {
       <LocationSection cities={cities} />
       <TrustCard isLoggedIn={isLoggedIn} user={currentUser} />
       <JobRolesGrid skills={skills} />
-      <CompaniesSlider companies={companies} />
       {users.length > 0 && (
         <ConnectJustLikeYou
           users={users}
@@ -518,48 +517,6 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
           View all job categories
           <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
         </Link>
-      </div>
-    </section>
-  );
-};
-
-// --- Enterprise Hiring Partners Showcase ---
-
-const CompaniesSlider = ({ companies }: { companies: any[] }) => {
-  return (
-    <section className="py-10 sm:py-12 border-y border-[#E3E9F1]" aria-label="Employers hiring on KaamMilega">
-      <p className={`${CONTAINER} mb-6 text-center text-sm font-medium text-[#5B6472]`}>
-        Top employers hiring verified talent on KaamMilega™
-      </p>
-
-      <div className="overflow-hidden">
-        <div className="animate-km-marquee items-center hover:[animation-play-state:paused] py-1">
-          {[...enterprisePartners, ...enterprisePartners].map((partner, idx) => (
-            <Link
-              key={`${partner.name}-${idx}`}
-              href={`/jobs?company=${encodeURIComponent(partner.name)}`}
-              aria-hidden={idx >= enterprisePartners.length || undefined}
-              tabIndex={idx >= enterprisePartners.length ? -1 : undefined}
-              className="shrink-0 mr-4 sm:mr-5 flex items-center gap-3 bg-white border border-[#D9E0EA] rounded-2xl pl-2.5 pr-5 py-2.5 hover:border-[#0B5ED7]/40 transition-colors group/logo"
-            >
-              <span className={`w-10 h-10 rounded-xl border p-1.5 flex items-center justify-center shrink-0 ${partner.bgClass || 'bg-white border-[#E3E9F1]'}`}>
-                <img
-                  src={partner.logo}
-                  alt=""
-                  className={`object-contain ${partner.imgClass || 'max-h-full max-w-full'}`}
-                />
-              </span>
-              <span className="text-left">
-                <span className="block text-sm font-semibold text-[#111827] leading-tight group-hover/logo:text-km-primary transition-colors">
-                  {partner.name}
-                </span>
-                <span className="block text-xs text-[#16A34A] mt-0.5 leading-tight">
-                  {partner.openings}
-                </span>
-              </span>
-            </Link>
-          ))}
-        </div>
       </div>
     </section>
   );
@@ -1131,91 +1088,125 @@ const formatEventPrice = (price: unknown) => {
   return !price || Number.isNaN(value) || value <= 0 ? 'Free' : `₹${value.toLocaleString('en-IN')}`;
 };
 
+// "2026-11-01" is read as a local calendar day, not UTC midnight
+const parseEventDate = (date?: string) => {
+  if (!date) return null;
+  const ymd = /^(\d{4})-(\d{2})-(\d{2})/.exec(date);
+  const parsed = ymd ? new Date(Number(ymd[1]), Number(ymd[2]) - 1, Number(ymd[3])) : new Date(date);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const formatEventDate = (date?: string) => {
+  const parsed = parseEventDate(date);
+  return parsed
+    ? parsed.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
+    : date || 'Date to be announced';
+};
+
+// Seeded test events carry a trailing timestamp in the title ("Masterclass 1790409017166")
+const cleanEventTitle = (title?: string) => (title || '').trim().replace(/\s+\d{10,}$/, '');
+
 const EventDatePlaceholder = ({ date }: { date?: string }) => {
-  const parsed = date ? new Date(date) : null;
-  const valid = parsed && !Number.isNaN(parsed.getTime());
+  const parsed = parseEventDate(date);
+  const gridId = useId();
   return (
-    <div className="w-full h-full bg-linear-to-br from-[#071A4D] to-[#0B5ED7] flex items-center justify-center">
-      {valid ? (
-        <div className="w-20 rounded-xl overflow-hidden bg-white text-center" aria-hidden="true">
+    <div className="w-full h-full bg-[#071A4D] relative overflow-hidden flex items-center justify-center">
+      <svg className="absolute inset-0 w-full h-full opacity-[0.08]" aria-hidden="true">
+        <defs>
+          <pattern id={gridId} width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="#FFFFFF" strokeWidth="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#${gridId})`} />
+      </svg>
+      {parsed ? (
+        <div className="relative w-20 rounded-xl overflow-hidden bg-white text-center shadow-lg" aria-hidden="true">
           <div className="bg-km-events text-white text-xs font-semibold py-1">
-            {parsed!.toLocaleDateString('en-IN', { month: 'short' })}
+            {parsed.toLocaleDateString('en-IN', { month: 'short' })}
           </div>
-          <div className="py-2 text-2xl font-bold text-[#111827] leading-none">{parsed!.getDate()}</div>
+          <div className="py-2 text-2xl font-bold text-[#111827] leading-none">{parsed.getDate()}</div>
         </div>
       ) : (
-        <CalendarBlankIcon size={48} weight="duotone" className="text-white/80" aria-hidden="true" />
+        <CalendarBlankIcon size={48} weight="duotone" className="relative text-white/80" aria-hidden="true" />
       )}
     </div>
   );
 };
 
-const EventsSection = ({ events }: { events: any[] }) => {
-  const displayEvents = events.length > 0 ? events : [];
+const EventsSection = ({ events: allEvents }: { events: any[] }) => {
+  // Hide events that already happened; undated events stay (shown as "Date to be announced")
+  const events = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return allEvents.filter((event) => {
+      const date = parseEventDate(event.date);
+      return !date || date >= today;
+    });
+  }, [allEvents]);
 
-  if (displayEvents.length === 0) return null;
+  if (events.length === 0) return null;
 
   return (
     <section className={SECTION} aria-labelledby="events-title">
-      <div className={`${CONTAINER} grid lg:grid-cols-12 gap-8 lg:gap-10 items-center`}>
-        <div className="lg:col-span-4">
-          <h2 id="events-title" className="text-2xl sm:text-[28px] lg:text-[32px] font-bold tracking-[-0.02em] leading-tight text-[#111827]">
-            Upcoming events and challenges
-          </h2>
-          <p className="mt-2 text-[15px] sm:text-base text-[#5B6472] leading-relaxed">
-            Meet peers, attend hiring workshops, and earn certified skills at community events.
-          </p>
-          <Link
-            href="/events"
-            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-sm font-semibold transition-colors"
-          >
-            View all events
-            <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
-          </Link>
-        </div>
+      <div className={CONTAINER}>
+        <SectionHeader
+          id="events-title"
+          title="Upcoming events and challenges"
+          description="Meet peers, attend hiring workshops, and earn certified skills at community events."
+          action={{ href: '/events', label: 'View all events' }}
+        />
 
         {/* Auto-scrolling row of event cards (pauses on hover/touch) */}
-        <div className="lg:col-span-8 overflow-hidden">
+        <div className="overflow-hidden">
           <div className="animate-km-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused] py-1">
-            {[...displayEvents, ...displayEvents].map((event, i) => (
-              <Link
-                href={`/events/${event.id}`}
-                key={`${event.id}-${i}`}
-                aria-hidden={i >= displayEvents.length || undefined}
-                tabIndex={i >= displayEvents.length ? -1 : undefined}
-                className="shrink-0 mr-5 w-72 sm:w-80 bg-white rounded-2xl overflow-hidden border border-[#D9E0EA] flex flex-col group/event hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
-              >
-                <div className="h-40 relative overflow-hidden">
-                  {event.image_url ? (
-                    <img
-                      src={event.image_url}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <EventDatePlaceholder date={event.date} />
-                  )}
-                  <span className="absolute top-3 left-3 bg-white/95 text-[#111827] text-xs font-medium px-2.5 py-1 rounded-full">
-                    {event.location || 'Online'}
-                  </span>
-                </div>
-                <div className="p-5 flex flex-col flex-1">
-                  <h3 className="text-base font-semibold text-[#111827] line-clamp-2 group-hover/event:text-km-primary transition-colors">
-                    {event.title}
-                  </h3>
-                  {event.organizer && (
-                    <p className="mt-1 text-sm text-[#5B6472] truncate">By {event.organizer}</p>
-                  )}
-                  <div className="mt-auto pt-4 flex items-center justify-between text-sm">
-                    <span className="flex items-center gap-1.5 text-[#5B6472]">
-                      <CalendarBlankIcon size={16} weight="bold" aria-hidden="true" />
-                      {event.date}
+            {[...events, ...events].map((event, i) => {
+              const price = formatEventPrice(event.price);
+              return (
+                <Link
+                  href={`/events/${event.id}`}
+                  key={`${event.id}-${i}`}
+                  aria-hidden={i >= events.length || undefined}
+                  tabIndex={i >= events.length ? -1 : undefined}
+                  className="shrink-0 mr-5 w-72 sm:w-80 bg-white rounded-2xl overflow-hidden border border-[#D9E0EA] flex flex-col group/event hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+                >
+                  <div className="h-40 relative overflow-hidden bg-[#071A4D]">
+                    {event.image_url ? (
+                      <img src={event.image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <EventDatePlaceholder date={event.date} />
+                    )}
+                    <span className="absolute top-3 left-3 max-w-[70%] truncate bg-white/95 text-[#111827] text-xs font-semibold px-2.5 py-1 rounded-full">
+                      {event.location || 'Online'}
                     </span>
-                    <span className="font-semibold text-[#111827]">{formatEventPrice(event.price)}</span>
+                    <span
+                      className={`absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full ${
+                        price === 'Free' ? 'bg-[#16A34A] text-white' : 'bg-white/95 text-[#111827]'
+                      }`}
+                    >
+                      {price}
+                    </span>
                   </div>
-                </div>
-              </Link>
-            ))}
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="text-base font-semibold leading-snug text-[#111827] line-clamp-2 min-h-[2.75rem] group-hover/event:text-km-primary transition-colors">
+                      {cleanEventTitle(event.title)}
+                    </h3>
+                    {event.organizer && (
+                      <p className="mt-1 text-sm text-[#5B6472] truncate">By {event.organizer}</p>
+                    )}
+                    <div className="mt-auto pt-4 border-t border-[#E3E9F1] flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-1.5 font-medium text-[#111827]">
+                        <CalendarBlankIcon size={16} weight="bold" className="text-km-events" aria-hidden="true" />
+                        {formatEventDate(event.date)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-km-primary">
+                        Details
+                        <CaretRightIcon size={14} weight="bold" className="transition-transform group-hover/event:translate-x-0.5" aria-hidden="true" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
