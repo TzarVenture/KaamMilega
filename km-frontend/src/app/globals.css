@@ -565,14 +565,6 @@ body {
   to { stroke-dashoffset: 0; }
 }
 
-[data-inview="true"] .km-a-float {
-  animation: kmArtFloat 6s ease-in-out 1.2s infinite;
-}
-@keyframes kmArtFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-
 /* Reduced motion: no movement, hidden parts simply fade in */
 @media (prefers-reduced-motion: reduce) {
   [data-inview] [class*="km-a-"] {

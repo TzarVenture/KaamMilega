@@ -570,7 +570,7 @@ const QualificationSearch = () => (
             href={`/jobs?qualification=${encodeURIComponent(label)}`}
             className="group/card bg-km-surface-card rounded-2xl border border-km-border p-5 hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
           >
-            <Art className="h-16 w-auto -ml-1 dark:ml-0 dark:rounded-xl dark:bg-[#E9EEF6] dark:p-1.5 dark:brightness-95" />
+            <Art className="h-16 w-auto -ml-3" />
             <h3 className="mt-4 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
               {label}
             </h3>
@@ -607,7 +607,7 @@ const JobTypeSection = () => (
             href={`/jobs?job_type=${encodeURIComponent(label)}`}
             className="group/card flex lg:flex-col items-start gap-4 lg:gap-0 bg-km-surface-card rounded-2xl border border-km-border p-5 hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
           >
-            <Art className="h-14 lg:h-16 w-auto shrink-0 -ml-1 dark:ml-0 dark:rounded-xl dark:bg-[#E9EEF6] dark:p-1.5 dark:brightness-95" />
+            <Art className="h-14 lg:h-16 w-auto shrink-0 -ml-3" />
             <div className="lg:mt-4 min-w-0">
               <h3 className="flex items-center gap-1 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
                 {label}
@@ -1551,7 +1551,7 @@ const PremiumServicesBanner = () => {
     <section className={SECTION} aria-labelledby="premium-title">
       <div className={CONTAINER}>
         <div className="bg-km-surface-card border border-km-border rounded-3xl p-6 sm:p-8 lg:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
-          <ProfileBoostArt className="w-full md:w-1/3 max-w-sm shrink-0 dark:rounded-2xl dark:bg-[#E9EEF6] dark:p-3 dark:brightness-95" />
+          <ProfileBoostArt className="w-full md:w-1/3 max-w-sm shrink-0" />
 
           <div className="flex-1 text-center md:text-left">
             <h2 id="premium-title" className="text-xl sm:text-2xl lg:text-[28px] font-bold tracking-[-0.02em] leading-tight text-km-text-primary">

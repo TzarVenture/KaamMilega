@@ -8,7 +8,6 @@ import { BriefcaseIcon, BuildingOfficeIcon, CaretRightIcon, ClockIcon, Graduatio
 import CitySelector from '@/components/km/CitySelector';
 import { FEATURES } from '@/config/features';
 import { useInViewOnce } from '@/lib/useInViewOnce';
-import { useReplayOnHover } from '@/lib/useReplayOnHover';
 
 interface HeroSectionProps {
     cities?: any[];
@@ -19,11 +18,9 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
     const router = useRouter();
 
     const [activeTab, setActiveTab] = useState<'jobs' | 'instant' | 'skills' | 'mentors'>('jobs');
-    // Slogan and floating card animate on first view and replay on hover
+    // Slogan and floating card animate once, on first view
     const { ref: sloganRef, inView: sloganInView } = useInViewOnce<HTMLDivElement>(0.2);
     const { ref: featureCardRef, inView: featureCardInView } = useInViewOnce<HTMLDivElement>(0.2);
-    useReplayOnHover(sloganRef, sloganInView);
-    useReplayOnHover(featureCardRef, featureCardInView);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCity, setSelectedCity] = useState('');
     const [tradeType, setTradeType] = useState('Electrician');
@@ -166,7 +163,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 {/* Tab 1: Find Jobs */}
                                 {activeTab === 'jobs' && (
                                     <form onSubmit={handleJobSearch} className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
+                                        <div className="flex-1 flex items-center h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
                                             <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 mr-2.5 shrink-0" />
                                             <input
                                                 type="text"
@@ -186,7 +183,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
 
                                         <button
                                             type="submit"
-                                            className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 py-3.5 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                                            className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 h-12 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                                         >
                                             <span>Search Jobs</span>
                                         </button>
@@ -197,7 +194,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 {FEATURES.INSTANT_MILEGA && activeTab === 'instant' && (
                                     <form onSubmit={handleInstantGigSearch} className="flex flex-col gap-3">
                                         <div className="flex flex-col sm:flex-row gap-3">
-                                            <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-km-surface-card focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
+                                            <div className="flex-1 flex items-center h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 focus-within:bg-km-surface-card focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
                                                 <WrenchIcon weight="bold" size={18} className="text-km-accent mr-2.5 shrink-0" />
                                                 <select
                                                     value={tradeType}
@@ -212,7 +209,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                                     <option value="Labour">Helper &amp; General Labour</option>
                                                 </select>
                                             </div>
-                                            <div className="sm:w-44 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-3 focus-within:bg-km-surface-card focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
+                                            <div className="sm:w-44 flex items-center h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3 focus-within:bg-km-surface-card focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
                                                 <MapPinIcon weight="bold" size={18} className="text-slate-400 mr-2 shrink-0" />
                                                 <input
                                                     type="text"
@@ -225,7 +222,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                             </div>
                                             <button
                                                 type="submit"
-                                                className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 py-3.5 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                                className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 h-12 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                                             >
                                                 <span>Find Instant Gigs</span>
                                                 <LightningIcon weight="bold" size={15} />
@@ -241,7 +238,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 {/* Tab 3: Learn Skills */}
                                 {activeTab === 'skills' && (
                                     <form onSubmit={handleSkillSearch} className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
+                                        <div className="flex-1 flex items-center h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
                                             <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 mr-2.5 shrink-0" />
                                             <input
                                                 type="text"
@@ -253,7 +250,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                         </div>
                                         <button
                                             type="submit"
-                                            className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 py-3.5 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                            className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 h-12 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                                         >
                                             <span>Explore Skills</span>
                                             <CaretRightIcon weight="bold" size={16} />
@@ -264,7 +261,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 {/* Tab 4: Mentors */}
                                 {activeTab === 'mentors' && (
                                     <form onSubmit={handleMentorSearch} className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
+                                        <div className="flex-1 flex items-center h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
                                             <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 mr-2.5 shrink-0" />
                                             <input
                                                 type="text"
@@ -276,7 +273,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                         </div>
                                         <button
                                             type="submit"
-                                            className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 py-3.5 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                                            className="bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 h-12 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                                         >
                                             <span>Find Mentors</span>
                                             <CaretRightIcon weight="bold" size={16} />
@@ -328,7 +325,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         <div
                             ref={sloganRef}
                             data-inview={sloganInView}
-                            className="absolute top-2 left-0 sm:-left-2 z-20 select-none hidden lg:block transform -rotate-6 cursor-default"
+                            className="absolute top-2 left-0 sm:-left-2 z-20 select-none hidden lg:block transform -rotate-6"
                         >
                             <p className="km-a-rise km-a-hide text-sm font-bold text-slate-800 tracking-tight leading-tight" style={{ animationDelay: '300ms' }}>
                                 Better Skills
@@ -353,11 +350,11 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             />
                         </div>
 
-                        {/* Floating Feature Card: rows slide in one by one, icons pop, the card floats gently */}
+                        {/* Floating Feature Card: rows slide in one by one and icons pop on first load */}
                         <div
                             ref={featureCardRef}
                             data-inview={featureCardInView}
-                            className="km-a-float absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-km-surface-card/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none">
+                            className="absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-km-surface-card/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none">
                             <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '400ms' }}>
                                 <span className="km-a-pop inline-flex" style={{ animationDelay: '650ms' }}>
                                     <BriefcaseIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-heading" aria-hidden="true" />

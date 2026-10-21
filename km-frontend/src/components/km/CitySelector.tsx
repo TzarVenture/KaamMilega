@@ -87,7 +87,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
             <div className="relative w-full sm:w-48" ref={dropdownRef}>
                 <div
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 hover:bg-km-surface-card hover:border-km-primary transition-all cursor-pointer shadow-2xs ${isOpen ? 'bg-km-surface-card border-km-primary ring-1 ring-km-primary' : ''}`}
+                    className={`flex items-center justify-between h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 hover:bg-km-surface-card hover:border-km-primary transition-all cursor-pointer ${isOpen ? 'bg-km-surface-card border-km-primary ring-1 ring-km-primary' : ''}`}
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
                         <MapPinIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
