@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import BrandLogo from '@/components/km/BrandLogo';
 import DownloadAppModal from '@/components/km/DownloadAppModal';
-import { Download, Globe, ChevronDown } from 'lucide-react';
+import { CaretDownIcon, DownloadSimpleIcon, GlobeIcon } from '@phosphor-icons/react';
 
 export default function AuthNavbar() {
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
@@ -35,7 +35,7 @@ export default function AuthNavbar() {
                             onClick={() => setIsDownloadModalOpen(true)}
                             className="flex items-center gap-1.5 hover:text-[#071A4D] transition-colors cursor-pointer py-1.5 px-3 rounded-lg hover:bg-[#F4F7FB] border border-transparent hover:border-[#D9E0EA]"
                         >
-                            <Download size={16} className="text-[#5B6472]" />
+                            <DownloadSimpleIcon weight="bold" size={16} className="text-[#5B6472]" />
                             <span className="hidden sm:inline">Download App</span>
                             <span className="sm:hidden">App</span>
                         </button>
@@ -47,9 +47,9 @@ export default function AuthNavbar() {
                                 onClick={() => setIsLangOpen(!isLangOpen)}
                                 className="flex items-center gap-1.5 hover:text-[#071A4D] transition-colors py-1.5 px-3 rounded-lg hover:bg-[#F4F7FB] border border-[#D9E0EA] cursor-pointer"
                             >
-                                <Globe size={15} className="text-[#5B6472]" />
+                                <GlobeIcon weight="bold" size={15} className="text-[#5B6472]" />
                                 <span>{selectedLang}</span>
-                                <ChevronDown
+                                <CaretDownIcon weight="bold"
                                     size={14}
                                     className={`transition-transform duration-200 text-[#5B6472] ${
                                         isLangOpen ? 'rotate-180' : ''

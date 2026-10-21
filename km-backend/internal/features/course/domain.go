@@ -26,19 +26,21 @@ type Course struct {
 }
 
 type CreateCourseRequest struct {
-	Title       string `json:"title" validate:"required"`
-	YouTubeURL  string `json:"youtube_url" validate:"required"`
-	Duration    string `json:"duration" validate:"required"`
-	Description string `json:"description"`
-	Category    string `json:"category"`
+	Title        string `json:"title" validate:"required"`
+	YouTubeURL   string `json:"youtube_url" validate:"required"`
+	Duration     string `json:"duration" validate:"required"`
+	Description  string `json:"description"`
+	Category     string `json:"category"`
+	ThumbnailURL string `json:"thumbnail_url,omitempty"`
 }
 
 type UpdateCourseRequest struct {
-	Title       string `json:"title,omitempty"`
-	YouTubeURL  string `json:"youtube_url,omitempty"`
-	Duration    string `json:"duration,omitempty"`
-	Description string `json:"description,omitempty"`
-	Category    string `json:"category,omitempty"`
+	Title        string `json:"title,omitempty"`
+	YouTubeURL   string `json:"youtube_url,omitempty"`
+	Duration     string `json:"duration,omitempty"`
+	Description  string `json:"description,omitempty"`
+	Category     string `json:"category,omitempty"`
+	ThumbnailURL string `json:"thumbnail_url,omitempty"`
 }
 
 type CourseFilter struct {
@@ -65,6 +67,7 @@ type CourseRepository interface {
 	IncrementViews(ctx context.Context, id primitive.ObjectID) (int64, error)
 	Update(ctx context.Context, course *Course) error
 	Delete(ctx context.Context, id primitive.ObjectID, expertID primitive.ObjectID) error
+	DeleteAny(ctx context.Context, id primitive.ObjectID) error
 }
 
 type CourseService interface {

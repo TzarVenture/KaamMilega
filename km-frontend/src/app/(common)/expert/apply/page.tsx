@@ -2,11 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Sparkles, CheckCircle2, ShieldCheck, Star, Calendar, 
-  ArrowRight, Award, Zap, Users, DollarSign, Wallet, 
-  Clock, ArrowUpRight, X, Lock
-} from "lucide-react";
+import { ArrowRightIcon, CheckCircleIcon, CreditCardIcon, LightningIcon, LockIcon, MedalIcon, SealCheckIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
@@ -254,7 +250,6 @@ export default function ExpertProSubscriptionPage() {
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-6 border border-white/10 backdrop-blur-xs">
-              <Sparkles size={14} />
               <span>KaamMilega Pro Expert Program</span>
             </div>
 
@@ -276,7 +271,7 @@ export default function ExpertProSubscriptionPage() {
           <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-8 sm:mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white shrink-0">
-                <Award size={26} />
+                <MedalIcon size={26} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
@@ -297,7 +292,7 @@ export default function ExpertProSubscriptionPage() {
               className="bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
             >
               <span>Manage Mentorship Dashboard</span>
-              <ArrowRight size={14} />
+              <ArrowRightIcon weight="bold" size={14} />
             </Link>
           </div>
         )}
@@ -325,7 +320,7 @@ export default function ExpertProSubscriptionPage() {
                 <div>
                   <div className="flex items-center justify-between mb-4">
                     <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1a2b8c]">
-                      {isYearly ? <Award size={26} /> : <Zap size={26} />}
+                      {isYearly ? <MedalIcon size={26} /> : <LightningIcon size={26} />}
                     </div>
                     {isYearly && (
                       <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
@@ -353,7 +348,7 @@ export default function ExpertProSubscriptionPage() {
                     </p>
                     {plan.perks.map((perk, i) => (
                       <div key={i} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                        <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5" />
                         <span>{perk}</span>
                       </div>
                     ))}
@@ -370,7 +365,7 @@ export default function ExpertProSubscriptionPage() {
                   }`}
                 >
                   <span>{activeSub ? "Switch to this Plan" : isYearly ? "Upgrade to Annual" : "Upgrade to Monthly"}</span>
-                  <ArrowRight size={15} />
+                  <ArrowRightIcon weight="bold" size={15} />
                 </button>
               </div>
             );
@@ -390,9 +385,7 @@ export default function ExpertProSubscriptionPage() {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#1a2b8c] flex items-center justify-center">
-                    <Sparkles size={16} />
-                  </div>
+                  <SealCheckIcon size={24} weight="duotone" className="text-[#0B5ED7]" aria-hidden="true" />
                   <h3 className="text-lg font-black text-slate-900">Upgrade to Pro Expert</h3>
                 </div>
                 <button
@@ -401,7 +394,7 @@ export default function ExpertProSubscriptionPage() {
                   disabled={paymentProcessing}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
                 >
-                  <X size={16} />
+                  <XIcon weight="bold" size={16} />
                 </button>
               </div>
 
@@ -437,9 +430,7 @@ export default function ExpertProSubscriptionPage() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-100/70 text-[#1a2b8c] flex items-center justify-center">
-                      <CreditCardIcon />
-                    </div>
+                    <CreditCardIcon size={22} className="text-[#1a2b8c]" aria-hidden="true" />
                     <div>
                       <div className="font-bold text-xs text-slate-900">Razorpay Online Payment</div>
                       <div className="text-[10px] text-slate-500">UPI (GPay/PhonePe), Cards, NetBanking</div>
@@ -462,9 +453,7 @@ export default function ExpertProSubscriptionPage() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center">
-                      <Wallet size={18} />
-                    </div>
+                    <WalletIcon size={22} className="text-emerald-700" aria-hidden="true" />
                     <div>
                       <div className="font-bold text-xs text-slate-900">KaamMilega Wallet</div>
                       <div className="text-[10px] text-slate-500">
@@ -512,7 +501,7 @@ export default function ExpertProSubscriptionPage() {
                       </>
                     ) : (
                       <>
-                        <Lock size={13} />
+                        <LockIcon weight="bold" size={13} />
                         <span>Pay ₹{selectedPlan.price} with Razorpay</span>
                       </>
                     )}
@@ -531,7 +520,7 @@ export default function ExpertProSubscriptionPage() {
                       </>
                     ) : (
                       <>
-                        <Wallet size={14} />
+                        <WalletIcon weight="bold" size={14} />
                         <span>Pay ₹{selectedPlan.price} from Wallet</span>
                       </>
                     )}
@@ -546,11 +535,3 @@ export default function ExpertProSubscriptionPage() {
   );
 }
 
-function CreditCardIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="20" height="14" x="2" y="5" rx="2" />
-      <line x1="2" x2="22" y1="10" y2="10" />
-    </svg>
-  );
-}

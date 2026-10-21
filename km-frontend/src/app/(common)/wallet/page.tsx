@@ -1,25 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    Wallet as WalletIcon, 
-    ArrowUpRight, 
-    ArrowDownLeft, 
-    Lock, 
-    Gift, 
-    RefreshCw, 
-    CreditCard, 
-    Zap, 
-    CheckCircle2,
-    Users,
-    ShieldCheck,
-    Building2,
-    Phone,
-    AlertCircle,
-    X,
-    ShieldAlert,
-    ReceiptText
-} from 'lucide-react';
+import { ArrowDownLeftIcon, ArrowUpRightIcon, ArrowsClockwiseIcon, BuildingOfficeIcon, CheckCircleIcon, CreditCardIcon, GiftIcon, LightningIcon, LockIcon, PhoneIcon, ReceiptIcon, ShieldCheckIcon, ShieldWarningIcon, UsersIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -296,9 +278,7 @@ export default function WalletPage() {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                     <div>
                         <div className="flex items-center gap-2.5">
-                            <span className="p-2 sm:p-2.5 rounded-2xl bg-purple-100 text-purple-700 shadow-xs flex items-center justify-center">
-                                <WalletIcon className="w-5 h-5 sm:w-6 sm:h-6" />
-                            </span>
+                            <WalletIcon size={28} weight="duotone" className="text-purple-700" aria-hidden="true" />
                             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                                 My Wallet
                             </h1>
@@ -314,7 +294,7 @@ export default function WalletPage() {
                             disabled={loading}
                             className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-60"
                         >
-                            <RefreshCw size={14} className={loading ? "animate-spin text-purple-600" : "text-slate-500"} />
+                            <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600" : "text-slate-500"} />
                             <span>Refresh</span>
                         </button>
                     </div>
@@ -328,7 +308,7 @@ export default function WalletPage() {
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8">
                         <div className="space-y-2 sm:space-y-3">
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/10">
-                                <ShieldCheck size={13} className="text-emerald-400" />
+                                <ShieldCheckIcon weight="bold" size={13} className="text-emerald-400" />
                                 <span>Total Balance</span>
                             </div>
                             <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-white font-mono">
@@ -341,7 +321,7 @@ export default function WalletPage() {
                                 </p>
                                 <span className="hidden sm:inline text-slate-600">•</span>
                                 <p className="flex items-center gap-1 text-slate-300">
-                                    <ShieldCheck size={14} className="text-emerald-400" />
+                                    <ShieldCheckIcon weight="bold" size={14} className="text-emerald-400" />
                                     <span>Safe & Protected</span>
                                 </p>
                             </div>
@@ -353,7 +333,7 @@ export default function WalletPage() {
                                 onClick={() => setIsTopupModalOpen(true)}
                                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold shadow-lg shadow-purple-600/30 transition active:scale-95 cursor-pointer"
                             >
-                                <ArrowDownLeft size={18} />
+                                <ArrowDownLeftIcon weight="bold" size={18} />
                                 <span>Add Money</span>
                             </button>
 
@@ -361,7 +341,7 @@ export default function WalletPage() {
                                 onClick={() => setIsWithdrawModalOpen(true)}
                                 className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold backdrop-blur-md border border-white/15 transition active:scale-95 cursor-pointer"
                             >
-                                <ArrowUpRight size={18} />
+                                <ArrowUpRightIcon weight="bold" size={18} />
                                 <span>Withdraw</span>
                             </button>
                         </div>
@@ -382,9 +362,7 @@ export default function WalletPage() {
                         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="p-2.5 rounded-xl bg-blue-50 text-blue-600">
-                                        <CreditCard size={18} />
-                                    </span>
+                                    <CreditCardIcon size={24} className="text-blue-600" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full">
                                         Available
                                     </span>
@@ -403,9 +381,7 @@ export default function WalletPage() {
                         <div className="bg-white rounded-2xl p-5 border border-emerald-200/80 shadow-xs hover:border-emerald-400 hover:shadow-md transition-all bg-emerald-50/20 flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="p-2.5 rounded-xl bg-emerald-100 text-emerald-700">
-                                        <ArrowUpRight size={18} />
-                                    </span>
+                                    <ArrowUpRightIcon size={24} className="text-emerald-700" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full">
                                         Withdrawable
                                     </span>
@@ -424,9 +400,7 @@ export default function WalletPage() {
                         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="p-2.5 rounded-xl bg-amber-50 text-amber-600">
-                                        <Lock size={18} />
-                                    </span>
+                                    <LockIcon size={24} className="text-amber-600" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">
                                         Protected
                                     </span>
@@ -445,9 +419,7 @@ export default function WalletPage() {
                         <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="p-2.5 rounded-xl bg-purple-50 text-purple-600">
-                                        <Gift size={18} />
-                                    </span>
+                                    <GiftIcon size={24} className="text-purple-600" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full">
                                         Discounts
                                     </span>
@@ -469,11 +441,11 @@ export default function WalletPage() {
                     {/* 1. Pro Access Banner */}
                     <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-md flex flex-col justify-between relative overflow-hidden">
                         <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4 pointer-events-none">
-                            <Zap size={140} />
+                            <LightningIcon size={140} />
                         </div>
                         <div className="relative z-10">
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
-                                <Zap size={13} />
+                                <LightningIcon weight="bold" size={13} />
                                 <span>Platform Pass</span>
                             </div>
                             <h3 className="text-xl sm:text-2xl font-extrabold mb-1.5">KaamMilega Pro Pass</h3>
@@ -487,7 +459,7 @@ export default function WalletPage() {
                                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-orange-700 text-xs font-bold rounded-xl hover:bg-orange-50 transition shadow-xs active:scale-95"
                             >
                                 <span>Explore Jobs & Passes</span>
-                                <ArrowUpRight size={14} />
+                                <ArrowUpRightIcon weight="bold" size={14} />
                             </Link>
                         </div>
                     </div>
@@ -495,11 +467,11 @@ export default function WalletPage() {
                     {/* 2. Mentorship Booking Banner */}
                     <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-md flex flex-col justify-between relative overflow-hidden">
                         <div className="absolute right-0 bottom-0 opacity-10 translate-x-4 translate-y-4 pointer-events-none">
-                            <Users size={140} />
+                            <UsersIcon size={140} />
                         </div>
                         <div className="relative z-10">
                             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
-                                <Users size={13} />
+                                <UsersIcon weight="bold" size={13} />
                                 <span>Career Growth</span>
                             </div>
                             <h3 className="text-xl sm:text-2xl font-extrabold mb-1.5">1-on-1 Expert Mentorship</h3>
@@ -513,7 +485,7 @@ export default function WalletPage() {
                                 className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-50 transition shadow-xs active:scale-95"
                             >
                                 <span>Browse Mentors</span>
-                                <ArrowUpRight size={14} />
+                                <ArrowUpRightIcon weight="bold" size={14} />
                             </Link>
                         </div>
                     </div>
@@ -530,7 +502,7 @@ export default function WalletPage() {
                                 : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
-                        <ReceiptText size={15} />
+                        <ReceiptIcon weight="bold" size={15} />
                         <span>Ledger & Activity</span>
                     </button>
 
@@ -543,7 +515,7 @@ export default function WalletPage() {
                                 : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
-                        <ShieldAlert size={15} className="text-amber-600" />
+                        <ShieldWarningIcon weight="bold" size={15} className="text-amber-600" />
                         <span>Refunds & Disputes</span>
                     </button>
                 </div>
@@ -568,7 +540,7 @@ export default function WalletPage() {
                     <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-6">
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <CreditCard size={18} className="text-purple-600" />
+                                <CreditCardIcon weight="bold" size={18} className="text-purple-600" />
                                 <span>Add Money to Wallet</span>
                             </h3>
                             <button 
@@ -615,7 +587,7 @@ export default function WalletPage() {
 
                             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600 space-y-1">
                                 <p className="font-semibold text-slate-800 flex items-center gap-1.5">
-                                    <CheckCircle2 size={14} className="text-emerald-500" />
+                                    <CheckCircleIcon weight="bold" size={14} className="text-emerald-500" />
                                     <span>Instant recharge via UPI, Cards & NetBanking</span>
                                 </p>
                                 <p className="text-[11px] text-slate-400 pl-5">
@@ -641,12 +613,12 @@ export default function WalletPage() {
                             >
                                 {isPaymentProcessing ? (
                                     <>
-                                        <RefreshCw size={14} className="animate-spin" />
+                                        <ArrowsClockwiseIcon weight="bold" size={14} className="animate-spin" />
                                         <span>Processing...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <CreditCard size={14} />
+                                        <CreditCardIcon weight="bold" size={14} />
                                         <span>Pay ₹{topupAmount}</span>
                                     </>
                                 )}
@@ -663,9 +635,7 @@ export default function WalletPage() {
                         {/* Modal Header */}
                         <div className="flex justify-between items-start">
                             <div className="flex items-center gap-2.5">
-                                <div className="p-2 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-xs">
-                                    <ArrowUpRight size={20} />
-                                </div>
+                                <ArrowUpRightIcon size={24} className="text-emerald-700" aria-hidden="true" />
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900">
                                         Withdraw Earnings
@@ -680,7 +650,7 @@ export default function WalletPage() {
                                 className="p-1 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition cursor-pointer"
                                 aria-label="Close modal"
                             >
-                                <X size={18} />
+                                <XIcon weight="bold" size={18} />
                             </button>
                         </div>
 
@@ -759,7 +729,7 @@ export default function WalletPage() {
                                                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                                         }`}
                                     >
-                                        <Building2 size={16} />
+                                        <BuildingOfficeIcon weight="bold" size={16} />
                                         <span>Bank Transfer</span>
                                     </button>
                                     <button
@@ -771,7 +741,7 @@ export default function WalletPage() {
                                                 : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                                         }`}
                                     >
-                                        <Zap size={16} />
+                                        <LightningIcon weight="bold" size={16} />
                                         <span>Instant UPI</span>
                                     </button>
                                 </div>
@@ -876,7 +846,7 @@ export default function WalletPage() {
                             {/* Contact Phone */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1.5">
-                                    <Phone size={13} className="text-slate-400" />
+                                    <PhoneIcon weight="bold" size={13} className="text-slate-400" />
                                     <span>Contact Phone (For verification & payout alert)</span>
                                 </label>
                                 <input
@@ -892,7 +862,7 @@ export default function WalletPage() {
 
                             {/* Info Callout */}
                             <div className="flex items-start gap-2 p-3 bg-amber-50/80 rounded-2xl border border-amber-200/60 text-amber-900 text-xs leading-relaxed">
-                                <AlertCircle size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                                <WarningCircleIcon weight="bold" size={15} className="text-amber-600 shrink-0 mt-0.5" />
                                 <p>
                                     Requested amount is deducted immediately from your earnings to prevent double-spending, and recorded in your immutable ledger below. Payout is disbursed by admin via IMPS/UPI.
                                 </p>
@@ -915,12 +885,12 @@ export default function WalletPage() {
                                 >
                                     {isWithdrawing ? (
                                         <>
-                                            <RefreshCw size={14} className="animate-spin" />
+                                            <ArrowsClockwiseIcon weight="bold" size={14} className="animate-spin" />
                                             <span>Submitting...</span>
                                         </>
                                     ) : (
                                         <>
-                                            <ArrowUpRight size={15} />
+                                            <ArrowUpRightIcon weight="bold" size={15} />
                                             <span>Withdraw ₹{withdrawAmount || '0'}</span>
                                         </>
                                     )}

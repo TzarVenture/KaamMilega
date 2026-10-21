@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ChevronRight } from 'lucide-react';
+import { CaretRightIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
@@ -189,7 +189,7 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                             className="inline-flex items-center gap-1 text-km-primary font-bold text-sm hover:underline"
                         >
                             <span>Explore All Experts & Mentors</span>
-                            <ChevronRight size={16} />
+                            <CaretRightIcon weight="bold" size={16} />
                         </Link>
                     </div>
                 </div>
@@ -220,7 +220,7 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                             className="inline-flex items-center gap-1 text-km-primary font-bold text-sm hover:underline"
                         >
                             <span>Browse All Hiring Companies</span>
-                            <ChevronRight size={16} />
+                            <CaretRightIcon weight="bold" size={16} />
                         </Link>
                     </div>
                 </div>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Pagination from '@/components/ui/Pagination';
-import { Calendar, Video, MoreHorizontal, Search, ArrowLeft, Ticket } from 'lucide-react';
+import { ArrowLeftIcon, CalendarBlankIcon, DotsThreeIcon, MagnifyingGlassIcon, TicketIcon, VideoCameraIcon } from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/axios';
@@ -30,7 +30,7 @@ export const EventCard = ({ event }: { event: Event }) => {
                     <img src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
                 ) : (
                     <div className="flex items-center gap-1.5 text-white/50 group-hover:scale-105 transition-transform duration-200">
-                        <Ticket size={24} className="text-[#F59E0B]" />
+                        <TicketIcon size={24} className="text-[#F59E0B]" />
                     </div>
                 )}
             </div>
@@ -49,11 +49,11 @@ export const EventCard = ({ event }: { event: Event }) => {
 
                     <div className="mt-3 flex flex-wrap gap-3 sm:gap-4 text-xs font-semibold text-[#5B6472]">
                         <div className="flex items-center gap-1.5 bg-[#F4F7FB] px-2.5 py-1 rounded-lg border border-[#D9E0EA]/70">
-                            <Calendar size={14} className="text-[#F59E0B] shrink-0" />
+                            <CalendarBlankIcon weight="bold" size={14} className="text-[#F59E0B] shrink-0" />
                             <span>{event.date}, {event.time}</span>
                         </div>
                         <div className="flex items-center gap-1.5 bg-[#F4F7FB] px-2.5 py-1 rounded-lg border border-[#D9E0EA]/70">
-                            <Video size={14} className="text-[#F59E0B] shrink-0" />
+                            <VideoCameraIcon weight="bold" size={14} className="text-[#F59E0B] shrink-0" />
                             <span className="truncate max-w-[140px] sm:max-w-none">{event.location}</span>
                         </div>
                     </div>
@@ -67,7 +67,7 @@ export const EventCard = ({ event }: { event: Event }) => {
                     className="p-1.5 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                     aria-label="Event options"
                 >
-                    <MoreHorizontal size={18} />
+                    <DotsThreeIcon weight="bold" size={18} />
                 </button>
                 <Link
                     href={`/events/${eventId}`}
@@ -148,7 +148,7 @@ export default function EventsPage() {
                         onClick={() => router.back()}
                         aria-label="Back to network"
                     >
-                        <ArrowLeft size={18} />
+                        <ArrowLeftIcon weight="bold" size={18} />
                     </button>
                     <div>
                         <h1 className="text-lg sm:text-xl font-bold text-[#111827]">
@@ -173,7 +173,7 @@ export default function EventsPage() {
                     </div>
 
                     <div className="relative w-full sm:w-72">
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6472]" size={16} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6472]" size={16} />
                         <input
                             type="text"
                             placeholder="Search events..."
@@ -202,9 +202,7 @@ export default function EventsPage() {
                     </div>
                 ) : events.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                        <div className="w-12 h-12 rounded-2xl bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center text-[#5B6472] mb-3">
-                            <Calendar size={20} />
-                        </div>
+                        <CalendarBlankIcon size={28} weight="duotone" className="text-[#5B6472] mb-3" aria-hidden="true" />
                         <p className="text-sm font-semibold text-[#111827]">
                             {searchQuery ? "No events found matching your search." : "There are currently no events to display."}
                         </p>

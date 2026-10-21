@@ -5,22 +5,7 @@ import { useSearchParams } from "next/navigation";
 import api from "@/lib/axios";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import {
-    Bell,
-    Shield,
-    Lock,
-    Globe,
-    CheckCircle2,
-    Save,
-    Eye,
-    Smartphone,
-    Mail,
-    Key,
-    ShieldCheck,
-    Check,
-    RefreshCw,
-    SlidersHorizontal
-} from "lucide-react";
+import { ArrowsClockwiseIcon, BellIcon, CheckCircleIcon, DeviceMobileIcon, EnvelopeSimpleIcon, EyeIcon, GlobeIcon, KeyIcon, LockIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@phosphor-icons/react';
 import { FullPageSkeleton } from "@/components/ui/LoadingSkeleton";
 
 interface SettingsViewProps {
@@ -164,7 +149,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <SlidersHorizontal className="w-8 h-8 text-km-primary" />
+                        <SlidersHorizontalIcon className="w-8 h-8 text-km-primary" />
                         Account & Preference Settings
                     </h1>
                     <p className="text-sm font-semibold text-slate-500 mt-1">
@@ -173,7 +158,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                 </div>
                 {saving && (
                     <div className="flex items-center gap-2 text-xs font-extrabold text-km-primary bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-100">
-                        <RefreshCw className="w-3.5 h-3.5 animate-spin" /> Saving changes...
+                        <ArrowsClockwiseIcon weight="bold" className="w-3.5 h-3.5 animate-spin" /> Saving changes...
                     </div>
                 )}
             </div>
@@ -188,7 +173,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
-                    <Bell className="w-4 h-4" /> Notifications
+                    <BellIcon weight="bold" className="w-4 h-4" /> Notifications
                 </button>
                 <button
                     onClick={() => setActiveTab("privacy")}
@@ -198,7 +183,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
-                    <Eye className="w-4 h-4" /> Privacy & Visibility
+                    <EyeIcon weight="bold" className="w-4 h-4" /> Privacy & Visibility
                 </button>
                 <button
                     onClick={() => setActiveTab("security")}
@@ -208,7 +193,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
-                    <Lock className="w-4 h-4" /> Account Security
+                    <LockIcon weight="bold" className="w-4 h-4" /> Account Security
                 </button>
                 <button
                     onClick={() => setActiveTab("preferences")}
@@ -218,7 +203,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
-                    <Globe className="w-4 h-4" /> Preferences & Language
+                    <GlobeIcon weight="bold" className="w-4 h-4" /> Preferences & Language
                 </button>
             </div>
 
@@ -341,7 +326,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                 >
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-bold text-slate-900">{opt.title}</p>
-                                        {settings.profile_visibility === opt.id && <CheckCircle2 className="w-5 h-5 text-km-primary" />}
+                                        {settings.profile_visibility === opt.id && <CheckCircleIcon className="w-5 h-5 text-km-primary" />}
                                     </div>
                                     <p className="text-xs text-slate-500 font-medium leading-relaxed">{opt.desc}</p>
                                 </div>
@@ -354,7 +339,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div className="py-4 flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <SlidersHorizontal className="w-4 h-4 text-km-primary" /> Automated Skill Matching & Recommendations
+                                    <SlidersHorizontalIcon weight="bold" className="w-4 h-4 text-km-primary" /> Automated Skill Matching & Recommendations
                                 </p>
                                 <p className="text-xs text-slate-500 font-medium mt-0.5">Match your verified profile and skills with relevant recruiter requirements.</p>
                             </div>
@@ -400,24 +385,20 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-blue-100 text-km-primary flex items-center justify-center font-bold">
-                                        <Smartphone className="w-5 h-5" />
-                                    </div>
+                                    <DeviceMobileIcon size={24} weight="duotone" className="text-km-primary" aria-hidden="true" />
                                     <div>
                                         <p className="text-xs text-slate-400 font-extrabold uppercase">Mobile Verification</p>
                                         <p className="text-sm font-bold text-slate-900">{userProfile?.mobile || "Not Linked"}</p>
                                     </div>
                                 </div>
                                 <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 font-extrabold text-[10px] rounded-full flex items-center gap-1">
-                                    <ShieldCheck className="w-3 h-3" /> Verified
+                                    <ShieldCheckIcon weight="bold" className="w-3 h-3" /> Verified
                                 </span>
                             </div>
 
                             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-orange-100 text-km-accent-dark flex items-center justify-center font-bold">
-                                        <Mail className="w-5 h-5" />
-                                    </div>
+                                    <EnvelopeSimpleIcon size={24} weight="duotone" className="text-km-accent-dark" aria-hidden="true" />
                                     <div>
                                         <p className="text-xs text-slate-400 font-extrabold uppercase">Email Verification</p>
                                         <p className="text-sm font-bold text-slate-900 truncate max-w-40">{userProfile?.email || "Not Set"}</p>
@@ -426,7 +407,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                 <span className={`px-2.5 py-1 font-extrabold text-[10px] rounded-full flex items-center gap-1 ${
                                     userProfile?.is_email_verified ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
                                 }`}>
-                                    <ShieldCheck className="w-3 h-3" /> {userProfile?.is_email_verified ? "Verified" : "Pending"}
+                                    <ShieldCheckIcon weight="bold" className="w-3 h-3" /> {userProfile?.is_email_verified ? "Verified" : "Pending"}
                                 </span>
                             </div>
                         </div>
@@ -435,9 +416,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     {/* Change Password Form */}
                     <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-2xl bg-blue-50 text-km-primary flex items-center justify-center font-bold border border-blue-100">
-                                <Key className="w-5 h-5" />
-                            </div>
+                            <KeyIcon size={24} weight="duotone" className="text-km-primary" aria-hidden="true" />
                             <div>
                                 <h3 className="text-base font-black text-slate-900 tracking-tight">Change Password</h3>
                                 <p className="text-xs text-slate-500 font-semibold">Update your account login credentials securely.</p>

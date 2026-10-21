@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { MapPin, ChevronDown, Search, Loader2 } from 'lucide-react';
+import { CaretDownIcon, CircleNotchIcon, MagnifyingGlassIcon, MapPinIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -90,12 +90,12 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                     className={`flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 hover:bg-white hover:border-km-primary transition-all cursor-pointer shadow-2xs ${isOpen ? 'bg-white border-km-primary ring-1 ring-km-primary' : ''}`}
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <MapPin size={17} className="text-slate-400 shrink-0" />
+                        <MapPinIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
                         <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate">
                             {displayLabel}
                         </span>
                     </div>
-                    <ChevronDown size={16} className={`text-slate-500 shrink-0 ml-1.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                    <CaretDownIcon weight="bold" size={16} className={`text-slate-500 shrink-0 ml-1.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
 
                 <AnimatePresence>
@@ -109,7 +109,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                         >
                             <div className="p-3 border-b border-slate-100 bg-slate-50/50">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                     <input
                                         type="text"
                                         placeholder="Search city or hub..."
@@ -133,7 +133,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                 </div>
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-4">
-                                        <Loader2 size={18} className="animate-spin text-km-primary" />
+                                        <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-primary" />
                                     </div>
                                 ) : (
                                     displayCities.map(city => (
@@ -170,10 +170,10 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                     onClick={() => setIsOpen(!isOpen)}
                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors min-w-35"
                 >
-                    <MapPin size={18} className="text-gray-500" />
+                    <MapPinIcon weight="bold" size={18} className="text-gray-500" />
                     <span className="text-sm text-gray-400">City-</span>
                     <span className="text-sm font-semibold text-gray-800">{selectedCity || 'All'}</span>
-                    <ChevronDown size={16} className={`text-gray-500 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <CaretDownIcon weight="bold" size={16} className={`text-gray-500 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
 
                 <AnimatePresence>
@@ -186,7 +186,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                         >
                             <div className="p-3 border-b border-gray-50">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                                     <input
                                         type="text"
                                         placeholder="Search city..."
@@ -207,7 +207,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                 </div>
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-4">
-                                        <Loader2 size={18} className="animate-spin text-km-primary" />
+                                        <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-primary" />
                                     </div>
                                 ) : (
                                     displayCities.map(city => (
@@ -240,9 +240,9 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full border border-gray-100 min-w-35 cursor-pointer"
             >
-                <MapPin size={16} className="text-gray-500" />
+                <MapPinIcon weight="bold" size={16} className="text-gray-500" />
                 <span className="text-sm font-medium text-gray-700">City- <span className="font-bold">{selectedCity || 'All'}</span></span>
-                <ChevronDown size={16} className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <CaretDownIcon weight="bold" size={16} className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
             <AnimatePresence>
@@ -255,7 +255,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                     >
                         <div className="p-3 border-b border-gray-50">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                                <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                                 <input
                                     type="text"
                                     placeholder="Search city..."
@@ -276,7 +276,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                             </div>
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-4">
-                                    <Loader2 size={18} className="animate-spin text-km-primary" />
+                                    <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-primary" />
                                 </div>
                             ) : (
                                 displayCities.map(city => (

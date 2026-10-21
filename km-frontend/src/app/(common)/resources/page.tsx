@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { ChevronDown, Video, Loader2 } from "lucide-react";
+import { CircleNotchIcon, VideoCameraIcon } from '@phosphor-icons/react';
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
@@ -144,14 +144,12 @@ export default function ResourcePage() {
                 {/* Courses Feed */}
                 {loading ? (
                     <div className="py-20 flex flex-col justify-center items-center space-y-3">
-                        <Loader2 size={32} className="animate-spin text-[#0B5ED7]" />
+                        <CircleNotchIcon size={32} className="animate-spin text-[#0B5ED7]" />
                         <p className="text-xs text-[#5B6472] font-medium">Loading training courses...</p>
                     </div>
                 ) : courses.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-dashed border-[#D9E0EA] p-12 text-center space-y-3">
-                        <div className="w-14 h-14 rounded-full bg-[#F4F7FB] text-[#5B6472] flex items-center justify-center mx-auto">
-                            <Video size={24} />
-                        </div>
+                        <VideoCameraIcon size={32} weight="duotone" className="text-[#5B6472] mx-auto" aria-hidden="true" />
                         <h3 className="text-base font-bold text-[#111827]">
                             No Courses Found
                         </h3>

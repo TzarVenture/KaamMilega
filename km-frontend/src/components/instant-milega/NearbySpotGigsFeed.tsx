@@ -1,17 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-    MapPin,
-    Clock,
-    Building2,
-    RefreshCw,
-    Wrench,
-    Check,
-    Briefcase,
-    AlertCircle,
-    X
-} from 'lucide-react';
+import { ArrowsClockwiseIcon, BriefcaseIcon, MapPinIcon, XIcon } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
@@ -180,7 +170,7 @@ export default function NearbySpotGigsFeed({
                         disabled={loading}
                         className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#071A4D] text-[#071A4D] hover:bg-[#F4F7FB] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
                     >
-                        <RefreshCw size={13} className={loading ? 'animate-spin text-[#FF6B00]' : ''} />
+                        <ArrowsClockwiseIcon weight="bold" size={13} className={loading ? 'animate-spin text-[#FF6B00]' : ''} />
                         <span>Refresh</span>
                     </button>
                 </div>
@@ -189,9 +179,7 @@ export default function NearbySpotGigsFeed({
             {/* Gigs List or Empty State */}
             {visibleJobs.length === 0 ? (
                 <div className="p-8 sm:p-12 bg-white rounded-2xl border border-[#D9E0EA] text-center">
-                    <div className="w-12 h-12 mx-auto rounded-xl bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center text-[#071A4D] mb-3">
-                        <Briefcase size={22} className="text-[#071A4D]" />
-                    </div>
+                    <BriefcaseIcon size={28} weight="duotone" className="text-[#071A4D] mx-auto mb-3" aria-hidden="true" />
                     <h3 className="text-base font-bold text-[#111827] font-poppins">
                         {isFiltered
                             ? `No Open Gigs for "${activeSkill}" Nearby`
@@ -242,7 +230,7 @@ export default function NearbySpotGigsFeed({
                                         </span>
 
                                         <span className="text-xs font-medium text-[#5B6472] flex items-center gap-1">
-                                            <MapPin size={13} className="text-[#FF6B00]" />
+                                            <MapPinIcon weight="bold" size={13} className="text-[#FF6B00]" />
                                             <span>{distText}</span>
                                         </span>
                                     </div>
@@ -295,7 +283,7 @@ export default function NearbySpotGigsFeed({
                                                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                             ) : (
                                                 <>
-                                                    <Briefcase size={14} />
+                                                    <BriefcaseIcon weight="bold" size={14} />
                                                     <span>Claim Gig</span>
                                                 </>
                                             )}
@@ -308,7 +296,7 @@ export default function NearbySpotGigsFeed({
                                             title="Dismiss Gig"
                                             aria-label="Dismiss Gig"
                                         >
-                                            <X size={14} />
+                                            <XIcon weight="bold" size={14} />
                                         </button>
                                     </div>
                                 </div>

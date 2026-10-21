@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, MoreVertical, Edit, UserPlus, Mail, Shield, Zap, Users, Building2, User, Loader2, CheckCircle2 } from 'lucide-react';
+
+import { BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, DotsThreeVerticalIcon, EnvelopeSimpleIcon, LightningIcon, MagnifyingGlassIcon, NotePencilIcon, PlusIcon, ShieldIcon, UserIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import UserProfileModal from '@/components/modals/admin/UserProfileModal';
@@ -177,10 +178,10 @@ export default function UsersPage() {
             {/* Quick Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                 {[
-                    { label: 'Total Registered', value: totalUsersCount.toString(), icon: Users, color: 'text-purple-600', bg: 'bg-purple-50' },
-                    { label: 'Platform Admins', value: adminCount.toString(), icon: Shield, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                    { label: 'Verified Employers', value: recruiterCount.toString(), icon: Building2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Active Candidates', value: candidateCount.toString(), icon: User, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    { label: 'Total Registered', value: totalUsersCount.toString(), icon: UsersIcon, color: 'text-purple-600', bg: 'bg-purple-50' },
+                    { label: 'Platform Admins', value: adminCount.toString(), icon: ShieldIcon, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+                    { label: 'Verified Employers', value: recruiterCount.toString(), icon: BuildingOfficeIcon, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                    { label: 'Active Candidates', value: candidateCount.toString(), icon: UserIcon, color: 'text-blue-600', bg: 'bg-blue-50' },
                 ].map((stat, i) => (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -194,9 +195,7 @@ export default function UsersPage() {
                                 <p className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">{stat.label}</p>
                                 <h3 className="text-2xl font-bold text-slate-900">{stat.value}</h3>
                             </div>
-                            <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl`}>
-                                <stat.icon size={20} />
-                            </div>
+                            <stat.icon size={28} weight="duotone" className={`${stat.color} shrink-0`} aria-hidden="true" />
                         </div>
                     </motion.div>
                 ))}
@@ -211,7 +210,7 @@ export default function UsersPage() {
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="relative group flex-1">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
                         <input
                             type="text"
                             placeholder="Search by name, mobile, role..."
@@ -230,7 +229,7 @@ export default function UsersPage() {
                             onClick={handleAddUser}
                             className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold hover:bg-purple-700 transition-all"
                         >
-                            <UserPlus size={18} />
+                            <UserPlusIcon weight="bold" size={18} />
                             <span>Add User</span>
                         </motion.button>
                     </div>
@@ -258,14 +257,14 @@ export default function UsersPage() {
                             {isLoading ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-16 text-center text-slate-500">
-                                        <Loader2 className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3" />
+                                        <CircleNotchIcon className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3" />
                                         <p className="text-sm font-medium">Loading platform users...</p>
                                     </td>
                                 </tr>
                             ) : paginatedUsers.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-16 text-center text-slate-500">
-                                        <User className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                                        <UserIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                                         <h4 className="text-base font-bold text-slate-700">No Users Found</h4>
                                         <p className="text-xs text-slate-400 mt-1">Try refining your search query.</p>
                                     </td>
@@ -324,7 +323,7 @@ export default function UsersPage() {
                                                 onClick={() => handleOpenRoleModal(user)}
                                                 className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95"
                                             >
-                                                <Shield size={13} />
+                                                <ShieldIcon weight="bold" size={13} />
                                                 <span>Manage Access</span>
                                             </button>
                                         </td>
@@ -338,7 +337,7 @@ export default function UsersPage() {
                                                 className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all border border-transparent hover:border-purple-100"
                                                 title="Edit Profile"
                                             >
-                                                <Edit size={16} />
+                                                <NotePencilIcon weight="bold" size={16} />
                                             </button>
                                         </td>
                                     </motion.tr>

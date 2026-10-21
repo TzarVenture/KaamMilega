@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Users, MapPin, Sparkles, Award, Briefcase, ArrowRight } from 'lucide-react';
+import { ArrowRightIcon, BriefcaseIcon, MapPinIcon, MedalIcon, TargetIcon, UsersThreeIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '@/components/ui/UserAvatar';
@@ -210,9 +210,7 @@ const NetworkPage = () => {
             {hasIncompleteProfile && (
                 <div className="bg-gradient-to-r from-blue-50/80 via-white to-amber-50/40 rounded-2xl border border-[#D9E0EA] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
                     <div className="flex items-start gap-3.5">
-                        <div className="w-10 h-10 rounded-xl bg-[#071A4D] text-[#FF6B00] flex items-center justify-center shrink-0 shadow-2xs">
-                            <Sparkles size={18} />
-                        </div>
+                        <TargetIcon size={28} weight="duotone" className="text-[#0B5ED7] shrink-0" aria-hidden="true" />
                         <div>
                             <h3 className="text-sm font-bold text-[#111827]">
                                 Get higher precision recommendations
@@ -227,7 +225,7 @@ const NetworkPage = () => {
                         className="whitespace-nowrap px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold rounded-xl shadow-xs transition-all active:scale-[0.98] cursor-pointer flex items-center gap-1.5 self-end sm:self-auto"
                     >
                         <span>Update Skills</span>
-                        <ArrowRight size={13} />
+                        <ArrowRightIcon weight="bold" size={13} />
                     </Link>
                 </div>
             )}
@@ -271,7 +269,6 @@ const NetworkPage = () => {
                                 People You May Know
                             </h2>
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0B5ED7] bg-[#0B5ED7]/10 px-2 py-0.5 rounded-full border border-[#0B5ED7]/20">
-                                <Sparkles size={11} />
                                 Matched for you
                             </span>
                         </div>
@@ -290,10 +287,10 @@ const NetworkPage = () => {
                 {/* Filter Pills */}
                 <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide pt-1">
                     {[
-                        { id: 'all' as FilterType, label: 'All Recommended', icon: Sparkles },
-                        { id: 'city' as FilterType, label: userCity ? `In ${userCity}` : 'Near You', icon: MapPin },
-                        { id: 'skills' as FilterType, label: 'Similar Skills', icon: Award },
-                        { id: 'industry' as FilterType, label: 'In Your Domain', icon: Briefcase },
+                        { id: 'all' as FilterType, label: 'All Recommended', icon: UsersThreeIcon },
+                        { id: 'city' as FilterType, label: userCity ? `In ${userCity}` : 'Near You', icon: MapPinIcon },
+                        { id: 'skills' as FilterType, label: 'Similar Skills', icon: MedalIcon },
+                        { id: 'industry' as FilterType, label: 'In Your Domain', icon: BriefcaseIcon },
                     ].map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeFilter === tab.id;
@@ -330,9 +327,7 @@ const NetworkPage = () => {
                     </div>
                 ) : suggestions.length === 0 ? (
                     <div className="text-center py-12 px-4 bg-[#F4F7FB]/60 rounded-xl border border-dashed border-[#D9E0EA]">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#071A4D] flex items-center justify-center mx-auto mb-3 shadow-2xs">
-                            <Users size={22} />
-                        </div>
+                        <UsersIcon size={28} weight="duotone" className="text-[#071A4D] mx-auto mb-3" aria-hidden="true" />
                         <h3 className="text-sm font-bold text-[#111827] mb-1">
                             {activeFilter === 'city'
                                 ? 'No Local Profiles Found'
@@ -415,7 +410,7 @@ const InvitationRow = ({
                     </p>
                     {senderInfo.city && (
                         <div className="flex items-center gap-1 text-[11px] text-[#5B6472] font-semibold mt-0.5">
-                            <MapPin size={11} className="text-[#071A4D] shrink-0" />
+                            <MapPinIcon weight="bold" size={11} className="text-[#071A4D] shrink-0" />
                             <span className="truncate">{senderInfo.city}</span>
                         </div>
                     )}

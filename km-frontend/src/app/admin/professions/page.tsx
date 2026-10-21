@@ -1,21 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import {
-    Search,
-    Plus,
-    Trash2,
-    Edit2,
-    GraduationCap,
-    Loader2,
-    RefreshCw,
-    FolderTree,
-    Layers,
-    CheckCircle2,
-    AlertCircle,
-    Database,
-    Tag
-} from 'lucide-react';
+import { ArrowsClockwiseIcon, CheckCircleIcon, CircleNotchIcon, DatabaseIcon, GraduationCapIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlusIcon, StackIcon, TagIcon, TrashIcon, TreeStructureIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
 import ProfessionModal from '@/components/modals/admin/ProfessionModal';
@@ -219,9 +205,9 @@ export default function ProfessionsPage() {
                 >
                     <div className="flex items-center gap-2.5">
                         {statusBanner.type === 'success' ? (
-                            <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+                            <CheckCircleIcon weight="bold" size={18} className="text-emerald-600 shrink-0" />
                         ) : (
-                            <AlertCircle size={18} className="text-rose-600 shrink-0" />
+                            <WarningCircleIcon weight="bold" size={18} className="text-rose-600 shrink-0" />
                         )}
                         <span>{statusBanner.message}</span>
                     </div>
@@ -238,9 +224,7 @@ export default function ProfessionsPage() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-6 sm:p-8 rounded-[28px] border border-purple-100/60 shadow-sm">
                 <div className="space-y-1">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-purple-100 rounded-2xl flex items-center justify-center text-purple-700">
-                            <GraduationCap size={26} />
-                        </div>
+                        <GraduationCapIcon size={28} weight="duotone" className="text-purple-700" aria-hidden="true" />
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-900 bg-clip-text text-transparent">
                                 Master Skill & Profession Catalog
@@ -259,7 +243,7 @@ export default function ProfessionsPage() {
                         className="flex items-center gap-2 px-5 py-2.5 bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 rounded-2xl text-xs font-bold transition-all disabled:opacity-50"
                         title="Seed platform standard catalog"
                     >
-                        {isSeeding ? <Loader2 size={15} className="animate-spin" /> : <Database size={15} />}
+                        {isSeeding ? <CircleNotchIcon weight="bold" size={15} className="animate-spin" /> : <DatabaseIcon weight="bold" size={15} />}
                         <span>Seed Catalog</span>
                     </button>
 
@@ -269,14 +253,14 @@ export default function ProfessionsPage() {
                         className="p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200 rounded-2xl transition-all"
                         title="Refresh list"
                     >
-                        <RefreshCw size={18} className={isLoading ? 'animate-spin' : ''} />
+                        <ArrowsClockwiseIcon weight="bold" size={18} className={isLoading ? 'animate-spin' : ''} />
                     </button>
 
                     <button
                         onClick={openCreateModal}
                         className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-black uppercase tracking-wider transition-all shadow-md active:scale-95"
                     >
-                        <Plus size={16} />
+                        <PlusIcon weight="bold" size={16} />
                         <span>Add Profession</span>
                     </button>
                 </div>
@@ -285,9 +269,7 @@ export default function ProfessionsPage() {
             {/* Metric Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-purple-100 flex items-center justify-center text-purple-700 shrink-0">
-                        <Tag size={22} />
-                    </div>
+                    <TagIcon size={28} weight="duotone" className="text-purple-700 shrink-0" aria-hidden="true" />
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Master Skills</p>
                         <p className="text-2xl font-black text-slate-900 mt-0.5">{skills.length}</p>
@@ -295,9 +277,7 @@ export default function ProfessionsPage() {
                 </div>
 
                 <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
-                        <FolderTree size={22} />
-                    </div>
+                    <TreeStructureIcon size={28} weight="duotone" className="text-indigo-700 shrink-0" aria-hidden="true" />
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Categories</p>
                         <p className="text-2xl font-black text-slate-900 mt-0.5">{categories.length}</p>
@@ -305,9 +285,7 @@ export default function ProfessionsPage() {
                 </div>
 
                 <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700 shrink-0">
-                        <Layers size={22} />
-                    </div>
+                    <StackIcon size={28} weight="duotone" className="text-emerald-700 shrink-0" aria-hidden="true" />
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Matching Query</p>
                         <p className="text-2xl font-black text-slate-900 mt-0.5">{filteredSkills.length}</p>
@@ -320,7 +298,7 @@ export default function ProfessionsPage() {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     {/* Search Input */}
                     <div className="relative w-full md:w-96">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             value={searchTerm}
@@ -388,7 +366,7 @@ export default function ProfessionsPage() {
             <main>
                 {isLoading ? (
                     <div className="bg-white rounded-[32px] p-20 flex flex-col items-center justify-center gap-4 border border-purple-100/60 shadow-sm">
-                        <Loader2 className="w-12 h-12 text-purple-600 animate-spin" />
+                        <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin" />
                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">
                             Loading master catalog from database...
                         </p>
@@ -491,7 +469,7 @@ export default function ProfessionsPage() {
                                                             className="p-2 hover:bg-purple-50 text-slate-400 hover:text-purple-600 rounded-xl transition-colors"
                                                             title="Edit profession"
                                                         >
-                                                            <Edit2 size={16} />
+                                                            <PencilSimpleIcon weight="bold" size={16} />
                                                         </button>
                                                         <button
                                                             onClick={() => handleDeleteSkill(skill.id, skill.name)}
@@ -500,9 +478,9 @@ export default function ProfessionsPage() {
                                                             title="Delete profession"
                                                         >
                                                             {isDeleting ? (
-                                                                <Loader2 size={16} className="animate-spin text-rose-600" />
+                                                                <CircleNotchIcon weight="bold" size={16} className="animate-spin text-rose-600" />
                                                             ) : (
-                                                                <Trash2 size={16} />
+                                                                <TrashIcon weight="bold" size={16} />
                                                             )}
                                                         </button>
                                                     </div>

@@ -1,5 +1,5 @@
 'use client'
-import { Briefcase, MapPin, MessageCircle, Plus, Users } from "lucide-react";
+import { BriefcaseIcon, ChatCircleIcon, MapPinIcon, PlusIcon, UsersIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { CompanyProvider, useCompany } from "./CompanyContext";
@@ -51,7 +51,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                 <img src={company.cover_image} alt="Cover" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                    <Briefcase size={64} className="text-white" />
+                                    <BriefcaseIcon size={64} className="text-white" />
                                 </div>
                             )}
 
@@ -61,7 +61,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                     {company.logo ? (
                                         <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <Briefcase size={48} className="text-white" />
+                                        <BriefcaseIcon size={48} className="text-white" />
                                     )}
                                 </div>
                             </div>
@@ -125,22 +125,22 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                         {[1, 2, 3].map((i) => (
                             <div key={i} className="flex items-center gap-3 py-4 border-b border-gray-50 last:border-0">
                                 <div className="w-12 h-12 bg-km-primary-dark rounded-full shrink-0 flex items-center justify-center">
-                                    <Users className="text-white w-6 h-6" />
+                                    <UsersIcon className="text-white w-6 h-6" />
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm font-bold text-gray-900">Person Name</p>
                                     <p className="text-[11px] text-gray-400 font-medium">Person Designation</p>
                                     <div className="flex items-center text-[11px] text-gray-400 mt-0.5 font-medium">
-                                        <MapPin size={10} className="mr-1 text-km-primary" /> Location
+                                        <MapPinIcon weight="bold" size={10} className="mr-1 text-km-primary" /> Location
                                     </div>
                                     <p className="text-[10px] text-gray-300 mt-1">10 Mutual Connects</p>
                                 </div>
                                 <div className="flex flex-col gap-2">
                                     <button className="p-1.5 rounded-xl border border-gray-200 text-km-primary hover:bg-gray-50">
-                                        <MessageCircle size={16} />
+                                        <ChatCircleIcon weight="bold" size={16} />
                                     </button>
                                     <button className="p-1.5 rounded-xl bg-km-primary text-white shadow-sm hover:bg-km-primary-dark">
-                                        <Plus size={16} />
+                                        <PlusIcon weight="bold" size={16} />
                                     </button>
                                 </div>
                             </div>
@@ -159,7 +159,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                             <div key={i} className="mb-6 last:mb-0">
                                 <div className="flex gap-4">
                                     <div className="w-12 h-12 bg-km-primary-dark rounded-xl flex items-center justify-center shrink-0">
-                                        <Briefcase className="text-white w-6 h-6" />
+                                        <BriefcaseIcon className="text-white w-6 h-6" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-gray-900">Company Name</p>

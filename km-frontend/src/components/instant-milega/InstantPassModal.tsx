@@ -2,15 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import {
-    X,
-    ShieldCheck,
-    Check,
-    Phone,
-    CreditCard,
-    ArrowRight,
-    Wallet
-} from 'lucide-react';
+import { ArrowRightIcon, CheckIcon, CreditCardIcon, ShieldCheckIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';
 import api from '@/lib/axios';
 import { getCurrentUser } from '@/lib/auth';
@@ -189,7 +181,7 @@ export default function InstantPassModal({
                         className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white cursor-pointer"
                         aria-label="Close"
                     >
-                        <X size={16} />
+                        <XIcon weight="bold" size={16} />
                     </button>
                 </div>
 
@@ -227,12 +219,10 @@ export default function InstantPassModal({
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <div className="w-7 h-7 rounded-lg bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center text-[#071A4D]">
-                                        <Wallet size={15} />
-                                    </div>
+                                    <WalletIcon size={24} weight={selectedMethod === 'wallet' ? 'duotone' : 'regular'} className="text-[#071A4D]" aria-hidden="true" />
                                     {selectedMethod === 'wallet' && (
                                         <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center">
-                                            <Check size={11} strokeWidth={3} />
+                                            <CheckIcon weight="bold" size={11} />
                                         </div>
                                     )}
                                 </div>
@@ -255,12 +245,10 @@ export default function InstantPassModal({
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <div className="w-7 h-7 rounded-lg bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center text-[#071A4D]">
-                                        <CreditCard size={15} />
-                                    </div>
+                                    <CreditCardIcon size={24} weight={selectedMethod === 'razorpay' ? 'duotone' : 'regular'} className="text-[#071A4D]" aria-hidden="true" />
                                     {selectedMethod === 'razorpay' && (
                                         <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center">
-                                            <Check size={11} strokeWidth={3} />
+                                            <CheckIcon weight="bold" size={11} />
                                         </div>
                                     )}
                                 </div>
@@ -275,27 +263,21 @@ export default function InstantPassModal({
                     {/* Features Checklist */}
                     <div className="space-y-2 pt-1">
                         <div className="flex items-start gap-2.5">
-                            <div className="w-4 h-4 rounded-full bg-[#FFF7ED] text-[#FF6B00] flex items-center justify-center shrink-0 mt-0.5">
-                                <Check size={11} strokeWidth={3} />
-                            </div>
+                            <CheckIcon weight="bold" size={16} className="text-km-instant shrink-0 mt-px" aria-hidden="true" />
                             <p className="text-xs text-[#5B6472]">
                                 <strong className="text-[#111827]">10 Work Credits</strong>: One credit is used per accepted Instant Milega gig.
                             </p>
                         </div>
 
                         <div className="flex items-start gap-2.5">
-                            <div className="w-4 h-4 rounded-full bg-[#FFF7ED] text-[#FF6B00] flex items-center justify-center shrink-0 mt-0.5">
-                                <Check size={11} strokeWidth={3} />
-                            </div>
+                            <CheckIcon weight="bold" size={16} className="text-km-instant shrink-0 mt-px" aria-hidden="true" />
                             <p className="text-xs text-[#5B6472]">
                                 <strong className="text-[#111827]">Unlimited Direct Chats</strong>: Unlocks direct messaging beyond the free 3-contact limit.
                             </p>
                         </div>
 
                         <div className="flex items-start gap-2.5">
-                            <div className="w-4 h-4 rounded-full bg-[#FFF7ED] text-[#FF6B00] flex items-center justify-center shrink-0 mt-0.5">
-                                <Check size={11} strokeWidth={3} />
-                            </div>
+                            <CheckIcon weight="bold" size={16} className="text-km-instant shrink-0 mt-px" aria-hidden="true" />
                             <p className="text-xs text-[#5B6472]">
                                 <strong className="text-[#111827]">Expert application</strong>: Apply as an Expert if you have 2+ years of experience. 0% commission on your service earnings.
                             </p>
@@ -316,9 +298,9 @@ export default function InstantPassModal({
                                         <span>Processing Wallet Debit...</span>
                                     ) : (
                                         <>
-                                            <Wallet size={16} />
+                                            <WalletIcon weight="bold" size={16} />
                                             <span>Pay ₹99 from KaamMilega Wallet</span>
-                                            <ArrowRight size={16} />
+                                            <ArrowRightIcon weight="bold" size={16} />
                                         </>
                                     )}
                                 </button>
@@ -330,9 +312,9 @@ export default function InstantPassModal({
                                         disabled={loading}
                                         className="w-full bg-[#FF6B00] hover:bg-[#FF8A00] text-white font-semibold text-sm py-3 rounded-xl transition-colors flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70 shadow-xs"
                                     >
-                                        <CreditCard size={16} />
+                                        <CreditCardIcon weight="bold" size={16} />
                                         <span>Pay ₹99 via Online Gateway</span>
-                                        <ArrowRight size={16} />
+                                        <ArrowRightIcon weight="bold" size={16} />
                                     </button>
                                     <p className="text-center text-xs text-[#5B6472]">
                                         Wallet balance (₹{(walletBalance || 0).toFixed(2)}) is insufficient.{' '}
@@ -353,16 +335,16 @@ export default function InstantPassModal({
                                     <span>Opening Payment Gateway...</span>
                                 ) : (
                                     <>
-                                        <CreditCard size={16} />
+                                        <CreditCardIcon weight="bold" size={16} />
                                         <span>Pay ₹99 via Online Gateway</span>
-                                        <ArrowRight size={16} />
+                                        <ArrowRightIcon weight="bold" size={16} />
                                     </>
                                 )}
                             </button>
                         )}
 
                         <p className="text-center text-xs text-[#5B6472] mt-2.5 flex items-center justify-center gap-1.5">
-                            <ShieldCheck size={14} className="text-[#16A34A]" />
+                            <ShieldCheckIcon weight="bold" size={14} className="text-[#16A34A]" />
                             <span>100% Secure Payment · Instant 10 Gigs Quota</span>
                         </p>
                     </div>

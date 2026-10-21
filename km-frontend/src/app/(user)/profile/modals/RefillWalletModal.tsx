@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Wallet, ShieldCheck, Zap, ArrowRight, ExternalLink } from 'lucide-react';
+import { ArrowRightIcon, ArrowSquareOutIcon, ShieldCheckIcon, WalletIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import Link from 'next/link';
 
@@ -133,7 +133,7 @@ export default function RefillWalletModal({
                         <p className="text-2xl font-black mt-0.5">₹{currentBalance.toFixed(2)}</p>
                     </div>
                     <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
-                        <Wallet size={20} className="text-white" />
+                        <WalletIcon size={20} className="text-white" />
                     </div>
                 </div>
 
@@ -186,7 +186,7 @@ export default function RefillWalletModal({
 
                 {/* Trust Banner */}
                 <div className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-[11px] text-gray-500">
-                    <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+                    <ShieldCheckIcon weight="bold" size={16} className="text-emerald-600 shrink-0" />
                     <span>Instant wallet top-up secured with 256-bit bank-grade encryption via UPI, Cards & NetBanking.</span>
                 </div>
 
@@ -198,7 +198,7 @@ export default function RefillWalletModal({
                         className="text-xs text-km-primary font-bold hover:underline inline-flex items-center gap-1"
                     >
                         <span>Full Wallet & History</span>
-                        <ExternalLink size={12} />
+                        <ArrowSquareOutIcon weight="bold" size={12} />
                     </Link>
 
                     <div className="flex gap-2">
@@ -219,7 +219,7 @@ export default function RefillWalletModal({
                             ) : (
                                 <>
                                     <span>Proceed to Pay</span>
-                                    <ArrowRight size={14} />
+                                    <ArrowRightIcon weight="bold" size={14} />
                                 </>
                             )}
                         </button>

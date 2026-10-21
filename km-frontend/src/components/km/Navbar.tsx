@@ -1,23 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
-import {
-  Search,
-  MapPin,
-  ChevronDown,
-  Home,
-  Users,
-  Briefcase,
-  MessageSquare,
-  BookOpen,
-  Bell,
-  ArrowUpRight,
-  Menu,
-  X,
-  Calendar,
-  Zap,
-  Check,
-  MessageSquareQuote,
-} from "lucide-react";
+
+import { ArrowUpRightIcon, BellIcon, BookOpenIcon, BriefcaseIcon, CalendarBlankIcon, CaretDownIcon, ChatIcon, CheckCircleIcon, CheckIcon, HouseIcon, LightningIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, QuotesIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import CitySelector from "./CitySelector";
 import BrandLogo from "./BrandLogo";
 import SearchHint from "./SearchHint";
@@ -150,26 +134,26 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
   };
 
   const navLinks = [
-    { href: "/", icon: <Home size={18} />, label: "Home" },
+    { href: "/", icon: <HouseIcon weight="bold" size={18} />, label: "Home" },
     ...(FEATURES.INSTANT_MILEGA
       ? [
           {
             href: "/instant-milega",
-            icon: <Zap size={18} className="text-[#FF6B00] fill-[#FF6B00]" />,
+            icon: <LightningIcon weight="bold" size={18} className="text-[#FF6B00] fill-[#FF6B00]" />,
             label: "InstantMilega™",
           },
         ]
       : []),
-    { href: "/network", icon: <Users size={18} />, label: "Network" },
-    { href: "/events", icon: <Calendar size={18} />, label: "Events" },
-    { href: "/jobs", icon: <Briefcase size={18} />, label: "Jobs" },
-    { href: "/mentorship", icon: <BookOpen size={18} />, label: "Mentors" },
-    { href: "/chat", icon: <MessageSquare size={18} />, label: "Chat" },
+    { href: "/network", icon: <UsersIcon weight="bold" size={18} />, label: "Network" },
+    { href: "/events", icon: <CalendarBlankIcon weight="bold" size={18} />, label: "Events" },
+    { href: "/jobs", icon: <BriefcaseIcon weight="bold" size={18} />, label: "Jobs" },
+    { href: "/mentorship", icon: <BookOpenIcon weight="bold" size={18} />, label: "Mentors" },
+    { href: "/chat", icon: <ChatIcon weight="bold" size={18} />, label: "Chat" },
     ...(!isRecruiter
       ? [
           {
             href: "/resources",
-            icon: <BookOpen size={18} />,
+            icon: <BookOpenIcon weight="bold" size={18} />,
             label: "Resources",
           },
         ]
@@ -181,16 +165,8 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
       <nav className="bg-white border-b border-slate-200 px-4 md:px-6 h-16 flex items-center justify-between sticky top-0 z-50 shadow-xs font-sans">
         {/* Left Section: Logo & Search */}
         <div className="flex items-center gap-4 flex-1 min-w-0">
-          <div className="shrink-0 flex items-center gap-2.5">
+          <div className="shrink-0 flex items-center">
             <BrandLogo size="sm" showTextOnMobile={true} />
-            <Link
-              href="/admin/testimonials"
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-blue-50 hover:text-km-primary border border-slate-200 transition-colors shadow-2xs"
-              title="Admin Testimonials Portal"
-            >
-              <MessageSquareQuote size={14} className="text-km-primary" />
-              <span className="hidden sm:inline">Testimonials</span>
-            </Link>
           </div>
 
           {/* Desktop: City selector + Search */}
@@ -204,7 +180,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
             )}
 
             <form onSubmit={handleSearch} className="relative w-full">
-              <Search
+              <MagnifyingGlassIcon weight="bold"
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"
                 size={17}
               />
@@ -222,7 +198,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   onClick={() => setSearchValue("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 cursor-pointer"
                 >
-                  <X size={15} />
+                  <XIcon weight="bold" size={15} />
                 </button>
               )}
             </form>
@@ -290,7 +266,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 }`}
                 aria-label="Notifications"
               >
-                <Bell
+                <BellIcon weight="fill"
                   size={18}
                   className={
                     unreadCount > 0
@@ -357,7 +333,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                         }}
                         className="text-xs font-semibold text-km-primary hover:text-km-primary-dark transition-colors cursor-pointer flex items-center gap-1 shrink-0"
                       >
-                        <Check size={13} />
+                        <CheckIcon weight="bold" size={13} />
                         Mark all read
                       </button>
                     )}
@@ -377,9 +353,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                       <div className="max-h-80 overflow-y-auto divide-y divide-slate-100">
                         {displayedNotifications.length === 0 ? (
                           <div className="p-8 text-center text-slate-400">
-                            <div className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2">
-                              <Check size={18} />
-                            </div>
+                            <CheckCircleIcon size={32} weight="duotone" className="text-emerald-600 mx-auto mb-2" aria-hidden="true" />
                             <p className="text-xs font-semibold text-slate-700">
                               All caught up!
                             </p>
@@ -421,33 +395,21 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                                     />
                                   </div>
                                 ) : notif.category === "messages" ? (
-                                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700">
-                                    <MessageSquare
-                                      size={15}
-                                      className="fill-blue-700"
-                                    />
-                                  </div>
+                                  <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                    <ChatIcon size={22} weight="duotone" />
+                                  </span>
                                 ) : notif.category === "jobs" ? (
-                                  <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
-                                    <Briefcase
-                                      size={15}
-                                      className="fill-amber-700"
-                                    />
-                                  </div>
+                                  <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                    <BriefcaseIcon size={22} weight="duotone" />
+                                  </span>
                                 ) : notif.category === "network" ? (
-                                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
-                                    <Users
-                                      size={15}
-                                      className="fill-emerald-700"
-                                    />
-                                  </div>
+                                  <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                    <UsersIcon size={22} weight="duotone" />
+                                  </span>
                                 ) : (
-                                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700">
-                                    <Bell
-                                      size={15}
-                                      className="fill-slate-700"
-                                    />
-                                  </div>
+                                  <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                    <BellIcon size={22} weight="duotone" />
+                                  </span>
                                 )}
                               </div>
 
@@ -520,7 +482,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
               <span className="text-xs font-semibold text-slate-800 hidden lg:inline">
                 {displayName}
               </span>
-              <ChevronDown
+              <CaretDownIcon weight="bold"
                 size={14}
                 className={`text-slate-500 transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`}
               />
@@ -654,7 +616,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                       className="flex items-center text-km-primary text-xs font-bold hover:underline"
                     >
                       Create Company Page{" "}
-                      <ArrowUpRight size={14} className="ml-1" />
+                      <ArrowUpRightIcon weight="bold" size={14} className="ml-1" />
                     </Link>
                     {!isExpert && (
                       <Link
@@ -662,7 +624,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                         className="flex items-center text-km-primary text-xs font-bold hover:underline"
                       >
                         Apply to be an Expert{" "}
-                        <ArrowUpRight size={14} className="ml-1" />
+                        <ArrowUpRightIcon weight="bold" size={14} className="ml-1" />
                       </Link>
                     )}
                   </div>
@@ -686,7 +648,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
             }`}
             aria-label="Search"
           >
-            <Search size={20} />
+            <MagnifyingGlassIcon size={20} />
           </button>
           <div className="relative flex items-center justify-center">
             <Link
@@ -694,7 +656,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
               className="p-1 block relative"
               aria-label="Notifications"
             >
-              <Bell
+              <BellIcon weight="fill"
                 size={20}
                 className={
                   unreadCount > 0
@@ -721,7 +683,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
             }`}
             aria-label="Menu"
           >
-            {mobileNavOpen ? <X size={22} /> : <Menu size={22} />}
+            {mobileNavOpen ? <XIcon size={22} /> : <ListIcon size={22} />}
           </button>
         </div>
       </nav>
@@ -739,7 +701,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
               onSubmit={handleSearch}
               className="relative flex items-center bg-[#F4F7FB] rounded-xl border border-[#D9E0EA] px-3.5 py-2.5 gap-2 focus-within:border-[#071A4D] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#071A4D]/10 transition-all"
             >
-              <Search size={18} className="text-slate-400 shrink-0" />
+              <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 shrink-0" />
               <input
                 type="text"
                 value={searchValue}

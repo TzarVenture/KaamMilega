@@ -1,6 +1,6 @@
 'use client'
 import React, { useEffect, useState } from 'react';
-import { Calendar, Video, Users, Bookmark, ChevronDown, MapPin } from 'lucide-react';
+import { BookmarkSimpleIcon, CalendarBlankIcon, CaretDownIcon, MapPinIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
 
@@ -58,7 +58,7 @@ const EventsPage = () => {
                     <div className="flex items-center gap-2 text-sm text-gray-600 font-medium bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
                         <span>Sort by:</span>
                         <button className="flex items-center gap-1 font-bold text-gray-800 hover:text-purple-700 transition-colors">
-                            Recently added <ChevronDown size={16} />
+                            Recently added <CaretDownIcon weight="bold" size={16} />
                         </button>
                     </div>
                 </div>
@@ -93,18 +93,18 @@ const EventsPage = () => {
                                         </p>
                                     </div>
                                     <button className="p-2 text-purple-400 hover:text-purple-700 bg-purple-50 rounded-lg transition-colors">
-                                        <Bookmark size={18} />
+                                        <BookmarkSimpleIcon weight="bold" size={18} />
                                     </button>
                                 </div>
 
                                 {/* Metadata Row */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                                     <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                                        <Calendar size={14} className="text-purple-500 shrink-0" />
+                                        <CalendarBlankIcon weight="bold" size={14} className="text-purple-500 shrink-0" />
                                         <span className="truncate">{event.date} {event.time}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-[11px] text-gray-500">
-                                        <MapPin size={14} className="text-purple-500 shrink-0" />
+                                        <MapPinIcon weight="bold" size={14} className="text-purple-500 shrink-0" />
                                         <span className="truncate">{event.location}</span>
                                     </div>
                                 </div>

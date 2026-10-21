@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Calendar, Award, UserPlus, ArrowRight } from 'lucide-react';
+import { ArrowRightIcon, CalendarBlankIcon, MedalIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 
 interface SidebarCounts {
@@ -87,7 +87,7 @@ export const NetworkSidebar: React.FC = () => {
     {
       label: 'Grow Network',
       href: '/network',
-      icon: UserPlus,
+      icon: UserPlusIcon,
       isActive: pathname === '/network',
       count: counts.invitations > 0 ? counts.invitations : undefined,
       isNotification: true,
@@ -95,7 +95,7 @@ export const NetworkSidebar: React.FC = () => {
     {
       label: 'Connections',
       href: '/network/connections',
-      icon: Users,
+      icon: UsersIcon,
       isActive: pathname === '/network/connections',
       count: counts.connections,
       isNotification: false,
@@ -103,7 +103,7 @@ export const NetworkSidebar: React.FC = () => {
     {
       label: 'Verified Experts',
       href: '/network/experts',
-      icon: Award,
+      icon: MedalIcon,
       isActive: pathname === '/network/experts',
       count: counts.experts > 0 ? counts.experts : undefined,
       isNotification: false,
@@ -111,7 +111,7 @@ export const NetworkSidebar: React.FC = () => {
     {
       label: 'Networking Events',
       href: '/network/events',
-      icon: Calendar,
+      icon: CalendarBlankIcon,
       isActive: pathname === '/network/events',
       count: counts.events > 0 ? counts.events : undefined,
       isNotification: false,
@@ -205,9 +205,7 @@ export const NetworkSidebar: React.FC = () => {
       {/* Desktop Brand Promotion Box: Become an Expert */}
       <div className="hidden lg:block bg-[#071A4D] border border-slate-700/60 rounded-2xl p-5 text-white shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <span className="p-1 rounded-lg bg-white/10 text-amber-300">
-            <Award size={15} />
-          </span>
+          <MedalIcon size={16} weight="bold" className="text-amber-300" aria-hidden="true" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
             Expert Network
           </span>
@@ -225,7 +223,7 @@ export const NetworkSidebar: React.FC = () => {
           className="inline-flex items-center gap-1.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-all duration-150 active:scale-[0.98] cursor-pointer"
         >
           <span>Apply Now</span>
-          <ArrowRight size={13} />
+          <ArrowRightIcon weight="bold" size={13} />
         </Link>
       </div>
 

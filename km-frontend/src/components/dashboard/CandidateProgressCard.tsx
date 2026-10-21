@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Briefcase, Zap, ArrowRight, Lock, UserCheck } from 'lucide-react';
+import { ArrowRightIcon, BriefcaseIcon, CheckCircleIcon, LightningIcon, LockIcon, UserCheckIcon } from '@phosphor-icons/react';
 import { fetchProfileCompletion, PROFILE_UPDATED_EVENT, type ProfileCompletion } from '@/lib/profileStrength';
 
 interface CandidateProgressCardProps {
@@ -22,19 +22,19 @@ const MILESTONES: Milestone[] = [
         threshold: 30,
         title: 'Basic',
         description: 'Browse local jobs, see wage benchmarks and chat with up to 3 people.',
-        icon: <UserCheck size={16} className="text-[#071A4D]" />,
+        icon: <UserCheckIcon weight="bold" size={16} className="text-[#071A4D]" />,
     },
     {
         threshold: 70,
         title: 'Professional',
         description: '1-click job applications and visibility in recruiter search.',
-        icon: <Briefcase size={16} className="text-[#0B5ED7]" />,
+        icon: <BriefcaseIcon weight="bold" size={16} className="text-[#0B5ED7]" />,
     },
     {
         threshold: 100,
         title: 'Expert & Instant Milega',
         description: 'Take Instant Milega gigs. Expert status also needs 2+ years of experience.',
-        icon: <Zap size={16} className="text-[#FF6B00]" />,
+        icon: <LightningIcon weight="bold" size={16} className="text-[#FF6B00]" />,
     },
 ];
 
@@ -87,7 +87,7 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
                     className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-sm font-semibold shrink-0"
                 >
                     <span>{isFull ? 'View profile' : 'Complete profile'}</span>
-                    <ArrowRight size={15} />
+                    <ArrowRightIcon weight="bold" size={15} />
                 </Link>
             </div>
 
@@ -117,7 +117,7 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
                                 <span
                                     className={`inline-flex items-center gap-1 text-xs font-medium ${status.unlocked ? 'text-emerald-700' : 'text-[#5B6472]'}`}
                                 >
-                                    {status.unlocked ? <CheckCircle2 size={12} /> : <Lock size={12} />}
+                                    {status.unlocked ? <CheckCircleIcon weight="bold" size={12} /> : <LockIcon weight="bold" size={12} />}
                                     {status.label}
                                 </span>
                             </div>

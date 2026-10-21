@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { BookmarkCheck, Search, MapPin, CheckCircle2, Trash2, ArrowLeft, Users, ArrowUpRight } from 'lucide-react';
+import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, CheckCircleIcon, MagnifyingGlassIcon, MapPinIcon, TrashIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -113,10 +113,10 @@ export default function SavedJobsPage() {
                 <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <Link href="/jobs" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0B5ED7] hover:underline mb-2">
-                            <ArrowLeft size={14} /> Back to All Jobs
+                            <ArrowLeftIcon weight="bold" size={14} /> Back to All Jobs
                         </Link>
                         <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight flex items-center gap-3">
-                            <BookmarkCheck className="w-7 h-7 text-[#0B5ED7]" />
+                            <BookmarkSimpleIcon weight="fill" className="w-7 h-7 text-[#0B5ED7]" />
                             <span>Saved Jobs</span>
                         </h1>
                         <p className="text-[#5B6472] font-normal text-xs sm:text-sm mt-1">
@@ -127,7 +127,7 @@ export default function SavedJobsPage() {
                     {/* Search bar */}
                     {savedJobs.length > 0 && (
                         <div className="relative min-w-72">
-                            <Search className="absolute left-3.5 top-3 w-4 h-4 text-[#5B6472]" />
+                            <MagnifyingGlassIcon weight="bold" className="absolute left-3.5 top-3 w-4 h-4 text-[#5B6472]" />
                             <input
                                 type="text"
                                 placeholder="Search saved jobs..."
@@ -148,9 +148,7 @@ export default function SavedJobsPage() {
                     </div>
                 ) : filteredJobs.length === 0 ? (
                     <div className="bg-white rounded-2xl border border-[#D9E0EA] p-10 text-center shadow-xs">
-                        <div className="w-16 h-16 bg-[#FFFBEB] border border-[#FDE68A] text-[#F59E0B] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xs">
-                            <BookmarkCheck className="w-8 h-8" />
-                        </div>
+                        <BookmarkSimpleIcon size={36} weight="duotone" className="text-[#F59E0B] mx-auto mb-4" aria-hidden="true" />
                         <h3 className="text-lg font-bold text-[#111827] mb-1.5">No Saved Jobs Found</h3>
                         <p className="text-[#5B6472] max-w-md mx-auto text-xs sm:text-sm font-normal leading-relaxed mb-6">
                             {savedJobs.length === 0
@@ -162,7 +160,7 @@ export default function SavedJobsPage() {
                             className="btn-primary text-xs px-5 py-2.5 inline-flex items-center gap-1.5"
                         >
                             <span>Browse Jobs</span>
-                            <ArrowUpRight size={14} />
+                            <ArrowUpRightIcon weight="bold" size={14} />
                         </Link>
                     </div>
                 ) : (
@@ -187,7 +185,7 @@ export default function SavedJobsPage() {
                                             <span className="font-bold">₹{job.salary_min?.toLocaleString('en-IN') || 0} - ₹{job.salary_max?.toLocaleString('en-IN') || 0} / mo</span>
                                         </div>
                                         <div className="flex items-center gap-2.5 p-2 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]">
-                                            <MapPin size={15} className="text-[#0B5ED7]" />
+                                            <MapPinIcon weight="bold" size={15} className="text-[#0B5ED7]" />
                                             <span className="font-semibold">{job.location || 'Flexible'}, {job.city_name}</span>
                                         </div>
                                     </div>
@@ -197,7 +195,7 @@ export default function SavedJobsPage() {
                                             {job.job_type}
                                         </span>
                                         <span className="px-2.5 py-1 bg-[#F4F7FB] text-[#5B6472] text-xs font-medium rounded-lg border border-[#D9E0EA] flex items-center gap-1">
-                                            <Users size={12} className="text-[#5B6472]" />
+                                            <UsersIcon weight="bold" size={12} className="text-[#5B6472]" />
                                             <span>{job.vacancies || 1} Openings</span>
                                         </span>
                                     </div>
@@ -210,7 +208,7 @@ export default function SavedJobsPage() {
                                         className="p-2.5 bg-rose-50 text-rose-600 rounded-xl hover:bg-rose-100 transition-colors flex items-center justify-center text-xs font-semibold gap-1.5 border border-rose-200 cursor-pointer"
                                         title="Remove from saved"
                                     >
-                                        <Trash2 size={15} />
+                                        <TrashIcon weight="bold" size={15} />
                                         <span className="xl:hidden">Remove</span>
                                     </button>
 
@@ -226,7 +224,7 @@ export default function SavedJobsPage() {
                                     >
                                         {appliedJobIds.has(job.id) ? (
                                             <>
-                                                <CheckCircle2 size={14} /> Applied
+                                                <CheckCircleIcon weight="bold" size={14} /> Applied
                                             </>
                                         ) : (
                                             'Apply Now'

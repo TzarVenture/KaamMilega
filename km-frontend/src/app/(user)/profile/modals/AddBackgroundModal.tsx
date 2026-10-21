@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Image as ImageIcon } from 'lucide-react';
+import { ImageIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 
 interface AddBackgroundModalProps {

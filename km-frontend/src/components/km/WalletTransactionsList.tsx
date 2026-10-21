@@ -1,23 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    ArrowUpRight, 
-    ArrowDownLeft, 
-    Lock, 
-    Briefcase, 
-    Clock, 
-    ChevronLeft, 
-    ChevronRight, 
-    ReceiptText, 
-    RefreshCw,
-    CreditCard,
-    Zap,
-    Users,
-    Gift,
-    ShieldCheck,
-    ShieldAlert
-} from 'lucide-react';
+import { ArrowDownLeftIcon, ArrowUpRightIcon, BriefcaseIcon, CaretLeftIcon, CaretRightIcon, ClockIcon, CreditCardIcon, GiftIcon, LightningIcon, ReceiptIcon, ShieldWarningIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 
 export interface TransactionItem {
@@ -124,23 +108,23 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
     const getCategoryBadge = (category: string, targetBalance: string) => {
         switch (category) {
             case 'topup':
-                return { label: 'Recharge', bg: 'bg-blue-50 text-blue-700 border-blue-100', icon: CreditCard };
+                return { label: 'Recharge', bg: 'bg-blue-50 text-blue-700 border-blue-100', icon: CreditCardIcon };
             case 'pass_purchase':
-                return { label: 'Platform Pass', bg: 'bg-amber-50 text-amber-700 border-amber-100', icon: Zap };
+                return { label: 'Platform Pass', bg: 'bg-amber-50 text-amber-700 border-amber-100', icon: LightningIcon };
             case 'session_booking':
-                return { label: 'Mentorship', bg: 'bg-purple-50 text-purple-700 border-purple-100', icon: Users };
+                return { label: 'Mentorship', bg: 'bg-purple-50 text-purple-700 border-purple-100', icon: UsersIcon };
             case 'session_payout':
             case 'gig_payout':
-                return { label: 'Gig Earning', bg: 'bg-emerald-50 text-emerald-800 border-emerald-100', icon: Briefcase };
+                return { label: 'Gig Earning', bg: 'bg-emerald-50 text-emerald-800 border-emerald-100', icon: BriefcaseIcon };
             case 'bonus_reward':
-                return { label: 'Bonus Reward', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100', icon: Gift };
+                return { label: 'Bonus Reward', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100', icon: GiftIcon };
             case 'withdrawal':
-                return { label: 'Bank Payout', bg: 'bg-slate-100 text-slate-800 border-slate-200', icon: ArrowUpRight };
+                return { label: 'Bank Payout', bg: 'bg-slate-100 text-slate-800 border-slate-200', icon: ArrowUpRightIcon };
             default:
                 if (targetBalance === 'earnings') {
-                    return { label: 'Earnings', bg: 'bg-emerald-50 text-emerald-700 border-emerald-100', icon: Briefcase };
+                    return { label: 'Earnings', bg: 'bg-emerald-50 text-emerald-700 border-emerald-100', icon: BriefcaseIcon };
                 }
-                return { label: 'Activity', bg: 'bg-slate-50 text-slate-700 border-slate-200', icon: ReceiptText };
+                return { label: 'Activity', bg: 'bg-slate-50 text-slate-700 border-slate-200', icon: ReceiptIcon };
         }
     };
 
@@ -149,9 +133,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
             {/* Header & Filter Tabs */}
             <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-2xl bg-blue-50 text-blue-900 flex items-center justify-center">
-                        <ReceiptText className="w-5 h-5" />
-                    </div>
+                    <ReceiptIcon size={24} className="text-blue-900" aria-hidden="true" />
                     <div>
                         <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
                             Ledger & Transaction History
@@ -209,9 +191,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
                 ) : transactions.length === 0 ? (
                     // Empty State
                     <div className="py-12 sm:py-16 text-center space-y-3">
-                        <div className="w-16 h-16 rounded-3xl bg-slate-50 border border-slate-200 text-slate-400 mx-auto flex items-center justify-center shadow-inner">
-                            <ReceiptText className="w-7 h-7" />
-                        </div>
+                        <ReceiptIcon size={36} weight="duotone" className="text-slate-400 mx-auto" aria-hidden="true" />
                         <h3 className="text-base sm:text-lg font-bold text-slate-800">
                             No Transactions Found
                         </h3>
@@ -242,9 +222,9 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
                                                 : 'bg-slate-100 text-slate-700 border-slate-200'
                                         }`}>
                                             {isCredit ? (
-                                                <ArrowDownLeft className="w-5 h-5" />
+                                                <ArrowDownLeftIcon className="w-5 h-5" />
                                             ) : (
-                                                <ArrowUpRight className="w-5 h-5" />
+                                                <ArrowUpRightIcon className="w-5 h-5" />
                                             )}
                                         </div>
 
@@ -262,7 +242,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
 
                                             <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium flex-wrap">
                                                 <span className="flex items-center gap-1">
-                                                    <Clock size={11} className="text-slate-400" />
+                                                    <ClockIcon weight="bold" size={11} className="text-slate-400" />
                                                     <span>{formatDate(tx.created_at)}</span>
                                                 </span>
 
@@ -320,7 +300,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
                                                 className="mt-1 text-[11px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 px-2.5 py-1 rounded-xl transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
                                                 title="Request refund or report an issue with this transaction"
                                             >
-                                                <ShieldAlert size={12} className="text-amber-600" />
+                                                <ShieldWarningIcon weight="bold" size={12} className="text-amber-600" />
                                                 <span>Dispute / Refund</span>
                                             </button>
                                         )}
@@ -345,7 +325,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
                                 className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                                 aria-label="Previous page"
                             >
-                                <ChevronLeft size={14} />
+                                <CaretLeftIcon weight="bold" size={14} />
                             </button>
 
                             <button
@@ -354,7 +334,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
                                 className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                                 aria-label="Next page"
                             >
-                                <ChevronRight size={14} />
+                                <CaretRightIcon weight="bold" size={14} />
                             </button>
                         </div>
                     </div>

@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Bookmark, ShieldCheck } from 'lucide-react';
+import { BookmarkSimpleIcon, ShieldCheckIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -55,7 +55,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             </Link>
             {isVerified && (
               <span title="Verified Member" className="inline-flex">
-                <ShieldCheck size={16} className="text-[#0B5ED7] shrink-0" />
+                <ShieldCheckIcon weight="bold" size={16} className="text-[#0B5ED7] shrink-0" />
               </span>
             )}
           </div>
@@ -103,7 +103,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             }`}
           >
             <span className="flex items-center gap-2">
-              <Bookmark size={14} className={activeFilter === 'saved' ? 'text-[#FF6B00]' : 'text-[#5B6472]'} />
+              <BookmarkSimpleIcon weight="bold" size={14} className={activeFilter === 'saved' ? 'text-[#FF6B00]' : 'text-[#5B6472]'} />
               Saved Items
             </span>
             {savedCount > 0 && (

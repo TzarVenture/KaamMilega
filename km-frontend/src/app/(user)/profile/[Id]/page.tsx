@@ -1,11 +1,6 @@
 'use client';
 
-import {
-    Briefcase,
-    GraduationCap, CheckCircle2,
-    MessageCircle, ChevronRight, Diamond, Lock,
-    FolderGit2, ExternalLink, Globe, Building2
-} from 'lucide-react';
+import { ArrowSquareOutIcon, BriefcaseIcon, ChatCircleIcon, CheckCircleIcon, DiamondIcon, GlobeIcon, GraduationCapIcon, LockIcon } from '@phosphor-icons/react';
 import InterestsSection from '../InterestSection';
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
@@ -132,9 +127,7 @@ const OtherUserProfilePage = () => {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
                 <div className="text-center max-w-sm mx-auto p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
-                    <div className="w-16 h-16 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-4 border border-blue-100">
-                        <Lock size={28} className="text-km-primary" />
-                    </div>
+                    <LockIcon size={36} weight="duotone" className="text-km-primary mx-auto mb-4" aria-hidden="true" />
                     <h2 className="text-xl font-bold text-gray-800 mb-2">This Profile is Private</h2>
                     <p className="text-gray-500 text-sm">This user has chosen to keep their profile private. Only they can view it.</p>
                 </div>
@@ -206,7 +199,7 @@ const OtherUserProfilePage = () => {
                                         </button>
                                         <Link href={`/chat?userId=${userId}`}>
                                             <button className="border border-km-primary text-km-primary px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors flex items-center gap-1.5 cursor-pointer">
-                                                <MessageCircle size={15} /> Message
+                                                <ChatCircleIcon weight="bold" size={15} /> Message
                                             </button>
                                         </Link>
                                     </div>
@@ -228,7 +221,7 @@ const OtherUserProfilePage = () => {
                                 {user?.portfolio_url && (
                                     <div className="mt-2 flex items-center gap-1.5 text-xs sm:text-sm">
                                         <div className="inline-flex items-center gap-1.5 bg-blue-50/80 border border-blue-200/80 px-3 py-1 rounded-full">
-                                            <Globe size={13} className="text-km-primary shrink-0" />
+                                            <GlobeIcon weight="bold" size={13} className="text-km-primary shrink-0" />
                                             <a
                                                 href={user.portfolio_url.startsWith('http') ? user.portfolio_url : `https://${user.portfolio_url}`}
                                                 target="_blank"
@@ -236,7 +229,7 @@ const OtherUserProfilePage = () => {
                                                 className="text-km-primary hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1"
                                             >
                                                 <span>{user?.portfolio_label || "Portfolio / Website"}</span>
-                                                <ExternalLink size={12} />
+                                                <ArrowSquareOutIcon weight="bold" size={12} />
                                             </a>
                                         </div>
                                     </div>
@@ -272,7 +265,7 @@ const OtherUserProfilePage = () => {
                                                         href={`/chat?userId=${userId}`}
                                                         className="text-xs text-km-primary font-bold hover:underline inline-flex items-center gap-1"
                                                     >
-                                                        <MessageCircle size={12} />
+                                                        <ChatCircleIcon weight="bold" size={12} />
                                                         <span>Contact Candidate</span>
                                                     </Link>
                                                 </div>
@@ -307,7 +300,7 @@ const OtherUserProfilePage = () => {
                                                         href={`/chat?userId=${userId}`}
                                                         className="text-xs text-km-accent font-bold hover:underline inline-flex items-center gap-1"
                                                     >
-                                                        <MessageCircle size={12} />
+                                                        <ChatCircleIcon weight="bold" size={12} />
                                                         <span>Request Service / Inquire</span>
                                                     </Link>
                                                 </div>
@@ -327,7 +320,7 @@ const OtherUserProfilePage = () => {
                             {user.top_skills && user.top_skills.length > 0 && (
                                 <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Diamond size={16} className="text-km-primary" />
+                                        <DiamondIcon weight="bold" size={16} className="text-km-primary" />
                                         <span className="font-bold text-sm text-km-primary">Top Skills</span>
                                     </div>
                                     <div className="flex flex-wrap gap-2 text-xs text-slate-700">
@@ -348,9 +341,7 @@ const OtherUserProfilePage = () => {
                                 {user.experience && user.experience.length > 0 ? (
                                     user.experience.map((exp: any, index: number) => (
                                         <div key={exp.id || index} className="flex gap-4 p-3 rounded-xl hover:bg-gray-50/60 transition-colors">
-                                            <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 text-km-primary">
-                                                <Briefcase size={22} />
-                                            </div>
+                                            <BriefcaseIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
                                             <div className="space-y-1">
                                                 <h3 className="font-bold text-gray-900 text-base">{exp.title}</h3>
                                                 <p className="text-xs text-gray-700 font-semibold">{exp.company_name} • {exp.employment_type}</p>
@@ -388,9 +379,7 @@ const OtherUserProfilePage = () => {
                                 {user.education && user.education.length > 0 ? (
                                     user.education.map((edu: any, index: number) => (
                                         <div key={edu.id || index} className="flex gap-4 p-3 rounded-xl hover:bg-gray-50/60 transition-colors">
-                                            <div className="w-12 h-12 bg-blue-50 border border-blue-100 rounded-xl flex items-center justify-center shrink-0 text-km-primary">
-                                                <GraduationCap size={22} />
-                                            </div>
+                                            <GraduationCapIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
                                             <div>
                                                 <h3 className="font-bold text-gray-900 text-base leading-tight">
                                                     {edu.school_name}
@@ -463,7 +452,7 @@ const OtherUserProfilePage = () => {
                                                         className="inline-flex items-center gap-1.5 text-xs font-bold text-km-primary hover:text-km-primary-dark hover:underline border border-blue-200 bg-white px-3 py-1.5 rounded-full shadow-2xs transition-all"
                                                     >
                                                         <span>Show Project</span>
-                                                        <ExternalLink size={12} />
+                                                        <ArrowSquareOutIcon weight="bold" size={12} />
                                                     </a>
                                                 </div>
                                             )}
@@ -483,7 +472,7 @@ const OtherUserProfilePage = () => {
                                             key={skill}
                                             className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-50/60 border border-blue-200 rounded-xl text-xs font-bold text-km-primary shadow-xs"
                                         >
-                                            <CheckCircle2 size={13} className="text-km-primary" />
+                                            <CheckCircleIcon weight="bold" size={13} className="text-km-primary" />
                                             <span>{skill}</span>
                                         </div>
                                     ))
@@ -531,7 +520,7 @@ const OtherUserProfilePage = () => {
                                                 <div className="flex gap-2">
                                                     <Link href={`/chat?userId=${pId}`} className="flex-1">
                                                         <button className="w-full border border-gray-300 rounded-xl py-1 text-xs font-semibold flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors cursor-pointer">
-                                                            <MessageCircle size={13} /> Chat
+                                                            <ChatCircleIcon weight="bold" size={13} /> Chat
                                                         </button>
                                                     </Link>
                                                     <Link href={`/profile/${pId}`} className="flex-1">
@@ -579,7 +568,7 @@ const OtherUserProfilePage = () => {
                                                 </div>
                                                 <Link href={`/chat?userId=${eId}`}>
                                                     <button className="w-full py-1.5 border border-km-primary text-km-primary rounded-xl text-xs font-bold hover:bg-blue-50 flex items-center justify-center gap-1 transition-colors cursor-pointer">
-                                                        <MessageCircle size={13} /> Chat with Expert
+                                                        <ChatCircleIcon weight="bold" size={13} /> Chat with Expert
                                                     </button>
                                                 </Link>
                                             </div>

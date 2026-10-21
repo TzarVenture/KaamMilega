@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import BrandLogo from '@/components/km/BrandLogo';
-import { Home, Briefcase, Users, ArrowLeft, Search } from 'lucide-react';
+import { ArrowLeftIcon, BriefcaseIcon, HouseIcon, MagnifyingGlassIcon, UsersIcon } from '@phosphor-icons/react/ssr';
 
 export default function NotFound() {
   return (
@@ -14,7 +14,7 @@ export default function NotFound() {
             href="/"
             className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-km-primary flex items-center gap-1.5 transition-colors"
           >
-            <ArrowLeft size={16} />
+            <ArrowLeftIcon weight="bold" size={16} />
             <span>Back to Home</span>
           </Link>
         </div>
@@ -47,7 +47,7 @@ export default function NotFound() {
               href="/"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-km-primary hover:bg-km-primary-dark text-white font-bold px-6 py-3 rounded-xl transition-all shadow-xs hover:shadow-md cursor-pointer text-sm"
             >
-              <Home size={18} />
+              <HouseIcon weight="bold" size={18} />
               <span>Go to Homepage</span>
             </Link>
 
@@ -55,7 +55,7 @@ export default function NotFound() {
               href="/jobs"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-slate-700 font-bold px-6 py-3 rounded-xl border border-slate-200 transition-all shadow-2xs hover:shadow-xs cursor-pointer text-sm"
             >
-              <Briefcase size={18} className="text-km-primary" />
+              <BriefcaseIcon weight="bold" size={18} className="text-km-primary" />
               <span>Explore Jobs</span>
             </Link>
           </div>
@@ -71,7 +71,7 @@ export default function NotFound() {
                 className="p-3 rounded-xl bg-white border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
               >
                 <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-primary transition-colors">
-                  <Briefcase size={14} className="text-km-primary" />
+                  <BriefcaseIcon weight="bold" size={14} className="text-km-primary" />
                   <span>Job Openings</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">Verified vacancies</p>
@@ -82,7 +82,7 @@ export default function NotFound() {
                 className="p-3 rounded-xl bg-white border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
               >
                 <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-primary transition-colors">
-                  <Users size={14} className="text-km-primary" />
+                  <UsersIcon weight="bold" size={14} className="text-km-primary" />
                   <span>Community</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">Connect with peers</p>
@@ -93,7 +93,7 @@ export default function NotFound() {
                 className="col-span-2 sm:col-span-1 p-3 rounded-xl bg-white border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
               >
                 <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-primary transition-colors">
-                  <Search size={14} className="text-km-primary" />
+                  <MagnifyingGlassIcon weight="bold" size={14} className="text-km-primary" />
                   <span>Job Melas</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">Hiring drives & fairs</p>

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Plus } from 'lucide-react';
+import { PlusIcon } from '@phosphor-icons/react';
 
 interface PolicyModalProps {
     isOpen: boolean;
@@ -86,7 +86,7 @@ const PolicyModal = ({ isOpen, onClose, mode, policyData, onSave }: PolicyModalP
                         type="button"
                         className="flex items-center gap-2 text-purple-600 font-bold text-sm hover:underline"
                     >
-                        <Plus size={16} />
+                        <PlusIcon weight="bold" size={16} />
                         Policy Page
                     </button>
                     <button

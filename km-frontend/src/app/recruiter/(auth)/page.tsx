@@ -5,23 +5,7 @@ import api from "@/lib/axios";
 import Link from "next/link";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import {
-    PlusCircle,
-    Briefcase,
-    Users,
-    ChevronRight,
-    Building2,
-    ShieldCheck,
-    Clock,
-    FileText,
-    Calendar,
-    Kanban,
-    CheckCircle2,
-    ArrowUpRight,
-    TrendingUp,
-    AlertCircle,
-    UserCheck
-} from "lucide-react";
+import { ArrowUpRightIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CaretRightIcon, ClockIcon, FileTextIcon, KanbanIcon, PlusCircleIcon, ShieldCheckIcon, TrendUpIcon, UserCheckIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 
 // --- Shimmer Loading Skeleton ---
 const RecruiterDashboardSkeleton = () => (
@@ -107,16 +91,16 @@ export default function RecruiterDashboard() {
                     <div>
                         <div className="flex items-center gap-3 mb-2">
                             <span className="px-3 py-1 rounded-full bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                                <Building2 size={13} className="text-blue-400" /> {companyName}
+                                <BuildingOfficeIcon weight="bold" size={13} className="text-blue-400" /> {companyName}
                             </span>
 
                             {verificationStatus === 'verified' ? (
                                 <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 text-xs font-bold flex items-center gap-1">
-                                    <ShieldCheck size={13} /> Verified Employer
+                                    <ShieldCheckIcon weight="bold" size={13} /> Verified Employer
                                 </span>
                             ) : (
                                 <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-300 text-xs font-bold flex items-center gap-1">
-                                    <AlertCircle size={13} /> Verification Pending
+                                    <WarningCircleIcon weight="bold" size={13} /> Verification Pending
                                 </span>
                             )}
                         </div>
@@ -135,13 +119,13 @@ export default function RecruiterDashboard() {
                             href="/recruiter/jobs/create"
                             className="px-6 py-3.5 bg-km-primary hover:bg-km-primary-dark text-white font-bold text-xs rounded-xl shadow-lg shadow-blue-950/20 flex items-center gap-2 uppercase tracking-wider transition-all hover:scale-[1.02]"
                         >
-                            <PlusCircle size={16} /> Post New Job
+                            <PlusCircleIcon weight="bold" size={16} /> Post New Job
                         </Link>
                         <Link
                             href="/recruiter/applications"
                             className="px-5 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-2"
                         >
-                            <Kanban size={16} /> Kanban Board
+                            <KanbanIcon weight="bold" size={16} /> Kanban Board
                         </Link>
                     </div>
                 </div>
@@ -155,9 +139,7 @@ export default function RecruiterDashboard() {
                         <h3 className="text-3xl font-black text-slate-900">{activeJobsCount}</h3>
                         <p className="text-[11px] text-slate-500 font-semibold mt-1">Out of {jobs.length} total posts</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-km-primary flex items-center justify-center font-bold shrink-0 border border-blue-100">
-                        <Briefcase size={22} />
-                    </div>
+                    <BriefcaseIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
@@ -165,12 +147,10 @@ export default function RecruiterDashboard() {
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Applications</p>
                         <h3 className="text-3xl font-black text-km-primary">{totalApplications}</h3>
                         <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
-                            <TrendingUp size={12} /> Active candidates
+                            <TrendUpIcon weight="bold" size={12} /> Active candidates
                         </p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 text-km-primary flex items-center justify-center font-bold shrink-0 border border-blue-100">
-                        <Users size={22} />
-                    </div>
+                    <UsersIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
@@ -179,9 +159,7 @@ export default function RecruiterDashboard() {
                         <h3 className="text-3xl font-black text-amber-600">{interviewingCount}</h3>
                         <p className="text-[11px] text-slate-500 font-semibold mt-1">Scheduled sessions</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold shrink-0 border border-amber-100">
-                        <Calendar size={22} />
-                    </div>
+                    <CalendarBlankIcon size={28} weight="duotone" className="text-amber-600 shrink-0" aria-hidden="true" />
                 </div>
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
@@ -190,9 +168,7 @@ export default function RecruiterDashboard() {
                         <h3 className="text-3xl font-black text-emerald-600">{hiredCount}</h3>
                         <p className="text-[11px] text-emerald-600 font-semibold mt-1">Completed recruitment</p>
                     </div>
-                    <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0 border border-emerald-100">
-                        <UserCheck size={22} />
-                    </div>
+                    <UserCheckIcon size={28} weight="duotone" className="text-emerald-600 shrink-0" aria-hidden="true" />
                 </div>
             </div>
 
@@ -208,15 +184,13 @@ export default function RecruiterDashboard() {
                         className="text-xs font-bold text-km-primary hover:text-km-primary-dark flex items-center gap-1 group"
                     >
                         View All Jobs ({jobs.length})
-                        <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                        <CaretRightIcon weight="bold" size={14} className="group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                 </div>
 
                 {recentJobs.length === 0 ? (
                     <div className="p-12 text-center">
-                        <div className="w-14 h-14 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-3">
-                            <Briefcase size={24} />
-                        </div>
+                        <BriefcaseIcon size={32} weight="duotone" className="text-km-primary mx-auto mb-3" aria-hidden="true" />
                         <h3 className="text-base font-bold text-slate-900">No Job Posts Found</h3>
                         <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto font-medium mb-4">
                             You haven't published any job listings yet. Create your first post to start receiving candidate applications.
@@ -225,7 +199,7 @@ export default function RecruiterDashboard() {
                             href="/recruiter/jobs/create"
                             className="inline-flex items-center gap-2 px-5 py-2.5 bg-km-primary text-white rounded-xl text-xs font-bold hover:bg-km-primary-dark transition-all shadow-md shadow-blue-900/10"
                         >
-                            <PlusCircle size={15} /> Create Job Post
+                            <PlusCircleIcon weight="bold" size={15} /> Create Job Post
                         </Link>
                     </div>
                 ) : (
@@ -272,7 +246,7 @@ export default function RecruiterDashboard() {
                                                 href={`/recruiter/applications?jobId=${job.id}`}
                                                 className="inline-flex items-center gap-1 px-3.5 py-1.5 bg-slate-100 hover:bg-km-primary hover:text-white text-slate-700 rounded-xl text-xs font-bold transition-all"
                                             >
-                                                Pipeline <ArrowUpRight size={13} />
+                                                Pipeline <ArrowUpRightIcon weight="bold" size={13} />
                                             </Link>
                                         </td>
                                     </tr>
@@ -295,15 +269,13 @@ export default function RecruiterDashboard() {
                         className="text-xs font-bold text-km-primary hover:text-km-primary-dark flex items-center gap-1 group"
                     >
                         Kanban Pipeline Board
-                        <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                        <CaretRightIcon weight="bold" size={14} className="group-hover:translate-x-0.5 transition-transform" />
                     </Link>
                 </div>
 
                 {recentApplications.length === 0 ? (
                     <div className="p-12 text-center text-slate-500">
-                        <div className="w-14 h-14 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-3">
-                            <Users size={24} />
-                        </div>
+                        <UsersIcon size={32} weight="duotone" className="text-km-primary mx-auto mb-3" aria-hidden="true" />
                         <h3 className="text-base font-bold text-slate-900">No Applications Received Yet</h3>
                         <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto font-medium">
                             When job seekers submit applications to your job postings, they will appear right here in real time.
@@ -323,7 +295,7 @@ export default function RecruiterDashboard() {
                                                 {app.candidate?.name || `Candidate #${app.candidate_id.substring(0, 6)}`}
                                             </h4>
                                             <span className="text-[10px] text-slate-400 font-medium flex items-center gap-1">
-                                                <Clock size={11} /> {new Date(app.created_at).toLocaleDateString()}
+                                                <ClockIcon weight="bold" size={11} /> {new Date(app.created_at).toLocaleDateString()}
                                             </span>
                                         </div>
                                         <p className="text-xs text-slate-500 font-semibold truncate">
@@ -345,7 +317,7 @@ export default function RecruiterDashboard() {
                                             rel="noreferrer"
                                             className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1"
                                         >
-                                            <FileText size={13} /> Resume
+                                            <FileTextIcon weight="bold" size={13} /> Resume
                                         </a>
                                     )}
 

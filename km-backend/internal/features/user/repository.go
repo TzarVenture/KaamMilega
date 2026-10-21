@@ -1,9 +1,12 @@
 package user
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -41,6 +44,10 @@ type UserRepository interface {
 	FindUserByUsername(ctx context.Context, username string) (*User, error)
 	BackfillUsernames(ctx context.Context) error
 	HasActivePassOrSubscription(ctx context.Context, userID string) (bool, error)
+
+	ExportUsersCSV(ctx context.Context, role string) ([]byte, error)
+	ExportJobsCSV(ctx context.Context, status string) ([]byte, error)
+	ExportRevenueCSV(ctx context.Context, status string) ([]byte, error)
 }
 
 type UserRepositoryImpl struct {
@@ -440,6 +447,28 @@ func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]i
 	jobs, _ := r.db.DB.Collection("jobs").CountDocuments(ctx, bson.M{})
 	applications, _ := r.db.DB.Collection("applications").CountDocuments(ctx, bson.M{})
 	interviews, _ := r.db.DB.Collection("interviews").CountDocuments(ctx, bson.M{})
+	activeGigs, _ := r.db.DB.Collection("instant_jobs").CountDocuments(ctx, bson.M{})
+	disputes, _ := r.db.DB.Collection("wallet_disputes").CountDocuments(ctx, bson.M{})
+
+	// Aggregate total revenue from completed wallet transactions
+	var totalRevenue float64 = 0
+	pipeline := []bson.M{
+		{"$match": bson.M{"status": bson.M{"$in": []string{"completed", "success"}}}},
+		{"$group": bson.M{"_id": nil, "total": bson.M{"$sum": "$amount"}}},
+	}
+	cursor, err := r.db.DB.Collection("wallet_transactions").Aggregate(ctx, pipeline)
+	if err == nil {
+		var results []bson.M
+		if err := cursor.All(ctx, &results); err == nil && len(results) > 0 {
+			if t, ok := results[0]["total"].(float64); ok {
+				totalRevenue = t
+			} else if t, ok := results[0]["total"].(int32); ok {
+				totalRevenue = float64(t)
+			} else if t, ok := results[0]["total"].(int64); ok {
+				totalRevenue = float64(t)
+			}
+		}
+	}
 
 	return map[string]interface{}{
 		"total_users":  totalUsers,
@@ -451,6 +480,9 @@ func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]i
 		"jobs":         jobs,
 		"applications": applications,
 		"interviews":   interviews,
+		"active_gigs":  activeGigs,
+		"disputes":     disputes,
+		"revenue":      totalRevenue,
 	}, nil
 }
 
@@ -700,4 +732,328 @@ func (r *UserRepositoryImpl) HasActivePassOrSubscription(ctx context.Context, us
 	}
 
 	return subCount > 0, nil
+}
+
+func (r *UserRepositoryImpl) ExportUsersCSV(ctx context.Context, role string) ([]byte, error) {
+	filter := bson.M{}
+	if role != "" && role != "all" {
+		filter["roles"] = role
+	}
+
+	opts := options.Find().SetSort(bson.M{"created_at": -1})
+	cursor, err := r.userColl.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var users []*User
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("\xEF\xBB\xBF") // UTF-8 BOM for Excel compatibility
+	writer := csv.NewWriter(&buf)
+
+	headers := []string{
+		"User ID",
+		"Full Name",
+		"Mobile",
+		"Email",
+		"Roles",
+		"Headline / Trade",
+		"City",
+		"Verification Status",
+		"Total Bookmarked Jobs",
+		"Registered Date",
+		"Last Active",
+	}
+	if err := writer.Write(headers); err != nil {
+		return nil, err
+	}
+
+	for _, u := range users {
+		name := u.Name
+		if name == "" {
+			name = strings.TrimSpace(u.FirstName + " " + u.LastName)
+		}
+		rolesStr := strings.Join(u.Roles, ", ")
+		regDate := ""
+		if !u.CreatedAt.IsZero() {
+			regDate = u.CreatedAt.Format("2006-01-02 15:04:05")
+		}
+		lastActive := ""
+		if !u.LastActiveAt.IsZero() {
+			lastActive = u.LastActiveAt.Format("2006-01-02 15:04:05")
+		}
+
+		row := []string{
+			u.ID.Hex(),
+			name,
+			u.Mobile,
+			u.Email,
+			rolesStr,
+			u.Headline,
+			u.City,
+			u.VerificationStatus,
+			strconv.Itoa(len(u.BookmarkedJobs)),
+			regDate,
+			lastActive,
+		}
+		if err := writer.Write(row); err != nil {
+			return nil, err
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (r *UserRepositoryImpl) ExportJobsCSV(ctx context.Context, status string) ([]byte, error) {
+	filter := bson.M{}
+	if status != "" && status != "all" {
+		filter["status"] = status
+	}
+
+	opts := options.Find().SetSort(bson.M{"created_at": -1})
+	cursor, err := r.db.DB.Collection("jobs").Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var jobs []bson.M
+	if err := cursor.All(ctx, &jobs); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("\xEF\xBB\xBF")
+	writer := csv.NewWriter(&buf)
+
+	headers := []string{
+		"Job ID",
+		"Job Title",
+		"Company",
+		"City",
+		"Job Type",
+		"Status",
+		"Salary Min (₹)",
+		"Salary Max (₹)",
+		"Education",
+		"Min Experience (Yrs)",
+		"Max Experience (Yrs)",
+		"Applications Received",
+		"Posted Date",
+	}
+	if err := writer.Write(headers); err != nil {
+		return nil, err
+	}
+
+	for _, j := range jobs {
+		idStr := ""
+		if oid, ok := j["_id"].(primitive.ObjectID); ok {
+			idStr = oid.Hex()
+		}
+
+		title, _ := j["title"].(string)
+		company, _ := j["company"].(string)
+		city, _ := j["city_name"].(string)
+		jobType, _ := j["job_type"].(string)
+		statusVal, _ := j["status"].(string)
+		education, _ := j["education"].(string)
+
+		salMin := 0
+		if sm, ok := j["salary_min"].(int32); ok {
+			salMin = int(sm)
+		} else if sm, ok := j["salary_min"].(int64); ok {
+			salMin = int(sm)
+		} else if sm, ok := j["salary_min"].(float64); ok {
+			salMin = int(sm)
+		}
+
+		salMax := 0
+		if sm, ok := j["salary_max"].(int32); ok {
+			salMax = int(sm)
+		} else if sm, ok := j["salary_max"].(int64); ok {
+			salMax = int(sm)
+		} else if sm, ok := j["salary_max"].(float64); ok {
+			salMax = int(sm)
+		}
+
+		expMin := 0
+		if em, ok := j["experience_min"].(int32); ok {
+			expMin = int(em)
+		} else if em, ok := j["experience_min"].(int64); ok {
+			expMin = int(em)
+		}
+
+		expMax := 0
+		if em, ok := j["experience_max"].(int32); ok {
+			expMax = int(em)
+		} else if em, ok := j["experience_max"].(int64); ok {
+			expMax = int(em)
+		}
+
+		var appCount int64 = 0
+		if oid, ok := j["_id"].(primitive.ObjectID); ok {
+			appCount, _ = r.db.DB.Collection("applications").CountDocuments(ctx, bson.M{"job_id": oid})
+			if appCount == 0 {
+				appCount, _ = r.db.DB.Collection("applications").CountDocuments(ctx, bson.M{"job_id": oid.Hex()})
+			}
+		}
+
+		createdStr := ""
+		if t, ok := j["created_at"].(primitive.DateTime); ok {
+			createdStr = t.Time().Format("2006-01-02 15:04:05")
+		} else if t, ok := j["created_at"].(time.Time); ok {
+			createdStr = t.Format("2006-01-02 15:04:05")
+		}
+
+		row := []string{
+			idStr,
+			title,
+			company,
+			city,
+			jobType,
+			statusVal,
+			strconv.Itoa(salMin),
+			strconv.Itoa(salMax),
+			education,
+			strconv.Itoa(expMin),
+			strconv.Itoa(expMax),
+			strconv.FormatInt(appCount, 10),
+			createdStr,
+		}
+		if err := writer.Write(row); err != nil {
+			return nil, err
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func (r *UserRepositoryImpl) ExportRevenueCSV(ctx context.Context, status string) ([]byte, error) {
+	filter := bson.M{}
+	if status != "" && status != "all" {
+		filter["status"] = status
+	}
+
+	opts := options.Find().SetSort(bson.M{"created_at": -1})
+	cursor, err := r.db.DB.Collection("wallet_transactions").Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var txs []bson.M
+	if err := cursor.All(ctx, &txs); err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	buf.WriteString("\xEF\xBB\xBF")
+	writer := csv.NewWriter(&buf)
+
+	headers := []string{
+		"Transaction ID",
+		"Wallet ID",
+		"User ID",
+		"Type",
+		"Target Balance",
+		"Category",
+		"Amount (₹)",
+		"Balance After (₹)",
+		"Status",
+		"Reference ID",
+		"Description",
+		"Date & Time",
+	}
+	if err := writer.Write(headers); err != nil {
+		return nil, err
+	}
+
+	for _, tx := range txs {
+		idStr := ""
+		if oid, ok := tx["_id"].(primitive.ObjectID); ok {
+			idStr = oid.Hex()
+		}
+
+		walletID := ""
+		if wid, ok := tx["wallet_id"].(primitive.ObjectID); ok {
+			walletID = wid.Hex()
+		}
+
+		userID := ""
+		if uid, ok := tx["user_id"].(primitive.ObjectID); ok {
+			userID = uid.Hex()
+		}
+
+		txType, _ := tx["type"].(string)
+		targetBal, _ := tx["target_balance"].(string)
+		category, _ := tx["category"].(string)
+		statusVal, _ := tx["status"].(string)
+		refID, _ := tx["reference_id"].(string)
+		desc, _ := tx["description"].(string)
+
+		amount := 0.0
+		if a, ok := tx["amount"].(float64); ok {
+			amount = a
+		} else if a, ok := tx["amount"].(int32); ok {
+			amount = float64(a)
+		} else if a, ok := tx["amount"].(int64); ok {
+			amount = float64(a)
+		}
+
+		balAfter := 0.0
+		if ba, ok := tx["balance_after"].(float64); ok {
+			balAfter = ba
+		} else if ba, ok := tx["balance_after"].(int32); ok {
+			balAfter = float64(ba)
+		} else if ba, ok := tx["balance_after"].(int64); ok {
+			balAfter = float64(ba)
+		}
+
+		createdStr := ""
+		if t, ok := tx["created_at"].(primitive.DateTime); ok {
+			createdStr = t.Time().Format("2006-01-02 15:04:05")
+		} else if t, ok := tx["created_at"].(time.Time); ok {
+			createdStr = t.Format("2006-01-02 15:04:05")
+		}
+
+		row := []string{
+			idStr,
+			walletID,
+			userID,
+			txType,
+			targetBal,
+			category,
+			fmt.Sprintf("%.2f", amount),
+			fmt.Sprintf("%.2f", balAfter),
+			statusVal,
+			refID,
+			desc,
+			createdStr,
+		}
+		if err := writer.Write(row); err != nil {
+			return nil, err
+		}
+	}
+
+	writer.Flush()
+	if err := writer.Error(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
 }

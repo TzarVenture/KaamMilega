@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { useCompany } from "../CompanyContext";
 import api from '@/lib/axios'; // Adjust path if needed
-import { Phone, MessageCircle, MapPin, CheckCircle } from 'lucide-react';
+import { ChatCircleIcon, CheckCircleIcon, MapPinIcon, PhoneIcon } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
 
@@ -108,10 +108,10 @@ const JobCard = ({ job }: { job: Job }) => {
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-3 w-full md:w-auto">
                     <button className="p-2.5 bg-blue-50 text-km-primary rounded-xl hover:bg-blue-100 transition">
-                        <Phone size={18} />
+                        <PhoneIcon weight="bold" size={18} />
                     </button>
                     <button className="flex items-center space-x-2 px-4 py-2 border border-km-primary text-km-primary rounded-xl text-sm font-bold hover:bg-blue-50 transition whitespace-nowrap">
-                        <MessageCircle size={16} />
+                        <ChatCircleIcon weight="bold" size={16} />
                         <span className="hidden sm:inline">Chat With HR</span>
                     </button>
                     <Link href={`/jobs/${job.id}`} className="px-6 py-2 bg-km-primary text-white rounded-xl text-sm font-bold hover:bg-km-primary-dark transition whitespace-nowrap shadow-md shadow-blue-900/10">
@@ -129,7 +129,7 @@ const JobCard = ({ job }: { job: Job }) => {
                 </div>
 
                 <div className="flex items-center text-gray-500 text-sm font-medium">
-                    <MapPin size={16} className="mr-1 text-km-primary" />
+                    <MapPinIcon weight="bold" size={16} className="mr-1 text-km-primary" />
                     <span>{job.location || 'Location N/A'}, {job.city_name}</span>
                 </div>
             </div>
@@ -146,7 +146,7 @@ const JobCard = ({ job }: { job: Job }) => {
                     {job.vacancies} Vacancies
                 </span>
                 <div className="flex items-center space-x-1 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200">
-                    <CheckCircle size={12} fill="currentColor" className="text-emerald-500" />
+                    <CheckCircleIcon weight="fill" size={12} className="text-emerald-500" />
                     <span>KM Verified</span>
                 </div>
             </div>

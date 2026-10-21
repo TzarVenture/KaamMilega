@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Wrench, Trash2, Loader2 } from 'lucide-react';
+import { CircleNotchIcon, TrashIcon, WrenchIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
 
@@ -123,9 +123,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-orange-50 text-km-accent flex items-center justify-center border border-orange-100">
-                            <Wrench size={18} />
-                        </div>
+                        <WrenchIcon size={22} className="text-km-accent" aria-hidden="true" />
                         <div>
                             <h3 className="text-base font-black text-slate-900">Providing Services</h3>
                             <p className="text-xs text-slate-500 font-medium">Showcase direct trades and services you deliver to clients</p>
@@ -136,7 +134,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                         className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                         aria-label="Close modal"
                     >
-                        <X size={18} />
+                        <XIcon weight="bold" size={18} />
                     </button>
                 </div>
 
@@ -183,7 +181,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                                         onClick={() => handleRemoveService(s)}
                                         className="hover:text-rose-500 cursor-pointer"
                                     >
-                                        <X size={12} />
+                                        <XIcon weight="bold" size={12} />
                                     </button>
                                 </span>
                             ))}
@@ -252,7 +250,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                                 disabled={removing || saving}
                                 className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5"
                             >
-                                {removing ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                {removing ? <CircleNotchIcon weight="bold" size={14} className="animate-spin" /> : <TrashIcon weight="bold" size={14} />}
                                 <span>Remove Services</span>
                             </button>
                         ) : <div />}
@@ -270,7 +268,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                                 disabled={saving || services.length === 0}
                                 className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-km-primary hover:bg-km-primary-dark transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-2"
                             >
-                                {saving && <Loader2 size={14} className="animate-spin" />}
+                                {saving && <CircleNotchIcon weight="bold" size={14} className="animate-spin" />}
                                 <span>Save Services</span>
                             </button>
                         </div>

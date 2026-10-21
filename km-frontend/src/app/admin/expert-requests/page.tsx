@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import api from "@/lib/axios";
-import { Check, X } from "lucide-react";
+import { CheckIcon, XIcon } from '@phosphor-icons/react';
 
 export default function ExpertRequestsPage() {
     const [requests, setRequests] = useState<any[]>([]);
@@ -88,14 +88,14 @@ export default function ExpertRequestsPage() {
                                             className="text-green-600 hover:text-green-900 mr-4 focus:outline-none"
                                             title="Approve"
                                         >
-                                            <Check className="w-5 h-5 inline-block" />
+                                            <CheckIcon className="w-5 h-5 inline-block" />
                                         </button>
                                         <button
                                             onClick={() => handleAction(req.id, "rejected")}
                                             className="text-red-600 hover:text-red-900 focus:outline-none"
                                             title="Reject"
                                         >
-                                            <X className="w-5 h-5 inline-block" />
+                                            <XIcon className="w-5 h-5 inline-block" />
                                         </button>
                                     </td>
                                 </tr>

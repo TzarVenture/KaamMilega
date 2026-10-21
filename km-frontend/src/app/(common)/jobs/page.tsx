@@ -1,27 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
-import {
-    ChevronDown,
-    MapPin,
-    Search,
-    CheckCircle2,
-    ChevronRight,
-    ChevronLeft,
-    Bookmark,
-    BookmarkCheck,
-    Briefcase,
-    SlidersHorizontal,
-    ShieldCheck,
-    Building2,
-    RotateCcw,
-    ArrowUpDown,
-    Clock,
-    Users,
-    ArrowRight,
-    ArrowUpRight,
-    X
-} from 'lucide-react';
+import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowUpRightIcon, ArrowsDownUpIcon, BookmarkSimpleIcon, BriefcaseIcon, BuildingOfficeIcon, CaretDownIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, MapPinIcon, ShieldCheckIcon, SlidersHorizontalIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -125,7 +105,7 @@ const FilterAccordion = ({ title, children, defaultOpen = false }: { title: stri
                 className="flex items-center justify-between w-full font-bold text-xs text-[#111827] hover:text-[#0B5ED7] transition-colors cursor-pointer"
             >
                 <span>{title}</span>
-                <ChevronDown size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#0B5ED7]' : 'text-[#5B6472]'}`} />
+                <CaretDownIcon weight="bold" size={14} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#0B5ED7]' : 'text-[#5B6472]'}`} />
             </button>
             <AnimatePresence>
                 {isOpen && (
@@ -160,7 +140,7 @@ const FilterPanelContent = ({
     <div className="space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-[#D9E0EA]">
             <div className="flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-[#0B5ED7]" />
+                <SlidersHorizontalIcon weight="bold" className="w-4 h-4 text-[#0B5ED7]" />
                 <h2 className="text-xs font-bold text-[#111827]">Refine Filters</h2>
             </div>
             {activeFilterCount > 0 && (
@@ -318,7 +298,7 @@ const FilterPanelContent = ({
                 }}
                 className="btn-outline text-xs px-4 py-2 cursor-pointer w-full mt-4 flex items-center justify-center gap-1.5"
             >
-                <RotateCcw size={13} />
+                <ArrowCounterClockwiseIcon weight="bold" size={13} />
                 <span>Reset All Filters</span>
             </button>
         )}
@@ -377,9 +357,7 @@ const JobCard = ({
                         </div>
 
                         <div className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]">
-                            <div className="w-8 h-8 rounded-lg bg-[#EBF3FE] border border-[#BFDBFE] text-[#0B5ED7] flex items-center justify-center shrink-0">
-                                <MapPin size={15} />
-                            </div>
+                            <MapPinIcon size={20} className="text-[#0B5ED7] shrink-0" aria-hidden="true" />
                             <div className="min-w-0">
                                 <p className="text-[11px] font-medium text-[#5B6472]">Location</p>
                                 <p className="text-xs sm:text-sm font-bold text-[#111827] truncate">
@@ -395,15 +373,15 @@ const JobCard = ({
                             {job.job_type}
                         </span>
                         <span className="px-2.5 py-1 bg-[#F4F7FB] text-[#5B6472] border border-[#D9E0EA] text-xs font-medium rounded-lg flex items-center gap-1">
-                            <Users size={12} className="text-[#5B6472]" />
+                            <UsersIcon weight="bold" size={12} className="text-[#5B6472]" />
                             <span>{job.vacancies || 1} Openings</span>
                         </span>
                         <span className="px-2.5 py-1 bg-[#F4F7FB] text-[#5B6472] border border-[#D9E0EA] text-xs font-medium rounded-lg flex items-center gap-1">
-                            <Clock size={12} className="text-[#5B6472]" />
+                            <ClockIcon weight="bold" size={12} className="text-[#5B6472]" />
                             <span>{job.experience_min === 0 ? 'Fresher Friendly' : `${job.experience_min}+ yrs exp`}</span>
                         </span>
                         <span className="px-2.5 py-1 bg-[#EBF3FE] text-[#0B5ED7] border border-[#BFDBFE] text-xs font-semibold rounded-lg flex items-center gap-1">
-                            <CheckCircle2 size={12} className="text-[#0B5ED7]" />
+                            <CheckCircleIcon weight="bold" size={12} className="text-[#0B5ED7]" />
                             <span>KM Verified Employer</span>
                         </span>
                     </div>
@@ -422,7 +400,7 @@ const JobCard = ({
                                     : 'bg-white text-[#5B6472] hover:bg-[#F4F7FB] hover:text-[#071A4D] border-[#D9E0EA]'
                             }`}
                         >
-                            {isBookmarked ? <BookmarkCheck size={16} className="fill-[#0B5ED7] text-[#0B5ED7]" /> : <Bookmark size={16} />}
+                            {isBookmarked ? <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-[#0B5ED7]" /> : <BookmarkSimpleIcon weight="bold" size={16} />}
                         </button>
 
                         {hasApplied ? (
@@ -430,7 +408,7 @@ const JobCard = ({
                                 href="/applications"
                                 className="h-10 px-4 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1.5 flex-1 lg:flex-initial whitespace-nowrap shadow-xs"
                             >
-                                <CheckCircle2 size={14} className="text-emerald-600" />
+                                <CheckCircleIcon weight="bold" size={14} className="text-emerald-600" />
                                 <span>Applied • Track</span>
                             </Link>
                         ) : (
@@ -439,7 +417,7 @@ const JobCard = ({
                                 className="h-10 px-5 rounded-xl text-xs font-semibold btn-primary transition-all flex items-center justify-center gap-1.5 flex-1 lg:flex-initial whitespace-nowrap shadow-xs cursor-pointer"
                             >
                                 <span>View & Apply</span>
-                                <ArrowUpRight size={14} />
+                                <ArrowUpRightIcon weight="bold" size={14} />
                             </Link>
                         )}
                     </div>
@@ -731,7 +709,7 @@ const JobsPageContent = () => {
                                     onClick={() => setIsMobileFilterOpen(false)}
                                     className="p-1.5 hover:bg-[#F4F7FB] rounded-xl text-[#5B6472] transition-colors"
                                 >
-                                    <X size={18} />
+                                    <XIcon weight="bold" size={18} />
                                 </button>
                             </div>
                             <div className="flex-1 overflow-y-auto p-5">
@@ -756,7 +734,7 @@ const JobsPageContent = () => {
                         <div className="lg:col-span-5 xl:col-span-5 text-left pb-2 sm:pb-4 lg:pb-6">
                             {/* Category Indicator */}
                             <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-[#0B5ED7] border border-[#BFDBFE] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-3.5 sm:mb-4">
-                                <Briefcase size={14} className="text-[#0B5ED7]" />
+                                <BriefcaseIcon weight="bold" size={14} className="text-[#0B5ED7]" />
                                 <span>Verified Direct Employment</span>
                             </div>
 
@@ -776,7 +754,7 @@ const JobsPageContent = () => {
                                     href="/jobs/saved"
                                     className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs"
                                 >
-                                    <BookmarkCheck size={15} className="text-[#FF6B00]" />
+                                    <BookmarkSimpleIcon weight="fill" size={15} className="text-[#FF6B00]" />
                                     <span>Saved Jobs ({bookmarkedJobIds.size})</span>
                                 </Link>
                                 <Link
@@ -784,22 +762,22 @@ const JobsPageContent = () => {
                                     className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/20 text-white/90 hover:bg-white/10 hover:text-white transition-all shadow-xs"
                                 >
                                     <span>Post a Job as Employer</span>
-                                    <ArrowRight size={13} />
+                                    <ArrowRightIcon weight="bold" size={13} />
                                 </Link>
                             </div>
 
                             {/* Trust Chips */}
                             <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:gap-5 mt-5 sm:mt-6 pt-4 sm:pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
                                 <div className="flex items-center gap-2">
-                                    <ShieldCheck size={15} className="text-[#10B981] shrink-0" />
+                                    <ShieldCheckIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>100% Verified Employers</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <CheckCircle2 size={15} className="text-[#10B981] shrink-0" />
+                                    <CheckCircleIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>Zero Candidate Brokerage</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Building2 size={15} className="text-[#10B981] shrink-0" />
+                                    <BuildingOfficeIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>Direct Recruiter Contacts</span>
                                 </div>
                             </div>
@@ -828,7 +806,7 @@ const JobsPageContent = () => {
                     <form onSubmit={handleSearchSubmit} className="flex flex-col md:flex-row gap-3">
                         {/* Search keyword input */}
                         <div className="flex-1 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
-                            <Search size={17} className="text-[#5B6472] shrink-0" />
+                            <MagnifyingGlassIcon weight="bold" size={17} className="text-[#5B6472] shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Search by job title, trade, or company..."
@@ -842,14 +820,14 @@ const JobsPageContent = () => {
                                     onClick={() => setSearchInput('')}
                                     className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             )}
                         </div>
 
                         {/* City filter input */}
                         <div className="w-full md:w-60 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
-                            <MapPin size={17} className="text-[#5B6472] shrink-0" />
+                            <MapPinIcon weight="bold" size={17} className="text-[#5B6472] shrink-0" />
                             <input
                                 type="text"
                                 placeholder="City or location..."
@@ -863,7 +841,7 @@ const JobsPageContent = () => {
                                     onClick={() => setCityInput('')}
                                     className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             )}
                         </div>
@@ -873,7 +851,7 @@ const JobsPageContent = () => {
                             type="submit"
                             className="btn-accent text-xs px-6 py-2.5 shadow-xs shrink-0 flex items-center justify-center gap-1.5 cursor-pointer"
                         >
-                            <Search size={14} />
+                            <MagnifyingGlassIcon weight="bold" size={14} />
                             <span>Find Jobs</span>
                         </button>
                     </form>
@@ -932,7 +910,7 @@ const JobsPageContent = () => {
                             <div className="flex items-center gap-2.5">
                                 {/* Sorting Control */}
                                 <div className="flex items-center gap-1.5 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl px-3 py-1.5 text-xs font-semibold text-[#111827]">
-                                    <ArrowUpDown size={13} className="text-[#0B5ED7]" />
+                                    <ArrowsDownUpIcon weight="bold" size={13} className="text-[#0B5ED7]" />
                                     <span className="text-[#5B6472]">Sort:</span>
                                     <select
                                         value={sortBy}
@@ -951,7 +929,7 @@ const JobsPageContent = () => {
                                     onClick={() => setIsMobileFilterOpen(true)}
                                     className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 bg-[#EBF3FE] border border-[#BFDBFE] text-[#0B5ED7] rounded-xl text-xs font-semibold hover:bg-blue-100 transition-colors shrink-0 cursor-pointer"
                                 >
-                                    <SlidersHorizontal size={13} />
+                                    <SlidersHorizontalIcon weight="bold" size={13} />
                                     <span>Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</span>
                                 </button>
                             </div>
@@ -965,9 +943,7 @@ const JobsPageContent = () => {
                                 </div>
                             ) : jobs.length === 0 ? (
                                 <div className="text-center py-16 bg-white rounded-2xl border border-[#D9E0EA] p-8 shadow-xs">
-                                    <div className="w-16 h-16 bg-[#FFFBEB] border border-[#FDE68A] text-[#F59E0B] rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-2xs">
-                                        <Search className="w-8 h-8" />
-                                    </div>
+                                    <MagnifyingGlassIcon size={36} weight="duotone" className="text-[#F59E0B] mx-auto mb-4" aria-hidden="true" />
                                     <h3 className="text-lg font-bold text-[#111827] mb-1.5">No Matching Jobs Found</h3>
                                     <p className="text-[#5B6472] text-xs sm:text-sm max-w-md mx-auto font-normal leading-relaxed mb-6">
                                         We could not find active job postings matching your current search parameters. Try adjusting keywords or resetting filters.
@@ -979,7 +955,7 @@ const JobsPageContent = () => {
                                             onClick={handleClearSearch}
                                             className="btn-outline text-xs px-4 py-2 cursor-pointer inline-flex items-center gap-1.5 mb-6"
                                         >
-                                            <RotateCcw size={13} />
+                                            <ArrowCounterClockwiseIcon weight="bold" size={13} />
                                             <span>Reset All Search & Filters</span>
                                         </button>
                                     )}
@@ -1024,7 +1000,7 @@ const JobsPageContent = () => {
                                                 disabled={currentPage === 1}
                                                 className="p-2.5 rounded-xl bg-white border border-[#D9E0EA] hover:border-[#0B5ED7] text-[#5B6472] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
                                             >
-                                                <ChevronLeft size={16} />
+                                                <CaretLeftIcon weight="bold" size={16} />
                                             </button>
 
                                             {[...Array(totalPages)].map((_, i) => {
@@ -1060,7 +1036,7 @@ const JobsPageContent = () => {
                                                 disabled={currentPage === totalPages}
                                                 className="p-2.5 rounded-xl bg-white border border-[#D9E0EA] hover:border-[#0B5ED7] text-[#5B6472] disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-xs cursor-pointer"
                                             >
-                                                <ChevronRight size={16} />
+                                                <CaretRightIcon weight="bold" size={16} />
                                             </button>
                                         </div>
                                     )}

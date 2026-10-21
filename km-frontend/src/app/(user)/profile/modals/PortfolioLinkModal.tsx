@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Globe, Link as LinkIcon } from 'lucide-react';
+import { LinkIcon } from '@phosphor-icons/react';
 
 interface PortfolioLinkModalProps {
     isOpen: boolean;
@@ -85,7 +85,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
                         Website / Portfolio URL <span className="text-red-500">*</span>
                     </label>
                     <div className="relative">
-                        <LinkIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <LinkIcon weight="bold" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="url"
                             required

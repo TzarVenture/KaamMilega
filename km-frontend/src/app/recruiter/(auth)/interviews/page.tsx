@@ -4,20 +4,7 @@ import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import {
-    Calendar,
-    Clock,
-    MapPin,
-    Video,
-    Phone,
-    User,
-    Briefcase,
-    CheckCircle,
-    XCircle,
-    Loader2,
-    ChevronRight,
-    MessageSquare
-} from "lucide-react";
+import { CalendarBlankIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, MapPinIcon, PhoneIcon, UserIcon, VideoCameraIcon, XCircleIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { CardGridSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
 
@@ -75,9 +62,7 @@ export default function InterviewsPage() {
 
             {interviews.length === 0 ? (
                 <div className="bg-white p-16 rounded-2xl shadow-sm border border-gray-100 text-center">
-                    <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <Calendar className="w-10 h-10 text-gray-300" />
-                    </div>
+                    <CalendarBlankIcon size={48} weight="duotone" className="text-gray-300 mx-auto mb-6" aria-hidden="true" />
                     <h3 className="text-xl font-bold text-gray-900">No interviews scheduled</h3>
                     <p className="text-gray-500 mt-2 max-w-sm mx-auto">
                         Interviews appear here once you schedule them with candidates from the Applications page.
@@ -87,7 +72,7 @@ export default function InterviewsPage() {
                         className="mt-8 inline-flex items-center gap-2 px-6 py-3 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition-all shadow-lg shadow-blue-900/10"
                     >
                         Go to Applications
-                        <ChevronRight className="w-4 h-4" />
+                        <CaretRightIcon weight="bold" className="w-4 h-4" />
                     </Link>
                 </div>
             ) : (
@@ -120,14 +105,14 @@ export default function InterviewsPage() {
                                         <div>
                                             <h3 className="text-xl font-bold text-gray-900">{inview.job?.title || "Job Title"}</h3>
                                             <div className="flex items-center gap-2 text-gray-500 mt-1 font-medium">
-                                                <User className="w-4 h-4" />
+                                                <UserIcon weight="bold" className="w-4 h-4" />
                                                 <span>Candidate: {inview.candidate?.name || "Anonymous Candidate"}</span>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {inview.type === 'Video' && <Video className="w-5 h-5 text-purple-500" />}
-                                            {inview.type === 'Phone' && <Phone className="w-5 h-5 text-emerald-500" />}
-                                            {inview.type === 'In-person' && <MapPin className="w-5 h-5 text-rose-500" />}
+                                            {inview.type === 'Video' && <VideoCameraIcon className="w-5 h-5 text-purple-500" />}
+                                            {inview.type === 'Phone' && <PhoneIcon className="w-5 h-5 text-emerald-500" />}
+                                            {inview.type === 'In-person' && <MapPinIcon className="w-5 h-5 text-rose-500" />}
                                             <span className="font-bold text-gray-700">{inview.type} Interview</span>
                                         </div>
                                     </div>
@@ -135,7 +120,7 @@ export default function InterviewsPage() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="bg-gray-50 p-4 rounded-xl space-y-2">
                                             <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
-                                                <MapPin className="w-3 h-3" />
+                                                <MapPinIcon weight="bold" className="w-3 h-3" />
                                                 Location / Link
                                             </p>
                                             <p className="text-sm font-bold text-gray-700 break-all">{inview.location}</p>
@@ -143,7 +128,7 @@ export default function InterviewsPage() {
                                         {inview.notes && (
                                             <div className="bg-gray-50 p-4 rounded-xl space-y-2">
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center gap-1.5">
-                                                    <MessageSquare className="w-3 h-3" />
+                                                    <ChatIcon weight="bold" className="w-3 h-3" />
                                                     Notes
                                                 </p>
                                                 <p className="text-sm text-gray-600 italic">"{inview.notes}"</p>
@@ -160,14 +145,14 @@ export default function InterviewsPage() {
                                                 onClick={() => handleUpdateStatus(inview.id, 'Completed')}
                                                 className="flex-1 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-bold hover:bg-emerald-700 transition-all flex items-center justify-center gap-2"
                                             >
-                                                <CheckCircle className="w-4 h-4" />
+                                                <CheckCircleIcon weight="bold" className="w-4 h-4" />
                                                 Finish
                                             </button>
                                             <button
                                                 onClick={() => handleUpdateStatus(inview.id, 'Cancelled')}
                                                 className="flex-1 px-4 py-2.5 bg-white border border-rose-200 text-rose-700 rounded-xl text-xs font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
                                             >
-                                                <XCircle className="w-4 h-4" />
+                                                <XCircleIcon weight="bold" className="w-4 h-4" />
                                                 Cancel
                                             </button>
                                         </>

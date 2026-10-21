@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ChevronRight, Loader2, ShieldCheck, ArrowLeft, Phone, KeyRound } from 'lucide-react';
+import { ArrowLeftIcon, CaretRightIcon, CircleNotchIcon, KeyIcon, PhoneIcon, ShieldCheckIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { saveSession } from '@/lib/auth';
@@ -55,7 +55,7 @@ export default function AdminLoginPage() {
         <div className="min-h-screen bg-[#FDFCFE] flex items-center justify-center p-6 selection:bg-purple-200">
             <div className="absolute top-8 left-8">
                 <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-purple-700 transition-colors font-semibold text-sm">
-                    <ArrowLeft size={18} />
+                    <ArrowLeftIcon weight="bold" size={18} />
                     Back to Site
                 </Link>
             </div>
@@ -71,7 +71,7 @@ export default function AdminLoginPage() {
                         <div className="flex justify-center mb-6">
                             <div className="relative">
                                 <div className="w-20 h-20 bg-linear-to-tr from-purple-600 to-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-purple-200 rotate-12">
-                                    <ShieldCheck size={40} />
+                                    <ShieldCheckIcon size={40} />
                                 </div>
                                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center">
                                     <div className="w-2 h-2 bg-white rounded-full"></div>
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
                             <div className="space-y-2">
                                 <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Mobile Number</label>
                                 <div className="relative group">
-                                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={20} />
+                                    <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={20} />
                                     <input
                                         type="tel"
                                         required
@@ -116,7 +116,7 @@ export default function AdminLoginPage() {
                                     <button type="button" onClick={() => setStep('SEND_OTP')} className="text-[11px] font-bold text-purple-600 hover:underline">Change Number?</button>
                                 </div>
                                 <div className="relative group">
-                                    <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={20} />
+                                    <KeyIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={20} />
                                     <input
                                         type="text"
                                         required
@@ -136,13 +136,13 @@ export default function AdminLoginPage() {
                         >
                             {isLoading ? (
                                 <>
-                                    <Loader2 className="animate-spin" size={20} />
+                                    <CircleNotchIcon className="animate-spin" size={20} />
                                     <span>Processing...</span>
                                 </>
                             ) : (
                                 <>
                                     <span>{step === 'SEND_OTP' ? 'Send OTP' : 'Verify Access'}</span>
-                                    <ChevronRight size={20} />
+                                    <CaretRightIcon size={20} />
                                 </>
                             )}
                         </button>

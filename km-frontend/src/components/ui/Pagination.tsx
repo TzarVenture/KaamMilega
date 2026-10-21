@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { CaretLeftIcon, CaretRightIcon } from '@phosphor-icons/react';
 
 interface PaginationProps {
     current: number;
@@ -46,7 +46,7 @@ const Pagination: React.FC<PaginationProps> = ({ current, total, onPageChange })
                 className="p-2 text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] rounded-xl disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
                 onClick={() => onPageChange(safeCurrent - 1)}
             >
-                <ChevronLeft size={18} />
+                <CaretLeftIcon weight="bold" size={18} />
             </button>
 
             {pages.map((item, index) => {
@@ -88,7 +88,7 @@ const Pagination: React.FC<PaginationProps> = ({ current, total, onPageChange })
                 className="p-2 text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] rounded-xl disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
                 onClick={() => onPageChange(safeCurrent + 1)}
             >
-                <ChevronRight size={18} />
+                <CaretRightIcon weight="bold" size={18} />
             </button>
         </div>
     );

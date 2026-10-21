@@ -1,22 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  ThumbsUp,
-  MessageSquare,
-  Repeat2,
-  Send,
-  MoreHorizontal,
-  Bookmark,
-  Share2,
-  Trash2,
-  ShieldCheck,
-  Check,
-  Globe,
-  Heart,
-  Lightbulb,
-  PartyPopper,
-} from 'lucide-react';
+import { BookmarkSimpleIcon, ChatIcon, ConfettiIcon, DotsThreeIcon, GlobeIcon, HeartIcon, LightbulbIcon, PaperPlaneRightIcon, RepeatIcon, ShareNetworkIcon, ShieldCheckIcon, ThumbsUpIcon, TrashIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { FeedPost, FeedAuthor, ReactionType } from './feedTypes';
 import { getCurrentUser } from '@/lib/auth';
@@ -37,31 +22,31 @@ const REACTION_CONFIG: Record<
 > = {
   like: {
     label: 'Like',
-    icon: <ThumbsUp size={15} className="fill-[#0B5ED7] text-[#0B5ED7]" />,
+    icon: <ThumbsUpIcon weight="bold" size={15} className="fill-[#0B5ED7] text-[#0B5ED7]" />,
     color: 'text-[#0B5ED7]',
     badgeBg: 'bg-[#0B5ED7]',
   },
   celebrate: {
     label: 'Celebrate',
-    icon: <PartyPopper size={15} className="fill-[#16A34A] text-[#16A34A]" />,
+    icon: <ConfettiIcon weight="bold" size={15} className="fill-[#16A34A] text-[#16A34A]" />,
     color: 'text-[#16A34A]',
     badgeBg: 'bg-[#16A34A]',
   },
   support: {
     label: 'Support',
-    icon: <Heart size={15} className="fill-[#EF4444] text-[#EF4444]" />,
+    icon: <HeartIcon weight="bold" size={15} className="fill-[#EF4444] text-[#EF4444]" />,
     color: 'text-[#EF4444]',
     badgeBg: 'bg-[#EF4444]',
   },
   love: {
     label: 'Love',
-    icon: <Heart size={15} className="fill-[#EF4444] text-[#EF4444]" />,
+    icon: <HeartIcon weight="bold" size={15} className="fill-[#EF4444] text-[#EF4444]" />,
     color: 'text-[#EF4444]',
     badgeBg: 'bg-[#EF4444]',
   },
   insightful: {
     label: 'Insightful',
-    icon: <Lightbulb size={15} className="fill-[#F59E0B] text-[#F59E0B]" />,
+    icon: <LightbulbIcon weight="bold" size={15} className="fill-[#F59E0B] text-[#F59E0B]" />,
     color: 'text-[#F59E0B]',
     badgeBg: 'bg-[#F59E0B]',
   },
@@ -170,7 +155,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               </h3>
               {post.author.isVerified && (
                 <span title="Verified Member" className="inline-flex">
-                  <ShieldCheck size={15} className="text-[#0B5ED7] shrink-0" />
+                  <ShieldCheckIcon weight="bold" size={15} className="text-[#0B5ED7] shrink-0" />
                 </span>
               )}
             </div>
@@ -182,7 +167,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             <div className="flex items-center gap-1 text-[11px] text-[#5B6472] mt-0.5 font-poppins">
               <span>{post.createdAt}</span>
               <span>•</span>
-              <Globe size={11} className="text-[#5B6472]" />
+              <GlobeIcon weight="bold" size={11} className="text-[#5B6472]" />
             </div>
           </div>
         </div>
@@ -195,7 +180,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             className="p-1.5 text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] rounded-full transition-colors"
             aria-label="Post actions"
           >
-            <MoreHorizontal size={20} />
+            <DotsThreeIcon size={20} />
           </button>
 
           {menuOpen && (
@@ -209,7 +194,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 }}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[#111827] hover:bg-[#F4F7FB] transition-colors"
               >
-                <Bookmark size={15} className={post.isSaved ? 'text-[#FF6B00] fill-[#FF6B00]' : 'text-[#5B6472]'} />
+                <BookmarkSimpleIcon weight="bold" size={15} className={post.isSaved ? 'text-[#FF6B00] fill-[#FF6B00]' : 'text-[#5B6472]'} />
                 <span>{post.isSaved ? 'Unsave Post' : 'Save Post'}</span>
               </button>
 
@@ -218,7 +203,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 onClick={handleCopyLink}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[#111827] hover:bg-[#F4F7FB] transition-colors"
               >
-                <Share2 size={15} className="text-[#5B6472]" />
+                <ShareNetworkIcon weight="bold" size={15} className="text-[#5B6472]" />
                 <span>Copy Link to Post</span>
               </button>
 
@@ -232,7 +217,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                   }}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors border-t border-[#D9E0EA]"
                 >
-                  <Trash2 size={15} />
+                  <TrashIcon weight="bold" size={15} />
                   <span>Delete Post</span>
                 </button>
               )}
@@ -356,7 +341,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           {post.isLiked && currentReaction ? (
             currentReaction.icon
           ) : (
-            <ThumbsUp size={16} />
+            <ThumbsUpIcon weight="bold" size={16} />
           )}
           <span>{post.isLiked && currentReaction ? currentReaction.label : 'Like'}</span>
         </button>
@@ -369,7 +354,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             showComments ? 'text-[#0B5ED7]' : 'text-[#5B6472] hover:text-[#071A4D]'
           }`}
         >
-          <MessageSquare size={16} />
+          <ChatIcon weight="bold" size={16} />
           <span>Comment</span>
         </button>
 
@@ -384,7 +369,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             post.isReposted ? 'text-[#16A34A]' : 'text-[#5B6472] hover:text-[#071A4D]'
           }`}
         >
-          <Repeat2 size={17} />
+          <RepeatIcon weight="bold" size={17} />
           <span>Repost</span>
         </button>
 
@@ -394,7 +379,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           onClick={handleCopyLink}
           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] transition-all"
         >
-          <Send size={15} />
+          <PaperPlaneRightIcon weight="bold" size={15} />
           <span>Share</span>
         </button>
       </div>

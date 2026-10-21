@@ -1,6 +1,6 @@
 'use client'
 import React, { ReactNode } from 'react';
-import { X } from 'lucide-react';
+import { XIcon } from '@phosphor-icons/react';
 
 interface ModalWrapperProps {
   isOpen: boolean;
@@ -31,7 +31,7 @@ const ModalWrapper = ({ isOpen, onClose, title, children, size = 'md' }: ModalWr
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
           >
-            <X size={24} className="text-gray-500" />
+            <XIcon size={24} className="text-gray-500" />
           </button>
         </div>
 

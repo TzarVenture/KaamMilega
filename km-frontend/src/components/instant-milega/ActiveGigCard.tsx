@@ -2,16 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {
-    Briefcase,
-    Building2,
-    MapPin,
-    Phone,
-    MessageSquare,
-    CheckCircle2,
-    Clock,
-    ShieldCheck
-} from 'lucide-react';
+import { BuildingOfficeIcon, ChatIcon, CheckCircleIcon, ClockIcon, MapPinIcon, PhoneIcon, ShieldCheckIcon } from '@phosphor-icons/react';
 import { toast } from 'react-toastify';
 import api from '@/lib/axios';
 
@@ -77,7 +68,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
 
                     <div className="flex items-center gap-2 self-start sm:self-auto">
                         <span className="px-3 py-1 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#16A34A]/30 text-xs font-bold flex items-center gap-1.5">
-                            <ShieldCheck size={14} className="text-[#16A34A]" />
+                            <ShieldCheckIcon weight="bold" size={14} className="text-[#16A34A]" />
                             <span>Match Confirmed</span>
                         </span>
                     </div>
@@ -88,17 +79,17 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                     <div className="md:col-span-8 space-y-3">
                         <div className="flex flex-wrap items-center gap-4 text-xs text-[#5B6472] font-medium">
                             <div className="flex items-center gap-1.5 text-[#111827] font-semibold">
-                                <Building2 size={15} className="text-[#071A4D]" />
+                                <BuildingOfficeIcon weight="bold" size={15} className="text-[#071A4D]" />
                                 <span>{job.company_name || 'Employer'}</span>
                             </div>
                             <span>•</span>
                             <div className="flex items-center gap-1.5">
-                                <MapPin size={15} className="text-[#FF6B00]" />
+                                <MapPinIcon weight="bold" size={15} className="text-[#FF6B00]" />
                                 <span>{job.address || 'Address provided upon match'}</span>
                             </div>
                             <span>•</span>
                             <div className="flex items-center gap-1.5">
-                                <Clock size={15} className="text-[#5B6472]" />
+                                <ClockIcon weight="bold" size={15} className="text-[#5B6472]" />
                                 <span>Est. {job.duration_hours || 4} Hours</span>
                             </div>
                         </div>
@@ -117,7 +108,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                                     href={`tel:${job.recruiter_mobile}`}
                                     className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
                                 >
-                                    <Phone size={14} className="fill-white" />
+                                    <PhoneIcon weight="fill" size={14} className="fill-white" />
                                     <span>Call Employer: {job.recruiter_mobile}</span>
                                 </a>
                             ) : (
@@ -126,7 +117,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                                     onClick={() => toast.info('Connecting with employer...')}
                                     className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
                                 >
-                                    <Phone size={14} className="fill-white" />
+                                    <PhoneIcon weight="fill" size={14} className="fill-white" />
                                     <span>Call Employer</span>
                                 </button>
                             )}
@@ -135,7 +126,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                                 href={`/chat?user=${job.recruiter_id}`}
                                 className="inline-flex items-center gap-2 bg-white hover:bg-[#F4F7FB] border border-[#071A4D] text-[#071A4D] font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
                             >
-                                <MessageSquare size={14} className="text-[#071A4D]" />
+                                <ChatIcon weight="bold" size={14} className="text-[#071A4D]" />
                                 <span>In-App Chat</span>
                             </Link>
                         </div>
@@ -175,7 +166,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                                         <span>Submitting...</span>
                                     ) : (
                                         <>
-                                            <CheckCircle2 size={15} />
+                                            <CheckCircleIcon weight="bold" size={15} />
                                             <span>Mark Work Complete</span>
                                         </>
                                     )}

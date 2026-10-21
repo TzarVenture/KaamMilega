@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
-import { Loader2, Calendar, Clock, MapPin, Video, Phone, Building2, ChevronRight, Briefcase } from "lucide-react";
+import { BuildingOfficeIcon, CalendarBlankIcon, CaretRightIcon, CircleNotchIcon, ClockIcon, MapPinIcon, PhoneIcon, VideoCameraIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ export default function UserInterviewsPage() {
     if (loading) {
         return (
             <div className="flex h-[80vh] items-center justify-center">
-                <Loader2 className="w-10 h-10 animate-spin text-km-primary" />
+                <CircleNotchIcon className="w-10 h-10 animate-spin text-km-primary" />
             </div>
         );
     }
@@ -43,9 +43,7 @@ export default function UserInterviewsPage() {
 
                 {interviews.length === 0 ? (
                     <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200/80 text-center shadow-xs">
-                        <div className="w-20 h-20 bg-blue-50 text-km-primary rounded-full flex items-center justify-center mx-auto mb-6">
-                            <Calendar className="w-10 h-10" />
-                        </div>
+                        <CalendarBlankIcon size={48} weight="duotone" className="text-km-primary mx-auto mb-6" aria-hidden="true" />
                         <h2 className="text-xl font-black text-slate-900">No Scheduled Interviews</h2>
                         <p className="text-slate-500 mt-2 max-w-sm mx-auto text-xs font-medium">
                             Apply to active job postings to get shortlisted and receive direct interview calls!
@@ -55,7 +53,7 @@ export default function UserInterviewsPage() {
                             className="mt-8 inline-flex items-center gap-2 px-8 py-3.5 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-900/10"
                         >
                             Find Active Jobs
-                            <ChevronRight className="w-4 h-4" />
+                            <CaretRightIcon weight="bold" className="w-4 h-4" />
                         </Link>
                     </div>
                 ) : (
@@ -67,7 +65,7 @@ export default function UserInterviewsPage() {
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-center gap-4">
                                             <div className="w-14 h-14 bg-linear-to-br from-slate-950 via-km-primary-dark to-slate-950 rounded-2xl flex items-center justify-center border border-slate-700 shadow-xs">
-                                                <Building2 className="w-7 h-7 text-white" />
+                                                <BuildingOfficeIcon className="w-7 h-7 text-white" />
                                             </div>
                                             <div>
                                                 <h3 className="text-lg font-bold text-slate-900 leading-tight">{inview.job?.title}</h3>
@@ -88,7 +86,7 @@ export default function UserInterviewsPage() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-km-primary mb-1 flex items-center gap-1.5">
-                                                <Calendar className="w-3.5 h-3.5" />
+                                                <CalendarBlankIcon weight="bold" className="w-3.5 h-3.5" />
                                                 Date
                                             </p>
                                             <p className="font-extrabold text-xs text-slate-900">
@@ -97,7 +95,7 @@ export default function UserInterviewsPage() {
                                         </div>
                                         <div className="bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-km-primary mb-1 flex items-center gap-1.5">
-                                                <Clock className="w-3.5 h-3.5" />
+                                                <ClockIcon weight="bold" className="w-3.5 h-3.5" />
                                                 Time
                                             </p>
                                             <p className="font-extrabold text-xs text-slate-900">
@@ -110,9 +108,9 @@ export default function UserInterviewsPage() {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
-                                                {inview.type === 'Video' ? <Video className="w-5 h-5 text-km-primary" /> :
-                                                    inview.type === 'Phone' ? <Phone className="w-5 h-5 text-emerald-600" /> :
-                                                        <MapPin className="w-5 h-5 text-amber-600" />}
+                                                {inview.type === 'Video' ? <VideoCameraIcon className="w-5 h-5 text-km-primary" /> :
+                                                    inview.type === 'Phone' ? <PhoneIcon className="w-5 h-5 text-emerald-600" /> :
+                                                        <MapPinIcon className="w-5 h-5 text-amber-600" />}
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{inview.type} INTERVIEW</p>
@@ -131,7 +129,7 @@ export default function UserInterviewsPage() {
                                     {inview.status === 'Scheduled' && (
                                         <button className="w-full py-3.5 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md shadow-blue-900/10">
                                             {inview.type === 'Video' ? 'Join Virtual Lobby' : 'View Full Details'}
-                                            <ChevronRight className="w-4 h-4" />
+                                            <CaretRightIcon weight="bold" className="w-4 h-4" />
                                         </button>
                                     )}
                                 </div>

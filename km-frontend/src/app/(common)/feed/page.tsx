@@ -21,7 +21,7 @@ import {
   deletePost,
 } from '@/components/feed/feedStorage';
 import { getCurrentUser } from '@/lib/auth';
-import { Sparkles, Bookmark, Inbox } from 'lucide-react';
+import { BookmarkSimpleIcon, TrayIcon } from '@phosphor-icons/react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -170,7 +170,7 @@ export default function FeedPage() {
             {sidebarFilter !== 'all' && (
               <div className="bg-white border border-[#D9E0EA] rounded-xl px-4 py-2.5 flex items-center justify-between text-xs">
                 <span className="font-semibold text-[#111827] flex items-center gap-1.5">
-                  <Bookmark size={14} className="text-[#FF6B00]" />
+                  <BookmarkSimpleIcon weight="bold" size={14} className="text-[#FF6B00]" />
                   Showing: {sidebarFilter === 'saved' ? 'Your Saved Posts' : 'Your Authored Posts'}
                 </span>
                 <button
@@ -207,9 +207,7 @@ export default function FeedPage() {
           ) : (
             /* Empty State */
             <div className="bg-white border border-[#D9E0EA] rounded-2xl p-10 text-center shadow-xs space-y-3">
-              <div className="w-14 h-14 rounded-full bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center mx-auto text-[#5B6472]">
-                <Inbox size={26} />
-              </div>
+              <TrayIcon size={32} weight="duotone" className="text-[#5B6472] mx-auto" aria-hidden="true" />
               <h3 className="text-base font-bold text-[#111827]">No updates found in this category</h3>
               <p className="text-xs text-[#5B6472] max-w-sm mx-auto">
                 {sidebarFilter === 'saved'

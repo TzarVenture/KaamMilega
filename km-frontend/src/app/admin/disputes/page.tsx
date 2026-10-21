@@ -1,23 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { 
-    ShieldAlert, 
-    CheckCircle2, 
-    XCircle, 
-    Clock, 
-    Search, 
-    RefreshCw, 
-    ChevronLeft, 
-    ChevronRight,
-    ArrowUpRight,
-    Sparkles,
-    Shield,
-    X,
-    AlertCircle,
-    User,
-    CreditCard
-} from 'lucide-react';
+import { ArrowsClockwiseIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, ShieldIcon, ShieldWarningIcon, ArrowUUpLeftIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -120,15 +104,16 @@ export default function AdminDisputesPage() {
         });
     };
 
-    const getReasonLabel = (reason: string) => {
-        switch (reason) {
-            case 'service_not_provided': return 'Service Not Delivered';
-            case 'session_cancelled': return 'Session Cancelled';
-            case 'duplicate_charge': return 'Duplicate Deduction';
-            case 'technical_failure': return 'Technical Failure';
-            case 'dissatisfied': return 'Quality / Dissatisfied';
-            default: return 'Other Reason';
+    const getReasonLabel = (reason?: string) => {
+        if (!reason || !reason.trim()) return 'Dispute';
+        // Dynamically format snake_case or display backend string directly
+        if (reason.includes('_')) {
+            return reason
+                .split('_')
+                .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+                .join(' ');
         }
+        return reason.charAt(0).toUpperCase() + reason.slice(1);
     };
 
     const getStatusBadge = (status: string) => {
@@ -137,31 +122,31 @@ export default function AdminDisputesPage() {
                 return {
                     label: 'Pending',
                     bg: 'bg-amber-100 text-amber-800 border-amber-200',
-                    icon: Clock,
+                    icon: ClockIcon,
                 };
             case 'under_review':
                 return {
                     label: 'Under Review',
                     bg: 'bg-blue-100 text-blue-800 border-blue-200',
-                    icon: Shield,
+                    icon: ShieldIcon,
                 };
             case 'approved':
                 return {
                     label: 'Approved & Refunded',
                     bg: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-                    icon: CheckCircle2,
+                    icon: CheckCircleIcon,
                 };
             case 'rejected':
                 return {
                     label: 'Rejected',
                     bg: 'bg-rose-100 text-rose-800 border-rose-200',
-                    icon: XCircle,
+                    icon: XCircleIcon,
                 };
             default:
                 return {
                     label: status,
                     bg: 'bg-slate-100 text-slate-700 border-slate-200',
-                    icon: Clock,
+                    icon: ClockIcon,
                 };
         }
     };
@@ -235,7 +220,7 @@ export default function AdminDisputesPage() {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2.5">
-                        <ShieldAlert className="w-6 h-6 text-purple-600" />
+                        <ShieldWarningIcon className="w-6 h-6 text-purple-600" />
                         <span>Wallet Disputes & Refunds</span>
                     </h1>
                     <p className="text-xs sm:text-sm text-gray-500 mt-1">
@@ -248,7 +233,7 @@ export default function AdminDisputesPage() {
                     disabled={loading}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-xs self-start sm:self-auto cursor-pointer"
                 >
-                    <RefreshCw size={14} className={loading ? "animate-spin text-purple-600" : "text-gray-500"} />
+                    <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600" : "text-gray-500"} />
                     <span>Refresh</span>
                 </button>
             </div>
@@ -300,7 +285,7 @@ export default function AdminDisputesPage() {
 
                 {/* Search Box */}
                 <div className="relative max-w-sm w-full">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
                     <input
                         type="text"
                         placeholder="Search by customer name, email, dispute #, tx ID..."
@@ -317,7 +302,7 @@ export default function AdminDisputesPage() {
                     <div className="p-12 text-center text-gray-400">Loading dispute requests...</div>
                 ) : filteredDisputes.length === 0 ? (
                     <div className="p-12 text-center text-gray-400 space-y-2">
-                        <ShieldAlert className="w-10 h-10 mx-auto text-gray-300" />
+                        <ShieldWarningIcon className="w-10 h-10 mx-auto text-gray-300" />
                         <p className="text-sm font-semibold">No dispute requests found.</p>
                     </div>
                 ) : (
@@ -371,9 +356,15 @@ export default function AdminDisputesPage() {
                                             <td className="px-6 py-4 max-w-xs">
                                                 <div className="flex flex-col">
                                                     <span className="text-xs font-bold text-gray-900">{getReasonLabel(disp.reason)}</span>
-                                                    <p className="text-[11px] text-gray-500 truncate max-w-xs mt-0.5" title={disp.description}>
-                                                        {disp.description}
-                                                    </p>
+                                                    {disp.description ? (
+                                                        <p className="text-[11px] text-gray-500 truncate max-w-xs mt-0.5" title={disp.description}>
+                                                            {disp.description}
+                                                        </p>
+                                                    ) : (
+                                                        <p className="text-[11px] text-gray-400 italic mt-0.5">
+                                                            No explanation provided
+                                                        </p>
+                                                    )}
                                                     {disp.admin_notes && (
                                                         <span className="text-[10px] text-purple-700 font-medium mt-1 truncate">
                                                             Note: {disp.admin_notes}
@@ -421,14 +412,14 @@ export default function AdminDisputesPage() {
                                 disabled={page <= 1 || loading}
                                 className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
                             >
-                                <ChevronLeft size={14} />
+                                <CaretLeftIcon weight="bold" size={14} />
                             </button>
                             <button
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page >= totalPages || loading}
                                 className="p-2 border border-gray-200 rounded-xl hover:bg-gray-50 disabled:opacity-40 cursor-pointer"
                             >
-                                <ChevronRight size={14} />
+                                <CaretRightIcon weight="bold" size={14} />
                             </button>
                         </div>
                     </div>
@@ -442,7 +433,7 @@ export default function AdminDisputesPage() {
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                    <ShieldAlert className="text-purple-600 w-5 h-5" />
+                                    <ShieldWarningIcon className="text-purple-600 w-5 h-5" />
                                     <span>Resolve Dispute {selectedDispute.dispute_number}</span>
                                 </h3>
                                 <p className="text-xs text-gray-400 mt-0.5">
@@ -450,7 +441,7 @@ export default function AdminDisputesPage() {
                                 </p>
                             </div>
                             <button onClick={closeResolveModal} className="text-gray-400 hover:text-gray-600 p-1 cursor-pointer">
-                                <X size={18} />
+                                <XIcon weight="bold" size={18} />
                             </button>
                         </div>
 
@@ -531,7 +522,7 @@ export default function AdminDisputesPage() {
 
                                 {resolveStatus === 'approved' && (
                                     <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-[11px] text-emerald-900 flex items-start gap-2">
-                                        <Sparkles className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                        <ArrowUUpLeftIcon weight="bold" className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" aria-hidden="true" />
                                         <p>
                                             <strong>Automated Atomic Refund:</strong> Approving will immediately credit <strong>₹{selectedDispute.amount}</strong> to user&apos;s Main Balance and log a permanent ledger transaction.
                                         </p>
@@ -574,7 +565,7 @@ export default function AdminDisputesPage() {
                                     >
                                         {isResolving ? (
                                             <>
-                                                <RefreshCw size={14} className="animate-spin" />
+                                                <ArrowsClockwiseIcon weight="bold" size={14} className="animate-spin" />
                                                 <span>Processing...</span>
                                             </>
                                         ) : (

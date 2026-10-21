@@ -2,13 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import {
-    Wallet,
-    ArrowRight,
-    CheckCircle2,
-    ShieldCheck,
-    CreditCard
-} from 'lucide-react';
+import { ArrowRightIcon, CheckCircleIcon, ShieldCheckIcon, WalletIcon } from '@phosphor-icons/react';
 
 export default function DailyEarningsSummary() {
     return (
@@ -18,7 +12,7 @@ export default function DailyEarningsSummary() {
                     {/* Left: Heading and Guarantees */}
                     <div className="lg:col-span-8 space-y-3">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white/10 text-white text-xs font-semibold">
-                            <ShieldCheck size={14} className="text-[#FF6B00]" />
+                            <ShieldCheckIcon weight="bold" size={14} className="text-[#FF6B00]" />
                             <span>KaamMilega Payout Guarantee</span>
                         </div>
 
@@ -32,15 +26,15 @@ export default function DailyEarningsSummary() {
 
                         <div className="flex flex-wrap items-center gap-5 pt-2 text-xs font-medium text-slate-200">
                             <div className="flex items-center gap-1.5">
-                                <CheckCircle2 size={15} className="text-[#FF6B00]" />
+                                <CheckCircleIcon weight="bold" size={15} className="text-[#FF6B00]" />
                                 <span>Direct Employer Contact</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <CheckCircle2 size={15} className="text-[#FF6B00]" />
+                                <CheckCircleIcon weight="bold" size={15} className="text-[#FF6B00]" />
                                 <span>Zero Brokerage / 0% Cut</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <CheckCircle2 size={15} className="text-[#FF6B00]" />
+                                <CheckCircleIcon weight="bold" size={15} className="text-[#FF6B00]" />
                                 <span>Same-Day Bank Transfers</span>
                             </div>
                         </div>
@@ -50,7 +44,7 @@ export default function DailyEarningsSummary() {
                     <div className="lg:col-span-4 flex flex-col justify-center">
                         <div className="p-5 rounded-xl bg-white/10 border border-white/10 text-center">
                             <div className="w-10 h-10 rounded-xl bg-[#FF6B00] mx-auto flex items-center justify-center text-white mb-2.5">
-                                <Wallet size={20} />
+                                <WalletIcon size={20} />
                             </div>
 
                             <h4 className="text-base font-bold text-white">
@@ -66,7 +60,7 @@ export default function DailyEarningsSummary() {
                                 className="w-full inline-flex items-center justify-center gap-2 bg-[#FF6B00] hover:bg-[#FF8A00] text-white font-semibold text-xs py-2.5 px-4 rounded-xl transition-colors cursor-pointer"
                             >
                                 <span>Open Wallet</span>
-                                <ArrowRight size={14} />
+                                <ArrowRightIcon weight="bold" size={14} />
                             </Link>
                         </div>
                     </div>

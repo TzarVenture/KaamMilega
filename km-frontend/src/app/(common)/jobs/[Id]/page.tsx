@@ -1,32 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import {
-    MapPin,
-    Briefcase,
-    CheckCircle2,
-    Clock,
-    Users,
-    ShieldCheck,
-    ArrowLeft,
-    Calendar,
-    X,
-    Share2,
-    Bookmark,
-    BookmarkCheck,
-    MessageCircle,
-    UserPlus,
-    ArrowUpRight,
-    FileText,
-    Award,
-    User,
-    Mail,
-    Phone,
-    GraduationCap,
-    ExternalLink,
-    UploadCloud,
-    Trash2
-} from 'lucide-react';
+import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CalendarBlankIcon, ChatCircleIcon, CheckCircleIcon, ClockIcon, CloudArrowUpIcon, FileTextIcon, MapPinIcon, MedalIcon, ShareNetworkIcon, ShieldCheckIcon, TrashIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { toast, ToastContainer } from 'react-toastify';
@@ -308,7 +283,7 @@ const JobDetailPage = () => {
                             href="/jobs"
                             className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white transition-colors"
                         >
-                            <ArrowLeft size={14} />
+                            <ArrowLeftIcon weight="bold" size={14} />
                             <span>Back to All Jobs</span>
                         </Link>
                     </div>
@@ -318,7 +293,7 @@ const JobDetailPage = () => {
                         <div className="flex-1 min-w-0">
                             {/* Category Indicator */}
                             <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-[#0B5ED7] border border-[#BFDBFE] text-xs font-semibold px-3 py-1 rounded-full mb-3">
-                                <Briefcase size={13} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
+                                <BriefcaseIcon weight="bold" size={13} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
                                 <span>Verified Direct Job Opening</span>
                             </div>
 
@@ -330,7 +305,7 @@ const JobDetailPage = () => {
                                 <span className="text-white font-semibold text-sm">{job.company}</span>
                                 <span className="w-1 h-1 rounded-full bg-white/40" />
                                 <span className="flex items-center gap-1">
-                                    <MapPin size={13} className="text-[#0B5ED7] fill-[#0B5ED7]" />
+                                    <MapPinIcon weight="bold" size={13} className="text-[#0B5ED7] fill-[#0B5ED7]" />
                                     <span>
                                         {job.location ? `${job.location}, ` : ''}
                                         {job.city_name || 'All India'}
@@ -340,7 +315,7 @@ const JobDetailPage = () => {
                                     <>
                                         <span className="w-1 h-1 rounded-full bg-white/40" />
                                         <span className="flex items-center gap-1">
-                                            <Calendar size={13} className="text-white/60 fill-white/20" />
+                                            <CalendarBlankIcon weight="fill" size={13} className="text-white/60 fill-white/20" />
                                             <span>Posted {formatDate(job.created_at)}</span>
                                         </span>
                                     </>
@@ -384,7 +359,7 @@ const JobDetailPage = () => {
                                     href="/applications"
                                     className="h-11 px-5 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
                                 >
-                                    <CheckCircle2 size={15} className="fill-white text-emerald-600" />
+                                    <CheckCircleIcon weight="fill" size={15} className="fill-white text-emerald-600" />
                                     <span>Application Submitted • Track Status</span>
                                 </Link>
                             ) : (
@@ -394,7 +369,7 @@ const JobDetailPage = () => {
                                     className="h-11 px-6 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer btn-accent"
                                 >
                                     <span>Apply for Position</span>
-                                    <ArrowUpRight size={14} />
+                                    <ArrowUpRightIcon weight="bold" size={14} />
                                 </button>
                             )}
 
@@ -414,17 +389,17 @@ const JobDetailPage = () => {
                                 >
                                     {connectionStatus === 'accepted' ? (
                                         <>
-                                            <MessageCircle size={15} className="fill-white" />
+                                            <ChatCircleIcon weight="fill" size={15} className="fill-white" />
                                             <span>Chat with HR</span>
                                         </>
                                     ) : connectionStatus === 'pending' ? (
                                         <>
-                                            <Clock size={15} className="fill-amber-400/20 text-amber-400" />
+                                            <ClockIcon weight="fill" size={15} className="fill-amber-400/20 text-amber-400" />
                                             <span>Connection Pending</span>
                                         </>
                                     ) : (
                                         <>
-                                            <UserPlus size={15} className="fill-white/20" />
+                                            <UserPlusIcon weight="fill" size={15} className="fill-white/20" />
                                             <span>Connect with HR</span>
                                         </>
                                     )}
@@ -443,9 +418,9 @@ const JobDetailPage = () => {
                                 }`}
                             >
                                 {isBookmarked ? (
-                                    <BookmarkCheck size={16} className="fill-[#0B5ED7] text-[#0B5ED7]" />
+                                    <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-[#0B5ED7]" />
                                 ) : (
-                                    <Bookmark size={16} className="fill-white/10 text-white/90" />
+                                    <BookmarkSimpleIcon weight="fill" size={16} className="fill-white/10 text-white/90" />
                                 )}
                             </button>
 
@@ -456,7 +431,7 @@ const JobDetailPage = () => {
                                 title="Share this job"
                                 className="w-11 h-11 rounded-xl bg-[#0B1F52] border border-white/20 text-white/90 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center cursor-pointer shadow-xs"
                             >
-                                <Share2 size={16} />
+                                <ShareNetworkIcon weight="bold" size={16} />
                             </button>
                         </div>
                     </div>
@@ -471,7 +446,7 @@ const JobDetailPage = () => {
                         {/* Job Specifications Card */}
                         <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 shadow-xs">
                             <h2 className="text-base font-bold text-[#111827] mb-4 pb-3 border-b border-[#D9E0EA] flex items-center gap-2">
-                                <Briefcase size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
+                                <BriefcaseIcon weight="bold" size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
                                 <span>Role Overview & Specifications</span>
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -517,7 +492,7 @@ const JobDetailPage = () => {
                         {/* Description Card */}
                         <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 shadow-xs">
                             <h2 className="text-base font-bold text-[#111827] mb-4 pb-3 border-b border-[#D9E0EA] flex items-center gap-2">
-                                <FileText size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
+                                <FileTextIcon weight="bold" size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
                                 <span>Detailed Job Description</span>
                             </h2>
                             <div className="text-sm text-[#111827] leading-relaxed whitespace-pre-wrap font-normal">
@@ -529,7 +504,7 @@ const JobDetailPage = () => {
                         {job.requirements && job.requirements.length > 0 && (
                             <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 shadow-xs">
                                 <h2 className="text-base font-bold text-[#111827] mb-4 pb-3 border-b border-[#D9E0EA] flex items-center gap-2">
-                                    <Award size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
+                                    <MedalIcon weight="bold" size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
                                     <span>Key Requirements & Skills</span>
                                 </h2>
                                 <div className="flex flex-wrap gap-2">
@@ -538,7 +513,7 @@ const JobDetailPage = () => {
                                             key={skill}
                                             className="px-3 py-1.5 bg-[#F4F7FB] border border-[#D9E0EA] text-[#071A4D] rounded-xl text-xs font-medium flex items-center gap-1.5"
                                         >
-                                            <CheckCircle2 size={13} className="fill-[#0B5ED7] text-white" />
+                                            <CheckCircleIcon weight="bold" size={13} className="fill-[#0B5ED7] text-white" />
                                             <span>{skill}</span>
                                         </span>
                                     ))}
@@ -550,13 +525,13 @@ const JobDetailPage = () => {
                         {job.we_offer && job.we_offer.length > 0 && (
                             <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 shadow-xs">
                                 <h2 className="text-base font-bold text-[#111827] mb-4 pb-3 border-b border-[#D9E0EA] flex items-center gap-2">
-                                    <CheckCircle2 size={16} className="fill-emerald-600 text-white" />
+                                    <CheckCircleIcon weight="fill" size={16} className="fill-emerald-600 text-white" />
                                     <span>Compensation & Perks Offered</span>
                                 </h2>
                                 <ul className="space-y-2.5">
                                     {job.we_offer.map((offer, i) => (
                                         <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#111827] font-medium">
-                                            <CheckCircle2 size={15} className="fill-emerald-600 text-white shrink-0 mt-0.5" />
+                                            <CheckCircleIcon weight="fill" size={15} className="fill-emerald-600 text-white shrink-0 mt-0.5" />
                                             <span>{offer}</span>
                                         </li>
                                     ))}
@@ -585,7 +560,7 @@ const JobDetailPage = () => {
                                         href="/applications"
                                         className="w-full h-11 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white"
                                     >
-                                        <CheckCircle2 size={15} className="fill-white text-emerald-600" />
+                                        <CheckCircleIcon weight="fill" size={15} className="fill-white text-emerald-600" />
                                         <span>Application Submitted • Track Status</span>
                                     </Link>
                                 ) : (
@@ -595,7 +570,7 @@ const JobDetailPage = () => {
                                         className="w-full h-11 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-xs cursor-pointer btn-accent"
                                     >
                                         <span>Apply for Position</span>
-                                        <ArrowUpRight size={14} />
+                                        <ArrowUpRightIcon weight="bold" size={14} />
                                     </button>
                                 )}
 
@@ -614,17 +589,17 @@ const JobDetailPage = () => {
                                     >
                                         {connectionStatus === 'accepted' ? (
                                             <>
-                                                <MessageCircle size={14} className="fill-current" />
+                                                <ChatCircleIcon weight="fill" size={14} className="fill-current" />
                                                 <span>Chat with Hiring Manager</span>
                                             </>
                                         ) : connectionStatus === 'pending' ? (
                                             <>
-                                                <Clock size={14} className="fill-amber-500/20 text-amber-500" />
+                                                <ClockIcon weight="fill" size={14} className="fill-amber-500/20 text-amber-500" />
                                                 <span>Connection Pending</span>
                                             </>
                                         ) : (
                                             <>
-                                                <UserPlus size={14} className="fill-current/20" />
+                                                <UserPlusIcon weight="fill" size={14} className="fill-current/20" />
                                                 <span>Connect with Recruiter</span>
                                             </>
                                         )}
@@ -635,7 +610,7 @@ const JobDetailPage = () => {
                             {/* Direct Hiring Assurance Box */}
                             <div className="pt-4 border-t border-[#D9E0EA] space-y-3">
                                 <div className="flex items-center gap-2">
-                                    <ShieldCheck size={16} className="text-[#10B981] fill-[#10B981]/20" />
+                                    <ShieldCheckIcon weight="bold" size={16} className="text-[#10B981] fill-[#10B981]/20" />
                                     <span className="text-xs font-bold text-[#111827]">Direct Hiring Guarantee</span>
                                 </div>
                                 <ul className="text-xs text-[#5B6472] space-y-2 font-medium">
@@ -663,7 +638,7 @@ const JobDetailPage = () => {
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs font-bold text-[#111827] truncate">{job.company}</p>
                                         <p className="text-[11px] text-[#0B5ED7] font-semibold flex items-center gap-1">
-                                            <CheckCircle2 size={11} className="fill-[#0B5ED7] text-white" /> Verified Employer
+                                            <CheckCircleIcon weight="bold" size={11} className="fill-[#0B5ED7] text-white" /> Verified Employer
                                         </p>
                                     </div>
                                 </div>
@@ -734,7 +709,7 @@ const JobDetailPage = () => {
                                 className="absolute top-5 right-5 p-1.5 text-[#5B6472] hover:text-[#111827] rounded-xl hover:bg-[#F4F7FB] transition-colors cursor-pointer"
                                 aria-label="Close modal"
                             >
-                                <X size={18} />
+                                <XIcon weight="bold" size={18} />
                             </button>
 
                             {/* Modal Header */}
@@ -758,7 +733,7 @@ const JobDetailPage = () => {
                                                     {user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'Candidate'}
                                                 </p>
                                                 <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                                                    <CheckCircle2 size={10} className="fill-emerald-600 text-white" />
+                                                    <CheckCircleIcon weight="fill" size={10} className="fill-emerald-600 text-white" />
                                                     Verified
                                                 </span>
                                             </div>
@@ -797,9 +772,7 @@ const JobDetailPage = () => {
                                             onClick={() => fileInputRef.current?.click()}
                                             className="border-2 border-dashed border-[#D9E0EA] hover:border-[#0B5ED7] hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group"
                                         >
-                                            <div className="w-8 h-8 rounded-lg bg-[#EBF3FE] text-[#0B5ED7] flex items-center justify-center mx-auto mb-1.5 group-hover:scale-105 transition-transform">
-                                                <UploadCloud size={16} className="fill-[#0B5ED7]/20" />
-                                            </div>
+                                            <CloudArrowUpIcon size={20} className="text-[#0B5ED7] mx-auto mb-1.5" aria-hidden="true" />
                                             <p className="text-xs font-semibold text-[#111827]">
                                                 Click to upload or drag resume
                                             </p>
@@ -810,9 +783,7 @@ const JobDetailPage = () => {
                                     ) : (
                                         <div className="flex items-center justify-between p-3 bg-[#F4F7FB] border border-[#BFDBFE] rounded-xl">
                                             <div className="flex items-center gap-2.5 min-w-0">
-                                                <div className="w-8 h-8 rounded-lg bg-[#EBF3FE] text-[#0B5ED7] flex items-center justify-center shrink-0">
-                                                    <FileText size={16} className="fill-[#0B5ED7]/20" />
-                                                </div>
+                                                <FileTextIcon size={20} className="text-[#0B5ED7] shrink-0" aria-hidden="true" />
                                                 <div className="min-w-0">
                                                     <p className="text-xs font-bold text-[#111827] truncate">
                                                         {resumeFile.name}
@@ -828,7 +799,7 @@ const JobDetailPage = () => {
                                                 className="p-1.5 text-[#5B6472] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                                                 title="Remove attached resume"
                                             >
-                                                <Trash2 size={15} />
+                                                <TrashIcon weight="bold" size={15} />
                                             </button>
                                         </div>
                                     )}
@@ -874,7 +845,7 @@ const JobDetailPage = () => {
                                         ) : (
                                             <>
                                                 <span>Submit Application</span>
-                                                <ArrowUpRight size={14} />
+                                                <ArrowUpRightIcon weight="bold" size={14} />
                                             </>
                                         )}
                                     </button>

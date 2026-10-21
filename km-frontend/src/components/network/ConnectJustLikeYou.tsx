@@ -1,7 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
 import ProfileConnectionCard, { ProfileCardUser } from '@/components/network/ProfileConnectionCard';
-import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
+import SectionHeader from '@/components/home/SectionHeader';
 
 interface Props {
     users: ProfileCardUser[];
@@ -11,8 +11,8 @@ interface Props {
     onFollow: (id: string, name?: string) => void;
 }
 
+// Same section, header and auto-scrolling row as "Connect with our experts" on the home page
 export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], connectedIds = [], onChat, onFollow }) => {
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [currentUserId, setCurrentUserId] = useState<string>('');
 
     useEffect(() => {
@@ -29,34 +29,21 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], co
         }
     }, []);
 
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollContainerRef.current) {
-            const { scrollLeft, clientWidth } = scrollContainerRef.current;
-            const step = clientWidth > 640 ? 540 : 270;
-            scrollContainerRef.current.scrollTo({
-                left: direction === 'left' ? scrollLeft - step : scrollLeft + step,
-                behavior: 'smooth'
-            });
-        }
-    };
-
     if (!users || users.length === 0) return null;
 
     return (
-        <div className="w-full py-10 px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto">
-                <div className="relative mb-8 text-center">
-                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                        <span className="text-km-primary">Connect</span> Just Like You
-                    </h2>
-                </div>
-                
-                {/* Infinite Marquee Track with Pause on Hover/Touch */}
-                <div className="relative overflow-hidden">
-                    <div 
-                        ref={scrollContainerRef}
-                        className="animate-km-marquee flex gap-5 sm:gap-6 hover:[animation-play-state:paused] active:[animation-play-state:paused] touch-pan-x pb-4"
-                    >
+        <section className="py-8 sm:py-10 lg:py-12" aria-labelledby="connect-title">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <SectionHeader
+                    id="connect-title"
+                    title="Connect just like you"
+                    description="People with similar skills and roles who are growing their careers on KaamMilega."
+                    action={{ href: '/network', label: 'View all people' }}
+                />
+
+                {/* Auto-scrolling row of profile cards (pauses on hover/touch) */}
+                <div className="overflow-hidden">
+                    <div className="animate-km-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused] py-1">
                         {[...users, ...users].map((user, idx) => {
                             const targetUserId = user.id || user._id || '';
                             const isSelf = Boolean(currentUserId && targetUserId === currentUserId);
@@ -64,7 +51,7 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], co
                             const isConnected = connectedIds.includes(targetUserId);
 
                             return (
-                                <div key={`${targetUserId}-${idx}`} className="shrink-0">
+                                <div key={`${targetUserId}-${idx}`} className="shrink-0 mr-5" aria-hidden={idx >= users.length || undefined}>
                                     <ProfileConnectionCard
                                         user={user}
                                         variant="slider"
@@ -80,11 +67,8 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], co
                         })}
                     </div>
                 </div>
-
-                {/* Custom Interactive Scrollbar */}
-                <InteractiveScrollbar scrollRef={scrollContainerRef} className="max-w-4xl mx-auto mt-4 px-4 sm:px-0" />
             </div>
-        </div>
+        </section>
     );
 };
 

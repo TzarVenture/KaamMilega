@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { FileText, ChevronRight, CheckCircle2, XCircle, ShieldCheck, Building2, Loader2 } from 'lucide-react';
+import { BuildingOfficeIcon, CaretRightIcon, CheckCircleIcon, CircleNotchIcon, FileTextIcon, ShieldCheckIcon, XCircleIcon } from '@phosphor-icons/react';
 
 interface DocumentsListModalProps {
     isOpen: boolean;
@@ -52,7 +52,7 @@ const DocumentsListModal = ({
             <div className="bg-purple-50/60 border border-purple-100/80 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">
-                        <Building2 size={20} />
+                        <BuildingOfficeIcon size={20} />
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-900 text-sm">{companyName || 'Unnamed Company'}</h4>
@@ -67,17 +67,17 @@ const DocumentsListModal = ({
                 <div className="self-end sm:self-center">
                     {status === 'verified' && (
                         <span className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded-full flex items-center gap-1">
-                            <CheckCircle2 size={13} /> Verified
+                            <CheckCircleIcon weight="bold" size={13} /> Verified
                         </span>
                     )}
                     {status === 'pending' && (
                         <span className="px-3 py-1 text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-full flex items-center gap-1">
-                            <ShieldCheck size={13} /> Pending Review
+                            <ShieldCheckIcon weight="bold" size={13} /> Pending Review
                         </span>
                     )}
                     {status === 'rejected' && (
                         <span className="px-3 py-1 text-xs font-bold text-rose-700 bg-rose-100 border border-rose-200 rounded-full flex items-center gap-1">
-                            <XCircle size={13} /> Rejected
+                            <XCircleIcon weight="bold" size={13} /> Rejected
                         </span>
                     )}
                 </div>
@@ -88,7 +88,7 @@ const DocumentsListModal = ({
                 <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Submitted Verification Documents</p>
                 {documents.length === 0 ? (
                     <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                        <FileText size={28} className="mx-auto text-slate-400 mb-2" />
+                        <FileTextIcon size={28} className="mx-auto text-slate-400 mb-2" />
                         <p className="text-sm font-medium text-slate-500">No documents uploaded by recruiter.</p>
                     </div>
                 ) : (
@@ -100,15 +100,13 @@ const DocumentsListModal = ({
                             className="w-full flex items-center justify-between p-4 bg-slate-50/80 hover:bg-purple-50 rounded-2xl transition-all group border border-slate-100 hover:border-purple-200"
                         >
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm border border-slate-100 group-hover:scale-105 transition-transform">
-                                    <FileText size={20} />
-                                </div>
+                                <FileTextIcon size={24} weight="duotone" className="text-purple-600" aria-hidden="true" />
                                 <div className="text-left">
                                     <span className="font-bold text-slate-800 text-sm block">{doc.name || 'Document'}</span>
                                     <span className="text-[11px] text-purple-600 font-semibold group-hover:underline">Click to view document &rarr;</span>
                                 </div>
                             </div>
-                            <ChevronRight size={18} className="text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
+                            <CaretRightIcon weight="bold" size={18} className="text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all" />
                         </button>
                     ))
                 )}
@@ -123,7 +121,7 @@ const DocumentsListModal = ({
                         onClick={() => handleAction('rejected')}
                         className="w-full sm:w-auto px-6 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        <XCircle size={16} />
+                        <XCircleIcon weight="bold" size={16} />
                         <span>Reject Application</span>
                     </button>
                     <button
@@ -134,12 +132,12 @@ const DocumentsListModal = ({
                     >
                         {isUpdating ? (
                             <>
-                                <Loader2 size={16} className="animate-spin" />
+                                <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
                                 <span>Updating...</span>
                             </>
                         ) : (
                             <>
-                                <CheckCircle2 size={16} />
+                                <CheckCircleIcon weight="bold" size={16} />
                                 <span>Approve & Verify Company</span>
                             </>
                         )}

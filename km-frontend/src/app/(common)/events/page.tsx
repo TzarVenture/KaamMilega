@@ -1,24 +1,7 @@
 'use client'
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { 
-    Calendar, 
-    Users, 
-    MapPin, 
-    Search, 
-    ArrowUpDown, 
-    Clock, 
-    Ticket, 
-    CheckCircle2, 
-    Tag, 
-    ArrowRight,
-    X,
-    RotateCcw,
-    Video,
-    Award,
-    Building2,
-    ShieldCheck
-} from 'lucide-react';
+import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowsDownUpIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, MapPinIcon, TagIcon, TicketIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { toast } from 'react-toastify';
 import Link from 'next/link';
@@ -62,9 +45,7 @@ const EventCardSkeleton = () => (
 // ─── Professional Empty State ───
 const EmptyState = ({ hasSearch, onReset }: { hasSearch: boolean; onReset: () => void }) => (
     <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="w-16 h-16 bg-[#FFFBEB] border border-[#FDE68A] text-[#F59E0B] rounded-2xl flex items-center justify-center mb-4 shadow-2xs">
-            <Calendar className="w-8 h-8" />
-        </div>
+        <CalendarBlankIcon size={36} weight="duotone" className="text-[#F59E0B] mb-4" aria-hidden="true" />
         <h3 className="text-lg font-bold text-[#111827] mb-1.5">
             {hasSearch ? "No Workshops Found" : "No Workshops Scheduled Yet"}
         </h3>
@@ -79,7 +60,7 @@ const EmptyState = ({ hasSearch, onReset }: { hasSearch: boolean; onReset: () =>
                 onClick={onReset}
                 className="btn-outline text-xs px-4 py-2 cursor-pointer inline-flex items-center gap-1.5"
             >
-                <RotateCcw size={13} />
+                <ArrowCounterClockwiseIcon weight="bold" size={13} />
                 <span>Reset All Filters</span>
             </button>
         )}
@@ -196,7 +177,7 @@ const PublicEventsPage = () => {
                         <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
                             {/* Category Indicator */}
                             <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
-                                <Calendar size={14} className="text-[#F59E0B]" />
+                                <CalendarBlankIcon weight="bold" size={14} className="text-[#F59E0B]" />
                                 <span>Events & Bootcamps</span>
                             </div>
 
@@ -223,22 +204,22 @@ const PublicEventsPage = () => {
                                     className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs"
                                 >
                                     <span>Host an Event</span>
-                                    <ArrowRight size={13} />
+                                    <ArrowRightIcon weight="bold" size={13} />
                                 </Link>
                             </div>
 
                             {/* Key Benefits / Trust Chips */}
                             <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
                                 <div className="flex items-center gap-2">
-                                    <Video size={15} className="text-[#10B981] shrink-0" />
+                                    <VideoCameraIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>Google Meet & Zoom Access</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <CheckCircle2 size={15} className="text-[#10B981] shrink-0" />
+                                    <CheckCircleIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>Verified Industry Experts</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Ticket size={15} className="text-[#10B981] shrink-0" />
+                                    <TicketIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>Instant Digital Entry Pass</span>
                                 </div>
                             </div>
@@ -267,7 +248,7 @@ const PublicEventsPage = () => {
                     <div className="flex flex-col md:flex-row gap-3 mb-3.5">
                         {/* Search Input */}
                         <div className="flex-1 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
-                            <Search size={17} className="text-[#5B6472] shrink-0" />
+                            <MagnifyingGlassIcon weight="bold" size={17} className="text-[#5B6472] shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Search by workshop title, mentor name, or skill..."
@@ -281,14 +262,14 @@ const PublicEventsPage = () => {
                                     onClick={() => setSearch('')}
                                     className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             )}
                         </div>
 
                         {/* Location Input */}
                         <div className="w-full md:w-60 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
-                            <MapPin size={17} className="text-[#5B6472] shrink-0" />
+                            <MapPinIcon weight="bold" size={17} className="text-[#5B6472] shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Filter by city or online..."
@@ -302,7 +283,7 @@ const PublicEventsPage = () => {
                                     onClick={() => setLocationFilter('')}
                                     className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             )}
                         </div>
@@ -313,9 +294,9 @@ const PublicEventsPage = () => {
                             onClick={() => setSort(s => s === 'recent' ? 'upcoming' : 'recent')}
                             className="flex items-center justify-center gap-2 bg-white hover:bg-[#F4F7FB] text-[#111827] px-4 py-2.5 rounded-xl border border-[#D9E0EA] font-semibold text-xs transition-colors shrink-0 cursor-pointer shadow-2xs"
                         >
-                            <Clock size={14} className="text-[#5B6472]" />
+                            <ClockIcon weight="bold" size={14} className="text-[#5B6472]" />
                             <span>{sort === 'upcoming' ? 'Sorted by: Upcoming Date' : 'Sorted by: Recently Added'}</span>
-                            <ArrowUpDown size={13} className="text-[#5B6472]" />
+                            <ArrowsDownUpIcon weight="bold" size={13} className="text-[#5B6472]" />
                         </button>
                     </div>
 
@@ -323,7 +304,7 @@ const PublicEventsPage = () => {
                     <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#D9E0EA]">
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="text-xs font-semibold text-[#5B6472] mr-1 flex items-center gap-1.5">
-                                <Tag size={13} className="text-[#F59E0B]" /> Format & Pricing:
+                                <TagIcon weight="bold" size={13} className="text-[#F59E0B]" /> Format & Pricing:
                             </span>
                             <button
                                 type="button"
@@ -357,7 +338,7 @@ const PublicEventsPage = () => {
                                         : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
                                 }`}
                             >
-                                <Ticket size={12} />
+                                <TicketIcon weight="bold" size={12} />
                                 Paid Masterclasses
                             </button>
                         </div>
@@ -369,7 +350,7 @@ const PublicEventsPage = () => {
                                 onClick={handleResetFilters}
                                 className="text-xs font-semibold text-[#0B5ED7] hover:underline flex items-center gap-1 cursor-pointer"
                             >
-                                <RotateCcw size={12} /> Clear all filters
+                                <ArrowCounterClockwiseIcon weight="bold" size={12} /> Clear all filters
                             </button>
                         )}
                     </div>
@@ -417,23 +398,21 @@ const PublicEventsPage = () => {
                                             />
                                         ) : (
                                             <div className="w-full h-full flex flex-col items-center justify-center text-[#5B6472] p-4 bg-[#F4F7FB]">
-                                                <div className="w-12 h-12 rounded-xl bg-white border border-[#D9E0EA] flex items-center justify-center text-[#071A4D] mb-2 shadow-2xs">
-                                                    <Calendar size={22} className="text-[#F59E0B]" />
-                                                </div>
+                                                <CalendarBlankIcon size={28} weight="duotone" className="text-[#F59E0B] mb-2" aria-hidden="true" />
                                                 <span className="text-[11px] font-semibold text-[#5B6472]">Skill Masterclass</span>
                                             </div>
                                         )}
 
                                         {/* Location Badge */}
                                         <span className="absolute top-3 left-3 bg-[#111827]/85 text-white text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
-                                            <MapPin size={11} className="text-[#FF6B00]" /> {event.location || 'Online Meet / Zoom'}
+                                            <MapPinIcon weight="bold" size={11} className="text-[#FF6B00]" /> {event.location || 'Online Meet / Zoom'}
                                         </span>
 
                                         {/* Pricing Badge */}
                                         <span className={`absolute bottom-3 right-3 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1 ${
                                             isPaid ? 'bg-[#FF6B00]' : 'bg-[#071A4D]'
                                         }`}>
-                                            {isPaid && <Ticket size={12} />}
+                                            {isPaid && <TicketIcon weight="bold" size={12} />}
                                             {priceText}
                                         </span>
                                     </div>
@@ -459,7 +438,7 @@ const PublicEventsPage = () => {
 
                                         {/* Date & Time */}
                                         <div className="flex items-center gap-2 text-xs text-[#5B6472] mb-3">
-                                            <Calendar size={13} className="text-[#F59E0B] shrink-0" />
+                                            <CalendarBlankIcon weight="bold" size={13} className="text-[#F59E0B] shrink-0" />
                                             <span>{formatDate(event.date)}</span>
                                             {event.time && <span>• {event.time}</span>}
                                         </div>
@@ -488,12 +467,12 @@ const PublicEventsPage = () => {
                                                 className="flex items-center gap-1.5 text-xs font-semibold text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] px-2 py-1 rounded-lg transition-colors cursor-pointer"
                                                 title="View registered participants"
                                             >
-                                                <Users size={13} className="text-[#071A4D]" />
+                                                <UsersIcon weight="bold" size={13} className="text-[#071A4D]" />
                                                 <span>{event.participants?.length || 0} registered</span>
                                             </button>
 
                                             <span className="text-xs font-semibold text-[#071A4D] group-hover:text-[#0B5ED7] flex items-center gap-1 transition-colors">
-                                                View Session <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                                                View Session <ArrowRightIcon weight="bold" size={13} className="group-hover:translate-x-0.5 transition-transform" />
                                             </span>
                                         </div>
                                     </div>

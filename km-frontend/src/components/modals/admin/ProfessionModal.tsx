@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Info, Loader2, AlertCircle } from 'lucide-react';
+import { CircleNotchIcon, InfoIcon, WarningCircleIcon } from '@phosphor-icons/react';
 
 interface ProfessionModalProps {
     isOpen: boolean;
@@ -112,7 +112,7 @@ const ProfessionModal = ({
             <form onSubmit={handleSave} className="space-y-6">
                 {errorMessage && (
                     <div className="flex items-center gap-2.5 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold">
-                        <AlertCircle size={18} className="shrink-0 text-red-500" />
+                        <WarningCircleIcon weight="bold" size={18} className="shrink-0 text-red-500" />
                         <span>{errorMessage}</span>
                     </div>
                 )}
@@ -169,7 +169,7 @@ const ProfessionModal = ({
 
                 {/* Info Note */}
                 <div className="flex items-start gap-2.5 p-3.5 bg-blue-50/70 border border-blue-100 text-blue-900 rounded-2xl text-xs">
-                    <Info size={16} className="text-km-primary shrink-0 mt-0.5" />
+                    <InfoIcon weight="bold" size={16} className="text-km-primary shrink-0 mt-0.5" />
                     <span>
                         This profession/skill will be instantly available in the candidate profile search, recruiter job creation filters, and InstantMilega gig dispatch categories.
                     </span>
@@ -192,7 +192,7 @@ const ProfessionModal = ({
                     >
                         {isSubmitting ? (
                             <>
-                                <Loader2 size={16} className="animate-spin" />
+                                <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
                                 <span>Saving...</span>
                             </>
                         ) : (

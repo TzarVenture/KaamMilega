@@ -1,16 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-    X, 
-    Users, 
-    Search, 
-    MapPin, 
-    ExternalLink, 
-    Ticket, 
-    CheckCircle2, 
-    Shield
-} from "lucide-react";
+import { ArrowSquareOutIcon, CheckCircleIcon, MagnifyingGlassIcon, MapPinIcon, TicketIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import api from "@/lib/axios";
 import Link from "next/link";
 
@@ -131,12 +122,12 @@ export default function AttendeeListModal({
                         className="absolute top-5 right-5 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-all cursor-pointer"
                         title="Close modal"
                     >
-                        <X size={18} />
+                        <XIcon weight="bold" size={18} />
                     </button>
 
                     <div className="flex items-center gap-2 mb-1.5">
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#071A4D]/10 text-[#071A4D]">
-                            <Users size={12} />
+                            <UsersIcon weight="bold" size={12} />
                             <span>Confirmed Attendees</span>
                         </span>
                         <span className="text-xs font-bold text-slate-400">
@@ -153,7 +144,7 @@ export default function AttendeeListModal({
 
                     {/* Search Input */}
                     <div className="relative mt-4">
-                        <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                        <MagnifyingGlassIcon weight="bold" size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                             type="text"
                             value={searchQuery}
@@ -167,7 +158,7 @@ export default function AttendeeListModal({
                                 onClick={() => setSearchQuery("")}
                                 className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
                             >
-                                <X size={13} />
+                                <XIcon weight="bold" size={13} />
                             </button>
                         )}
                     </div>
@@ -200,9 +191,7 @@ export default function AttendeeListModal({
                         </div>
                     ) : attendees.length === 0 ? (
                         <div className="py-14 text-center px-4">
-                            <div className="w-14 h-14 mx-auto mb-3 bg-[#F4F7FB] text-[#071A4D] rounded-2xl flex items-center justify-center">
-                                <Users size={26} />
-                            </div>
+                            <UsersIcon size={32} weight="duotone" className="text-[#071A4D] mx-auto mb-3" aria-hidden="true" />
                             <h3 className="text-sm font-bold text-slate-800 mb-1">No attendees yet</h3>
                             <p className="text-xs text-slate-500 max-w-xs mx-auto">
                                 Be the first person to register and grab a spot for this event!
@@ -241,12 +230,12 @@ export default function AttendeeListModal({
                                             </h4>
                                             {attendee.payment_type === "paid" ? (
                                                 <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
-                                                    <Ticket size={9} />
+                                                    <TicketIcon weight="bold" size={9} />
                                                     <span>Ticket</span>
                                                 </span>
                                             ) : (
                                                 <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                    <CheckCircle2 size={9} />
+                                                    <CheckCircleIcon weight="bold" size={9} />
                                                     <span>Pass</span>
                                                 </span>
                                             )}
@@ -258,7 +247,7 @@ export default function AttendeeListModal({
 
                                         {attendee.city && (
                                             <p className="text-[10px] text-slate-400 font-semibold flex items-center gap-1 mt-0.5">
-                                                <MapPin size={10} className="text-slate-400" />
+                                                <MapPinIcon weight="bold" size={10} className="text-slate-400" />
                                                 <span>{attendee.city}</span>
                                             </p>
                                         )}
@@ -273,7 +262,7 @@ export default function AttendeeListModal({
                                         title="View member profile"
                                     >
                                         <span>View</span>
-                                        <ExternalLink size={11} />
+                                        <ArrowSquareOutIcon weight="bold" size={11} />
                                     </Link>
                                 </div>
                             </div>
@@ -284,7 +273,7 @@ export default function AttendeeListModal({
                 {/* ─── Modal Footer ─── */}
                 <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
                     <span className="flex items-center gap-1 text-[11px] text-[#5B6472] font-medium">
-                        <Users size={12} className="text-[#F59E0B]" />
+                        <UsersIcon weight="bold" size={12} className="text-[#F59E0B]" />
                         <span>Showing {filteredAttendees.length} of {attendees.length} joined</span>
                     </span>
                     <button
