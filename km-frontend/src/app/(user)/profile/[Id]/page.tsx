@@ -7,7 +7,6 @@ import api from '@/lib/axios';
 import { useParams, useRouter } from 'next/navigation';
 import CustomImage from '@/components/ui/CustomImage';
 import Link from 'next/link';
-import Head from 'next/head';
 import { PageHeaderSkeleton, CardGridSkeleton } from '@/components/ui/LoadingSkeleton';
 import TopEmployersWidget from '@/components/profile/TopEmployersWidget';
 import UserAvatar from '@/components/ui/UserAvatar';
@@ -147,18 +146,15 @@ const OtherUserProfilePage = () => {
     }
 
     // SEO: respect search_engine_indexing preference
-    const allowIndexing = user?.settings?.search_engine_indexing !== false;
+    // Only public, opted-in profiles may be indexed
+    const allowIndexing = user?.settings?.search_engine_indexing !== false && (user?.settings?.profile_visibility || 'public') === 'public';
     const locationString = [user.city, user.state, user.country].filter(Boolean).join(', ');
     const userId = user.id || user._id || params.Id;
 
     return (
         <>
-            <Head>
-                <meta
-                    name="robots"
-                    content={allowIndexing ? 'index,follow' : 'noindex,nofollow'}
-                />
-            </Head>
+            {/* React hoists this into <head> (next/head has no effect in the App Router) */}
+            <meta name="robots" content={allowIndexing ? 'index,follow' : 'noindex,nofollow'} />
             <div className="min-h-screen bg-gray-100 py-4">
                 <div className="max-w-6xl mx-auto px-3 sm:px-4 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 

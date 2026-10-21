@@ -17,6 +17,7 @@ import (
 	"km-backend/internal/features/notification"
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
+	"km-backend/internal/middleware"
 
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -29,6 +30,8 @@ type UserService interface {
 	LoginWithPassword(ctx context.Context, req PasswordLoginRequest) (*PasswordLoginResponse, error)
 	RegisterWithPassword(ctx context.Context, req PasswordRegisterRequest) (*PasswordLoginResponse, error)
 	SetPassword(ctx context.Context, userID string, req SetPasswordRequest) error
+	RevokeSessions(ctx context.Context, userID string) error
+	CanViewProfile(ctx context.Context, owner *User, viewerID string, viewerIsAdmin bool) (bool, error)
 	Register(ctx context.Context, userID string, req RegisterRequest) (*User, error)
 	GetProfile(ctx context.Context, userID string) (*User, error)
 	GenerateToken(user *User) (string, error)
@@ -100,6 +103,9 @@ func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo sk
 
 const (
 	otpResendCooldown  = 30 * time.Second
+	// minPasswordLength applies to new passwords only (NIST SP 800-63B minimum);
+	// existing shorter passwords still sign in
+	minPasswordLength = 8
 	otpMaxSendsPerHour = 5
 	otpMaxAttempts     = 5
 )
@@ -109,6 +115,8 @@ const (
 var selfServiceRoles = []string{RoleUser, RoleRecruiter}
 
 // generateOTPCode returns a cryptographically random 4-digit code
+var errPasswordTooShort = fmt.Errorf("password must be at least %d characters long", minPasswordLength)
+
 func generateOTPCode() (string, error) {
 	n, err := crand.Int(crand.Reader, big.NewInt(10000))
 	if err != nil {
@@ -378,8 +386,8 @@ func (s *UserServiceImpl) Register(ctx context.Context, userID string, req Regis
 		applyEmailChange(user, email)
 	}
 	if req.Password != "" {
-		if len(req.Password) < 6 {
-			return nil, errors.New("password must be at least 6 characters long")
+		if len(req.Password) < minPasswordLength {
+			return nil, errPasswordTooShort
 		}
 		hashed, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
@@ -435,6 +443,7 @@ func (s *UserServiceImpl) GetProfile(ctx context.Context, userID string) (*User,
 		user.Username = GenerateDefaultUsername(user.Name, user.ID.Hex())
 		_, _ = s.repo.UpdateUser(ctx, user)
 	}
+	user.HasPassword = user.Password != ""
 	return user, nil
 }
 
@@ -456,6 +465,7 @@ func (s *UserServiceImpl) GenerateToken(user *User) (string, error) {
 		"mobile": user.Mobile,
 		"email":  user.Email,
 		"roles":  user.Roles,
+		"sv":     user.SessionVersion, // must match the stored version (see middleware.AuthMiddleware)
 		"exp":    time.Now().Add(time.Hour * 72).Unix(), // 3 days
 	}
 
@@ -1113,7 +1123,8 @@ func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string
 }
 
 func (s *UserServiceImpl) GetAllUsers(ctx context.Context) ([]*User, error) {
-	users, _, err := s.repo.FindUsers(ctx, UserFilter{Role: RoleUser})
+	// Admin user list: includes deactivated/deleted and private accounts
+	users, _, err := s.repo.FindUsers(ctx, UserFilter{Role: RoleUser, AdminView: true})
 	return users, err
 }
 
@@ -1199,7 +1210,7 @@ func (s *UserServiceImpl) ApproveExpert(ctx context.Context, adminID string, tar
 }
 
 func (s *UserServiceImpl) GetExpertRequests(ctx context.Context) ([]*User, error) {
-	users, _, err := s.repo.FindUsers(ctx, UserFilter{ExpertApprovalStatus: "pending"})
+	users, _, err := s.repo.FindUsers(ctx, UserFilter{ExpertApprovalStatus: "pending", AdminView: true})
 	return users, err
 }
 
@@ -1298,8 +1309,8 @@ func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req Password
 	if req.Password == "" {
 		return nil, errors.New("password is required")
 	}
-	if len(req.Password) < 6 {
-		return nil, errors.New("password must be at least 6 characters long")
+	if len(req.Password) < minPasswordLength {
+		return nil, errPasswordTooShort
 	}
 
 	existing, err := s.repo.FindUserByEmail(ctx, req.Email)
@@ -1350,8 +1361,8 @@ func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req Password
 }
 
 func (s *UserServiceImpl) SetPassword(ctx context.Context, userID string, req SetPasswordRequest) error {
-	if len(req.NewPassword) < 6 {
-		return errors.New("new password must be at least 6 characters long")
+	if len(req.NewPassword) < minPasswordLength {
+		return errPasswordTooShort
 	}
 
 	user, err := s.repo.FindUserByID(ctx, userID)
@@ -1362,10 +1373,18 @@ func (s *UserServiceImpl) SetPassword(ctx context.Context, userID string, req Se
 		return errors.New("user not found")
 	}
 
-	// If user already has a password and provided current password, verify it
-	if user.Password != "" && req.CurrentPassword != "" {
+	// Changing an existing password always needs the current one. (Previously an empty
+	// current_password skipped the check, so a stolen session could take over the account.)
+	// Accounts created by OTP have no password yet and may set a first one.
+	if user.Password != "" {
+		if req.CurrentPassword == "" {
+			return errors.New("enter your current password")
+		}
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.CurrentPassword)); err != nil {
 			return errors.New("incorrect current password")
+		}
+		if req.CurrentPassword == req.NewPassword {
+			return errors.New("new password must be different from the current one")
 		}
 	}
 
@@ -1374,7 +1393,47 @@ func (s *UserServiceImpl) SetPassword(ctx context.Context, userID string, req Se
 		return fmt.Errorf("failed to hash new password: %w", err)
 	}
 
-	return s.repo.UpdatePassword(ctx, userID, string(hashedBytes))
+	if err := s.repo.UpdatePassword(ctx, userID, string(hashedBytes)); err != nil {
+		return err
+	}
+	// A password change signs out every other device (the controller re-issues this one)
+	return s.RevokeSessions(ctx, userID)
+}
+
+// CanViewProfile applies the owner's account status and profile_visibility setting to a viewer.
+//   - deactivated / pending deletion / deleted accounts: admins only
+//   - "private": recruiters the owner applied to, and admins
+//   - "connections": accepted connections, recruiters the owner applied to, and admins
+func (s *UserServiceImpl) CanViewProfile(ctx context.Context, owner *User, viewerID string, viewerIsAdmin bool) (bool, error) {
+	if viewerIsAdmin || owner.ID.Hex() == viewerID {
+		return true, nil
+	}
+	if !IsActiveAccount(owner.AccountStatus) {
+		return false, nil
+	}
+	switch owner.Settings.ProfileVisibility {
+	case "private":
+		if viewerID == "" {
+			return false, nil
+		}
+		return s.repo.HasRestrictedProfileAccess(ctx, owner.ID.Hex(), viewerID, false)
+	case "connections":
+		if viewerID == "" {
+			return false, nil
+		}
+		return s.repo.HasRestrictedProfileAccess(ctx, owner.ID.Hex(), viewerID, true)
+	default:
+		return true, nil
+	}
+}
+
+// RevokeSessions signs the user out on every device by invalidating all issued tokens
+func (s *UserServiceImpl) RevokeSessions(ctx context.Context, userID string) error {
+	if _, err := s.repo.BumpSessionVersion(ctx, userID); err != nil {
+		return err
+	}
+	middleware.InvalidateSession(userID)
+	return nil
 }
 
 func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPasswordRequest) error {
@@ -1545,7 +1604,7 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, req ResetPasswordRe
 		return errors.New("please enter a valid 4-digit verification code")
 	}
 	if len(newPassword) < 6 {
-		return errors.New("new password must be at least 6 characters long")
+		return errPasswordTooShort
 	}
 
 	user, err := s.repo.FindUserByEmail(ctx, email)
@@ -1588,7 +1647,11 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, req ResetPasswordRe
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	return s.repo.UpdatePassword(ctx, user.ID.Hex(), string(hashedBytes))
+	if err := s.repo.UpdatePassword(ctx, user.ID.Hex(), string(hashedBytes)); err != nil {
+		return err
+	}
+	// A reset means the old password may be known to someone else: sign out every device
+	return s.RevokeSessions(ctx, user.ID.Hex())
 }
 
 func (s *UserServiceImpl) ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error) {

@@ -63,7 +63,7 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 	}
 
 	// Check if job is closed
-	if jobInfo.Status == "Closed" || jobInfo.Status == "closed" {
+	if jobInfo.Status == "Closed" || jobInfo.Status == "closed" || jobInfo.HiddenByAccount {
 		return nil, ErrJobClosed
 	}
 

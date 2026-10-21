@@ -119,6 +119,7 @@ func (s *CompanyService) GetCompanies(ctx context.Context, filter CompanyFilter)
 		VerificationStatus: filter.Status,
 		Page:               filter.Page,
 		Limit:              filter.Limit,
+		AdminView:          true, // served only on /api/admin/companies
 	}
 
 	users, total, err := s.userRepo.FindUsers(ctx, userFilter)

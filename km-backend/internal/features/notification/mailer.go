@@ -39,6 +39,12 @@ type Mailer interface {
 	// SendEmailOTP dispatches a verification or password reset OTP email.
 	SendEmailOTP(p EmailOTPParams) error
 
+	// SendAccountNotice confirms an account lifecycle change (deactivation, deletion).
+	SendAccountNotice(p AccountNoticeParams) error
+
+	// SendJobAlert sends the daily digest of new jobs matching a candidate's profile.
+	SendJobAlert(p JobAlertParams) error
+
 	// SendRaw dispatches an arbitrary HTML email. Use only when no typed method fits.
 	SendRaw(to, subject, htmlBody string) error
 }
@@ -97,9 +103,41 @@ type WithdrawalRequestParams struct {
 type EmailOTPParams struct {
 	ToEmail  string
 	Code     string
-	Purpose  string // "verification" | "password_reset"
+	Purpose  string // "verification" | "password_reset" | "account_action"
 	UserName string // optional
 }
+
+// AccountNoticeParams confirms an account lifecycle change to the account owner.
+type AccountNoticeParams struct {
+	ToEmail      string
+	UserName     string
+	Kind         string     // AccountNoticeDeactivated | ...DeletionScheduled | ...DeletionCancelled | ...Deleted
+	ScheduledFor *time.Time // deletion date (DeletionScheduled only)
+}
+
+// JobAlertParams carries the jobs for one candidate's daily job-alert email.
+type JobAlertParams struct {
+	ToEmail  string
+	UserName string
+	Jobs     []JobAlertItem
+}
+
+// JobAlertItem is one job in a job-alert email
+type JobAlertItem struct {
+	Title    string
+	Company  string
+	Location string
+	Salary   string // pre-formatted, e.g. "₹15,000 – ₹20,000 / month"; empty when not given
+	URL      string
+}
+
+// Account notice kinds
+const (
+	AccountNoticeDeactivated       = "deactivated"
+	AccountNoticeDeletionScheduled = "deletion_scheduled"
+	AccountNoticeDeletionCancelled = "deletion_cancelled"
+	AccountNoticeDeleted           = "deleted"
+)
 
 // ─── SMTP Implementation ──────────────────────────────────────────────────────
 
@@ -259,9 +297,13 @@ func (m *smtpMailer) SendWithdrawalRequest(p WithdrawalRequestParams) error {
 func (m *smtpMailer) SendEmailOTP(p EmailOTPParams) error {
 	subject := "KaamMilega Verification Code"
 	status := "Email Verification"
-	if p.Purpose == "password_reset" {
+	switch p.Purpose {
+	case "password_reset":
 		subject = "KaamMilega Password Reset Code"
 		status = "Password Reset"
+	case "account_action":
+		subject = "Confirm your KaamMilega account change"
+		status = "Account Verification"
 	}
 	body, err := renderTemplate(m.templates, "email_otp", templateData{
 		RecipientName: p.UserName,
@@ -273,6 +315,61 @@ func (m *smtpMailer) SendEmailOTP(p EmailOTPParams) error {
 		return fmt.Errorf("notification: render email otp: %w", err)
 	}
 	return m.SendRaw(p.ToEmail, subject, body)
+}
+
+func (m *smtpMailer) SendAccountNotice(p AccountNoticeParams) error {
+	subjects := map[string]string{
+		AccountNoticeDeactivated:       "Your KaamMilega account is deactivated",
+		AccountNoticeDeletionScheduled: "Your KaamMilega account is scheduled for deletion",
+		AccountNoticeDeletionCancelled: "Your KaamMilega account deletion was cancelled",
+		AccountNoticeDeleted:           "Your KaamMilega account has been deleted",
+	}
+	subject, ok := subjects[p.Kind]
+	if !ok {
+		return fmt.Errorf("notification: unknown account notice %q", p.Kind)
+	}
+	data := templateData{RecipientName: p.UserName, Status: p.Kind, StatusColor: "#071A4D"}
+	if p.ScheduledFor != nil {
+		data.Note = p.ScheduledFor.In(istLocation()).Format("2 January 2006")
+	}
+	if p.Kind == AccountNoticeDeactivated || p.Kind == AccountNoticeDeletionScheduled {
+		data.CTAURL = "https://kaammilega.com/login"
+		data.CTALabel = "Sign in to restore your account"
+	}
+	body, err := renderTemplate(m.templates, "account_notice", data)
+	if err != nil {
+		return fmt.Errorf("notification: render account notice: %w", err)
+	}
+	return m.SendRaw(p.ToEmail, subject, body)
+}
+
+func (m *smtpMailer) SendJobAlert(p JobAlertParams) error {
+	if len(p.Jobs) == 0 {
+		return nil
+	}
+	rows := make([]tableRow, 0, len(p.Jobs))
+	for _, j := range p.Jobs {
+		rows = append(rows, tableRow{Label: j.Title, Value: j.Company + " · " + j.Location + "|" + j.Salary + "|" + j.URL})
+	}
+	subject := fmt.Sprintf("%d new job%s matching your profile", len(p.Jobs), map[bool]string{true: "", false: "s"}[len(p.Jobs) == 1])
+	body, err := renderTemplate(m.templates, "job_alert", templateData{
+		RecipientName: p.UserName,
+		Rows:          rows,
+		CTAURL:        "https://kaammilega.com/jobs",
+		CTALabel:      "See all jobs",
+	})
+	if err != nil {
+		return fmt.Errorf("notification: render job alert: %w", err)
+	}
+	return m.SendRaw(p.ToEmail, subject, body)
+}
+
+// istLocation is India Standard Time (dates in user-facing emails)
+func istLocation() *time.Location {
+	if loc, err := time.LoadLocation("Asia/Kolkata"); err == nil {
+		return loc
+	}
+	return time.FixedZone("IST", 5*3600+1800)
 }
 
 func (m *smtpMailer) SendRaw(to, subject, htmlBody string) error {
@@ -293,6 +390,8 @@ func (n *noopMailer) SendApplicationUpdate(_ ApplicationUpdateParams) error  { r
 func (n *noopMailer) SendTransactionReceipt(_ TransactionReceiptParams) error { return nil }
 func (n *noopMailer) SendWithdrawalRequest(_ WithdrawalRequestParams) error  { return nil }
 func (n *noopMailer) SendEmailOTP(_ EmailOTPParams) error                    { return nil }
+func (n *noopMailer) SendAccountNotice(_ AccountNoticeParams) error          { return nil }
+func (n *noopMailer) SendJobAlert(_ JobAlertParams) error                    { return nil }
 func (n *noopMailer) SendRaw(_, _, _ string) error                           { return nil }
 
 // ─── SMTP Dial & Send ─────────────────────────────────────────────────────────
