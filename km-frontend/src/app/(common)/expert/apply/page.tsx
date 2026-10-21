@@ -249,7 +249,7 @@ export default function ExpertProSubscriptionPage() {
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-6 border border-white/10 backdrop-blur-xs">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-km-surface-card/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-6 border border-white/10 backdrop-blur-xs">
               <span>KaamMilega Pro Expert Program</span>
             </div>
 
@@ -270,12 +270,12 @@ export default function ExpertProSubscriptionPage() {
         {activeSub && (
           <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-8 sm:mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-km-surface-card/20 flex items-center justify-center text-white shrink-0">
                 <MedalIcon size={26} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-white text-emerald-800 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-km-surface-card text-emerald-800 px-2.5 py-0.5 rounded-full">
                     Active Subscription
                   </span>
                   <h3 className="font-extrabold text-base md:text-lg">
@@ -289,7 +289,7 @@ export default function ExpertProSubscriptionPage() {
             </div>
             <Link
               href="/expert/mentorship"
-              className="bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              className="bg-km-surface-card text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
             >
               <span>Manage Mentorship Dashboard</span>
               <ArrowRightIcon weight="bold" size={14} />
@@ -305,7 +305,7 @@ export default function ExpertProSubscriptionPage() {
             return (
               <div
                 key={plan.plan_type}
-                className={`bg-white rounded-3xl p-6 md:p-8 border transition-all flex flex-col justify-between relative ${
+                className={`bg-km-surface-card rounded-3xl p-6 md:p-8 border transition-all flex flex-col justify-between relative ${
                   isYearly
                     ? "border-orange-500 shadow-xl ring-2 ring-orange-500/20 md:-translate-y-2"
                     : "border-slate-200 shadow-sm hover:border-slate-300"
@@ -381,11 +381,11 @@ export default function ExpertProSubscriptionPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
+              className="bg-km-surface-card rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <SealCheckIcon size={24} weight="duotone" className="text-[#0B5ED7]" aria-hidden="true" />
+                  <SealCheckIcon size={24} weight="duotone" className="text-km-link" aria-hidden="true" />
                   <h3 className="text-lg font-black text-slate-900">Upgrade to Pro Expert</h3>
                 </div>
                 <button
@@ -439,7 +439,7 @@ export default function ExpertProSubscriptionPage() {
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
                     paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
                   }`}>
-                    {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                   </div>
                 </div>
 
@@ -464,7 +464,7 @@ export default function ExpertProSubscriptionPage() {
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
                     paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
                   }`}>
-                    {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                   </div>
                 </div>
 

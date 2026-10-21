@@ -25,17 +25,17 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
     }, [companies, limit]);
 
     return (
-        <div className={`bg-white rounded-2xl p-5 sm:p-6 border border-gray-200 shadow-sm font-sans ${className}`}>
+        <div className={`bg-km-surface-card rounded-2xl p-5 sm:p-6 border border-gray-200 shadow-sm font-sans ${className}`}>
             <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-km-primary flex items-center justify-center">
+                    <div className="w-7 h-7 rounded-lg bg-blue-50 text-km-heading flex items-center justify-center">
                         <BuildingOfficeIcon weight="bold" size={16} />
                     </div>
                     <h3 className="font-bold text-gray-900 text-base">Top Employers</h3>
                 </div>
                 <Link
                     href="/jobs"
-                    className="text-xs font-bold text-km-primary hover:text-km-primary-dark hover:underline inline-flex items-center gap-0.5"
+                    className="text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline inline-flex items-center gap-0.5"
                 >
                     <span>Browse Jobs</span>
                     <CaretRightIcon weight="bold" size={14} />
@@ -53,7 +53,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                         >
                             <div className="flex items-start gap-3">
                                 {/* Company Logo / Icon */}
-                                <div className={`w-11 h-11 rounded-xl border p-1.5 shrink-0 flex items-center justify-center bg-white shadow-2xs ${comp.bgClass || 'border-gray-200'}`}>
+                                <div className={`w-11 h-11 rounded-xl border p-1.5 shrink-0 flex items-center justify-center bg-km-surface-card shadow-2xs ${comp.bgClass || 'border-gray-200'}`}>
                                     {comp.logo ? (
                                         <CustomImage
                                             src={comp.logo}
@@ -61,7 +61,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                                             className={`object-contain ${comp.imgClass || 'max-h-full max-w-full'}`}
                                         />
                                     ) : (
-                                        <BuildingOfficeIcon weight="bold" size={18} className="text-km-primary" />
+                                        <BuildingOfficeIcon weight="bold" size={18} className="text-km-heading" />
                                     )}
                                 </div>
 
@@ -69,7 +69,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                                     <div className="flex items-center gap-1.5">
                                         <Link
                                             href={searchHref}
-                                            className="font-bold text-sm text-gray-900 hover:text-km-primary transition-colors truncate"
+                                            className="font-bold text-sm text-gray-900 hover:text-km-heading transition-colors truncate"
                                         >
                                             {comp.name}
                                         </Link>
@@ -89,7 +89,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                             </div>
 
                             <Link href={searchHref} className="w-full">
-                                <button className="w-full py-1.5 px-3 bg-white hover:bg-km-primary text-gray-700 hover:text-white border border-gray-200 hover:border-km-primary rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1 cursor-pointer group-hover:bg-km-primary group-hover:text-white group-hover:border-km-primary">
+                                <button className="w-full py-1.5 px-3 bg-km-surface-card hover:bg-km-primary text-gray-700 hover:text-white border border-gray-200 hover:border-km-primary rounded-xl text-xs font-bold transition-all shadow-2xs flex items-center justify-center gap-1 cursor-pointer group-hover:bg-km-primary group-hover:text-white group-hover:border-km-primary">
                                     <span>View Jobs</span>
                                     <ArrowSquareOutIcon weight="bold" size={11} />
                                 </button>

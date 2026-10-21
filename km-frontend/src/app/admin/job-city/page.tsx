@@ -214,7 +214,7 @@ function JobCityWiseContent() {
             )}
 
             {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-6 sm:p-8 rounded-[28px] border border-purple-100/60 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-km-surface-card p-6 sm:p-8 rounded-[28px] border border-purple-100/60 shadow-sm">
                 <div className="flex items-center gap-4">
                     {view === 'jobs' && (
                         <button
@@ -257,7 +257,7 @@ function JobCityWiseContent() {
             {/* Metric Summary Cards (Shown on Cities view) */}
             {view === 'cities' && (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
+                    <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
                         <GlobeHemisphereEastIcon size={28} weight="duotone" className="text-purple-700 shrink-0" aria-hidden="true" />
                         <div>
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Monitored Cities</p>
@@ -265,7 +265,7 @@ function JobCityWiseContent() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
+                    <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
                         <BriefcaseIcon size={28} weight="duotone" className="text-emerald-700 shrink-0" aria-hidden="true" />
                         <div>
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Open Vacancies</p>
@@ -273,7 +273,7 @@ function JobCityWiseContent() {
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
+                    <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
                         <TrendUpIcon size={28} weight="duotone" className="text-indigo-700 shrink-0" aria-hidden="true" />
                         <div>
                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Hiring Hub</p>
@@ -286,7 +286,7 @@ function JobCityWiseContent() {
             )}
 
             {/* Filter & Search Bar */}
-            <div className="bg-white p-6 rounded-[28px] border border-purple-100/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="bg-km-surface-card p-6 rounded-[28px] border border-purple-100/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                 <div className="relative w-full md:w-96">
                     <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input
@@ -294,7 +294,7 @@ function JobCityWiseContent() {
                         placeholder={view === 'cities' ? "Search city or state..." : `Search jobs in ${activeCityName}...`}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:bg-white focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all"
+                        className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:bg-km-surface-card focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all"
                     />
                 </div>
 
@@ -319,7 +319,7 @@ function JobCityWiseContent() {
                             }`}
                         >
                             <span>With Active Jobs</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${filterCategory === 'with_vacancies' ? 'bg-white/20 text-white' : 'bg-emerald-100 text-emerald-800'}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${filterCategory === 'with_vacancies' ? 'bg-km-surface-card/20 text-white' : 'bg-emerald-100 text-emerald-800'}`}>
                                 {cities.filter((c) => (c.jobs_count || 0) > 0).length}
                             </span>
                         </button>
@@ -336,7 +336,7 @@ function JobCityWiseContent() {
                             initial={{ opacity: 0, scale: 0.99 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.99 }}
-                            className="bg-white rounded-[28px] shadow-sm border border-purple-100/60 overflow-hidden"
+                            className="bg-km-surface-card rounded-[28px] shadow-sm border border-purple-100/60 overflow-hidden"
                         >
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left">
@@ -442,14 +442,14 @@ function JobCityWiseContent() {
                             className="space-y-4"
                         >
                             {isJobsLoading ? (
-                                <div className="bg-white rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
+                                <div className="bg-km-surface-card rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
                                     <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin" />
                                     <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">
                                         Retrieving real-time jobs in {activeCityName}...
                                     </p>
                                 </div>
                             ) : jobs.length === 0 ? (
-                                <div className="bg-white rounded-[28px] p-16 text-center border border-dashed border-purple-200 shadow-sm space-y-4">
+                                <div className="bg-km-surface-card rounded-[28px] p-16 text-center border border-dashed border-purple-200 shadow-sm space-y-4">
                                     <div className="w-16 h-16 bg-purple-50 rounded-3xl flex items-center justify-center text-3xl mx-auto">
                                         📍
                                     </div>
@@ -476,7 +476,7 @@ function JobCityWiseContent() {
                                         return (
                                             <div
                                                 key={job.id}
-                                                className="bg-white rounded-[28px] p-6 sm:p-7 border border-purple-100/60 shadow-sm hover:shadow-md transition-all space-y-4"
+                                                className="bg-km-surface-card rounded-[28px] p-6 sm:p-7 border border-purple-100/60 shadow-sm hover:shadow-md transition-all space-y-4"
                                             >
                                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                                     <div>
@@ -556,7 +556,7 @@ function JobCityWiseContent() {
 export default function JobCityWisePage() {
     return (
         <Suspense fallback={
-            <div className="bg-white rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
+            <div className="bg-km-surface-card rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
                 <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin" />
                 <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Loading city mapping...</p>
             </div>

@@ -42,7 +42,7 @@ const AddBackgroundModal = ({ isOpen, onClose, onSuccess }: AddBackgroundModalPr
     <ModalWrapper isOpen={isOpen} onClose={onClose} title="Add Background Photo">
       <div className="flex flex-col items-center justify-center py-8 text-center relative">
         {loading && (
-          <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center">
+          <div className="absolute inset-0 bg-km-surface-card/50 z-10 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-km-primary"></div>
           </div>
         )}
@@ -60,7 +60,7 @@ const AddBackgroundModal = ({ isOpen, onClose, onSuccess }: AddBackgroundModalPr
           <div className="absolute inset-0 bg-blue-50 rounded-3xl rotate-6 transform translate-x-4 scale-95 opacity-50" />
           <div className="absolute inset-0 bg-blue-100 rounded-3xl -rotate-3 transform -translate-x-2" />
 
-          <div className="absolute inset-0 flex items-center justify-center bg-white border border-blue-100 rounded-3xl shadow-sm overflow-hidden cursor-pointer hover:border-km-primary transition-all">
+          <div className="absolute inset-0 flex items-center justify-center bg-km-surface-card border border-blue-100 rounded-3xl shadow-sm overflow-hidden cursor-pointer hover:border-km-primary transition-all">
             <div className="bg-km-primary p-4 rounded-xl rotate-12 transform scale-125">
               <ImageIcon size={48} className="text-white" />
             </div>
@@ -74,7 +74,7 @@ const AddBackgroundModal = ({ isOpen, onClose, onSuccess }: AddBackgroundModalPr
           </h3>
           <p className="text-sm text-gray-500">
             A Good Background Photo Will Help You Stand Out.{' '}
-            <span className="text-km-primary font-medium cursor-pointer hover:underline">
+            <span className="text-km-heading font-medium cursor-pointer hover:underline">
               Learn More
             </span>
           </p>

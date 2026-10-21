@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-120"
             >
-                <div className="bg-white rounded-[40px] shadow-2xl shadow-purple-900/10 border border-purple-50 p-10 md:p-12">
+                <div className="bg-km-surface-card rounded-[40px] shadow-2xl shadow-purple-900/10 border border-purple-50 p-10 md:p-12">
                     {/* Logo & Header */}
                     <div className="text-center mb-10">
                         <div className="flex justify-center mb-6">
@@ -74,7 +74,7 @@ export default function AdminLoginPage() {
                                     <ShieldCheckIcon size={40} />
                                 </div>
                                 <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center">
-                                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                                    <div className="w-2 h-2 bg-km-surface-card rounded-full"></div>
                                 </div>
                             </div>
                         </div>
@@ -105,7 +105,7 @@ export default function AdminLoginPage() {
                                         placeholder="9876543210"
                                         value={mobile}
                                         onChange={(e) => setMobile(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-purple-50/50 border border-transparent rounded-2xl text-[15px] font-medium focus:outline-none focus:bg-white focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none"
+                                        className="w-full pl-12 pr-4 py-4 bg-purple-50/50 border border-transparent rounded-2xl text-[15px] font-medium focus:outline-none focus:bg-km-surface-card focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none"
                                     />
                                 </div>
                             </div>
@@ -124,7 +124,7 @@ export default function AdminLoginPage() {
                                         maxLength={4}
                                         value={otp}
                                         onChange={(e) => setOtp(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-purple-50/50 border border-transparent rounded-2xl text-[15px] font-medium focus:outline-none focus:bg-white focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none tracking-widest"
+                                        className="w-full pl-12 pr-4 py-4 bg-purple-50/50 border border-transparent rounded-2xl text-[15px] font-medium focus:outline-none focus:bg-km-surface-card focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none tracking-widest"
                                     />
                                 </div>
                             </div>

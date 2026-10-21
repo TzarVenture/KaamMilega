@@ -86,7 +86,7 @@ export default function JobDetailsPage() {
                 {/* Main Content */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Header Card */}
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="bg-km-surface-card p-8 rounded-2xl shadow-sm border border-gray-100">
                         <div className="flex items-start justify-between mb-6">
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-900">{job.title}</h1>
@@ -124,13 +124,13 @@ export default function JobDetailsPage() {
                     </div>
 
                     {/* Description Section */}
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="bg-km-surface-card p-8 rounded-2xl shadow-sm border border-gray-100">
                         <h3 className="text-xl font-bold text-gray-900 mb-4">Description</h3>
                         <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">{job.description}</p>
                     </div>
 
                     {/* Requirements Section */}
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="bg-km-surface-card p-8 rounded-2xl shadow-sm border border-gray-100">
                         <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                             <CheckCircleIcon className="w-5 h-5 text-blue-600" />
                             Requirements
@@ -147,7 +147,7 @@ export default function JobDetailsPage() {
 
                     {/* Benefits Section */}
                     {job.we_offer?.length > 0 && (
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
+                        <div className="bg-km-surface-card p-8 rounded-2xl shadow-sm border border-gray-100">
                             <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                                 <CurrencyInrIcon className="w-5 h-5 text-green-600" />
                                 Perks & Benefits
@@ -167,7 +167,7 @@ export default function JobDetailsPage() {
                 <div className="space-y-6">
                     <div className="bg-blue-600 p-8 rounded-3xl shadow-xl shadow-blue-200 text-white overflow-hidden relative">
                         <div className="relative z-10">
-                            <div className="p-3 bg-white/20 w-fit rounded-2xl mb-4">
+                            <div className="p-3 bg-km-surface-card/20 w-fit rounded-2xl mb-4">
                                 <UsersIcon className="w-8 h-8 text-white" />
                             </div>
                             <h4 className="text-xl font-bold mb-1">Applications</h4>
@@ -175,15 +175,15 @@ export default function JobDetailsPage() {
                             <div className="text-5xl font-black mb-8">0</div>
                             <Link
                                 href={`/recruiter/applications?jobId=${jobId}`}
-                                className="block w-full text-center py-4 bg-white text-blue-600 rounded-2xl font-black hover:bg-blue-50 transition-all shadow-lg"
+                                className="block w-full text-center py-4 bg-km-surface-card text-blue-600 rounded-2xl font-black hover:bg-blue-50 transition-all shadow-lg"
                             >
                                 View Applications
                             </Link>
                         </div>
-                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl" />
+                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-km-surface-card/10 rounded-full blur-3xl" />
                     </div>
 
-                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="bg-km-surface-card p-6 rounded-2xl shadow-sm border border-gray-100">
                         <h4 className="font-bold text-gray-900 mb-4 border-b pb-3">Posting Details</h4>
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">

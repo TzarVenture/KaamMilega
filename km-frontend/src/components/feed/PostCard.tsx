@@ -22,8 +22,8 @@ const REACTION_CONFIG: Record<
 > = {
   like: {
     label: 'Like',
-    icon: <ThumbsUpIcon weight="bold" size={15} className="fill-[#0B5ED7] text-[#0B5ED7]" />,
-    color: 'text-[#0B5ED7]',
+    icon: <ThumbsUpIcon weight="bold" size={15} className="fill-[#0B5ED7] text-km-link" />,
+    color: 'text-km-link',
     badgeBg: 'bg-[#0B5ED7]',
   },
   celebrate: {
@@ -110,11 +110,11 @@ export const PostCard: React.FC<PostCardProps> = ({
     const parts = displayText.split(/(#[a-zA-Z0-9_]+)/g);
 
     return (
-      <div className="text-sm font-poppins text-[#111827] leading-relaxed whitespace-pre-line">
+      <div className="text-sm font-poppins text-km-text-primary leading-relaxed whitespace-pre-line">
         {parts.map((part, index) => {
           if (part.startsWith('#')) {
             return (
-              <span key={index} className="text-[#0B5ED7] font-medium hover:underline cursor-pointer">
+              <span key={index} className="text-km-link font-medium hover:underline cursor-pointer">
                 {part}
               </span>
             );
@@ -125,7 +125,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           <button
             type="button"
             onClick={() => setIsExpanded(true)}
-            className="text-xs font-semibold text-[#0B5ED7] hover:underline ml-1 inline-block"
+            className="text-xs font-semibold text-km-link hover:underline ml-1 inline-block"
           >
             see more
           </button>
@@ -139,35 +139,35 @@ export const PostCard: React.FC<PostCardProps> = ({
   return (
     <article
       id={post.id}
-      className="bg-white border border-[#D9E0EA] rounded-2xl shadow-xs transition-all duration-200 hover:border-[#0B5ED7]/40 hover:shadow-md overflow-hidden"
+      className="bg-km-surface-card border border-km-border rounded-2xl shadow-xs transition-all duration-200 hover:border-[#0B5ED7]/40 hover:shadow-md overflow-hidden"
     >
       {/* 1. Header: Author Identity & 3-Dots Menu */}
       <div className="p-4 sm:p-5 pb-3 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <div className="w-12 h-12 rounded-full border border-[#D9E0EA] overflow-hidden bg-[#F4F7FB] shrink-0">
+          <div className="w-12 h-12 rounded-full border border-km-border overflow-hidden bg-km-surface shrink-0">
             <UserAvatar src={post.author.avatar} name={post.author.name} className="w-full h-full object-cover" />
           </div>
 
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <h3 className="font-poppins font-bold text-sm text-[#111827] hover:text-[#0B5ED7] cursor-pointer transition-colors leading-snug">
+              <h3 className="font-poppins font-bold text-sm text-km-text-primary hover:text-km-link cursor-pointer transition-colors leading-snug">
                 {post.author.name}
               </h3>
               {post.author.isVerified && (
                 <span title="Verified Member" className="inline-flex">
-                  <ShieldCheckIcon weight="bold" size={15} className="text-[#0B5ED7] shrink-0" />
+                  <ShieldCheckIcon weight="bold" size={15} className="text-km-link shrink-0" />
                 </span>
               )}
             </div>
 
-            <p className="text-xs text-[#5B6472] font-poppins line-clamp-1 mt-0.5">
+            <p className="text-xs text-km-text-secondary font-poppins line-clamp-1 mt-0.5">
               {post.author.headline}
             </p>
 
-            <div className="flex items-center gap-1 text-[11px] text-[#5B6472] mt-0.5 font-poppins">
+            <div className="flex items-center gap-1 text-[11px] text-km-text-secondary mt-0.5 font-poppins">
               <span>{post.createdAt}</span>
               <span>•</span>
-              <GlobeIcon weight="bold" size={11} className="text-[#5B6472]" />
+              <GlobeIcon weight="bold" size={11} className="text-km-text-secondary" />
             </div>
           </div>
         </div>
@@ -177,14 +177,14 @@ export const PostCard: React.FC<PostCardProps> = ({
           <button
             type="button"
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1.5 text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] rounded-full transition-colors"
+            className="p-1.5 text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-full transition-colors"
             aria-label="Post actions"
           >
             <DotsThreeIcon size={20} />
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-8 w-48 bg-white border border-[#D9E0EA] rounded-2xl shadow-lg py-1.5 z-20 text-xs font-poppins font-medium animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 top-8 w-48 bg-km-surface-card border border-km-border rounded-2xl shadow-lg py-1.5 z-20 text-xs font-poppins font-medium animate-in fade-in zoom-in-95 duration-100">
               <button
                 type="button"
                 onClick={() => {
@@ -192,18 +192,18 @@ export const PostCard: React.FC<PostCardProps> = ({
                   setMenuOpen(false);
                   toast.info(post.isSaved ? 'Removed from saved items' : 'Post saved to bookmarks');
                 }}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[#111827] hover:bg-[#F4F7FB] transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-km-text-primary hover:bg-km-surface transition-colors"
               >
-                <BookmarkSimpleIcon weight="bold" size={15} className={post.isSaved ? 'text-[#FF6B00] fill-[#FF6B00]' : 'text-[#5B6472]'} />
+                <BookmarkSimpleIcon weight="bold" size={15} className={post.isSaved ? 'text-[#FF6B00] fill-[#FF6B00]' : 'text-km-text-secondary'} />
                 <span>{post.isSaved ? 'Unsave Post' : 'Save Post'}</span>
               </button>
 
               <button
                 type="button"
                 onClick={handleCopyLink}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[#111827] hover:bg-[#F4F7FB] transition-colors"
+                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-km-text-primary hover:bg-km-surface transition-colors"
               >
-                <ShareNetworkIcon weight="bold" size={15} className="text-[#5B6472]" />
+                <ShareNetworkIcon weight="bold" size={15} className="text-km-text-secondary" />
                 <span>Copy Link to Post</span>
               </button>
 
@@ -215,7 +215,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                     setMenuOpen(false);
                     toast.success('Post deleted');
                   }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors border-t border-[#D9E0EA]"
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors border-t border-km-border"
                 >
                   <TrashIcon weight="bold" size={15} />
                   <span>Delete Post</span>
@@ -233,7 +233,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
       {/* 3. Media Preview Frame */}
       {post.mediaUrl && (
-        <div className="border-y border-[#D9E0EA] bg-[#F4F7FB] overflow-hidden max-h-[500px] flex items-center justify-center">
+        <div className="border-y border-km-border bg-km-surface overflow-hidden max-h-[500px] flex items-center justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={post.mediaUrl}
@@ -245,7 +245,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       )}
 
       {/* 4. Engagement Counters Summary */}
-      <div className="px-4 sm:px-5 py-2.5 flex items-center justify-between text-xs font-inter text-[#5B6472] border-b border-[#D9E0EA]/60">
+      <div className="px-4 sm:px-5 py-2.5 flex items-center justify-between text-xs font-inter text-km-text-secondary border-b border-km-border/60">
         <div className="flex items-center gap-1.5">
           {post.likesCount > 0 ? (
             <>
@@ -260,10 +260,10 @@ export const PostCard: React.FC<PostCardProps> = ({
                   ❤️
                 </span>
               </div>
-              <span className="font-medium text-[#111827]">{post.likesCount}</span>
+              <span className="font-medium text-km-text-primary">{post.likesCount}</span>
             </>
           ) : (
-            <span className="text-[11px] text-[#5B6472]">Be the first to react</span>
+            <span className="text-[11px] text-km-text-secondary">Be the first to react</span>
           )}
         </div>
 
@@ -272,7 +272,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             <button
               type="button"
               onClick={() => setShowComments(!showComments)}
-              className="hover:underline hover:text-[#0B5ED7]"
+              className="hover:underline hover:text-km-link"
             >
               {post.comments.length} {post.comments.length === 1 ? 'comment' : 'comments'}
             </button>
@@ -298,7 +298,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               setShowReactionPicker(true);
             }}
             onMouseLeave={() => setShowReactionPicker(false)}
-            className="absolute left-4 -top-11 bg-white border border-[#D9E0EA] shadow-xl rounded-full px-3 py-1.5 flex items-center gap-3 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150"
+            className="absolute left-4 -top-11 bg-km-surface-card border border-km-border shadow-xl rounded-full px-3 py-1.5 flex items-center gap-3 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150"
           >
             {(['like', 'celebrate', 'support', 'insightful'] as ReactionType[]).map((r) => (
               <button
@@ -332,10 +332,10 @@ export const PostCard: React.FC<PostCardProps> = ({
             reactionTimeoutRef.current = setTimeout(() => setShowReactionPicker(false), 400);
           }}
           onClick={() => onLike(post.id, 'like')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-[#F4F7FB] ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
             post.isLiked
-              ? currentReaction?.color || 'text-[#0B5ED7]'
-              : 'text-[#5B6472] hover:text-[#071A4D]'
+              ? currentReaction?.color || 'text-km-link'
+              : 'text-km-text-secondary hover:text-km-heading'
           }`}
         >
           {post.isLiked && currentReaction ? (
@@ -350,8 +350,8 @@ export const PostCard: React.FC<PostCardProps> = ({
         <button
           type="button"
           onClick={() => setShowComments(!showComments)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-[#F4F7FB] ${
-            showComments ? 'text-[#0B5ED7]' : 'text-[#5B6472] hover:text-[#071A4D]'
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
+            showComments ? 'text-km-link' : 'text-km-text-secondary hover:text-km-heading'
           }`}
         >
           <ChatIcon weight="bold" size={16} />
@@ -365,8 +365,8 @@ export const PostCard: React.FC<PostCardProps> = ({
             onRepost(post.id);
             toast.success(post.isReposted ? 'Repost removed' : 'Reposted to your network!');
           }}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-[#F4F7FB] ${
-            post.isReposted ? 'text-[#16A34A]' : 'text-[#5B6472] hover:text-[#071A4D]'
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
+            post.isReposted ? 'text-[#16A34A]' : 'text-km-text-secondary hover:text-km-heading'
           }`}
         >
           <RepeatIcon weight="bold" size={17} />
@@ -377,7 +377,7 @@ export const PostCard: React.FC<PostCardProps> = ({
         <button
           type="button"
           onClick={handleCopyLink}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] transition-all"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:text-km-heading hover:bg-km-surface transition-all"
         >
           <PaperPlaneRightIcon weight="bold" size={15} />
           <span>Share</span>
@@ -386,10 +386,10 @@ export const PostCard: React.FC<PostCardProps> = ({
 
       {/* 6. Inline Expandable Comments Section */}
       {showComments && (
-        <div className="border-t border-[#D9E0EA] bg-[#F4F7FB]/40 p-4 sm:p-5 space-y-4 animate-in fade-in duration-200">
+        <div className="border-t border-km-border bg-km-surface/40 p-4 sm:p-5 space-y-4 animate-in fade-in duration-200">
           {/* New Comment Input Box */}
           <form onSubmit={handleCommentSubmit} className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-full border border-[#D9E0EA] overflow-hidden bg-white shrink-0 mt-0.5">
+            <div className="w-9 h-9 rounded-full border border-km-border overflow-hidden bg-km-surface-card shrink-0 mt-0.5">
               <UserAvatar
                 src={currentUser?.profile_image || currentUser?.avatar}
                 name={currentUser?.name || 'You'}
@@ -403,7 +403,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
                 placeholder="Add a constructive comment..."
-                className="w-full px-4 py-2.5 text-xs sm:text-sm font-poppins bg-white border border-[#D9E0EA] rounded-full focus:outline-none focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/15 transition-all text-[#111827] placeholder:text-[#5B6472]/60"
+                className="w-full px-4 py-2.5 text-xs sm:text-sm font-poppins bg-km-surface-card border border-km-border rounded-full focus:outline-none focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/15 transition-all text-km-text-primary placeholder:text-km-text-secondary/60"
               />
 
               {commentText.trim() && (
@@ -424,19 +424,19 @@ export const PostCard: React.FC<PostCardProps> = ({
             <div className="space-y-3 pt-2">
               {post.comments.map((comm) => (
                 <div key={comm.id} className="flex items-start gap-2.5 text-xs font-poppins">
-                  <div className="w-8 h-8 rounded-full border border-[#D9E0EA] overflow-hidden bg-white shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-full border border-km-border overflow-hidden bg-km-surface-card shrink-0 mt-0.5">
                     <UserAvatar src={comm.author.avatar} name={comm.author.name} className="w-full h-full object-cover" />
                   </div>
 
-                  <div className="flex-1 bg-white border border-[#D9E0EA] rounded-2xl p-3 shadow-xs">
+                  <div className="flex-1 bg-km-surface-card border border-km-border rounded-2xl p-3 shadow-xs">
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-[#111827]">{comm.author.name}</h4>
-                      <span className="text-[10px] text-[#5B6472]">{comm.createdAt}</span>
+                      <h4 className="font-bold text-km-text-primary">{comm.author.name}</h4>
+                      <span className="text-[10px] text-km-text-secondary">{comm.createdAt}</span>
                     </div>
                     {comm.author.headline && (
-                      <p className="text-[11px] text-[#5B6472] truncate">{comm.author.headline}</p>
+                      <p className="text-[11px] text-km-text-secondary truncate">{comm.author.headline}</p>
                     )}
-                    <p className="text-xs text-[#111827] mt-1.5 leading-relaxed">{comm.content}</p>
+                    <p className="text-xs text-km-text-primary mt-1.5 leading-relaxed">{comm.content}</p>
                   </div>
                 </div>
               ))}

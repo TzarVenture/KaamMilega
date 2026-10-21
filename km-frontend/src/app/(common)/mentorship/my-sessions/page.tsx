@@ -95,7 +95,7 @@ export default function MyMentorshipSessionsPage() {
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
       {/* Clean Dashboard Header */}
-      <section className="bg-white border-b border-slate-200/80 pt-8 pb-8 px-4 md:px-8">
+      <section className="bg-km-surface-card border-b border-slate-200/80 pt-8 pb-8 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Back Navigation */}
           <Link
@@ -165,8 +165,8 @@ export default function MyMentorshipSessionsPage() {
             onClick={() => setBookingFilter('all')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               bookingFilter === 'all'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                ? 'bg-km-ink text-white shadow-xs'
+                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             All Sessions ({myBookings.length})
@@ -176,7 +176,7 @@ export default function MyMentorshipSessionsPage() {
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               bookingFilter === 'upcoming'
                 ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             Upcoming / Confirmed ({upcomingCount})
@@ -186,7 +186,7 @@ export default function MyMentorshipSessionsPage() {
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               bookingFilter === 'completed'
                 ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             Completed ({completedCount})
@@ -196,7 +196,7 @@ export default function MyMentorshipSessionsPage() {
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               bookingFilter === 'cancelled'
                 ? 'bg-red-600 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             Cancelled ({cancelledCount})
@@ -205,7 +205,7 @@ export default function MyMentorshipSessionsPage() {
 
         {/* Dynamic States */}
         {!isLoggedIn ? (
-          <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-8 shadow-xs max-w-lg mx-auto">
+          <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-slate-200 p-8 shadow-xs max-w-lg mx-auto">
             <CalendarBlankIcon size={36} weight="duotone" className="text-orange-500 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-bold text-slate-900 mb-2">Log In to View Your Sessions</h3>
             <p className="text-xs text-slate-500 mb-6 leading-relaxed">
@@ -221,7 +221,7 @@ export default function MyMentorshipSessionsPage() {
         ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white rounded-2xl h-52 animate-pulse border border-slate-200" />
+              <div key={i} className="bg-km-surface-card rounded-2xl h-52 animate-pulse border border-slate-200" />
             ))}
           </div>
         ) : filteredBookings.length > 0 ? (
@@ -235,7 +235,7 @@ export default function MyMentorshipSessionsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8">
+          <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-dashed border-slate-200 p-8">
             <CalendarBlankIcon size={36} weight="duotone" className="text-slate-400 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-bold text-slate-800 mb-1">No Bookings Found</h3>
             <p className="text-xs text-slate-500 max-w-xs mx-auto mb-6">
@@ -261,7 +261,7 @@ export default function MyMentorshipSessionsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl md:rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
+              className="bg-km-surface-card rounded-2xl md:rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-black text-slate-900">Leave Mentor Review</h3>
@@ -414,7 +414,7 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
   };
 
   return (
-    <div className="bg-white rounded-2xl md:rounded-3xl border border-slate-200/80 p-5 md:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+    <div className="bg-km-surface-card rounded-2xl md:rounded-3xl border border-slate-200/80 p-5 md:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
       <div>
         {/* Top Header: Date/Time + Status */}
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">

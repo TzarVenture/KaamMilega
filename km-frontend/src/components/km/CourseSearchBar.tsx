@@ -27,8 +27,8 @@ export default function CourseSearchBar({
     return (
         <div className="w-full space-y-3">
             {/* Input Bar */}
-            <div className="w-full h-12 sm:h-13 bg-white rounded-2xl border border-[#D9E0EA] px-3.5 sm:px-4 shadow-xs focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all flex items-center gap-2.5 sm:gap-3 box-border">
-                <div className="text-[#5B6472] shrink-0 flex items-center justify-center">
+            <div className="w-full h-12 sm:h-13 bg-km-surface-card rounded-2xl border border-km-border px-3.5 sm:px-4 shadow-xs focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all flex items-center gap-2.5 sm:gap-3 box-border">
+                <div className="text-km-text-secondary shrink-0 flex items-center justify-center">
                     <MagnifyingGlassIcon weight="bold" size={18} />
                 </div>
                 <input
@@ -36,7 +36,7 @@ export default function CourseSearchBar({
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
                     placeholder={placeholder}
-                    className="flex-1 min-w-0 h-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
+                    className="flex-1 min-w-0 h-full bg-transparent text-sm text-km-text-primary placeholder:text-km-text-secondary/70 focus:outline-hidden font-medium"
                 />
                 {value ? (
                     <button
@@ -45,7 +45,7 @@ export default function CourseSearchBar({
                             if (onClear) onClear();
                             else onChange("");
                         }}
-                        className="w-7 h-7 flex items-center justify-center text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] rounded-full transition-colors shrink-0 cursor-pointer"
+                        className="w-7 h-7 flex items-center justify-center text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-full transition-colors shrink-0 cursor-pointer"
                         title="Clear search"
                         aria-label="Clear search"
                     >
@@ -67,7 +67,7 @@ export default function CourseSearchBar({
                                 className={`text-xs font-semibold px-3 py-1.5 rounded-full shrink-0 transition-all ${
                                     isActive
                                         ? "bg-[#071A4D] text-white shadow-xs"
-                                        : "bg-white text-[#5B6472] border border-[#D9E0EA] hover:border-[#0B5ED7]/50 hover:text-[#071A4D]"
+                                        : "bg-km-surface-card text-km-text-secondary border border-km-border hover:border-[#0B5ED7]/50 hover:text-km-heading"
                                 }`}
                             >
                                 {cat}

@@ -98,7 +98,7 @@ export default function ResourcePage() {
     };
 
     return (
-        <main className="min-h-screen bg-[#F4F7FB] pb-20 font-sans">
+        <main className="min-h-screen bg-km-surface pb-20 font-sans">
             {/* ─── Hero Section with Resources Art & Rounded Bottom ─── */}
             <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -144,16 +144,16 @@ export default function ResourcePage() {
                 {/* Courses Feed */}
                 {loading ? (
                     <div className="py-20 flex flex-col justify-center items-center space-y-3">
-                        <CircleNotchIcon size={32} className="animate-spin text-[#0B5ED7]" />
-                        <p className="text-xs text-[#5B6472] font-medium">Loading training courses...</p>
+                        <CircleNotchIcon size={32} className="animate-spin text-km-link" />
+                        <p className="text-xs text-km-text-secondary font-medium">Loading training courses...</p>
                     </div>
                 ) : courses.length === 0 ? (
-                    <div className="bg-white rounded-2xl border border-dashed border-[#D9E0EA] p-12 text-center space-y-3">
-                        <VideoCameraIcon size={32} weight="duotone" className="text-[#5B6472] mx-auto" aria-hidden="true" />
-                        <h3 className="text-base font-bold text-[#111827]">
+                    <div className="bg-km-surface-card rounded-2xl border border-dashed border-km-border p-12 text-center space-y-3">
+                        <VideoCameraIcon size={32} weight="duotone" className="text-km-text-secondary mx-auto" aria-hidden="true" />
+                        <h3 className="text-base font-bold text-km-text-primary">
                             No Courses Found
                         </h3>
-                        <p className="text-xs text-[#5B6472] max-w-sm mx-auto">
+                        <p className="text-xs text-km-text-secondary max-w-sm mx-auto">
                             {searchQuery || selectedCategory !== "All"
                                 ? "No courses matched your search query. Try clearing your search."
                                 : "No courses have been published yet. Check back soon for new training sessions."}
@@ -165,7 +165,7 @@ export default function ResourcePage() {
                                     setSearchQuery("");
                                     setSelectedCategory("All");
                                 }}
-                                className="text-xs font-bold text-[#0B5ED7] hover:underline pt-2"
+                                className="text-xs font-bold text-km-link hover:underline pt-2"
                             >
                                 Clear filters
                             </button>
@@ -198,7 +198,7 @@ export default function ResourcePage() {
 
             {/* Right: Sidebar Ad Banner (Preserved 100% as requested) */}
             <div className="hidden lg:block w-80 shrink-0">
-                <div className="sticky top-6 bg-white rounded-3xl p-6 h-100 border border-[#D9E0EA] shadow-xs flex items-center justify-center text-[#5B6472] font-bold text-lg">
+                <div className="sticky top-6 bg-km-surface-card rounded-3xl p-6 h-100 border border-km-border shadow-xs flex items-center justify-center text-km-text-secondary font-bold text-lg">
                     Ad Banner
                 </div>
             </div>

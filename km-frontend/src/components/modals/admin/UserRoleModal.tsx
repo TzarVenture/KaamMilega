@@ -102,7 +102,7 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
                                     onClick={() => toggleRole(role.id)}
                                     className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start justify-between gap-4 ${isSelected
                                         ? 'bg-purple-50/50 border-purple-300 ring-2 ring-purple-500/10'
-                                        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
+                                        : 'bg-km-surface-card border-slate-200 hover:border-slate-300 hover:bg-slate-50/50'
                                     }`}
                                 >
                                     <div className="flex items-start gap-3.5">
@@ -124,7 +124,7 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
 
                                     <div className={`w-6 h-6 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 transition-colors ${isSelected
                                         ? 'bg-purple-600 border-purple-600 text-white'
-                                        : 'border-slate-300 bg-white'
+                                        : 'border-slate-300 bg-km-surface-card'
                                     }`}>
                                         {isSelected && <CheckIcon weight="bold" size={14} />}
                                     </div>

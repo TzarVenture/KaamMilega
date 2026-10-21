@@ -341,22 +341,22 @@ export default function RecruiterRegisterPage() {
     const isPersonalDomain = PERSONAL_EMAIL_DOMAINS.includes(emailDomain);
 
     return (
-        <div className="min-h-screen bg-[#F4F7FB] text-[#111827] flex flex-col font-sans">
+        <div className="min-h-screen bg-km-surface text-km-text-primary flex flex-col font-sans">
             {/* Top Navigation Bar: Shared Unified Auth Navbar */}
             <AuthNavbar />
 
             {/* Split-Screen Main Container: Matches /login design standard */}
             <main className="flex-1 flex flex-col justify-center px-4 sm:px-6 md:px-10 lg:px-12 py-8 lg:py-12 max-w-6xl mx-auto w-full">
-                <div className="bg-white border border-[#D9E0EA] rounded-3xl p-7 sm:p-10 lg:p-14 shadow-xs flex flex-col lg:flex-row items-start justify-between gap-10 lg:gap-14">
+                <div className="bg-km-surface-card border border-km-border rounded-3xl p-7 sm:p-10 lg:p-14 shadow-xs flex flex-col lg:flex-row items-start justify-between gap-10 lg:gap-14">
                     {/* LEFT COLUMN: Recruiter Value Proposition */}
                     <div className="flex-1 space-y-6 text-center lg:text-left w-full">
                         <div className="space-y-3">
                             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
-                                <span className="text-[#071A4D]">Hire </span>
+                                <span className="text-km-heading">Hire </span>
                                 <span className="text-[#FF6B00]">Verified</span>
-                                <span className="text-[#071A4D]"> Talent Directly &amp; Build Your Dream Team!</span>
+                                <span className="text-km-heading"> Talent Directly &amp; Build Your Dream Team!</span>
                             </h1>
-                            <p className="text-sm sm:text-base font-medium text-[#5B6472]">
+                            <p className="text-sm sm:text-base font-medium text-km-text-secondary">
                                 Post Jobs &amp; Connect With Candidates In Your City!
                             </p>
                         </div>
@@ -382,7 +382,7 @@ export default function RecruiterRegisterPage() {
                                     </span>
                                     <span
                                         className={`text-xs font-medium ${
-                                            currentStep === 1 ? 'text-[#071A4D] font-semibold' : 'text-[#5B6472]'
+                                            currentStep === 1 ? 'text-km-heading font-semibold' : 'text-km-text-secondary'
                                         }`}
                                     >
                                         Identity
@@ -405,7 +405,7 @@ export default function RecruiterRegisterPage() {
                                     </span>
                                     <span
                                         className={`text-xs font-medium ${
-                                            currentStep === 2 ? 'text-[#071A4D] font-semibold' : 'text-[#5B6472]'
+                                            currentStep === 2 ? 'text-km-heading font-semibold' : 'text-km-text-secondary'
                                         }`}
                                     >
                                         Email OTP
@@ -426,7 +426,7 @@ export default function RecruiterRegisterPage() {
                                     </span>
                                     <span
                                         className={`text-xs font-medium ${
-                                            currentStep === 3 ? 'text-[#071A4D] font-semibold' : 'text-[#5B6472]'
+                                            currentStep === 3 ? 'text-km-heading font-semibold' : 'text-km-text-secondary'
                                         }`}
                                     >
                                         Company
@@ -466,16 +466,16 @@ export default function RecruiterRegisterPage() {
                         {currentStep === 1 && (
                             <form onSubmit={handleStep1Submit} className="space-y-4">
                                 <div>
-                                    <h2 className="text-xl font-bold text-[#071A4D] tracking-tight">
+                                    <h2 className="text-xl font-bold text-km-heading tracking-tight">
                                         Recruiter Identity
                                     </h2>
-                                    <p className="text-xs text-[#5B6472] mt-0.5">
+                                    <p className="text-xs text-km-text-secondary mt-0.5">
                                         Tell us who is managing recruitment on behalf of your company.
                                     </p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-medium text-[#111827] mb-1.5">
+                                    <label className="block text-xs font-medium text-km-text-primary mb-1.5">
                                         Full Name <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
@@ -489,13 +489,13 @@ export default function RecruiterRegisterPage() {
                                                 setError(null);
                                             }}
                                             placeholder="Enter your full name"
-                                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-[#D9E0EA] focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-[#111827] placeholder:text-slate-400"
+                                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-km-border focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-km-text-primary placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-medium text-[#111827] mb-1.5">
+                                    <label className="block text-xs font-medium text-km-text-primary mb-1.5">
                                         Designation / Role in Company
                                     </label>
                                     <div className="relative">
@@ -505,13 +505,13 @@ export default function RecruiterRegisterPage() {
                                             value={designation}
                                             onChange={(e) => setDesignation(e.target.value)}
                                             placeholder="e.g. HR Lead, Founder, Talent Acquisition"
-                                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-[#D9E0EA] focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-[#111827] placeholder:text-slate-400"
+                                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-km-border focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-km-text-primary placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-medium text-[#111827] mb-1.5">
+                                    <label className="block text-xs font-medium text-km-text-primary mb-1.5">
                                         Hiring Model <span className="text-red-500">*</span>
                                     </label>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -524,19 +524,19 @@ export default function RecruiterRegisterPage() {
                                             className={`p-3 rounded-xl border text-left transition cursor-pointer ${
                                                 isConsultant === false
                                                     ? 'border-[#0B5ED7] bg-blue-50/50 ring-1 ring-[#0B5ED7]'
-                                                    : 'border-[#D9E0EA] hover:border-slate-300 bg-white'
+                                                    : 'border-km-border hover:border-slate-300 bg-km-surface-card'
                                             }`}
                                         >
                                             <div className="flex items-center gap-1.5 mb-1">
                                                 <BuildingOfficeIcon weight="bold"
                                                     size={15}
-                                                    className={isConsultant === false ? 'text-[#0B5ED7]' : 'text-slate-500'}
+                                                    className={isConsultant === false ? 'text-km-link' : 'text-slate-500'}
                                                 />
-                                                <span className="text-xs font-semibold text-[#111827]">
+                                                <span className="text-xs font-semibold text-km-text-primary">
                                                     Direct Employer
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] text-[#5B6472] leading-tight">
+                                            <p className="text-[11px] text-km-text-secondary leading-tight">
                                                 Hiring for own organization
                                             </p>
                                         </button>
@@ -550,19 +550,19 @@ export default function RecruiterRegisterPage() {
                                             className={`p-3 rounded-xl border text-left transition cursor-pointer ${
                                                 isConsultant === true
                                                     ? 'border-[#0B5ED7] bg-blue-50/50 ring-1 ring-[#0B5ED7]'
-                                                    : 'border-[#D9E0EA] hover:border-slate-300 bg-white'
+                                                    : 'border-km-border hover:border-slate-300 bg-km-surface-card'
                                             }`}
                                         >
                                             <div className="flex items-center gap-1.5 mb-1">
                                                 <BriefcaseIcon weight="bold"
                                                     size={15}
-                                                    className={isConsultant === true ? 'text-[#0B5ED7]' : 'text-slate-500'}
+                                                    className={isConsultant === true ? 'text-km-link' : 'text-slate-500'}
                                                 />
-                                                <span className="text-xs font-semibold text-[#111827]">
+                                                <span className="text-xs font-semibold text-km-text-primary">
                                                     Staffing / Consultant
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] text-[#5B6472] leading-tight">
+                                            <p className="text-[11px] text-km-text-secondary leading-tight">
                                                 Hiring for multiple clients
                                             </p>
                                         </button>
@@ -590,21 +590,21 @@ export default function RecruiterRegisterPage() {
                                     <button
                                         type="button"
                                         onClick={() => setCurrentStep(1)}
-                                        className="inline-flex items-center gap-1 text-xs text-[#5B6472] hover:text-[#071A4D] font-medium mb-1 cursor-pointer"
+                                        className="inline-flex items-center gap-1 text-xs text-km-text-secondary hover:text-km-heading font-medium mb-1 cursor-pointer"
                                     >
                                         <ArrowLeftIcon weight="bold" size={13} />
                                         <span>Back to details</span>
                                     </button>
-                                    <h2 className="text-xl font-bold text-[#071A4D] tracking-tight">
+                                    <h2 className="text-xl font-bold text-km-heading tracking-tight">
                                         Verify Work Email
                                     </h2>
-                                    <p className="text-xs text-[#5B6472] mt-0.5">
+                                    <p className="text-xs text-km-text-secondary mt-0.5">
                                         Verify your work email address to post jobs and connect with candidates.
                                     </p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-medium text-[#111827] mb-1.5">
+                                    <label className="block text-xs font-medium text-km-text-primary mb-1.5">
                                         Official Work Email <span className="text-red-500">*</span>
                                     </label>
                                     <div className="flex gap-2">
@@ -620,7 +620,7 @@ export default function RecruiterRegisterPage() {
                                                     setOtpSent(false);
                                                 }}
                                                 placeholder="e.g. hr@company.com"
-                                                className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-xl border border-[#D9E0EA] focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-[#111827] placeholder:text-slate-400 disabled:bg-slate-50 disabled:text-slate-500"
+                                                className="w-full pl-10 pr-3.5 py-2.5 text-sm rounded-xl border border-km-border focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-km-text-primary placeholder:text-slate-400 disabled:bg-slate-50 disabled:text-slate-500"
                                             />
                                         </div>
 
@@ -658,7 +658,7 @@ export default function RecruiterRegisterPage() {
                                         <button
                                             type="button"
                                             onClick={() => setCurrentStep(3)}
-                                            className="text-xs font-semibold text-[#0B5ED7] hover:underline cursor-pointer"
+                                            className="text-xs font-semibold text-km-link hover:underline cursor-pointer"
                                         >
                                             Proceed →
                                         </button>
@@ -666,10 +666,10 @@ export default function RecruiterRegisterPage() {
                                 )}
 
                                 {otpSent && !isEmailVerified && (
-                                    <div className="border border-[#D9E0EA] rounded-xl p-4 bg-slate-50/50 space-y-3.5">
+                                    <div className="border border-km-border rounded-xl p-4 bg-slate-50/50 space-y-3.5">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-xs font-medium text-[#111827]">
-                                                Enter 4-digit code sent to <strong className="text-[#071A4D]">{email}</strong>
+                                            <span className="text-xs font-medium text-km-text-primary">
+                                                Enter 4-digit code sent to <strong className="text-km-heading">{email}</strong>
                                             </span>
                                             {resendTimer > 0 ? (
                                                 <span className="text-[11px] text-slate-500">Resend in {resendTimer}s</span>
@@ -677,7 +677,7 @@ export default function RecruiterRegisterPage() {
                                                 <button
                                                     type="button"
                                                     onClick={handleSendEmailOtp}
-                                                    className="text-[11px] font-semibold text-[#0B5ED7] hover:underline cursor-pointer"
+                                                    className="text-[11px] font-semibold text-km-link hover:underline cursor-pointer"
                                                 >
                                                     Resend Code
                                                 </button>
@@ -697,7 +697,7 @@ export default function RecruiterRegisterPage() {
                                                     value={digit}
                                                     onChange={(e) => handleOtpDigitChange(e.target.value, index)}
                                                     onKeyDown={(e) => handleOtpKeyDown(e, index)}
-                                                    className="w-11 h-11 text-center text-lg font-bold rounded-xl border border-[#D9E0EA] bg-white text-[#111827] focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] shadow-xs"
+                                                    className="w-11 h-11 text-center text-lg font-bold rounded-xl border border-km-border bg-km-surface-card text-km-text-primary focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] shadow-xs"
                                                 />
                                             ))}
                                         </div>
@@ -717,7 +717,7 @@ export default function RecruiterRegisterPage() {
                                     <button
                                         type="button"
                                         onClick={() => setCurrentStep(3)}
-                                        className="text-xs font-medium text-[#5B6472] hover:text-[#071A4D] underline cursor-pointer"
+                                        className="text-xs font-medium text-km-text-secondary hover:text-km-heading underline cursor-pointer"
                                     >
                                         Skip email verification for now
                                     </button>
@@ -745,22 +745,22 @@ export default function RecruiterRegisterPage() {
                                     <button
                                         type="button"
                                         onClick={() => setCurrentStep(2)}
-                                        className="inline-flex items-center gap-1 text-xs text-[#5B6472] hover:text-[#071A4D] font-medium mb-1 cursor-pointer"
+                                        className="inline-flex items-center gap-1 text-xs text-km-text-secondary hover:text-km-heading font-medium mb-1 cursor-pointer"
                                     >
                                         <ArrowLeftIcon weight="bold" size={13} />
                                         <span>Back to email</span>
                                     </button>
-                                    <h2 className="text-xl font-bold text-[#071A4D] tracking-tight">
+                                    <h2 className="text-xl font-bold text-km-heading tracking-tight">
                                         Company Setup
                                     </h2>
-                                    <p className="text-xs text-[#5B6472] mt-0.5">
+                                    <p className="text-xs text-km-text-secondary mt-0.5">
                                         Enter your company details to complete registration.
                                     </p>
                                 </div>
 
                                 <div className="space-y-3">
                                     <div>
-                                        <label className="block text-xs font-medium text-[#111827] mb-1.5">
+                                        <label className="block text-xs font-medium text-km-text-primary mb-1.5">
                                             Company Legal Name <span className="text-red-500">*</span>
                                         </label>
                                         <div className="relative">
@@ -774,13 +774,13 @@ export default function RecruiterRegisterPage() {
                                                     setError(null);
                                                 }}
                                                 placeholder="e.g. Acme Technologies Pvt Ltd"
-                                                className="w-full pl-10 pr-3.5 py-2 text-sm rounded-xl border border-[#D9E0EA] focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-[#111827] placeholder:text-slate-400"
+                                                className="w-full pl-10 pr-3.5 py-2 text-sm rounded-xl border border-km-border focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-km-text-primary placeholder:text-slate-400"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-medium text-[#111827] mb-1.5">
+                                        <label className="block text-xs font-medium text-km-text-primary mb-1.5">
                                             Company Website
                                         </label>
                                         <div className="relative">
@@ -790,19 +790,19 @@ export default function RecruiterRegisterPage() {
                                                 value={companyWebsite}
                                                 onChange={(e) => setCompanyWebsite(e.target.value)}
                                                 placeholder="https://company.com"
-                                                className="w-full pl-10 pr-3.5 py-2 text-sm rounded-xl border border-[#D9E0EA] focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-[#111827] placeholder:text-slate-400"
+                                                className="w-full pl-10 pr-3.5 py-2 text-sm rounded-xl border border-km-border focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-km-text-primary placeholder:text-slate-400"
                                             />
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-xs font-medium text-[#111827] mb-1.5">
+                                        <label className="block text-xs font-medium text-km-text-primary mb-1.5">
                                             Industry / Sector
                                         </label>
                                         <select
                                             value={industry}
                                             onChange={(e) => setIndustry(e.target.value)}
-                                            className="w-full px-3 py-2 text-sm rounded-xl border border-[#D9E0EA] focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-[#111827] bg-white"
+                                            className="w-full px-3 py-2 text-sm rounded-xl border border-km-border focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-km-text-primary bg-km-surface-card"
                                         >
                                             <option value="">Select industry category</option>
                                             {INDUSTRY_OPTIONS.map((ind) => (
@@ -815,11 +815,11 @@ export default function RecruiterRegisterPage() {
 
                                     {/* Company Brand Logo */}
                                     <div>
-                                        <label className="block text-xs font-medium text-[#111827] mb-1.5">
+                                        <label className="block text-xs font-medium text-km-text-primary mb-1.5">
                                             Company Logo
                                         </label>
-                                        <div className="flex items-center gap-3 p-3 border border-dashed border-[#D9E0EA] rounded-xl bg-slate-50/50">
-                                            <div className="w-12 h-12 rounded-xl bg-white border border-[#D9E0EA] flex items-center justify-center overflow-hidden shrink-0">
+                                        <div className="flex items-center gap-3 p-3 border border-dashed border-km-border rounded-xl bg-slate-50/50">
+                                            <div className="w-12 h-12 rounded-xl bg-km-surface-card border border-km-border flex items-center justify-center overflow-hidden shrink-0">
                                                 {logoPreview ? (
                                                     <img
                                                         src={logoPreview}
@@ -840,12 +840,12 @@ export default function RecruiterRegisterPage() {
                                                 />
                                                 <label
                                                     htmlFor="company-logo-input"
-                                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#071A4D] hover:text-[#0B5ED7] cursor-pointer py-1 px-2.5 rounded-lg border border-[#D9E0EA] bg-white shadow-xs"
+                                                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-km-heading hover:text-km-link cursor-pointer py-1 px-2.5 rounded-lg border border-km-border bg-km-surface-card shadow-xs"
                                                 >
                                                     <CloudArrowUpIcon weight="bold" size={13} />
                                                     <span>{logoFile ? 'Change Logo' : 'Upload Logo'}</span>
                                                 </label>
-                                                <p className="text-[10px] text-[#5B6472] mt-0.5 truncate">
+                                                <p className="text-[10px] text-km-text-secondary mt-0.5 truncate">
                                                     PNG, JPG, or SVG up to 2MB
                                                 </p>
                                             </div>
@@ -853,9 +853,9 @@ export default function RecruiterRegisterPage() {
                                     </div>
 
                                     {/* Verification Document Selector */}
-                                    <div className="pt-2 border-t border-[#D9E0EA]">
+                                    <div className="pt-2 border-t border-km-border">
                                         <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-semibold text-[#111827]">
+                                            <span className="text-xs font-semibold text-km-text-primary">
                                                 Company Verification Document
                                             </span>
                                             <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
@@ -875,17 +875,17 @@ export default function RecruiterRegisterPage() {
                                                         className={`p-2 rounded-xl border text-left flex items-start gap-2 transition cursor-pointer ${
                                                             isSelected
                                                                 ? 'border-[#0B5ED7] bg-blue-50/50 ring-1 ring-[#0B5ED7]'
-                                                                : 'border-[#D9E0EA] hover:border-slate-300 bg-white'
+                                                                : 'border-km-border hover:border-slate-300 bg-km-surface-card'
                                                         }`}
                                                     >
                                                         <IconComponent
                                                             size={15}
                                                             className={`mt-0.5 shrink-0 ${
-                                                                isSelected ? 'text-[#0B5ED7]' : 'text-slate-400'
+                                                                isSelected ? 'text-km-link' : 'text-slate-400'
                                                             }`}
                                                         />
                                                         <div className="min-w-0">
-                                                            <p className="text-[11px] font-semibold text-[#111827] truncate">
+                                                            <p className="text-[11px] font-semibold text-km-text-primary truncate">
                                                                 {doc.name}
                                                             </p>
                                                         </div>
@@ -900,19 +900,19 @@ export default function RecruiterRegisterPage() {
                                                 value={docNumber}
                                                 onChange={(e) => setDocNumber(e.target.value)}
                                                 placeholder="Registration Number (e.g. 27AAAAA0000A1Z5 GSTIN)"
-                                                className="w-full px-3 py-2 text-xs rounded-xl border border-[#D9E0EA] focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-[#111827] placeholder:text-slate-400"
+                                                className="w-full px-3 py-2 text-xs rounded-xl border border-km-border focus:outline-none focus:border-[#0B5ED7] focus:ring-1 focus:ring-[#0B5ED7] text-km-text-primary placeholder:text-slate-400"
                                             />
                                         </div>
 
                                         {/* Document File Attachment */}
-                                        <div className="p-2.5 border border-dashed border-[#D9E0EA] rounded-xl bg-slate-50/50 flex items-center justify-between">
+                                        <div className="p-2.5 border border-dashed border-km-border rounded-xl bg-slate-50/50 flex items-center justify-between">
                                             <div className="flex items-center gap-2 min-w-0">
                                                 <FileTextIcon weight="bold" size={16} className="text-slate-400 shrink-0" />
                                                 <div className="truncate">
-                                                    <p className="text-[11px] font-medium text-[#111827] truncate">
+                                                    <p className="text-[11px] font-medium text-km-text-primary truncate">
                                                         {docFile ? docFile.name : 'Attach Document (.pdf, .jpg)'}
                                                     </p>
-                                                    <p className="text-[10px] text-[#5B6472]">
+                                                    <p className="text-[10px] text-km-text-secondary">
                                                         Max 5MB (PDF, JPG, or PNG)
                                                     </p>
                                                 </div>
@@ -927,7 +927,7 @@ export default function RecruiterRegisterPage() {
                                                 />
                                                 <label
                                                     htmlFor="company-doc-input"
-                                                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#071A4D] hover:text-[#0B5ED7] cursor-pointer py-1 px-2.5 rounded-lg border border-[#D9E0EA] bg-white shadow-xs"
+                                                    className="inline-flex items-center gap-1 text-xs font-semibold text-km-heading hover:text-km-link cursor-pointer py-1 px-2.5 rounded-lg border border-km-border bg-km-surface-card shadow-xs"
                                                 >
                                                     <CloudArrowUpIcon weight="bold" size={13} />
                                                     <span>{docFile ? 'Replace' : 'Upload'}</span>
@@ -952,7 +952,7 @@ export default function RecruiterRegisterPage() {
                                         type="button"
                                         disabled={loading}
                                         onClick={() => handleFinalSubmit(true)}
-                                        className="w-full text-center text-xs font-medium text-[#5B6472] hover:text-[#071A4D] py-1 cursor-pointer"
+                                        className="w-full text-center text-xs font-medium text-km-text-secondary hover:text-km-heading py-1 cursor-pointer"
                                     >
                                         Add documents later &amp; go to dashboard
                                     </button>
@@ -964,14 +964,14 @@ export default function RecruiterRegisterPage() {
             </main>
 
             {/* Bottom Legal Disclaimer */}
-            <footer className="py-6 text-center text-xs text-[#5B6472]">
+            <footer className="py-6 text-center text-xs text-km-text-secondary">
                 <p>
                     By continuing, you agree to KaamMilega&apos;s{' '}
-                    <Link href="/policies/terms" className="text-[#071A4D] hover:underline font-semibold">
+                    <Link href="/policies/terms" className="text-km-heading hover:underline font-semibold">
                         Terms of Service
                     </Link>{' '}
                     and{' '}
-                    <Link href="/policies/privacy" className="text-[#071A4D] hover:underline font-semibold">
+                    <Link href="/policies/privacy" className="text-km-heading hover:underline font-semibold">
                         Privacy Policy
                     </Link>
                     .

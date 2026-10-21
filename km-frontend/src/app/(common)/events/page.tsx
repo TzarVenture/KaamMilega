@@ -26,17 +26,17 @@ interface EventData {
 
 // ─── Design.md Shimmer Skeleton Card ───
 const EventCardSkeleton = () => (
-    <div className="bg-white rounded-2xl overflow-hidden border border-[#D9E0EA] flex flex-col shadow-xs">
-        <div className="h-48 bg-[#F4F7FB] animate-shimmer" />
+    <div className="bg-km-surface-card rounded-2xl overflow-hidden border border-km-border flex flex-col shadow-xs">
+        <div className="h-48 bg-km-surface animate-shimmer" />
         <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
             <div className="space-y-2.5">
-                <div className="h-4 bg-[#F4F7FB] animate-shimmer rounded-md w-1/3" />
-                <div className="h-5 bg-[#F4F7FB] animate-shimmer rounded-md w-4/5" />
-                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/2" />
+                <div className="h-4 bg-km-surface animate-shimmer rounded-md w-1/3" />
+                <div className="h-5 bg-km-surface animate-shimmer rounded-md w-4/5" />
+                <div className="h-3 bg-km-surface animate-shimmer rounded-md w-1/2" />
             </div>
-            <div className="pt-3 border-t border-[#D9E0EA] flex justify-between items-center">
-                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/4" />
-                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/4" />
+            <div className="pt-3 border-t border-km-border flex justify-between items-center">
+                <div className="h-3 bg-km-surface animate-shimmer rounded-md w-1/4" />
+                <div className="h-3 bg-km-surface animate-shimmer rounded-md w-1/4" />
             </div>
         </div>
     </div>
@@ -46,10 +46,10 @@ const EventCardSkeleton = () => (
 const EmptyState = ({ hasSearch, onReset }: { hasSearch: boolean; onReset: () => void }) => (
     <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center">
         <CalendarBlankIcon size={36} weight="duotone" className="text-[#F59E0B] mb-4" aria-hidden="true" />
-        <h3 className="text-lg font-bold text-[#111827] mb-1.5">
+        <h3 className="text-lg font-bold text-km-text-primary mb-1.5">
             {hasSearch ? "No Workshops Found" : "No Workshops Scheduled Yet"}
         </h3>
-        <p className="text-sm text-[#5B6472] max-w-md mb-5 leading-relaxed">
+        <p className="text-sm text-km-text-secondary max-w-md mb-5 leading-relaxed">
             {hasSearch
                 ? "No workshops match your current search criteria. Try modifying your search keywords or resetting filters."
                 : "Interactive workshops, masterclasses, and expert-led skill sessions will appear here once announced by our verified experts."}
@@ -167,7 +167,7 @@ const PublicEventsPage = () => {
     const hasActiveFilters = Boolean(search || locationFilter || pricingFilter !== 'all' || sort !== 'recent');
 
     return (
-        <div className="bg-[#F4F7FB] min-h-screen pb-20 font-sans">
+        <div className="bg-km-surface min-h-screen pb-20 font-sans">
 
             {/* ─── Events & Bootcamps Hero Section with Art & Rounded Bottom ─── */}
             <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans">
@@ -201,7 +201,7 @@ const PublicEventsPage = () => {
                                 </a>
                                 <Link
                                     href="/expert/apply"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs"
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-km-surface-card/10 hover:border-white transition-all shadow-xs"
                                 >
                                     <span>Host an Event</span>
                                     <ArrowRightIcon weight="bold" size={13} />
@@ -244,23 +244,23 @@ const PublicEventsPage = () => {
 
             {/* ─── Search + Filters Bar ─── */}
             <div id="workshops-catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 lg:-mt-10 relative z-20">
-                <div className="bg-white rounded-2xl shadow-sm border border-[#D9E0EA] p-4 sm:p-5">
+                <div className="bg-km-surface-card rounded-2xl shadow-sm border border-km-border p-4 sm:p-5">
                     <div className="flex flex-col md:flex-row gap-3 mb-3.5">
                         {/* Search Input */}
-                        <div className="flex-1 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
-                            <MagnifyingGlassIcon weight="bold" size={17} className="text-[#5B6472] shrink-0" />
+                        <div className="flex-1 flex items-center gap-2.5 bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-km-border focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
+                            <MagnifyingGlassIcon weight="bold" size={17} className="text-km-text-secondary shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Search by workshop title, mentor name, or skill..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
+                                className="w-full bg-transparent text-sm text-km-text-primary placeholder:text-km-text-secondary/70 focus:outline-hidden font-medium"
                             />
                             {search && (
                                 <button
                                     type="button"
                                     onClick={() => setSearch('')}
-                                    className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
+                                    className="text-km-text-secondary hover:text-km-text-primary p-0.5 rounded-full"
                                 >
                                     <XIcon weight="bold" size={14} />
                                 </button>
@@ -268,20 +268,20 @@ const PublicEventsPage = () => {
                         </div>
 
                         {/* Location Input */}
-                        <div className="w-full md:w-60 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
-                            <MapPinIcon weight="bold" size={17} className="text-[#5B6472] shrink-0" />
+                        <div className="w-full md:w-60 flex items-center gap-2.5 bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-km-border focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
+                            <MapPinIcon weight="bold" size={17} className="text-km-text-secondary shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Filter by city or online..."
                                 value={locationFilter}
                                 onChange={(e) => setLocationFilter(e.target.value)}
-                                className="w-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
+                                className="w-full bg-transparent text-sm text-km-text-primary placeholder:text-km-text-secondary/70 focus:outline-hidden font-medium"
                             />
                             {locationFilter && (
                                 <button
                                     type="button"
                                     onClick={() => setLocationFilter('')}
-                                    className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
+                                    className="text-km-text-secondary hover:text-km-text-primary p-0.5 rounded-full"
                                 >
                                     <XIcon weight="bold" size={14} />
                                 </button>
@@ -292,18 +292,18 @@ const PublicEventsPage = () => {
                         <button
                             type="button"
                             onClick={() => setSort(s => s === 'recent' ? 'upcoming' : 'recent')}
-                            className="flex items-center justify-center gap-2 bg-white hover:bg-[#F4F7FB] text-[#111827] px-4 py-2.5 rounded-xl border border-[#D9E0EA] font-semibold text-xs transition-colors shrink-0 cursor-pointer shadow-2xs"
+                            className="flex items-center justify-center gap-2 bg-km-surface-card hover:bg-km-surface text-km-text-primary px-4 py-2.5 rounded-xl border border-km-border font-semibold text-xs transition-colors shrink-0 cursor-pointer shadow-2xs"
                         >
-                            <ClockIcon weight="bold" size={14} className="text-[#5B6472]" />
+                            <ClockIcon weight="bold" size={14} className="text-km-text-secondary" />
                             <span>{sort === 'upcoming' ? 'Sorted by: Upcoming Date' : 'Sorted by: Recently Added'}</span>
-                            <ArrowsDownUpIcon weight="bold" size={13} className="text-[#5B6472]" />
+                            <ArrowsDownUpIcon weight="bold" size={13} className="text-km-text-secondary" />
                         </button>
                     </div>
 
                     {/* Pricing Filter Pills & Meta */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#D9E0EA]">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-km-border">
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-semibold text-[#5B6472] mr-1 flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-km-text-secondary mr-1 flex items-center gap-1.5">
                                 <TagIcon weight="bold" size={13} className="text-[#F59E0B]" /> Format & Pricing:
                             </span>
                             <button
@@ -312,7 +312,7 @@ const PublicEventsPage = () => {
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                                     pricingFilter === 'all'
                                         ? 'bg-[#071A4D] text-white shadow-2xs'
-                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                        : 'bg-km-surface text-km-text-secondary hover:text-km-text-primary'
                                 }`}
                             >
                                 All Sessions
@@ -323,7 +323,7 @@ const PublicEventsPage = () => {
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                                     pricingFilter === 'free'
                                         ? 'bg-[#071A4D] text-white shadow-2xs'
-                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                        : 'bg-km-surface text-km-text-secondary hover:text-km-text-primary'
                                 }`}
                             >
                                 <span className={`w-1.5 h-1.5 rounded-full ${pricingFilter === 'free' ? 'bg-[#10B981]' : 'bg-[#5B6472]'}`} />
@@ -335,7 +335,7 @@ const PublicEventsPage = () => {
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                                     pricingFilter === 'paid'
                                         ? 'bg-[#FF6B00] text-white shadow-2xs'
-                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                        : 'bg-km-surface text-km-text-secondary hover:text-km-text-primary'
                                 }`}
                             >
                                 <TicketIcon weight="bold" size={12} />
@@ -348,7 +348,7 @@ const PublicEventsPage = () => {
                             <button
                                 type="button"
                                 onClick={handleResetFilters}
-                                className="text-xs font-semibold text-[#0B5ED7] hover:underline flex items-center gap-1 cursor-pointer"
+                                className="text-xs font-semibold text-km-link hover:underline flex items-center gap-1 cursor-pointer"
                             >
                                 <ArrowCounterClockwiseIcon weight="bold" size={12} /> Clear all filters
                             </button>
@@ -359,9 +359,9 @@ const PublicEventsPage = () => {
                 {/* Results Count Header */}
                 {!loading && (
                     <div className="flex items-center justify-between mt-6 mb-2 px-1">
-                        <p className="text-sm font-semibold text-[#5B6472]">
+                        <p className="text-sm font-semibold text-km-text-secondary">
                             {total > 0 ? (
-                                <>Showing <span className="text-[#111827] font-bold">{total}</span> verified session{total !== 1 ? 's' : ''}</>
+                                <>Showing <span className="text-km-text-primary font-bold">{total}</span> verified session{total !== 1 ? 's' : ''}</>
                             ) : (
                                 <>No workshops match the selected criteria</>
                             )}
@@ -389,7 +389,7 @@ const PublicEventsPage = () => {
                                     className="km-card flex flex-col group overflow-hidden"
                                 >
                                     {/* Card Image Area */}
-                                    <div className="h-48 bg-[#F4F7FB] relative overflow-hidden border-b border-[#D9E0EA]">
+                                    <div className="h-48 bg-km-surface relative overflow-hidden border-b border-km-border">
                                         {event.image_url ? (
                                             <img
                                                 src={event.image_url}
@@ -397,9 +397,9 @@ const PublicEventsPage = () => {
                                                 className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-[#5B6472] p-4 bg-[#F4F7FB]">
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-km-text-secondary p-4 bg-km-surface">
                                                 <CalendarBlankIcon size={28} weight="duotone" className="text-[#F59E0B] mb-2" aria-hidden="true" />
-                                                <span className="text-[11px] font-semibold text-[#5B6472]">Skill Masterclass</span>
+                                                <span className="text-[11px] font-semibold text-km-text-secondary">Skill Masterclass</span>
                                             </div>
                                         )}
 
@@ -427,17 +427,17 @@ const PublicEventsPage = () => {
                                         </div>
 
                                         {/* Event Title */}
-                                        <h3 className="font-bold text-[#111827] text-base leading-snug line-clamp-2 group-hover:text-[#0B5ED7] transition-colors mb-1.5">
+                                        <h3 className="font-bold text-km-text-primary text-base leading-snug line-clamp-2 group-hover:text-km-link transition-colors mb-1.5">
                                             {event.title}
                                         </h3>
 
                                         {/* Organizer / Expert */}
-                                        <p className="text-xs text-[#5B6472] font-normal mb-3">
-                                            Hosted by <span className="font-medium text-[#111827]">{event.organizer}</span>
+                                        <p className="text-xs text-km-text-secondary font-normal mb-3">
+                                            Hosted by <span className="font-medium text-km-text-primary">{event.organizer}</span>
                                         </p>
 
                                         {/* Date & Time */}
-                                        <div className="flex items-center gap-2 text-xs text-[#5B6472] mb-3">
+                                        <div className="flex items-center gap-2 text-xs text-km-text-secondary mb-3">
                                             <CalendarBlankIcon weight="bold" size={13} className="text-[#F59E0B] shrink-0" />
                                             <span>{formatDate(event.date)}</span>
                                             {event.time && <span>• {event.time}</span>}
@@ -445,14 +445,14 @@ const PublicEventsPage = () => {
 
                                         {/* Available seats if capacity configured */}
                                         {event.capacity && event.capacity > 0 ? (
-                                            <div className="mb-3 text-[11px] text-[#5B6472] flex items-center justify-between">
-                                                <span>Seats left: <strong className="text-[#111827]">{event.available_seats ?? event.capacity}</strong></span>
-                                                <span className="text-[#5B6472]">Capacity: {event.capacity}</span>
+                                            <div className="mb-3 text-[11px] text-km-text-secondary flex items-center justify-between">
+                                                <span>Seats left: <strong className="text-km-text-primary">{event.available_seats ?? event.capacity}</strong></span>
+                                                <span className="text-km-text-secondary">Capacity: {event.capacity}</span>
                                             </div>
                                         ) : null}
 
                                         {/* Card Footer */}
-                                        <div className="mt-auto pt-3.5 border-t border-[#D9E0EA] flex items-center justify-between">
+                                        <div className="mt-auto pt-3.5 border-t border-km-border flex items-center justify-between">
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -464,14 +464,14 @@ const PublicEventsPage = () => {
                                                         total: event.participants?.length || 0
                                                     });
                                                 }}
-                                                className="flex items-center gap-1.5 text-xs font-semibold text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                                                className="flex items-center gap-1.5 text-xs font-semibold text-km-text-secondary hover:text-km-heading hover:bg-km-surface px-2 py-1 rounded-lg transition-colors cursor-pointer"
                                                 title="View registered participants"
                                             >
-                                                <UsersIcon weight="bold" size={13} className="text-[#071A4D]" />
+                                                <UsersIcon weight="bold" size={13} className="text-km-heading" />
                                                 <span>{event.participants?.length || 0} registered</span>
                                             </button>
 
-                                            <span className="text-xs font-semibold text-[#071A4D] group-hover:text-[#0B5ED7] flex items-center gap-1 transition-colors">
+                                            <span className="text-xs font-semibold text-km-heading group-hover:text-km-link flex items-center gap-1 transition-colors">
                                                 View Session <ArrowRightIcon weight="bold" size={13} className="group-hover:translate-x-0.5 transition-transform" />
                                             </span>
                                         </div>

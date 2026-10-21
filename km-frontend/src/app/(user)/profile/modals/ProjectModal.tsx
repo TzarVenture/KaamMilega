@@ -239,7 +239,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                             <select
                                 value={startMonth}
                                 onChange={(e) => setStartMonth(e.target.value)}
-                                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-white"
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-km-surface-card"
                             >
                                 <option value="">Month</option>
                                 {MONTHS.map((m) => (
@@ -251,7 +251,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                             <select
                                 value={startYear}
                                 onChange={(e) => setStartYear(e.target.value)}
-                                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-white"
+                                className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-km-surface-card"
                             >
                                 <option value="">Year</option>
                                 {YEARS.map((y) => (
@@ -269,9 +269,9 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                             End Date
                         </label>
                         {isCurrent ? (
-                            <div className="w-full px-3.5 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-km-primary font-bold text-xs sm:text-sm flex items-center justify-between">
+                            <div className="w-full px-3.5 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-km-heading font-bold text-xs sm:text-sm flex items-center justify-between">
                                 <span>Present</span>
-                                <span className="text-[10px] bg-blue-200 text-km-primary px-2 py-0.5 rounded-full font-semibold">
+                                <span className="text-[10px] bg-blue-200 text-km-heading px-2 py-0.5 rounded-full font-semibold">
                                     Ongoing
                                 </span>
                             </div>
@@ -280,7 +280,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                                 <select
                                     value={endMonth}
                                     onChange={(e) => setEndMonth(e.target.value)}
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-white"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-km-surface-card"
                                 >
                                     <option value="">Month</option>
                                     {MONTHS.map((m) => (
@@ -292,7 +292,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                                 <select
                                     value={endYear}
                                     onChange={(e) => setEndYear(e.target.value)}
-                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-white"
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none text-xs sm:text-sm text-gray-800 bg-km-surface-card"
                                 >
                                     <option value="">Year</option>
                                     {YEARS.map((y) => (
@@ -312,7 +312,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
                         type="checkbox"
                         checked={isCurrent}
                         onChange={(e) => handleToggleCurrent(e.target.checked)}
-                        className="w-4 h-4 rounded text-km-primary focus:ring-km-primary/20 border-gray-300 cursor-pointer"
+                        className="w-4 h-4 rounded text-km-heading focus:ring-km-primary/20 border-gray-300 cursor-pointer"
                     />
                     <span>I am currently working on this project</span>
                 </label>

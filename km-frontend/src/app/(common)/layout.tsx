@@ -5,7 +5,7 @@ import React, { Suspense } from 'react'
 const layout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div>
-            <Suspense fallback={<div className="h-16 bg-white border-b border-gray-100"></div>}>
+            <Suspense fallback={<div className="h-16 bg-km-surface-card border-b border-gray-100"></div>}>
                 <AppNavbar />
             </Suspense>
             {children}

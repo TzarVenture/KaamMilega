@@ -93,8 +93,8 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                                 type="button"
                                 onClick={() => setFormData({ ...formData, type: item.value })}
                                 className={`flex flex-col items-center gap-2 p-3 rounded-xl border transition-all ${formData.type === item.value
-                                    ? "bg-blue-50 border-km-primary text-km-primary shadow-sm"
-                                    : "bg-white border-gray-100 text-gray-500 hover:border-gray-200"
+                                    ? "bg-blue-50 border-km-primary text-km-heading shadow-sm"
+                                    : "bg-km-surface-card border-gray-100 text-gray-500 hover:border-gray-200"
                                     }`}
                             >
                                 <item.icon className="w-5 h-5" />

@@ -43,7 +43,7 @@ const Pagination: React.FC<PaginationProps> = ({ current, total, onPageChange })
                 type="button"
                 disabled={safeCurrent <= 1}
                 aria-label="Previous page"
-                className="p-2 text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] rounded-xl disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                className="p-2 text-km-text-secondary hover:text-km-heading hover:bg-km-surface rounded-xl disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
                 onClick={() => onPageChange(safeCurrent - 1)}
             >
                 <CaretLeftIcon weight="bold" size={18} />
@@ -57,7 +57,7 @@ const Pagination: React.FC<PaginationProps> = ({ current, total, onPageChange })
                     return (
                         <span
                             key={`ellipsis-${index}`}
-                            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xs font-bold text-[#5B6472] select-none"
+                            className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-xs font-bold text-km-text-secondary select-none"
                         >
                             ...
                         </span>
@@ -72,7 +72,7 @@ const Pagination: React.FC<PaginationProps> = ({ current, total, onPageChange })
                         className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-xs font-semibold transition-all cursor-pointer ${
                             isActive
                                 ? 'bg-[#071A4D] text-white shadow-xs'
-                                : 'text-[#5B6472] border border-[#D9E0EA] hover:border-[#071A4D] hover:text-[#071A4D] hover:bg-[#F4F7FB] bg-white'
+                                : 'text-km-text-secondary border border-km-border hover:border-[#071A4D] hover:text-km-heading hover:bg-km-surface bg-km-surface-card'
                         }`}
                         onClick={() => onPageChange(item)}
                     >
@@ -85,7 +85,7 @@ const Pagination: React.FC<PaginationProps> = ({ current, total, onPageChange })
                 type="button"
                 disabled={safeCurrent >= total}
                 aria-label="Next page"
-                className="p-2 text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] rounded-xl disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
+                className="p-2 text-km-text-secondary hover:text-km-heading hover:bg-km-surface rounded-xl disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
                 onClick={() => onPageChange(safeCurrent + 1)}
             >
                 <CaretRightIcon weight="bold" size={18} />

@@ -61,7 +61,7 @@ export default function InstantMilegaLandingShowcase() {
     const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
 
     return (
-        <div className="flex flex-col min-h-screen bg-[#F4F7FB] font-sans antialiased">
+        <div className="flex flex-col min-h-screen bg-km-surface font-sans antialiased">
             {/* ─── Hero Section with Deep Navy, Art & Rounded Bottom ─── */}
             <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-0 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,18 +141,18 @@ export default function InstantMilegaLandingShowcase() {
             {/* ─── Main Application Landing Sections ─── */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-16 sm:space-y-20">
                 {/* 1. Live Radar & Real-Time Tracking Feature (Urban Company style) */}
-                <section className="bg-white rounded-3xl border border-[#D9E0EA] p-6 sm:p-10 lg:p-12 shadow-xs">
+                <section className="bg-km-surface-card rounded-3xl border border-km-border p-6 sm:p-10 lg:p-12 shadow-xs">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                         {/* Map View Showcase */}
                         <div className="lg:col-span-7 relative">
-                            <div className="relative rounded-2xl overflow-hidden border border-[#D9E0EA] shadow-sm bg-[#F4F7FB]">
+                            <div className="relative rounded-2xl overflow-hidden border border-km-border shadow-sm bg-km-surface">
                                 <img
                                     src="/instantMilega-page-map-view.png"
                                     alt="Live radar map tracking nearby workers"
                                     className="w-full h-auto object-cover select-none"
                                 />
                                 {/* Floating Live Status Badge */}
-                                <div className="absolute top-3.5 left-3.5 sm:top-4 sm:left-4 bg-white/95 backdrop-blur-xs border border-[#D9E0EA] px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs font-semibold text-[#071A4D] shadow-xs">
+                                <div className="absolute top-3.5 left-3.5 sm:top-4 sm:left-4 bg-km-surface-card/95 backdrop-blur-xs border border-km-border px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs font-semibold text-km-heading shadow-xs">
                                     <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A]" />
                                     <span>Live Radar • 120s Dispatch</span>
                                 </div>
@@ -165,10 +165,10 @@ export default function InstantMilegaLandingShowcase() {
                                 <span className="text-xs font-semibold text-[#FF6B00]">
                                     Live tracking
                                 </span>
-                                <h2 className="text-2xl sm:text-3xl font-bold text-[#111827] mt-1 tracking-tight">
+                                <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary mt-1 tracking-tight">
                                     See nearby help on the radar map
                                 </h2>
-                                <p className="text-sm text-[#5B6472] mt-2 leading-relaxed">
+                                <p className="text-sm text-km-text-secondary mt-2 leading-relaxed">
                                     Open the app to view active verified pros in your neighborhood. When you request help, the closest available pro is dispatched right away.
                                 </p>
                             </div>
@@ -177,10 +177,10 @@ export default function InstantMilegaLandingShowcase() {
                                 <div className="flex items-start gap-3.5">
                                     <MapPinAreaIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
                                     <div>
-                                        <h3 className="text-sm font-bold text-[#111827]">
+                                        <h3 className="text-sm font-bold text-km-text-primary">
                                             Nearby pro radar
                                         </h3>
-                                        <p className="text-xs sm:text-sm text-[#5B6472] mt-0.5 leading-relaxed">
+                                        <p className="text-xs sm:text-sm text-km-text-secondary mt-0.5 leading-relaxed">
                                             Workers available within 5 km appear live on your local radar.
                                         </p>
                                     </div>
@@ -189,10 +189,10 @@ export default function InstantMilegaLandingShowcase() {
                                 <div className="flex items-start gap-3.5">
                                     <TimerIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
                                     <div>
-                                        <h3 className="text-sm font-bold text-[#111827]">
+                                        <h3 className="text-sm font-bold text-km-text-primary">
                                             Fast 120-second match
                                         </h3>
-                                        <p className="text-xs sm:text-sm text-[#5B6472] mt-0.5 leading-relaxed">
+                                        <p className="text-xs sm:text-sm text-km-text-secondary mt-0.5 leading-relaxed">
                                             No long calls or bargaining. The system auto-assigns the nearest pro.
                                         </p>
                                     </div>
@@ -201,10 +201,10 @@ export default function InstantMilegaLandingShowcase() {
                                 <div className="flex items-start gap-3.5">
                                     <PathIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
                                     <div>
-                                        <h3 className="text-sm font-bold text-[#111827]">
+                                        <h3 className="text-sm font-bold text-km-text-primary">
                                             Doorstep route tracking
                                         </h3>
-                                        <p className="text-xs sm:text-sm text-[#5B6472] mt-0.5 leading-relaxed">
+                                        <p className="text-xs sm:text-sm text-km-text-secondary mt-0.5 leading-relaxed">
                                             Track their arrival directly to your doorstep on the live map.
                                         </p>
                                     </div>
@@ -232,17 +232,17 @@ export default function InstantMilegaLandingShowcase() {
                             <span className="text-xs font-semibold text-[#FF6B00]">
                                 Instant services
                             </span>
-                            <h2 className="text-2xl sm:text-3xl font-bold text-[#111827] mt-1 tracking-tight">
+                            <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary mt-1 tracking-tight">
                                 Popular services available on demand
                             </h2>
-                            <p className="text-sm text-[#5B6472] mt-1">
+                            <p className="text-sm text-km-text-secondary mt-1">
                                 Tap any service to book directly on the mobile app.
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={() => setIsDownloadModalOpen(true)}
-                            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-[#071A4D] hover:text-[#0B5ED7] transition-colors self-start sm:self-auto cursor-pointer"
+                            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-km-heading hover:text-km-link transition-colors self-start sm:self-auto cursor-pointer"
                         >
                             <span>Download app to browse all</span>
                             <ArrowRightIcon weight="bold" size={14} />
@@ -256,7 +256,7 @@ export default function InstantMilegaLandingShowcase() {
                                     key={service.id}
                                     type="button"
                                     onClick={() => setIsDownloadModalOpen(true)}
-                                    className="text-left relative rounded-2xl overflow-hidden min-h-[190px] sm:min-h-[210px] p-4 sm:p-5 flex flex-col justify-between border border-[#D9E0EA] shadow-xs cursor-pointer select-none"
+                                    className="text-left relative rounded-2xl overflow-hidden min-h-[190px] sm:min-h-[210px] p-4 sm:p-5 flex flex-col justify-between border border-km-border shadow-xs cursor-pointer select-none"
                                 >
                                     {/* Authentic Trade Background Image (No blue overlay) */}
                                     <img
@@ -290,52 +290,52 @@ export default function InstantMilegaLandingShowcase() {
                         <span className="text-xs font-semibold text-[#FF6B00]">
                             Safe and simple
                         </span>
-                        <h2 className="text-2xl sm:text-3xl font-bold text-[#111827] mt-1 tracking-tight">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary mt-1 tracking-tight">
                             How every booking works
                         </h2>
-                        <p className="text-sm text-[#5B6472] mt-1.5 leading-relaxed">
+                        <p className="text-sm text-km-text-secondary mt-1.5 leading-relaxed">
                             Two simple verification codes guarantee safety for both customers and workers.
                         </p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* Step 1 */}
-                        <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs flex flex-col justify-between">
                             <div>
                                 <DeviceMobileIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
-                                <span className="text-xs font-semibold text-km-primary">Step 1</span>
-                                <h3 className="text-base font-bold text-[#111827] mt-1">
+                                <span className="text-xs font-semibold text-km-heading">Step 1</span>
+                                <h3 className="text-base font-bold text-km-text-primary mt-1">
                                     Pick your service
                                 </h3>
-                                <p className="text-sm text-[#5B6472] mt-1.5 leading-relaxed">
+                                <p className="text-sm text-km-text-secondary mt-1.5 leading-relaxed">
                                     Choose what you need and confirm your location. The closest verified pro accepts in seconds.
                                 </p>
                             </div>
                         </div>
 
                         {/* Step 2 */}
-                        <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs flex flex-col justify-between">
                             <div>
                                 <PasswordIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
-                                <span className="text-xs font-semibold text-km-primary">Step 2</span>
-                                <h3 className="text-base font-bold text-[#111827] mt-1">
+                                <span className="text-xs font-semibold text-km-heading">Step 2</span>
+                                <h3 className="text-base font-bold text-km-text-primary mt-1">
                                     Share the start code
                                 </h3>
-                                <p className="text-sm text-[#5B6472] mt-1.5 leading-relaxed">
+                                <p className="text-sm text-km-text-secondary mt-1.5 leading-relaxed">
                                     When the worker arrives at your location, share your 4-digit code to start the work.
                                 </p>
                             </div>
                         </div>
 
                         {/* Step 3 */}
-                        <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs flex flex-col justify-between">
                             <div>
                                 <CheckCircleIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
-                                <span className="text-xs font-semibold text-km-primary">Step 3</span>
-                                <h3 className="text-base font-bold text-[#111827] mt-1">
+                                <span className="text-xs font-semibold text-km-heading">Step 3</span>
+                                <h3 className="text-base font-bold text-km-text-primary mt-1">
                                     Finish code &amp; pay
                                 </h3>
-                                <p className="text-sm text-[#5B6472] mt-1.5 leading-relaxed">
+                                <p className="text-sm text-km-text-secondary mt-1.5 leading-relaxed">
                                     Once the work is done, share the finish code to complete the booking and pay directly.
                                 </p>
                             </div>

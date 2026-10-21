@@ -15,7 +15,7 @@ export default function HowWeWorkPage() {
       title: 'Create Your Verified Profile',
       desc: 'Build your digital profile in under 2 minutes with mobile OTP and Aadhaar/Biometric badge. Showcase your skills, experience, and preferred work location.',
       icon: UserCheckIcon,
-      color: 'bg-blue-50 text-[#0B5ED7] border-blue-200',
+      color: 'bg-blue-50 text-km-link border-blue-200',
     },
     {
       step: '02',
@@ -46,7 +46,7 @@ export default function HowWeWorkPage() {
       title: 'Register & Company Verification',
       desc: 'Register with company GST/CIN credentials. Our compliance team verifies your business within hours to activate your Verified Employer badge.',
       icon: BuildingOfficeIcon,
-      color: 'bg-blue-50 text-[#0B5ED7] border-blue-200',
+      color: 'bg-blue-50 text-km-link border-blue-200',
     },
     {
       step: '02',
@@ -95,13 +95,13 @@ export default function HowWeWorkPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#F4F7FB] font-sans antialiased text-slate-800">
+    <main className="min-h-screen bg-km-surface font-sans antialiased text-slate-800">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
+          <div className="inline-flex items-center gap-2.5 bg-km-surface-card/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
             <Image
               src="/kaammilega-logo-icon.png"
               alt="KaamMilega Icon"
@@ -132,7 +132,7 @@ export default function HowWeWorkPage() {
             </Link>
             <Link
               href="/register"
-              className="px-6 py-3 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
+              className="px-6 py-3 bg-km-surface-card/15 hover:bg-km-surface-card/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
             >
               Hire Candidates
             </Link>
@@ -143,10 +143,10 @@ export default function HowWeWorkPage() {
       {/* For Jobseekers Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0B5ED7] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-km-link bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
             For Jobseekers
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#071A4D] tracking-tight mt-3">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
             Your Fast Track to a Verified Job
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-2">
@@ -160,18 +160,18 @@ export default function HowWeWorkPage() {
             return (
               <div
                 key={i}
-                className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-2xs hover:shadow-md transition-all relative flex flex-col justify-between group"
+                className="bg-km-surface-card rounded-3xl border border-slate-200/90 p-6 shadow-2xs hover:shadow-md transition-all relative flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <span className="text-2xl font-black text-slate-300 group-hover:text-[#0B5ED7] transition-colors">
+                    <span className="text-2xl font-black text-slate-300 group-hover:text-km-link transition-colors">
                       {s.step}
                     </span>
                     <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center ${s.color}`}>
                       <Icon size={22} />
                     </div>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-[#071A4D] mb-2 leading-snug">
+                  <h3 className="text-base sm:text-lg font-bold text-km-heading mb-2 leading-snug">
                     {s.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -190,7 +190,7 @@ export default function HowWeWorkPage() {
           <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
             For Employers &amp; HRs
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#071A4D] tracking-tight mt-3">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
             Hiring Built for Speed, Scale &amp; Integrity
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-2">
@@ -204,7 +204,7 @@ export default function HowWeWorkPage() {
             return (
               <div
                 key={i}
-                className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-2xs hover:shadow-md transition-all relative flex flex-col justify-between group"
+                className="bg-km-surface-card rounded-3xl border border-slate-200/90 p-6 shadow-2xs hover:shadow-md transition-all relative flex flex-col justify-between group"
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
@@ -215,7 +215,7 @@ export default function HowWeWorkPage() {
                       <Icon size={22} />
                     </div>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-[#071A4D] mb-2 leading-snug">
+                  <h3 className="text-base sm:text-lg font-bold text-km-heading mb-2 leading-snug">
                     {s.title}
                   </h3>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -229,13 +229,13 @@ export default function HowWeWorkPage() {
       </section>
 
       {/* Trust & Safety Pillars */}
-      <section className="py-16 sm:py-20 bg-white px-4 sm:px-6 lg:px-8 border-y border-slate-200">
+      <section className="py-16 sm:py-20 bg-km-surface-card px-4 sm:px-6 lg:px-8 border-y border-slate-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
               Platform Integrity
             </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#071A4D] tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
               The 4 Pillars of Trust on KaamMilega™
             </h2>
           </div>
@@ -246,12 +246,12 @@ export default function HowWeWorkPage() {
               return (
                 <div
                   key={i}
-                  className="p-6 rounded-3xl bg-[#F4F7FB] border border-slate-200/80 hover:bg-blue-50/50 hover:border-[#0B5ED7]/30 transition-all"
+                  className="p-6 rounded-3xl bg-km-surface border border-slate-200/80 hover:bg-blue-50/50 hover:border-[#0B5ED7]/30 transition-all"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-[#071A4D] flex items-center justify-center mb-4 shadow-xs">
-                    <Icon size={22} className="text-[#0B5ED7]" />
+                  <div className="w-12 h-12 rounded-2xl bg-km-surface-card border border-slate-200 text-km-heading flex items-center justify-center mb-4 shadow-xs">
+                    <Icon size={22} className="text-km-link" />
                   </div>
-                  <h3 className="text-base font-bold text-[#071A4D] mb-2">{p.title}</h3>
+                  <h3 className="text-base font-bold text-km-heading mb-2">{p.title}</h3>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">{p.desc}</p>
                 </div>
               );
@@ -278,7 +278,7 @@ export default function HowWeWorkPage() {
             </Link>
             <Link
               href="/about"
-              className="px-8 py-3.5 bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold rounded-full text-sm transition-all"
+              className="px-8 py-3.5 bg-km-surface-card/10 hover:bg-km-surface-card/20 border border-white/25 text-white font-bold rounded-full text-sm transition-all"
             >
               Learn More About Us
             </Link>

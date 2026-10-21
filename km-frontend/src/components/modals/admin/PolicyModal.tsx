@@ -64,7 +64,7 @@ const PolicyModal = ({ isOpen, onClose, mode, policyData, onSave }: PolicyModalP
                         onChange={handleChange}
                         placeholder="Policy Name..."
                         required
-                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm"
+                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm"
                     />
                 </div>
 
@@ -77,7 +77,7 @@ const PolicyModal = ({ isOpen, onClose, mode, policyData, onSave }: PolicyModalP
                         placeholder="Answer..."
                         required
                         rows={6}
-                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm resize-none"
+                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm resize-none"
                     />
                 </div>
 

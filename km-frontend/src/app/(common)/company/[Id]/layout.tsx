@@ -44,7 +44,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                 <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
 
                     {/* Company Hero Card */}
-                    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                         <div className="h-44 bg-linear-to-r from-slate-950 via-km-primary-dark to-slate-950 relative">
                             {/* Banner Placeholder Icon or Image */}
                             {company.cover_image ? (
@@ -56,7 +56,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                             )}
 
                             {/* Profile Logo */}
-                            <div className="absolute -bottom-14 left-8 p-1.5 bg-white rounded-full shadow-md">
+                            <div className="absolute -bottom-14 left-8 p-1.5 bg-km-surface-card rounded-full shadow-md">
                                 <div className="w-28 h-28 bg-km-primary-dark rounded-full flex items-center justify-center overflow-hidden">
                                     {company.logo ? (
                                         <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
@@ -82,7 +82,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                 <button className="bg-km-primary text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-km-primary-dark transition-all shadow-md shadow-blue-900/10">
                                     Follow
                                 </button>
-                                <a href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'} target="_blank" rel="noopener noreferrer" className="border-2 border-km-primary text-km-primary px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-50 transition-all text-center">
+                                <a href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'} target="_blank" rel="noopener noreferrer" className="border-2 border-km-primary text-km-heading px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-50 transition-all text-center">
                                     Visit Website
                                 </a>
                             </div>
@@ -97,7 +97,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                     <Link
                                         href={dynamicPath}
                                         key={tab.id}
-                                        className={`py-4 text-sm font-bold transition-colors whitespace-nowrap ${isActive ? 'text-km-primary border-b-2 border-km-primary' : 'text-gray-500 hover:text-gray-700'
+                                        className={`py-4 text-sm font-bold transition-colors whitespace-nowrap ${isActive ? 'text-km-heading border-b-2 border-km-primary' : 'text-gray-500 hover:text-gray-700'
                                             }`}
                                     >
                                         {tab.label}
@@ -114,12 +114,12 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
 
                     {/* Ad Banner Top */}
-                    <div className="bg-white border border-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 font-bold shadow-sm">
+                    <div className="bg-km-surface-card border border-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 font-bold shadow-sm">
                         Ad Banner
                     </div>
 
                     {/* People Also Follow */}
-                    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm p-6">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">People Also Follow</h3>
 
                         {[1, 2, 3].map((i) => (
@@ -131,12 +131,12 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                     <p className="text-sm font-bold text-gray-900">Person Name</p>
                                     <p className="text-[11px] text-gray-400 font-medium">Person Designation</p>
                                     <div className="flex items-center text-[11px] text-gray-400 mt-0.5 font-medium">
-                                        <MapPinIcon weight="bold" size={10} className="mr-1 text-km-primary" /> Location
+                                        <MapPinIcon weight="bold" size={10} className="mr-1 text-km-heading" /> Location
                                     </div>
                                     <p className="text-[10px] text-gray-300 mt-1">10 Mutual Connects</p>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <button className="p-1.5 rounded-xl border border-gray-200 text-km-primary hover:bg-gray-50">
+                                    <button className="p-1.5 rounded-xl border border-gray-200 text-km-heading hover:bg-gray-50">
                                         <ChatCircleIcon weight="bold" size={16} />
                                     </button>
                                     <button className="p-1.5 rounded-xl bg-km-primary text-white shadow-sm hover:bg-km-primary-dark">
@@ -146,13 +146,13 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                             </div>
                         ))}
 
-                        <button className="w-full text-center py-3 text-km-primary text-sm font-bold hover:underline">
+                        <button className="w-full text-center py-3 text-km-heading text-sm font-bold hover:underline">
                             Show All
                         </button>
                     </section>
 
                     {/* Similar Companies */}
-                    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm p-6">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">Companies</h3>
 
                         {[1, 2].map((i) => (
@@ -182,13 +182,13 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                             </div>
                         ))}
 
-                        <button className="w-full text-center mt-4 text-km-primary text-sm font-bold hover:underline">
+                        <button className="w-full text-center mt-4 text-km-heading text-sm font-bold hover:underline">
                             Show All
                         </button>
                     </section>
 
                     {/* Ad Banner Bottom */}
-                    <div className="bg-white border border-gray-100 rounded-2xl h-80 flex items-center justify-center text-gray-400 font-bold shadow-sm">
+                    <div className="bg-km-surface-card border border-gray-100 rounded-2xl h-80 flex items-center justify-center text-gray-400 font-bold shadow-sm">
                         Ad Banner
                     </div>
 

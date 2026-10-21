@@ -45,7 +45,7 @@ const EditContactInfoModal = ({ isOpen, onClose, user, onSuccess }: EditContactI
                 {/* Profile URL (Read Only / Link Style) */}
                 <div className="space-y-1">
                     <label className="text-sm text-gray-500">Profile URL</label>
-                    <p className="text-sm text-km-primary font-medium break-all cursor-pointer hover:underline">
+                    <p className="text-sm text-km-heading font-medium break-all cursor-pointer hover:underline">
                         {typeof window !== 'undefined' ? `${window.location.origin}/profile/${user.id}` : ''}
                     </p>
                 </div>
@@ -54,7 +54,7 @@ const EditContactInfoModal = ({ isOpen, onClose, user, onSuccess }: EditContactI
                 {user.email && (
                     <div className="space-y-1">
                         <label className="text-sm text-gray-500">Email</label>
-                        <p className="text-sm text-km-primary font-medium cursor-pointer hover:underline">
+                        <p className="text-sm text-km-heading font-medium cursor-pointer hover:underline">
                             {user.email}
                         </p>
                     </div>

@@ -34,27 +34,27 @@ interface Job {
 
 // ─── Design.md Shimmer Skeleton Loader ───
 const JobDetailSkeleton = () => (
-    <div className="bg-[#F4F7FB] min-h-screen font-sans pb-20">
+    <div className="bg-km-surface min-h-screen font-sans pb-20">
         <div className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 pb-12 rounded-b-[32px] sm:rounded-b-[44px]">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-                <div className="h-4 bg-white/10 rounded-md w-32 animate-shimmer" />
-                <div className="h-8 bg-white/10 rounded-lg w-2/3 animate-shimmer" />
-                <div className="h-4 bg-white/10 rounded-md w-1/3 animate-shimmer" />
+                <div className="h-4 bg-km-surface-card/10 rounded-md w-32 animate-shimmer" />
+                <div className="h-8 bg-km-surface-card/10 rounded-lg w-2/3 animate-shimmer" />
+                <div className="h-4 bg-km-surface-card/10 rounded-md w-1/3 animate-shimmer" />
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4">
-                    <div className="h-16 bg-white/10 rounded-xl animate-shimmer" />
-                    <div className="h-16 bg-white/10 rounded-xl animate-shimmer" />
-                    <div className="h-16 bg-white/10 rounded-xl animate-shimmer" />
-                    <div className="h-16 bg-white/10 rounded-xl animate-shimmer" />
+                    <div className="h-16 bg-km-surface-card/10 rounded-xl animate-shimmer" />
+                    <div className="h-16 bg-km-surface-card/10 rounded-xl animate-shimmer" />
+                    <div className="h-16 bg-km-surface-card/10 rounded-xl animate-shimmer" />
+                    <div className="h-16 bg-km-surface-card/10 rounded-xl animate-shimmer" />
                 </div>
             </div>
         </div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-8 space-y-6">
-                <div className="h-48 bg-white rounded-2xl border border-[#D9E0EA] animate-shimmer" />
-                <div className="h-64 bg-white rounded-2xl border border-[#D9E0EA] animate-shimmer" />
+                <div className="h-48 bg-km-surface-card rounded-2xl border border-km-border animate-shimmer" />
+                <div className="h-64 bg-km-surface-card rounded-2xl border border-km-border animate-shimmer" />
             </div>
             <div className="lg:col-span-4">
-                <div className="h-80 bg-white rounded-2xl border border-[#D9E0EA] animate-shimmer" />
+                <div className="h-80 bg-km-surface-card rounded-2xl border border-km-border animate-shimmer" />
             </div>
         </div>
     </div>
@@ -271,7 +271,7 @@ const JobDetailPage = () => {
     if (!job) return null;
 
     return (
-        <div className="bg-[#F4F7FB] min-h-screen pb-20 font-sans text-[#111827]">
+        <div className="bg-km-surface min-h-screen pb-20 font-sans text-km-text-primary">
             <ToastContainer />
 
             {/* ─── Hero Section with Rounded Bottom ─── */}
@@ -292,8 +292,8 @@ const JobDetailPage = () => {
                         {/* Left Header Content */}
                         <div className="flex-1 min-w-0">
                             {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-[#0B5ED7] border border-[#BFDBFE] text-xs font-semibold px-3 py-1 rounded-full mb-3">
-                                <BriefcaseIcon weight="bold" size={13} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
+                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                                <BriefcaseIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7]/20" />
                                 <span>Verified Direct Job Opening</span>
                             </div>
 
@@ -303,9 +303,9 @@ const JobDetailPage = () => {
 
                             <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-white/80 font-medium">
                                 <span className="text-white font-semibold text-sm">{job.company}</span>
-                                <span className="w-1 h-1 rounded-full bg-white/40" />
+                                <span className="w-1 h-1 rounded-full bg-km-surface-card/40" />
                                 <span className="flex items-center gap-1">
-                                    <MapPinIcon weight="bold" size={13} className="text-[#0B5ED7] fill-[#0B5ED7]" />
+                                    <MapPinIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7]" />
                                     <span>
                                         {job.location ? `${job.location}, ` : ''}
                                         {job.city_name || 'All India'}
@@ -313,7 +313,7 @@ const JobDetailPage = () => {
                                 </span>
                                 {job.created_at && (
                                     <>
-                                        <span className="w-1 h-1 rounded-full bg-white/40" />
+                                        <span className="w-1 h-1 rounded-full bg-km-surface-card/40" />
                                         <span className="flex items-center gap-1">
                                             <CalendarBlankIcon weight="fill" size={13} className="text-white/60 fill-white/20" />
                                             <span>Posted {formatDate(job.created_at)}</span>
@@ -383,8 +383,8 @@ const JobDetailPage = () => {
                                         connectionStatus === 'accepted'
                                             ? 'bg-[#0B5ED7] hover:bg-[#094bb3] text-white border-transparent'
                                             : connectionStatus === 'pending'
-                                            ? 'bg-white/10 text-white/70 border-white/20 cursor-default'
-                                            : 'bg-[#0B1F52] hover:bg-white/10 text-white border-white/20'
+                                            ? 'bg-km-surface-card/10 text-white/70 border-white/20 cursor-default'
+                                            : 'bg-[#0B1F52] hover:bg-km-surface-card/10 text-white border-white/20'
                                     }`}
                                 >
                                     {connectionStatus === 'accepted' ? (
@@ -413,12 +413,12 @@ const JobDetailPage = () => {
                                 title={isBookmarked ? 'Remove from saved' : 'Save this job'}
                                 className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-colors cursor-pointer shadow-xs ${
                                     isBookmarked
-                                        ? 'bg-[#EBF3FE] text-[#0B5ED7] border-[#BFDBFE]'
-                                        : 'bg-[#0B1F52] text-white/90 hover:text-white hover:bg-white/10 border-white/20'
+                                        ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE]'
+                                        : 'bg-[#0B1F52] text-white/90 hover:text-white hover:bg-km-surface-card/10 border-white/20'
                                 }`}
                             >
                                 {isBookmarked ? (
-                                    <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-[#0B5ED7]" />
+                                    <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-km-link" />
                                 ) : (
                                     <BookmarkSimpleIcon weight="fill" size={16} className="fill-white/10 text-white/90" />
                                 )}
@@ -429,7 +429,7 @@ const JobDetailPage = () => {
                                 type="button"
                                 onClick={handleShare}
                                 title="Share this job"
-                                className="w-11 h-11 rounded-xl bg-[#0B1F52] border border-white/20 text-white/90 hover:text-white hover:bg-white/10 transition-colors flex items-center justify-center cursor-pointer shadow-xs"
+                                className="w-11 h-11 rounded-xl bg-[#0B1F52] border border-white/20 text-white/90 hover:text-white hover:bg-km-surface-card/10 transition-colors flex items-center justify-center cursor-pointer shadow-xs"
                             >
                                 <ShareNetworkIcon weight="bold" size={16} />
                             </button>
@@ -444,74 +444,74 @@ const JobDetailPage = () => {
                     {/* Left Column: Job Details, Specifications, Requirements */}
                     <div className="lg:col-span-8 space-y-6">
                         {/* Job Specifications Card */}
-                        <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 shadow-xs">
-                            <h2 className="text-base font-bold text-[#111827] mb-4 pb-3 border-b border-[#D9E0EA] flex items-center gap-2">
-                                <BriefcaseIcon weight="bold" size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
+                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
+                            <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
+                                <BriefcaseIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20" />
                                 <span>Role Overview & Specifications</span>
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                                 <div className="flex items-start gap-2.5">
-                                    <span className="font-semibold text-[#5B6472] w-32 shrink-0">Employment Type:</span>
-                                    <span className="font-bold text-[#111827]">{job.job_type}</span>
+                                    <span className="font-semibold text-km-text-secondary w-32 shrink-0">Employment Type:</span>
+                                    <span className="font-bold text-km-text-primary">{job.job_type}</span>
                                 </div>
                                 <div className="flex items-start gap-2.5">
-                                    <span className="font-semibold text-[#5B6472] w-32 shrink-0">Work Location:</span>
-                                    <span className="font-bold text-[#111827]">{job.city_name || 'All India'}</span>
+                                    <span className="font-semibold text-km-text-secondary w-32 shrink-0">Work Location:</span>
+                                    <span className="font-bold text-km-text-primary">{job.city_name || 'All India'}</span>
                                 </div>
                                 {job.education && (
                                     <div className="flex items-start gap-2.5">
-                                        <span className="font-semibold text-[#5B6472] w-32 shrink-0">Minimum Education:</span>
-                                        <span className="font-bold text-[#111827]">{job.education}</span>
+                                        <span className="font-semibold text-km-text-secondary w-32 shrink-0">Minimum Education:</span>
+                                        <span className="font-bold text-km-text-primary">{job.education}</span>
                                     </div>
                                 )}
                                 {job.gender && (
                                     <div className="flex items-start gap-2.5">
-                                        <span className="font-semibold text-[#5B6472] w-32 shrink-0">Gender Eligibility:</span>
-                                        <span className="font-bold text-[#111827]">{job.gender}</span>
+                                        <span className="font-semibold text-km-text-secondary w-32 shrink-0">Gender Eligibility:</span>
+                                        <span className="font-bold text-km-text-primary">{job.gender}</span>
                                     </div>
                                 )}
                                 <div className="flex items-start gap-2.5">
-                                    <span className="font-semibold text-[#5B6472] w-32 shrink-0">Experience:</span>
-                                    <span className="font-bold text-[#111827]">
+                                    <span className="font-semibold text-km-text-secondary w-32 shrink-0">Experience:</span>
+                                    <span className="font-bold text-km-text-primary">
                                         {job.experience_min === 0 ? 'Fresher Friendly (0 yrs)' : `${job.experience_min} to ${job.experience_max} Years`}
                                     </span>
                                 </div>
                                 <div className="flex items-start gap-2.5">
-                                    <span className="font-semibold text-[#5B6472] w-32 shrink-0">Available Vacancies:</span>
-                                    <span className="font-bold text-[#111827]">{job.vacancies || 1} Positions</span>
+                                    <span className="font-semibold text-km-text-secondary w-32 shrink-0">Available Vacancies:</span>
+                                    <span className="font-bold text-km-text-primary">{job.vacancies || 1} Positions</span>
                                 </div>
                                 {typeof job.applicant_count === 'number' && job.applicant_count > 0 && (
                                     <div className="flex items-start gap-2.5">
-                                        <span className="font-semibold text-[#5B6472] w-32 shrink-0">Applications:</span>
-                                        <span className="font-bold text-[#0B5ED7]">{job.applicant_count} candidates applied</span>
+                                        <span className="font-semibold text-km-text-secondary w-32 shrink-0">Applications:</span>
+                                        <span className="font-bold text-km-link">{job.applicant_count} candidates applied</span>
                                     </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Description Card */}
-                        <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 shadow-xs">
-                            <h2 className="text-base font-bold text-[#111827] mb-4 pb-3 border-b border-[#D9E0EA] flex items-center gap-2">
-                                <FileTextIcon weight="bold" size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
+                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
+                            <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
+                                <FileTextIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20" />
                                 <span>Detailed Job Description</span>
                             </h2>
-                            <div className="text-sm text-[#111827] leading-relaxed whitespace-pre-wrap font-normal">
+                            <div className="text-sm text-km-text-primary leading-relaxed whitespace-pre-wrap font-normal">
                                 {job.description}
                             </div>
                         </div>
 
                         {/* Skills & Requirements Card (Only if present in database) */}
                         {job.requirements && job.requirements.length > 0 && (
-                            <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 shadow-xs">
-                                <h2 className="text-base font-bold text-[#111827] mb-4 pb-3 border-b border-[#D9E0EA] flex items-center gap-2">
-                                    <MedalIcon weight="bold" size={16} className="text-[#0B5ED7] fill-[#0B5ED7]/20" />
+                            <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
+                                <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
+                                    <MedalIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20" />
                                     <span>Key Requirements & Skills</span>
                                 </h2>
                                 <div className="flex flex-wrap gap-2">
                                     {job.requirements.map((skill) => (
                                         <span
                                             key={skill}
-                                            className="px-3 py-1.5 bg-[#F4F7FB] border border-[#D9E0EA] text-[#071A4D] rounded-xl text-xs font-medium flex items-center gap-1.5"
+                                            className="px-3 py-1.5 bg-km-surface border border-km-border text-km-heading rounded-xl text-xs font-medium flex items-center gap-1.5"
                                         >
                                             <CheckCircleIcon weight="bold" size={13} className="fill-[#0B5ED7] text-white" />
                                             <span>{skill}</span>
@@ -523,14 +523,14 @@ const JobDetailPage = () => {
 
                         {/* Benefits & Offerings Card (Only if present in database) */}
                         {job.we_offer && job.we_offer.length > 0 && (
-                            <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 shadow-xs">
-                                <h2 className="text-base font-bold text-[#111827] mb-4 pb-3 border-b border-[#D9E0EA] flex items-center gap-2">
+                            <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
+                                <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
                                     <CheckCircleIcon weight="fill" size={16} className="fill-emerald-600 text-white" />
                                     <span>Compensation & Perks Offered</span>
                                 </h2>
                                 <ul className="space-y-2.5">
                                     {job.we_offer.map((offer, i) => (
-                                        <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-[#111827] font-medium">
+                                        <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-km-text-primary font-medium">
                                             <CheckCircleIcon weight="fill" size={15} className="fill-emerald-600 text-white shrink-0 mt-0.5" />
                                             <span>{offer}</span>
                                         </li>
@@ -543,15 +543,15 @@ const JobDetailPage = () => {
                     {/* Right Column: Unified Sticky Sidebar (Cards move together, never overlap) */}
                     <aside className="lg:col-span-4 space-y-6 sticky top-24 self-start">
                         {/* Quick Action & Compensation Card */}
-                        <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs space-y-5">
+                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs space-y-5">
                             <div>
-                                <span className="text-xs font-semibold text-[#5B6472]">
+                                <span className="text-xs font-semibold text-km-text-secondary">
                                     Offered Monthly Salary
                                 </span>
-                                <div className="text-2xl font-extrabold text-[#111827] mt-0.5">
+                                <div className="text-2xl font-extrabold text-km-text-primary mt-0.5">
                                     ₹{job.salary_min?.toLocaleString('en-IN') || 0} - ₹{job.salary_max?.toLocaleString('en-IN') || 0}
                                 </div>
-                                <span className="text-xs text-[#5B6472]">Direct recruitment with zero agency deductions</span>
+                                <span className="text-xs text-km-text-secondary">Direct recruitment with zero agency deductions</span>
                             </div>
 
                             <div className="space-y-2.5 pt-2">
@@ -583,7 +583,7 @@ const JobDetailPage = () => {
                                             connectionStatus === 'accepted'
                                                 ? 'bg-[#0B5ED7] hover:bg-[#094bb3] text-white border-transparent'
                                                 : connectionStatus === 'pending'
-                                                ? 'bg-[#F4F7FB] text-[#5B6472] border-[#D9E0EA] cursor-default'
+                                                ? 'bg-km-surface text-km-text-secondary border-km-border cursor-default'
                                                 : 'btn-outline'
                                         }`}
                                     >
@@ -608,12 +608,12 @@ const JobDetailPage = () => {
                             </div>
 
                             {/* Direct Hiring Assurance Box */}
-                            <div className="pt-4 border-t border-[#D9E0EA] space-y-3">
+                            <div className="pt-4 border-t border-km-border space-y-3">
                                 <div className="flex items-center gap-2">
                                     <ShieldCheckIcon weight="bold" size={16} className="text-[#10B981] fill-[#10B981]/20" />
-                                    <span className="text-xs font-bold text-[#111827]">Direct Hiring Guarantee</span>
+                                    <span className="text-xs font-bold text-km-text-primary">Direct Hiring Guarantee</span>
                                 </div>
-                                <ul className="text-xs text-[#5B6472] space-y-2 font-medium">
+                                <ul className="text-xs text-km-text-secondary space-y-2 font-medium">
                                     <li className="flex items-center gap-2">
                                         <span className="w-1.5 h-1.5 rounded-full bg-[#10B981]" />
                                         <span>Zero placement fees or brokerage</span>
@@ -630,14 +630,14 @@ const JobDetailPage = () => {
                             </div>
 
                             {/* Company Info Box */}
-                            <div className="pt-4 border-t border-[#D9E0EA]">
+                            <div className="pt-4 border-t border-km-border">
                                 <div className="flex items-center gap-3">
                                     <div className="w-10 h-10 rounded-xl bg-[#071A4D] text-white font-bold text-sm flex items-center justify-center shrink-0 border border-[#0B1F52]">
                                         {job.company ? job.company.charAt(0).toUpperCase() : 'C'}
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                        <p className="text-xs font-bold text-[#111827] truncate">{job.company}</p>
-                                        <p className="text-[11px] text-[#0B5ED7] font-semibold flex items-center gap-1">
+                                        <p className="text-xs font-bold text-km-text-primary truncate">{job.company}</p>
+                                        <p className="text-[11px] text-km-link font-semibold flex items-center gap-1">
                                             <CheckCircleIcon weight="bold" size={11} className="fill-[#0B5ED7] text-white" /> Verified Employer
                                         </p>
                                     </div>
@@ -646,36 +646,36 @@ const JobDetailPage = () => {
                         </div>
 
                         {/* Hiring Process Card */}
-                        <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs space-y-4">
-                            <h3 className="text-xs font-bold text-[#111827]">
+                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs space-y-4">
+                            <h3 className="text-xs font-bold text-km-text-primary">
                                 Hiring Process
                             </h3>
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-[#0B5ED7] font-bold text-xs flex items-center justify-center shrink-0">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0">
                                         1
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-[#111827]">Direct Application</p>
-                                        <p className="text-[11px] text-[#5B6472]">Apply directly with your verified candidate credentials.</p>
+                                        <p className="text-xs font-bold text-km-text-primary">Direct Application</p>
+                                        <p className="text-[11px] text-km-text-secondary">Apply directly with your verified candidate credentials.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-[#0B5ED7] font-bold text-xs flex items-center justify-center shrink-0">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0">
                                         2
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-[#111827]">Direct HR Review</p>
-                                        <p className="text-[11px] text-[#5B6472]">The employer reviews candidate profiles with zero agency filter.</p>
+                                        <p className="text-xs font-bold text-km-text-primary">Direct HR Review</p>
+                                        <p className="text-[11px] text-km-text-secondary">The employer reviews candidate profiles with zero agency filter.</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-[#0B5ED7] font-bold text-xs flex items-center justify-center shrink-0">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0">
                                         3
                                     </div>
                                     <div>
-                                        <p className="text-xs font-bold text-[#111827]">Interview & Offer</p>
-                                        <p className="text-[11px] text-[#5B6472]">Direct call or chat invitation to finalize your onboarding.</p>
+                                        <p className="text-xs font-bold text-km-text-primary">Interview & Offer</p>
+                                        <p className="text-[11px] text-km-text-secondary">Direct call or chat invitation to finalize your onboarding.</p>
                                     </div>
                                 </div>
                             </div>
@@ -700,13 +700,13 @@ const JobDetailPage = () => {
                             animate={{ scale: 1, opacity: 1, y: 0 }}
                             exit={{ scale: 0.95, opacity: 0, y: 10 }}
                             transition={{ duration: 0.2 }}
-                            className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-6 sm:p-7 relative z-10 shadow-xl border border-[#D9E0EA] font-sans text-[#111827]"
+                            className="bg-km-surface-card w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-6 sm:p-7 relative z-10 shadow-xl border border-km-border font-sans text-km-text-primary"
                         >
                             {/* Close Button */}
                             <button
                                 type="button"
                                 onClick={() => setIsApplyModalOpen(false)}
-                                className="absolute top-5 right-5 p-1.5 text-[#5B6472] hover:text-[#111827] rounded-xl hover:bg-[#F4F7FB] transition-colors cursor-pointer"
+                                className="absolute top-5 right-5 p-1.5 text-km-text-secondary hover:text-km-text-primary rounded-xl hover:bg-km-surface transition-colors cursor-pointer"
                                 aria-label="Close modal"
                             >
                                 <XIcon weight="bold" size={18} />
@@ -714,22 +714,22 @@ const JobDetailPage = () => {
 
                             {/* Modal Header */}
                             <div className="mb-5 pr-8">
-                                <h2 className="text-xl font-extrabold text-[#111827] tracking-tight">Apply for Position</h2>
-                                <p className="text-[#5B6472] text-xs mt-0.5">
-                                    <span className="font-semibold text-[#111827]">{job.title}</span> • {job.company}
+                                <h2 className="text-xl font-extrabold text-km-text-primary tracking-tight">Apply for Position</h2>
+                                <p className="text-km-text-secondary text-xs mt-0.5">
+                                    <span className="font-semibold text-km-text-primary">{job.title}</span> • {job.company}
                                 </p>
                             </div>
 
                             <div className="space-y-4">
                                 {/* Compact Candidate Profile Strip */}
-                                <div className="bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl p-3 flex items-center justify-between gap-3">
+                                <div className="bg-km-surface border border-km-border rounded-xl p-3 flex items-center justify-between gap-3">
                                     <div className="flex items-center gap-2.5 min-w-0">
                                         <div className="w-9 h-9 rounded-xl bg-[#071A4D] text-white font-bold text-xs flex items-center justify-center shrink-0 border border-[#0B1F52]">
                                             {(user?.name || user?.first_name || 'C').charAt(0).toUpperCase()}
                                         </div>
                                         <div className="min-w-0">
                                             <div className="flex items-center gap-1.5">
-                                                <p className="text-xs font-bold text-[#111827] truncate">
+                                                <p className="text-xs font-bold text-km-text-primary truncate">
                                                     {user?.name || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'Candidate'}
                                                 </p>
                                                 <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
@@ -737,7 +737,7 @@ const JobDetailPage = () => {
                                                     Verified
                                                 </span>
                                             </div>
-                                            <p className="text-[11px] text-[#5B6472] truncate">
+                                            <p className="text-[11px] text-km-text-secondary truncate">
                                                 {user?.mobile || user?.email || user?.city || 'Profile linked'}
                                             </p>
                                         </div>
@@ -746,7 +746,7 @@ const JobDetailPage = () => {
                                     <Link
                                         href="/profile"
                                         target="_blank"
-                                        className="text-[11px] font-semibold text-[#0B5ED7] hover:underline shrink-0"
+                                        className="text-[11px] font-semibold text-km-link hover:underline shrink-0"
                                     >
                                         Edit Profile
                                     </Link>
@@ -754,9 +754,9 @@ const JobDetailPage = () => {
 
                                 {/* Resume Upload Dropzone */}
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-[#111827] flex items-center justify-between">
-                                        <span>Attach Resume <span className="text-[#5B6472] font-normal">(Optional)</span></span>
-                                        <span className="text-[10px] text-[#5B6472]">PDF, DOC, DOCX up to 5MB</span>
+                                    <label className="text-xs font-semibold text-km-text-primary flex items-center justify-between">
+                                        <span>Attach Resume <span className="text-km-text-secondary font-normal">(Optional)</span></span>
+                                        <span className="text-[10px] text-km-text-secondary">PDF, DOC, DOCX up to 5MB</span>
                                     </label>
 
                                     <input
@@ -770,25 +770,25 @@ const JobDetailPage = () => {
                                     {!resumeFile ? (
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="border-2 border-dashed border-[#D9E0EA] hover:border-[#0B5ED7] hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group"
+                                            className="border-2 border-dashed border-km-border hover:border-[#0B5ED7] hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group"
                                         >
-                                            <CloudArrowUpIcon size={20} className="text-[#0B5ED7] mx-auto mb-1.5" aria-hidden="true" />
-                                            <p className="text-xs font-semibold text-[#111827]">
+                                            <CloudArrowUpIcon size={20} className="text-km-link mx-auto mb-1.5" aria-hidden="true" />
+                                            <p className="text-xs font-semibold text-km-text-primary">
                                                 Click to upload or drag resume
                                             </p>
-                                            <p className="text-[11px] text-[#5B6472] mt-0.5">
+                                            <p className="text-[11px] text-km-text-secondary mt-0.5">
                                                 Your verified profile credentials will be submitted automatically
                                             </p>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center justify-between p-3 bg-[#F4F7FB] border border-[#BFDBFE] rounded-xl">
+                                        <div className="flex items-center justify-between p-3 bg-km-surface border border-[#BFDBFE] rounded-xl">
                                             <div className="flex items-center gap-2.5 min-w-0">
-                                                <FileTextIcon size={20} className="text-[#0B5ED7] shrink-0" aria-hidden="true" />
+                                                <FileTextIcon size={20} className="text-km-link shrink-0" aria-hidden="true" />
                                                 <div className="min-w-0">
-                                                    <p className="text-xs font-bold text-[#111827] truncate">
+                                                    <p className="text-xs font-bold text-km-text-primary truncate">
                                                         {resumeFile.name}
                                                     </p>
-                                                    <p className="text-[11px] text-[#5B6472]">
+                                                    <p className="text-[11px] text-km-text-secondary">
                                                         {(resumeFile.size / 1024).toFixed(1)} KB • Attached
                                                     </p>
                                                 </div>
@@ -796,7 +796,7 @@ const JobDetailPage = () => {
                                             <button
                                                 type="button"
                                                 onClick={handleRemoveFile}
-                                                className="p-1.5 text-[#5B6472] hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
+                                                className="p-1.5 text-km-text-secondary hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer"
                                                 title="Remove attached resume"
                                             >
                                                 <TrashIcon weight="bold" size={15} />
@@ -808,13 +808,13 @@ const JobDetailPage = () => {
                                 {/* Pitch or Note to Recruiter (Optional) */}
                                 <div className="space-y-1.5">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-xs font-semibold text-[#111827]">
-                                            Pitch or Note to Recruiter <span className="text-[#5B6472] font-normal">(Optional)</span>
+                                        <label className="text-xs font-semibold text-km-text-primary">
+                                            Pitch or Note to Recruiter <span className="text-km-text-secondary font-normal">(Optional)</span>
                                         </label>
-                                        <span className="text-[11px] text-[#5B6472]">{coverLetter.length}/500</span>
+                                        <span className="text-[11px] text-km-text-secondary">{coverLetter.length}/500</span>
                                     </div>
                                     <textarea
-                                        className="w-full bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl p-3 min-h-22 outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all font-medium text-xs text-[#111827] placeholder:text-[#5B6472]/70 resize-none"
+                                        className="w-full bg-km-surface border border-km-border rounded-xl p-3 min-h-22 outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all font-medium text-xs text-km-text-primary placeholder:text-km-text-secondary/70 resize-none"
                                         placeholder="Add relevant experience, key certifications, or immediate availability..."
                                         value={coverLetter}
                                         onChange={(e) => setCoverLetter(e.target.value.slice(0, 500))}
@@ -827,7 +827,7 @@ const JobDetailPage = () => {
                                         type="button"
                                         onClick={() => setIsApplyModalOpen(false)}
                                         disabled={isApplying}
-                                        className="flex-1 py-2.5 rounded-xl border border-[#D9E0EA] hover:bg-[#F4F7FB] text-xs font-semibold text-[#5B6472] hover:text-[#111827] transition-colors cursor-pointer"
+                                        className="flex-1 py-2.5 rounded-xl border border-km-border hover:bg-km-surface text-xs font-semibold text-km-text-secondary hover:text-km-text-primary transition-colors cursor-pointer"
                                     >
                                         Cancel
                                     </button>

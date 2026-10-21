@@ -149,28 +149,28 @@ export default function SevenServicesSection() {
                         return (
                             <div
                                 key={service.number}
-                                className={`group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] bg-white rounded-2xl border border-[#D9E0EA] p-3 flex flex-col transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
+                                className={`group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] bg-km-surface-card rounded-2xl border border-km-border p-3 flex flex-col transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
                             >
                                 {/* Illustrated banner on a soft tint of the service colour; its art animates in view and on card hover */}
                                 <ServiceBanner Art={service.Art} tintHex={service.tintHex}>
-                                    <span className="absolute top-2.5 right-2.5 text-xs font-semibold tabular-nums text-slate-500 bg-white/80 px-2 py-0.5 rounded-full">
+                                    <span className="absolute top-2.5 right-2.5 text-xs font-semibold tabular-nums text-slate-500 bg-km-surface-card/80 px-2 py-0.5 rounded-full">
                                         {service.number}
                                     </span>
                                 </ServiceBanner>
 
                                 <div className="px-3 pt-5 pb-2 flex flex-col flex-1">
-                                    <h3 className="text-lg font-bold text-[#111827] group-hover:text-km-primary transition-colors mb-2 leading-snug">
+                                    <h3 className="text-lg font-bold text-km-text-primary group-hover:text-km-heading transition-colors mb-2 leading-snug">
                                         {service.title}
                                     </h3>
-                                    <p className="text-sm text-[#5B6472] leading-relaxed">
+                                    <p className="text-sm text-km-text-secondary leading-relaxed">
                                         {service.description}
                                     </p>
 
                                     <div className="mt-auto pt-5">
-                                        <div className="pt-4 border-t border-[#D9E0EA]/60 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                                        <div className="pt-4 border-t border-km-border/60 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
                                             <Link
                                                 href={service.href}
-                                                className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-km-primary hover:text-km-primary-dark transition-colors"
+                                                className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-km-heading hover:text-km-primary-dark transition-colors"
                                             >
                                                 <span>{service.actionLabel}</span>
                                                 <ArrowRightIcon weight="bold"

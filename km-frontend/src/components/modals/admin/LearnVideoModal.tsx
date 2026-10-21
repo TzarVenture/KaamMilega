@@ -198,7 +198,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                         onChange={(e) => handleUrlChange(e.target.value)}
                         placeholder="https://www.youtube.com/watch?v=..."
                         required
-                        className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all"
+                        className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all"
                     />
                     <p className="text-xs text-gray-400">
                         Paste standard YouTube watch links, youtu.be, or YouTube shorts.
@@ -217,7 +217,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                         placeholder="e.g. Electrical Safety Fundamentals & Tools Guide"
                         required
                         maxLength={150}
-                        className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium text-gray-900"
+                        className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium text-gray-900"
                     />
                 </div>
 
@@ -234,7 +234,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                             onChange={(e) => setCategory(e.target.value)}
                             placeholder="Type or pick category below"
                             required
-                            className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium"
+                            className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium"
                         />
                         <div className="flex flex-wrap gap-1.5 pt-1">
                             {CATEGORY_PRESETS.map((cat) => (
@@ -245,7 +245,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                                     className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
                                         category === cat
                                             ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
-                                            : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                                            : 'bg-km-surface-card text-gray-600 border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
                                     }`}
                                 >
                                     {cat}
@@ -265,7 +265,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                             onChange={(e) => setDuration(e.target.value)}
                             placeholder="e.g. 15 Min, 30 Min"
                             required
-                            className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium"
+                            className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium"
                         />
                         <div className="flex flex-wrap gap-1.5 pt-1">
                             {DURATION_PRESETS.map((dur) => (
@@ -276,7 +276,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                                     className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
                                         duration === dur
                                             ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
-                                            : 'bg-white text-gray-600 border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                                            : 'bg-km-surface-card text-gray-600 border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
                                     }`}
                                 >
                                     {dur}
@@ -334,7 +334,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                                 value={thumbnailUrl}
                                 onChange={(e) => setThumbnailUrl(e.target.value)}
                                 placeholder="https://img.youtube.com/vi/... or custom image URL"
-                                className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-white border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all"
+                                className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all"
                             />
                             <p className="text-[11px] text-gray-400">
                                 Automatically generated from YouTube. You can override with a custom image link if needed.
@@ -353,7 +353,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Brief summary of skills or key takeaways covered in this video..."
-                        className="w-full px-4 py-2 bg-slate-50 hover:bg-slate-50/80 focus:bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all resize-none"
+                        className="w-full px-4 py-2 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all resize-none"
                     />
                 </div>
 

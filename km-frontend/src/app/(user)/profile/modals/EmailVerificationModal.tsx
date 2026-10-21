@@ -165,9 +165,9 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                     </div>
                 ) : (
                     <div className="space-y-4 text-center">
-                        <CheckCircleIcon size={24} weight="duotone" className="text-km-primary mx-auto" aria-hidden="true" />
+                        <CheckCircleIcon size={24} weight="duotone" className="text-km-heading mx-auto" aria-hidden="true" />
                         <p className="text-xs font-bold text-slate-600">
-                            Enter the 4-digit code sent to <span className="text-km-primary font-extrabold">{email}</span>
+                            Enter the 4-digit code sent to <span className="text-km-heading font-extrabold">{email}</span>
                         </p>
 
                         <OtpInput value={otp} onChange={(val) => { setError(null); setOtp(val); }} />
@@ -178,7 +178,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                                 type="button"
                                 disabled={resendTimer > 0 || sending}
                                 onClick={handleResendOtp}
-                                className="text-km-primary font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
+                                className="text-km-heading font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
                             >
                                 {resendTimer > 0 ? `Resend Code in 00:${resendTimer.toString().padStart(2, '0')}` : "Resend Code"}
                             </button>

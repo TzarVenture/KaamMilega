@@ -106,7 +106,7 @@ export default function QuestionsPage() {
                     <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Synchronizing knowledge base</p>
                 </div>
             ) : questions.length === 0 ? (
-                <div className="bg-white rounded-[32px] p-20 border border-dashed border-purple-200 flex flex-col items-center text-center shadow-sm">
+                <div className="bg-km-surface-card rounded-[32px] p-20 border border-dashed border-purple-200 flex flex-col items-center text-center shadow-sm">
                     <div className="w-24 h-24 bg-purple-50 rounded-[40px] flex items-center justify-center text-5xl mb-6">
                         📚
                     </div>
@@ -119,7 +119,7 @@ export default function QuestionsPage() {
                         <motion.div
                             layout
                             key={q.id}
-                            className={`bg-white border rounded-[24px] overflow-hidden transition-all duration-500 ${expandedIds.has(q.id)
+                            className={`bg-km-surface-card border rounded-[24px] overflow-hidden transition-all duration-500 ${expandedIds.has(q.id)
                                 ? 'border-purple-200 shadow-xl shadow-purple-900/5 ring-1 ring-purple-50/50'
                                 : 'border-slate-100 shadow-sm hover:border-purple-100'
                                 }`}

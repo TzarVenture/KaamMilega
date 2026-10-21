@@ -5,14 +5,14 @@ import { ArrowLeftIcon, BriefcaseIcon, HouseIcon, MagnifyingGlassIcon, UsersIcon
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-blue-100 selection:text-km-primary">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-blue-100 selection:text-km-heading">
       {/* Navigation Header */}
-      <header className="w-full bg-white border-b border-slate-200/80 sticky top-0 z-50">
+      <header className="w-full bg-km-surface-card border-b border-slate-200/80 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <BrandLogo size="sm" />
           <Link
             href="/"
-            className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-km-primary flex items-center gap-1.5 transition-colors"
+            className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-km-heading flex items-center gap-1.5 transition-colors"
           >
             <ArrowLeftIcon weight="bold" size={16} />
             <span>Back to Home</span>
@@ -24,13 +24,13 @@ export default function NotFound() {
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="max-w-xl w-full text-center">
           {/* Subtle Decorative Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-km-primary text-xs font-bold uppercase tracking-wider mb-6">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-km-heading text-xs font-bold uppercase tracking-wider mb-6">
             Error 404 &bull; Page Not Found
           </div>
 
           {/* Large Numerals */}
           <h1 className="text-7xl sm:text-8xl lg:text-9xl font-black text-slate-900 tracking-tighter leading-none">
-            4<span className="text-km-primary">0</span>4
+            4<span className="text-km-heading">0</span>4
           </h1>
 
           {/* Message */}
@@ -53,9 +53,9 @@ export default function NotFound() {
 
             <Link
               href="/jobs"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-slate-700 font-bold px-6 py-3 rounded-xl border border-slate-200 transition-all shadow-2xs hover:shadow-xs cursor-pointer text-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-km-surface-card hover:bg-slate-100 text-slate-700 font-bold px-6 py-3 rounded-xl border border-slate-200 transition-all shadow-2xs hover:shadow-xs cursor-pointer text-sm"
             >
-              <BriefcaseIcon weight="bold" size={18} className="text-km-primary" />
+              <BriefcaseIcon weight="bold" size={18} className="text-km-heading" />
               <span>Explore Jobs</span>
             </Link>
           </div>
@@ -68,10 +68,10 @@ export default function NotFound() {
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-left">
               <Link
                 href="/jobs"
-                className="p-3 rounded-xl bg-white border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
+                className="p-3 rounded-xl bg-km-surface-card border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
               >
-                <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-primary transition-colors">
-                  <BriefcaseIcon weight="bold" size={14} className="text-km-primary" />
+                <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-heading transition-colors">
+                  <BriefcaseIcon weight="bold" size={14} className="text-km-heading" />
                   <span>Job Openings</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">Verified vacancies</p>
@@ -79,10 +79,10 @@ export default function NotFound() {
 
               <Link
                 href="/network"
-                className="p-3 rounded-xl bg-white border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
+                className="p-3 rounded-xl bg-km-surface-card border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
               >
-                <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-primary transition-colors">
-                  <UsersIcon weight="bold" size={14} className="text-km-primary" />
+                <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-heading transition-colors">
+                  <UsersIcon weight="bold" size={14} className="text-km-heading" />
                   <span>Community</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">Connect with peers</p>
@@ -90,10 +90,10 @@ export default function NotFound() {
 
               <Link
                 href="/events"
-                className="col-span-2 sm:col-span-1 p-3 rounded-xl bg-white border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
+                className="col-span-2 sm:col-span-1 p-3 rounded-xl bg-km-surface-card border border-slate-200/70 hover:border-blue-400/40 hover:shadow-xs transition-all group"
               >
-                <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-primary transition-colors">
-                  <MagnifyingGlassIcon weight="bold" size={14} className="text-km-primary" />
+                <div className="flex items-center gap-2 text-slate-800 font-bold text-xs group-hover:text-km-heading transition-colors">
+                  <MagnifyingGlassIcon weight="bold" size={14} className="text-km-heading" />
                   <span>Job Melas</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-0.5">Hiring drives & fairs</p>
@@ -104,7 +104,7 @@ export default function NotFound() {
       </main>
 
       {/* Footer Note */}
-      <footer className="w-full py-6 text-center text-xs text-slate-400 border-t border-slate-200/60 bg-white">
+      <footer className="w-full py-6 text-center text-xs text-slate-400 border-t border-slate-200/60 bg-km-surface-card">
         &copy; {new Date().getFullYear()} KaamMilega. All rights reserved. Zero-brokerage employment ecosystem.
       </footer>
     </div>

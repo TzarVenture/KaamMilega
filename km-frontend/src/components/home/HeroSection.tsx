@@ -71,7 +71,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
     ];
 
     return (
-        <section className="relative overflow-hidden bg-linear-to-b from-[#EAF1FA] to-[#F4F7FB] pt-4 pb-6 sm:pt-10 sm:pb-12 lg:pt-12 lg:pb-14 border-b border-[#E3E9F1] font-sans">
+        <section className="relative overflow-hidden bg-linear-to-b from-[#EAF1FA] to-[#F4F7FB] pt-4 pb-6 sm:pt-10 sm:pb-12 lg:pt-12 lg:pb-14 border-b border-km-border-subtle font-sans">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Main Hero Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-6 items-center">
@@ -80,7 +80,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                     <div className="lg:col-span-7 flex flex-col justify-center z-10 py-2 sm:py-6">
                         {/* Top Category Line */}
                         <div className="flex items-center flex-wrap gap-2 text-xs sm:text-sm font-semibold tracking-wide text-slate-500 mb-3 sm:mb-4">
-                            <span className="text-km-primary font-bold">Skills</span>
+                            <span className="text-km-heading font-bold">Skills</span>
                             <span className="text-slate-300">•</span>
                             <span className="text-km-accent font-bold">Jobs</span>
                             <span className="text-slate-300">•</span>
@@ -110,7 +110,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                     className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-t-xl sm:rounded-t-2xl font-bold text-xs sm:text-sm transition-all shrink-0 cursor-pointer ${
                                         activeTab === 'jobs'
                                             ? 'bg-km-accent text-white shadow-md'
-                                            : 'bg-white/70 hover:bg-white text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-primary'
+                                            : 'bg-km-surface-card/70 hover:bg-km-surface-card text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-heading'
                                     }`}
                                 >
                                     <BriefcaseIcon weight="bold" size={16} />
@@ -123,7 +123,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                         className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-t-xl sm:rounded-t-2xl font-bold text-xs sm:text-sm transition-all shrink-0 cursor-pointer ${
                                             activeTab === 'instant'
                                                 ? 'bg-km-accent text-white shadow-md'
-                                                : 'bg-white/70 hover:bg-white text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-primary'
+                                                : 'bg-km-surface-card/70 hover:bg-km-surface-card text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-heading'
                                         }`}
                                     >
                                         <LightningIcon weight="fill" 
@@ -141,7 +141,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                     className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-t-xl sm:rounded-t-2xl font-bold text-xs sm:text-sm transition-all shrink-0 cursor-pointer ${
                                         activeTab === 'skills'
                                             ? 'bg-km-accent text-white shadow-md'
-                                            : 'bg-white/70 hover:bg-white text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-primary'
+                                            : 'bg-km-surface-card/70 hover:bg-km-surface-card text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-heading'
                                     }`}
                                 >
                                     <GraduationCapIcon weight="bold" size={16} />
@@ -153,7 +153,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                     className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-t-xl sm:rounded-t-2xl font-bold text-xs sm:text-sm transition-all shrink-0 cursor-pointer ${
                                         activeTab === 'mentors'
                                             ? 'bg-km-accent text-white shadow-md'
-                                            : 'bg-white/70 hover:bg-white text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-primary'
+                                            : 'bg-km-surface-card/70 hover:bg-km-surface-card text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-heading'
                                     }`}
                                 >
                                     <UsersIcon weight="bold" size={16} />
@@ -162,11 +162,11 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             </div>
 
                             {/* Elevated Search Bar Box */}
-                            <div className="bg-white rounded-b-2xl rounded-tr-2xl sm:rounded-b-3xl sm:rounded-tr-3xl border border-slate-200 shadow-xl shadow-blue-950/5 p-3 sm:p-4">
+                            <div className="bg-km-surface-card rounded-b-2xl rounded-tr-2xl sm:rounded-b-3xl sm:rounded-tr-3xl border border-slate-200 shadow-xl shadow-blue-950/5 p-3 sm:p-4">
                                 {/* Tab 1: Find Jobs */}
                                 {activeTab === 'jobs' && (
                                     <form onSubmit={handleJobSearch} className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-white focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
+                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
                                             <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 mr-2.5 shrink-0" />
                                             <input
                                                 type="text"
@@ -197,7 +197,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 {FEATURES.INSTANT_MILEGA && activeTab === 'instant' && (
                                     <form onSubmit={handleInstantGigSearch} className="flex flex-col gap-3">
                                         <div className="flex flex-col sm:flex-row gap-3">
-                                            <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-white focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
+                                            <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-km-surface-card focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
                                                 <WrenchIcon weight="bold" size={18} className="text-km-accent mr-2.5 shrink-0" />
                                                 <select
                                                     value={tradeType}
@@ -212,7 +212,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                                     <option value="Labour">Helper &amp; General Labour</option>
                                                 </select>
                                             </div>
-                                            <div className="sm:w-44 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-3 focus-within:bg-white focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
+                                            <div className="sm:w-44 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3 py-3 focus-within:bg-km-surface-card focus-within:border-km-accent focus-within:ring-2 focus-within:ring-orange-500/10 transition-all">
                                                 <MapPinIcon weight="bold" size={18} className="text-slate-400 mr-2 shrink-0" />
                                                 <input
                                                     type="text"
@@ -241,7 +241,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 {/* Tab 3: Learn Skills */}
                                 {activeTab === 'skills' && (
                                     <form onSubmit={handleSkillSearch} className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-white focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
+                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
                                             <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 mr-2.5 shrink-0" />
                                             <input
                                                 type="text"
@@ -264,7 +264,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 {/* Tab 4: Mentors */}
                                 {activeTab === 'mentors' && (
                                     <form onSubmit={handleMentorSearch} className="flex flex-col sm:flex-row gap-3">
-                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-white focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
+                                        <div className="flex-1 flex items-center bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 py-3 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all">
                                             <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 mr-2.5 shrink-0" />
                                             <input
                                                 type="text"
@@ -297,7 +297,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                         setSearchQuery(tag);
                                         router.push(`/jobs?q=${encodeURIComponent(tag)}`);
                                     }}
-                                    className="text-xs font-medium text-slate-600 bg-white/80 hover:bg-white hover:text-km-primary hover:border-km-primary px-3 py-1 rounded-full border border-slate-200/80 transition-all cursor-pointer shadow-2xs"
+                                    className="text-xs font-medium text-slate-600 bg-km-surface-card/80 hover:bg-km-surface-card hover:text-km-heading hover:border-km-primary px-3 py-1 rounded-full border border-slate-200/80 transition-all cursor-pointer shadow-2xs"
                                 >
                                     {tag}
                                 </button>
@@ -333,7 +333,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             <p className="km-a-rise km-a-hide text-sm font-bold text-slate-800 tracking-tight leading-tight" style={{ animationDelay: '300ms' }}>
                                 Better Skills
                             </p>
-                            <p className="km-a-rise km-a-hide text-sm font-bold text-km-primary tracking-tight leading-tight" style={{ animationDelay: '500ms' }}>
+                            <p className="km-a-rise km-a-hide text-sm font-bold text-km-heading tracking-tight leading-tight" style={{ animationDelay: '500ms' }}>
                                 Brighter Tomorrows
                             </p>
                             <svg className="w-28 h-3 text-km-accent mt-0.5 overflow-visible" viewBox="0 0 100 12" fill="none">
@@ -357,31 +357,31 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         <div
                             ref={featureCardRef}
                             data-inview={featureCardInView}
-                            className="km-a-float absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-white/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none">
+                            className="km-a-float absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-km-surface-card/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none">
                             <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '400ms' }}>
                                 <span className="km-a-pop inline-flex" style={{ animationDelay: '650ms' }}>
-                                    <BriefcaseIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                                    <BriefcaseIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-heading" aria-hidden="true" />
                                 </span>
                                 <span className="text-xs sm:text-sm font-bold text-slate-800">Jobs</span>
                             </div>
 
                             <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '520ms' }}>
                                 <span className="km-a-pop inline-flex" style={{ animationDelay: '770ms' }}>
-                                    <GraduationCapIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                                    <GraduationCapIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-heading" aria-hidden="true" />
                                 </span>
                                 <span className="text-xs sm:text-sm font-bold text-slate-800">Skills</span>
                             </div>
 
                             <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '640ms' }}>
                                 <span className="km-a-pop inline-flex" style={{ animationDelay: '890ms' }}>
-                                    <UsersIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                                    <UsersIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-heading" aria-hidden="true" />
                                 </span>
                                 <span className="text-xs sm:text-sm font-bold text-slate-800">Opportunities</span>
                             </div>
 
                             <div className="km-a-slide km-a-hide flex items-center gap-2 sm:gap-2.5" style={{ animationDelay: '760ms' }}>
                                 <span className="km-a-pop inline-flex" style={{ animationDelay: '1010ms' }}>
-                                    <TrendUpIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-primary" aria-hidden="true" />
+                                    <TrendUpIcon weight="duotone" className="w-4 h-4 sm:w-5 sm:h-5 shrink-0 text-km-heading" aria-hidden="true" />
                                 </span>
                                 <span className="text-xs sm:text-sm font-bold text-slate-800">Growth</span>
                             </div>
@@ -405,8 +405,8 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
 
                 {/* Real Platform Stats Strip */}
                 <div className="mt-6 pt-5 sm:mt-8 sm:pt-6 border-t border-slate-200/80 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
-                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-white/70 transition-all text-left">
-                        <UsersIcon weight="duotone" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 text-km-primary" aria-hidden="true" />
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-km-surface-card/70 transition-all text-left">
+                        <UsersIcon weight="duotone" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 text-km-heading" aria-hidden="true" />
                         <div>
                             <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 leading-tight font-poppins">
                                 {stats?.total_users ? `${stats.total_users}+ Users` : '120+ Users'}
@@ -415,8 +415,8 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-white/70 transition-all text-left">
-                        <MapPinIcon weight="duotone" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 text-km-primary" aria-hidden="true" />
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-km-surface-card/70 transition-all text-left">
+                        <MapPinIcon weight="duotone" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 text-km-heading" aria-hidden="true" />
                         <div>
                             <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 leading-tight font-poppins">
                                 {stats?.cities || cities.length || 36}+ Cities
@@ -425,8 +425,8 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-white/70 transition-all text-left">
-                        <BuildingOfficeIcon weight="duotone" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 text-km-primary" aria-hidden="true" />
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-km-surface-card/70 transition-all text-left">
+                        <BuildingOfficeIcon weight="duotone" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 text-km-heading" aria-hidden="true" />
                         <div>
                             <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 leading-tight font-poppins">
                                 {stats?.applications ? `${stats.applications}+ Placed` : '100% Free'}
@@ -435,8 +435,8 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-white/70 transition-all text-left">
-                        <PhoneCallIcon weight="duotone" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 text-km-primary" aria-hidden="true" />
+                    <div className="flex items-center gap-2.5 sm:gap-3.5 p-2 sm:p-2.5 rounded-xl hover:bg-km-surface-card/70 transition-all text-left">
+                        <PhoneCallIcon weight="duotone" className="w-6 h-6 sm:w-7 sm:h-7 shrink-0 text-km-heading" aria-hidden="true" />
                         <div>
                             <p className="text-sm sm:text-base lg:text-lg font-bold text-slate-900 leading-tight font-poppins">Direct Calls</p>
                             <p className="text-xs text-slate-500 font-medium leading-tight mt-0.5">With HR Recruiters</p>

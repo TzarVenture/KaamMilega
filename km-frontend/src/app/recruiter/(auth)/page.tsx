@@ -10,13 +10,13 @@ import { ArrowUpRightIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon,
 // --- Shimmer Loading Skeleton ---
 const RecruiterDashboardSkeleton = () => (
     <div className="space-y-8">
-        <div className="h-32 bg-white rounded-3xl border border-slate-200/80 animate-shimmer shadow-xs" />
+        <div className="h-32 bg-km-surface-card rounded-3xl border border-slate-200/80 animate-shimmer shadow-xs" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(n => (
-                <div key={n} className="h-32 bg-white rounded-3xl border border-slate-200/80 animate-shimmer shadow-xs" />
+                <div key={n} className="h-32 bg-km-surface-card rounded-3xl border border-slate-200/80 animate-shimmer shadow-xs" />
             ))}
         </div>
-        <div className="h-80 bg-white rounded-3xl border border-slate-200/80 animate-shimmer shadow-xs" />
+        <div className="h-80 bg-km-surface-card rounded-3xl border border-slate-200/80 animate-shimmer shadow-xs" />
     </div>
 );
 
@@ -123,7 +123,7 @@ export default function RecruiterDashboard() {
                         </Link>
                         <Link
                             href="/recruiter/applications"
-                            className="px-5 py-3.5 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-2"
+                            className="px-5 py-3.5 bg-km-surface-card/10 hover:bg-km-surface-card/20 backdrop-blur-md border border-white/20 text-white font-bold text-xs rounded-xl transition-all flex items-center gap-2"
                         >
                             <KanbanIcon weight="bold" size={16} /> Kanban Board
                         </Link>
@@ -133,27 +133,27 @@ export default function RecruiterDashboard() {
 
             {/* ── METRICS FUNNEL GRID ── */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-km-surface-card p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Active Postings</p>
                         <h3 className="text-3xl font-black text-slate-900">{activeJobsCount}</h3>
                         <p className="text-[11px] text-slate-500 font-semibold mt-1">Out of {jobs.length} total posts</p>
                     </div>
-                    <BriefcaseIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
+                    <BriefcaseIcon size={28} weight="duotone" className="text-km-heading shrink-0" aria-hidden="true" />
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-km-surface-card p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Applications</p>
-                        <h3 className="text-3xl font-black text-km-primary">{totalApplications}</h3>
+                        <h3 className="text-3xl font-black text-km-heading">{totalApplications}</h3>
                         <p className="text-[11px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
                             <TrendUpIcon weight="bold" size={12} /> Active candidates
                         </p>
                     </div>
-                    <UsersIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
+                    <UsersIcon size={28} weight="duotone" className="text-km-heading shrink-0" aria-hidden="true" />
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-km-surface-card p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Interviews Scheduled</p>
                         <h3 className="text-3xl font-black text-amber-600">{interviewingCount}</h3>
@@ -162,7 +162,7 @@ export default function RecruiterDashboard() {
                     <CalendarBlankIcon size={28} weight="duotone" className="text-amber-600 shrink-0" aria-hidden="true" />
                 </div>
 
-                <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
+                <div className="bg-km-surface-card p-6 rounded-3xl border border-slate-200/80 shadow-xs hover:shadow-md transition-all flex items-center justify-between">
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Successful Hires</p>
                         <h3 className="text-3xl font-black text-emerald-600">{hiredCount}</h3>
@@ -173,7 +173,7 @@ export default function RecruiterDashboard() {
             </div>
 
             {/* ── RECENT JOB POSTS SUITE ── */}
-            <section className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <section className="bg-km-surface-card rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-black text-slate-900">Recent Job Postings</h2>
@@ -181,7 +181,7 @@ export default function RecruiterDashboard() {
                     </div>
                     <Link
                         href="/recruiter/jobs/list"
-                        className="text-xs font-bold text-km-primary hover:text-km-primary-dark flex items-center gap-1 group"
+                        className="text-xs font-bold text-km-heading hover:text-km-primary-dark flex items-center gap-1 group"
                     >
                         View All Jobs ({jobs.length})
                         <CaretRightIcon weight="bold" size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -190,7 +190,7 @@ export default function RecruiterDashboard() {
 
                 {recentJobs.length === 0 ? (
                     <div className="p-12 text-center">
-                        <BriefcaseIcon size={32} weight="duotone" className="text-km-primary mx-auto mb-3" aria-hidden="true" />
+                        <BriefcaseIcon size={32} weight="duotone" className="text-km-heading mx-auto mb-3" aria-hidden="true" />
                         <h3 className="text-base font-bold text-slate-900">No Job Posts Found</h3>
                         <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto font-medium mb-4">
                             You haven't published any job listings yet. Create your first post to start receiving candidate applications.
@@ -236,7 +236,7 @@ export default function RecruiterDashboard() {
                                         <td className="py-4 px-6 text-center">
                                             <Link
                                                 href={`/recruiter/applications?jobId=${job.id}`}
-                                                className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-blue-50 text-km-primary border border-blue-100 font-extrabold text-xs hover:bg-blue-100 transition-colors"
+                                                className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-blue-50 text-km-heading border border-blue-100 font-extrabold text-xs hover:bg-blue-100 transition-colors"
                                             >
                                                 {applications.filter(a => a.job_id === job.id || a.job?.id === job.id).length} Applicants
                                             </Link>
@@ -258,7 +258,7 @@ export default function RecruiterDashboard() {
             </section>
 
             {/* ── RECENT CANDIDATE APPLICATIONS FEED ── */}
-            <section className="bg-white rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
+            <section className="bg-km-surface-card rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
                 <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                     <div>
                         <h2 className="text-lg font-black text-slate-900">Latest Candidate Applications</h2>
@@ -266,7 +266,7 @@ export default function RecruiterDashboard() {
                     </div>
                     <Link
                         href="/recruiter/applications"
-                        className="text-xs font-bold text-km-primary hover:text-km-primary-dark flex items-center gap-1 group"
+                        className="text-xs font-bold text-km-heading hover:text-km-primary-dark flex items-center gap-1 group"
                     >
                         Kanban Pipeline Board
                         <CaretRightIcon weight="bold" size={14} className="group-hover:translate-x-0.5 transition-transform" />
@@ -275,7 +275,7 @@ export default function RecruiterDashboard() {
 
                 {recentApplications.length === 0 ? (
                     <div className="p-12 text-center text-slate-500">
-                        <UsersIcon size={32} weight="duotone" className="text-km-primary mx-auto mb-3" aria-hidden="true" />
+                        <UsersIcon size={32} weight="duotone" className="text-km-heading mx-auto mb-3" aria-hidden="true" />
                         <h3 className="text-base font-bold text-slate-900">No Applications Received Yet</h3>
                         <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto font-medium">
                             When job seekers submit applications to your job postings, they will appear right here in real time.
@@ -286,7 +286,7 @@ export default function RecruiterDashboard() {
                         {recentApplications.map((app) => (
                             <div key={app.id} className="p-6 hover:bg-slate-50/50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4">
                                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                                    <div className="w-10 h-10 rounded-2xl bg-blue-50 text-km-primary font-black flex items-center justify-center shrink-0 uppercase border border-blue-100">
+                                    <div className="w-10 h-10 rounded-2xl bg-blue-50 text-km-heading font-black flex items-center justify-center shrink-0 uppercase border border-blue-100">
                                         {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
                                     </div>
                                     <div className="min-w-0">
@@ -324,7 +324,7 @@ export default function RecruiterDashboard() {
                                     <select
                                         value={app.status}
                                         onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                                        className="text-xs font-bold bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
+                                        className="text-xs font-bold bg-km-surface-card border border-slate-200 rounded-xl px-3 py-1.5 text-slate-800 outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
                                     >
                                         <option value="Applied">Applied</option>
                                         <option value="Shortlisted">Shortlisted</option>

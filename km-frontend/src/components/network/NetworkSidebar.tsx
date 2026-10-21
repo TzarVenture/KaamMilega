@@ -121,7 +121,7 @@ export const NetworkSidebar: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Mobile Top Navigation Tabs (Visible on screens < lg) */}
-      <div className="lg:hidden bg-white rounded-2xl border border-[#D9E0EA] p-2 shadow-xs overflow-x-auto scrollbar-hide flex gap-2">
+      <div className="lg:hidden bg-km-surface-card rounded-2xl border border-km-border p-2 shadow-xs overflow-x-auto scrollbar-hide flex gap-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -131,19 +131,19 @@ export const NetworkSidebar: React.FC = () => {
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 active:scale-[0.98] ${
                 item.isActive
                   ? 'bg-[#071A4D] text-white shadow-xs'
-                  : 'text-[#5B6472] hover:bg-[#F4F7FB] hover:text-[#071A4D]'
+                  : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
               }`}
             >
-              <Icon size={14} className={item.isActive ? 'text-white' : 'text-[#5B6472]'} />
+              <Icon size={14} className={item.isActive ? 'text-white' : 'text-km-text-secondary'} />
               <span>{item.label}</span>
               {item.count !== undefined && (
                 <span
                   className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                     item.isActive
-                      ? 'bg-white/20 text-white'
+                      ? 'bg-km-surface-card/20 text-white'
                       : item.isNotification
                         ? 'bg-[#FF6B00] text-white'
-                        : 'bg-[#F4F7FB] text-[#071A4D] border border-[#D9E0EA]'
+                        : 'bg-km-surface text-km-heading border border-km-border'
                   }`}
                 >
                   {item.count}
@@ -155,8 +155,8 @@ export const NetworkSidebar: React.FC = () => {
       </div>
 
       {/* Desktop Persistent Left Sidebar (Visible on screens >= lg) */}
-      <div className="hidden lg:block bg-white rounded-2xl border border-[#D9E0EA] p-5 shadow-xs">
-        <h2 className="font-bold text-[#111827] text-sm tracking-tight mb-4 flex items-center justify-between">
+      <div className="hidden lg:block bg-km-surface-card rounded-2xl border border-km-border p-5 shadow-xs">
+        <h2 className="font-bold text-km-text-primary text-sm tracking-tight mb-4 flex items-center justify-between">
           <span>Manage My Network</span>
         </h2>
 
@@ -170,14 +170,14 @@ export const NetworkSidebar: React.FC = () => {
                 className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 group active:scale-[0.98] ${
                   item.isActive
                     ? 'bg-[#071A4D] text-white shadow-xs'
-                    : 'text-[#5B6472] hover:bg-[#F4F7FB] hover:text-[#071A4D]'
+                    : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon
                     size={16}
                     className={`transition-colors ${
-                      item.isActive ? 'text-white' : 'text-[#5B6472] group-hover:text-[#071A4D]'
+                      item.isActive ? 'text-white' : 'text-km-text-secondary group-hover:text-km-heading'
                     }`}
                   />
                   <span>{item.label}</span>
@@ -187,10 +187,10 @@ export const NetworkSidebar: React.FC = () => {
                   <span
                     className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
                       item.isActive
-                        ? 'bg-white/20 text-white'
+                        ? 'bg-km-surface-card/20 text-white'
                         : item.isNotification
                           ? 'bg-[#FF6B00] text-white'
-                          : 'bg-[#F4F7FB] text-[#071A4D] border border-[#D9E0EA]'
+                          : 'bg-km-surface text-km-heading border border-km-border'
                     }`}
                   >
                     {item.count}
@@ -228,7 +228,7 @@ export const NetworkSidebar: React.FC = () => {
       </div>
 
       {/* Ad Banner Placeholder */}
-      <div className="hidden lg:flex bg-white rounded-xl h-64 items-center justify-center border border-dashed border-gray-300 text-gray-400">
+      <div className="hidden lg:flex bg-km-surface-card rounded-xl h-64 items-center justify-center border border-dashed border-gray-300 text-gray-400">
         Ad Banner
       </div>
     </div>

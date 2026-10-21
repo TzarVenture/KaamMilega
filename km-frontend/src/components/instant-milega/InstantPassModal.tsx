@@ -163,7 +163,7 @@ export default function InstantPassModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-            <div className="relative w-full max-w-lg bg-white rounded-2xl border border-[#D9E0EA] shadow-xl overflow-hidden text-[#111827]">
+            <div className="relative w-full max-w-lg bg-km-surface-card rounded-2xl border border-km-border shadow-xl overflow-hidden text-km-text-primary">
                 {/* Header Strip */}
                 <div className="bg-[#071A4D] px-6 py-5 text-white flex items-center justify-between">
                     <div>
@@ -178,7 +178,7 @@ export default function InstantPassModal({
                     <button
                         onClick={onClose}
                         disabled={loading || walletLoading}
-                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white cursor-pointer"
+                        className="w-8 h-8 rounded-lg bg-km-surface-card/10 hover:bg-km-surface-card/20 flex items-center justify-center transition-colors text-white cursor-pointer"
                         aria-label="Close"
                     >
                         <XIcon weight="bold" size={16} />
@@ -188,25 +188,25 @@ export default function InstantPassModal({
                 {/* Body Content */}
                 <div className="p-6 space-y-5">
                     {/* Price Tag Box */}
-                    <div className="flex items-center justify-between p-4 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]">
+                    <div className="flex items-center justify-between p-4 rounded-xl bg-km-surface border border-km-border">
                         <div>
-                            <span className="text-xs font-semibold text-[#5B6472] block">Universal Access Pass</span>
+                            <span className="text-xs font-semibold text-km-text-secondary block">Universal Access Pass</span>
                             <div className="flex items-baseline gap-1 mt-0.5">
-                                <span className="text-3xl font-bold text-[#071A4D]">₹99</span>
-                                <span className="text-xs text-[#5B6472]">/ 10 Work Credits</span>
+                                <span className="text-3xl font-bold text-km-heading">₹99</span>
+                                <span className="text-xs text-km-text-secondary">/ 10 Work Credits</span>
                             </div>
                         </div>
                         <div className="text-right">
                             <span className="inline-block bg-[#FF6B00] text-white font-bold text-xs px-2.5 py-1 rounded-md">
                                 ₹9.90 / Credit
                             </span>
-                            <span className="block text-xs text-[#5B6472] mt-1 font-medium">90 Days Validity</span>
+                            <span className="block text-xs text-km-text-secondary mt-1 font-medium">90 Days Validity</span>
                         </div>
                     </div>
 
                     {/* Payment Method Selector */}
                     <div>
-                        <span className="text-xs font-bold text-[#111827] block mb-2">Select Payment Method:</span>
+                        <span className="text-xs font-bold text-km-text-primary block mb-2">Select Payment Method:</span>
                         <div className="grid grid-cols-2 gap-3">
                             {/* Option 1: KaamMilega Wallet */}
                             <button
@@ -214,21 +214,21 @@ export default function InstantPassModal({
                                 onClick={() => setSelectedMethod('wallet')}
                                 className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
                                     selectedMethod === 'wallet'
-                                        ? 'border-[#071A4D] bg-[#F4F7FB] ring-1 ring-[#071A4D]'
-                                        : 'border-[#D9E0EA] hover:border-[#071A4D]/40 bg-white'
+                                        ? 'border-[#071A4D] bg-km-surface ring-1 ring-[#071A4D]'
+                                        : 'border-km-border hover:border-[#071A4D]/40 bg-km-surface-card'
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <WalletIcon size={24} weight={selectedMethod === 'wallet' ? 'duotone' : 'regular'} className="text-[#071A4D]" aria-hidden="true" />
+                                    <WalletIcon size={24} weight={selectedMethod === 'wallet' ? 'duotone' : 'regular'} className="text-km-heading" aria-hidden="true" />
                                     {selectedMethod === 'wallet' && (
                                         <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center">
                                             <CheckIcon weight="bold" size={11} />
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-xs font-bold text-[#111827] block">KaamMilega Wallet</span>
+                                <span className="text-xs font-bold text-km-text-primary block">KaamMilega Wallet</span>
                                 <span className={`text-[11px] block mt-0.5 font-medium ${
-                                    hasEnoughWalletBalance ? 'text-[#16A34A]' : 'text-[#5B6472]'
+                                    hasEnoughWalletBalance ? 'text-[#16A34A]' : 'text-km-text-secondary'
                                 }`}>
                                     {walletBalance != null ? `Balance: ₹${walletBalance.toFixed(2)}` : 'Fetching...'}
                                 </span>
@@ -240,20 +240,20 @@ export default function InstantPassModal({
                                 onClick={() => setSelectedMethod('razorpay')}
                                 className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
                                     selectedMethod === 'razorpay'
-                                        ? 'border-[#071A4D] bg-[#F4F7FB] ring-1 ring-[#071A4D]'
-                                        : 'border-[#D9E0EA] hover:border-[#071A4D]/40 bg-white'
+                                        ? 'border-[#071A4D] bg-km-surface ring-1 ring-[#071A4D]'
+                                        : 'border-km-border hover:border-[#071A4D]/40 bg-km-surface-card'
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <CreditCardIcon size={24} weight={selectedMethod === 'razorpay' ? 'duotone' : 'regular'} className="text-[#071A4D]" aria-hidden="true" />
+                                    <CreditCardIcon size={24} weight={selectedMethod === 'razorpay' ? 'duotone' : 'regular'} className="text-km-heading" aria-hidden="true" />
                                     {selectedMethod === 'razorpay' && (
                                         <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center">
                                             <CheckIcon weight="bold" size={11} />
                                         </div>
                                     )}
                                 </div>
-                                <span className="text-xs font-bold text-[#111827] block">Online Gateway</span>
-                                <span className="text-[11px] text-[#5B6472] block mt-0.5 font-medium">
+                                <span className="text-xs font-bold text-km-text-primary block">Online Gateway</span>
+                                <span className="text-[11px] text-km-text-secondary block mt-0.5 font-medium">
                                     UPI, Cards &amp; NetBanking
                                 </span>
                             </button>
@@ -264,22 +264,22 @@ export default function InstantPassModal({
                     <div className="space-y-2 pt-1">
                         <div className="flex items-start gap-2.5">
                             <CheckIcon weight="bold" size={16} className="text-km-instant shrink-0 mt-px" aria-hidden="true" />
-                            <p className="text-xs text-[#5B6472]">
-                                <strong className="text-[#111827]">10 Work Credits</strong>: One credit is used per accepted Instant Milega gig.
+                            <p className="text-xs text-km-text-secondary">
+                                <strong className="text-km-text-primary">10 Work Credits</strong>: One credit is used per accepted Instant Milega gig.
                             </p>
                         </div>
 
                         <div className="flex items-start gap-2.5">
                             <CheckIcon weight="bold" size={16} className="text-km-instant shrink-0 mt-px" aria-hidden="true" />
-                            <p className="text-xs text-[#5B6472]">
-                                <strong className="text-[#111827]">Unlimited Direct Chats</strong>: Unlocks direct messaging beyond the free 3-contact limit.
+                            <p className="text-xs text-km-text-secondary">
+                                <strong className="text-km-text-primary">Unlimited Direct Chats</strong>: Unlocks direct messaging beyond the free 3-contact limit.
                             </p>
                         </div>
 
                         <div className="flex items-start gap-2.5">
                             <CheckIcon weight="bold" size={16} className="text-km-instant shrink-0 mt-px" aria-hidden="true" />
-                            <p className="text-xs text-[#5B6472]">
-                                <strong className="text-[#111827]">Expert application</strong>: Apply as an Expert if you have 2+ years of experience. 0% commission on your service earnings.
+                            <p className="text-xs text-km-text-secondary">
+                                <strong className="text-km-text-primary">Expert application</strong>: Apply as an Expert if you have 2+ years of experience. 0% commission on your service earnings.
                             </p>
                         </div>
                     </div>
@@ -316,9 +316,9 @@ export default function InstantPassModal({
                                         <span>Pay ₹99 via Online Gateway</span>
                                         <ArrowRightIcon weight="bold" size={16} />
                                     </button>
-                                    <p className="text-center text-xs text-[#5B6472]">
+                                    <p className="text-center text-xs text-km-text-secondary">
                                         Wallet balance (₹{(walletBalance || 0).toFixed(2)}) is insufficient.{' '}
-                                        <Link href="/wallet" className="text-[#071A4D] font-bold hover:underline">
+                                        <Link href="/wallet" className="text-km-heading font-bold hover:underline">
                                             Top up wallet
                                         </Link>
                                     </p>
@@ -343,7 +343,7 @@ export default function InstantPassModal({
                             </button>
                         )}
 
-                        <p className="text-center text-xs text-[#5B6472] mt-2.5 flex items-center justify-center gap-1.5">
+                        <p className="text-center text-xs text-km-text-secondary mt-2.5 flex items-center justify-center gap-1.5">
                             <ShieldCheckIcon weight="bold" size={14} className="text-[#16A34A]" />
                             <span>100% Secure Payment · Instant 10 Gigs Quota</span>
                         </p>

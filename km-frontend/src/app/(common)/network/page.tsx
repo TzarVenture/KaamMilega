@@ -183,12 +183,12 @@ const NetworkPage = () => {
     if (loading) {
         return (
             <div className="space-y-6 animate-pulse">
-                <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs">
+                <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs">
                     <div className="h-5 w-44 bg-slate-200 rounded-lg mb-2" />
                     <div className="h-3 w-64 bg-slate-100 rounded-lg mb-6" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                         {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="h-64 bg-[#F4F7FB]/60 border border-[#D9E0EA] rounded-2xl p-5 flex flex-col items-center justify-between">
+                            <div key={i} className="h-64 bg-km-surface/60 border border-km-border rounded-2xl p-5 flex flex-col items-center justify-between">
                                 <div className="w-16 h-16 rounded-full bg-slate-200" />
                                 <div className="h-4 w-28 bg-slate-200 rounded mt-3" />
                                 <div className="h-3 w-36 bg-slate-100 rounded mt-1" />
@@ -208,14 +208,14 @@ const NetworkPage = () => {
         <div className="space-y-6">
             {/* Profile Guidance Callout */}
             {hasIncompleteProfile && (
-                <div className="bg-gradient-to-r from-blue-50/80 via-white to-amber-50/40 rounded-2xl border border-[#D9E0EA] p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
+                <div className="bg-gradient-to-r from-blue-50/80 via-white to-amber-50/40 rounded-2xl border border-km-border p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-2xs">
                     <div className="flex items-start gap-3.5">
-                        <TargetIcon size={28} weight="duotone" className="text-[#0B5ED7] shrink-0" aria-hidden="true" />
+                        <TargetIcon size={28} weight="duotone" className="text-km-link shrink-0" aria-hidden="true" />
                         <div>
-                            <h3 className="text-sm font-bold text-[#111827]">
+                            <h3 className="text-sm font-bold text-km-text-primary">
                                 Get higher precision recommendations
                             </h3>
-                            <p className="text-xs text-[#5B6472] mt-0.5 leading-relaxed">
+                            <p className="text-xs text-km-text-secondary mt-0.5 leading-relaxed">
                                 Add your verified skills and target industry role to discover top-rated peers and recruiters in your field.
                             </p>
                         </div>
@@ -232,13 +232,13 @@ const NetworkPage = () => {
 
             {/* Invitations Section */}
             {invitations.length > 0 && (
-                <section id="invitations" className="bg-white rounded-2xl shadow-xs p-5 sm:p-6 border border-[#D9E0EA] scroll-mt-24">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-[#D9E0EA]/70">
+                <section id="invitations" className="bg-km-surface-card rounded-2xl shadow-xs p-5 sm:p-6 border border-km-border scroll-mt-24">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-km-border/70">
                         <div>
-                            <h2 className="text-base sm:text-lg font-bold text-[#111827]">
+                            <h2 className="text-base sm:text-lg font-bold text-km-text-primary">
                                 Pending Invitations
                             </h2>
-                            <p className="text-xs text-[#5B6472] font-medium mt-0.5">
+                            <p className="text-xs text-km-text-secondary font-medium mt-0.5">
                                 People who requested to connect with you
                             </p>
                         </div>
@@ -247,7 +247,7 @@ const NetworkPage = () => {
                         </span>
                     </div>
 
-                    <div className="divide-y divide-[#D9E0EA]/60">
+                    <div className="divide-y divide-km-border/60">
                         {invitations.map((inv) => (
                             <InvitationRow 
                                 key={inv.id} 
@@ -261,24 +261,24 @@ const NetworkPage = () => {
             )}
 
             {/* People You May Know Grid */}
-            <section className="bg-white rounded-2xl shadow-xs p-5 sm:p-6 border border-[#D9E0EA]">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-[#D9E0EA]/70">
+            <section className="bg-km-surface-card rounded-2xl shadow-xs p-5 sm:p-6 border border-km-border">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-4 border-b border-km-border/70">
                     <div>
                         <div className="flex items-center gap-2">
-                            <h2 className="text-base sm:text-lg font-bold text-[#111827]">
+                            <h2 className="text-base sm:text-lg font-bold text-km-text-primary">
                                 People You May Know
                             </h2>
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#0B5ED7] bg-[#0B5ED7]/10 px-2 py-0.5 rounded-full border border-[#0B5ED7]/20">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-km-link bg-[#0B5ED7]/10 px-2 py-0.5 rounded-full border border-[#0B5ED7]/20">
                                 Matched for you
                             </span>
                         </div>
-                        <p className="text-xs text-[#5B6472] font-medium mt-0.5">
+                        <p className="text-xs text-km-text-secondary font-medium mt-0.5">
                             Expand your network across verified peers with shared skills and industry focus
                         </p>
                     </div>
                     <Link 
                         href="/network/connections"
-                        className="text-[#071A4D] hover:text-[#0B5ED7] font-semibold text-xs transition-colors self-start sm:self-auto shrink-0"
+                        className="text-km-heading hover:text-km-link font-semibold text-xs transition-colors self-start sm:self-auto shrink-0"
                     >
                         View Connections ({connections.length}) →
                     </Link>
@@ -302,10 +302,10 @@ const NetworkPage = () => {
                                 className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all whitespace-nowrap cursor-pointer shrink-0 border ${
                                     isActive
                                         ? 'bg-[#071A4D] text-white border-[#071A4D] shadow-2xs'
-                                        : 'bg-[#F4F7FB] text-[#5B6472] border-[#D9E0EA] hover:bg-white hover:text-[#111827] hover:border-[#071A4D]/30'
+                                        : 'bg-km-surface text-km-text-secondary border-km-border hover:bg-km-surface-card hover:text-km-text-primary hover:border-[#071A4D]/30'
                                 }`}
                             >
-                                <Icon size={12} className={isActive ? 'text-[#FF6B00]' : 'text-[#5B6472]'} />
+                                <Icon size={12} className={isActive ? 'text-[#FF6B00]' : 'text-km-text-secondary'} />
                                 <span>{tab.label}</span>
                             </button>
                         );
@@ -315,7 +315,7 @@ const NetworkPage = () => {
                 {suggestionsLoading ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 animate-pulse py-2">
                         {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="h-64 bg-[#F4F7FB]/60 border border-[#D9E0EA] rounded-2xl p-5 flex flex-col items-center justify-between">
+                            <div key={i} className="h-64 bg-km-surface/60 border border-km-border rounded-2xl p-5 flex flex-col items-center justify-between">
                                 <div className="w-16 h-16 rounded-full bg-slate-200" />
                                 <div className="h-4 w-28 bg-slate-200 rounded mt-3" />
                                 <div className="h-3 w-36 bg-slate-100 rounded mt-1" />
@@ -326,9 +326,9 @@ const NetworkPage = () => {
                         ))}
                     </div>
                 ) : suggestions.length === 0 ? (
-                    <div className="text-center py-12 px-4 bg-[#F4F7FB]/60 rounded-xl border border-dashed border-[#D9E0EA]">
-                        <UsersIcon size={28} weight="duotone" className="text-[#071A4D] mx-auto mb-3" aria-hidden="true" />
-                        <h3 className="text-sm font-bold text-[#111827] mb-1">
+                    <div className="text-center py-12 px-4 bg-km-surface/60 rounded-xl border border-dashed border-km-border">
+                        <UsersIcon size={28} weight="duotone" className="text-km-heading mx-auto mb-3" aria-hidden="true" />
+                        <h3 className="text-sm font-bold text-km-text-primary mb-1">
                             {activeFilter === 'city'
                                 ? 'No Local Profiles Found'
                                 : activeFilter === 'skills'
@@ -337,7 +337,7 @@ const NetworkPage = () => {
                                 ? 'No Domain Matches Found'
                                 : 'No New Suggestions Right Now'}
                         </h3>
-                        <p className="text-xs text-[#5B6472] max-w-sm mx-auto leading-relaxed mb-4">
+                        <p className="text-xs text-km-text-secondary max-w-sm mx-auto leading-relaxed mb-4">
                             {activeFilter !== 'all'
                                 ? 'Try selecting "All Recommended" to view candidates with broad professional affinity.'
                                 : 'Check back soon as new candidates and industry experts join the platform daily.'}
@@ -396,21 +396,21 @@ const InvitationRow = ({
     const name = senderInfo.name || 'Verified Member';
 
     return (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 py-4 first:pt-0 last:pb-0 hover:bg-[#F4F7FB]/40 px-2 sm:px-3 rounded-xl transition-colors">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 py-4 first:pt-0 last:pb-0 hover:bg-km-surface/40 px-2 sm:px-3 rounded-xl transition-colors">
             <div className="flex items-center gap-3.5 min-w-0">
-                <div className="w-12 h-12 rounded-full bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
+                <div className="w-12 h-12 rounded-full bg-km-surface border border-km-border flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
                     <UserAvatar src={senderInfo.profile_image} name={name} />
                 </div>
                 <div className="min-w-0">
-                    <h4 className="font-bold text-sm text-[#111827] leading-snug truncate">
+                    <h4 className="font-bold text-sm text-km-text-primary leading-snug truncate">
                         {name}
                     </h4>
-                    <p className="text-xs text-[#5B6472] font-medium line-clamp-1 truncate">
+                    <p className="text-xs text-km-text-secondary font-medium line-clamp-1 truncate">
                         {senderInfo.headline || senderInfo.roles?.[0] || 'Member'}
                     </p>
                     {senderInfo.city && (
-                        <div className="flex items-center gap-1 text-[11px] text-[#5B6472] font-semibold mt-0.5">
-                            <MapPinIcon weight="bold" size={11} className="text-[#071A4D] shrink-0" />
+                        <div className="flex items-center gap-1 text-[11px] text-km-text-secondary font-semibold mt-0.5">
+                            <MapPinIcon weight="bold" size={11} className="text-km-heading shrink-0" />
                             <span className="truncate">{senderInfo.city}</span>
                         </div>
                     )}
@@ -421,7 +421,7 @@ const InvitationRow = ({
                 <button 
                     type="button"
                     onClick={onIgnore} 
-                    className="text-[#5B6472] text-xs font-semibold hover:text-[#111827] px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-all duration-150 cursor-pointer active:scale-[0.98]"
+                    className="text-km-text-secondary text-xs font-semibold hover:text-km-text-primary px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-all duration-150 cursor-pointer active:scale-[0.98]"
                 >
                     Ignore
                 </button>

@@ -50,13 +50,13 @@ export default function SupportPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F4F7FB] font-sans antialiased text-slate-800">
+    <main className="min-h-screen bg-km-surface font-sans antialiased text-slate-800">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
+          <div className="inline-flex items-center gap-2 bg-km-surface-card/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
             <QuestionIcon weight="bold" size={16} className="text-emerald-400" />
             <span className="text-xs sm:text-sm font-semibold tracking-wide text-white">
               Customer Happiness &amp; Trust Helpdesk
@@ -77,26 +77,26 @@ export default function SupportPage() {
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto -mt-8 relative z-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* Email Support */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-[#0B5ED7] flex items-center justify-center mb-4">
+          <div className="bg-km-surface-card rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all">
+            <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-km-link flex items-center justify-center mb-4">
               <EnvelopeSimpleIcon size={22} />
             </div>
-            <h3 className="text-base font-bold text-[#071A4D] mb-1">General Inquiries</h3>
+            <h3 className="text-base font-bold text-km-heading mb-1">General Inquiries</h3>
             <p className="text-xs text-slate-500 mb-3">Questions &amp; assistance for jobseekers</p>
             <a
               href="mailto:support@kaammilega.com"
-              className="text-xs sm:text-sm font-bold text-[#0B5ED7] hover:underline"
+              className="text-xs sm:text-sm font-bold text-km-link hover:underline"
             >
               support@kaammilega.com
             </a>
           </div>
 
           {/* Employer Desk */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all">
+          <div className="bg-km-surface-card rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all">
             <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-200 text-[#FF6B00] flex items-center justify-center mb-4">
               <BuildingOfficeIcon size={22} />
             </div>
-            <h3 className="text-base font-bold text-[#071A4D] mb-1">Employer Desk</h3>
+            <h3 className="text-base font-bold text-km-heading mb-1">Employer Desk</h3>
             <p className="text-xs text-slate-500 mb-3">Enterprise hiring, GST verification &amp; ads</p>
             <a
               href="mailto:employer@kaammilega.com"
@@ -107,11 +107,11 @@ export default function SupportPage() {
           </div>
 
           {/* Phone / WhatsApp */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all">
+          <div className="bg-km-surface-card rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mb-4">
               <PhoneIcon size={22} />
             </div>
-            <h3 className="text-base font-bold text-[#071A4D] mb-1">Phone Helpline</h3>
+            <h3 className="text-base font-bold text-km-heading mb-1">Phone Helpline</h3>
             <p className="text-xs text-slate-500 mb-3">Mon – Sat (9:00 AM – 7:00 PM IST)</p>
             <a
               href="tel:+918000123456"
@@ -122,11 +122,11 @@ export default function SupportPage() {
           </div>
 
           {/* Safety & Disputes */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all">
+          <div className="bg-km-surface-card rounded-3xl p-6 border border-slate-200/90 shadow-sm hover:shadow-md transition-all">
             <div className="w-12 h-12 rounded-2xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center mb-4">
               <ShieldWarningIcon size={22} />
             </div>
-            <h3 className="text-base font-bold text-[#071A4D] mb-1">Trust &amp; Safety</h3>
+            <h3 className="text-base font-bold text-km-heading mb-1">Trust &amp; Safety</h3>
             <p className="text-xs text-slate-500 mb-3">Report fraud, scams, or escrow issues</p>
             <a
               href="mailto:safety@kaammilega.com"
@@ -142,12 +142,12 @@ export default function SupportPage() {
       <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           {/* Left Form: Submit Support Ticket */}
-          <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm">
+          <div className="lg:col-span-5 bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm">
             <div className="mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#0B5ED7] bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-km-link bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
                 Direct Helpdesk
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#071A4D] mt-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-km-heading mt-2">
                 Send Us a Message
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -213,7 +213,7 @@ export default function SupportPage() {
                     <select
                       value={formData.role}
                       onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0B5ED7]/25 focus:border-[#0B5ED7]"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-km-surface-card focus:outline-none focus:ring-2 focus:ring-[#0B5ED7]/25 focus:border-[#0B5ED7]"
                     >
                       <option value="jobseeker">Jobseeker</option>
                       <option value="employer">Employer / HR</option>
@@ -228,7 +228,7 @@ export default function SupportPage() {
                     <select
                       value={formData.category}
                       onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-[#0B5ED7]/25 focus:border-[#0B5ED7]"
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm bg-km-surface-card focus:outline-none focus:ring-2 focus:ring-[#0B5ED7]/25 focus:border-[#0B5ED7]"
                     >
                       <option value="account">Account &amp; Login</option>
                       <option value="jobs">Job Applications</option>
@@ -270,7 +270,7 @@ export default function SupportPage() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200">
                 Self-Service Knowledgebase
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-[#071A4D] mt-2">
+              <h2 className="text-xl sm:text-2xl font-bold text-km-heading mt-2">
                 Frequently Asked Questions
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 mt-1">
@@ -284,12 +284,12 @@ export default function SupportPage() {
                 return (
                   <div
                     key={index}
-                    className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs transition-all"
+                    className="bg-km-surface-card rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs transition-all"
                   >
                     <button
                       type="button"
                       onClick={() => setActiveFaq(isOpen ? null : index)}
-                      className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-sm sm:text-base hover:text-[#0B5ED7] transition-colors cursor-pointer"
+                      className="w-full p-4 sm:p-5 text-left flex items-center justify-between gap-4 font-bold text-slate-900 text-sm sm:text-base hover:text-km-link transition-colors cursor-pointer"
                     >
                       <span>{faq.q}</span>
                       <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center shrink-0 text-slate-600">

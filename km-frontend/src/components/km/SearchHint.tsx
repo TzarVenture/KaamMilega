@@ -38,11 +38,11 @@ export default function SearchHint({ className = '', words = SEARCH_HINT_WORDS }
             <span>Search for&nbsp;</span>
             <span className="relative inline-flex h-5 overflow-hidden">
                 {previous !== null && (
-                    <span key={`out-${previous}-${index}`} className="km-hint-exit absolute left-0 top-0 font-semibold text-[#071A4D]">
+                    <span key={`out-${previous}-${index}`} className="km-hint-exit absolute left-0 top-0 font-semibold text-km-heading">
                         &lsquo;{words[previous]}&rsquo;
                     </span>
                 )}
-                <span key={`in-${index}`} className={`${previous !== null ? 'km-hint-enter' : ''} font-semibold text-[#071A4D]`}>
+                <span key={`in-${index}`} className={`${previous !== null ? 'km-hint-enter' : ''} font-semibold text-km-heading`}>
                     &lsquo;{words[index]}&rsquo;
                 </span>
             </span>

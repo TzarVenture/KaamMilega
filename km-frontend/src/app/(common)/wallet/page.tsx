@@ -292,7 +292,7 @@ export default function WalletPage() {
                         <button 
                             onClick={fetchWallet}
                             disabled={loading}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-60"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-km-surface-card text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-60"
                         >
                             <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600" : "text-slate-500"} />
                             <span>Refresh</span>
@@ -307,7 +307,7 @@ export default function WalletPage() {
 
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8">
                         <div className="space-y-2 sm:space-y-3">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/10">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-km-surface-card/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/10">
                                 <ShieldCheckIcon weight="bold" size={13} className="text-emerald-400" />
                                 <span>Total Balance</span>
                             </div>
@@ -339,7 +339,7 @@ export default function WalletPage() {
 
                             <button
                                 onClick={() => setIsWithdrawModalOpen(true)}
-                                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold backdrop-blur-md border border-white/15 transition active:scale-95 cursor-pointer"
+                                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-km-surface-card/10 hover:bg-km-surface-card/20 text-white text-sm font-bold backdrop-blur-md border border-white/15 transition active:scale-95 cursor-pointer"
                             >
                                 <ArrowUpRightIcon weight="bold" size={18} />
                                 <span>Withdraw</span>
@@ -359,7 +359,7 @@ export default function WalletPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                         {/* 1. Main Balance */}
-                        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
                                     <CreditCardIcon size={24} className="text-blue-600" aria-hidden="true" />
@@ -378,7 +378,7 @@ export default function WalletPage() {
                         </div>
 
                         {/* 2. Earnings Balance */}
-                        <div className="bg-white rounded-2xl p-5 border border-emerald-200/80 shadow-xs hover:border-emerald-400 hover:shadow-md transition-all bg-emerald-50/20 flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-emerald-200/80 shadow-xs hover:border-emerald-400 hover:shadow-md transition-all bg-emerald-50/20 flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
                                     <ArrowUpRightIcon size={24} className="text-emerald-700" aria-hidden="true" />
@@ -397,7 +397,7 @@ export default function WalletPage() {
                         </div>
 
                         {/* 3. Locked in Escrow */}
-                        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-md transition-all flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
                                     <LockIcon size={24} className="text-amber-600" aria-hidden="true" />
@@ -416,7 +416,7 @@ export default function WalletPage() {
                         </div>
 
                         {/* 4. Bonus Balance */}
-                        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
                                     <GiftIcon size={24} className="text-purple-600" aria-hidden="true" />
@@ -444,7 +444,7 @@ export default function WalletPage() {
                             <LightningIcon size={140} />
                         </div>
                         <div className="relative z-10">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-km-surface-card/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
                                 <LightningIcon weight="bold" size={13} />
                                 <span>Platform Pass</span>
                             </div>
@@ -456,7 +456,7 @@ export default function WalletPage() {
                         <div className="mt-6 relative z-10">
                             <Link 
                                 href="/jobs" 
-                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-orange-700 text-xs font-bold rounded-xl hover:bg-orange-50 transition shadow-xs active:scale-95"
+                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-km-surface-card text-orange-700 text-xs font-bold rounded-xl hover:bg-orange-50 transition shadow-xs active:scale-95"
                             >
                                 <span>Explore Jobs & Passes</span>
                                 <ArrowUpRightIcon weight="bold" size={14} />
@@ -470,7 +470,7 @@ export default function WalletPage() {
                             <UsersIcon size={140} />
                         </div>
                         <div className="relative z-10">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
+                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-km-surface-card/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
                                 <UsersIcon weight="bold" size={13} />
                                 <span>Career Growth</span>
                             </div>
@@ -482,7 +482,7 @@ export default function WalletPage() {
                         <div className="mt-6 relative z-10">
                             <Link 
                                 href="/mentorship" 
-                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-50 transition shadow-xs active:scale-95"
+                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-km-surface-card text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-50 transition shadow-xs active:scale-95"
                             >
                                 <span>Browse Mentors</span>
                                 <ArrowUpRightIcon weight="bold" size={14} />
@@ -498,7 +498,7 @@ export default function WalletPage() {
                         onClick={() => setActiveHistoryTab('ledger')}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                             activeHistoryTab === 'ledger'
-                                ? 'bg-white text-slate-900 shadow-xs'
+                                ? 'bg-km-surface-card text-slate-900 shadow-xs'
                                 : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
@@ -511,7 +511,7 @@ export default function WalletPage() {
                         onClick={() => setActiveHistoryTab('disputes')}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                             activeHistoryTab === 'disputes'
-                                ? 'bg-white text-slate-900 shadow-xs'
+                                ? 'bg-km-surface-card text-slate-900 shadow-xs'
                                 : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
@@ -537,7 +537,7 @@ export default function WalletPage() {
             {/* Add Money Modal */}
             {isTopupModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-6">
+                    <div className="bg-km-surface-card rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-6">
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
                                 <CreditCardIcon weight="bold" size={18} className="text-purple-600" />
@@ -631,7 +631,7 @@ export default function WalletPage() {
             {/* Withdraw Modal (F71 Bank / UPI Payout) */}
             {isWithdrawModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
-                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 my-8">
+                    <div className="bg-km-surface-card rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 my-8">
                         {/* Modal Header */}
                         <div className="flex justify-between items-start">
                             <div className="flex items-center gap-2.5">
@@ -759,7 +759,7 @@ export default function WalletPage() {
                                             value={accountHolder}
                                             onChange={(e) => setAccountHolder(e.target.value)}
                                             placeholder="As per bank passbook"
-                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                             required={payoutMethod === 'bank'}
                                         />
                                     </div>
@@ -774,7 +774,7 @@ export default function WalletPage() {
                                                 value={accountNumber}
                                                 onChange={(e) => setAccountNumber(e.target.value)}
                                                 placeholder="e.g. 5010023456789"
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                                 required={payoutMethod === 'bank'}
                                             />
                                         </div>
@@ -787,7 +787,7 @@ export default function WalletPage() {
                                                 value={confirmAccountNumber}
                                                 onChange={(e) => setConfirmAccountNumber(e.target.value)}
                                                 placeholder="Re-enter A/C number"
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                                 required={payoutMethod === 'bank'}
                                             />
                                         </div>
@@ -804,7 +804,7 @@ export default function WalletPage() {
                                                 onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
                                                 placeholder="e.g. HDFC0001234"
                                                 maxLength={11}
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono uppercase font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono uppercase font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                                 required={payoutMethod === 'bank'}
                                             />
                                         </div>
@@ -817,7 +817,7 @@ export default function WalletPage() {
                                                 value={bankName}
                                                 onChange={(e) => setBankName(e.target.value)}
                                                 placeholder="e.g. HDFC Bank"
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                             />
                                         </div>
                                     </div>
@@ -836,7 +836,7 @@ export default function WalletPage() {
                                             value={upiId}
                                             onChange={(e) => setUpiId(e.target.value)}
                                             placeholder="e.g. username@okhdfcbank or 9876543210@paytm"
-                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-purple-500"
+                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-purple-500"
                                             required={payoutMethod === 'upi'}
                                         />
                                     </div>

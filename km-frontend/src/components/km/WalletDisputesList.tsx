@@ -141,7 +141,7 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
     };
 
     return (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-km-surface-card rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
             {/* Header & Filter Tabs */}
             <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -170,7 +170,7 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
                             onClick={() => handleFilterChange(tab.key as any)}
                             className={`px-3 sm:px-4 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                                 statusFilter === tab.key 
-                                    ? 'bg-white text-slate-900 shadow-xs' 
+                                    ? 'bg-km-surface-card text-slate-900 shadow-xs' 
                                     : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
@@ -215,7 +215,7 @@ export default function WalletDisputesList({ refreshKey = 0 }: Props) {
                             return (
                                 <div 
                                     key={dispute.id} 
-                                    className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-white hover:border-slate-300 transition space-y-3.5 shadow-xs"
+                                    className="p-4 sm:p-5 rounded-2xl border border-slate-200/80 bg-km-surface-card hover:border-slate-300 transition space-y-3.5 shadow-xs"
                                 >
                                     {/* Top Row: Dispute Number, Status, Amount */}
                                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">

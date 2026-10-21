@@ -60,7 +60,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
     <ModalWrapper isOpen={isOpen} onClose={onClose} title="Profile Photo">
       <div className="flex flex-col items-center justify-center py-4 relative">
         {loading && (
-          <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center rounded-full">
+          <div className="absolute inset-0 bg-km-surface-card/50 z-10 flex items-center justify-center rounded-full">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-km-primary"></div>
           </div>
         )}
@@ -95,7 +95,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
             {/* Edit Button - Trigger same file pick for now */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 border border-blue-200 rounded-full text-km-primary hover:bg-blue-50 transition-colors group"
+              className="p-3 border border-blue-200 rounded-full text-km-heading hover:bg-blue-50 transition-colors group"
             >
               <PencilSimpleIcon size={20} className="group-hover:scale-110 transition-transform" />
             </button>
@@ -103,7 +103,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
             {/* Camera Button */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 border border-blue-200 rounded-full text-km-primary hover:bg-blue-50 transition-colors group"
+              className="p-3 border border-blue-200 rounded-full text-km-heading hover:bg-blue-50 transition-colors group"
             >
               <CameraIcon size={20} className="group-hover:scale-110 transition-transform" />
             </button>

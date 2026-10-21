@@ -84,7 +84,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                             value={formData.firstName}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                         />
                     </div>
                     <div className="space-y-1.5">
@@ -95,7 +95,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                             value={formData.lastName}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                         />
                     </div>
                 </div>
@@ -107,7 +107,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                         name="additionalName"
                         value={formData.additionalName}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                     />
                 </div>
 
@@ -118,7 +118,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                             name="pronouns"
                             value={formData.pronouns}
                             onChange={handleChange}
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none text-gray-600"
+                            className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none text-gray-600"
                         >
                             <option value="">Please Select</option>
                             {PRONOUNS_OPTIONS.map(option => (
@@ -141,7 +141,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                         value={formData.headline}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                     />
                 </div>
 

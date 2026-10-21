@@ -77,7 +77,7 @@ export default function PoliciesPage() {
                         <input
                             type="text"
                             placeholder="Find Policy..."
-                            className="w-full sm:w-64 pl-11 pr-4 py-2.5 bg-white border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all shadow-sm"
+                            className="w-full sm:w-64 pl-11 pr-4 py-2.5 bg-km-surface-card border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all shadow-sm"
                         />
                     </div>
                     <motion.button
@@ -93,7 +93,7 @@ export default function PoliciesPage() {
             </div>
 
             {/* Policies Content */}
-            <div className="bg-white rounded-3xl p-8 border border-purple-50 shadow-sm relative">
+            <div className="bg-km-surface-card rounded-3xl p-8 border border-purple-50 shadow-sm relative">
                 <div className="space-y-10">
                     {policies.map((policy, index) => (
                         <div key={policy.id} className="relative group">
@@ -112,7 +112,7 @@ export default function PoliciesPage() {
                             {/* Individual edit button appears on hover */}
                             <button
                                 onClick={() => handleEditPolicy(policy)}
-                                className="absolute -right-2 -top-2 p-2 bg-white border border-purple-100 rounded-xl text-purple-600 opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-purple-50 scale-90"
+                                className="absolute -right-2 -top-2 p-2 bg-km-surface-card border border-purple-100 rounded-xl text-purple-600 opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-purple-50 scale-90"
                             >
                                 <NotePencilIcon weight="bold" size={16} />
                             </button>

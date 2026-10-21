@@ -23,7 +23,7 @@ const ModalWrapper = ({ isOpen, onClose, title, children, size = 'md' }: ModalWr
   return (
 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className={`w-full ${sizeClasses[size]} bg-white rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
+      <div className={`w-full ${sizeClasses[size]} bg-km-surface-card rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-800">{title}</h2>

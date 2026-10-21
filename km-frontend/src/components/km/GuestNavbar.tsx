@@ -7,6 +7,7 @@ import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
 import AnimatedBoltIcon from './AnimatedBoltIcon';
+import { ThemeIconButton } from './ThemeToggle';
 import DownloadAppModal from './DownloadAppModal';
 import SearchHint from './SearchHint';
 import { FEATURES } from '@/config/features';
@@ -88,7 +89,7 @@ const GuestNavbar = () => {
 
     return (
         <>
-            <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs font-sans">
+            <header className="sticky top-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-xs font-sans">
                 {/* Main Nav Bar */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
                     {/* Left: Official Brand Logo with proper spacing */}
@@ -97,7 +98,7 @@ const GuestNavbar = () => {
                     </div>
 
                     {/* Center: Search Bar with Integrated City Selector (Desktop) */}
-                    <div className="hidden md:flex items-center flex-1 max-w-xl bg-slate-50 hover:bg-slate-100/80 rounded-full border border-slate-200 focus-within:border-km-primary focus-within:bg-white focus-within:ring-2 focus-within:ring-km-primary/15 transition-all p-1">
+                    <div className="hidden md:flex items-center flex-1 max-w-xl bg-slate-50 hover:bg-slate-100/80 rounded-full border border-slate-200 focus-within:border-km-primary focus-within:bg-km-surface-card focus-within:ring-2 focus-within:ring-km-primary/15 transition-all p-1">
                         <CitySelector
                             selectedCity={selectedCity}
                             onCityChange={handleCityChange}
@@ -128,11 +129,13 @@ const GuestNavbar = () => {
 
                     {/* Right: Actions & Conversion (Desktop) */}
                     <div className="hidden lg:flex items-center gap-4 shrink-0">
+                        {FEATURES.DARK_MODE && <ThemeIconButton />}
+
                         {/* Download App Button */}
                         <button
                             type="button"
                             onClick={() => setIsDownloadModalOpen(true)}
-                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-heading transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
                         >
                             <DeviceMobileIcon weight="bold" size={16} className="text-slate-500" />
                             <span>App</span>
@@ -143,24 +146,24 @@ const GuestNavbar = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsLangOpen(!isLangOpen)}
-                                className="flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
+                                className="flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-km-heading transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
                             >
                                 <span>{selectedLang}</span>
                                 <CaretDownIcon weight="bold" size={14} className={`transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
                             </button>
                             {isLangOpen && (
-                                <div className="absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                <div className="absolute right-0 mt-1 w-28 bg-km-surface-card border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
                                     <button
                                         type="button"
                                         onClick={() => { setSelectedLang('English'); setIsLangOpen(false); }}
-                                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${selectedLang === 'English' ? 'font-bold text-km-primary bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${selectedLang === 'English' ? 'font-bold text-km-heading bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
                                     >
                                         English
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => { setSelectedLang('हिन्दी'); setIsLangOpen(false); }}
-                                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${selectedLang === 'हिन्दी' ? 'font-bold text-km-primary bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${selectedLang === 'हिन्दी' ? 'font-bold text-km-heading bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
                                     >
                                         हिन्दी
                                     </button>
@@ -171,7 +174,7 @@ const GuestNavbar = () => {
                         {/* Login Link */}
                         <Link
                             href="/login"
-                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-3 rounded-lg hover:bg-slate-50"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-heading transition-colors py-2 px-3 rounded-lg hover:bg-slate-50"
                         >
                             <SignInIcon weight="bold" size={15} />
                             <span>Sign In</span>
@@ -189,12 +192,13 @@ const GuestNavbar = () => {
 
                     {/* Mobile Right: Search + Hamburger */}
                     <div className="flex lg:hidden items-center gap-1.5 shrink-0">
+                        {FEATURES.DARK_MODE && <ThemeIconButton />}
                         <button
                             onClick={() => {
                                 setMobileSearchOpen(!mobileSearchOpen);
                                 if (mobileMenuOpen) setMobileMenuOpen(false);
                             }}
-                            className={`p-2 rounded-xl transition-colors cursor-pointer ${mobileSearchOpen ? 'bg-blue-50 text-km-primary' : 'text-slate-600 hover:bg-slate-100'
+                            className={`p-2 rounded-xl transition-colors cursor-pointer ${mobileSearchOpen ? 'bg-blue-50 text-km-heading' : 'text-slate-600 hover:bg-slate-100'
                                 }`}
                             aria-label="Open search"
                         >
@@ -202,7 +206,7 @@ const GuestNavbar = () => {
                         </button>
                         <Link
                             href="/login"
-                            className="px-3 py-1.5 text-xs font-semibold text-km-primary hover:bg-blue-50 rounded-lg transition-colors border border-blue-100"
+                            className="px-3 py-1.5 text-xs font-semibold text-km-heading hover:bg-blue-50 rounded-lg transition-colors border border-blue-100"
                         >
                             Sign In
                         </Link>
@@ -221,7 +225,7 @@ const GuestNavbar = () => {
                 </div>
 
                 {/* Desktop Secondary Navigation Bar (Core Services) - Center Aligned with Active States */}
-                <div className="hidden lg:block border-t border-slate-100 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                <div className="hidden lg:block border-t border-slate-100 bg-km-surface-card shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                     <div className="max-w-7xl mx-auto px-6 flex items-center justify-center">
                         <nav className="flex items-center gap-2 py-1.5">
                             {navLinks.map((item) => {
@@ -233,13 +237,13 @@ const GuestNavbar = () => {
                                         className={`relative flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${active
                                                 ? item.isHighlighted
                                                     ? 'text-amber-900 bg-amber-100/80 font-bold shadow-xs'
-                                                    : 'text-km-primary bg-blue-50/90 font-bold shadow-xs'
+                                                    : 'text-km-heading bg-blue-50/90 font-bold shadow-xs'
                                                 : item.isHighlighted
                                                     ? 'text-amber-700 hover:bg-amber-50/80'
-                                                    : 'text-slate-600 hover:text-km-primary hover:bg-slate-50'
+                                                    : 'text-slate-600 hover:text-km-heading hover:bg-slate-50'
                                             }`}
                                     >
-                                        <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-primary') : (item.isHighlighted ? 'text-amber-600' : 'text-slate-400')}>
+                                        <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-heading') : (item.isHighlighted ? 'text-amber-600' : 'text-slate-400')}>
                                             {item.icon}
                                         </span>
                                         <span>{item.label}</span>
@@ -259,12 +263,12 @@ const GuestNavbar = () => {
                 <>
                     <div
                         onClick={() => setMobileSearchOpen(false)}
-                        className="lg:hidden fixed inset-0 top-16 z-40 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
+                        className="lg:hidden fixed inset-0 top-16 z-40 bg-km-ink/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
                         aria-hidden="true"
                     />
-                    <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 px-4 py-3.5 shadow-xl animate-in slide-in-from-top-2 duration-150">
+                    <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 px-4 py-3.5 shadow-xl animate-in slide-in-from-top-2 duration-150">
                         <form onSubmit={handleSearch} className="flex items-center gap-2">
-                            <div className="relative flex items-center flex-1 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 focus-within:border-km-primary focus-within:bg-white focus-within:ring-1 focus-within:ring-km-primary transition-all">
+                            <div className="relative flex items-center flex-1 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 focus-within:border-km-primary focus-within:bg-km-surface-card focus-within:ring-1 focus-within:ring-km-primary transition-all">
                                 <MagnifyingGlassIcon weight="bold" size={16} className="text-slate-400 mr-2 shrink-0" />
                                 <input
                                     type="text"
@@ -293,12 +297,12 @@ const GuestNavbar = () => {
                     {/* Backdrop */}
                     <div
                         onClick={() => setMobileMenuOpen(false)}
-                        className="lg:hidden fixed inset-0 top-16 z-40 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
+                        className="lg:hidden fixed inset-0 top-16 z-40 bg-km-ink/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
                         aria-hidden="true"
                     />
 
                     {/* Drawer Content */}
-                    <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
+                    <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
                         {/* Core Services Links */}
                         <div className="px-5 py-4 border-b border-slate-100">
                             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
@@ -312,7 +316,7 @@ const GuestNavbar = () => {
                                         onClick={() => setMobileMenuOpen(false)}
                                         className={`flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm font-semibold transition-colors ${item.isHighlighted
                                                 ? 'text-amber-800 bg-amber-50/80 font-bold border border-amber-200/60'
-                                                : 'text-slate-700 hover:bg-slate-50 hover:text-km-primary active:bg-slate-100'
+                                                : 'text-slate-700 hover:bg-slate-50 hover:text-km-heading active:bg-slate-100'
                                             }`}
                                     >
                                         <span className={item.isHighlighted ? 'text-amber-600' : 'text-slate-500'}>
@@ -329,7 +333,7 @@ const GuestNavbar = () => {
                             <Link
                                 href="/login"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+                                className="w-full flex items-center justify-center gap-2 py-3 bg-km-surface-card border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
                             >
                                 <SignInIcon weight="bold" size={16} />
                                 <span>Sign In as Candidate</span>
@@ -349,7 +353,7 @@ const GuestNavbar = () => {
                             <button
                                 type="button"
                                 onClick={() => { setMobileMenuOpen(false); setIsDownloadModalOpen(true); }}
-                                className="flex items-center gap-2 font-bold text-slate-700 hover:text-km-primary py-1 cursor-pointer"
+                                className="flex items-center gap-2 font-bold text-slate-700 hover:text-km-heading py-1 cursor-pointer"
                             >
                                 <DeviceMobileIcon weight="bold" size={16} className="text-slate-500" />
                                 <span>Install Mobile App</span>
@@ -357,7 +361,7 @@ const GuestNavbar = () => {
                             <button
                                 type="button"
                                 onClick={() => setSelectedLang(selectedLang === 'English' ? 'हिन्दी' : 'English')}
-                                className="font-bold text-km-primary hover:underline py-1 cursor-pointer"
+                                className="font-bold text-km-heading hover:underline py-1 cursor-pointer"
                             >
                                 {selectedLang === 'English' ? 'Switch to हिन्दी' : 'Switch to English'}
                             </button>

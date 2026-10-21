@@ -107,11 +107,11 @@ export default function AttendeeListModal({
 
     return (
         <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/70 backdrop-blur-sm animate-fade-in"
             onClick={onClose}
         >
             <div 
-                className="bg-white w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden animate-scale-up"
+                className="bg-km-surface-card w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] overflow-hidden animate-scale-up"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* ─── Modal Header ─── */}
@@ -126,7 +126,7 @@ export default function AttendeeListModal({
                     </button>
 
                     <div className="flex items-center gap-2 mb-1.5">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#071A4D]/10 text-[#071A4D]">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#071A4D]/10 text-km-heading">
                             <UsersIcon weight="bold" size={12} />
                             <span>Confirmed Attendees</span>
                         </span>
@@ -150,7 +150,7 @@ export default function AttendeeListModal({
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Search attendees by name, role, or city..."
-                            className="w-full pl-9 pr-4 py-2 bg-white border border-[#D9E0EA] rounded-xl text-xs font-medium text-[#111827] placeholder-[#5B6472] focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all shadow-xs"
+                            className="w-full pl-9 pr-4 py-2 bg-km-surface-card border border-km-border rounded-xl text-xs font-medium text-km-text-primary placeholder-[#5B6472] focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all shadow-xs"
                         />
                         {searchQuery && (
                             <button
@@ -184,14 +184,14 @@ export default function AttendeeListModal({
                                         .catch(() => setError("Failed to reload"))
                                         .finally(() => setLoading(false));
                                 }}
-                                className="text-xs font-bold text-[#071A4D] underline hover:no-underline"
+                                className="text-xs font-bold text-km-heading underline hover:no-underline"
                             >
                                 Try again
                             </button>
                         </div>
                     ) : attendees.length === 0 ? (
                         <div className="py-14 text-center px-4">
-                            <UsersIcon size={32} weight="duotone" className="text-[#071A4D] mx-auto mb-3" aria-hidden="true" />
+                            <UsersIcon size={32} weight="duotone" className="text-km-heading mx-auto mb-3" aria-hidden="true" />
                             <h3 className="text-sm font-bold text-slate-800 mb-1">No attendees yet</h3>
                             <p className="text-xs text-slate-500 max-w-xs mx-auto">
                                 Be the first person to register and grab a spot for this event!
@@ -258,7 +258,7 @@ export default function AttendeeListModal({
                                 <div className="shrink-0">
                                     <Link
                                         href={`/profile/${attendee.id}`}
-                                        className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 bg-white border border-[#D9E0EA] hover:border-[#071A4D] text-[#111827] hover:text-[#071A4D] rounded-xl transition-all shadow-2xs hover:shadow-xs active:scale-95"
+                                        className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1.5 bg-km-surface-card border border-km-border hover:border-[#071A4D] text-km-text-primary hover:text-km-heading rounded-xl transition-all shadow-2xs hover:shadow-xs active:scale-95"
                                         title="View member profile"
                                     >
                                         <span>View</span>
@@ -272,14 +272,14 @@ export default function AttendeeListModal({
 
                 {/* ─── Modal Footer ─── */}
                 <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                    <span className="flex items-center gap-1 text-[11px] text-[#5B6472] font-medium">
+                    <span className="flex items-center gap-1 text-[11px] text-km-text-secondary font-medium">
                         <UsersIcon weight="bold" size={12} className="text-[#F59E0B]" />
                         <span>Showing {filteredAttendees.length} of {attendees.length} joined</span>
                     </span>
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-4 py-1.5 bg-white border border-[#D9E0EA] text-[#111827] hover:bg-[#F4F7FB] rounded-xl font-bold text-xs transition-all cursor-pointer shadow-2xs"
+                        className="px-4 py-1.5 bg-km-surface-card border border-km-border text-km-text-primary hover:bg-km-surface rounded-xl font-bold text-xs transition-all cursor-pointer shadow-2xs"
                     >
                         Close
                     </button>

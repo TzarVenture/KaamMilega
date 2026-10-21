@@ -39,3 +39,22 @@ export default function ThemeToggle({ className = '' }: { className?: string }) 
         </div>
     );
 }
+
+/** Compact navbar button: moon in light mode, sun in dark mode; flips to the other theme */
+export function ThemeIconButton({ className = '' }: { className?: string }) {
+    const { isDark, setPreference } = useTheme();
+    const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+    const Icon = isDark ? SunIcon : MoonIcon;
+
+    return (
+        <button
+            type="button"
+            onClick={() => setPreference(isDark ? 'light' : 'dark')}
+            aria-label={label}
+            title={label}
+            className={`w-11 h-11 rounded-xl flex items-center justify-center text-slate-600 hover:bg-km-surface hover:text-km-heading transition-colors cursor-pointer ${className}`}
+        >
+            <Icon size={22} weight="duotone" aria-hidden="true" />
+        </button>
+    );
+}

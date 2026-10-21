@@ -135,7 +135,7 @@ function ApplicationsContent() {
 
                 {/* View Switcher */}
                 <div className="flex items-center gap-3">
-                    <div className="bg-white p-1 rounded-2xl border border-gray-200 flex items-center shadow-sm">
+                    <div className="bg-km-surface-card p-1 rounded-2xl border border-gray-200 flex items-center shadow-sm">
                         <button
                             onClick={() => setViewMode("kanban")}
                             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -161,13 +161,13 @@ function ApplicationsContent() {
             </div>
 
             {/* Search Bar */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
+            <div className="bg-km-surface-card p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4">
                 <div className="flex-1 relative">
                     <MagnifyingGlassIcon weight="bold" className="absolute left-3.5 top-3 w-4 h-4 text-gray-400" />
                     <input
                         type="text"
                         placeholder="Filter by candidate name, email, headline, or job title..."
-                        className="w-full pl-10 pr-4 py-2 bg-white rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
+                        className="w-full pl-10 pr-4 py-2 bg-km-surface-card rounded-xl border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -203,7 +203,7 @@ function ApplicationsContent() {
                                 {/* Column Header */}
                                 <div className={`flex items-center justify-between px-3 py-2 rounded-2xl border text-xs font-black uppercase tracking-wider mb-3 ${col.headerBg}`}>
                                     <span>{col.title}</span>
-                                    <span className="w-5 h-5 rounded-full bg-white/80 text-gray-900 flex items-center justify-center font-bold text-[10px] shadow-sm">
+                                    <span className="w-5 h-5 rounded-full bg-km-surface-card/80 text-gray-900 flex items-center justify-center font-bold text-[10px] shadow-sm">
                                         {colApps.length}
                                     </span>
                                 </div>
@@ -221,7 +221,7 @@ function ApplicationsContent() {
                                                 key={app.id}
                                                 draggable={true}
                                                 onDragStart={(e) => handleDragStart(e, app.id)}
-                                                className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing hover:border-km-primary group relative"
+                                                className="bg-km-surface-card p-4 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition-all cursor-grab active:cursor-grabbing hover:border-km-primary group relative"
                                             >
                                                 {/* Candidate Header */}
                                                 <div className="flex items-start justify-between gap-2 mb-2">
@@ -230,7 +230,7 @@ function ApplicationsContent() {
                                                             href={`/profile/${app.candidate_id}`}
                                                             target="_blank"
                                                             title="View Candidate Full Profile"
-                                                            className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary flex items-center justify-center font-black text-xs shrink-0 uppercase border border-blue-100 hover:bg-blue-100 transition-colors"
+                                                            className="w-9 h-9 rounded-xl bg-blue-50 text-km-heading flex items-center justify-center font-black text-xs shrink-0 uppercase border border-blue-100 hover:bg-blue-100 transition-colors"
                                                         >
                                                             {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
                                                         </Link>
@@ -239,7 +239,7 @@ function ApplicationsContent() {
                                                                 href={`/profile/${app.candidate_id}`}
                                                                 target="_blank"
                                                                 title="View Candidate Full Profile"
-                                                                className="font-bold text-gray-900 text-sm truncate group-hover:text-km-primary transition-colors hover:underline block"
+                                                                className="font-bold text-gray-900 text-sm truncate group-hover:text-km-heading transition-colors hover:underline block"
                                                             >
                                                                 {app.candidate?.name || `Candidate #${app.candidate_id.substring(0, 6)}`}
                                                             </Link>
@@ -253,7 +253,7 @@ function ApplicationsContent() {
                                                 {/* Job Applied */}
                                                 {app.job && (
                                                     <div className="my-2 p-2 bg-gray-50 rounded-xl text-[11px] text-gray-600 font-medium flex items-center gap-1.5 border border-gray-100">
-                                                        <BriefcaseIcon weight="bold" size={12} className="text-km-primary shrink-0" />
+                                                        <BriefcaseIcon weight="bold" size={12} className="text-km-heading shrink-0" />
                                                         <span className="truncate">{app.job.title}</span>
                                                     </div>
                                                 )}
@@ -276,7 +276,7 @@ function ApplicationsContent() {
                                                             href={app.resume_url}
                                                             target="_blank"
                                                             rel="noreferrer"
-                                                            className="text-km-primary hover:underline font-bold flex items-center gap-1"
+                                                            className="text-km-heading hover:underline font-bold flex items-center gap-1"
                                                         >
                                                             <FileTextIcon weight="fill" size={11} className="fill-km-primary/20" /> Resume
                                                         </a>
@@ -307,7 +307,7 @@ function ApplicationsContent() {
                 </div>
             ) : (
                 /* TABLE / LIST VIEW */
-                <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="bg-km-surface-card rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-gray-600">
                             <thead className="bg-gray-50 text-xs font-black text-gray-500 uppercase tracking-wider border-b border-gray-100">
@@ -337,11 +337,11 @@ function ApplicationsContent() {
                                                     title="View Candidate Full Profile"
                                                     className="flex items-center gap-3 group/cand"
                                                 >
-                                                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary font-bold flex items-center justify-center uppercase shrink-0 border border-blue-100 group-hover/cand:bg-blue-100 transition-colors">
+                                                    <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-heading font-bold flex items-center justify-center uppercase shrink-0 border border-blue-100 group-hover/cand:bg-blue-100 transition-colors">
                                                         {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-gray-900 group-hover/cand:text-km-primary group-hover/cand:underline transition-colors">{app.candidate?.name || `Candidate #${app.candidate_id.substring(0, 6)}`}</p>
+                                                        <p className="font-bold text-gray-900 group-hover/cand:text-km-heading group-hover/cand:underline transition-colors">{app.candidate?.name || `Candidate #${app.candidate_id.substring(0, 6)}`}</p>
                                                         <p className="text-xs text-gray-400">{app.candidate?.email || app.candidate?.mobile || "N/A"}</p>
                                                     </div>
                                                 </Link>
@@ -370,7 +370,7 @@ function ApplicationsContent() {
                                                         href={app.resume_url}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                        className="text-km-primary hover:underline font-bold text-xs flex items-center gap-1"
+                                                        className="text-km-heading hover:underline font-bold text-xs flex items-center gap-1"
                                                     >
                                                         <FileTextIcon weight="bold" size={14} /> Resume
                                                     </a>
@@ -382,7 +382,7 @@ function ApplicationsContent() {
                                                 <select
                                                     value={app.status}
                                                     onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                                                    className="text-xs font-bold bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-gray-700 outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
+                                                    className="text-xs font-bold bg-km-surface-card border border-gray-200 rounded-xl px-3 py-1.5 text-gray-700 outline-none focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary"
                                                 >
                                                     <option value="Applied">Applied</option>
                                                     <option value="Shortlisted">Shortlisted</option>

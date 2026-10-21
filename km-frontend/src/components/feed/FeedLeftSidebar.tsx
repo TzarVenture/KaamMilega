@@ -27,7 +27,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
   return (
     <aside className="w-full space-y-4">
       {/* 1. Universal Profile Card */}
-      <div className="bg-white border border-[#D9E0EA] rounded-2xl shadow-xs overflow-hidden transition-all duration-200 hover:border-[#0B5ED7]/40 hover:shadow-md">
+      <div className="bg-km-surface-card border border-km-border rounded-2xl shadow-xs overflow-hidden transition-all duration-200 hover:border-[#0B5ED7]/40 hover:shadow-md">
         {/* Banner with Digital Primary Gradient */}
         <div className="h-18 w-full bg-gradient-to-r from-[#071A4D] to-[#0B5ED7] relative">
           <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#FFFFFF_1px,transparent_1px)] [background-size:12px_12px]" />
@@ -36,7 +36,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
         {/* Avatar & Identity Info */}
         <div className="px-5 pb-5 text-center relative pt-0">
           <div className="relative -mt-9 inline-block mb-3">
-            <div className="w-18 h-18 rounded-full border-2 border-white shadow-sm overflow-hidden bg-[#F4F7FB]">
+            <div className="w-18 h-18 rounded-full border-2 border-white shadow-sm overflow-hidden bg-km-surface">
               <UserAvatar src={userAvatar} name={userName} className="w-full h-full object-cover" />
             </div>
             {/* Online indicator per design.md */}
@@ -49,45 +49,45 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
           <div className="flex items-center justify-center gap-1.5">
             <Link
               href="/profile"
-              className="font-poppins font-bold text-[15px] text-[#111827] hover:text-[#0B5ED7] transition-colors leading-snug"
+              className="font-poppins font-bold text-[15px] text-km-text-primary hover:text-km-link transition-colors leading-snug"
             >
               {userName}
             </Link>
             {isVerified && (
               <span title="Verified Member" className="inline-flex">
-                <ShieldCheckIcon weight="bold" size={16} className="text-[#0B5ED7] shrink-0" />
+                <ShieldCheckIcon weight="bold" size={16} className="text-km-link shrink-0" />
               </span>
             )}
           </div>
-          <p className="text-xs text-[#5B6472] mt-1 line-clamp-2 px-1 font-poppins font-normal leading-relaxed">
+          <p className="text-xs text-km-text-secondary mt-1 line-clamp-2 px-1 font-poppins font-normal leading-relaxed">
             {userHeadline}
           </p>
         </div>
 
         {/* Analytics Section (Using Inter for clean data display per design.md) */}
-        <div className="border-t border-[#D9E0EA] px-5 py-3.5 space-y-2.5 text-xs font-inter bg-[#F4F7FB]/40">
+        <div className="border-t border-km-border px-5 py-3.5 space-y-2.5 text-xs font-inter bg-km-surface/40">
           <Link
             href="/profile"
-            className="flex items-center justify-between text-[#5B6472] hover:text-[#071A4D] group transition-colors"
+            className="flex items-center justify-between text-km-text-secondary hover:text-km-heading group transition-colors"
           >
             <span className="font-medium group-hover:underline">Profile Viewers</span>
-            <span className="font-semibold text-[#0B5ED7]">342</span>
+            <span className="font-semibold text-km-link">342</span>
           </Link>
-          <div className="flex items-center justify-between text-[#5B6472]">
+          <div className="flex items-center justify-between text-km-text-secondary">
             <span className="font-medium">Post Impressions</span>
-            <span className="font-semibold text-[#0B5ED7]">1,280</span>
+            <span className="font-semibold text-km-link">1,280</span>
           </div>
         </div>
 
         {/* Shortcuts & Saved Items */}
-        <div className="border-t border-[#D9E0EA] p-3 space-y-1">
+        <div className="border-t border-km-border p-3 space-y-1">
           <button
             type="button"
             onClick={() => onFilterChange?.('all')}
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all ${
               activeFilter === 'all'
                 ? 'bg-[#071A4D] text-white shadow-xs'
-                : 'text-[#5B6472] hover:bg-[#F4F7FB] hover:text-[#071A4D]'
+                : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
             }`}
           >
             <span>All Posts & Feed</span>
@@ -99,17 +99,17 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all ${
               activeFilter === 'saved'
                 ? 'bg-[#071A4D] text-white shadow-xs'
-                : 'text-[#5B6472] hover:bg-[#F4F7FB] hover:text-[#071A4D]'
+                : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
             }`}
           >
             <span className="flex items-center gap-2">
-              <BookmarkSimpleIcon weight="bold" size={14} className={activeFilter === 'saved' ? 'text-[#FF6B00]' : 'text-[#5B6472]'} />
+              <BookmarkSimpleIcon weight="bold" size={14} className={activeFilter === 'saved' ? 'text-[#FF6B00]' : 'text-km-text-secondary'} />
               Saved Items
             </span>
             {savedCount > 0 && (
               <span
                 className={`px-1.5 py-0.5 rounded-full text-[10px] font-inter ${
-                  activeFilter === 'saved' ? 'bg-white/20 text-white' : 'bg-[#D9E0EA] text-[#111827]'
+                  activeFilter === 'saved' ? 'bg-km-surface-card/20 text-white' : 'bg-[#D9E0EA] text-km-text-primary'
                 }`}
               >
                 {savedCount}
@@ -123,7 +123,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-poppins font-semibold transition-all ${
               activeFilter === 'my-posts'
                 ? 'bg-[#071A4D] text-white shadow-xs'
-                : 'text-[#5B6472] hover:bg-[#F4F7FB] hover:text-[#071A4D]'
+                : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
             }`}
           >
             <span>My Posts</span>
@@ -134,11 +134,11 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
       {/* 2. Footer Copyright & Brand Micro Tag */}
 
       {/* 3. Footer Copyright & Brand Micro Tag */}
-      <div className="px-3 text-center text-[11px] text-[#5B6472] font-poppins space-y-1">
+      <div className="px-3 text-center text-[11px] text-km-text-secondary font-poppins space-y-1">
         <p>
-          <span className="font-bold text-[#071A4D]">Kaammi</span>
+          <span className="font-bold text-km-heading">Kaammi</span>
           <span className="font-bold text-[#FF6B00]">lega</span>
-          <span className="text-[#071A4D]">™</span> • Har Kaam, Har Mauka
+          <span className="text-km-heading">™</span> • Har Kaam, Har Mauka
         </p>
         <p className="opacity-80">© {new Date().getFullYear()} KaamMilega. All rights reserved.</p>
       </div>

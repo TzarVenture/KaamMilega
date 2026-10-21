@@ -22,13 +22,13 @@ const MILESTONES: Milestone[] = [
         threshold: 30,
         title: 'Basic',
         description: 'Browse local jobs, see wage benchmarks and chat with up to 3 people.',
-        icon: <UserCheckIcon weight="bold" size={16} className="text-[#071A4D]" />,
+        icon: <UserCheckIcon weight="bold" size={16} className="text-km-heading" />,
     },
     {
         threshold: 70,
         title: 'Professional',
         description: '1-click job applications and visibility in recruiter search.',
-        icon: <BriefcaseIcon weight="bold" size={16} className="text-[#0B5ED7]" />,
+        icon: <BriefcaseIcon weight="bold" size={16} className="text-km-link" />,
     },
     {
         threshold: 100,
@@ -72,13 +72,13 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
     };
 
     return (
-        <section aria-label="Profile strength" className="w-full bg-white border border-[#D9E0EA] rounded-2xl p-5 sm:p-6 shadow-xs font-sans">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#D9E0EA]">
+        <section aria-label="Profile strength" className="w-full bg-km-surface-card border border-km-border rounded-2xl p-5 sm:p-6 shadow-xs font-sans">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-km-border">
                 <div>
-                    <p className="text-sm font-medium text-[#5B6472]">
+                    <p className="text-sm font-medium text-km-text-secondary">
                         Profile strength <span className="font-semibold text-[#FF6B00]">{score}%</span>
                     </p>
-                    <h3 className="text-lg sm:text-xl font-semibold text-[#111827] mt-0.5">
+                    <h3 className="text-lg sm:text-xl font-semibold text-km-text-primary mt-0.5">
                         {userName ? `Welcome, ${userName}` : 'Your profile'}
                     </h3>
                 </div>
@@ -92,7 +92,7 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
             </div>
 
             <div
-                className="h-2 bg-[#F4F7FB] border border-[#D9E0EA] rounded-full overflow-hidden mt-4 mb-5"
+                className="h-2 bg-km-surface border border-km-border rounded-full overflow-hidden mt-4 mb-5"
                 role="progressbar"
                 aria-valuenow={score}
                 aria-valuemin={0}
@@ -107,21 +107,21 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
                     return (
                         <div
                             key={m.threshold}
-                            className={`p-3.5 rounded-xl border ${status.unlocked ? 'border-emerald-200 bg-[#F4F7FB]' : 'border-[#D9E0EA] bg-white'}`}
+                            className={`p-3.5 rounded-xl border ${status.unlocked ? 'border-emerald-200 bg-km-surface' : 'border-km-border bg-km-surface-card'}`}
                         >
                             <div className="flex items-center justify-between gap-2 mb-1.5">
                                 <div className="flex items-center gap-1.5">
                                     {m.icon}
-                                    <span className="text-sm font-semibold text-[#111827]">{m.title}</span>
+                                    <span className="text-sm font-semibold text-km-text-primary">{m.title}</span>
                                 </div>
                                 <span
-                                    className={`inline-flex items-center gap-1 text-xs font-medium ${status.unlocked ? 'text-emerald-700' : 'text-[#5B6472]'}`}
+                                    className={`inline-flex items-center gap-1 text-xs font-medium ${status.unlocked ? 'text-emerald-700' : 'text-km-text-secondary'}`}
                                 >
                                     {status.unlocked ? <CheckCircleIcon weight="bold" size={12} /> : <LockIcon weight="bold" size={12} />}
                                     {status.label}
                                 </span>
                             </div>
-                            <p className="text-xs text-[#5B6472] leading-relaxed">{m.description}</p>
+                            <p className="text-xs text-km-text-secondary leading-relaxed">{m.description}</p>
                         </div>
                     );
                 })}

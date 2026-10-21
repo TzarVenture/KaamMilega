@@ -38,10 +38,10 @@ interface SuccessTickerProps {
 
 // Service colours from design.md §3
 const TONE_STYLE: Record<Tone, { Icon: Icon; text: string }> = {
-    jobs: { Icon: BriefcaseIcon, text: 'text-km-primary' },
-    success: { Icon: CheckCircleIcon, text: 'text-km-primary' },
-    instant: { Icon: LightningIcon, text: 'text-km-primary' },
-    network: { Icon: UserPlusIcon, text: 'text-km-primary' },
+    jobs: { Icon: BriefcaseIcon, text: 'text-km-heading' },
+    success: { Icon: CheckCircleIcon, text: 'text-km-heading' },
+    instant: { Icon: LightningIcon, text: 'text-km-heading' },
+    network: { Icon: UserPlusIcon, text: 'text-km-heading' },
 };
 
 const defaultUpdates: TickerUpdate[] = [
@@ -135,11 +135,11 @@ function TickerEntry({ item, onOpen }: { item: TickerItem; onOpen: (story: Ticke
         <>
             <tone.Icon size={24} weight="duotone" className={`shrink-0 ${tone.text}`} aria-hidden="true" />
             <span className="flex flex-col text-left">
-                <span className="text-sm text-[#111827] leading-5">
+                <span className="text-sm text-km-text-primary leading-5">
                     {item.person && <span className="font-semibold">{item.person} </span>}
                     {item.action}
                 </span>
-                {item.context && <span className="text-xs text-[#5B6472] leading-4">{item.context}</span>}
+                {item.context && <span className="text-xs text-km-text-secondary leading-4">{item.context}</span>}
             </span>
         </>
     );
@@ -150,7 +150,7 @@ function TickerEntry({ item, onOpen }: { item: TickerItem; onOpen: (story: Ticke
             <button
                 type="button"
                 onClick={() => onOpen(story)}
-                className="flex items-center gap-3 rounded-xl px-2 py-1.5 -mx-2 cursor-pointer hover:bg-[#F4F7FB] focus-visible:outline-2 focus-visible:outline-[#0B5ED7]"
+                className="flex items-center gap-3 rounded-xl px-2 py-1.5 -mx-2 cursor-pointer hover:bg-km-surface focus-visible:outline-2 focus-visible:outline-[#0B5ED7]"
             >
                 {content}
             </button>
@@ -193,9 +193,9 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
 
     return (
         <>
-            <section aria-label="Recent activity on KaamMilega" className="bg-white border-b border-[#D9E0EA] font-sans">
+            <section aria-label="Recent activity on KaamMilega" className="bg-km-surface-card border-b border-km-border font-sans">
                 <div className="max-w-7xl mx-auto flex items-center">
-                    <p className="hidden md:block shrink-0 pl-6 lg:pl-12 pr-5 py-1 text-sm font-semibold text-[#071A4D] border-r border-[#D9E0EA]">
+                    <p className="hidden md:block shrink-0 pl-6 lg:pl-12 pr-5 py-1 text-sm font-semibold text-km-heading border-r border-km-border">
                         Recent activity
                     </p>
 
@@ -230,13 +230,13 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
                         aria-modal="true"
                         aria-labelledby="ticker-story-title"
                         onClick={(e) => e.stopPropagation()}
-                        className="relative w-full max-w-md bg-white rounded-2xl border border-[#D9E0EA] shadow-lg p-6 font-sans"
+                        className="relative w-full max-w-md bg-km-surface-card rounded-2xl border border-km-border shadow-lg p-6 font-sans"
                     >
                         <button
                             type="button"
                             onClick={() => setSelectedStory(null)}
                             aria-label="Close"
-                            className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-[#5B6472] hover:bg-[#F4F7FB] cursor-pointer"
+                            className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-km-text-secondary hover:bg-km-surface cursor-pointer"
                         >
                             <XIcon weight="bold" size={18} />
                         </button>
@@ -247,30 +247,30 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
                             return (
                                 <div className="flex items-center gap-3 pr-8">
                                     <tone.Icon size={32} weight="duotone" className={`shrink-0 ${tone.text}`} aria-hidden="true" />
-                                    <h3 id="ticker-story-title" className="text-lg font-semibold text-[#111827]">
+                                    <h3 id="ticker-story-title" className="text-lg font-semibold text-km-text-primary">
                                         {selectedStory.name} {item.action}
                                     </h3>
                                 </div>
                             );
                         })()}
 
-                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 text-sm text-[#5B6472]">
+                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 mt-4 text-sm text-km-text-secondary">
                             <span className="inline-flex items-center gap-1.5">
-                                <BriefcaseIcon weight="bold" size={14} className="text-[#071A4D]" />
+                                <BriefcaseIcon weight="bold" size={14} className="text-km-heading" />
                                 {selectedStory.role}
                             </span>
                             <span className="inline-flex items-center gap-1.5">
-                                <BuildingOfficeIcon weight="bold" size={14} className="text-[#071A4D]" />
+                                <BuildingOfficeIcon weight="bold" size={14} className="text-km-heading" />
                                 {selectedStory.company}
                             </span>
                             <span className="inline-flex items-center gap-1.5">
-                                <MapPinIcon weight="bold" size={14} className="text-[#071A4D]" />
+                                <MapPinIcon weight="bold" size={14} className="text-km-heading" />
                                 {selectedStory.city}
                             </span>
                         </div>
 
                         {selectedStory.quote && (
-                            <p className="mt-4 pt-4 border-t border-[#D9E0EA] text-sm text-[#111827] leading-relaxed">
+                            <p className="mt-4 pt-4 border-t border-km-border text-sm text-km-text-primary leading-relaxed">
                                 &ldquo;{selectedStory.quote}&rdquo;
                             </p>
                         )}
@@ -279,7 +279,7 @@ export default function SuccessTicker({ updates }: SuccessTickerProps) {
                             <button
                                 type="button"
                                 onClick={() => setSelectedStory(null)}
-                                className="px-4 py-2.5 text-sm font-semibold text-[#5B6472] rounded-xl hover:bg-[#F4F7FB] cursor-pointer"
+                                className="px-4 py-2.5 text-sm font-semibold text-km-text-secondary rounded-xl hover:bg-km-surface cursor-pointer"
                             >
                                 Close
                             </button>

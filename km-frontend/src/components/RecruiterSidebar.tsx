@@ -34,7 +34,7 @@ export default function RecruiterSidebar() {
     const companyName = user?.company_name || user?.name || "Company Portal";
 
     return (
-        <aside className="w-64 bg-white border-r border-slate-200/80 h-[calc(100vh-3.5rem)] flex-col fixed left-0 top-14 overflow-y-auto z-30 hidden md:flex shadow-xs">
+        <aside className="w-64 bg-km-surface-card border-r border-slate-200/80 h-[calc(100vh-3.5rem)] flex-col fixed left-0 top-14 overflow-y-auto z-30 hidden md:flex shadow-xs">
             
             {/* Header / Brand */}
             <div className="p-6 border-b border-slate-100">
@@ -44,7 +44,7 @@ export default function RecruiterSidebar() {
                     </div>
                     <div>
                         <span className="font-black text-lg text-slate-900 tracking-tight block leading-none">Kaam Milega</span>
-                        <span className="text-[10px] font-extrabold text-km-primary uppercase tracking-widest mt-1 block">
+                        <span className="text-[10px] font-extrabold text-km-heading uppercase tracking-widest mt-1 block">
                             Recruiter ATS
                         </span>
                     </div>
@@ -52,7 +52,7 @@ export default function RecruiterSidebar() {
 
                 {/* Company Badge Card */}
                 <div className="mt-4 p-3 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
+                    <div className="w-8 h-8 rounded-xl bg-km-ink text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
                         {companyName.charAt(0)}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -75,15 +75,15 @@ export default function RecruiterSidebar() {
                             href={item.href}
                             className={`flex items-center justify-between px-3.5 py-3 rounded-2xl transition-colors duration-150 font-bold text-xs border ${
                                 isActive
-                                    ? "bg-blue-50 text-km-primary border-blue-100 shadow-xs"
+                                    ? "bg-blue-50 text-km-heading border-blue-100 shadow-xs"
                                     : "text-slate-600 border-transparent hover:bg-slate-50 hover:text-slate-900"
                             }`}
                         >
                             <div className="flex items-center gap-3">
-                                <item.icon className={`w-4 h-4 transition-colors ${isActive ? "text-km-primary" : "text-slate-400"}`} />
+                                <item.icon className={`w-4 h-4 transition-colors ${isActive ? "text-km-heading" : "text-slate-400"}`} />
                                 <span>{item.name}</span>
                             </div>
-                            <CaretRightIcon weight="bold" className={`w-3.5 h-3.5 transition-opacity ${isActive ? "opacity-100 text-km-primary" : "opacity-0"}`} />
+                            <CaretRightIcon weight="bold" className={`w-3.5 h-3.5 transition-opacity ${isActive ? "opacity-100 text-km-heading" : "opacity-0"}`} />
                         </Link>
                     );
                 })}

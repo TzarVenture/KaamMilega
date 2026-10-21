@@ -231,7 +231,7 @@ export default function AdminDisputesPage() {
                 <button 
                     onClick={() => fetchDisputes(page, statusFilter)}
                     disabled={loading}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-xs self-start sm:self-auto cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-gray-200 bg-km-surface-card text-xs font-semibold text-gray-700 hover:bg-gray-50 transition shadow-xs self-start sm:self-auto cursor-pointer"
                 >
                     <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600" : "text-gray-500"} />
                     <span>Refresh</span>
@@ -240,26 +240,26 @@ export default function AdminDisputesPage() {
 
             {/* Quick Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs">
+                <div className="bg-km-surface-card p-5 rounded-2xl border border-gray-100 shadow-xs">
                     <p className="text-xs font-semibold text-gray-500">Total Filtered</p>
                     <p className="text-2xl font-bold text-gray-900 mt-1">{totalCount}</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl border border-amber-100 shadow-xs bg-amber-50/20">
+                <div className="bg-km-surface-card p-5 rounded-2xl border border-amber-100 shadow-xs bg-amber-50/20">
                     <p className="text-xs font-semibold text-amber-700">Pending Review</p>
                     <p className="text-2xl font-bold text-amber-700 mt-1">{pendingCount}</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl border border-blue-100 shadow-xs bg-blue-50/20">
+                <div className="bg-km-surface-card p-5 rounded-2xl border border-blue-100 shadow-xs bg-blue-50/20">
                     <p className="text-xs font-semibold text-blue-700">Under Investigation</p>
                     <p className="text-2xl font-bold text-blue-700 mt-1">{underReviewCount}</p>
                 </div>
-                <div className="bg-white p-5 rounded-2xl border border-emerald-100 shadow-xs bg-emerald-50/20">
+                <div className="bg-km-surface-card p-5 rounded-2xl border border-emerald-100 shadow-xs bg-emerald-50/20">
                     <p className="text-xs font-semibold text-emerald-700">Refunds Approved</p>
                     <p className="text-2xl font-bold text-emerald-700 mt-1">{approvedCount}</p>
                 </div>
             </div>
 
             {/* Filter Tabs and Search */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="bg-km-surface-card p-4 rounded-2xl border border-gray-100 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 {/* Status tabs */}
                 <div className="flex items-center bg-gray-100 p-1 rounded-xl overflow-x-auto">
                     {[
@@ -274,7 +274,7 @@ export default function AdminDisputesPage() {
                             onClick={() => handleFilterChange(tab.key as any)}
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition whitespace-nowrap cursor-pointer ${
                                 statusFilter === tab.key 
-                                    ? 'bg-white text-gray-900 shadow-xs' 
+                                    ? 'bg-km-surface-card text-gray-900 shadow-xs' 
                                     : 'text-gray-600 hover:text-gray-900'
                             }`}
                         >
@@ -297,7 +297,7 @@ export default function AdminDisputesPage() {
             </div>
 
             {/* Disputes Table */}
-            <div className="bg-white rounded-2xl shadow-xs border border-gray-100 overflow-hidden">
+            <div className="bg-km-surface-card rounded-2xl shadow-xs border border-gray-100 overflow-hidden">
                 {loading ? (
                     <div className="p-12 text-center text-gray-400">Loading dispute requests...</div>
                 ) : filteredDisputes.length === 0 ? (
@@ -318,7 +318,7 @@ export default function AdminDisputesPage() {
                                     <th className="px-6 py-3.5 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-100">
+                            <tbody className="bg-km-surface-card divide-y divide-gray-100">
                                 {filteredDisputes.map((disp) => {
                                     const badge = getStatusBadge(disp.status);
                                     const BadgeIcon = badge.icon;
@@ -429,7 +429,7 @@ export default function AdminDisputesPage() {
             {/* Resolve Modal */}
             {selectedDispute && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+                    <div className="bg-km-surface-card rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
                         <div className="flex justify-between items-start">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -471,7 +471,7 @@ export default function AdminDisputesPage() {
                             </div>
                             <div className="pt-2 border-t border-gray-200">
                                 <span className="text-gray-500 block mb-1 font-semibold">User Statement:</span>
-                                <p className="text-gray-700 bg-white p-2.5 rounded-xl border border-gray-200 leading-relaxed font-normal">
+                                <p className="text-gray-700 bg-km-surface-card p-2.5 rounded-xl border border-gray-200 leading-relaxed font-normal">
                                     {selectedDispute.description}
                                 </p>
                             </div>

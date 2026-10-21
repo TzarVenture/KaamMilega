@@ -5,7 +5,7 @@ import { ArrowUpRightIcon, BellIcon, BooksIcon, BriefcaseIcon, CardsThreeIcon, C
 import type { Icon } from '@phosphor-icons/react';
 import CitySelector from "./CitySelector";
 import BrandLogo from "./BrandLogo";
-import ThemeToggle from "./ThemeToggle";
+import ThemeToggle, { ThemeIconButton } from "./ThemeToggle";
 import AnimatedBoltIcon from "./AnimatedBoltIcon";
 import SearchHint from "./SearchHint";
 import CustomImage from "@/components/ui/CustomImage";
@@ -30,7 +30,7 @@ interface NavLink {
 // Desktop nav item: duotone icon in a rounded hit area; the active item sits on a soft blue tile
 const navItemClass = (isActive: boolean) =>
   `relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
-    isActive ? "bg-[#EAF1FC] text-[#071A4D]" : "text-slate-600 hover:bg-[#F4F7FB] hover:text-[#071A4D]"
+    isActive ? "bg-[#EAF1FC] text-km-heading" : "text-slate-600 hover:bg-km-surface hover:text-km-heading"
   }`;
 
 // Dark hover tooltip under a nav item (the item's wrapper needs the `group` class)
@@ -180,7 +180,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
   return (
     <>
-      <nav className="bg-white border-b border-slate-200 px-4 md:px-6 h-16 flex items-center justify-between sticky top-0 z-50 shadow-xs font-sans">
+      <nav className="bg-km-surface-card border-b border-slate-200 px-4 md:px-6 h-16 flex items-center justify-between sticky top-0 z-50 shadow-xs font-sans">
         {/* Left Section: Logo & Search */}
         <div className="flex items-center gap-4 flex-1 min-w-0">
           <div className="shrink-0 flex items-center">
@@ -210,7 +210,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
                 aria-label="Search jobs, skills, companies and more"
-                className="w-full pl-10 pr-9 py-2.5 bg-[#F4F7FB] border border-[#D9E0EA] rounded-full text-sm font-normal text-[#111827] focus:outline-none focus:border-[#071A4D] focus:bg-white focus:ring-2 focus:ring-[#071A4D]/10 transition-all shadow-2xs"
+                className="w-full pl-10 pr-9 py-2.5 bg-km-surface border border-km-border rounded-full text-sm font-normal text-km-text-primary focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card focus:ring-2 focus:ring-[#071A4D]/10 transition-all shadow-2xs"
               />
               {!searchValue && <SearchHint className="left-10 right-8" />}
               {searchValue && (
@@ -253,6 +253,8 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
               );
             })}
 
+            {FEATURES.DARK_MODE && <ThemeIconButton />}
+
             {/* Notifications Icon with Popover Dropdown */}
             <div
               className="relative group flex items-center justify-center"
@@ -282,7 +284,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
               {/* Dropdown Popover */}
               {notifDropdownOpen && (
-                <div className="absolute right-0 top-12 w-84 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
+                <div className="absolute right-0 top-12 w-84 sm:w-96 bg-km-surface-card rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150 font-sans">
                   {/* Header */}
                   <div className="px-4 py-2.5 border-b border-slate-100 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -298,7 +300,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                           }}
                           className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
                             notifPopoverTab === "unread"
-                              ? "bg-white text-slate-900 font-bold shadow-xs"
+                              ? "bg-km-surface-card text-slate-900 font-bold shadow-xs"
                               : "text-slate-500 hover:text-slate-800"
                           }`}
                         >
@@ -312,7 +314,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                           }}
                           className={`px-2 py-0.5 rounded-md transition-all cursor-pointer ${
                             notifPopoverTab === "all"
-                              ? "bg-white text-slate-900 font-bold shadow-xs"
+                              ? "bg-km-surface-card text-slate-900 font-bold shadow-xs"
                               : "text-slate-500 hover:text-slate-800"
                           }`}
                         >
@@ -327,7 +329,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                           e.stopPropagation();
                           markAllAsRead();
                         }}
-                        className="text-xs font-semibold text-km-primary hover:text-km-primary-dark transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+                        className="text-xs font-semibold text-km-heading hover:text-km-primary-dark transition-colors cursor-pointer flex items-center gap-1 shrink-0"
                       >
                         <CheckIcon weight="bold" size={13} />
                         Mark all read
@@ -377,7 +379,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                               className={`p-3.5 flex items-start gap-3 transition-colors cursor-pointer relative ${
                                 !notif.is_read
                                   ? "bg-blue-50/50 hover:bg-blue-50/80"
-                                  : "bg-white hover:bg-slate-50"
+                                  : "bg-km-surface-card hover:bg-slate-50"
                               }`}
                             >
                               {/* Notification Icon/Avatar */}
@@ -391,19 +393,19 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                                     />
                                   </div>
                                 ) : notif.category === "messages" ? (
-                                  <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                  <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                     <ChatIcon size={22} weight="duotone" />
                                   </span>
                                 ) : notif.category === "jobs" ? (
-                                  <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                  <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                     <BriefcaseIcon size={22} weight="duotone" />
                                   </span>
                                 ) : notif.category === "network" ? (
-                                  <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                  <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                     <UsersIcon size={22} weight="duotone" />
                                   </span>
                                 ) : (
-                                  <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                  <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                     <BellIcon size={22} weight="duotone" />
                                   </span>
                                 )}
@@ -446,7 +448,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     <Link
                       href="/notifications"
                       onClick={() => setNotifDropdownOpen(false)}
-                      className="text-xs font-bold text-km-primary hover:text-km-primary-dark transition-colors py-1 block"
+                      className="text-xs font-bold text-km-heading hover:text-km-primary-dark transition-colors py-1 block"
                     >
                       View all notifications
                     </Link>
@@ -460,7 +462,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           <div className="relative group" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`flex items-center gap-1 p-1.5 rounded-xl transition-colors cursor-pointer ${isMenuOpen ? "bg-[#EAF1FC]" : "hover:bg-[#F4F7FB]"}`}
+              className={`flex items-center gap-1 p-1.5 rounded-xl transition-colors cursor-pointer ${isMenuOpen ? "bg-[#EAF1FC]" : "hover:bg-km-surface"}`}
               aria-label="Account and settings"
               aria-expanded={isMenuOpen}
             >
@@ -486,7 +488,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
             {/* Context Menu (Dropdown) */}
             {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="absolute right-0 mt-2 w-64 bg-km-surface-card rounded-2xl shadow-xl border border-slate-200 py-4 z-50 animate-in fade-in zoom-in-95 duration-150">
                 {/* User Identity */}
                 <div className="px-4 pb-3 flex items-center gap-3">
                   <div className="w-11 h-11 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
@@ -506,7 +508,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     <h4 className="font-bold text-slate-900 leading-tight truncate">
                       {displayName}
                     </h4>
-                    <span className="inline-block mt-0.5 px-2 py-0.5 bg-blue-50 text-km-primary rounded-full text-[10px] font-bold">
+                    <span className="inline-block mt-0.5 px-2 py-0.5 bg-blue-50 text-km-heading rounded-full text-[10px] font-bold">
                       {roleLabel}
                     </span>
                   </div>
@@ -514,7 +516,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
                 <div className="px-4 mb-3">
                   <Link href="/profile">
-                    <button className="w-full py-1.5 border border-km-primary text-km-primary hover:bg-blue-50 rounded-xl text-xs font-bold transition-colors">
+                    <button className="w-full py-1.5 border border-km-primary text-km-heading hover:bg-blue-50 rounded-xl text-xs font-bold transition-colors">
                       View Profile
                     </button>
                   </Link>
@@ -574,7 +576,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   {isExpert && (
                     <>
                       <hr className="border-gray-100 my-2" />
-                      <h5 className="px-4 text-[13px] font-bold text-km-primary mt-2">
+                      <h5 className="px-4 text-[13px] font-bold text-km-heading mt-2">
                         Expert Portal
                       </h5>
                       <MenuItem
@@ -606,7 +608,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   <div className="px-4 pt-4 flex flex-col gap-2">
                     <Link
                       href="/recruiter/register"
-                      className="flex items-center text-km-primary text-xs font-bold hover:underline"
+                      className="flex items-center text-km-heading text-xs font-bold hover:underline"
                     >
                       Create Company Page{" "}
                       <ArrowUpRightIcon weight="bold" size={14} className="ml-1" />
@@ -614,7 +616,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     {!isExpert && (
                       <Link
                         href="/expert/apply"
-                        className="flex items-center text-km-primary text-xs font-bold hover:underline"
+                        className="flex items-center text-km-heading text-xs font-bold hover:underline"
                       >
                         Apply to be an Expert{" "}
                         <ArrowUpRightIcon weight="bold" size={14} className="ml-1" />
@@ -629,6 +631,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
         {/* Mobile Right: Search + Avatar + Hamburger */}
         <div className="flex md:hidden items-center gap-2 ml-2 shrink-0">
+          {FEATURES.DARK_MODE && <ThemeIconButton />}
           <button
             onClick={() => {
               setMobileSearchOpen(!mobileSearchOpen);
@@ -636,7 +639,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
             }}
             className={`p-2 rounded-full transition-colors cursor-pointer ${
               mobileSearchOpen
-                ? "bg-blue-50 text-km-primary"
+                ? "bg-blue-50 text-km-heading"
                 : "hover:bg-gray-100 text-gray-600"
             }`}
             aria-label="Search"
@@ -686,13 +689,13 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
         <>
           <div
             onClick={() => setMobileSearchOpen(false)}
-            className="md:hidden fixed inset-0 top-16 z-40 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
+            className="md:hidden fixed inset-0 top-16 z-40 bg-km-ink/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
             aria-hidden="true"
           />
-          <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 px-4 py-3 shadow-xl animate-in slide-in-from-top-2 duration-150">
+          <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 px-4 py-3 shadow-xl animate-in slide-in-from-top-2 duration-150">
             <form
               onSubmit={handleSearch}
-              className="relative flex items-center bg-[#F4F7FB] rounded-xl border border-[#D9E0EA] px-3.5 py-2.5 gap-2 focus-within:border-[#071A4D] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#071A4D]/10 transition-all"
+              className="relative flex items-center bg-km-surface rounded-xl border border-km-border px-3.5 py-2.5 gap-2 focus-within:border-[#071A4D] focus-within:bg-km-surface-card focus-within:ring-2 focus-within:ring-[#071A4D]/10 transition-all"
             >
               <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 shrink-0" />
               <input
@@ -701,7 +704,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 autoFocus
                 onChange={(e) => setSearchValue(e.target.value)}
                 aria-label="Search jobs, skills, companies and more"
-                className="bg-transparent text-sm outline-none w-full text-[#111827]"
+                className="bg-transparent text-sm outline-none w-full text-km-text-primary"
               />
               {!searchValue && <SearchHint className="left-10 right-16" />}
               <button
@@ -720,10 +723,10 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
         <>
           <div
             onClick={() => setMobileNavOpen(false)}
-            className="md:hidden fixed inset-0 top-16 z-40 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
+            className="md:hidden fixed inset-0 top-16 z-40 bg-km-ink/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
             aria-hidden="true"
           />
-          <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
+          <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
             {/* User identity */}
             <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
               <div className="w-10 h-10 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
@@ -746,7 +749,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 className="ml-auto"
                 onClick={() => setMobileNavOpen(false)}
               >
-                <span className="text-xs font-bold text-km-primary border border-blue-200 px-3 py-1 rounded-full hover:bg-blue-50 transition-colors">
+                <span className="text-xs font-bold text-km-heading border border-blue-200 px-3 py-1 rounded-full hover:bg-blue-50 transition-colors">
                   Profile
                 </span>
               </Link>
@@ -759,7 +762,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileNavOpen(false)}
-                  className="flex items-center justify-between px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary transition-colors"
+                  className="flex items-center justify-between px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     <link.Icon size={18} weight="bold" className={link.accent ? "text-[#FF6B00]" : undefined} aria-hidden="true" /> {link.label}
@@ -781,7 +784,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
               <Link
                 href="/wallet"
                 onClick={() => setMobileNavOpen(false)}
-                className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium"
+                className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium"
               >
                 Digital Wallet & Ledger
               </Link>
@@ -789,7 +792,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 <Link
                   href="/settings"
                   onClick={() => setMobileNavOpen(false)}
-                  className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                  className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                 >
                   Setting & Privacy
                 </Link>
@@ -799,21 +802,21 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   <Link
                     href="/recruiter/jobs/list"
                     onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                   >
                     My Jobs
                   </Link>
                   <Link
                     href="/recruiter/applications"
                     onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                   >
                     Active Applications
                   </Link>
                   <Link
                     href="/recruiter/interviews"
                     onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                   >
                     Interviews
                   </Link>
@@ -823,14 +826,14 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   <Link
                     href="/applications"
                     onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                   >
                     Applied Jobs Status
                   </Link>
                   <Link
                     href="/interviews"
                     onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                   >
                     Interviews
                   </Link>
@@ -838,7 +841,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     <Link
                       href="/expert/apply"
                       onClick={() => setMobileNavOpen(false)}
-                      className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                      className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                     >
                       Apply to be an Expert
                     </Link>
@@ -846,27 +849,27 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   {isExpert && (
                     <>
                       <hr className="border-gray-100 my-2" />
-                      <h5 className="px-4 text-[13px] font-bold text-km-primary">
+                      <h5 className="px-4 text-[13px] font-bold text-km-heading">
                         Expert Portal
                       </h5>
                       <Link
                         href="/events/create"
                         onClick={() => setMobileNavOpen(false)}
-                        className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                        className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                       >
                         Create Event
                       </Link>
                       <Link
                         href="/courses"
                         onClick={() => setMobileNavOpen(false)}
-                        className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                        className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                       >
                         My Courses
                       </Link>
                       <Link
                         href="/expert/mentorship"
                         onClick={() => setMobileNavOpen(false)}
-                        className="py-2 text-sm text-gray-600 hover:text-km-primary font-medium transition-colors"
+                        className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
                       >
                         Manage Mentorships
                       </Link>

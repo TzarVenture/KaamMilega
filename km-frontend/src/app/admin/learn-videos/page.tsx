@@ -175,7 +175,7 @@ export default function LearnVideosPage() {
     return (
         <div className="space-y-6">
             {/* Header & Stats Banner */}
-            <div className="bg-white rounded-3xl p-6 border border-purple-50 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="bg-km-surface-card rounded-3xl p-6 border border-purple-50 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
                         <div className="p-2 bg-purple-50 text-purple-600 rounded-xl">
@@ -225,7 +225,7 @@ export default function LearnVideosPage() {
             </div>
 
             {/* Filter and Search Controls */}
-            <div className="bg-white p-5 rounded-3xl border border-purple-50 shadow-sm space-y-4">
+            <div className="bg-km-surface-card p-5 rounded-3xl border border-purple-50 shadow-sm space-y-4">
                 <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
                     {/* Search Input */}
                     <div className="relative flex-1">
@@ -235,7 +235,7 @@ export default function LearnVideosPage() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Search by title, category, author or keywords..."
-                            className="w-full pl-11 pr-10 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-300 transition-all"
+                            className="w-full pl-11 pr-10 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-300 transition-all"
                         />
                         {searchTerm && (
                             <button
@@ -287,12 +287,12 @@ export default function LearnVideosPage() {
 
             {/* Video Cards Grid */}
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-purple-50 shadow-sm">
+                <div className="flex flex-col items-center justify-center py-20 bg-km-surface-card rounded-3xl border border-purple-50 shadow-sm">
                     <CircleNotchIcon size={36} className="text-purple-600 animate-spin mb-3" />
                     <p className="text-sm font-semibold text-gray-500">Loading videos catalog...</p>
                 </div>
             ) : filteredVideos.length === 0 ? (
-                <div className="bg-white rounded-3xl p-12 text-center border border-purple-50 shadow-sm space-y-4">
+                <div className="bg-km-surface-card rounded-3xl p-12 text-center border border-purple-50 shadow-sm space-y-4">
                     <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto">
                         <VideoCameraIcon size={30} />
                     </div>
@@ -334,7 +334,7 @@ export default function LearnVideosPage() {
                             layout
                             initial={{ opacity: 0, y: 12 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="bg-white rounded-3xl border border-purple-50 shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden group"
+                            className="bg-km-surface-card rounded-3xl border border-purple-50 shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden group"
                         >
                             {/* Thumbnail & Badges */}
                             <div className="relative aspect-video w-full bg-slate-100 overflow-hidden cursor-pointer"
@@ -362,7 +362,7 @@ export default function LearnVideosPage() {
 
                                 {/* Play Overlay */}
                                 <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                                    <div className="w-12 h-12 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-purple-600 shadow-lg group-hover:scale-110 transition-transform">
+                                    <div className="w-12 h-12 rounded-full bg-km-surface-card/90 backdrop-blur-sm flex items-center justify-center text-purple-600 shadow-lg group-hover:scale-110 transition-transform">
                                         <PlayCircleIcon size={28} />
                                     </div>
                                 </div>
@@ -461,7 +461,7 @@ export default function LearnVideosPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-red-50 space-y-5"
+                            className="w-full max-w-md bg-km-surface-card rounded-3xl p-6 shadow-2xl border border-red-50 space-y-5"
                         >
                             <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto">
                                 <WarningIcon size={24} />
@@ -508,7 +508,7 @@ export default function LearnVideosPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="w-full max-w-3xl bg-white rounded-3xl overflow-hidden shadow-2xl"
+                            className="w-full max-w-3xl bg-km-surface-card rounded-3xl overflow-hidden shadow-2xl"
                         >
                             <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                                 <div className="truncate pr-4">

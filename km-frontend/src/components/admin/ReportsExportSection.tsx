@@ -113,7 +113,7 @@ export default function ReportsExportSection({
   return (
     <div className="space-y-2.5 sm:space-y-3">
       {/* SECTION HEADER - Compact & Clean */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-3 sm:p-4 rounded-2xl border border-purple-50 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-km-surface-card p-3 sm:p-4 rounded-2xl border border-purple-50 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
             <div className="p-1 rounded-lg bg-purple-50 text-purple-600">
@@ -133,7 +133,7 @@ export default function ReportsExportSection({
             <button
               type="button"
               onClick={onRefreshStats}
-              className="px-2.5 py-1.5 bg-white border border-purple-100 hover:border-purple-200 text-purple-700 rounded-xl text-xs font-semibold shadow-xs hover:shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 py-1.5 bg-km-surface-card border border-purple-100 hover:border-purple-200 text-purple-700 rounded-xl text-xs font-semibold shadow-xs hover:shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <ArrowsClockwiseIcon weight="bold" size={11} />
               <span>Refresh</span>
@@ -199,7 +199,7 @@ export default function ReportsExportSection({
       {/* THREE CARDS IN SAME ROW ON MD SCREENS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3">
         {/* 1. USER LOGS */}
-        <div className="bg-white rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
+        <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -273,7 +273,7 @@ export default function ReportsExportSection({
         </div>
 
         {/* 2. JOB STATISTICS */}
-        <div className="bg-white rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
+        <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
@@ -347,7 +347,7 @@ export default function ReportsExportSection({
         </div>
 
         {/* 3. REVENUE & FINANCIAL REPORTS */}
-        <div className="bg-white rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
+        <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">

@@ -188,7 +188,7 @@ export default function UsersPage() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.05 }}
                         key={stat.label}
-                        className="p-6 bg-white rounded-3xl border border-purple-50 shadow-sm hover:border-purple-200 transition-all group"
+                        className="p-6 bg-km-surface-card rounded-3xl border border-purple-50 shadow-sm hover:border-purple-200 transition-all group"
                     >
                         <div className="flex items-start justify-between">
                             <div>
@@ -219,7 +219,7 @@ export default function UsersPage() {
                                 setSearchQuery(e.target.value);
                                 setPage(1);
                             }}
-                            className="w-full sm:w-80 pl-11 pr-4 py-2.5 bg-white border border-purple-100 rounded-2xl text-sm focus:outline-none focus:border-purple-300 transition-all shadow-sm"
+                            className="w-full sm:w-80 pl-11 pr-4 py-2.5 bg-km-surface-card border border-purple-100 rounded-2xl text-sm focus:outline-none focus:border-purple-300 transition-all shadow-sm"
                         />
                     </div>
                     <div className="flex items-center gap-2">
@@ -240,7 +240,7 @@ export default function UsersPage() {
             <motion.div
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-[32px] border border-purple-50 shadow-sm overflow-hidden"
+                className="bg-km-surface-card rounded-[32px] border border-purple-50 shadow-sm overflow-hidden"
             >
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -321,7 +321,7 @@ export default function UsersPage() {
                                         <td className="px-8 py-5">
                                             <button
                                                 onClick={() => handleOpenRoleModal(user)}
-                                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95"
+                                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-km-surface-card border border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95"
                                             >
                                                 <ShieldIcon weight="bold" size={13} />
                                                 <span>Manage Access</span>
@@ -357,7 +357,7 @@ export default function UsersPage() {
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-purple-50 bg-white border border-purple-100 rounded-xl disabled:opacity-40 transition-colors"
+                                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-purple-50 bg-km-surface-card border border-purple-100 rounded-xl disabled:opacity-40 transition-colors"
                             >
                                 Prev
                             </button>
@@ -367,7 +367,7 @@ export default function UsersPage() {
                                     onClick={() => setPage(p)}
                                     className={`w-8 h-8 flex items-center justify-center rounded-xl font-bold text-xs border transition-colors ${p === page
                                         ? 'bg-purple-600 text-white border-purple-600'
-                                        : 'text-slate-600 hover:bg-purple-50 bg-white border-purple-100'
+                                        : 'text-slate-600 hover:bg-purple-50 bg-km-surface-card border-purple-100'
                                     }`}
                                 >
                                     {p}
@@ -376,7 +376,7 @@ export default function UsersPage() {
                             <button
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
-                                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-purple-50 bg-white border border-purple-100 rounded-xl disabled:opacity-40 transition-colors"
+                                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-purple-50 bg-km-surface-card border border-purple-100 rounded-xl disabled:opacity-40 transition-colors"
                             >
                                 Next
                             </button>

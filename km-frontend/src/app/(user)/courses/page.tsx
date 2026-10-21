@@ -177,14 +177,14 @@ export default function CoursesExpertStudioPage() {
     // If logged-in user is NOT an expert, show branded gateway card
     if (!isExpert) {
         return (
-            <div className="min-h-screen bg-[#F4F7FB] py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-                <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-[#D9E0EA] shadow-lg text-center space-y-5">
+            <div className="min-h-screen bg-km-surface py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+                <div className="max-w-md w-full bg-km-surface-card rounded-3xl p-8 border border-km-border shadow-lg text-center space-y-5">
                     <GraduationCapIcon size={36} weight="duotone" className="text-[#7C3AED] mx-auto" aria-hidden="true" />
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-black text-[#071A4D]">
+                        <h2 className="text-2xl font-black text-km-heading">
                             Expert Portal Only
                         </h2>
-                        <p className="text-sm text-[#5B6472] leading-relaxed">
+                        <p className="text-sm text-km-text-secondary leading-relaxed">
                             Only verified Kaammilega Experts can upload and publish video training courses.
                         </p>
                     </div>
@@ -204,7 +204,7 @@ export default function CoursesExpertStudioPage() {
     }
 
     return (
-        <main className="min-h-screen bg-[#F4F7FB] pb-20 font-sans">
+        <main className="min-h-screen bg-km-surface pb-20 font-sans">
             {/* ─── Hero Header with Mentorship Theme Design Philosophy ─── */}
             <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -221,13 +221,13 @@ export default function CoursesExpertStudioPage() {
                         <div className="flex items-center gap-2.5 shrink-0">
                             <Link
                                 href="/courses/manage"
-                                className="text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                                className="text-xs sm:text-sm font-semibold text-white bg-km-surface-card/10 hover:bg-km-surface-card/20 border border-white/20 px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
                             >
                                 <span>Manage My Courses</span>
                             </Link>
                             <Link
                                 href="/resources"
-                                className="text-xs sm:text-sm font-semibold text-[#071A4D] bg-white hover:bg-white/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                                className="text-xs sm:text-sm font-semibold text-km-heading bg-km-surface-card hover:bg-km-surface-card/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
                             >
                                 <span>Public Marketplace</span>
                                 <ArrowSquareOutIcon weight="bold" size={13} />
@@ -241,14 +241,14 @@ export default function CoursesExpertStudioPage() {
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-8">
 
                 {/* ─── Top Half: Create New Course Form ─── */}
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#D9E0EA] shadow-xs space-y-6">
-                    <div className="flex items-center gap-2.5 border-b border-[#D9E0EA]/60 pb-4">
+                <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-km-border shadow-xs space-y-6">
+                    <div className="flex items-center gap-2.5 border-b border-km-border/60 pb-4">
                         <VideoCameraIcon size={22} className="text-[#FF6B00]" aria-hidden="true" />
                         <div>
-                            <h2 className="text-base sm:text-lg font-bold text-[#111827]">
+                            <h2 className="text-base sm:text-lg font-bold text-km-text-primary">
                                 Publish a New Course Video
                             </h2>
-                            <p className="text-xs text-[#5B6472]">
+                            <p className="text-xs text-km-text-secondary">
                                 Enter the YouTube URL — your high-res thumbnail will be extracted automatically.
                             </p>
                         </div>
@@ -259,10 +259,10 @@ export default function CoursesExpertStudioPage() {
                             {/* Course Title with 10-word limit counter */}
                             <div className="md:col-span-2 space-y-1.5">
                                 <div className="flex items-center justify-between">
-                                    <label className="block text-xs font-semibold text-[#071A4D]">
+                                    <label className="block text-xs font-semibold text-km-heading">
                                         Course Title <span className="text-[#FF6B00]">*</span>
                                     </label>
-                                    <span className={`text-[11px] ${titleWordCount > 10 ? "text-red-500 font-semibold" : "text-[#5B6472]"}`}>
+                                    <span className={`text-[11px] ${titleWordCount > 10 ? "text-red-500 font-semibold" : "text-km-text-secondary"}`}>
                                         {titleWordCount} / 10 words
                                     </span>
                                 </div>
@@ -272,10 +272,10 @@ export default function CoursesExpertStudioPage() {
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
                                     placeholder="e.g. Complete Domestic House Wiring & Safety Guide"
-                                    className={`w-full px-4 py-2.5 sm:py-3 bg-white border rounded-xl focus:outline-hidden transition-all text-sm text-[#111827] font-medium placeholder:text-[#5B6472]/60 ${
+                                    className={`w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border rounded-xl focus:outline-hidden transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60 ${
                                         titleWordCount > 10
                                             ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                                            : "border-[#D9E0EA] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                            : "border-km-border focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                     }`}
                                 />
                                 {titleWordCount > 10 && (
@@ -287,7 +287,7 @@ export default function CoursesExpertStudioPage() {
 
                             {/* YouTube URL */}
                             <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-[#071A4D]">
+                                <label className="block text-xs font-semibold text-km-heading">
                                     YouTube Video URL <span className="text-[#FF6B00]">*</span>
                                 </label>
                                 <input
@@ -296,16 +296,16 @@ export default function CoursesExpertStudioPage() {
                                     value={youtubeUrl}
                                     onChange={(e) => setYoutubeUrl(e.target.value)}
                                     placeholder="https://www.youtube.com/watch?v=..."
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-white border border-[#D9E0EA] rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-[#111827] font-medium placeholder:text-[#5B6472]/60"
+                                    className="w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border border-km-border rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60"
                                 />
-                                <p className="text-[11px] text-[#5B6472]">
+                                <p className="text-[11px] text-km-text-secondary">
                                     Supports standard watch links, youtu.be, or shorts.
                                 </p>
                             </div>
 
                             {/* Video Duration */}
                             <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-[#071A4D]">
+                                <label className="block text-xs font-semibold text-km-heading">
                                     Video Duration <span className="text-[#FF6B00]">*</span>
                                 </label>
                                 <input
@@ -314,19 +314,19 @@ export default function CoursesExpertStudioPage() {
                                     value={duration}
                                     onChange={(e) => setDuration(e.target.value)}
                                     placeholder="e.g. 45 Min or 1 Hr 20 Min"
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-white border border-[#D9E0EA] rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-[#111827] font-medium placeholder:text-[#5B6472]/60"
+                                    className="w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border border-km-border rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60"
                                 />
                             </div>
 
                             {/* Category Dropdown */}
                             <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-[#071A4D]">
+                                <label className="block text-xs font-semibold text-km-heading">
                                     Category / Trade <span className="text-[#FF6B00]">*</span>
                                 </label>
                                 <select
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-white border border-[#D9E0EA] rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-[#111827] font-medium cursor-pointer"
+                                    className="w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border border-km-border rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-km-text-primary font-medium cursor-pointer"
                                 >
                                     {CATEGORIES.map((cat) => (
                                         <option key={cat} value={cat}>
@@ -339,7 +339,7 @@ export default function CoursesExpertStudioPage() {
                             {/* If "Others" is selected: Custom Category Text Field */}
                             {category === "Others" && (
                                 <div className="space-y-1.5 animate-in fade-in duration-200">
-                                    <label className="block text-xs font-semibold text-[#071A4D]">
+                                    <label className="block text-xs font-semibold text-km-heading">
                                         Enter Custom Category Name <span className="text-[#FF6B00]">*</span>
                                     </label>
                                     <input
@@ -348,7 +348,7 @@ export default function CoursesExpertStudioPage() {
                                         value={customCategory}
                                         onChange={(e) => setCustomCategory(e.target.value)}
                                         placeholder="e.g. Solar Panel Technician, CNC Operator..."
-                                        className="w-full px-4 py-2.5 sm:py-3 bg-white border border-[#D9E0EA] rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-[#111827] font-medium placeholder:text-[#5B6472]/60"
+                                        className="w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border border-km-border rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60"
                                     />
                                 </div>
                             )}
@@ -356,10 +356,10 @@ export default function CoursesExpertStudioPage() {
                             {/* Short Description with 50-word limit counter */}
                             <div className={`space-y-1.5 ${category === "Others" ? "md:col-span-2" : "md:col-span-2"}`}>
                                 <div className="flex items-center justify-between">
-                                    <label className="block text-xs font-semibold text-[#071A4D]">
+                                    <label className="block text-xs font-semibold text-km-heading">
                                         Course Description & Highlights
                                     </label>
-                                    <span className={`text-[11px] ${descWordCount > 50 ? "text-red-500 font-semibold" : "text-[#5B6472]"}`}>
+                                    <span className={`text-[11px] ${descWordCount > 50 ? "text-red-500 font-semibold" : "text-km-text-secondary"}`}>
                                         {descWordCount} / 50 words
                                     </span>
                                 </div>
@@ -368,10 +368,10 @@ export default function CoursesExpertStudioPage() {
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
                                     placeholder="Briefly describe what students will learn from this video session..."
-                                    className={`w-full px-4 py-2.5 sm:py-3 bg-white border rounded-xl focus:outline-hidden transition-all text-sm text-[#111827] font-medium placeholder:text-[#5B6472]/60 resize-none ${
+                                    className={`w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border rounded-xl focus:outline-hidden transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60 resize-none ${
                                         descWordCount > 50
                                             ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                                            : "border-[#D9E0EA] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                            : "border-km-border focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                     }`}
                                 />
                                 {descWordCount > 50 && (
@@ -400,7 +400,7 @@ export default function CoursesExpertStudioPage() {
                                         <CheckCircleIcon weight="bold" size={16} />
                                         <span>Verified YouTube Video ID: {extractedVideoId}</span>
                                     </div>
-                                    <p className="text-xs text-[#5B6472]">
+                                    <p className="text-xs text-km-text-secondary">
                                         Thumbnail confirmed. This high-resolution image will be visible across the Kaammilega platform.
                                     </p>
                                 </div>
@@ -443,10 +443,10 @@ export default function CoursesExpertStudioPage() {
                 <div className="space-y-4">
                     <div className="flex items-center justify-between gap-2 px-1">
                         <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-                            <h2 className="text-sm sm:text-base md:text-xl font-medium text-[#071A4D] truncate">
+                            <h2 className="text-sm sm:text-base md:text-xl font-medium text-km-heading truncate">
                                 My Uploaded Courses
                             </h2>
-                            <span className="bg-[#F4F7FB] border border-[#D9E0EA] text-[#071A4D] font-medium text-[11px] sm:text-xs px-2 py-0.5 rounded-full shrink-0">
+                            <span className="bg-km-surface border border-km-border text-km-heading font-medium text-[11px] sm:text-xs px-2 py-0.5 rounded-full shrink-0">
                                 {totalCourses}
                             </span>
                         </div>
@@ -466,12 +466,12 @@ export default function CoursesExpertStudioPage() {
                             <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0B5ED7]"></div>
                         </div>
                     ) : myCourses.length === 0 ? (
-                        <div className="bg-white rounded-2xl border border-dashed border-[#D9E0EA] p-8 text-center space-y-2">
-                            <VideoCameraIcon size={28} weight="duotone" className="text-[#5B6472] mx-auto" aria-hidden="true" />
-                            <h3 className="text-sm font-bold text-[#111827]">
+                        <div className="bg-km-surface-card rounded-2xl border border-dashed border-km-border p-8 text-center space-y-2">
+                            <VideoCameraIcon size={28} weight="duotone" className="text-km-text-secondary mx-auto" aria-hidden="true" />
+                            <h3 className="text-sm font-bold text-km-text-primary">
                                 No Courses Published Yet
                             </h3>
-                            <p className="text-xs text-[#5B6472] max-w-sm mx-auto">
+                            <p className="text-xs text-km-text-secondary max-w-sm mx-auto">
                                 Use the form above to add your first YouTube video training course to share with learners.
                             </p>
                         </div>
@@ -482,7 +482,7 @@ export default function CoursesExpertStudioPage() {
                                 type="button"
                                 onClick={handleScrollLeft}
                                 aria-label="Scroll left"
-                                className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white text-[#071A4D] hover:bg-[#071A4D] hover:text-white border border-[#D9E0EA] shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100"
+                                className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-[#071A4D] hover:text-white border border-km-border shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100"
                                 title="Scroll left"
                             >
                                 <CaretLeftIcon weight="bold" size={18} />
@@ -509,7 +509,7 @@ export default function CoursesExpertStudioPage() {
                                 type="button"
                                 onClick={handleScrollRight}
                                 aria-label="Scroll right"
-                                className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white text-[#071A4D] hover:bg-[#071A4D] hover:text-white border border-[#D9E0EA] shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100"
+                                className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-[#071A4D] hover:text-white border border-km-border shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100"
                                 title="Scroll right"
                             >
                                 <CaretRightIcon weight="bold" size={18} />

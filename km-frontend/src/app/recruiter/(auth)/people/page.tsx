@@ -28,7 +28,7 @@ const PeopleSection: React.FC = () => {
                 <div>
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-bold text-gray-900">Popular People To Follow Across KaamMilega</h2>
-                        <button className="text-km-primary font-semibold text-sm hover:underline">See All</button>
+                        <button className="text-km-heading font-semibold text-sm hover:underline">See All</button>
                     </div>
                     <div className="grid grid-cols-3 gap-6">
                         {[...Array(6)].map((_, i) => (
@@ -45,7 +45,7 @@ export default PeopleSection;
 
 
 const PersonCard = () => (
-    <div className="bg-white border border-gray-100 rounded-3xl p-5 flex flex-col items-center relative shadow-sm hover:shadow-md transition">
+    <div className="bg-km-surface-card border border-gray-100 rounded-3xl p-5 flex flex-col items-center relative shadow-sm hover:shadow-md transition">
         <button className="absolute top-3 right-3 text-gray-300 hover:text-gray-500">
             <XIcon weight="bold" size={16} />
         </button>
@@ -65,7 +65,7 @@ const PersonCard = () => (
         <p className="text-[10px] text-gray-400 mb-4 cursor-default">10 Mutual Connects</p>
 
         <div className="w-full space-y-2">
-            <button className="w-full py-2 border border-km-primary text-km-primary rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
+            <button className="w-full py-2 border border-km-primary text-km-heading rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
                 <ChatCircleIcon weight="bold" size={12} />
                 <span>Chat</span>
             </button>
@@ -97,7 +97,7 @@ const PopularPersonRow = () => (
             <p className="text-[9px] text-gray-400 mt-1">10 Mutual Connects</p>
 
             <div className="flex space-x-2 mt-3">
-                <button className="flex-1 py-1.5 border border-km-primary text-km-primary rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
+                <button className="flex-1 py-1.5 border border-km-primary text-km-heading rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
                     <ChatCircleIcon weight="bold" size={10} />
                     <span>Chat</span>
                 </button>

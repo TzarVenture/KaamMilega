@@ -155,7 +155,7 @@ export default function EditJobPage() {
             {/* Header */}
             <div className="mb-8 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Link href="/recruiter/jobs/list" className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-gray-400 hover:text-gray-600 transition-all">
+                    <Link href="/recruiter/jobs/list" className="p-2 bg-km-surface-card rounded-full shadow-sm border border-gray-100 text-gray-400 hover:text-gray-600 transition-all">
                         <ArrowLeftIcon className="w-5 h-5" />
                     </Link>
                     <div>
@@ -188,7 +188,7 @@ export default function EditJobPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
+                            className="space-y-6 bg-km-surface-card p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-2 text-blue-600 font-bold text-lg">
@@ -258,7 +258,7 @@ export default function EditJobPage() {
                                         </button>
 
                                         {isCityOpen && (
-                                            <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                                            <div className="absolute top-full left-0 w-full mt-2 bg-km-surface-card rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                                                 <div className="p-2 border-b">
                                                     <div className="relative">
                                                         <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -297,7 +297,7 @@ export default function EditJobPage() {
                                         <ClockIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                                         <select
                                             name="job_type"
-                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none bg-white font-medium"
+                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none bg-km-surface-card font-medium"
                                             value={formData.job_type}
                                             onChange={handleChange}
                                         >
@@ -332,7 +332,7 @@ export default function EditJobPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
+                            className="space-y-8 bg-km-surface-card p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
                             <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
                                 <CurrencyInrIcon className="w-5 h-5" />
@@ -352,7 +352,7 @@ export default function EditJobPage() {
                                     <label className="text-sm font-semibold text-gray-700">Gender Preference</label>
                                     <select
                                         name="gender"
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-km-surface-card"
                                         value={formData.gender}
                                         onChange={handleChange}
                                     >
@@ -365,7 +365,7 @@ export default function EditJobPage() {
                                     <label className="text-sm font-semibold text-gray-700">Education Qualification</label>
                                     <select
                                         name="education"
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-km-surface-card"
                                         value={formData.education}
                                         onChange={handleChange}
                                     >
@@ -446,7 +446,7 @@ export default function EditJobPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
+                            className="space-y-6 bg-km-surface-card p-8 rounded-2xl shadow-xl border border-blue-50"
                         >
                             <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
                                 <PencilSimpleIcon className="w-5 h-5" />

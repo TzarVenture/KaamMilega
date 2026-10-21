@@ -54,7 +54,7 @@ const SkillModal = ({ isOpen, onClose, onSuccess }: SkillModalProps) => {
         <ModalWrapper isOpen={isOpen} onClose={onClose} title="Add Skill">
             <div className="space-y-4 relative">
                 {saving && (
-                    <div className="absolute inset-0 bg-white/50 z-20 flex items-center justify-center rounded-xl">
+                    <div className="absolute inset-0 bg-km-surface-card/50 z-20 flex items-center justify-center rounded-xl">
                         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-km-primary"></div>
                     </div>
                 )}
@@ -93,7 +93,7 @@ const SkillModal = ({ isOpen, onClose, onSuccess }: SkillModalProps) => {
                             className="w-full text-left p-3 hover:bg-blue-50 rounded-xl flex items-center justify-between group transition-colors"
                         >
                             <span className="font-medium text-gray-700">{skill.name}</span>
-                            <CheckCircleIcon weight="bold" size={16} className="text-km-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <CheckCircleIcon weight="bold" size={16} className="text-km-heading opacity-0 group-hover:opacity-100 transition-opacity" />
                         </button>
                     ))}
 

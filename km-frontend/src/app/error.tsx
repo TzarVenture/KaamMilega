@@ -17,14 +17,14 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
   }, [error]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-blue-100 selection:text-km-primary">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900 selection:bg-blue-100 selection:text-km-heading">
       {/* Header */}
-      <header className="w-full bg-white border-b border-slate-200/80 sticky top-0 z-50">
+      <header className="w-full bg-km-surface-card border-b border-slate-200/80 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <BrandLogo size="sm" />
           <Link
             href="/"
-            className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-km-primary flex items-center gap-1.5 transition-colors"
+            className="text-xs sm:text-sm font-semibold text-slate-600 hover:text-km-heading flex items-center gap-1.5 transition-colors"
           >
             <ArrowLeftIcon weight="bold" size={16} />
             <span>Back to Home</span>
@@ -61,9 +61,9 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
 
             <Link
               href="/"
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-100 text-slate-700 font-bold px-6 py-3 rounded-xl border border-slate-200 transition-all shadow-2xs hover:shadow-xs cursor-pointer text-sm"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-km-surface-card hover:bg-slate-100 text-slate-700 font-bold px-6 py-3 rounded-xl border border-slate-200 transition-all shadow-2xs hover:shadow-xs cursor-pointer text-sm"
             >
-              <HouseIcon weight="bold" size={17} className="text-km-primary" />
+              <HouseIcon weight="bold" size={17} className="text-km-heading" />
               <span>Go to Homepage</span>
             </Link>
           </div>
@@ -78,7 +78,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
                     {error.digest ? `ID: ${error.digest.slice(0, 10)}` : 'Details'}
                   </span>
                 </summary>
-                <div className="mt-3 p-3.5 bg-slate-900 text-slate-200 rounded-xl font-mono text-[11px] leading-relaxed break-all shadow-inner">
+                <div className="mt-3 p-3.5 bg-km-ink text-slate-200 rounded-xl font-mono text-[11px] leading-relaxed break-all shadow-inner">
                   {error.message && <p className="text-rose-400 font-semibold mb-1">{error.message}</p>}
                   {error.digest && <p className="text-slate-400">Error Digest: {error.digest}</p>}
                 </div>
@@ -89,7 +89,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
       </main>
 
       {/* Footer */}
-      <footer className="w-full py-6 text-center text-xs text-slate-400 border-t border-slate-200/60 bg-white">
+      <footer className="w-full py-6 text-center text-xs text-slate-400 border-t border-slate-200/60 bg-km-surface-card">
         &copy; {new Date().getFullYear()} KaamMilega. Technical Monitoring & Protection Active.
       </footer>
     </div>

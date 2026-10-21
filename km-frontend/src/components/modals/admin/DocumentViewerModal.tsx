@@ -39,11 +39,11 @@ const DocumentViewerModal = ({ isOpen, onClose, documentName, documentUrl }: Doc
                 {/* Actions Footer */}
                 <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <div className="flex items-center gap-4">
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
+                        <button className="flex items-center gap-2 px-4 py-2 bg-km-surface-card border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
                             <DownloadSimpleIcon weight="bold" size={18} />
                             Download
                         </button>
-                        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
+                        <button className="flex items-center gap-2 px-4 py-2 bg-km-surface-card border border-gray-200 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
                             <PrinterIcon weight="bold" size={18} />
                             Print
                         </button>

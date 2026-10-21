@@ -28,7 +28,7 @@ export default function UserInterviewsPage() {
     if (loading) {
         return (
             <div className="flex h-[80vh] items-center justify-center">
-                <CircleNotchIcon className="w-10 h-10 animate-spin text-km-primary" />
+                <CircleNotchIcon className="w-10 h-10 animate-spin text-km-heading" />
             </div>
         );
     }
@@ -42,8 +42,8 @@ export default function UserInterviewsPage() {
                 </header>
 
                 {interviews.length === 0 ? (
-                    <div className="bg-white p-12 sm:p-16 rounded-3xl border border-slate-200/80 text-center shadow-xs">
-                        <CalendarBlankIcon size={48} weight="duotone" className="text-km-primary mx-auto mb-6" aria-hidden="true" />
+                    <div className="bg-km-surface-card p-12 sm:p-16 rounded-3xl border border-slate-200/80 text-center shadow-xs">
+                        <CalendarBlankIcon size={48} weight="duotone" className="text-km-heading mx-auto mb-6" aria-hidden="true" />
                         <h2 className="text-xl font-black text-slate-900">No Scheduled Interviews</h2>
                         <p className="text-slate-500 mt-2 max-w-sm mx-auto text-xs font-medium">
                             Apply to active job postings to get shortlisted and receive direct interview calls!
@@ -59,7 +59,7 @@ export default function UserInterviewsPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {interviews.map((inview) => (
-                            <div key={inview.id} className="bg-white rounded-3xl border border-slate-200/80 overflow-hidden hover:shadow-lg transition-all group">
+                            <div key={inview.id} className="bg-km-surface-card rounded-3xl border border-slate-200/80 overflow-hidden hover:shadow-lg transition-all group">
                                 <div className="p-6 sm:p-8 space-y-6">
                                     {/* Header: Company & Job */}
                                     <div className="flex justify-between items-start">
@@ -85,7 +85,7 @@ export default function UserInterviewsPage() {
                                     {/* Timing Section */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-km-primary mb-1 flex items-center gap-1.5">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-km-heading mb-1 flex items-center gap-1.5">
                                                 <CalendarBlankIcon weight="bold" className="w-3.5 h-3.5" />
                                                 Date
                                             </p>
@@ -94,7 +94,7 @@ export default function UserInterviewsPage() {
                                             </p>
                                         </div>
                                         <div className="bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-km-primary mb-1 flex items-center gap-1.5">
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-km-heading mb-1 flex items-center gap-1.5">
                                                 <ClockIcon weight="bold" className="w-3.5 h-3.5" />
                                                 Time
                                             </p>
@@ -108,7 +108,7 @@ export default function UserInterviewsPage() {
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
-                                                {inview.type === 'Video' ? <VideoCameraIcon className="w-5 h-5 text-km-primary" /> :
+                                                {inview.type === 'Video' ? <VideoCameraIcon className="w-5 h-5 text-km-heading" /> :
                                                     inview.type === 'Phone' ? <PhoneIcon className="w-5 h-5 text-emerald-600" /> :
                                                         <MapPinIcon className="w-5 h-5 text-amber-600" />}
                                             </div>

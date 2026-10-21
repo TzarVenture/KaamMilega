@@ -10,7 +10,7 @@ const EventDetailsPage = () => {
             <div className="flex-1 space-y-6">
 
                 {/* Event Header Card */}
-                <div className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100">
+                <div className="bg-km-surface-card rounded-[32px] overflow-hidden shadow-sm border border-gray-100">
                     {/* Cover Image Placeholder */}
                     <div className="h-64 bg-[#1D0A1C] flex items-center justify-center relative">
                         <div className="flex items-center justify-center opacity-40 scale-150">
@@ -19,10 +19,10 @@ const EventDetailsPage = () => {
                         </div>
                         {/* Action Buttons on Cover */}
                         <div className="absolute bottom-6 right-6 flex gap-3">
-                            <button className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white hover:bg-white/20 transition-all">
+                            <button className="p-3 bg-km-surface-card/10 backdrop-blur-md rounded-xl text-white hover:bg-km-surface-card/20 transition-all">
                                 <BookmarkSimpleIcon size={20} />
                             </button>
-                            <button className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white hover:bg-white/20 transition-all">
+                            <button className="p-3 bg-km-surface-card/10 backdrop-blur-md rounded-xl text-white hover:bg-km-surface-card/20 transition-all">
                                 <ShareNetworkIcon size={20} />
                             </button>
                         </div>
@@ -88,7 +88,7 @@ const EventDetailsPage = () => {
                 </div>
 
                 {/* About Event Section */}
-                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
+                <div className="bg-km-surface-card rounded-[32px] p-8 shadow-sm border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">About Event</h2>
                     <div className="text-gray-600 leading-relaxed space-y-4 text-sm">
                         <p>
@@ -101,7 +101,7 @@ const EventDetailsPage = () => {
                 </div>
 
                 {/* Speakers Section */}
-                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
+                <div className="bg-km-surface-card rounded-[32px] p-8 shadow-sm border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-8">Speakers</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {[1, 2].map((i) => (
@@ -128,7 +128,7 @@ const EventDetailsPage = () => {
             {/* Right Column: Sidebar */}
             <div className="w-full lg:w-80 space-y-6">
                 {/* Attendees Preview */}
-                <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100">
+                <div className="bg-km-surface-card rounded-[32px] p-6 shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="font-bold text-gray-900">Attendees</h2>
                         <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-md">View All</span>
@@ -152,7 +152,7 @@ const EventDetailsPage = () => {
                 </div>
 
                 {/* Ad Banner */}
-                <div className="bg-white rounded-[32px] h-[500px] flex items-center justify-center border border-gray-100 shadow-sm text-gray-400 font-bold text-xl italic p-12 text-center">
+                <div className="bg-km-surface-card rounded-[32px] h-[500px] flex items-center justify-center border border-gray-100 shadow-sm text-gray-400 font-bold text-xl italic p-12 text-center">
                     Ad Banner
                 </div>
             </div>

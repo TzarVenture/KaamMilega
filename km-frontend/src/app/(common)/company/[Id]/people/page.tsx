@@ -73,7 +73,7 @@ const PeopleSection: React.FC = () => {
                             {[1, 2, 3, 4].map(n => <div key={n} className="h-48 bg-gray-100 rounded-3xl animate-pulse" />)}
                         </div>
                     ) : people.length === 0 ? (
-                        <div className="bg-white border border-gray-200 rounded-3xl p-8 text-center">
+                        <div className="bg-km-surface-card border border-gray-200 rounded-3xl p-8 text-center">
                             <h3 className="text-lg font-bold text-gray-900">No people found</h3>
                             <p className="text-gray-500">We couldn't find anyone working here yet.</p>
                         </div>
@@ -94,7 +94,7 @@ export default PeopleSection;
 
 
 const PersonCard = ({ person }: { person: Person }) => (
-    <div className="bg-white border border-gray-100 rounded-3xl p-5 flex flex-col items-center relative shadow-sm hover:shadow-md transition">
+    <div className="bg-km-surface-card border border-gray-100 rounded-3xl p-5 flex flex-col items-center relative shadow-sm hover:shadow-md transition">
         <div className="relative mb-3">
             <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center overflow-hidden shadow-inner">
                 {person.avatar ? (
@@ -109,7 +109,7 @@ const PersonCard = ({ person }: { person: Person }) => (
         <p className="text-[10px] text-gray-400 uppercase mb-2 text-center w-full truncate font-semibold">{person.designation || 'Member'}</p>
 
         <div className="flex items-center text-gray-500 text-[10px] mb-1 font-medium">
-            <MapPinIcon weight="bold" size={10} className="mr-1 text-km-primary" />
+            <MapPinIcon weight="bold" size={10} className="mr-1 text-km-heading" />
             <span>{person.location || 'Location N/A'}</span>
         </div>
         <p className="text-[10px] text-gray-400 mb-4 cursor-default">{person.mutual_connects || 0} Mutual Connects</p>
@@ -129,7 +129,7 @@ const PersonCard = ({ person }: { person: Person }) => (
                 return !isSelf && (
                     <>
                         <Link href={`/chat?userId=${person.id}`}>
-                            <button className="w-full py-2 border border-km-primary text-km-primary rounded-xl text-xs font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
+                            <button className="w-full py-2 border border-km-primary text-km-heading rounded-xl text-xs font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
                                 <ChatCircleIcon weight="bold" size={12} />
                                 <span>Chat</span>
                             </button>

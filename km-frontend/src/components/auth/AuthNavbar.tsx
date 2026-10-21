@@ -23,19 +23,19 @@ export default function AuthNavbar() {
 
     return (
         <>
-            <header className="sticky top-0 z-40 bg-white border-b border-[#D9E0EA]">
+            <header className="sticky top-0 z-40 bg-km-surface-card border-b border-km-border">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 h-16 flex items-center justify-between">
                     <div className="flex items-center">
                         <BrandLogo size="md" href="/" />
                     </div>
 
-                    <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm font-semibold text-[#5B6472]">
+                    <div className="flex items-center gap-3 sm:gap-5 text-xs sm:text-sm font-semibold text-km-text-secondary">
                         <button
                             type="button"
                             onClick={() => setIsDownloadModalOpen(true)}
-                            className="flex items-center gap-1.5 hover:text-[#071A4D] transition-colors cursor-pointer py-1.5 px-3 rounded-lg hover:bg-[#F4F7FB] border border-transparent hover:border-[#D9E0EA]"
+                            className="flex items-center gap-1.5 hover:text-km-heading transition-colors cursor-pointer py-1.5 px-3 rounded-lg hover:bg-km-surface border border-transparent hover:border-km-border"
                         >
-                            <DownloadSimpleIcon weight="bold" size={16} className="text-[#5B6472]" />
+                            <DownloadSimpleIcon weight="bold" size={16} className="text-km-text-secondary" />
                             <span className="hidden sm:inline">Download App</span>
                             <span className="sm:hidden">App</span>
                         </button>
@@ -45,20 +45,20 @@ export default function AuthNavbar() {
                             <button
                                 type="button"
                                 onClick={() => setIsLangOpen(!isLangOpen)}
-                                className="flex items-center gap-1.5 hover:text-[#071A4D] transition-colors py-1.5 px-3 rounded-lg hover:bg-[#F4F7FB] border border-[#D9E0EA] cursor-pointer"
+                                className="flex items-center gap-1.5 hover:text-km-heading transition-colors py-1.5 px-3 rounded-lg hover:bg-km-surface border border-km-border cursor-pointer"
                             >
-                                <GlobeIcon weight="bold" size={15} className="text-[#5B6472]" />
+                                <GlobeIcon weight="bold" size={15} className="text-km-text-secondary" />
                                 <span>{selectedLang}</span>
                                 <CaretDownIcon weight="bold"
                                     size={14}
-                                    className={`transition-transform duration-200 text-[#5B6472] ${
+                                    className={`transition-transform duration-200 text-km-text-secondary ${
                                         isLangOpen ? 'rotate-180' : ''
                                     }`}
                                 />
                             </button>
 
                             {isLangOpen && (
-                                <div className="absolute right-0 mt-1.5 w-32 bg-white border border-[#D9E0EA] rounded-xl shadow-md py-1 z-50">
+                                <div className="absolute right-0 mt-1.5 w-32 bg-km-surface-card border border-km-border rounded-xl shadow-md py-1 z-50">
                                     <button
                                         type="button"
                                         onClick={() => {
@@ -67,8 +67,8 @@ export default function AuthNavbar() {
                                         }}
                                         className={`w-full text-left px-3.5 py-2 text-xs transition-colors cursor-pointer ${
                                             selectedLang === 'English'
-                                                ? 'font-bold text-[#071A4D] bg-[#F4F7FB]'
-                                                : 'text-[#111827] hover:bg-[#F4F7FB]'
+                                                ? 'font-bold text-km-heading bg-km-surface'
+                                                : 'text-km-text-primary hover:bg-km-surface'
                                         }`}
                                     >
                                         English
@@ -81,8 +81,8 @@ export default function AuthNavbar() {
                                         }}
                                         className={`w-full text-left px-3.5 py-2 text-xs transition-colors cursor-pointer ${
                                             selectedLang === 'हिन्दी'
-                                                ? 'font-bold text-[#071A4D] bg-[#F4F7FB]'
-                                                : 'text-[#111827] hover:bg-[#F4F7FB]'
+                                                ? 'font-bold text-km-heading bg-km-surface'
+                                                : 'text-km-text-primary hover:bg-km-surface'
                                         }`}
                                     >
                                         हिन्दी

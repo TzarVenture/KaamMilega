@@ -30,7 +30,7 @@ import { ChatIcon, DotsThreeVerticalIcon, RepeatIcon, ThumbsUpIcon } from '@phos
 
 const PostCard = () => {
     return (
-        <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
+        <div className="bg-km-surface-card border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
             {/* Header */}
             <div className="p-4 flex justify-between items-center">
                 <div className="flex items-center space-x-3">

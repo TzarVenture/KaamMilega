@@ -86,13 +86,13 @@ export default function CareerPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-[#F4F7FB] font-sans antialiased text-slate-800">
+    <main className="min-h-screen bg-km-surface font-sans antialiased text-slate-800">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
+          <div className="inline-flex items-center gap-2 bg-km-surface-card/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
             <BriefcaseIcon weight="bold" size={16} className="text-amber-400" />
             <span className="text-xs sm:text-sm font-semibold tracking-wide text-white">
               We&apos;re Hiring Across Engineering, Product &amp; Growth
@@ -117,7 +117,7 @@ export default function CareerPage() {
             </a>
             <Link
               href="/about"
-              className="px-6 py-3 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
+              className="px-6 py-3 bg-km-surface-card/15 hover:bg-km-surface-card/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
             >
               Our Mission
             </Link>
@@ -126,10 +126,10 @@ export default function CareerPage() {
       </section>
 
       {/* Metrics Banner */}
-      <section className="py-10 bg-white border-b border-slate-200 px-4 sm:px-6 lg:px-8">
+      <section className="py-10 bg-km-surface-card border-b border-slate-200 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div>
-            <p className="text-2xl sm:text-3xl font-black text-[#071A4D]">500K+</p>
+            <p className="text-2xl sm:text-3xl font-black text-km-heading">500K+</p>
             <p className="text-xs font-semibold text-slate-500 mt-1">Workers Empowered</p>
           </div>
           <div>
@@ -137,7 +137,7 @@ export default function CareerPage() {
             <p className="text-xs font-semibold text-slate-500 mt-1">Verified Employers</p>
           </div>
           <div>
-            <p className="text-2xl sm:text-3xl font-black text-[#0B5ED7]">100+</p>
+            <p className="text-2xl sm:text-3xl font-black text-km-link">100+</p>
             <p className="text-xs font-semibold text-slate-500 mt-1">Indian Cities Covered</p>
           </div>
           <div>
@@ -150,10 +150,10 @@ export default function CareerPage() {
       {/* Perks & Benefits */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#0B5ED7] bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <span className="text-xs font-bold uppercase tracking-wider text-km-link bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
             Why KaamMilega™
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#071A4D] tracking-tight mt-3">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
             Life at KaamMilega™
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-2">
@@ -167,12 +167,12 @@ export default function CareerPage() {
             return (
               <div
                 key={i}
-                className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all group"
+                className="bg-km-surface-card rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-[#0B5ED7] flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
+                <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-km-link flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
                   <Icon size={22} />
                 </div>
-                <h3 className="text-base sm:text-lg font-bold text-[#071A4D] mb-2 leading-snug">
+                <h3 className="text-base sm:text-lg font-bold text-km-heading mb-2 leading-snug">
                   {p.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -185,17 +185,17 @@ export default function CareerPage() {
       </section>
 
       {/* Open Positions Section */}
-      <section id="openings" className="py-16 sm:py-20 bg-white border-t border-slate-200 px-4 sm:px-6 lg:px-8">
+      <section id="openings" className="py-16 sm:py-20 bg-km-surface-card border-t border-slate-200 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
               Current Openings
             </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#071A4D] tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
               Explore Our Open Roles
             </h2>
             <p className="text-sm sm:text-base text-slate-600 mt-2">
-              Don’t see an exact match? Send your resume to <a href="mailto:careers@kaammilega.com" className="text-[#0B5ED7] font-semibold underline">careers@kaammilega.com</a>.
+              Don’t see an exact match? Send your resume to <a href="mailto:careers@kaammilega.com" className="text-km-link font-semibold underline">careers@kaammilega.com</a>.
             </p>
           </div>
 
@@ -203,11 +203,11 @@ export default function CareerPage() {
             {openings.map((job, idx) => (
               <div
                 key={idx}
-                className="bg-[#F4F7FB] hover:bg-blue-50/40 rounded-3xl p-6 sm:p-7 border border-slate-200/90 hover:border-[#0B5ED7]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 group"
+                className="bg-km-surface hover:bg-blue-50/40 rounded-3xl p-6 sm:p-7 border border-slate-200/90 hover:border-[#0B5ED7]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 group"
               >
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
-                    <span className="text-[11px] font-bold text-[#0B5ED7] bg-blue-100/70 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[11px] font-bold text-km-link bg-blue-100/70 px-2.5 py-0.5 rounded-full">
                       {job.dept}
                     </span>
                     <span className="text-[11px] font-medium text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full">
@@ -218,7 +218,7 @@ export default function CareerPage() {
                     </span>
                   </div>
 
-                  <h3 className="text-lg sm:text-xl font-bold text-[#071A4D] group-hover:text-[#0B5ED7] transition-colors mb-2">
+                  <h3 className="text-lg sm:text-xl font-bold text-km-heading group-hover:text-km-link transition-colors mb-2">
                     {job.title}
                   </h3>
 
@@ -250,7 +250,7 @@ export default function CareerPage() {
       {/* Direct Contact Banner */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
         <div className="bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] rounded-3xl p-8 sm:p-12 text-white shadow-xl">
-          <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mx-auto mb-4 text-white">
+          <div className="w-14 h-14 rounded-full bg-km-surface-card/10 backdrop-blur-md border border-white/20 flex items-center justify-center mx-auto mb-4 text-white">
             <EnvelopeSimpleIcon size={24} />
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">

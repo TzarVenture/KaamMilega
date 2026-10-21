@@ -17,7 +17,7 @@ export default function Footer() {
                 {/* Official KaamMilega Platform Branding Header */}
                 <div className="pb-10 mb-12 border-b border-blue-900/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                        <div className="bg-white px-3.5 py-2 rounded-2xl flex items-center shadow-md shrink-0 w-fit">
+                        <div className="bg-km-surface-card px-3.5 py-2 rounded-2xl flex items-center shadow-md shrink-0 w-fit">
                             <BrandLogo size="md" />
                         </div>
                         <div className="border-l-0 sm:border-l sm:border-white/15 sm:pl-6 space-y-1">
@@ -30,7 +30,7 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-amber-300 shrink-0">
+                    <div className="flex items-center gap-2 bg-km-surface-card/10 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-amber-300 shrink-0">
                         <span className="font-medium tracking-wide">Har Kaam, Har Mauka™</span>
                     </div>
                 </div>

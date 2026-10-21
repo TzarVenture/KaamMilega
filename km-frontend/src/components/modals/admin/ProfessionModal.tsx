@@ -128,7 +128,7 @@ const ProfessionModal = ({
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g. Electrician, Delivery Executive, Accountant..."
-                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:bg-white focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm"
+                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:bg-km-surface-card focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm"
                             required
                             autoFocus
                         />
@@ -143,7 +143,7 @@ const ProfessionModal = ({
                     <select
                         value={isCustomCategory ? '__custom__' : category}
                         onChange={handleCategoryChange}
-                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:bg-white focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm cursor-pointer"
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:bg-km-surface-card focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm cursor-pointer"
                     >
                         {availableCategories.map((cat) => (
                             <option key={cat} value={cat}>
@@ -160,7 +160,7 @@ const ProfessionModal = ({
                                 value={customCategory}
                                 onChange={(e) => setCustomCategory(e.target.value)}
                                 placeholder="Enter custom category name..."
-                                className="w-full px-5 py-3 bg-white border border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm"
+                                className="w-full px-5 py-3 bg-km-surface-card border border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm"
                                 required
                             />
                         </div>
@@ -169,7 +169,7 @@ const ProfessionModal = ({
 
                 {/* Info Note */}
                 <div className="flex items-start gap-2.5 p-3.5 bg-blue-50/70 border border-blue-100 text-blue-900 rounded-2xl text-xs">
-                    <InfoIcon weight="bold" size={16} className="text-km-primary shrink-0 mt-0.5" />
+                    <InfoIcon weight="bold" size={16} className="text-km-heading shrink-0 mt-0.5" />
                     <span>
                         This profession/skill will be instantly available in the candidate profile search, recruiter job creation filters, and InstantMilega gig dispatch categories.
                     </span>

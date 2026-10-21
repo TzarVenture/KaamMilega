@@ -459,7 +459,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                             <div
                                 key={toast.id}
                                 onClick={() => handleToastClick(toast)}
-                                className="pointer-events-auto bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl shadow-slate-200/50 rounded-xl p-3 sm:p-3.5 flex items-start gap-3 cursor-pointer transition-all hover:scale-[1.01] hover:border-blue-400 group animate-in slide-in-from-top-4 fade-in duration-200 relative overflow-hidden"
+                                className="pointer-events-auto bg-km-surface-card/95 backdrop-blur-md border border-slate-200/90 shadow-xl shadow-slate-200/50 rounded-xl p-3 sm:p-3.5 flex items-start gap-3 cursor-pointer transition-all hover:scale-[1.01] hover:border-blue-400 group animate-in slide-in-from-top-4 fade-in duration-200 relative overflow-hidden"
                             >
                                 {/* Micro Accent Bar */}
                                 <div
@@ -487,23 +487,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                                             />
                                         </div>
                                     ) : isInterview ? (
-                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                        <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                           <CalendarBlankIcon size={22} weight="duotone" />
                                         </span>
                                     ) : isMessage ? (
-                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                        <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                           <ChatIcon size={22} weight="duotone" />
                                         </span>
                                     ) : isJob ? (
-                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                        <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                           <BriefcaseIcon size={22} weight="duotone" />
                                         </span>
                                     ) : isNetwork ? (
-                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                        <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                           <UsersIcon size={22} weight="duotone" />
                                         </span>
                                     ) : (
-                                        <span className="w-8 h-8 flex items-center justify-center text-[#071A4D]" aria-hidden="true">
+                                        <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
                                           <BellIcon size={22} weight="duotone" />
                                         </span>
                                     )}
@@ -523,7 +523,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                                         {notif.message}
                                     </p>
                                     <div className="mt-1.5 flex items-center gap-1.5">
-                                        <span className="text-[11px] font-semibold text-km-primary group-hover:underline flex items-center gap-0.5">
+                                        <span className="text-[11px] font-semibold text-km-heading group-hover:underline flex items-center gap-0.5">
                                             {isMessage ? "Reply" : "View details"}
                                             <ArrowUpRightIcon weight="bold" size={11} />
                                         </span>

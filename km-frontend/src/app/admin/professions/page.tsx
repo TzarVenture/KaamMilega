@@ -221,7 +221,7 @@ export default function ProfessionsPage() {
             )}
 
             {/* Page Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white p-6 sm:p-8 rounded-[28px] border border-purple-100/60 shadow-sm">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-km-surface-card p-6 sm:p-8 rounded-[28px] border border-purple-100/60 shadow-sm">
                 <div className="space-y-1">
                     <div className="flex items-center gap-3">
                         <GraduationCapIcon size={28} weight="duotone" className="text-purple-700" aria-hidden="true" />
@@ -268,7 +268,7 @@ export default function ProfessionsPage() {
 
             {/* Metric Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
+                <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
                     <TagIcon size={28} weight="duotone" className="text-purple-700 shrink-0" aria-hidden="true" />
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Master Skills</p>
@@ -276,7 +276,7 @@ export default function ProfessionsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
+                <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
                     <TreeStructureIcon size={28} weight="duotone" className="text-indigo-700 shrink-0" aria-hidden="true" />
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Active Categories</p>
@@ -284,7 +284,7 @@ export default function ProfessionsPage() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
+                <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
                     <StackIcon size={28} weight="duotone" className="text-emerald-700 shrink-0" aria-hidden="true" />
                     <div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Matching Query</p>
@@ -294,7 +294,7 @@ export default function ProfessionsPage() {
             </div>
 
             {/* Filter & Search Bar */}
-            <div className="bg-white p-6 rounded-[28px] border border-purple-100/60 shadow-sm space-y-5">
+            <div className="bg-km-surface-card p-6 rounded-[28px] border border-purple-100/60 shadow-sm space-y-5">
                 <div className="flex flex-col md:flex-row items-center justify-between gap-4">
                     {/* Search Input */}
                     <div className="relative w-full md:w-96">
@@ -304,7 +304,7 @@ export default function ProfessionsPage() {
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             placeholder="Search by skill or profession..."
-                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:bg-white focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all"
+                            className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:bg-km-surface-card focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all"
                         />
                         {searchTerm && (
                             <button
@@ -351,7 +351,7 @@ export default function ProfessionsPage() {
                                 <span>{cat}</span>
                                 <span
                                     className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+                                        isSelected ? 'bg-km-surface-card/20 text-white' : 'bg-slate-200 text-slate-600'
                                     }`}
                                 >
                                     {count}
@@ -365,14 +365,14 @@ export default function ProfessionsPage() {
             {/* Main Catalog View */}
             <main>
                 {isLoading ? (
-                    <div className="bg-white rounded-[32px] p-20 flex flex-col items-center justify-center gap-4 border border-purple-100/60 shadow-sm">
+                    <div className="bg-km-surface-card rounded-[32px] p-20 flex flex-col items-center justify-center gap-4 border border-purple-100/60 shadow-sm">
                         <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin" />
                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">
                             Loading master catalog from database...
                         </p>
                     </div>
                 ) : filteredSkills.length === 0 ? (
-                    <div className="bg-white rounded-[32px] p-16 text-center border border-dashed border-purple-200 shadow-sm">
+                    <div className="bg-km-surface-card rounded-[32px] p-16 text-center border border-dashed border-purple-200 shadow-sm">
                         <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-4">
                             🏷️
                         </div>
@@ -405,7 +405,7 @@ export default function ProfessionsPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-[28px] border border-purple-100/60 shadow-sm overflow-hidden">
+                    <div className="bg-km-surface-card rounded-[28px] border border-purple-100/60 shadow-sm overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>

@@ -55,7 +55,7 @@ const EventsPage = () => {
                 <div className="flex items-center justify-between mb-8 px-2">
                     <h1 className="text-3xl font-bold text-gray-900">Events</h1>
 
-                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium bg-white px-4 py-2 rounded-full shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 font-medium bg-km-surface-card px-4 py-2 rounded-full shadow-sm border border-gray-100">
                         <span>Sort by:</span>
                         <button className="flex items-center gap-1 font-bold text-gray-800 hover:text-purple-700 transition-colors">
                             Recently added <CaretDownIcon weight="bold" size={16} />
@@ -69,7 +69,7 @@ const EventsPage = () => {
                     ) : events.length === 0 ? (
                         <div className="text-gray-500 py-10 text-center">No events found.</div>
                     ) : events.map((event, idx) => (
-                        <div key={event.id || idx} className="group bg-white rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 transition-all hover:shadow-md">
+                        <div key={event.id || idx} className="group bg-km-surface-card rounded-2xl p-5 shadow-sm border border-gray-100 flex flex-col md:flex-row gap-6 transition-all hover:shadow-md">
 
                             {/* Event Banner Placeholder */}
                             <div className="w-full md:w-56 h-32 bg-[#1D0A1C] rounded-xl flex items-center justify-center shrink-0 relative overflow-hidden">
@@ -129,7 +129,7 @@ const EventsPage = () => {
 
             {/* Right Content: Sidebar */}
             <div className="hidden lg:block w-80">
-                <div className="sticky top-6 bg-white rounded-[32px] p-8 h-[450px] border border-gray-100 shadow-sm flex items-center justify-center">
+                <div className="sticky top-6 bg-km-surface-card rounded-[32px] p-8 h-[450px] border border-gray-100 shadow-sm flex items-center justify-center">
                     <span className="text-gray-400 font-bold text-xl tracking-tight italic">Ad Banner</span>
                 </div>
             </div>

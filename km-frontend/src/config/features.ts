@@ -7,6 +7,9 @@
  */
 export const FEATURES = {
     INSTANT_MILEGA: process.env.NEXT_PUBLIC_ENABLE_INSTANT_MILEGA === 'true',
-    // Dark theme toggle + theme script; off until every area is migrated to theme tokens
-    DARK_MODE: process.env.NEXT_PUBLIC_ENABLE_DARK_MODE === 'true',
+    // Dark theme (toggle + theme script). Defaults: on for `next dev`, off for production builds.
+    // Override with NEXT_PUBLIC_ENABLE_DARK_MODE=true|false; set it to true in production to launch.
+    DARK_MODE: process.env.NEXT_PUBLIC_ENABLE_DARK_MODE
+        ? process.env.NEXT_PUBLIC_ENABLE_DARK_MODE === 'true'
+        : process.env.NODE_ENV !== 'production',
 } as const;

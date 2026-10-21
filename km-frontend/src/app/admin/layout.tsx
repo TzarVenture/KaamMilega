@@ -82,7 +82,7 @@ export default function AdminLayout({
 
     if (isAuthChecking) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="min-h-screen bg-km-surface-card flex items-center justify-center">
                 <motion.div
                     animate={{
                         scale: [1, 1.1, 1],
@@ -113,7 +113,7 @@ export default function AdminLayout({
                 <div className={`p-4 mx-2 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-4 shadow-lg shadow-purple-900/10 transition-all ${collapsed && 'px-2'}`}>
                     <motion.div
                         whileHover={{ scale: 1.05 }}
-                        className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20"
+                        className="w-10 h-10 bg-km-surface-card/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20"
                     >
                         <span className="text-white text-lg font-bold rotate-45">▲▲</span>
                     </motion.div>
@@ -193,7 +193,7 @@ export default function AdminLayout({
             <motion.aside
                 initial={false}
                 animate={{ width: isSidebarOpen ? 280 : 88 }}
-                className="bg-white border-r border-purple-50 flex-col fixed inset-y-0 z-50 shadow-sm overflow-hidden hidden lg:flex"
+                className="bg-km-surface-card border-r border-purple-50 flex-col fixed inset-y-0 z-50 shadow-sm overflow-hidden hidden lg:flex"
             >
                 <div className="p-6 flex items-center justify-between">
                     <BrandLogo size="md" href="/admin" />
@@ -225,7 +225,7 @@ export default function AdminLayout({
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            className="fixed inset-y-0 left-0 w-72 bg-white border-r border-purple-50 flex flex-col z-50 shadow-2xl lg:hidden"
+                            className="fixed inset-y-0 left-0 w-72 bg-km-surface-card border-r border-purple-50 flex flex-col z-50 shadow-2xl lg:hidden"
                         >
                             {/* Drawer header */}
                             <div className="p-6 flex items-center justify-between">
@@ -255,7 +255,7 @@ export default function AdminLayout({
                 `}</style>
                 <div className="admin-main-shift flex-1 flex flex-col min-w-0">
                     {/* ── TOP HEADER ── */}
-                    <header className="h-16 sm:h-20 bg-white/80 backdrop-blur-md border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
+                    <header className="h-16 sm:h-20 bg-km-surface-card/80 backdrop-blur-md border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
                         {/* Mobile hamburger */}
                         <button
                             className="lg:hidden p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors mr-3 shrink-0"
@@ -270,7 +270,7 @@ export default function AdminLayout({
                                 <input
                                     type="text"
                                     placeholder="Search intelligence..."
-                                    className="w-full pl-11 pr-4 py-2.5 bg-purple-50/50 border border-transparent rounded-2xl text-sm focus:outline-none focus:bg-white focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none"
+                                    className="w-full pl-11 pr-4 py-2.5 bg-purple-50/50 border border-transparent rounded-2xl text-sm focus:outline-none focus:bg-km-surface-card focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none"
                                 />
                             </div>
                         </div>
@@ -279,7 +279,7 @@ export default function AdminLayout({
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-white border border-purple-100 text-purple-700 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all"
+                                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-km-surface-card border border-purple-100 text-purple-700 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all"
                             >
                                 <DownloadSimpleIcon weight="bold" size={18} />
                                 <span className="hidden md:inline">Download App</span>

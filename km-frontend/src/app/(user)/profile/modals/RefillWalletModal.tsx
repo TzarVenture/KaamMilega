@@ -132,7 +132,7 @@ export default function RefillWalletModal({
                         <p className="text-xs text-blue-200">Current Available Balance</p>
                         <p className="text-2xl font-black mt-0.5">₹{currentBalance.toFixed(2)}</p>
                     </div>
-                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-km-surface-card/10 rounded-full flex items-center justify-center">
                         <WalletIcon size={20} className="text-white" />
                     </div>
                 </div>
@@ -174,7 +174,7 @@ export default function RefillWalletModal({
                                 onClick={() => setAmount(amt.toString())}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                                     amount === amt.toString()
-                                        ? 'bg-blue-50 border-km-primary text-km-primary shadow-xs'
+                                        ? 'bg-blue-50 border-km-primary text-km-heading shadow-xs'
                                         : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                                 }`}
                             >
@@ -195,7 +195,7 @@ export default function RefillWalletModal({
                     <Link
                         href="/wallet"
                         onClick={onClose}
-                        className="text-xs text-km-primary font-bold hover:underline inline-flex items-center gap-1"
+                        className="text-xs text-km-heading font-bold hover:underline inline-flex items-center gap-1"
                     >
                         <span>Full Wallet & History</span>
                         <ArrowSquareOutIcon weight="bold" size={12} />

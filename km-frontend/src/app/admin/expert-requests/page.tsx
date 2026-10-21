@@ -43,11 +43,11 @@ export default function ExpertRequestsPage() {
         <div className="space-y-6">
             <h1 className="text-2xl font-bold text-gray-900">Expert Requests</h1>
             {requests.length === 0 ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
+                <div className="bg-km-surface-card rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
                     No pending expert requests.
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-km-surface-card rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
@@ -58,7 +58,7 @@ export default function ExpertRequestsPage() {
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-km-surface-card divide-y divide-gray-200">
                             {requests.map((req) => (
                                 <tr key={req.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">

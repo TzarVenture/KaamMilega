@@ -94,7 +94,7 @@ export default function CitiesPage() {
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             {/* Header section as per design */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white px-6 sm:px-8 py-4 rounded-[20px] shadow-sm border border-purple-50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-km-surface-card px-6 sm:px-8 py-4 rounded-[20px] shadow-sm border border-purple-50">
                 <h1 className="text-xl font-bold text-purple-800">All City</h1>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -119,7 +119,7 @@ export default function CitiesPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-[24px] shadow-sm border border-purple-50 overflow-hidden">
+            <div className="bg-km-surface-card rounded-[24px] shadow-sm border border-purple-50 overflow-hidden">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-slate-50">
@@ -183,7 +183,7 @@ export default function CitiesPage() {
                                                         initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                        className="absolute right-8 top-14 w-40 bg-white rounded-xl shadow-xl border border-slate-100 z-20 overflow-hidden"
+                                                        className="absolute right-8 top-14 w-40 bg-km-surface-card rounded-xl shadow-xl border border-slate-100 z-20 overflow-hidden"
                                                     >
                                                         <button
                                                             onClick={() => handleEdit(city)}

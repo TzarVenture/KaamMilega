@@ -44,7 +44,7 @@ const AddAdsModal = ({ isOpen, onClose, onSave }: AddAdsModalProps) => {
                         <select
                             value={formData.type}
                             onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                            className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all text-sm italic appearance-none"
+                            className="w-full px-4 py-3 bg-km-surface-card border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all text-sm italic appearance-none"
                             required
                         >
                             <option value="">Please Select Job Type</option>
@@ -64,7 +64,7 @@ const AddAdsModal = ({ isOpen, onClose, onSave }: AddAdsModalProps) => {
                         onChange={(e) => setFormData({ ...formData, position: e.target.value })}
                         placeholder="Write here..."
                         required
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all text-sm italic"
+                        className="w-full px-4 py-3 bg-km-surface-card border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all text-sm italic"
                     />
                 </div>
 
@@ -76,7 +76,7 @@ const AddAdsModal = ({ isOpen, onClose, onSave }: AddAdsModalProps) => {
                         onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                         placeholder="Write here..."
                         required
-                        className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all text-sm italic"
+                        className="w-full px-4 py-3 bg-km-surface-card border border-gray-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all text-sm italic"
                     />
                 </div>
 

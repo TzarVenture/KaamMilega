@@ -25,8 +25,14 @@ function readPreference(): ThemePreference {
 function applyTheme(preference: ThemePreference) {
     const dark = preference === 'dark' || (preference === 'system' && window.matchMedia(DARK_QUERY).matches);
     const root = document.documentElement;
+    // Switch instantly: without this every transition-colors element fades through the swap
+    const freeze = document.createElement('style');
+    freeze.textContent = '*,*::before,*::after{transition:none!important}';
+    document.head.appendChild(freeze);
     root.classList.toggle('dark', dark);
     root.style.colorScheme = dark ? 'dark' : 'light';
+    void window.getComputedStyle(root).color; // apply the new colours before transitions return
+    requestAnimationFrame(() => freeze.remove());
 }
 
 function subscribe(onChange: () => void) {
@@ -46,8 +52,12 @@ function subscribe(onChange: () => void) {
     };
 }
 
+const readIsDark = () => document.documentElement.classList.contains('dark');
+
 export function useTheme() {
     const preference = useSyncExternalStore(subscribe, readPreference, () => 'system' as ThemePreference);
+    // What is actually showing right now (preference resolved against the OS for 'system')
+    const isDark = useSyncExternalStore(subscribe, readIsDark, () => false);
 
     const setPreference = useCallback((next: ThemePreference) => {
         try {
@@ -60,5 +70,5 @@ export function useTheme() {
         window.dispatchEvent(new Event(CHANGE_EVENT));
     }, []);
 
-    return { preference, setPreference };
+    return { preference, isDark, setPreference };
 }

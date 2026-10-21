@@ -78,7 +78,7 @@ export default function ExpertMentorshipManagement() {
           {/* Quick Wallet Stats Widget */}
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             {wallet && (
-              <div className="flex items-center gap-4 bg-white border border-gray-200/80 rounded-2xl px-4 py-2.5 shadow-sm">
+              <div className="flex items-center gap-4 bg-km-surface-card border border-gray-200/80 rounded-2xl px-4 py-2.5 shadow-sm">
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Withdrawable Earnings</div>
                   <div className="text-base md:text-lg font-black text-emerald-600">₹{wallet.withdrawable_balance?.toLocaleString('en-IN') || 0}</div>
@@ -154,7 +154,7 @@ export default function ExpertMentorshipManagement() {
 function SessionsList({ mentorships }: { mentorships: any[] }) {
   if (mentorships.length === 0) {
     return (
-      <div className="bg-white p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
+      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
         <PlusIcon size={28} weight="duotone" className="text-gray-300 mx-auto mb-4" aria-hidden="true" />
         <h3 className="text-lg font-bold text-gray-800 mb-2">No Mentorship Sessions</h3>
         <p className="text-xs md:text-sm text-gray-500 mb-6 md:mb-8 max-w-xs mx-auto">Create your first session to start helping others and growing your professional network.</p>
@@ -166,7 +166,7 @@ function SessionsList({ mentorships }: { mentorships: any[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
       {mentorships.map((m, i) => (
-        <div key={m.id || i} className="bg-white p-5 md:p-6 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all group">
+        <div key={m.id || i} className="bg-km-surface-card p-5 md:p-6 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all group">
           <div className="flex justify-between items-start mb-4">
             <div className="bg-purple-50 text-purple-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">{m.category}</div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -233,7 +233,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
 
   if (bookings.length === 0) {
     return (
-      <div className="bg-white p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
+      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
         <UserIcon size={40} weight="duotone" className="text-gray-300 mx-auto mb-4 md:mb-6" aria-hidden="true" />
         <h3 className="text-lg font-bold text-gray-800 mb-2">No Bookings Yet</h3>
         <p className="text-xs md:text-sm text-gray-500 max-w-xs mx-auto">When candidates book sessions with you, they will appear here. Funds are held in Escrow until you complete the call.</p>
@@ -251,7 +251,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
         const isLoading = actionLoadingId === b.id;
 
         return (
-          <div key={b.id || i} className="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:border-purple-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div key={b.id || i} className="bg-km-surface-card p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:border-purple-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
             
             {/* Left: Mentee & Session info */}
             <div className="flex gap-3.5 items-start">
@@ -396,7 +396,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100"
+            className="bg-km-surface-card rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100"
           >
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
@@ -533,7 +533,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
   const activeCount = schedule.filter(s => s.isActive).length;
 
   return (
-    <div className="bg-white p-5 md:p-8 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm max-w-3xl">
+    <div className="bg-km-surface-card p-5 md:p-8 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm max-w-3xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-2">
@@ -571,7 +571,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
             </div>
 
             <div className="flex-1 flex items-center gap-2 md:gap-3">
-              <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
+              <div className="flex items-center gap-1.5 bg-km-surface-card border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
                 <ClockIcon weight="bold" size={12} className="text-gray-400" />
                 <input 
                   type="time" 
@@ -584,7 +584,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
 
               <span className="text-gray-400 text-xs font-medium">to</span>
 
-              <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
+              <div className="flex items-center gap-1.5 bg-km-surface-card border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
                 <ClockIcon weight="bold" size={12} className="text-gray-400" />
                 <input 
                   type="time" 
@@ -611,7 +611,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
                 }`}
               >
                 <div 
-                  className={`w-5 h-5 bg-white rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
+                  className={`w-5 h-5 bg-km-surface-card rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
                     item.isActive ? 'translate-x-5' : 'translate-x-0'
                   }`} 
                 />
