@@ -5,6 +5,7 @@ import { ArrowUpRightIcon, BellIcon, BooksIcon, BriefcaseIcon, CardsThreeIcon, C
 import type { Icon } from '@phosphor-icons/react';
 import CitySelector from "./CitySelector";
 import BrandLogo from "./BrandLogo";
+import ThemeToggle from "./ThemeToggle";
 import SearchHint from "./SearchHint";
 import CustomImage from "@/components/ui/CustomImage";
 import Image from "next/image";
@@ -532,6 +533,12 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   />
                   <MenuItem label="Help" />
                   <MenuItem label="Language" />
+                  {FEATURES.DARK_MODE && (
+                    <div className="px-4 pt-3">
+                      <p className="text-xs font-semibold text-km-text-secondary mb-1.5">Theme</p>
+                      <ThemeToggle />
+                    </div>
+                  )}
                 </div>
 
                 <hr className="border-gray-100" />

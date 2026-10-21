@@ -7,4 +7,6 @@
  */
 export const FEATURES = {
     INSTANT_MILEGA: process.env.NEXT_PUBLIC_ENABLE_INSTANT_MILEGA === 'true',
+    // Dark theme toggle + theme script; off until every area is migrated to theme tokens
+    DARK_MODE: process.env.NEXT_PUBLIC_ENABLE_DARK_MODE === 'true',
 } as const;
