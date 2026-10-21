@@ -1,7 +1,8 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
 
-import { ArrowUpRightIcon, BellIcon, BookOpenIcon, BriefcaseIcon, CalendarBlankIcon, CaretDownIcon, ChatIcon, CheckCircleIcon, CheckIcon, HouseIcon, LightningIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, QuotesIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowUpRightIcon, BellIcon, BooksIcon, BriefcaseIcon, CardsThreeIcon, CalendarDotsIcon, CaretDownIcon, ChalkboardTeacherIcon, ChatCircleDotsIcon, ChatIcon, CheckCircleIcon, CheckIcon, HouseSimpleIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, PersonSimpleRunIcon, UsersIcon, UsersThreeIcon, XIcon } from '@phosphor-icons/react';
+import type { Icon } from '@phosphor-icons/react';
 import CitySelector from "./CitySelector";
 import BrandLogo from "./BrandLogo";
 import SearchHint from "./SearchHint";
@@ -15,6 +16,34 @@ import {
   useNotifications,
   sanitizeNotificationLink,
 } from "@/lib/notifications";
+
+interface NavLink {
+  href: string;
+  Icon: Icon;
+  label: string;
+  /** Brand-coloured icon (InstantMilega™) */
+  accent?: boolean;
+}
+
+// Desktop nav item: duotone icon in a rounded hit area; the active item sits on a soft blue tile
+const navItemClass = (isActive: boolean) =>
+  `relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+    isActive ? "bg-[#EAF1FC] text-[#071A4D]" : "text-slate-600 hover:bg-[#F4F7FB] hover:text-[#071A4D]"
+  }`;
+
+// Dark hover tooltip under a nav item (the item's wrapper needs the `group` class)
+const NavTooltip = ({ label, align = "center" }: { label: string; align?: "center" | "right" }) => (
+  <span
+    className={`absolute top-full mt-1.5 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 translate-y-1 group-hover:translate-y-0 z-50 ${
+      align === "right" ? "right-0" : "left-1/2 -translate-x-1/2"
+    }`}
+    aria-hidden="true"
+  >
+    <span className="block bg-[#071A4D] text-white text-xs font-medium py-1 px-2 rounded-md shadow-md whitespace-nowrap">
+      {label}
+    </span>
+  </span>
+);
 
 interface NavbarProps {
   showCitySelector?: boolean;
@@ -133,31 +162,18 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
     router.push(`/jobs?${params.toString()}`);
   };
 
-  const navLinks = [
-    { href: "/", icon: <HouseIcon weight="bold" size={18} />, label: "Home" },
+  const navLinks: NavLink[] = [
+    { href: "/", Icon: HouseSimpleIcon, label: "Home" },
+    { href: "/feed", Icon: CardsThreeIcon, label: "Feed" },
     ...(FEATURES.INSTANT_MILEGA
-      ? [
-          {
-            href: "/instant-milega",
-            icon: <LightningIcon weight="bold" size={18} className="text-[#FF6B00] fill-[#FF6B00]" />,
-            label: "InstantMilega™",
-          },
-        ]
+      ? [{ href: "/instant-milega", Icon: PersonSimpleRunIcon, label: "InstantMilega™", accent: true }]
       : []),
-    { href: "/network", icon: <UsersIcon weight="bold" size={18} />, label: "Network" },
-    { href: "/events", icon: <CalendarBlankIcon weight="bold" size={18} />, label: "Events" },
-    { href: "/jobs", icon: <BriefcaseIcon weight="bold" size={18} />, label: "Jobs" },
-    { href: "/mentorship", icon: <BookOpenIcon weight="bold" size={18} />, label: "Mentors" },
-    { href: "/chat", icon: <ChatIcon weight="bold" size={18} />, label: "Chat" },
-    ...(!isRecruiter
-      ? [
-          {
-            href: "/resources",
-            icon: <BookOpenIcon weight="bold" size={18} />,
-            label: "Resources",
-          },
-        ]
-      : []),
+    { href: "/network", Icon: UsersThreeIcon, label: "Network" },
+    { href: "/events", Icon: CalendarDotsIcon, label: "Events" },
+    { href: "/jobs", Icon: BriefcaseIcon, label: "Jobs" },
+    { href: "/mentorship", Icon: ChalkboardTeacherIcon, label: "Mentors" },
+    { href: "/chat", Icon: ChatCircleDotsIcon, label: "Chat" },
+    ...(!isRecruiter ? [{ href: "/resources", Icon: BooksIcon, label: "Resources" }] : []),
   ];
 
   return (
@@ -171,12 +187,15 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
           {/* Desktop: City selector + Search */}
           <div className="hidden md:flex items-center gap-3 flex-1 min-w-0 max-w-lg">
+            {/* City picker needs room; tablets keep just the search next to the icon bar */}
             {showCitySelector && (
-              <CitySelector
-                selectedCity={selectedCity}
-                onCityChange={handleCityChange}
-                variant="navbar"
-              />
+              <div className="hidden lg:block shrink-0">
+                <CitySelector
+                  selectedCity={selectedCity}
+                  onCityChange={handleCityChange}
+                  variant="navbar"
+                />
+              </div>
             )}
 
             <form onSubmit={handleSearch} className="relative w-full">
@@ -205,50 +224,36 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           </div>
         </div>
 
-        {/* Right Section: Desktop Icons with Custom Tooltips & Profile */}
-        <div className="hidden md:flex items-center gap-3 ml-4 shrink-0">
-          <div className="flex items-center gap-1.5 text-slate-600 border-r border-slate-200 pr-3">
-            {navLinks.map((link) => {
-              const isActive = isLinkActive(link.href);
+        {/* Right Section: Desktop nav icons with hover tooltips & Profile */}
+        <div className="hidden md:flex items-center gap-2 ml-4 shrink-0">
+          <div className="flex items-center gap-0.5 border-r border-slate-200 pr-2">
+            {navLinks.map(({ href, Icon, label, accent }) => {
+              const isActive = isLinkActive(href);
               return (
-                <div
-                  key={link.href}
-                  className="relative group flex items-center justify-center"
-                >
+                <div key={href} className="relative group">
                   <Link
-                    href={link.href}
-                    className={`relative p-2 rounded-xl flex items-center justify-center transition-all duration-150 ${
-                      isActive
-                        ? "text-km-primary bg-blue-50/90 font-bold shadow-xs"
-                        : "text-slate-600 hover:text-km-primary hover:bg-slate-50"
-                    }`}
-                    aria-label={link.label}
+                    href={href}
+                    className={navItemClass(isActive)}
+                    aria-label={label}
+                    aria-current={isActive ? "page" : undefined}
                   >
-                    {link.icon}
-                    {link.href === "/chat" && chatUnreadCount > 0 && (
-                      <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 bg-[#FF6B00] text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white shadow-2xs animate-in zoom-in-75 duration-150">
-                        {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
-                      </span>
-                    )}
-                    {isActive && (
-                      <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-km-primary rounded-full" />
-                    )}
+                    <span className="relative">
+                      <Icon size={22} weight="duotone" className={accent ? "text-[#FF6B00]" : undefined} aria-hidden="true" />
+                      {href === "/chat" && chatUnreadCount > 0 && (
+                        <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-[#FF6B00] text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white">
+                          {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
+                        </span>
+                      )}
+                    </span>
                   </Link>
-
-
-                  {/* Custom Floating Tooltip */}
-                  <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 translate-y-1 group-hover:translate-y-0 z-50">
-                    <div className="bg-slate-900 text-white text-[10px] font-semibold py-0.5 px-2 rounded-md shadow-md whitespace-nowrap">
-                      {link.label}
-                    </div>
-                  </div>
+                  <NavTooltip label={label} />
                 </div>
               );
             })}
 
             {/* Notifications Icon with Popover Dropdown */}
             <div
-              className="relative flex items-center justify-center"
+              className="relative group flex items-center justify-center"
               ref={notifRef}
             >
               <button
@@ -259,30 +264,19 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     fetchNotifications("all", false, 8, 0).catch(() => {});
                   }
                 }}
-                className={`relative p-2 rounded-xl flex items-center justify-center transition-all duration-150 cursor-pointer ${
-                  pathname === "/notifications" || notifDropdownOpen
-                    ? "text-km-primary bg-blue-50/90 font-bold shadow-xs"
-                    : "text-slate-600 hover:text-km-primary hover:bg-slate-50"
-                }`}
+                className={navItemClass(pathname === "/notifications" || notifDropdownOpen)}
                 aria-label="Notifications"
               >
-                <BellIcon weight="fill"
-                  size={18}
-                  className={
-                    unreadCount > 0
-                      ? "fill-slate-600 hover:fill-km-primary text-slate-600 hover:text-km-primary"
-                      : ""
-                  }
-                />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-xs animate-in zoom-in duration-150">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
-                {(pathname === "/notifications" || notifDropdownOpen) && (
-                  <span className="absolute -bottom-1 left-2 right-2 h-0.5 bg-km-primary rounded-full" />
-                )}
+                <span className="relative">
+                  <BellIcon size={22} weight="duotone" aria-hidden="true" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
+                  )}
+                </span>
               </button>
+              {!notifDropdownOpen && <NavTooltip label="Notifications" />}
 
               {/* Dropdown Popover */}
               {notifDropdownOpen && (
@@ -464,7 +458,9 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           <div className="relative group" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-xl transition-colors border border-transparent hover:border-slate-200"
+              className={`flex items-center gap-1 p-1.5 rounded-xl transition-colors cursor-pointer ${isMenuOpen ? "bg-[#EAF1FC]" : "hover:bg-[#F4F7FB]"}`}
+              aria-label="Account and settings"
+              aria-expanded={isMenuOpen}
             >
               <div className="w-8 h-8 bg-km-primary rounded-full flex items-center justify-center overflow-hidden shrink-0">
                 {user?.profile_image ? (
@@ -479,23 +475,12 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   </span>
                 )}
               </div>
-              <span className="text-xs font-semibold text-slate-800 hidden lg:inline">
-                {displayName}
-              </span>
               <CaretDownIcon weight="bold"
                 size={14}
                 className={`text-slate-500 transition-transform duration-200 ${isMenuOpen ? "rotate-180" : ""}`}
               />
             </button>
-
-            {/* Profile Tooltip */}
-            {!isMenuOpen && (
-              <div className="absolute -bottom-8 right-0 opacity-0 group-hover:opacity-100 pointer-events-none transition-all duration-150 translate-y-1 group-hover:translate-y-0 z-50">
-                <div className="bg-slate-900 text-white text-[10px] font-semibold py-0.5 px-2 rounded-md shadow-md whitespace-nowrap">
-                  Account &amp; Settings
-                </div>
-              </div>
-            )}
+            {!isMenuOpen && <NavTooltip label="Account & Settings" align="right" />}
 
             {/* Context Menu (Dropdown) */}
             {isMenuOpen && (
@@ -769,7 +754,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   className="flex items-center justify-between px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    {link.icon} {link.label}
+                    <link.Icon size={18} weight="bold" className={link.accent ? "text-[#FF6B00]" : undefined} aria-hidden="true" /> {link.label}
                   </div>
                   {link.href === "/chat" && chatUnreadCount > 0 && (
                     <span className="min-w-[18px] h-[18px] px-1.5 bg-[#FF6B00] text-white text-[10px] font-bold rounded-full flex items-center justify-center">

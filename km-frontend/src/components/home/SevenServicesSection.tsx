@@ -2,9 +2,19 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRightIcon, BriefcaseIcon, CalendarBlankIcon, GraduationCapIcon, LightningIcon, StorefrontIcon, UserCheckIcon, UsersIcon } from '@phosphor-icons/react';
+import { ArrowRightIcon } from '@phosphor-icons/react';
 import SectionHeader from './SectionHeader';
+import {
+    EventsServiceArt,
+    InstantServiceArt,
+    JobsServiceArt,
+    MentorsServiceArt,
+    PeerServiceArt,
+    ServicesServiceArt,
+    SkillsServiceArt,
+} from './illustrations/ServiceArt';
 import { FEATURES } from '@/config/features';
+import { useInViewOnce } from '@/lib/useInViewOnce';
 
 interface ServiceDefinition {
     number: string;
@@ -14,9 +24,19 @@ interface ServiceDefinition {
     href: string;
     providerLabel: string;
     providerHref: string;
-    icon: React.ReactNode;
-    colorHex: string;
+    Art: React.ComponentType<{ className?: string }>;
+    tintHex: string;
     borderColor: string;
+}
+
+function ServiceBanner({ Art, tintHex, children }: Pick<ServiceDefinition, 'Art' | 'tintHex'> & { children: React.ReactNode }) {
+    const { ref, inView } = useInViewOnce<HTMLDivElement>();
+    return (
+        <div ref={ref} data-inview={inView} className="relative h-32 rounded-xl overflow-hidden" style={{ backgroundColor: tintHex }}>
+            <Art className="absolute inset-0 w-full h-full transition-transform duration-300 group-hover:-translate-y-1" />
+            {children}
+        </div>
+    );
 }
 
 export default function SevenServicesSection() {
@@ -29,8 +49,8 @@ export default function SevenServicesSection() {
             href: '/jobs',
             providerLabel: 'Post a Job',
             providerHref: '/recruiter/login',
-            icon: <BriefcaseIcon size={36} weight="duotone" />,
-            colorHex: '#0B5ED7',
+            Art: JobsServiceArt,
+            tintHex: '#EAF1FC',
             borderColor: 'hover:border-[#0B5ED7]/40',
         },
         {
@@ -41,8 +61,8 @@ export default function SevenServicesSection() {
             href: '/instant-milega',
             providerLabel: 'Book Staff',
             providerHref: '/instant-milega?mode=hire',
-            icon: <LightningIcon size={36} weight="duotone" />,
-            colorHex: '#FF6B00',
+            Art: InstantServiceArt,
+            tintHex: '#FFF1E6',
             borderColor: 'hover:border-[#FF6B00]/40',
         },
         {
@@ -53,8 +73,8 @@ export default function SevenServicesSection() {
             href: '/resources',
             providerLabel: 'Accredited Tests',
             providerHref: '/resources',
-            icon: <GraduationCapIcon size={36} weight="duotone" />,
-            colorHex: '#16A34A',
+            Art: SkillsServiceArt,
+            tintHex: '#E8F6ED',
             borderColor: 'hover:border-[#16A34A]/40',
         },
         {
@@ -65,8 +85,8 @@ export default function SevenServicesSection() {
             href: '/mentorship',
             providerLabel: 'Become Mentor',
             providerHref: '/mentorship',
-            icon: <UserCheckIcon size={36} weight="duotone" />,
-            colorHex: '#7C3AED',
+            Art: MentorsServiceArt,
+            tintHex: '#F2EDFE',
             borderColor: 'hover:border-[#7C3AED]/40',
         },
         {
@@ -77,8 +97,8 @@ export default function SevenServicesSection() {
             href: '/jobs?type=service',
             providerLabel: 'List Service',
             providerHref: '/jobs/create',
-            icon: <StorefrontIcon size={36} weight="duotone" />,
-            colorHex: '#EF4444',
+            Art: ServicesServiceArt,
+            tintHex: '#FDEDED',
             borderColor: 'hover:border-[#EF4444]/40',
         },
         {
@@ -89,8 +109,8 @@ export default function SevenServicesSection() {
             href: '/network',
             providerLabel: 'Create Post',
             providerHref: '/network',
-            icon: <UsersIcon size={36} weight="duotone" />,
-            colorHex: '#0F9D8A',
+            Art: PeerServiceArt,
+            tintHex: '#E4F5F2',
             borderColor: 'hover:border-[#0F9D8A]/40',
         },
         {
@@ -101,8 +121,8 @@ export default function SevenServicesSection() {
             href: '/events',
             providerLabel: 'Host Drive',
             providerHref: '/events',
-            icon: <CalendarBlankIcon size={36} weight="duotone" />,
-            colorHex: '#F59E0B',
+            Art: EventsServiceArt,
+            tintHex: '#FEF5E2',
             borderColor: 'hover:border-[#F59E0B]/40',
         },
     ];
@@ -127,48 +147,43 @@ export default function SevenServicesSection() {
                         return (
                             <div
                                 key={service.number}
-                                className={`group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] bg-white rounded-2xl border border-[#D9E0EA] p-6 sm:p-7 flex flex-col justify-between transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
+                                className={`group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] bg-white rounded-2xl border border-[#D9E0EA] p-3 flex flex-col transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
                             >
-                                {/* Header: service icon in its design.md colour, number as a quiet label */}
-                                <div>
-                                    <div className="flex items-start justify-between mb-5">
-                                        <span className="leading-none" style={{ color: service.colorHex }} aria-hidden="true">
-                                            {service.icon}
-                                        </span>
-                                        <span className="text-xs font-medium tabular-nums text-slate-400">
-                                            {service.number}
-                                        </span>
-                                    </div>
+                                {/* Illustrated banner on a soft tint of the service colour; its art animates once in view */}
+                                <ServiceBanner Art={service.Art} tintHex={service.tintHex}>
+                                    <span className="absolute top-2.5 right-2.5 text-xs font-semibold tabular-nums text-slate-500 bg-white/80 px-2 py-0.5 rounded-full">
+                                        {service.number}
+                                    </span>
+                                </ServiceBanner>
 
-                                    {/* Service Title */}
-                                    <h3 className="text-lg sm:text-xl font-bold text-[#111827] group-hover:text-km-primary transition-colors mb-3 leading-snug">
+                                <div className="px-3 pt-5 pb-2 flex flex-col flex-1">
+                                    <h3 className="text-lg font-bold text-[#111827] group-hover:text-km-primary transition-colors mb-2 leading-snug">
                                         {service.title}
                                     </h3>
-
-                                    {/* Description */}
                                     <p className="text-sm text-[#5B6472] leading-relaxed">
                                         {service.description}
                                     </p>
-                                </div>
 
-                                {/* Footer Links */}
-                                <div className="mt-8 pt-5 border-t border-[#D9E0EA]/60 flex items-center justify-between">
-                                    <Link
-                                        href={service.href}
-                                        className="inline-flex items-center gap-1.5 text-sm font-bold text-km-primary hover:text-km-primary-dark transition-colors"
-                                    >
-                                        <span>{service.actionLabel}</span>
-                                        <ArrowRightIcon weight="bold"
-                                            size={16}
-                                            className="transition-transform group-hover:translate-x-1 shrink-0"
-                                        />
-                                    </Link>
-                                    <Link
-                                        href={service.providerHref}
-                                        className="text-xs font-semibold text-slate-400 hover:text-slate-700 transition-colors"
-                                    >
-                                        {service.providerLabel}
-                                    </Link>
+                                    <div className="mt-auto pt-5">
+                                        <div className="pt-4 border-t border-[#D9E0EA]/60 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                                            <Link
+                                                href={service.href}
+                                                className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-km-primary hover:text-km-primary-dark transition-colors"
+                                            >
+                                                <span>{service.actionLabel}</span>
+                                                <ArrowRightIcon weight="bold"
+                                                    size={16}
+                                                    className="transition-transform group-hover:translate-x-1 shrink-0"
+                                                />
+                                            </Link>
+                                            <Link
+                                                href={service.providerHref}
+                                                className="whitespace-nowrap text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+                                            >
+                                                {service.providerLabel}
+                                            </Link>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         );

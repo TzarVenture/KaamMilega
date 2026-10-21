@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowSquareOutIcon, BriefcaseIcon, CalendarBlankIcon, CaretDownIcon, DeviceMobileIcon, GraduationCapIcon, LightningIcon, ListIcon, MagnifyingGlassIcon, SignInIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowSquareOutIcon, BriefcaseIcon, CalendarBlankIcon, CaretDownIcon, DeviceMobileIcon, GraduationCapIcon, ListIcon, PersonSimpleRunIcon, MagnifyingGlassIcon, SignInIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
@@ -69,7 +69,7 @@ const GuestNavbar = () => {
 
     const navLinks = [
         { label: 'Jobs', href: '/jobs', icon: <BriefcaseIcon weight="bold" size={15} /> },
-        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', icon: <LightningIcon weight="bold" size={15} className="text-[#FF6B00] fill-[#FF6B00]" />, isHighlighted: true }] : []),
+        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', icon: <PersonSimpleRunIcon weight="bold" size={15} className="text-[#FF6B00]" />, isHighlighted: true }] : []),
         { label: 'Mentors', href: '/mentorship', icon: <GraduationCapIcon weight="bold" size={15} /> },
         { label: 'Events', href: '/events', icon: <CalendarBlankIcon weight="bold" size={15} /> },
         { label: 'Network', href: '/network', icon: <UsersIcon weight="bold" size={15} /> },
