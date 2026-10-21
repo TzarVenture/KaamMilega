@@ -84,14 +84,14 @@ export default function AdsPublishedPage() {
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div className="flex-1 flex items-center gap-6">
                     <div className="flex items-center gap-2 text-sm font-bold text-slate-800 whitespace-nowrap">
-                        Sort by: <span className="flex items-center gap-1 text-slate-500 cursor-pointer hover:text-purple-600 transition-colors">Recently added <CaretDownIcon weight="bold" size={14} /></span>
+                        Sort by: <span className="flex items-center gap-1 text-slate-500 cursor-pointer hover:text-purple-600 transition-colors dark:hover:text-purple-400">Recently added <CaretDownIcon weight="bold" size={14} /></span>
                     </div>
                     <div className="relative flex-1 max-w-xl group">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                         <input
                             type="text"
                             placeholder="Find Ad..."
-                            className="w-full pl-11 pr-4 py-2.5 bg-white border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all outline-none shadow-sm"
+                            className="w-full pl-11 pr-4 py-2.5 bg-km-surface-card border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all outline-none shadow-sm"
                         />
                     </div>
                 </div>
@@ -110,7 +110,7 @@ export default function AdsPublishedPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-[32px] border border-purple-50 shadow-xl shadow-purple-900/5 overflow-hidden"
+                className="bg-km-surface-card rounded-[32px] border border-purple-50 shadow-xl shadow-purple-900/5 overflow-hidden"
             >
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-separate border-spacing-0">
@@ -136,10 +136,10 @@ export default function AdsPublishedPage() {
                                                 <p className="text-sm font-black text-slate-700">{ad.company}</p>
                                                 <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{ad.type}</p>
                                             </div>
-                                            <div className="w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
+                                            <div className="w-10 h-10 bg-km-ink rounded-full flex items-center justify-center text-white ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
                                                 <span className="text-xs font-bold italic rotate-45">▲▲</span>
                                             </div>
-                                            <button className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all ml-4">
+                                            <button className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all ml-4 dark:hover:text-purple-400">
                                                 <DotsThreeVerticalIcon size={20} />
                                             </button>
                                         </div>
@@ -155,7 +155,7 @@ export default function AdsPublishedPage() {
             <div className="fixed bottom-8 right-8 flex gap-2">
                 <button
                     onClick={() => setView(view === 'list' ? 'coming-soon' : 'list')}
-                    className="px-4 py-2 bg-slate-900 text-white text-[10px] font-bold rounded-lg opacity-40 hover:opacity-100 transition-opacity uppercase tracking-widest"
+                    className="px-4 py-2 bg-km-ink text-white text-[10px] font-bold rounded-lg opacity-40 hover:opacity-100 transition-opacity uppercase tracking-widest"
                 >
                     Toggle {view === 'list' ? 'Coming Soon' : 'List View'}
                 </button>

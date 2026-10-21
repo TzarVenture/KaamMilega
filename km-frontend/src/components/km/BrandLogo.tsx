@@ -42,7 +42,15 @@ export default function BrandLogo({ className = '', showTextOnMobile = true, siz
                 width={2080}
                 height={366}
                 priority
-                className={`${textStyles[size]} object-contain shrink-0 translate-y-[11%] ${showTextOnMobile ? 'block' : 'hidden sm:block'}`}
+                className={`${textStyles[size]} object-contain shrink-0 translate-y-[11%] dark:hidden ${showTextOnMobile ? 'block' : 'hidden sm:block'}`}
+            />
+            <Image
+                src="/kaammilega-logo-text-dark.png"
+                loading="eager"
+                alt="Kaammilega"
+                width={2080}
+                height={366}
+                className={`${textStyles[size]} object-contain shrink-0 translate-y-[11%] hidden ${showTextOnMobile ? 'dark:block' : 'sm:dark:block'}`}
             />
         </Link>
     );

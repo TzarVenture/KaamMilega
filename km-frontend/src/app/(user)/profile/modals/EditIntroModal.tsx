@@ -89,7 +89,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                 <div className="space-y-1">
                     <label className="text-sm text-gray-600">Pronouns</label>
                     <select
-                        className="w-full border border-gray-300 rounded-xl p-2.5 bg-white focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none appearance-none cursor-pointer"
+                        className="w-full border border-gray-300 rounded-xl p-2.5 bg-km-surface-card focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none appearance-none cursor-pointer"
                         value={formData.pronouns}
                         onChange={(e) => setFormData({ ...formData, pronouns: e.target.value })}
                     >
@@ -99,7 +99,7 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
                         <option value="they/them">They/Them</option>
                     </select>
                     <p className="text-xs text-gray-500 pt-1">
-                        Let others know how to refer to you. <span className="text-km-primary font-semibold cursor-pointer hover:underline">Learn More About Gender Pronouns.</span>
+                        Let others know how to refer to you. <span className="text-km-heading font-semibold cursor-pointer hover:underline">Learn More About Gender Pronouns.</span>
                     </p>
                 </div>
 

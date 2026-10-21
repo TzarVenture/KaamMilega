@@ -79,7 +79,7 @@ const JobsSection: React.FC = () => {
                         {[1, 2, 3].map(n => <div key={n} className="h-40 bg-gray-100 rounded-3xl animate-pulse" />)}
                     </div>
                 ) : jobs.length === 0 ? (
-                    <div className="bg-white border border-gray-200 rounded-3xl p-12 text-center">
+                    <div className="bg-km-surface-card border border-gray-200 rounded-3xl p-12 text-center">
                         <h3 className="text-lg font-bold text-gray-900">No active jobs</h3>
                         <p className="text-gray-500">This company hasn't posted any jobs recently.</p>
                     </div>
@@ -95,22 +95,22 @@ const JobsSection: React.FC = () => {
 
 const JobCard = ({ job }: { job: Job }) => {
     return (
-        <div className="bg-white border border-slate-200 rounded-3xl p-6 transition-all hover:shadow-md hover:border-blue-200">
+        <div className="bg-km-surface-card border border-slate-200 rounded-3xl p-6 transition-all hover:shadow-md hover:border-blue-200">
             <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                 {/* Job Title & Company */}
                 <div>
                     <Link href={`/jobs/${job.id}`}>
-                        <h3 className="text-xl font-bold text-gray-900 hover:text-km-primary transition-colors cursor-pointer">{job.title}</h3>
+                        <h3 className="text-xl font-bold text-gray-900 hover:text-km-heading transition-colors cursor-pointer">{job.title}</h3>
                     </Link>
                     <p className="text-sm text-gray-500 mt-1">{job.company}</p>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex items-center space-x-3 w-full md:w-auto">
-                    <button className="p-2.5 bg-blue-50 text-km-primary rounded-xl hover:bg-blue-100 transition">
+                    <button className="p-2.5 bg-blue-50 text-km-heading rounded-xl hover:bg-blue-100 transition">
                         <PhoneIcon weight="bold" size={18} />
                     </button>
-                    <button className="flex items-center space-x-2 px-4 py-2 border border-km-primary text-km-primary rounded-xl text-sm font-bold hover:bg-blue-50 transition whitespace-nowrap">
+                    <button className="flex items-center space-x-2 px-4 py-2 border border-km-primary text-km-heading rounded-xl text-sm font-bold hover:bg-blue-50 transition whitespace-nowrap">
                         <ChatCircleIcon weight="bold" size={16} />
                         <span className="hidden sm:inline">Chat With HR</span>
                     </button>
@@ -129,14 +129,14 @@ const JobCard = ({ job }: { job: Job }) => {
                 </div>
 
                 <div className="flex items-center text-gray-500 text-sm font-medium">
-                    <MapPinIcon weight="bold" size={16} className="mr-1 text-km-primary" />
+                    <MapPinIcon weight="bold" size={16} className="mr-1 text-km-heading" />
                     <span>{job.location || 'Location N/A'}, {job.city_name}</span>
                 </div>
             </div>
 
             {/* Badges Row */}
             <div className="flex flex-wrap items-center gap-3 mt-4">
-                <span className="px-3.5 py-1 bg-blue-50 text-km-primary text-xs font-bold rounded-xl border border-blue-100">
+                <span className="px-3.5 py-1 bg-blue-50 text-km-heading text-xs font-bold rounded-xl border border-blue-100">
                     New
                 </span>
                 <span className="px-3.5 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl">
@@ -146,7 +146,7 @@ const JobCard = ({ job }: { job: Job }) => {
                     {job.vacancies} Vacancies
                 </span>
                 <div className="flex items-center space-x-1 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-xl border border-emerald-200">
-                    <CheckCircleIcon weight="fill" size={12} className="text-emerald-500" />
+                    <CheckCircleIcon weight="fill" size={12} className="text-emerald-500 dark:text-emerald-400" />
                     <span>KM Verified</span>
                 </div>
             </div>

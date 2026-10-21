@@ -92,15 +92,15 @@ export default function MentorshipPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F4F7FB] pb-20 font-sans">
+    <main className="min-h-screen bg-km-surface pb-20 font-sans">
       {/* ─── Mentorship Hero Section with Expert Art & Rounded Bottom ─── */}
-      <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden">
+      <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden dark:border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
             {/* Left Column: Headlines, Search & Value Props */}
             <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
               {/* Category Indicator */}
-              <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
+              <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4 dark:bg-amber-500/15 dark:text-orange-400">
                 <GraduationCapIcon weight="bold" size={14} className="text-[#F59E0B]" />
                 <span>1-on-1 Expert Mentorship</span>
               </div>
@@ -117,7 +117,7 @@ export default function MentorshipPage() {
 
               {/* Search Bar + Become a Mentor CTA */}
               <div className="flex flex-col sm:flex-row gap-3 max-w-xl mt-6">
-                <div className="flex-1 flex items-center bg-white rounded-xl px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-[#0B5ED7]/20 transition-all shadow-xs">
+                <div className="flex-1 flex items-center bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-[#0B5ED7]/20 transition-all shadow-xs">
                   <MagnifyingGlassIcon weight="bold" size={17} className="text-slate-400 mr-2.5 shrink-0" />
                   <input 
                     type="text" 
@@ -138,7 +138,7 @@ export default function MentorshipPage() {
                 </div>
                 <Link
                   href="/expert/apply"
-                  className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all whitespace-nowrap shadow-xs"
+                  className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all whitespace-nowrap shadow-xs dark:hover:border-km-surface-card"
                 >
                   <span>Become an Expert & Host</span>
                   <ArrowRightIcon weight="bold" size={13} />
@@ -181,7 +181,7 @@ export default function MentorshipPage() {
 
       {/* Category Tabs */}
       <section className="max-w-7xl mx-auto px-6 -mt-7 relative z-20">
-        <div className="bg-white p-2 rounded-2xl md:rounded-3xl shadow-md shadow-slate-200/50 border border-slate-100 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="bg-km-surface-card p-2 rounded-2xl md:rounded-3xl shadow-md shadow-slate-200/50 border border-slate-100 flex items-center gap-2 overflow-x-auto scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -242,9 +242,9 @@ export default function MentorshipPage() {
 
           <Link
             href="/mentorship/my-sessions"
-            className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 bg-km-surface-card hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
           >
-            <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c]" />
+            <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c] dark:text-blue-400" />
             <span>My Booked Sessions</span>
             {myBookingsCount > 0 && (
               <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-orange-500 text-white">
@@ -259,7 +259,7 @@ export default function MentorshipPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="bg-white rounded-3xl h-95 animate-pulse border border-slate-100" />
+              <div key={i} className="bg-km-surface-card rounded-3xl h-95 animate-pulse border border-slate-100" />
             ))}
           </div>
         ) : filteredMentorships.length > 0 ? (
@@ -269,7 +269,7 @@ export default function MentorshipPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8">
+          <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-dashed border-slate-200 p-8">
             <BookOpenIcon size={36} weight="duotone" className="text-slate-400 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-bold text-slate-800 mb-1">No Mentorships Found</h3>
             <p className="text-xs text-slate-500 max-w-xs mx-auto">Try adjusting your category filter or search query to find what you are looking for.</p>
@@ -282,7 +282,7 @@ export default function MentorshipPage() {
         <div className="bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-200/80 flex flex-col md:flex-row items-center gap-10">
             <div className="md:w-1/2">
                 <h2 className="text-2xl md:text-4xl font-black text-slate-900 mb-6 leading-tight">
-                    Why Choose <span className="text-km-primary">KaamMilega Mentors?</span>
+                    Why Choose <span className="text-km-heading">KaamMilega Mentors?</span>
                 </h2>
                 <div className="space-y-4">
                     <BenefitItem 
@@ -296,15 +296,15 @@ export default function MentorshipPage() {
                         desc="Engage in meaningful conversations and get answers to your specific career questions." 
                     />
                     <BenefitItem 
-                        icon={<CheckCircleIcon size={24} className="text-emerald-500" />} 
+                        icon={<CheckCircleIcon size={24} className="text-emerald-500 dark:text-emerald-400" />} 
                         title="Practical Roadmaps" 
                         desc="Learn real-world strategies, negotiate better compensation, and avoid common traps." 
                     />
                 </div>
             </div>
             <div className="md:w-1/2 flex justify-center">
-                <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm max-w-sm w-full space-y-4 text-center">
-                    <UsersIcon size={36} weight="duotone" className="text-km-primary mx-auto" aria-hidden="true" />
+                <div className="bg-km-surface-card rounded-3xl p-8 border border-slate-200 shadow-sm max-w-sm w-full space-y-4 text-center">
+                    <UsersIcon size={36} weight="duotone" className="text-km-heading mx-auto" aria-hidden="true" />
                     <h3 className="text-lg font-bold text-slate-900">Are You an Industry Expert?</h3>
                     <p className="text-xs text-slate-500 leading-relaxed">
                       Share your knowledge, mentor aspiring candidates, and earn by hosting 1-on-1 sessions.
@@ -333,7 +333,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08 }}
-      className="bg-white rounded-3xl overflow-hidden shadow-xs border border-slate-200/80 flex flex-col group hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5"
+      className="bg-km-surface-card rounded-3xl overflow-hidden shadow-xs border border-slate-200/80 flex flex-col group hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5"
     >
       <div className="p-6 md:p-7 pb-4 flex-1 flex flex-col">
         <div className="flex justify-between items-start mb-4">
@@ -341,23 +341,23 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
              {expert?.profile_image ? (
                <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
              ) : (
-               <span className="text-km-primary font-black text-lg md:text-xl">{expertInitial}</span>
+               <span className="text-km-heading font-black text-lg md:text-xl">{expertInitial}</span>
              )}
           </div>
           <div className="flex flex-col items-end gap-1.5">
-            <span className="bg-blue-50 text-km-primary text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue-100">
+            <span className="bg-blue-50 text-km-heading text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue-100">
               {mentorship?.category || "Mentorship"}
             </span>
             <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-800">
               <StarIcon weight="fill" size={11} className="fill-amber-400 text-amber-400" />
               <span>{mentorship?.rating ? Number(mentorship.rating).toFixed(1) : '5.0'}</span>
-              <span className="text-amber-600 font-medium">({mentorship?.reviews || 0})</span>
+              <span className="text-amber-600 font-medium dark:text-amber-400">({mentorship?.reviews || 0})</span>
             </div>
           </div>
         </div>
  
         <Link href={`/mentorship/${mentorship?.id}`}>
-          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-1.5 group-hover:text-km-primary transition-colors line-clamp-2 min-h-11">
+          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-1.5 group-hover:text-km-heading transition-colors line-clamp-2 min-h-11">
             {mentorship?.title}
           </h3>
         </Link>
@@ -367,11 +367,11 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
  
         <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 mt-auto">
           <div className="flex items-center gap-1.5 text-slate-500">
-            <ClockIcon weight="bold" size={14} className="text-km-primary" />
+            <ClockIcon weight="bold" size={14} className="text-km-heading" />
             <span className="text-xs font-semibold">{mentorship?.duration || 45} Mins</span>
           </div>
           <div className="flex items-center gap-1.5 text-slate-500">
-            <UsersIcon weight="bold" size={14} className="text-emerald-600" />
+            <UsersIcon weight="bold" size={14} className="text-emerald-600 dark:text-emerald-400" />
             <span className="text-xs font-semibold">1-on-1 Session</span>
           </div>
         </div>
@@ -398,7 +398,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
 
 function BenefitItem({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
     return (
-        <div className="flex gap-3.5 p-3 rounded-2xl hover:bg-white transition-colors">
+        <div className="flex gap-3.5 p-3 rounded-2xl hover:bg-km-surface-card transition-colors">
             <span className="w-6 flex justify-center shrink-0 pt-0.5" aria-hidden="true">
                 {icon}
             </span>

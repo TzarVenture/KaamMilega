@@ -348,32 +348,32 @@ export default function UnifiedAuthView({
     };
 
     return (
-        <div className="min-h-screen bg-[#F4F7FB] text-[#111827] flex flex-col font-sans">
+        <div className="min-h-screen bg-km-surface text-km-text-primary flex flex-col font-sans">
             {/* Top Navigation Bar: Shared Unified Auth Navbar */}
             <AuthNavbar />
 
             {/* Split-Screen Main Container */}
             <main className="flex-1 flex flex-col justify-center px-4 sm:px-6 md:px-10 lg:px-12 py-8 lg:py-12 max-w-6xl mx-auto w-full">
-                <div className="bg-white border border-[#D9E0EA] rounded-3xl p-7 sm:p-10 lg:p-14 shadow-xs flex flex-col lg:flex-row items-center lg:items-start justify-between gap-10 lg:gap-14">
+                <div className="bg-km-surface-card border border-km-border rounded-3xl p-7 sm:p-10 lg:p-14 shadow-xs flex flex-col lg:flex-row items-center lg:items-start justify-between gap-10 lg:gap-14">
                     {/* LEFT COLUMN: Value Proposition */}
                     <div className="flex-1 space-y-6 text-center lg:text-left w-full">
                         <div className="space-y-3">
                             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
                                 {isRecruiter ? (
                                     <>
-                                        <span className="text-[#071A4D]">Hire </span>
+                                        <span className="text-km-heading">Hire </span>
                                         <span className="text-[#FF6B00]">Verified</span>
-                                        <span className="text-[#071A4D]"> Talent Directly.</span>
+                                        <span className="text-km-heading"> Talent Directly.</span>
                                     </>
                                 ) : (
                                     <>
-                                        <span className="text-[#071A4D]">Talk to HR </span>
+                                        <span className="text-km-heading">Talk to HR </span>
                                         <span className="text-[#FF6B00]">Directly</span>
-                                        <span className="text-[#071A4D]"> and Get a Job in Your City.</span>
+                                        <span className="text-km-heading"> and Get a Job in Your City.</span>
                                     </>
                                 )}
                             </h1>
-                            <p className="text-sm sm:text-base font-medium text-[#5B6472]">
+                            <p className="text-sm sm:text-base font-medium text-km-text-secondary">
                                 {isRecruiter
                                     ? 'Post jobs and connect with candidates in your city.'
                                     : 'Find verified local jobs with direct recruiter access.'}
@@ -383,11 +383,11 @@ export default function UnifiedAuthView({
 
                     {/* RIGHT COLUMN: Interactive Form Card */}
                     <div className="w-full lg:w-[440px] shrink-0">
-                        <div className="bg-[#F4F7FB] rounded-2xl border border-[#D9E0EA] p-6 sm:p-8 shadow-xs">
+                        <div className="bg-km-surface rounded-2xl border border-km-border p-6 sm:p-8 shadow-xs">
                             {/* Error Banner */}
                             {error && (
                                 <div className="mb-4 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-700 font-medium">
-                                    <WarningCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-red-600" />
+                                    <WarningCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
                                     <span>{error}</span>
                                 </div>
                             )}
@@ -395,7 +395,7 @@ export default function UnifiedAuthView({
                             {/* Success Banner */}
                             {successMsg && (
                                 <div className="mb-4 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5 text-xs text-emerald-800 font-medium">
-                                    <CheckCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-emerald-600" />
+                                    <CheckCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
                                     <span>{successMsg}</span>
                                 </div>
                             )}
@@ -407,10 +407,10 @@ export default function UnifiedAuthView({
                                     {otpStep === 'input' && (
                                         <form onSubmit={handleSendOtp} className="space-y-4">
                                             <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
+                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
                                                     {isRecruiter ? 'Employer Sign In' : 'Candidate Sign In'}
                                                 </h2>
-                                                <p className="text-xs text-[#5B6472] mt-1">
+                                                <p className="text-xs text-km-text-secondary mt-1">
                                                     {isRecruiter
                                                         ? 'Enter your mobile number to sign in or register your company.'
                                                         : 'Enter your mobile number to get a verification code.'}
@@ -418,11 +418,11 @@ export default function UnifiedAuthView({
                                             </div>
 
                                             <div className="pt-2">
-                                                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
+                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
                                                     Mobile Number
                                                 </label>
                                                 <div className="relative flex items-center">
-                                                    <span className="absolute left-3 text-xs font-bold text-[#111827] border-r border-[#D9E0EA] pr-2 pointer-events-none">
+                                                    <span className="absolute left-3 text-xs font-bold text-km-text-primary border-r border-km-border pr-2 pointer-events-none">
                                                         +91
                                                     </span>
                                                     <input
@@ -436,7 +436,7 @@ export default function UnifiedAuthView({
                                                             setMobile(val);
                                                             setError(null);
                                                         }}
-                                                        className="w-full h-11 pl-14 pr-3.5 bg-white border border-[#D9E0EA] rounded-xl text-sm font-medium text-[#111827] placeholder:text-[#5B6472]/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all tracking-wide"
+                                                        className="w-full h-11 pl-14 pr-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all tracking-wide dark:focus:border-km-link dark:focus:ring-km-link"
                                                         autoFocus
                                                     />
                                                 </div>
@@ -447,7 +447,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || mobile.replace(/\D/g, '').length !== 10}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
                                                     mobile.replace(/\D/g, '').length === 10 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -474,7 +474,7 @@ export default function UnifiedAuthView({
                                                             setError(null);
                                                             setSuccessMsg(null);
                                                         }}
-                                                        className="text-xs font-semibold text-[#071A4D] hover:underline cursor-pointer"
+                                                        className="text-xs font-semibold text-km-heading hover:underline cursor-pointer"
                                                     >
                                                         Sign in with Password →
                                                     </button>
@@ -482,23 +482,23 @@ export default function UnifiedAuthView({
                                             )}
 
                                             {/* Discrete Cross-Portal Navigation Link */}
-                                            <div className="text-center pt-4 border-t border-[#D9E0EA]/70 mt-4">
+                                            <div className="text-center pt-4 border-t border-km-border/70 mt-4">
                                                 {isRecruiter ? (
-                                                    <p className="text-xs text-[#5B6472]">
+                                                    <p className="text-xs text-km-text-secondary">
                                                         Looking for a job?{' '}
                                                         <Link
                                                             href="/login"
-                                                            className="text-[#071A4D] font-bold hover:underline cursor-pointer"
+                                                            className="text-km-heading font-bold hover:underline cursor-pointer"
                                                         >
                                                             Go to Candidate Portal →
                                                         </Link>
                                                     </p>
                                                 ) : (
-                                                    <p className="text-xs text-[#5B6472]">
+                                                    <p className="text-xs text-km-text-secondary">
                                                         Looking to hire staff?{' '}
                                                         <Link
                                                             href="/recruiter/login"
-                                                            className="text-[#071A4D] font-bold hover:underline cursor-pointer"
+                                                            className="text-km-heading font-bold hover:underline cursor-pointer"
                                                         >
                                                             Go to Employer Portal →
                                                         </Link>
@@ -515,10 +515,10 @@ export default function UnifiedAuthView({
                                             className="space-y-4"
                                         >
                                             <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
+                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
                                                     Enter verification code
                                                 </h2>
-                                                <p className="text-xs text-[#5B6472] mt-1">
+                                                <p className="text-xs text-km-text-secondary mt-1">
                                                     Code sent to +91 ••••••{mobile.slice(-4)}
                                                 </p>
                                             </div>
@@ -540,14 +540,14 @@ export default function UnifiedAuthView({
                                             {/* Resend & Change Number */}
                                             <div className="flex items-center justify-between text-xs pt-1">
                                                 {resendTimer > 0 ? (
-                                                    <span className="text-[#5B6472]">
+                                                    <span className="text-km-text-secondary">
                                                         Resend code in {resendTimer}s
                                                     </span>
                                                 ) : (
                                                     <button
                                                         type="button"
                                                         onClick={() => handleSendOtp()}
-                                                        className="text-[#071A4D] font-bold hover:underline cursor-pointer"
+                                                        className="text-km-heading font-bold hover:underline cursor-pointer"
                                                     >
                                                         Resend code
                                                     </button>
@@ -560,7 +560,7 @@ export default function UnifiedAuthView({
                                                         setOtp(['', '', '', '']);
                                                         setError(null);
                                                     }}
-                                                    className="text-[#5B6472] hover:text-[#071A4D] font-medium cursor-pointer"
+                                                    className="text-km-text-secondary hover:text-km-heading font-medium cursor-pointer"
                                                 >
                                                     Change number
                                                 </button>
@@ -571,7 +571,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || otp.join('').length !== 4}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-2 shadow-xs ${
                                                     otp.join('').length === 4 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -594,16 +594,16 @@ export default function UnifiedAuthView({
                                     {otpStep === 'name' && (
                                         <form onSubmit={handleCompleteName} className="space-y-4">
                                             <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
+                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
                                                     Welcome to KaamMilega!
                                                 </h2>
-                                                <p className="text-xs text-[#5B6472] mt-1">
+                                                <p className="text-xs text-km-text-secondary mt-1">
                                                     Tell us your name and the city you want to work in.
                                                 </p>
                                             </div>
 
                                             <div className="pt-2">
-                                                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
+                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
                                                     Full Name
                                                 </label>
                                                 <div className="relative">
@@ -616,14 +616,14 @@ export default function UnifiedAuthView({
                                                             setFullName(e.target.value);
                                                             setError(null);
                                                         }}
-                                                        className="w-full h-11 px-3.5 bg-white border border-[#D9E0EA] rounded-xl text-sm font-medium text-[#111827] placeholder:text-[#5B6472]/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                        className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                         autoFocus
                                                     />
                                                 </div>
                                             </div>
 
                                             <div>
-                                                <label htmlFor="signup-city" className="block text-xs font-semibold text-[#111827] mb-1.5">
+                                                <label htmlFor="signup-city" className="block text-xs font-semibold text-km-text-primary mb-1.5">
                                                     City
                                                 </label>
                                                 <input
@@ -638,7 +638,7 @@ export default function UnifiedAuthView({
                                                         setCity(e.target.value);
                                                         setError(null);
                                                     }}
-                                                    className="w-full h-11 px-3.5 bg-white border border-[#D9E0EA] rounded-xl text-sm font-medium text-[#111827] placeholder:text-[#5B6472]/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                 />
                                                 <datalist id="signup-city-options">
                                                     {cityOptions.map((name) => (
@@ -652,7 +652,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || fullName.trim().length < 2 || !city.trim()}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
                                                     fullName.trim().length >= 2 && city.trim() && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -677,16 +677,16 @@ export default function UnifiedAuthView({
                             {authMethod === 'password' && (
                                 <form onSubmit={handlePasswordLogin} className="space-y-4">
                                     <div>
-                                        <h2 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
+                                        <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
                                             Sign In with Password
                                         </h2>
-                                        <p className="text-xs text-[#5B6472] mt-1">
+                                        <p className="text-xs text-km-text-secondary mt-1">
                                             Enter your registered email or mobile and password.
                                         </p>
                                     </div>
 
                                     <div className="pt-2">
-                                        <label className="block text-xs font-semibold text-[#111827] mb-1.5">
+                                        <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
                                             Email address or Mobile
                                         </label>
                                         <input
@@ -698,14 +698,14 @@ export default function UnifiedAuthView({
                                                 setIdentifier(e.target.value);
                                                 setError(null);
                                             }}
-                                            className="w-full h-11 px-3.5 bg-white border border-[#D9E0EA] rounded-xl text-sm font-medium text-[#111827] placeholder:text-[#5B6472]/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                            className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                             autoFocus
                                         />
                                     </div>
 
                                     <div>
                                         <div className="flex justify-between items-center mb-1.5">
-                                            <label className="text-xs font-semibold text-[#111827]">
+                                            <label className="text-xs font-semibold text-km-text-primary">
                                                 Password
                                             </label>
                                             <button
@@ -715,7 +715,7 @@ export default function UnifiedAuthView({
                                                     setError(null);
                                                     setSuccessMsg(null);
                                                 }}
-                                                className="text-xs font-semibold text-[#071A4D] hover:underline cursor-pointer"
+                                                className="text-xs font-semibold text-km-heading hover:underline cursor-pointer"
                                             >
                                                 Forgot password?
                                             </button>
@@ -730,12 +730,12 @@ export default function UnifiedAuthView({
                                                     setPassword(e.target.value);
                                                     setError(null);
                                                 }}
-                                                className="w-full h-11 pl-3.5 pr-10 bg-white border border-[#D9E0EA] rounded-xl text-sm font-medium text-[#111827] placeholder:text-[#5B6472]/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                className="w-full h-11 pl-3.5 pr-10 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6472] hover:text-[#111827] p-1 cursor-pointer"
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-km-text-secondary hover:text-km-text-primary p-1 cursor-pointer"
                                             >
                                                 {showPassword ? <EyeSlashIcon weight="bold" size={16} /> : <EyeIcon weight="bold" size={16} />}
                                             </button>
@@ -751,9 +751,9 @@ export default function UnifiedAuthView({
                                                 setOtpStep('input');
                                                 setError(null);
                                             }}
-                                            className="text-xs font-semibold text-[#071A4D] hover:underline inline-flex items-center gap-1.5 cursor-pointer py-1"
+                                            className="text-xs font-semibold text-km-heading hover:underline inline-flex items-center gap-1.5 cursor-pointer py-1"
                                         >
-                                            <PhoneCallIcon weight="bold" size={14} className="text-[#071A4D]" />
+                                            <PhoneCallIcon weight="bold" size={14} className="text-km-heading" />
                                             <span>Sign in with Mobile OTP instead</span>
                                         </button>
                                     </div>
@@ -763,7 +763,7 @@ export default function UnifiedAuthView({
                                         disabled={loading || !identifier.trim() || !password}
                                         className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-2 shadow-xs ${
                                             identifier.trim() && password && !loading
-                                                ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                 : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                         }`}
                                     >
@@ -788,16 +788,16 @@ export default function UnifiedAuthView({
                                     {forgotStep === 'request' ? (
                                         <form onSubmit={handleSendForgotCode} className="space-y-4">
                                             <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
+                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
                                                     Reset Password
                                                 </h2>
-                                                <p className="text-xs text-[#5B6472] mt-1">
+                                                <p className="text-xs text-km-text-secondary mt-1">
                                                     Enter your registered email to receive a reset code.
                                                 </p>
                                             </div>
 
                                             <div className="pt-2">
-                                                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
+                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
                                                     Email address
                                                 </label>
                                                 <input
@@ -809,7 +809,7 @@ export default function UnifiedAuthView({
                                                         setForgotEmail(e.target.value);
                                                         setError(null);
                                                     }}
-                                                    className="w-full h-11 px-3.5 bg-white border border-[#D9E0EA] rounded-xl text-sm font-medium text-[#111827] placeholder:text-[#5B6472]/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                     autoFocus
                                                 />
                                             </div>
@@ -819,7 +819,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || !forgotEmail.trim()}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
                                                     forgotEmail.trim() && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -833,7 +833,7 @@ export default function UnifiedAuthView({
                                                         setAuthMethod('password');
                                                         setError(null);
                                                     }}
-                                                    className="text-xs font-semibold text-[#071A4D] hover:underline cursor-pointer"
+                                                    className="text-xs font-semibold text-km-heading hover:underline cursor-pointer"
                                                 >
                                                     Back to sign in
                                                 </button>
@@ -842,16 +842,16 @@ export default function UnifiedAuthView({
                                     ) : (
                                         <form onSubmit={handleResetPassword} className="space-y-4">
                                             <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-[#111827] tracking-tight">
+                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
                                                     Enter Reset Code
                                                 </h2>
-                                                <p className="text-xs text-[#5B6472] mt-1">
+                                                <p className="text-xs text-km-text-secondary mt-1">
                                                     Code sent to {forgotEmail}
                                                 </p>
                                             </div>
 
                                             <div className="pt-2">
-                                                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
+                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
                                                     4-digit reset code
                                                 </label>
                                                 <input
@@ -864,13 +864,13 @@ export default function UnifiedAuthView({
                                                         setForgotCode(e.target.value.replace(/\D/g, ''));
                                                         setError(null);
                                                     }}
-                                                    className="w-full h-11 px-3.5 bg-white border border-[#D9E0EA] rounded-xl text-sm font-semibold tracking-widest text-[#111827] text-center focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-semibold tracking-widest text-km-text-primary text-center focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                     autoFocus
                                                 />
                                             </div>
 
                                             <div>
-                                                <label className="block text-xs font-semibold text-[#111827] mb-1.5">
+                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
                                                     New password (min. 6 characters)
                                                 </label>
                                                 <div className="relative">
@@ -884,12 +884,12 @@ export default function UnifiedAuthView({
                                                             setNewPassword(e.target.value);
                                                             setError(null);
                                                         }}
-                                                        className="w-full h-11 pl-3.5 pr-10 bg-white border border-[#D9E0EA] rounded-xl text-sm font-medium text-[#111827] focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all"
+                                                        className="w-full h-11 pl-3.5 pr-10 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => setShowNewPassword(!showNewPassword)}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-[#5B6472] hover:text-[#111827] p-1 cursor-pointer"
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-km-text-secondary hover:text-km-text-primary p-1 cursor-pointer"
                                                     >
                                                         {showNewPassword ? <EyeSlashIcon weight="bold" size={16} /> : <EyeIcon weight="bold" size={16} />}
                                                     </button>
@@ -901,7 +901,7 @@ export default function UnifiedAuthView({
                                                 disabled={loading || forgotCode.length !== 4 || newPassword.length < 6}
                                                 className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
                                                     forgotCode.length === 4 && newPassword.length >= 6 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99]'
+                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
                                                         : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
                                                 }`}
                                             >
@@ -915,7 +915,7 @@ export default function UnifiedAuthView({
                                                         setForgotStep('request');
                                                         setError(null);
                                                     }}
-                                                    className="text-xs font-semibold text-[#5B6472] hover:underline cursor-pointer"
+                                                    className="text-xs font-semibold text-km-text-secondary hover:underline cursor-pointer"
                                                 >
                                                     Change email
                                                 </button>
@@ -929,14 +929,14 @@ export default function UnifiedAuthView({
                 </div>
 
                 {/* Bottom Legal Disclaimer */}
-                <div className="text-center mt-6 text-xs text-[#5B6472]">
+                <div className="text-center mt-6 text-xs text-km-text-secondary">
                     <p>
                         By continuing, you agree to KaamMilega&apos;s{' '}
-                        <Link href="/policies/terms" className="text-[#071A4D] hover:underline font-semibold">
+                        <Link href="/policies/terms" className="text-km-heading hover:underline font-semibold">
                             Terms of Service
                         </Link>{' '}
                         and{' '}
-                        <Link href="/policies/privacy" className="text-[#071A4D] hover:underline font-semibold">
+                        <Link href="/policies/privacy" className="text-km-heading hover:underline font-semibold">
                             Privacy Policy
                         </Link>
                         .

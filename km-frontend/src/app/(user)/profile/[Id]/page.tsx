@@ -126,8 +126,8 @@ const OtherUserProfilePage = () => {
     if (isPrivate) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="text-center max-w-sm mx-auto p-8 bg-white rounded-2xl shadow-sm border border-gray-200">
-                    <LockIcon size={36} weight="duotone" className="text-km-primary mx-auto mb-4" aria-hidden="true" />
+                <div className="text-center max-w-sm mx-auto p-8 bg-km-surface-card rounded-2xl shadow-sm border border-gray-200">
+                    <LockIcon size={36} weight="duotone" className="text-km-heading mx-auto mb-4" aria-hidden="true" />
                     <h2 className="text-xl font-bold text-gray-800 mb-2">This Profile is Private</h2>
                     <p className="text-gray-500 text-sm">This user has chosen to keep their profile private. Only they can view it.</p>
                 </div>
@@ -166,7 +166,7 @@ const OtherUserProfilePage = () => {
                     <div className="lg:col-span-8 space-y-6">
 
                         {/* Header Card */}
-                        <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
+                        <div className="bg-km-surface-card rounded-xl shadow-sm overflow-hidden border border-gray-200">
 
                             {/* Banner */}
                             <div className="h-32 sm:h-48 bg-linear-to-r from-km-primary-dark via-km-primary to-blue-700 relative group">
@@ -182,7 +182,7 @@ const OtherUserProfilePage = () => {
                             {/* Profile Info */}
                             <div className="px-4 sm:px-8 pb-6 sm:pb-8">
                                 <div className="relative flex justify-between items-end -mt-12 sm:-mt-16 mb-4">
-                                    <div className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-900 rounded-full border-4 border-white flex items-center justify-center overflow-hidden shadow-md">
+                                    <div className="w-24 h-24 sm:w-32 sm:h-32 bg-km-ink rounded-full border-4 border-white flex items-center justify-center overflow-hidden shadow-md dark:border-km-surface-card">
                                         {user?.profile_image ? (
                                             <CustomImage src={user?.profile_image} alt={user?.name} className="w-full h-full object-cover" />
                                         ) : (
@@ -198,7 +198,7 @@ const OtherUserProfilePage = () => {
                                             {isConnected ? 'Connected' : (isPending ? 'Pending' : (isConnecting ? 'Connecting...' : 'Connect'))}
                                         </button>
                                         <Link href={`/chat?userId=${userId}`}>
-                                            <button className="border border-km-primary text-km-primary px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors flex items-center gap-1.5 cursor-pointer">
+                                            <button className="border border-km-primary text-km-heading px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors flex items-center gap-1.5 cursor-pointer">
                                                 <ChatCircleIcon weight="bold" size={15} /> Message
                                             </button>
                                         </Link>
@@ -214,19 +214,19 @@ const OtherUserProfilePage = () => {
                                 <p className="text-xs sm:text-sm text-gray-400 mt-1 flex flex-wrap gap-x-2 items-center">
                                     <span>{locationString || "Location not set"}</span>
                                     <span>•</span>
-                                    <span className="text-km-primary font-semibold">{user?.connections_count || 0} Connections</span>
+                                    <span className="text-km-heading font-semibold">{user?.connections_count || 0} Connections</span>
                                 </p>
 
                                 {/* Portfolio / Website Link */}
                                 {user?.portfolio_url && (
                                     <div className="mt-2 flex items-center gap-1.5 text-xs sm:text-sm">
                                         <div className="inline-flex items-center gap-1.5 bg-blue-50/80 border border-blue-200/80 px-3 py-1 rounded-full">
-                                            <GlobeIcon weight="bold" size={13} className="text-km-primary shrink-0" />
+                                            <GlobeIcon weight="bold" size={13} className="text-km-heading shrink-0" />
                                             <a
                                                 href={user.portfolio_url.startsWith('http') ? user.portfolio_url : `https://${user.portfolio_url}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="text-km-primary hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1"
+                                                className="text-km-heading hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1 dark:hover:text-km-link"
                                             >
                                                 <span>{user?.portfolio_label || "Portfolio / Website"}</span>
                                                 <ArrowSquareOutIcon weight="bold" size={12} />
@@ -246,7 +246,7 @@ const OtherUserProfilePage = () => {
                                                             <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                                                             <p className="font-bold text-sm text-slate-900">Open to work</p>
                                                         </div>
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-km-primary uppercase">
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-km-heading uppercase">
                                                             {user.open_to_work.visibility === 'recruiters' ? 'Recruiter verified' : 'All members'}
                                                         </span>
                                                     </div>
@@ -263,7 +263,7 @@ const OtherUserProfilePage = () => {
                                                 <div className="mt-3 flex items-center justify-between pt-2 border-t border-blue-100">
                                                     <Link
                                                         href={`/chat?userId=${userId}`}
-                                                        className="text-xs text-km-primary font-bold hover:underline inline-flex items-center gap-1"
+                                                        className="text-xs text-km-heading font-bold hover:underline inline-flex items-center gap-1"
                                                     >
                                                         <ChatCircleIcon weight="bold" size={12} />
                                                         <span>Contact Candidate</span>
@@ -312,7 +312,7 @@ const OtherUserProfilePage = () => {
                         </div>
 
                         {/* About Section */}
-                        <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                        <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                             <h2 className="text-xl font-bold mb-4 text-gray-900">About</h2>
                             <p className="text-gray-600 text-sm leading-relaxed mb-4 whitespace-pre-line">
                                 {user.about || "No summary provided."}
@@ -320,12 +320,12 @@ const OtherUserProfilePage = () => {
                             {user.top_skills && user.top_skills.length > 0 && (
                                 <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <DiamondIcon weight="bold" size={16} className="text-km-primary" />
-                                        <span className="font-bold text-sm text-km-primary">Top Skills</span>
+                                        <DiamondIcon weight="bold" size={16} className="text-km-heading" />
+                                        <span className="font-bold text-sm text-km-heading">Top Skills</span>
                                     </div>
                                     <div className="flex flex-wrap gap-2 text-xs text-slate-700">
                                         {user.top_skills.map((skill: string) => (
-                                            <span key={skill} className="bg-white px-2.5 py-1 rounded-lg border border-blue-200 font-medium">
+                                            <span key={skill} className="bg-km-surface-card px-2.5 py-1 rounded-lg border border-blue-200 font-medium">
                                                 • {skill}
                                             </span>
                                         ))}
@@ -335,13 +335,13 @@ const OtherUserProfilePage = () => {
                         </section>
 
                         {/* Experience Section */}
-                        <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                        <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                             <h2 className="text-xl font-bold mb-6 text-gray-900">Experience</h2>
                             <div className="space-y-6">
                                 {user.experience && user.experience.length > 0 ? (
                                     user.experience.map((exp: any, index: number) => (
                                         <div key={exp.id || index} className="flex gap-4 p-3 rounded-xl hover:bg-gray-50/60 transition-colors">
-                                            <BriefcaseIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
+                                            <BriefcaseIcon size={28} weight="duotone" className="text-km-heading shrink-0" aria-hidden="true" />
                                             <div className="space-y-1">
                                                 <h3 className="font-bold text-gray-900 text-base">{exp.title}</h3>
                                                 <p className="text-xs text-gray-700 font-semibold">{exp.company_name} • {exp.employment_type}</p>
@@ -357,7 +357,7 @@ const OtherUserProfilePage = () => {
                                                 {exp.skills && (
                                                     <div className="flex flex-wrap gap-1.5 pt-1">
                                                         {(Array.isArray(exp.skills) ? exp.skills : [exp.skills]).map((s: string, sIdx: number) => (
-                                                            <span key={sIdx} className="px-2 py-0.5 bg-blue-50 text-km-primary border border-blue-200/80 rounded-full text-xs font-medium">
+                                                            <span key={sIdx} className="px-2 py-0.5 bg-blue-50 text-km-heading border border-blue-200/80 rounded-full text-xs font-medium">
                                                                 {s}
                                                             </span>
                                                         ))}
@@ -373,13 +373,13 @@ const OtherUserProfilePage = () => {
                         </section>
 
                         {/* Education Section */}
-                        <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                        <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                             <h2 className="text-xl font-bold mb-6 text-gray-900">Education</h2>
                             <div className="space-y-6">
                                 {user.education && user.education.length > 0 ? (
                                     user.education.map((edu: any, index: number) => (
                                         <div key={edu.id || index} className="flex gap-4 p-3 rounded-xl hover:bg-gray-50/60 transition-colors">
-                                            <GraduationCapIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
+                                            <GraduationCapIcon size={28} weight="duotone" className="text-km-heading shrink-0" aria-hidden="true" />
                                             <div>
                                                 <h3 className="font-bold text-gray-900 text-base leading-tight">
                                                     {edu.school_name}
@@ -403,7 +403,7 @@ const OtherUserProfilePage = () => {
 
                         {/* Projects Section */}
                         {user.projects && user.projects.length > 0 && (
-                            <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                            <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                                 <h2 className="text-xl font-bold mb-6 text-gray-900">Projects</h2>
                                 <div className="space-y-4">
                                     {user.projects.map((proj: any) => (
@@ -436,7 +436,7 @@ const OtherUserProfilePage = () => {
                                                     {proj.skills.map((skill: string, sIdx: number) => (
                                                         <span
                                                             key={sIdx}
-                                                            className="px-2.5 py-0.5 bg-blue-50 text-km-primary border border-blue-200/80 rounded-full text-xs font-medium"
+                                                            className="px-2.5 py-0.5 bg-blue-50 text-km-heading border border-blue-200/80 rounded-full text-xs font-medium"
                                                         >
                                                             {skill}
                                                         </span>
@@ -449,7 +449,7 @@ const OtherUserProfilePage = () => {
                                                         href={proj.project_url.startsWith('http') ? proj.project_url : `https://${proj.project_url}`}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-km-primary hover:text-km-primary-dark hover:underline border border-blue-200 bg-white px-3 py-1.5 rounded-full shadow-2xs transition-all"
+                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline border border-blue-200 bg-km-surface-card px-3 py-1.5 rounded-full shadow-2xs transition-all dark:hover:text-km-link"
                                                     >
                                                         <span>Show Project</span>
                                                         <ArrowSquareOutIcon weight="bold" size={12} />
@@ -463,16 +463,16 @@ const OtherUserProfilePage = () => {
                         )}
 
                         {/* Skills Section */}
-                        <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                        <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                             <h2 className="text-xl font-bold mb-6 text-gray-900">Skills</h2>
                             <div className="flex flex-wrap gap-2.5">
                                 {user.skills && user.skills.length > 0 ? (
                                     user.skills.map((skill: string) => (
                                         <div
                                             key={skill}
-                                            className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-50/60 border border-blue-200 rounded-xl text-xs font-bold text-km-primary shadow-xs"
+                                            className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-50/60 border border-blue-200 rounded-xl text-xs font-bold text-km-heading shadow-xs"
                                         >
-                                            <CheckCircleIcon weight="bold" size={13} className="text-km-primary" />
+                                            <CheckCircleIcon weight="bold" size={13} className="text-km-heading" />
                                             <span>{skill}</span>
                                         </div>
                                     ))
@@ -490,10 +490,10 @@ const OtherUserProfilePage = () => {
                     <div className="lg:col-span-4 space-y-6">
 
                         {/* People Also Viewed (Live Community Users) */}
-                        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                        <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm">
                             <h3 className="font-bold text-gray-900 mb-4 flex justify-between items-center text-base">
-                                <span>People Also <span className="text-km-primary">Viewed</span></span>
-                                <Link href="/network" className="text-xs font-semibold text-km-primary hover:underline">
+                                <span>People Also <span className="text-km-heading">Viewed</span></span>
+                                <Link href="/network" className="text-xs font-semibold text-km-heading hover:underline">
                                     See all
                                 </Link>
                             </h3>
@@ -539,12 +539,12 @@ const OtherUserProfilePage = () => {
                         </div>
 
                         {/* Verified Experts */}
-                        <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                        <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="font-bold text-gray-900 text-base">
-                                    Verified <span className="text-km-primary">Experts</span>
+                                    Verified <span className="text-km-heading">Experts</span>
                                 </h3>
-                                <Link href="/network" className="text-xs font-semibold text-km-primary hover:underline">
+                                <Link href="/network" className="text-xs font-semibold text-km-heading hover:underline">
                                     Explore
                                 </Link>
                             </div>
@@ -567,7 +567,7 @@ const OtherUserProfilePage = () => {
                                                     </div>
                                                 </div>
                                                 <Link href={`/chat?userId=${eId}`}>
-                                                    <button className="w-full py-1.5 border border-km-primary text-km-primary rounded-xl text-xs font-bold hover:bg-blue-50 flex items-center justify-center gap-1 transition-colors cursor-pointer">
+                                                    <button className="w-full py-1.5 border border-km-primary text-km-heading rounded-xl text-xs font-bold hover:bg-blue-50 flex items-center justify-center gap-1 transition-colors cursor-pointer">
                                                         <ChatCircleIcon weight="bold" size={13} /> Chat with Expert
                                                     </button>
                                                 </Link>

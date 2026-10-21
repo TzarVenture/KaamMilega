@@ -119,7 +119,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
 
                 {infoMsg && (
                     <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 p-3 rounded-xl flex items-center gap-2 text-xs font-bold">
-                        <CheckCircleIcon weight="bold" className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <CheckCircleIcon weight="bold" className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
                         <span>{infoMsg}</span>
                     </div>
                 )}
@@ -165,9 +165,9 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                     </div>
                 ) : (
                     <div className="space-y-4 text-center">
-                        <CheckCircleIcon size={24} weight="duotone" className="text-km-primary mx-auto" aria-hidden="true" />
+                        <CheckCircleIcon size={24} weight="duotone" className="text-km-heading mx-auto" aria-hidden="true" />
                         <p className="text-xs font-bold text-slate-600">
-                            Enter the 4-digit code sent to <span className="text-km-primary font-extrabold">{email}</span>
+                            Enter the 4-digit code sent to <span className="text-km-heading font-extrabold">{email}</span>
                         </p>
 
                         <OtpInput value={otp} onChange={(val) => { setError(null); setOtp(val); }} />
@@ -178,7 +178,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                                 type="button"
                                 disabled={resendTimer > 0 || sending}
                                 onClick={handleResendOtp}
-                                className="text-km-primary font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
+                                className="text-km-heading font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
                             >
                                 {resendTimer > 0 ? `Resend Code in 00:${resendTimer.toString().padStart(2, '0')}` : "Resend Code"}
                             </button>

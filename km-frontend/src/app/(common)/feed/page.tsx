@@ -137,14 +137,14 @@ export default function FeedPage() {
 
   if (!mounted) {
     return (
-      <div className="min-h-screen bg-[#F4F7FB] py-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#071A4D]" />
+      <div className="min-h-screen bg-km-surface py-8 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#071A4D] dark:border-km-link" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#F4F7FB] py-5 sm:py-7 px-4 sm:px-6 lg:px-8 font-poppins">
+    <div className="min-h-screen bg-km-surface py-5 sm:py-7 px-4 sm:px-6 lg:px-8 font-poppins">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -168,15 +168,15 @@ export default function FeedPage() {
           {/* Active Filter Indicator & Category Bar */}
           <div className="space-y-2">
             {sidebarFilter !== 'all' && (
-              <div className="bg-white border border-[#D9E0EA] rounded-xl px-4 py-2.5 flex items-center justify-between text-xs">
-                <span className="font-semibold text-[#111827] flex items-center gap-1.5">
+              <div className="bg-km-surface-card border border-km-border rounded-xl px-4 py-2.5 flex items-center justify-between text-xs">
+                <span className="font-semibold text-km-text-primary flex items-center gap-1.5">
                   <BookmarkSimpleIcon weight="bold" size={14} className="text-[#FF6B00]" />
                   Showing: {sidebarFilter === 'saved' ? 'Your Saved Posts' : 'Your Authored Posts'}
                 </span>
                 <button
                   type="button"
                   onClick={() => setSidebarFilter('all')}
-                  className="text-[#0B5ED7] hover:underline font-semibold"
+                  className="text-km-link hover:underline font-semibold"
                 >
                   View All Feed
                 </button>
@@ -206,10 +206,10 @@ export default function FeedPage() {
             </div>
           ) : (
             /* Empty State */
-            <div className="bg-white border border-[#D9E0EA] rounded-2xl p-10 text-center shadow-xs space-y-3">
-              <TrayIcon size={32} weight="duotone" className="text-[#5B6472] mx-auto" aria-hidden="true" />
-              <h3 className="text-base font-bold text-[#111827]">No updates found in this category</h3>
-              <p className="text-xs text-[#5B6472] max-w-sm mx-auto">
+            <div className="bg-km-surface-card border border-km-border rounded-2xl p-10 text-center shadow-xs space-y-3">
+              <TrayIcon size={32} weight="duotone" className="text-km-text-secondary mx-auto" aria-hidden="true" />
+              <h3 className="text-base font-bold text-km-text-primary">No updates found in this category</h3>
+              <p className="text-xs text-km-text-secondary max-w-sm mx-auto">
                 {sidebarFilter === 'saved'
                   ? 'You haven’t saved any posts yet. Click the 3-dots on any post to save it for later.'
                   : 'Be the first one in your network to share an update, job opening, or milestone!'}
@@ -220,7 +220,7 @@ export default function FeedPage() {
                   setSidebarFilter('all');
                   setSelectedCategory('all');
                 }}
-                className="mt-2 px-5 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold shadow-xs transition-all"
+                className="mt-2 px-5 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold shadow-xs transition-all dark:bg-km-primary dark:hover:bg-km-primary-dark"
               >
                 Reset Filters & View All
               </button>

@@ -143,15 +143,15 @@ export const EditPublicUrlModal: React.FC<Props> = ({
     const isSaveDisabled = saving || checking || (!availability?.available && username.trim().toLowerCase() !== currentUsername?.toLowerCase());
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs font-sans">
             <div 
-                className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200"
+                className="bg-km-surface-card rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div className="flex items-center gap-2.5">
-                        <GlobeIcon size={22} className="text-km-primary" aria-hidden="true" />
+                        <GlobeIcon size={22} className="text-km-heading" aria-hidden="true" />
                         <div>
                             <h3 className="text-base font-black text-slate-900">Edit Custom URL</h3>
                             <p className="text-xs text-slate-500 font-medium">Personalize your public profile link</p>
@@ -196,13 +196,13 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                             <div className="mt-2.5 flex items-center gap-1.5 text-xs font-medium">
                                 {availability.available ? (
                                     <>
-                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-500 shrink-0" />
-                                        <span className="text-emerald-600 font-semibold">{availability.message}</span>
+                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-500 shrink-0 dark:text-emerald-400" />
+                                        <span className="text-emerald-600 font-semibold dark:text-emerald-400">{availability.message}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <WarningCircleIcon weight="bold" size={14} className="text-rose-500 shrink-0" />
-                                        <span className="text-rose-500 font-medium">{availability.message}</span>
+                                        <WarningCircleIcon weight="bold" size={14} className="text-rose-500 shrink-0 dark:text-rose-400" />
+                                        <span className="text-rose-500 font-medium dark:text-rose-400">{availability.message}</span>
                                     </>
                                 )}
                             </div>
@@ -213,18 +213,18 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                     <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100/80 flex items-center justify-between">
                         <div className="min-w-0 pr-2">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-blue-900/70">Your Public URL</p>
-                            <p className="text-xs font-bold text-km-primary truncate mt-0.5">
+                            <p className="text-xs font-bold text-km-heading truncate mt-0.5">
                                 kaammilega.com/profile/{username.trim() || 'your-name'}
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="px-3 py-1.5 rounded-xl bg-white text-slate-700 hover:text-km-primary border border-blue-200 text-xs font-bold flex items-center gap-1 transition-all shadow-2xs hover:shadow-xs cursor-pointer shrink-0"
+                            className="px-3 py-1.5 rounded-xl bg-km-surface-card text-slate-700 hover:text-km-heading border border-blue-200 text-xs font-bold flex items-center gap-1 transition-all shadow-2xs hover:shadow-xs cursor-pointer shrink-0"
                         >
                             {copied ? (
                                 <>
-                                    <CheckIcon weight="bold" size={12} className="text-emerald-500" />
+                                    <CheckIcon weight="bold" size={12} className="text-emerald-500 dark:text-emerald-400" />
                                     <span>Copied</span>
                                 </>
                             ) : (

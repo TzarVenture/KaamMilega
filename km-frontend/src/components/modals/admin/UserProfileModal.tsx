@@ -73,7 +73,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
             title={mode === 'add' ? 'Add Profile' : 'Edit User Profile'}
         >
             <form onSubmit={handleSubmit} className="space-y-6">
-                <p className="text-xs text-purple-600 font-medium">* Indicates required</p>
+                <p className="text-xs text-purple-600 font-medium dark:text-purple-400">* Indicates required</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
@@ -84,7 +84,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                             value={formData.firstName}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                         />
                     </div>
                     <div className="space-y-1.5">
@@ -95,7 +95,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                             value={formData.lastName}
                             onChange={handleChange}
                             required
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                            className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                         />
                     </div>
                 </div>
@@ -107,7 +107,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                         name="additionalName"
                         value={formData.additionalName}
                         onChange={handleChange}
-                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                     />
                 </div>
 
@@ -118,7 +118,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                             name="pronouns"
                             value={formData.pronouns}
                             onChange={handleChange}
-                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none text-gray-600"
+                            className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none text-gray-600"
                         >
                             <option value="">Please Select</option>
                             {PRONOUNS_OPTIONS.map(option => (
@@ -129,7 +129,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                     </div>
                     <p className="text-xs text-gray-500 mt-1">Let others know how to refer to you.</p>
                     <p className="text-xs text-gray-500">
-                        Learn More About <a href="#" className="text-purple-600 font-semibold hover:underline">Gender Pronouns.</a>
+                        Learn More About <a href="#" className="text-purple-600 font-semibold hover:underline dark:text-purple-400">Gender Pronouns.</a>
                     </p>
                 </div>
 
@@ -141,7 +141,7 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                         value={formData.headline}
                         onChange={handleChange}
                         required
-                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
+                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all"
                     />
                 </div>
 

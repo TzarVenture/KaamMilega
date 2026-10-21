@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins, Inter, Noto_Sans_Devanagari } from "next/font/google";
 import { NotificationProvider } from "@/lib/notifications";
+import { FEATURES } from "@/config/features";
+import { THEME_INIT_SCRIPT } from "@/lib/themeScript";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -63,7 +65,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${inter.variable} ${notoSansDevanagari.variable}`}>
-      <body className="font-poppins antialiased bg-[#F4F7FB] text-[#111827]">
+      {/* Applies the saved theme before first paint so there is no light/dark flash */}
+      {FEATURES.DARK_MODE && (
+        <head>
+          <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        </head>
+      )}
+      <body className="font-poppins antialiased bg-km-surface text-km-text-primary">
         <NotificationProvider>
           {children}
         </NotificationProvider>

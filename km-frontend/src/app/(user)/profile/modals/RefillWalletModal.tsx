@@ -138,7 +138,7 @@ export default function RefillWalletModal({
                 </div>
 
                 {error && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold dark:text-red-400">
                         {error}
                     </div>
                 )}
@@ -174,7 +174,7 @@ export default function RefillWalletModal({
                                 onClick={() => setAmount(amt.toString())}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                                     amount === amt.toString()
-                                        ? 'bg-blue-50 border-km-primary text-km-primary shadow-xs'
+                                        ? 'bg-blue-50 border-km-primary text-km-heading shadow-xs'
                                         : 'bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100'
                                 }`}
                             >
@@ -186,7 +186,7 @@ export default function RefillWalletModal({
 
                 {/* Trust Banner */}
                 <div className="flex items-center gap-2 p-2.5 bg-gray-50 border border-gray-100 rounded-xl text-[11px] text-gray-500">
-                    <ShieldCheckIcon weight="bold" size={16} className="text-emerald-600 shrink-0" />
+                    <ShieldCheckIcon weight="bold" size={16} className="text-emerald-600 shrink-0 dark:text-emerald-400" />
                     <span>Instant wallet top-up secured with 256-bit bank-grade encryption via UPI, Cards & NetBanking.</span>
                 </div>
 
@@ -195,7 +195,7 @@ export default function RefillWalletModal({
                     <Link
                         href="/wallet"
                         onClick={onClose}
-                        className="text-xs text-km-primary font-bold hover:underline inline-flex items-center gap-1"
+                        className="text-xs text-km-heading font-bold hover:underline inline-flex items-center gap-1"
                     >
                         <span>Full Wallet & History</span>
                         <ArrowSquareOutIcon weight="bold" size={12} />

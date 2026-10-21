@@ -7,7 +7,7 @@ export default function CompanyDetailPage() {
     if (!company) return null;
 
     return (
-        <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+        <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm p-8">
             <h2 className="text-xl font-bold text-gray-900 mb-4">Overview</h2>
             <hr className="mb-6 border-gray-100" />
 
@@ -22,7 +22,7 @@ export default function CompanyDetailPage() {
                         href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-blue-500 text-sm hover:underline"
+                        className="text-blue-500 text-sm hover:underline dark:text-blue-400"
                     >
                         {company.website || "N/A"}
                     </a>

@@ -4,7 +4,7 @@ import React from "react";
 
 export function TableSkeleton({ rows = 5, cols = 5 }: { rows?: number; cols?: number }) {
     return (
-        <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
+        <div className="bg-km-surface-card rounded-2xl p-6 border border-slate-200/80 shadow-xs space-y-4">
             {/* Header skeleton */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
                 <div className="h-6 w-48 bg-slate-200 rounded-lg animate-shimmer" />
@@ -47,7 +47,7 @@ export function KanbanSkeleton({ columns = 4, cardsPerColumn = 3 }: { columns?: 
                     {/* Cards Skeleton */}
                     <div className="space-y-3">
                         {Array.from({ length: cardsPerColumn }).map((_, cardIdx) => (
-                            <div key={cardIdx} className="bg-white p-4 rounded-xl border border-slate-200/80 space-y-3 shadow-2xs">
+                            <div key={cardIdx} className="bg-km-surface-card p-4 rounded-xl border border-slate-200/80 space-y-3 shadow-2xs">
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-full bg-slate-200 shrink-0 animate-shimmer" />
                                     <div className="space-y-1.5 flex-1">
@@ -73,7 +73,7 @@ export function CardGridSkeleton({ count = 6 }: { count?: number }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: count }).map((_, idx) => (
-                <div key={idx} className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+                <div key={idx} className="bg-km-surface-card p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
                     <div className="flex justify-between items-start">
                         <div className="w-12 h-12 rounded-2xl bg-slate-200 animate-shimmer" />
                         <div className="h-6 w-20 bg-slate-200 rounded-full animate-shimmer" />

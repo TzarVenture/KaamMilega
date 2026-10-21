@@ -239,11 +239,11 @@ export default function ExpertProSubscriptionPage() {
   const isWalletSufficient = walletBalance >= selectedPlan.price;
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800">
+    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-white/5">
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
       {/* Hero Banner */}
-      <section className="bg-linear-to-br from-slate-950 via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
+      <section className="bg-linear-to-br from-[#020617] via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
@@ -275,7 +275,7 @@ export default function ExpertProSubscriptionPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-white text-emerald-800 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-km-surface-card text-emerald-800 px-2.5 py-0.5 rounded-full">
                     Active Subscription
                   </span>
                   <h3 className="font-extrabold text-base md:text-lg">
@@ -289,7 +289,7 @@ export default function ExpertProSubscriptionPage() {
             </div>
             <Link
               href="/expert/mentorship"
-              className="bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              className="bg-km-surface-card text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
             >
               <span>Manage Mentorship Dashboard</span>
               <ArrowRightIcon weight="bold" size={14} />
@@ -305,7 +305,7 @@ export default function ExpertProSubscriptionPage() {
             return (
               <div
                 key={plan.plan_type}
-                className={`bg-white rounded-3xl p-6 md:p-8 border transition-all flex flex-col justify-between relative ${
+                className={`bg-km-surface-card rounded-3xl p-6 md:p-8 border transition-all flex flex-col justify-between relative ${
                   isYearly
                     ? "border-orange-500 shadow-xl ring-2 ring-orange-500/20 md:-translate-y-2"
                     : "border-slate-200 shadow-sm hover:border-slate-300"
@@ -319,11 +319,11 @@ export default function ExpertProSubscriptionPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1a2b8c]">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1a2b8c] dark:text-blue-400">
                       {isYearly ? <MedalIcon size={26} /> : <LightningIcon size={26} />}
                     </div>
                     {isYearly && (
-                      <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
+                      <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 dark:text-emerald-400">
                         Save 25% Annually
                       </span>
                     )}
@@ -348,7 +348,7 @@ export default function ExpertProSubscriptionPage() {
                     </p>
                     {plan.perks.map((perk, i) => (
                       <div key={i} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                        <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5 dark:text-emerald-400" />
                         <span>{perk}</span>
                       </div>
                     ))}
@@ -381,11 +381,11 @@ export default function ExpertProSubscriptionPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
+              className="bg-km-surface-card rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <SealCheckIcon size={24} weight="duotone" className="text-[#0B5ED7]" aria-hidden="true" />
+                  <SealCheckIcon size={24} weight="duotone" className="text-km-link" aria-hidden="true" />
                   <h3 className="text-lg font-black text-slate-900">Upgrade to Pro Expert</h3>
                 </div>
                 <button
@@ -425,21 +425,21 @@ export default function ExpertProSubscriptionPage() {
                   onClick={() => !paymentProcessing && setPaymentMethod("razorpay")}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     paymentMethod === "razorpay"
-                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c]"
+                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c] dark:border-km-link dark:ring-km-link"
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <CreditCardIcon size={22} className="text-[#1a2b8c]" aria-hidden="true" />
+                    <CreditCardIcon size={22} className="text-[#1a2b8c] dark:text-blue-400" aria-hidden="true" />
                     <div>
                       <div className="font-bold text-xs text-slate-900">Razorpay Online Payment</div>
                       <div className="text-[10px] text-slate-500">UPI (GPay/PhonePe), Cards, NetBanking</div>
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
+                    paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c] dark:border-km-link" : "border-slate-300"
                   }`}>
-                    {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                   </div>
                 </div>
 
@@ -448,7 +448,7 @@ export default function ExpertProSubscriptionPage() {
                   onClick={() => !paymentProcessing && setPaymentMethod("wallet")}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     paymentMethod === "wallet"
-                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c]"
+                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c] dark:border-km-link dark:ring-km-link"
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
@@ -462,9 +462,9 @@ export default function ExpertProSubscriptionPage() {
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
+                    paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c] dark:border-km-link" : "border-slate-300"
                   }`}>
-                    {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                   </div>
                 </div>
 

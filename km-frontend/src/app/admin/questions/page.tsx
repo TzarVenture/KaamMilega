@@ -102,11 +102,11 @@ export default function QuestionsPage() {
 
             {isLoading ? (
                 <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
-                    <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin" />
+                    <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin dark:text-purple-400" />
                     <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Synchronizing knowledge base</p>
                 </div>
             ) : questions.length === 0 ? (
-                <div className="bg-white rounded-[32px] p-20 border border-dashed border-purple-200 flex flex-col items-center text-center shadow-sm">
+                <div className="bg-km-surface-card rounded-[32px] p-20 border border-dashed border-purple-200 flex flex-col items-center text-center shadow-sm">
                     <div className="w-24 h-24 bg-purple-50 rounded-[40px] flex items-center justify-center text-5xl mb-6">
                         📚
                     </div>
@@ -119,7 +119,7 @@ export default function QuestionsPage() {
                         <motion.div
                             layout
                             key={q.id}
-                            className={`bg-white border rounded-[24px] overflow-hidden transition-all duration-500 ${expandedIds.has(q.id)
+                            className={`bg-km-surface-card border rounded-[24px] overflow-hidden transition-all duration-500 ${expandedIds.has(q.id)
                                 ? 'border-purple-200 shadow-xl shadow-purple-900/5 ring-1 ring-purple-50/50'
                                 : 'border-slate-100 shadow-sm hover:border-purple-100'
                                 }`}
@@ -129,7 +129,7 @@ export default function QuestionsPage() {
                                 onClick={() => toggleExpand(q.id)}
                             >
                                 <div className="flex-1">
-                                    <h3 className={`text-lg font-bold transition-colors duration-300 ${expandedIds.has(q.id) ? 'text-purple-600' : 'text-slate-800'}`}>
+                                    <h3 className={`text-lg font-bold transition-colors duration-300 ${expandedIds.has(q.id) ? 'text-purple-600 dark:text-purple-400' : 'text-slate-800'}`}>
                                         {q.question}
                                     </h3>
                                 </div>
@@ -139,7 +139,7 @@ export default function QuestionsPage() {
                                             e.stopPropagation();
                                             handleEdit(q);
                                         }}
-                                        className="text-purple-600 hover:text-purple-700 font-bold text-sm transition-colors"
+                                        className="text-purple-600 hover:text-purple-700 font-bold text-sm transition-colors dark:text-purple-400"
                                     >
                                         Edit
                                     </button>
@@ -148,11 +148,11 @@ export default function QuestionsPage() {
                                             e.stopPropagation();
                                             handleDelete(q.id);
                                         }}
-                                        className="text-rose-500 hover:text-rose-600 font-bold text-sm transition-colors"
+                                        className="text-rose-500 hover:text-rose-600 font-bold text-sm transition-colors dark:text-rose-400 dark:hover:text-rose-400"
                                     >
                                         Delete
                                     </button>
-                                    <div className={`transition-transform duration-300 ${expandedIds.has(q.id) ? 'rotate-180 text-purple-600' : 'text-slate-300'}`}>
+                                    <div className={`transition-transform duration-300 ${expandedIds.has(q.id) ? 'rotate-180 text-purple-600 dark:text-purple-400' : 'text-slate-300'}`}>
                                         <CaretDownIcon size={24} />
                                     </div>
                                 </div>

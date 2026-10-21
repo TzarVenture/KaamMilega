@@ -115,9 +115,9 @@ export const ProvidingServicesModal: React.FC<Props> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs font-sans">
             <div 
-                className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+                className="bg-km-surface-card rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
@@ -248,7 +248,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                                 type="button"
                                 onClick={handleRemove}
                                 disabled={removing || saving}
-                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5"
+                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5 dark:text-rose-400"
                             >
                                 {removing ? <CircleNotchIcon weight="bold" size={14} className="animate-spin" /> : <TrashIcon weight="bold" size={14} />}
                                 <span>Remove Services</span>

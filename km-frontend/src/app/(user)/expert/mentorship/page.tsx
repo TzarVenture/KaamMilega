@@ -59,7 +59,7 @@ export default function ExpertMentorshipManagement() {
   };
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-20">
+    <main className="min-h-screen bg-[#fafafa] pb-20 dark:bg-white/5">
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-8">
         
@@ -78,15 +78,15 @@ export default function ExpertMentorshipManagement() {
           {/* Quick Wallet Stats Widget */}
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             {wallet && (
-              <div className="flex items-center gap-4 bg-white border border-gray-200/80 rounded-2xl px-4 py-2.5 shadow-sm">
+              <div className="flex items-center gap-4 bg-km-surface-card border border-gray-200/80 rounded-2xl px-4 py-2.5 shadow-sm">
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Withdrawable Earnings</div>
-                  <div className="text-base md:text-lg font-black text-emerald-600">₹{wallet.withdrawable_balance?.toLocaleString('en-IN') || 0}</div>
+                  <div className="text-base md:text-lg font-black text-emerald-600 dark:text-emerald-400">₹{wallet.withdrawable_balance?.toLocaleString('en-IN') || 0}</div>
                 </div>
                 <div className="h-7 w-[1px] bg-gray-100" />
                 <div>
                   <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">In Escrow (Held)</div>
-                  <div className="text-base md:text-lg font-black text-blue-600">₹{wallet.locked_balance?.toLocaleString('en-IN') || 0}</div>
+                  <div className="text-base md:text-lg font-black text-blue-600 dark:text-blue-400">₹{wallet.locked_balance?.toLocaleString('en-IN') || 0}</div>
                 </div>
               </div>
             )}
@@ -117,7 +117,7 @@ export default function ExpertMentorshipManagement() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-3 md:px-6 py-2.5 md:py-3 font-black transition-all relative text-xs md:text-sm whitespace-nowrap ${
-                activeTab === tab.id ? 'text-purple-600' : 'text-gray-400 hover:text-gray-600'
+                activeTab === tab.id ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400 hover:text-gray-600'
               }`}
             >
               {tab.icon} {tab.label}
@@ -154,11 +154,11 @@ export default function ExpertMentorshipManagement() {
 function SessionsList({ mentorships }: { mentorships: any[] }) {
   if (mentorships.length === 0) {
     return (
-      <div className="bg-white p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
+      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
         <PlusIcon size={28} weight="duotone" className="text-gray-300 mx-auto mb-4" aria-hidden="true" />
         <h3 className="text-lg font-bold text-gray-800 mb-2">No Mentorship Sessions</h3>
         <p className="text-xs md:text-sm text-gray-500 mb-6 md:mb-8 max-w-xs mx-auto">Create your first session to start helping others and growing your professional network.</p>
-        <button className="text-purple-600 text-xs md:text-sm font-bold border border-purple-200 px-5 py-2 rounded-full hover:bg-purple-50">Create Now</button>
+        <button className="text-purple-600 text-xs md:text-sm font-bold border border-purple-200 px-5 py-2 rounded-full hover:bg-purple-50 dark:text-purple-400">Create Now</button>
       </div>
     );
   }
@@ -166,12 +166,12 @@ function SessionsList({ mentorships }: { mentorships: any[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
       {mentorships.map((m, i) => (
-        <div key={m.id || i} className="bg-white p-5 md:p-6 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all group">
+        <div key={m.id || i} className="bg-km-surface-card p-5 md:p-6 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all group">
           <div className="flex justify-between items-start mb-4">
-            <div className="bg-purple-50 text-purple-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full">{m.category}</div>
+            <div className="bg-purple-50 text-purple-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full dark:text-purple-400">{m.category}</div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-500 transition-colors"><NotePencilIcon weight="bold" size={14} /></button>
-              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500 transition-colors"><TrashIcon weight="bold" size={14} /></button>
+              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-500 transition-colors dark:hover:text-blue-400"><NotePencilIcon weight="bold" size={14} /></button>
+              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500 transition-colors dark:hover:text-red-400"><TrashIcon weight="bold" size={14} /></button>
             </div>
           </div>
           <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3 md:mb-4">{m.title}</h3>
@@ -233,7 +233,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
 
   if (bookings.length === 0) {
     return (
-      <div className="bg-white p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
+      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
         <UserIcon size={40} weight="duotone" className="text-gray-300 mx-auto mb-4 md:mb-6" aria-hidden="true" />
         <h3 className="text-lg font-bold text-gray-800 mb-2">No Bookings Yet</h3>
         <p className="text-xs md:text-sm text-gray-500 max-w-xs mx-auto">When candidates book sessions with you, they will appear here. Funds are held in Escrow until you complete the call.</p>
@@ -251,11 +251,11 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
         const isLoading = actionLoadingId === b.id;
 
         return (
-          <div key={b.id || i} className="bg-white p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:border-purple-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div key={b.id || i} className="bg-km-surface-card p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:border-purple-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
             
             {/* Left: Mentee & Session info */}
             <div className="flex gap-3.5 items-start">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 font-black text-sm">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 font-black text-sm dark:text-purple-400">
                 {b.mentee_name ? b.mentee_name.charAt(0).toUpperCase() : <UserIcon size={20} />}
               </div>
               <div className="min-w-0">
@@ -288,7 +288,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                     {new Date(b.scheduled_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                   </span>
                   
-                  <span className="flex items-center gap-1 font-bold text-emerald-600">
+                  <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
                     <ShieldCheckIcon weight="bold" size={13} />
                     ₹{b.amount || 0} {isCompleted ? 'Credited to Earnings' : 'Held in Escrow'}
                   </span>
@@ -316,7 +316,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                       setMeetingModalBooking(b);
                       setMeetingUrlInput('');
                     }}
-                    className="text-gray-500 hover:text-purple-600 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-gray-50 border border-dashed border-gray-300 flex items-center gap-1"
+                    className="text-gray-500 hover:text-purple-600 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-gray-50 border border-dashed border-gray-300 flex items-center gap-1 dark:hover:text-purple-400"
                   >
                     <LinkSimpleIcon weight="bold" size={13} /> Add Meet Link
                   </button>
@@ -336,7 +336,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                   <button 
                     disabled={isLoading}
                     onClick={() => handleStatus(b, 'cancelled')}
-                    className="bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50"
+                    className="bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 dark:hover:text-red-400"
                   >
                     <XIcon weight="bold" size={14} /> Decline
                   </button>
@@ -365,7 +365,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                         handleStatus(b, 'cancelled');
                       }
                     }}
-                    className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg transition-colors"
+                    className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg transition-colors dark:hover:text-red-400"
                     title="Cancel Session & Refund"
                   >
                     <XIcon weight="bold" size={16} />
@@ -374,7 +374,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
               )}
 
               {isCompleted && (
-                <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
+                <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 dark:text-emerald-400">
                   <CheckCircleIcon weight="bold" size={14} /> ₹{b.amount} Released to Earnings
                 </div>
               )}
@@ -396,11 +396,11 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100"
+            className="bg-km-surface-card rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100"
           >
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
-                <VideoCameraIcon size={20} className="text-purple-600" aria-hidden="true" />
+                <VideoCameraIcon size={20} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                 <h3 className="font-black text-gray-900 text-base">Add Meeting Link</h3>
               </div>
               <button onClick={() => setMeetingModalBooking(null)} className="text-gray-400 hover:text-gray-600 p-1">
@@ -533,7 +533,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
   const activeCount = schedule.filter(s => s.isActive).length;
 
   return (
-    <div className="bg-white p-5 md:p-8 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm max-w-3xl">
+    <div className="bg-km-surface-card p-5 md:p-8 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm max-w-3xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-2">
@@ -549,7 +549,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
         <button
           type="button"
           onClick={setWeekdayPreset}
-          className="text-[11px] font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-all self-start sm:self-auto cursor-pointer"
+          className="text-[11px] font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-all self-start sm:self-auto cursor-pointer dark:text-purple-400"
         >
           Preset: Mon - Fri (9-5)
         </button>
@@ -571,7 +571,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
             </div>
 
             <div className="flex-1 flex items-center gap-2 md:gap-3">
-              <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
+              <div className="flex items-center gap-1.5 bg-km-surface-card border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
                 <ClockIcon weight="bold" size={12} className="text-gray-400" />
                 <input 
                   type="time" 
@@ -584,7 +584,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
 
               <span className="text-gray-400 text-xs font-medium">to</span>
 
-              <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
+              <div className="flex items-center gap-1.5 bg-km-surface-card border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
                 <ClockIcon weight="bold" size={12} className="text-gray-400" />
                 <input 
                   type="time" 
@@ -611,7 +611,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
                 }`}
               >
                 <div 
-                  className={`w-5 h-5 bg-white rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
+                  className={`w-5 h-5 bg-km-surface-card rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
                     item.isActive ? 'translate-x-5' : 'translate-x-0'
                   }`} 
                 />

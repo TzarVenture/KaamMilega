@@ -324,7 +324,7 @@ const ProfilePage = () => {
                 <div className="lg:col-span-8 space-y-6">
 
                     {/* Header Card */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 relative z-20">
+                    <div className="bg-km-surface-card rounded-xl shadow-sm border border-gray-200 relative z-20">
                         {/* Banner */}
                         <div className="h-32 sm:h-48 rounded-t-xl overflow-hidden bg-linear-to-r from-km-primary-dark via-km-primary to-blue-700 relative group">
                             {user.cover_image ? (
@@ -336,10 +336,10 @@ const ProfilePage = () => {
                             )}
                             <button
                                 onClick={() => setModals((m) => ({ ...m, background: true }))}
-                                className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:bg-gray-50 transition-colors cursor-pointer"
+                                className="absolute top-4 right-4 bg-km-surface-card p-2 rounded-full shadow-md hover:bg-gray-50 transition-colors cursor-pointer"
                                 title="Change background"
                             >
-                                <CameraIcon size={20} className="text-km-primary" />
+                                <CameraIcon size={20} className="text-km-heading" />
                             </button>
                         </div>
 
@@ -348,7 +348,7 @@ const ProfilePage = () => {
                             <div className="relative flex justify-between items-end -mt-12 sm:-mt-16 mb-4">
                                 <div
                                     onClick={() => setModals((m) => ({ ...m, photo: true }))}
-                                    className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-900 rounded-full border-4 border-white flex items-center justify-center overflow-hidden cursor-pointer group shadow-md"
+                                    className="w-24 h-24 sm:w-32 sm:h-32 bg-km-ink rounded-full border-4 border-white flex items-center justify-center overflow-hidden cursor-pointer group shadow-md dark:border-km-surface-card"
                                     title="Update profile picture"
                                 >
                                     {user?.profile_image ? (
@@ -375,23 +375,23 @@ const ProfilePage = () => {
                             <p className="text-xs sm:text-sm text-gray-400 mt-1 flex flex-wrap gap-x-2 items-center">
                                 <span>{locationString || "Location not set"}</span>
                                 <span>•</span>
-                                <button onClick={() => setModals((m) => ({ ...m, contact: true }))} className="text-km-primary font-semibold hover:underline cursor-pointer">
+                                <button onClick={() => setModals((m) => ({ ...m, contact: true }))} className="text-km-heading font-semibold hover:underline cursor-pointer">
                                     Contact Info
                                 </button>
                                 <span>•</span>
-                                <span className="text-km-primary font-semibold">{user?.connections_count || 0} Connections</span>
+                                <span className="text-km-heading font-semibold">{user?.connections_count || 0} Connections</span>
                             </p>
 
                             {/* Portfolio / Website Link */}
                             <div className="mt-2 flex items-center gap-1.5 text-xs sm:text-sm">
                                 {user?.portfolio_url ? (
                                     <div className="inline-flex items-center gap-1.5 bg-blue-50/80 border border-blue-200/80 px-3 py-1 rounded-full">
-                                        <GlobeIcon weight="bold" size={13} className="text-km-primary shrink-0" />
+                                        <GlobeIcon weight="bold" size={13} className="text-km-heading shrink-0" />
                                         <a
                                             href={user.portfolio_url.startsWith('http') ? user.portfolio_url : `https://${user.portfolio_url}`}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="text-km-primary hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1"
+                                            className="text-km-heading hover:text-km-primary-dark font-bold hover:underline inline-flex items-center gap-1 dark:hover:text-km-link"
                                         >
                                             <span>{user?.portfolio_label || "Portfolio / Website"}</span>
                                             <ArrowSquareOutIcon weight="bold" size={12} />
@@ -400,7 +400,7 @@ const ProfilePage = () => {
                                             type="button"
                                             onClick={() => setModals((m) => ({ ...m, portfolioLink: true }))}
                                             title="Edit portfolio link"
-                                            className="text-gray-400 hover:text-km-primary p-0.5 rounded transition cursor-pointer"
+                                            className="text-gray-400 hover:text-km-heading p-0.5 rounded transition cursor-pointer"
                                         >
                                             <PencilSimpleIcon weight="bold" size={11} />
                                         </button>
@@ -409,7 +409,7 @@ const ProfilePage = () => {
                                     <button
                                         type="button"
                                         onClick={() => setModals((m) => ({ ...m, portfolioLink: true }))}
-                                        className="text-km-primary hover:text-km-primary-dark font-semibold hover:underline inline-flex items-center gap-1 text-xs cursor-pointer py-0.5"
+                                        className="text-km-heading hover:text-km-primary-dark font-semibold hover:underline inline-flex items-center gap-1 text-xs cursor-pointer py-0.5 dark:hover:text-km-link"
                                     >
                                         <GlobeIcon weight="bold" size={13} />
                                         <span>+ Add Portfolio / Website Link</span>
@@ -421,7 +421,7 @@ const ProfilePage = () => {
                             <div className="mt-3 inline-flex items-center gap-2">
                                 {user?.is_email_verified ? (
                                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-full text-xs font-bold">
-                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-600" /> Email Verified: {user?.email}
+                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-600 dark:text-emerald-400" /> Email Verified: {user?.email}
                                     </span>
                                 ) : (
                                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200 text-amber-800 rounded-full text-xs font-semibold">
@@ -449,7 +449,7 @@ const ProfilePage = () => {
                                     </button>
 
                                     {showOpenToMenu && (
-                                        <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-150">
+                                        <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-km-surface-card border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-150">
                                             <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                                 Career & Service Status
                                             </div>
@@ -459,12 +459,12 @@ const ProfilePage = () => {
                                                         setIsOpenToWorkModalOpen(true);
                                                         setShowOpenToMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-3 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-start gap-3 transition-colors cursor-pointer group"
+                                                    className="w-full text-left px-4 py-3 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-start gap-3 transition-colors cursor-pointer group"
                                                 >
-                                                    <BriefcaseIcon size={20} className="text-km-primary shrink-0 mt-0.5" aria-hidden="true" />
+                                                    <BriefcaseIcon size={20} className="text-km-heading shrink-0 mt-0.5" aria-hidden="true" />
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between">
-                                                            <p className="font-bold text-gray-900 group-hover:text-km-primary">Finding a new job</p>
+                                                            <p className="font-bold text-gray-900 group-hover:text-km-heading">Finding a new job</p>
                                                             {user?.open_to_work?.is_open && (
                                                                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Active</span>
                                                             )}
@@ -500,14 +500,14 @@ const ProfilePage = () => {
                                 <div className="relative" ref={addSectionRef}>
                                     <button
                                         onClick={() => setShowAddSectionMenu(!showAddSectionMenu)}
-                                        className="border border-km-primary text-km-primary px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors cursor-pointer inline-flex items-center gap-1"
+                                        className="border border-km-primary text-km-heading px-5 sm:px-6 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-colors cursor-pointer inline-flex items-center gap-1"
                                     >
                                         <span>Add Profile Section</span>
                                         <PlusIcon weight="bold" size={15} />
                                     </button>
 
                                     {showAddSectionMenu && (
-                                        <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-150">
+                                        <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-km-surface-card border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-150">
                                             <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                                                 Add / Update Profile Details
                                             </div>
@@ -517,16 +517,16 @@ const ProfilePage = () => {
                                                         handleAddExperience();
                                                         setShowAddSectionMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-center justify-between transition-colors cursor-pointer group"
+                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-center justify-between transition-colors cursor-pointer group"
                                                 >
                                                     <div className="flex items-center gap-2.5">
-                                                        <BriefcaseIcon size={20} className="text-km-primary shrink-0" aria-hidden="true" />
+                                                        <BriefcaseIcon size={20} className="text-km-heading shrink-0" aria-hidden="true" />
                                                         <div>
-                                                            <p className="font-bold text-gray-900 group-hover:text-km-primary">Work Experience</p>
+                                                            <p className="font-bold text-gray-900 group-hover:text-km-heading">Work Experience</p>
                                                             <p className="text-[11px] text-gray-400 font-normal">Add new position or role</p>
                                                         </div>
                                                     </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-primary">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-heading">
                                                         {user?.experience?.length || 0} added
                                                     </span>
                                                 </button>
@@ -536,16 +536,16 @@ const ProfilePage = () => {
                                                         handleAddEducation();
                                                         setShowAddSectionMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-center justify-between transition-colors cursor-pointer group"
+                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-center justify-between transition-colors cursor-pointer group"
                                                 >
                                                     <div className="flex items-center gap-2.5">
-                                                        <GraduationCapIcon size={20} className="text-km-primary shrink-0" aria-hidden="true" />
+                                                        <GraduationCapIcon size={20} className="text-km-heading shrink-0" aria-hidden="true" />
                                                         <div>
-                                                            <p className="font-bold text-gray-900 group-hover:text-km-primary">Education</p>
+                                                            <p className="font-bold text-gray-900 group-hover:text-km-heading">Education</p>
                                                             <p className="text-[11px] text-gray-400 font-normal">Add school, degree or field</p>
                                                         </div>
                                                     </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-primary">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-heading">
                                                         {user?.education?.length || 0} added
                                                     </span>
                                                 </button>
@@ -555,16 +555,16 @@ const ProfilePage = () => {
                                                         setModals((m) => ({ ...m, skill: true }));
                                                         setShowAddSectionMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-center justify-between transition-colors cursor-pointer group"
+                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-center justify-between transition-colors cursor-pointer group"
                                                 >
                                                     <div className="flex items-center gap-2.5">
-                                                        <CheckCircleIcon size={20} className="text-km-primary shrink-0" aria-hidden="true" />
+                                                        <CheckCircleIcon size={20} className="text-km-heading shrink-0" aria-hidden="true" />
                                                         <div>
-                                                            <p className="font-bold text-gray-900 group-hover:text-km-primary">Skills</p>
+                                                            <p className="font-bold text-gray-900 group-hover:text-km-heading">Skills</p>
                                                             <p className="text-[11px] text-gray-400 font-normal">Highlight your capabilities</p>
                                                         </div>
                                                     </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-primary">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-heading">
                                                         {user?.skills?.length || 0} added
                                                     </span>
                                                 </button>
@@ -574,16 +574,16 @@ const ProfilePage = () => {
                                                         handleAddProject();
                                                         setShowAddSectionMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-center justify-between transition-colors cursor-pointer group"
+                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-center justify-between transition-colors cursor-pointer group"
                                                 >
                                                     <div className="flex items-center gap-2.5">
-                                                        <FolderIcon size={20} className="text-km-primary shrink-0" aria-hidden="true" />
+                                                        <FolderIcon size={20} className="text-km-heading shrink-0" aria-hidden="true" />
                                                         <div>
-                                                            <p className="font-bold text-gray-900 group-hover:text-km-primary">Projects</p>
+                                                            <p className="font-bold text-gray-900 group-hover:text-km-heading">Projects</p>
                                                             <p className="text-[11px] text-gray-400 font-normal">Showcase practical assignments</p>
                                                         </div>
                                                     </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-primary">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-heading">
                                                         {user?.projects?.length || 0} added
                                                     </span>
                                                 </button>
@@ -595,16 +595,16 @@ const ProfilePage = () => {
                                                         setModals((m) => ({ ...m, about: true }));
                                                         setShowAddSectionMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-center justify-between transition-colors cursor-pointer group"
+                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-center justify-between transition-colors cursor-pointer group"
                                                 >
                                                     <div className="flex items-center gap-2.5">
-                                                        <PencilSimpleIcon size={20} className="text-km-primary shrink-0" aria-hidden="true" />
+                                                        <PencilSimpleIcon size={20} className="text-km-heading shrink-0" aria-hidden="true" />
                                                         <div>
-                                                            <p className="font-bold text-gray-900 group-hover:text-km-primary">About Summary</p>
+                                                            <p className="font-bold text-gray-900 group-hover:text-km-heading">About Summary</p>
                                                             <p className="text-[11px] text-gray-400 font-normal">Brief summary for recruiters</p>
                                                         </div>
                                                     </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-primary">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-heading">
                                                         {user?.about ? 'Configured' : 'Add'}
                                                     </span>
                                                 </button>
@@ -614,16 +614,16 @@ const ProfilePage = () => {
                                                         setModals((m) => ({ ...m, portfolioLink: true }));
                                                         setShowAddSectionMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-center justify-between transition-colors cursor-pointer group"
+                                                    className="w-full text-left px-4 py-2.5 text-xs font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-center justify-between transition-colors cursor-pointer group"
                                                 >
                                                     <div className="flex items-center gap-2.5">
-                                                        <GlobeIcon size={20} className="text-km-primary shrink-0" aria-hidden="true" />
+                                                        <GlobeIcon size={20} className="text-km-heading shrink-0" aria-hidden="true" />
                                                         <div>
-                                                            <p className="font-bold text-gray-900 group-hover:text-km-primary">Portfolio Link</p>
+                                                            <p className="font-bold text-gray-900 group-hover:text-km-heading">Portfolio Link</p>
                                                             <p className="text-[11px] text-gray-400 font-normal">Add GitHub, site or Behance</p>
                                                         </div>
                                                     </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-primary">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-km-heading">
                                                         {user?.portfolio_url ? 'Linked' : 'Add'}
                                                     </span>
                                                 </button>
@@ -642,21 +642,21 @@ const ProfilePage = () => {
                                     </button>
 
                                     {showMoreMenu && (
-                                        <div className="absolute left-0 mt-2 w-52 bg-white border border-gray-200 rounded-xl shadow-lg z-30 py-2 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-1 duration-150">
+                                        <div className="absolute left-0 mt-2 w-52 bg-km-surface-card border border-gray-200 rounded-xl shadow-lg z-30 py-2 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-1 duration-150">
                                             <div className="py-1">
                                                 <button
                                                     onClick={() => {
                                                         handleCopyProfileLink();
                                                         setShowMoreMenu(false);
                                                     }}
-                                                    className="w-full text-left px-4 py-2 text-xs font-bold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-center gap-2 transition-colors cursor-pointer"
+                                                    className="w-full text-left px-4 py-2 text-xs font-bold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-center gap-2 transition-colors cursor-pointer"
                                                 >
                                                     <CopyIcon weight="bold" size={14} /> Copy Profile Link
                                                 </button>
                                                 <Link
                                                     href={`/profile/${user.username || user.id || user._id}`}
                                                     onClick={() => setShowMoreMenu(false)}
-                                                    className="w-full text-left px-4 py-2 text-xs font-bold text-gray-700 hover:bg-blue-50 hover:text-km-primary flex items-center gap-2 transition-colors"
+                                                    className="w-full text-left px-4 py-2 text-xs font-bold text-gray-700 hover:bg-blue-50 hover:text-km-heading flex items-center gap-2 transition-colors"
                                                 >
                                                     <ArrowSquareOutIcon weight="bold" size={14} /> View Public Profile
                                                 </Link>
@@ -666,7 +666,7 @@ const ProfilePage = () => {
                                 </div>
 
                                 {copiedLink && (
-                                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full flex items-center gap-1 animate-in fade-in">
+                                    <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-full flex items-center gap-1 animate-in fade-in dark:text-emerald-400">
                                         <CheckIcon weight="bold" size={14} /> Link Copied!
                                     </span>
                                 )}
@@ -683,7 +683,7 @@ const ProfilePage = () => {
                                                         <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                                                         <p className="font-bold text-sm text-slate-900">Open to work</p>
                                                     </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-km-primary uppercase">
+                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-km-heading uppercase">
                                                         {user.open_to_work.visibility === 'recruiters' ? 'Recruiters only' : 'All members'}
                                                     </span>
                                                 </div>
@@ -700,7 +700,7 @@ const ProfilePage = () => {
                                             <div className="mt-3 flex items-center justify-between pt-2 border-t border-blue-100">
                                                 <button
                                                     onClick={() => setIsOpenToWorkModalOpen(true)}
-                                                    className="text-xs text-km-primary font-bold hover:underline cursor-pointer flex items-center gap-1"
+                                                    className="text-xs text-km-heading font-bold hover:underline cursor-pointer flex items-center gap-1"
                                                 >
                                                     <PencilSimpleIcon weight="bold" size={12} />
                                                     <span>Update Preferences</span>
@@ -755,7 +755,7 @@ const ProfilePage = () => {
                     />
 
                     {/* Analytics Section */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div className="bg-km-surface-card rounded-xl p-6 shadow-sm border border-gray-200">
                         <h2 className="text-xl font-bold mb-1 text-gray-900">Analytics</h2>
                         <p className="text-xs text-gray-400 flex items-center gap-1 mb-6">
                             <EyeIcon weight="bold" size={12} /> Private To You
@@ -763,21 +763,21 @@ const ProfilePage = () => {
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                             <div className="flex gap-3">
-                                <ChartBarIcon size={24} className="text-km-primary" />
+                                <ChartBarIcon size={24} className="text-km-heading" />
                                 <div>
                                     <p className="font-bold text-gray-900">{(user?.profile_views ?? 0)} Profile Views</p>
                                     <p className="text-xs text-gray-500">Discover who viewed your profile.</p>
                                 </div>
                             </div>
                             <div className="flex gap-3">
-                                <ChartBarIcon size={24} className="text-km-primary" />
+                                <ChartBarIcon size={24} className="text-km-heading" />
                                 <div>
                                     <p className="font-bold text-gray-900">{(user?.post_impressions ?? 0)} Post Impressions</p>
                                     <p className="text-xs text-gray-500">Check engagement on your discussions.</p>
                                 </div>
                             </div>
                             <div className="flex gap-3">
-                                <MagnifyingGlassIcon size={24} className="text-km-primary" />
+                                <MagnifyingGlassIcon size={24} className="text-km-heading" />
                                 <div>
                                     <p className="font-bold text-gray-900">{(user?.search_appearances ?? 0)} Search Appearances</p>
                                     <p className="text-xs text-gray-500">How often you appear in recruiter search.</p>
@@ -787,7 +787,7 @@ const ProfilePage = () => {
                     </div>
 
                     {/* About Section */}
-                    <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                    <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                         <button
                             onClick={() => setModals((m) => ({ ...m, about: true }))}
                             className="absolute top-6 right-6 p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
@@ -802,12 +802,12 @@ const ProfilePage = () => {
                         {user.top_skills && user.top_skills.length > 0 && (
                             <div className="bg-blue-50/60 p-4 rounded-xl border border-blue-100">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <DiamondIcon weight="bold" size={16} className="text-km-primary" />
-                                    <span className="font-bold text-sm text-km-primary">Top Skills</span>
+                                    <DiamondIcon weight="bold" size={16} className="text-km-heading" />
+                                    <span className="font-bold text-sm text-km-heading">Top Skills</span>
                                 </div>
                                 <div className="flex flex-wrap gap-2 text-xs text-slate-700">
                                     {user.top_skills.map((skill: string) => (
-                                        <span key={skill} className="bg-white px-2.5 py-1 rounded-lg border border-blue-200 font-medium">
+                                        <span key={skill} className="bg-km-surface-card px-2.5 py-1 rounded-lg border border-blue-200 font-medium">
                                             • {skill}
                                         </span>
                                     ))}
@@ -817,13 +817,13 @@ const ProfilePage = () => {
                     </section>
 
                     {/* Jobs Based On Profile */}
-                    <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                    <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm">
                         <div className="flex justify-between items-center mb-4">
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">Jobs Based On Your Profile</h2>
                                 <p className="text-xs text-gray-400 mt-0.5">Recommended roles matching your skills and domain</p>
                             </div>
-                            <Link href="/jobs" className="text-xs font-bold text-km-primary hover:underline">
+                            <Link href="/jobs" className="text-xs font-bold text-km-heading hover:underline">
                                 View All
                             </Link>
                         </div>
@@ -834,19 +834,19 @@ const ProfilePage = () => {
                                     <Link
                                         key={job.id || job._id}
                                         href={`/jobs/${job.id || job._id}`}
-                                        className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 group cursor-pointer hover:border-km-primary hover:bg-white transition-all flex flex-col justify-between"
+                                        className="p-4 border border-gray-100 rounded-xl bg-gray-50/50 group cursor-pointer hover:border-km-primary hover:bg-km-surface-card transition-all flex flex-col justify-between"
                                     >
                                         <div>
                                             <div className="flex justify-between items-start mb-2">
-                                                <h3 className="font-bold text-sm text-gray-900 line-clamp-1 group-hover:text-km-primary transition-colors">
+                                                <h3 className="font-bold text-sm text-gray-900 line-clamp-1 group-hover:text-km-heading transition-colors">
                                                     {job.title}
                                                 </h3>
-                                                <CaretRightIcon weight="bold" size={16} className="text-gray-400 group-hover:text-km-primary shrink-0" />
+                                                <CaretRightIcon weight="bold" size={16} className="text-gray-400 group-hover:text-km-heading shrink-0" />
                                             </div>
                                             <p className="text-xs font-medium text-gray-700 mb-1">{job.company || job.company_name || 'Verified Recruiter'}</p>
                                             <p className="text-[11px] text-gray-400 mb-3">{job.city_name || job.location || 'Pan India'}</p>
                                         </div>
-                                        <span className="text-[11px] font-bold text-km-primary">
+                                        <span className="text-[11px] font-bold text-km-heading">
                                             {job.salary_range || 'Competitive'}
                                         </span>
                                     </Link>
@@ -860,7 +860,7 @@ const ProfilePage = () => {
                     </section>
 
                     {/* Experience Section */}
-                    <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                    <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">Experience</h2>
@@ -869,10 +869,10 @@ const ProfilePage = () => {
                             <button
                                 type="button"
                                 onClick={handleAddExperience}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-primary bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-heading bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
                                 title="Add Experience"
                             >
-                                <PlusIcon weight="bold" size={15} className="text-km-primary shrink-0" />
+                                <PlusIcon weight="bold" size={15} className="text-km-heading shrink-0" />
                                 <span>Add Experience</span>
                             </button>
                         </div>
@@ -886,7 +886,7 @@ const ProfilePage = () => {
                                     >
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex gap-3">
-                                                <BriefcaseIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
+                                                <BriefcaseIcon size={28} weight="duotone" className="text-km-heading shrink-0" aria-hidden="true" />
                                                 <div>
                                                     <h3 className="font-bold text-gray-900 text-base leading-tight">
                                                         {exp.title}
@@ -907,7 +907,7 @@ const ProfilePage = () => {
                                                     type="button"
                                                     onClick={() => handleEditExperience(exp)}
                                                     title="Edit experience"
-                                                    className="p-1.5 text-gray-400 hover:text-km-primary hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                                    className="p-1.5 text-gray-400 hover:text-km-heading hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                                 >
                                                     <PencilSimpleIcon weight="bold" size={15} />
                                                 </button>
@@ -916,7 +916,7 @@ const ProfilePage = () => {
                                                     onClick={() => handleDeleteExperience(exp.id)}
                                                     disabled={deletingExpId === exp.id}
                                                     title="Delete experience"
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
                                                 >
                                                     <TrashIcon weight="bold" size={15} />
                                                 </button>
@@ -934,7 +934,7 @@ const ProfilePage = () => {
                                                 {(Array.isArray(exp.skills) ? exp.skills : [exp.skills]).map((s: string, sIdx: number) => (
                                                     <span
                                                         key={sIdx}
-                                                        className="px-2.5 py-0.5 bg-blue-50 text-km-primary border border-blue-200/80 rounded-full text-xs font-medium"
+                                                        className="px-2.5 py-0.5 bg-blue-50 text-km-heading border border-blue-200/80 rounded-full text-xs font-medium"
                                                     >
                                                         {s}
                                                     </span>
@@ -962,7 +962,7 @@ const ProfilePage = () => {
                     </section>
 
                     {/* Education Section */}
-                    <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                    <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">Education</h2>
@@ -971,10 +971,10 @@ const ProfilePage = () => {
                             <button
                                 type="button"
                                 onClick={handleAddEducation}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-primary bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-heading bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
                                 title="Add Education"
                             >
-                                <PlusIcon weight="bold" size={15} className="text-km-primary shrink-0" />
+                                <PlusIcon weight="bold" size={15} className="text-km-heading shrink-0" />
                                 <span>Add Education</span>
                             </button>
                         </div>
@@ -988,7 +988,7 @@ const ProfilePage = () => {
                                     >
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex gap-3">
-                                                <GraduationCapIcon size={28} weight="duotone" className="text-km-primary shrink-0" aria-hidden="true" />
+                                                <GraduationCapIcon size={28} weight="duotone" className="text-km-heading shrink-0" aria-hidden="true" />
                                                 <div>
                                                     <h3 className="font-bold text-gray-900 text-base leading-tight">
                                                         {edu.school_name}
@@ -1009,7 +1009,7 @@ const ProfilePage = () => {
                                                     type="button"
                                                     onClick={() => handleEditEducation(edu)}
                                                     title="Edit education"
-                                                    className="p-1.5 text-gray-400 hover:text-km-primary hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                                    className="p-1.5 text-gray-400 hover:text-km-heading hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                                 >
                                                     <PencilSimpleIcon weight="bold" size={15} />
                                                 </button>
@@ -1018,7 +1018,7 @@ const ProfilePage = () => {
                                                     onClick={() => handleDeleteEducation(edu.id)}
                                                     disabled={deletingEduId === edu.id}
                                                     title="Delete education"
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
                                                 >
                                                     <TrashIcon weight="bold" size={15} />
                                                 </button>
@@ -1051,7 +1051,7 @@ const ProfilePage = () => {
                     </section>
 
                     {/* Projects Section */}
-                    <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                    <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                         <div className="flex justify-between items-center gap-3 mb-6">
                             <div className="min-w-0 flex-1">
                                 <h2 className="text-lg sm:text-xl font-bold text-gray-900 leading-tight">Projects</h2>
@@ -1062,10 +1062,10 @@ const ProfilePage = () => {
                             <button
                                 type="button"
                                 onClick={handleAddProject}
-                                className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-primary bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
+                                className="shrink-0 whitespace-nowrap inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-heading bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
                                 title="Add Project"
                             >
-                                <PlusIcon weight="bold" size={15} className="text-km-primary shrink-0" />
+                                <PlusIcon weight="bold" size={15} className="text-km-heading shrink-0" />
                                 <span>Add Project</span>
                             </button>
                         </div>
@@ -1102,7 +1102,7 @@ const ProfilePage = () => {
                                                     type="button"
                                                     onClick={() => handleEditProject(proj)}
                                                     title="Edit project"
-                                                    className="p-1.5 text-gray-400 hover:text-km-primary hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                                    className="p-1.5 text-gray-400 hover:text-km-heading hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                                 >
                                                     <PencilSimpleIcon weight="bold" size={15} />
                                                 </button>
@@ -1111,7 +1111,7 @@ const ProfilePage = () => {
                                                     onClick={() => handleDeleteProject(proj.id)}
                                                     disabled={deletingProjectId === proj.id}
                                                     title="Delete project"
-                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50"
+                                                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors shrink-0 cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
                                                 >
                                                     <TrashIcon weight="bold" size={15} />
                                                 </button>
@@ -1130,7 +1130,7 @@ const ProfilePage = () => {
                                                 {proj.skills.map((skill: string, sIdx: number) => (
                                                     <span
                                                         key={sIdx}
-                                                        className="px-2.5 py-0.5 bg-blue-50 text-km-primary border border-blue-200/80 rounded-full text-xs font-medium"
+                                                        className="px-2.5 py-0.5 bg-blue-50 text-km-heading border border-blue-200/80 rounded-full text-xs font-medium"
                                                     >
                                                         {skill}
                                                     </span>
@@ -1145,7 +1145,7 @@ const ProfilePage = () => {
                                                     href={proj.project_url.startsWith('http') ? proj.project_url : `https://${proj.project_url}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-km-primary hover:text-km-primary-dark hover:underline border border-blue-200 bg-white px-3 py-1.5 rounded-full shadow-2xs hover:shadow-xs transition-all"
+                                                    className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:underline border border-blue-200 bg-km-surface-card px-3 py-1.5 rounded-full shadow-2xs hover:shadow-xs transition-all dark:hover:text-km-link"
                                                 >
                                                     <span>Show Project</span>
                                                     <ArrowSquareOutIcon weight="bold" size={12} />
@@ -1173,7 +1173,7 @@ const ProfilePage = () => {
                     </section>
 
                     {/* Skills Section */}
-                    <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm relative">
+                    <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
                         <div className="flex justify-between items-center mb-6">
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900">Skills</h2>
@@ -1182,7 +1182,7 @@ const ProfilePage = () => {
                             <div className="flex items-center gap-3">
                                 <button
                                     onClick={() => setModals((m) => ({ ...m, skill: true }))}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-primary bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-heading bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
                                 >
                                     <PlusIcon weight="bold" size={15} /> Add Skill
                                 </button>
@@ -1194,16 +1194,16 @@ const ProfilePage = () => {
                                 user.skills.map((skill: string) => (
                                     <div
                                         key={skill}
-                                        className="group inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50/60 border border-blue-200 rounded-xl text-xs font-bold text-km-primary shadow-xs hover:border-blue-300 transition-colors"
+                                        className="group inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50/60 border border-blue-200 rounded-xl text-xs font-bold text-km-heading shadow-xs hover:border-blue-300 transition-colors"
                                     >
-                                        <CheckCircleIcon weight="bold" size={13} className="text-km-primary shrink-0" />
+                                        <CheckCircleIcon weight="bold" size={13} className="text-km-heading shrink-0" />
                                         <span>{skill}</span>
                                         <button
                                             type="button"
                                             onClick={() => handleDeleteSkill(skill)}
                                             disabled={deletingSkill === skill}
                                             title={`Remove ${skill}`}
-                                            className="text-gray-400 hover:text-red-600 transition-colors p-0.5 rounded cursor-pointer disabled:opacity-50"
+                                            className="text-gray-400 hover:text-red-600 transition-colors p-0.5 rounded cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
                                         >
                                             <XIcon weight="bold" size={13} />
                                         </button>
@@ -1223,7 +1223,7 @@ const ProfilePage = () => {
                 <div className="lg:col-span-4 space-y-6">
 
                     {/* Wallet Card */}
-                    <div className="bg-linear-to-br from-km-primary-dark via-[#071A4D] to-slate-900 rounded-xl p-5 sm:p-6 text-white flex justify-between items-center shadow-lg border border-blue-900/40">
+                    <div className="bg-linear-to-br from-km-primary-dark via-[#071A4D] to-[#0F172A] rounded-xl p-5 sm:p-6 text-white flex justify-between items-center shadow-lg border border-blue-900/40">
                         <div>
                             <p className="text-xs font-medium text-blue-200">Wallet Balance</p>
                             <p className="text-2xl sm:text-3xl font-black mt-1">₹{walletBalance.toFixed(2)}</p>
@@ -1241,7 +1241,7 @@ const ProfilePage = () => {
                     </div>
 
                     {/* Settings / Public Profile Card */}
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 space-y-4">
+                    <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 space-y-4">
                         <div className="flex justify-between items-center">
                             <div>
                                 <p className="font-semibold text-sm text-gray-900">Profile Language</p>
@@ -1259,15 +1259,15 @@ const ProfilePage = () => {
                             <div className="flex items-center gap-1.5 shrink-0">
                                 <button
                                     onClick={handleCopyProfileLink}
-                                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500 hover:text-km-primary transition-colors cursor-pointer"
+                                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500 hover:text-km-heading transition-colors cursor-pointer"
                                     title="Copy public profile link"
                                     aria-label="Copy public profile link"
                                 >
-                                    {copiedLink ? <CheckIcon weight="bold" size={16} className="text-emerald-600" /> : <CopyIcon weight="bold" size={16} />}
+                                    {copiedLink ? <CheckIcon weight="bold" size={16} className="text-emerald-600 dark:text-emerald-400" /> : <CopyIcon weight="bold" size={16} />}
                                 </button>
                                 <button
                                     onClick={() => setIsEditUrlModalOpen(true)}
-                                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500 hover:text-km-primary transition-colors cursor-pointer"
+                                    className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-500 hover:text-km-heading transition-colors cursor-pointer"
                                     title="Edit custom URL"
                                     aria-label="Edit custom URL"
                                 >
@@ -1278,10 +1278,10 @@ const ProfilePage = () => {
                     </div>
 
                     {/* People Who Viewed Section (Live Community Users) */}
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                    <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm">
                         <h3 className="font-bold text-gray-900 mb-4 flex justify-between items-center text-base">
-                            <span>People Who <span className="text-km-primary">Viewed</span></span>
-                            <Link href="/network" className="text-xs font-semibold text-km-primary hover:underline">
+                            <span>People Who <span className="text-km-heading">Viewed</span></span>
+                            <Link href="/network" className="text-xs font-semibold text-km-heading hover:underline">
                                 See all
                             </Link>
                         </h3>
@@ -1331,12 +1331,12 @@ const ProfilePage = () => {
                     </div>
 
                     {/* Our Experts Widget */}
-                    <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
+                    <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="font-bold text-gray-900 text-base">
-                                Verified <span className="text-km-primary">Experts</span>
+                                Verified <span className="text-km-heading">Experts</span>
                             </h3>
-                            <Link href="/network" className="text-xs font-semibold text-km-primary hover:underline">
+                            <Link href="/network" className="text-xs font-semibold text-km-heading hover:underline">
                                 Explore
                             </Link>
                         </div>
@@ -1359,7 +1359,7 @@ const ProfilePage = () => {
                                                 </div>
                                             </div>
                                             <Link href={`/chat?userId=${eId}`}>
-                                                <button className="w-full py-1.5 border border-km-primary text-km-primary rounded-xl text-xs font-bold hover:bg-blue-50 flex items-center justify-center gap-1 transition-colors cursor-pointer">
+                                                <button className="w-full py-1.5 border border-km-primary text-km-heading rounded-xl text-xs font-bold hover:bg-blue-50 flex items-center justify-center gap-1 transition-colors cursor-pointer">
                                                     <ChatCircleIcon weight="bold" size={13} /> Chat with Expert
                                                 </button>
                                             </Link>

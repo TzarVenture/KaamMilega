@@ -43,11 +43,11 @@ export default function ExpertRequestsPage() {
         <div className="space-y-6">
             <h1 className="text-2xl font-bold text-gray-900">Expert Requests</h1>
             {requests.length === 0 ? (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
+                <div className="bg-km-surface-card rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-500">
                     No pending expert requests.
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-km-surface-card rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
@@ -58,7 +58,7 @@ export default function ExpertRequestsPage() {
                                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+                        <tbody className="bg-km-surface-card divide-y divide-gray-200">
                             {requests.map((req) => (
                                 <tr key={req.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
@@ -76,7 +76,7 @@ export default function ExpertRequestsPage() {
                                     <td className="px-6 py-4 text-sm text-gray-500">
                                         <div className="flex flex-col gap-1">
                                             {req.expert_documents?.map((doc: any, i: number) => (
-                                                <a key={i} href={doc.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                                                <a key={i} href={doc.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">
                                                     {doc.name}
                                                 </a>
                                             ))}
@@ -85,14 +85,14 @@ export default function ExpertRequestsPage() {
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <button
                                             onClick={() => handleAction(req.id, "approved")}
-                                            className="text-green-600 hover:text-green-900 mr-4 focus:outline-none"
+                                            className="text-green-600 hover:text-green-900 mr-4 focus:outline-none dark:text-green-400"
                                             title="Approve"
                                         >
                                             <CheckIcon className="w-5 h-5 inline-block" />
                                         </button>
                                         <button
                                             onClick={() => handleAction(req.id, "rejected")}
-                                            className="text-red-600 hover:text-red-900 focus:outline-none"
+                                            className="text-red-600 hover:text-red-900 focus:outline-none dark:text-red-400"
                                             title="Reject"
                                         >
                                             <XIcon className="w-5 h-5 inline-block" />

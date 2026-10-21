@@ -4,13 +4,13 @@ import { BookmarkSimpleIcon, CalendarBlankIcon, ChatCircleIcon, ShareNetworkIcon
 
 const EventDetailsPage = () => {
     return (
-        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen">
+        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen dark:bg-white/5">
 
             {/* Main Content Area */}
             <div className="flex-1 space-y-6">
 
                 {/* Event Header Card */}
-                <div className="bg-white rounded-[32px] overflow-hidden shadow-sm border border-gray-100">
+                <div className="bg-km-surface-card rounded-[32px] overflow-hidden shadow-sm border border-gray-100">
                     {/* Cover Image Placeholder */}
                     <div className="h-64 bg-[#1D0A1C] flex items-center justify-center relative">
                         <div className="flex items-center justify-center opacity-40 scale-150">
@@ -35,13 +35,13 @@ const EventDetailsPage = () => {
                                 Lorem Ipsum Event Name Display Here
                             </h1>
                             <p className="text-gray-500 font-medium">
-                                Event By <span className="text-purple-600 font-bold cursor-pointer hover:underline">Company Name</span>
+                                Event By <span className="text-purple-600 font-bold cursor-pointer hover:underline dark:text-purple-400">Company Name</span>
                             </p>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-y-4 gap-x-12 py-4 border-y border-gray-50">
                             <div className="flex items-center gap-3">
-                                <CalendarBlankIcon size={24} className="text-purple-600" aria-hidden="true" />
+                                <CalendarBlankIcon size={24} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                 <div>
                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Date & Time</p>
                                     <p className="text-sm font-bold text-gray-800">Thu, Oct 12, 2023, 8:30 PM</p>
@@ -49,7 +49,7 @@ const EventDetailsPage = () => {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <VideoCameraIcon size={24} className="text-purple-600" aria-hidden="true" />
+                                <VideoCameraIcon size={24} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                 <div>
                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Event Format</p>
                                     <p className="text-sm font-bold text-gray-800">Online Event</p>
@@ -57,7 +57,7 @@ const EventDetailsPage = () => {
                             </div>
 
                             <div className="flex items-center gap-3">
-                                <UsersIcon size={24} className="text-purple-600" aria-hidden="true" />
+                                <UsersIcon size={24} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                 <div>
                                     <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Attendance</p>
                                     <p className="text-sm font-bold text-gray-800">18,000+ Attendees</p>
@@ -66,13 +66,13 @@ const EventDetailsPage = () => {
                         </div>
 
                         {/* Attendance Call to Action */}
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-[#FDFBFF] p-6 rounded-2xl border border-purple-50">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-[#FDFBFF] p-6 rounded-2xl border border-purple-50 dark:bg-white/5">
                             <div className="flex items-center gap-4">
                                 <div className="flex -space-x-3">
                                     {[1, 2, 3, 4].map(i => (
-                                        <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-200" />
+                                        <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-gray-200 dark:border-km-surface-card" />
                                     ))}
-                                    <div className="w-10 h-10 rounded-full border-2 border-white bg-purple-600 flex items-center justify-center text-[10px] font-bold text-white">
+                                    <div className="w-10 h-10 rounded-full border-2 border-white bg-purple-600 flex items-center justify-center text-[10px] font-bold text-white dark:border-km-surface-card">
                                         +18k
                                     </div>
                                 </div>
@@ -88,7 +88,7 @@ const EventDetailsPage = () => {
                 </div>
 
                 {/* About Event Section */}
-                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
+                <div className="bg-km-surface-card rounded-[32px] p-8 shadow-sm border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-6">About Event</h2>
                     <div className="text-gray-600 leading-relaxed space-y-4 text-sm">
                         <p>
@@ -101,7 +101,7 @@ const EventDetailsPage = () => {
                 </div>
 
                 {/* Speakers Section */}
-                <div className="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100">
+                <div className="bg-km-surface-card rounded-[32px] p-8 shadow-sm border border-gray-100">
                     <h2 className="text-2xl font-bold text-gray-900 mb-8">Speakers</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {[1, 2].map((i) => (
@@ -128,10 +128,10 @@ const EventDetailsPage = () => {
             {/* Right Column: Sidebar */}
             <div className="w-full lg:w-80 space-y-6">
                 {/* Attendees Preview */}
-                <div className="bg-white rounded-[32px] p-6 shadow-sm border border-gray-100">
+                <div className="bg-km-surface-card rounded-[32px] p-6 shadow-sm border border-gray-100">
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="font-bold text-gray-900">Attendees</h2>
-                        <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-md">View All</span>
+                        <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-md dark:text-purple-400">View All</span>
                     </div>
                     <div className="space-y-5">
                         {[1, 2, 3, 4, 5].map((i) => (
@@ -143,7 +143,7 @@ const EventDetailsPage = () => {
                                         <p className="text-[10px] text-gray-400 italic">Person Designation</p>
                                     </div>
                                 </div>
-                                <button className="text-gray-300 hover:text-purple-600">
+                                <button className="text-gray-300 hover:text-purple-600 dark:hover:text-purple-400">
                                     <ChatCircleIcon weight="bold" size={16} />
                                 </button>
                             </div>
@@ -152,7 +152,7 @@ const EventDetailsPage = () => {
                 </div>
 
                 {/* Ad Banner */}
-                <div className="bg-white rounded-[32px] h-[500px] flex items-center justify-center border border-gray-100 shadow-sm text-gray-400 font-bold text-xl italic p-12 text-center">
+                <div className="bg-km-surface-card rounded-[32px] h-[500px] flex items-center justify-center border border-gray-100 shadow-sm text-gray-400 font-bold text-xl italic p-12 text-center">
                     Ad Banner
                 </div>
             </div>

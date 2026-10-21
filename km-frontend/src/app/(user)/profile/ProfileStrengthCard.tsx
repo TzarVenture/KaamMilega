@@ -73,18 +73,18 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
     }
 
     return (
-        <section aria-labelledby="profile-strength-title" className="bg-white rounded-2xl p-5 sm:p-6 border border-[#D9E0EA] shadow-xs font-sans">
+        <section aria-labelledby="profile-strength-title" className="bg-km-surface-card rounded-2xl p-5 sm:p-6 border border-km-border shadow-xs font-sans">
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
-                    <h2 id="profile-strength-title" className="text-base sm:text-lg font-semibold text-[#111827]">
+                    <h2 id="profile-strength-title" className="text-base sm:text-lg font-semibold text-km-text-primary">
                         {score >= 100 ? 'Your profile is complete' : 'Complete your profile'}
                     </h2>
-                    <p className="text-sm text-[#5B6472] mt-1">
+                    <p className="text-sm text-km-text-secondary mt-1">
                         {nextMilestone ? (
                             <>
                                 Add {stepsToNext} more {stepsToNext === 1 ? 'detail' : 'details'} to reach{' '}
-                                <span className="font-semibold text-[#111827]">
+                                <span className="font-semibold text-km-text-primary">
                                     {nextMilestone.name} ({nextMilestone.score}%)
                                 </span>{' '}
                                 and {nextMilestone.unlocks}.
@@ -92,7 +92,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                         ) : completion.expert_eligible ? (
                             <>
                                 You can take Instant Milega gigs and{' '}
-                                <Link href="/expert/apply" className="font-semibold text-[#0B5ED7] hover:underline">
+                                <Link href="/expert/apply" className="font-semibold text-km-link hover:underline">
                                     apply as an Expert
                                 </Link>
                                 .
@@ -103,38 +103,38 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                     </p>
                 </div>
                 <div className="text-right shrink-0">
-                    <p className="text-2xl sm:text-3xl font-bold text-[#071A4D] leading-none">{score}%</p>
-                    <p className="text-xs font-medium text-[#5B6472] mt-1">{completion.tier_name}</p>
+                    <p className="text-2xl sm:text-3xl font-bold text-km-heading leading-none">{score}%</p>
+                    <p className="text-xs font-medium text-km-text-secondary mt-1">{completion.tier_name}</p>
                 </div>
             </div>
 
             {/* Progress bar with level markers */}
             <div className="mt-5">
                 <div
-                    className="relative h-2 bg-[#F4F7FB] border border-[#D9E0EA] rounded-full"
+                    className="relative h-2 bg-km-surface border border-km-border rounded-full"
                     role="progressbar"
                     aria-valuenow={score}
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-label="Profile completeness"
                 >
-                    <div className="h-full rounded-full bg-[#071A4D]" style={{ width: `${Math.max(score, 3)}%` }} />
+                    <div className="h-full rounded-full bg-[#071A4D] dark:bg-km-primary" style={{ width: `${Math.max(score, 3)}%` }} />
                     {MILESTONES.slice(0, 2).map((m) => (
                         <span
                             key={m.score}
-                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border-2 border-white ${
-                                score >= m.score ? 'bg-[#071A4D]' : 'bg-[#D9E0EA]'
+                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-km-surface-card ${
+                                score >= m.score ? 'bg-[#071A4D] dark:bg-km-primary' : 'bg-[#D9E0EA] dark:bg-white/10'
                             }`}
                             style={{ left: `${m.score}%` }}
                         />
                     ))}
                 </div>
-                <div className="relative h-4 mt-1.5 text-xs text-[#5B6472]">
+                <div className="relative h-4 mt-1.5 text-xs text-km-text-secondary">
                     {MILESTONES.map((m) => (
                         <span
                             key={m.score}
                             className={`absolute ${m.score === 100 ? 'right-0' : '-translate-x-1/2'} ${
-                                score >= m.score ? 'font-semibold text-[#071A4D]' : ''
+                                score >= m.score ? 'font-semibold text-km-heading' : ''
                             }`}
                             style={m.score === 100 ? undefined : { left: `${m.score}%` }}
                         >
@@ -146,7 +146,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
 
             {/* What is left */}
             {pending.length > 0 && (
-                <ul className="mt-5 divide-y divide-[#D9E0EA] border border-[#D9E0EA] rounded-xl">
+                <ul className="mt-5 divide-y divide-km-border border border-km-border rounded-xl">
                     {pending.map((item) => {
                         const meta = CRITERION_META[item.id];
                         const partial = item.earned > 0;
@@ -158,15 +158,15 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                                     <CircleIcon weight="bold" size={18} className="text-[#D9E0EA] shrink-0" aria-hidden="true" />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-[#111827]">{meta.title}</p>
-                                    <p className="text-xs text-[#5B6472] mt-0.5">{meta.hint}</p>
+                                    <p className="text-sm font-medium text-km-text-primary">{meta.title}</p>
+                                    <p className="text-xs text-km-text-secondary mt-0.5">{meta.hint}</p>
                                 </div>
                                 <span className="text-xs font-semibold text-[#16A34A] shrink-0">+{remaining(item)}%</span>
                                 {meta.modalKey && (
                                     <button
                                         type="button"
                                         onClick={() => onOpenModal(meta.modalKey as ProfileModalKey)}
-                                        className="shrink-0 px-3 py-1.5 rounded-lg border border-[#D9E0EA] text-xs font-semibold text-[#071A4D] hover:bg-[#F4F7FB] cursor-pointer"
+                                        className="shrink-0 px-3 py-1.5 rounded-lg border border-km-border text-xs font-semibold text-km-heading hover:bg-km-surface cursor-pointer"
                                     >
                                         {partial ? 'Finish' : 'Add'}
                                     </button>
@@ -184,7 +184,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                         type="button"
                         onClick={() => setShowCompleted(!showCompleted)}
                         aria-expanded={showCompleted}
-                        className="inline-flex items-center gap-1 text-xs font-semibold text-[#5B6472] hover:text-[#071A4D] cursor-pointer"
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-km-text-secondary hover:text-km-heading cursor-pointer"
                     >
                         {showCompleted ? 'Hide' : 'Show'} {completed.length} completed
                         {showCompleted ? <CaretUpIcon weight="bold" size={14} /> : <CaretDownIcon weight="bold" size={14} />}
@@ -194,7 +194,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                             {completed.map((item) => (
                                 <li
                                     key={item.id}
-                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F4F7FB] text-xs font-medium text-[#111827]"
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-km-surface text-xs font-medium text-km-text-primary"
                                 >
                                     <CheckCircleIcon weight="bold" size={13} className="text-[#16A34A]" />
                                     {CRITERION_META[item.id].title}

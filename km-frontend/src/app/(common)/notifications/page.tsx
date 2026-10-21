@@ -285,7 +285,7 @@ export default function NotificationsPage() {
                 key={item.id}
                 onClick={() => handleCardClick(item)}
                 className={`px-4 py-3 sm:px-5 sm:py-3.5 flex items-center gap-3.5 transition-colors cursor-pointer group hover:bg-slate-50 relative ${
-                    !item.is_read ? "bg-blue-50/40" : "bg-white"
+                    !item.is_read ? "bg-blue-50/40" : "bg-km-surface-card"
                 }`}
             >
                 {/* 1. Compact Avatar / Icon (36px) */}
@@ -320,7 +320,7 @@ export default function NotificationsPage() {
                     {actionLabel && (
                         <button
                             onClick={(e) => handleActionClick(e, item)}
-                            className="hidden sm:inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold text-km-primary hover:text-km-primary-dark bg-blue-50/90 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer"
+                            className="hidden sm:inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold text-km-heading hover:text-km-primary-dark bg-blue-50/90 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer dark:hover:text-km-link"
                         >
                             {actionLabel}
                         </button>
@@ -330,7 +330,7 @@ export default function NotificationsPage() {
                         <button
                             onClick={(e) => handleMarkSingleRead(e, item.id)}
                             title="Mark as read"
-                            className="p-1.5 text-slate-400 hover:text-km-primary hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-slate-400 hover:text-km-heading hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                         >
                             <CheckIcon weight="bold" size={14} />
                         </button>
@@ -339,7 +339,7 @@ export default function NotificationsPage() {
                     <button
                         onClick={(e) => handleDelete(e, item.id)}
                         title="Delete notification"
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 dark:hover:text-red-400"
                     >
                         <TrashIcon weight="bold" size={14} />
                     </button>
@@ -358,17 +358,17 @@ export default function NotificationsPage() {
     const hasMore = feedItems.length < totalCount;
 
     return (
-        <div className="min-h-screen bg-[#F4F7FB] py-6 px-4 sm:px-6 lg:px-8 font-sans">
+        <div className="min-h-screen bg-km-surface py-6 px-4 sm:px-6 lg:px-8 font-sans">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
 
                 {/* LEFT SIDEBAR: Categories & Settings Navigation */}
                 <aside className="lg:col-span-3 space-y-4">
                     {/* Management Card */}
-                    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs">
+                    <div className="bg-km-surface-card rounded-2xl p-4 border border-slate-200 shadow-xs">
                         <div className="flex items-center justify-between mb-3 px-1">
                             <h2 className="text-sm font-bold text-slate-900">Notifications</h2>
                             {unreadCount > 0 && (
-                                <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full border border-red-100">
+                                <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full border border-red-100 dark:text-red-400">
                                     {unreadCount} unread
                                 </span>
                             )}
@@ -398,7 +398,7 @@ export default function NotificationsPage() {
                                         {count > 0 && (
                                             <span
                                                 className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                                                    isActive ? "bg-white/20 text-white" : "bg-red-50 text-red-600"
+                                                    isActive ? "bg-white/20 text-white" : "bg-red-50 text-red-600 dark:text-red-400"
                                                 }`}
                                             >
                                                 {count}
@@ -425,7 +425,7 @@ export default function NotificationsPage() {
                     </div>
 
                     {/* Unread Filter Switch Card */}
-                    <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between">
+                    <div className="bg-km-surface-card rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between">
                         <div>
                             <p className="text-xs font-bold text-slate-900">Unread only</p>
                             <p className="text-[11px] text-slate-500">Filter pending alerts</p>
@@ -437,7 +437,7 @@ export default function NotificationsPage() {
                                 onChange={(e) => setUnreadOnly(e.target.checked)}
                                 className="sr-only peer"
                             />
-                            <div className="w-10 h-5.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-km-primary"></div>
+                            <div className="w-10 h-5.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-km-surface-card after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-km-primary dark:peer-checked:after:border-km-surface-card"></div>
                         </label>
                     </div>
                 </aside>
@@ -445,7 +445,7 @@ export default function NotificationsPage() {
                 {/* CENTER FEED: Compact High-Density List */}
                 <main className="lg:col-span-6 space-y-4">
                     {/* Header Bar */}
-                    <div className="bg-white rounded-2xl px-5 py-3.5 border border-slate-200 shadow-xs flex items-center justify-between">
+                    <div className="bg-km-surface-card rounded-2xl px-5 py-3.5 border border-slate-200 shadow-xs flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <h1 className="text-base font-bold text-slate-900">
                                 {CATEGORIES.find((c) => c.id === selectedCategory)?.label || "Notifications"}
@@ -458,7 +458,7 @@ export default function NotificationsPage() {
                         {unreadCount > 0 && (
                             <button
                                 onClick={handleMarkAllRead}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold text-km-primary hover:text-km-primary-dark transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark transition-colors cursor-pointer dark:hover:text-km-link"
                             >
                                 <ChecksIcon weight="bold" size={15} />
                                 <span>Mark all as read</span>
@@ -467,7 +467,7 @@ export default function NotificationsPage() {
                     </div>
 
                     {/* Optional Keyword Search Input (filter by user name, company, or message) */}
-                    <div className="bg-white rounded-2xl p-2.5 sm:px-4 sm:py-3 border border-slate-200 shadow-xs flex items-center gap-2.5">
+                    <div className="bg-km-surface-card rounded-2xl p-2.5 sm:px-4 sm:py-3 border border-slate-200 shadow-xs flex items-center gap-2.5">
                         <MagnifyingGlassIcon weight="bold" size={16} className="text-slate-400 shrink-0" />
                         <input
                             type="text"
@@ -489,7 +489,7 @@ export default function NotificationsPage() {
                     </div>
 
                     {/* Feed Content */}
-                    <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden divide-y divide-slate-100">
+                    <div className="bg-km-surface-card rounded-2xl border border-slate-200 shadow-xs overflow-hidden divide-y divide-slate-100">
                         {loading ? (
                             <div className="p-12 text-center text-slate-400">
                                 <div className="w-7 h-7 border-2 border-km-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
@@ -564,7 +564,7 @@ export default function NotificationsPage() {
                                         <button
                                             onClick={handleLoadMore}
                                             disabled={loadingMore}
-                                            className="px-5 py-2 text-xs font-bold text-km-primary hover:text-km-primary-dark hover:bg-blue-50 border border-blue-200 rounded-xl transition-all cursor-pointer inline-flex items-center gap-2"
+                                            className="px-5 py-2 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:bg-blue-50 border border-blue-200 rounded-xl transition-all cursor-pointer inline-flex items-center gap-2 dark:hover:text-km-link"
                                         >
                                             {loadingMore ? (
                                                 <>
@@ -587,7 +587,7 @@ export default function NotificationsPage() {
 
                 {/* RIGHT SIDEBAR: Preserved Ad Banner Placeholder */}
                 <aside className="lg:col-span-3">
-                    <div className="bg-white rounded-2xl h-64 flex items-center justify-center border border-dashed border-gray-200 text-gray-400 font-bold text-xl shadow-xs sticky top-20">
+                    <div className="bg-km-surface-card rounded-2xl h-64 flex items-center justify-center border border-dashed border-gray-200 text-gray-400 font-bold text-xl shadow-xs sticky top-20">
                         Ad Banner
                     </div>
                 </aside>

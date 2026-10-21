@@ -139,16 +139,16 @@ export default function NearbySpotGigsFeed({
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-5">
                 <div>
                     <div className="flex items-center gap-2.5">
-                        <h2 className="text-xl sm:text-2xl font-bold text-[#071A4D] tracking-tight font-poppins">
+                        <h2 className="text-xl sm:text-2xl font-bold text-km-heading tracking-tight font-poppins">
                             Nearby Spot Gigs
                         </h2>
                         {isFiltered && (
-                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/30">
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/30 dark:bg-orange-500/15">
                                 {activeSkill}
                             </span>
                         )}
                     </div>
-                    <p className="text-xs sm:text-sm text-[#5B6472] mt-0.5 font-medium">
+                    <p className="text-xs sm:text-sm text-km-text-secondary mt-0.5 font-medium">
                         Direct urgent vocational requirements posted by verified recruiters within 15 km
                     </p>
                 </div>
@@ -158,7 +158,7 @@ export default function NearbySpotGigsFeed({
                         <button
                             type="button"
                             onClick={onResetCategory}
-                            className="text-xs font-bold text-[#5B6472] hover:text-[#071A4D] px-3 py-2 rounded-xl border border-[#D9E0EA] hover:bg-[#F4F7FB] transition-colors cursor-pointer"
+                            className="text-xs font-bold text-km-text-secondary hover:text-km-heading px-3 py-2 rounded-xl border border-km-border hover:bg-km-surface transition-colors cursor-pointer"
                         >
                             Clear Filter
                         </button>
@@ -168,7 +168,7 @@ export default function NearbySpotGigsFeed({
                         type="button"
                         onClick={() => fetchGigs()}
                         disabled={loading}
-                        className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#071A4D] text-[#071A4D] hover:bg-[#F4F7FB] text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                        className="flex items-center gap-2 px-3.5 py-2 rounded-xl border border-[#071A4D] text-km-heading hover:bg-km-surface text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 dark:border-km-link"
                     >
                         <ArrowsClockwiseIcon weight="bold" size={13} className={loading ? 'animate-spin text-[#FF6B00]' : ''} />
                         <span>Refresh</span>
@@ -178,14 +178,14 @@ export default function NearbySpotGigsFeed({
 
             {/* Gigs List or Empty State */}
             {visibleJobs.length === 0 ? (
-                <div className="p-8 sm:p-12 bg-white rounded-2xl border border-[#D9E0EA] text-center">
-                    <BriefcaseIcon size={28} weight="duotone" className="text-[#071A4D] mx-auto mb-3" aria-hidden="true" />
-                    <h3 className="text-base font-bold text-[#111827] font-poppins">
+                <div className="p-8 sm:p-12 bg-km-surface-card rounded-2xl border border-km-border text-center">
+                    <BriefcaseIcon size={28} weight="duotone" className="text-km-heading mx-auto mb-3" aria-hidden="true" />
+                    <h3 className="text-base font-bold text-km-text-primary font-poppins">
                         {isFiltered
                             ? `No Open Gigs for "${activeSkill}" Nearby`
                             : 'No Active Spot Gigs In Your Perimeter'}
                     </h3>
-                    <p className="text-xs sm:text-sm text-[#5B6472] max-w-md mx-auto mt-1 font-medium">
+                    <p className="text-xs sm:text-sm text-km-text-secondary max-w-md mx-auto mt-1 font-medium">
                         {isFiltered
                             ? `No verified employers currently posted open gigs for ${activeSkill} in your 15 km perimeter. Try clearing filter or scanning again.`
                             : 'There are no open spot demands within 15 km right now. Keep Free Now active to receive instant dispatches as soon as employers post.'}
@@ -195,7 +195,7 @@ export default function NearbySpotGigsFeed({
                             <button
                                 type="button"
                                 onClick={onResetCategory}
-                                className="bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-xs"
+                                className="bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer shadow-xs dark:bg-km-primary dark:hover:bg-km-primary-dark"
                             >
                                 View All Categories
                             </button>
@@ -203,7 +203,7 @@ export default function NearbySpotGigsFeed({
                         <button
                             type="button"
                             onClick={() => fetchGigs()}
-                            className="bg-[#F4F7FB] hover:bg-[#D9E0EA] text-[#071A4D] font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer border border-[#D9E0EA]"
+                            className="bg-km-surface hover:bg-[#D9E0EA] text-km-heading font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer border border-km-border dark:hover:bg-white/10"
                         >
                             Scan Perimeter Again
                         </button>
@@ -221,52 +221,52 @@ export default function NearbySpotGigsFeed({
                         return (
                             <div
                                 key={job.id}
-                                className="bg-white rounded-2xl border border-[#D9E0EA] hover:border-[#071A4D]/40 hover:shadow-xs transition-all duration-150 flex flex-col justify-between p-5 sm:p-6"
+                                className="bg-km-surface-card rounded-2xl border border-km-border hover:border-[#071A4D]/40 hover:shadow-xs transition-all duration-150 flex flex-col justify-between p-5 sm:p-6 dark:hover:border-km-link"
                             >
                                 <div>
                                     <div className="flex items-center justify-between gap-2 mb-3">
-                                        <span className="px-2.5 py-1 rounded-md bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/20 text-xs font-bold">
+                                        <span className="px-2.5 py-1 rounded-md bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/20 text-xs font-bold dark:bg-orange-500/15">
                                             {job.skill}
                                         </span>
 
-                                        <span className="text-xs font-medium text-[#5B6472] flex items-center gap-1">
+                                        <span className="text-xs font-medium text-km-text-secondary flex items-center gap-1">
                                             <MapPinIcon weight="bold" size={13} className="text-[#FF6B00]" />
                                             <span>{distText}</span>
                                         </span>
                                     </div>
 
-                                    <h4 className="text-base font-bold text-[#111827] line-clamp-1">
+                                    <h4 className="text-base font-bold text-km-text-primary line-clamp-1">
                                         {job.company_name || 'Verified Employer'}
                                     </h4>
 
-                                    <p className="text-xs text-[#5B6472] font-medium line-clamp-1 mt-0.5">
+                                    <p className="text-xs text-km-text-secondary font-medium line-clamp-1 mt-0.5">
                                         {job.address || 'Local spot work location'}
                                     </p>
 
                                     {job.notes && (
-                                        <p className="text-xs text-[#5B6472] bg-[#F4F7FB] p-2.5 rounded-xl border border-[#D9E0EA] mt-3 line-clamp-2">
+                                        <p className="text-xs text-km-text-secondary bg-km-surface p-2.5 rounded-xl border border-km-border mt-3 line-clamp-2">
                                             {job.notes}
                                         </p>
                                     )}
                                 </div>
 
-                                <div className="mt-5 pt-4 border-t border-[#D9E0EA]">
+                                <div className="mt-5 pt-4 border-t border-km-border">
                                     <div className="flex items-center justify-between mb-4">
                                         <div>
-                                            <span className="text-[11px] font-semibold text-[#5B6472] block">Agreed Rate</span>
+                                            <span className="text-[11px] font-semibold text-km-text-secondary block">Agreed Rate</span>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-xl font-bold text-[#071A4D]">
+                                                <span className="text-xl font-bold text-km-heading">
                                                     ₹{job.pay_rate}
                                                 </span>
-                                                <span className="text-xs text-[#5B6472]">
+                                                <span className="text-xs text-km-text-secondary">
                                                     {job.rate_type === 'hourly' ? '/ hr' : 'flat'}
                                                 </span>
                                             </div>
                                         </div>
 
                                         <div className="text-right">
-                                            <span className="text-[11px] font-semibold text-[#5B6472] block">Duration</span>
-                                            <span className="text-xs font-bold text-[#111827]">
+                                            <span className="text-[11px] font-semibold text-km-text-secondary block">Duration</span>
+                                            <span className="text-xs font-bold text-km-text-primary">
                                                 {job.duration_hours || 4} Hours
                                             </span>
                                         </div>
@@ -292,7 +292,7 @@ export default function NearbySpotGigsFeed({
                                         <button
                                             type="button"
                                             onClick={() => handleDismiss(job.id)}
-                                            className="p-2.5 rounded-xl border border-[#D9E0EA] text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] transition-colors cursor-pointer"
+                                            className="p-2.5 rounded-xl border border-km-border text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface transition-colors cursor-pointer"
                                             title="Dismiss Gig"
                                             aria-label="Dismiss Gig"
                                         >

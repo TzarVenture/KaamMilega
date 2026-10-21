@@ -186,7 +186,7 @@ export default function JobsPage() {
                         {view === 'candidates' && (
                             <button
                                 onClick={() => setView('jobs')}
-                                className="p-2 hover:bg-purple-50 rounded-xl text-purple-600 transition-colors mr-2 border border-purple-100"
+                                className="p-2 hover:bg-purple-50 rounded-xl text-purple-600 transition-colors mr-2 border border-purple-100 dark:text-purple-400"
                             >
                                 <CaretLeftIcon size={22} />
                             </button>
@@ -204,13 +204,13 @@ export default function JobsPage() {
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative group">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                         <input
                             type="text"
                             placeholder={view === 'jobs' ? "Search title, company..." : "Search candidates..."}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full sm:w-64 pl-11 pr-4 py-2.5 bg-white border border-purple-100 rounded-2xl text-sm focus:outline-none focus:border-purple-300 transition-all shadow-sm"
+                            className="w-full sm:w-64 pl-11 pr-4 py-2.5 bg-km-surface-card border border-purple-100 rounded-2xl text-sm focus:outline-none focus:border-purple-300 transition-all shadow-sm"
                         />
                     </div>
                 </div>
@@ -227,12 +227,12 @@ export default function JobsPage() {
                             className="grid grid-cols-1 gap-6"
                         >
                             {isLoadingJobs ? (
-                                <div className="text-center py-16 bg-white rounded-3xl border border-purple-50">
-                                    <CircleNotchIcon className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3" />
+                                <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-purple-50">
+                                    <CircleNotchIcon className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3 dark:text-purple-400" />
                                     <p className="text-slate-500 font-medium text-sm">Loading job vacancies...</p>
                                 </div>
                             ) : filteredJobs.length === 0 ? (
-                                <div className="text-center py-16 bg-white rounded-3xl border border-purple-50">
+                                <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-purple-50">
                                     <BriefcaseIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
                                     <h4 className="text-base font-bold text-slate-700">No Job Listings Found</h4>
                                     <p className="text-slate-400 text-sm mt-1">Try adjusting your search filters.</p>
@@ -246,7 +246,7 @@ export default function JobsPage() {
                                         exit={{ opacity: 0, scale: 0.95, height: 0, marginBottom: 0 }}
                                         transition={{ duration: 0.25 }}
                                         key={job.id}
-                                        className="bg-white rounded-[32px] p-8 border border-purple-100/70 shadow-sm hover:border-purple-200 transition-all group relative"
+                                        className="bg-km-surface-card rounded-[32px] p-8 border border-purple-100/70 shadow-sm hover:border-purple-200 transition-all group relative"
                                     >
                                         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                                             <div className="flex items-start gap-6">
@@ -262,15 +262,15 @@ export default function JobsPage() {
                                                     </div>
                                                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                                                         <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                                                            <CurrencyInrIcon weight="bold" size={16} className="text-purple-600" />
+                                                            <CurrencyInrIcon weight="bold" size={16} className="text-purple-600 dark:text-purple-400" />
                                                             <span>{job.salary}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                                                            <MapPinIcon weight="bold" size={16} className="text-purple-600" />
+                                                            <MapPinIcon weight="bold" size={16} className="text-purple-600 dark:text-purple-400" />
                                                             <span>{job.location}</span>
                                                         </div>
                                                         <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                                                            <BriefcaseIcon weight="bold" size={16} className="text-purple-600" />
+                                                            <BriefcaseIcon weight="bold" size={16} className="text-purple-600 dark:text-purple-400" />
                                                             <span>{job.type}</span>
                                                         </div>
                                                     </div>
@@ -296,12 +296,12 @@ export default function JobsPage() {
                                                         disabled={processingJobId === job.id}
                                                         className={`p-2.5 rounded-xl transition-all border ${activeMenuId === job.id
                                                             ? 'bg-purple-50 text-purple-700 border-purple-200'
-                                                            : 'text-slate-400 hover:text-purple-600 hover:bg-purple-50 bg-white border-slate-200'
+                                                            : 'text-slate-400 hover:text-purple-600 hover:bg-purple-50 bg-km-surface-card border-slate-200 dark:hover:text-purple-400'
                                                         }`}
                                                         title="Moderate Job"
                                                     >
                                                         {processingJobId === job.id ? (
-                                                            <CircleNotchIcon weight="bold" size={18} className="animate-spin text-purple-600" />
+                                                            <CircleNotchIcon weight="bold" size={18} className="animate-spin text-purple-600 dark:text-purple-400" />
                                                         ) : (
                                                             <DotsThreeVerticalIcon weight="bold" size={18} />
                                                         )}
@@ -316,7 +316,7 @@ export default function JobsPage() {
                                                                 exit={{ opacity: 0, scale: 0.95, y: -4 }}
                                                                 transition={{ duration: 0.15 }}
                                                                 onClick={(e) => e.stopPropagation()}
-                                                                className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-purple-100 p-1.5 z-50 flex flex-col gap-1"
+                                                                className="absolute right-0 top-full mt-2 w-52 bg-km-surface-card rounded-2xl shadow-xl border border-purple-100 p-1.5 z-50 flex flex-col gap-1"
                                                             >
                                                                 <button
                                                                     onClick={(e) => handleToggleStatus(e, job)}
@@ -324,12 +324,12 @@ export default function JobsPage() {
                                                                 >
                                                                     {job.status === 'Active' ? (
                                                                         <>
-                                                                            <PauseCircleIcon weight="bold" size={16} className="text-amber-600" />
+                                                                            <PauseCircleIcon weight="bold" size={16} className="text-amber-600 dark:text-amber-400" />
                                                                             <span>Close Vacancy</span>
                                                                         </>
                                                                     ) : (
                                                                         <>
-                                                                            <PlayCircleIcon weight="bold" size={16} className="text-emerald-600" />
+                                                                            <PlayCircleIcon weight="bold" size={16} className="text-emerald-600 dark:text-emerald-400" />
                                                                             <span>Re-open Vacancy</span>
                                                                         </>
                                                                     )}
@@ -337,7 +337,7 @@ export default function JobsPage() {
                                                                 <div className="h-px bg-slate-100 my-0.5"></div>
                                                                 <button
                                                                     onClick={(e) => handleDeleteJob(e, job)}
-                                                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors text-left"
+                                                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors text-left dark:text-rose-400"
                                                                 >
                                                                     <TrashIcon weight="bold" size={16} />
                                                                     <span>Delete Job Vacancy</span>
@@ -382,7 +382,7 @@ export default function JobsPage() {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="bg-white rounded-[32px] border border-purple-50 shadow-sm overflow-hidden"
+                            className="bg-km-surface-card rounded-[32px] border border-purple-50 shadow-sm overflow-hidden"
                         >
                             <div className="p-8 border-b border-purple-50 bg-slate-50/30 flex items-center justify-between">
                                 <h3 className="text-lg font-bold text-slate-900">All Candidate List</h3>
@@ -402,10 +402,10 @@ export default function JobsPage() {
                                         <div key={candidate.id} className="p-8 hover:bg-purple-50/20 transition-all group flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                                             <div className="flex items-center gap-6">
                                                 <div className="relative">
-                                                    <div className="w-20 h-20 bg-slate-100 rounded-3xl overflow-hidden border-2 border-white shadow-md ring-4 ring-purple-500/5">
+                                                    <div className="w-20 h-20 bg-slate-100 rounded-3xl overflow-hidden border-2 border-white shadow-md ring-4 ring-purple-500/5 dark:border-km-surface-card">
                                                         <img src={candidate.photo} alt={candidate.name} className="w-full h-full object-cover" />
                                                     </div>
-                                                    <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-2 border-white p-1.5 rounded-2xl shadow-sm">
+                                                    <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-2 border-white p-1.5 rounded-2xl shadow-sm dark:border-km-surface-card">
                                                         <UserCheckIcon weight="bold" size={14} className="text-white" />
                                                     </div>
                                                 </div>
@@ -413,7 +413,7 @@ export default function JobsPage() {
                                                     <h4 className="text-xl font-black text-slate-900 group-hover:text-purple-700 transition-colors">{candidate.name}</h4>
                                                     <p className="text-sm font-bold text-slate-500 italic">{candidate.role} • {candidate.location}</p>
                                                     <div className="flex items-center gap-4 mt-2">
-                                                        <div className="flex items-center gap-1.5 text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full uppercase tracking-tighter">
+                                                        <div className="flex items-center gap-1.5 text-xs font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-full uppercase tracking-tighter dark:text-purple-400">
                                                             <StarIcon weight="fill" size={12} />
                                                             Experience: {candidate.experience}
                                                         </div>
@@ -424,7 +424,7 @@ export default function JobsPage() {
                                             <div className="flex items-center gap-4">
                                                 <button
                                                     onClick={() => handleViewResume(candidate)}
-                                                    className="px-6 py-2.5 bg-white border border-purple-200 text-purple-700 rounded-xl text-xs font-bold hover:bg-purple-50 transition-all flex items-center gap-2 shadow-sm"
+                                                    className="px-6 py-2.5 bg-km-surface-card border border-purple-200 text-purple-700 rounded-xl text-xs font-bold hover:bg-purple-50 transition-all flex items-center gap-2 shadow-sm"
                                                 >
                                                     <FileTextIcon weight="bold" size={16} />
                                                     View Resume

@@ -7,7 +7,7 @@ import { ArrowRightIcon, CheckCircleIcon, ShieldCheckIcon, WalletIcon } from '@p
 export default function DailyEarningsSummary() {
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 mb-12">
-            <div className="rounded-2xl bg-[#071A4D] p-6 sm:p-8 text-white">
+            <div className="rounded-2xl bg-[#071A4D] p-6 sm:p-8 text-white dark:ring-1 dark:ring-inset dark:ring-white/10">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                     {/* Left: Heading and Guarantees */}
                     <div className="lg:col-span-8 space-y-3">

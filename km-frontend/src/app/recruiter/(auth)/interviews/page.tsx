@@ -61,7 +61,7 @@ export default function InterviewsPage() {
             </header>
 
             {interviews.length === 0 ? (
-                <div className="bg-white p-16 rounded-2xl shadow-sm border border-gray-100 text-center">
+                <div className="bg-km-surface-card p-16 rounded-2xl shadow-sm border border-gray-100 text-center">
                     <CalendarBlankIcon size={48} weight="duotone" className="text-gray-300 mx-auto mb-6" aria-hidden="true" />
                     <h3 className="text-xl font-bold text-gray-900">No interviews scheduled</h3>
                     <p className="text-gray-500 mt-2 max-w-sm mx-auto">
@@ -78,20 +78,20 @@ export default function InterviewsPage() {
             ) : (
                 <div className="grid grid-cols-1 gap-6">
                     {interviews.map((inview) => (
-                        <div key={inview.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:border-km-primary/30 transition-colors">
+                        <div key={inview.id} className="bg-km-surface-card rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:border-km-primary/30 transition-colors">
                             <div className="p-6 md:p-8 flex flex-col md:flex-row gap-8">
                                 {/* Date & Time Badge */}
                                 <div className="md:w-48 shrink-0 flex flex-row md:flex-col gap-4 items-center md:items-start justify-between md:justify-center border-b md:border-b-0 md:border-r border-gray-100 pb-6 md:pb-0 md:pr-8">
                                     <div className="text-center md:text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-km-primary mb-1">Date</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-km-heading mb-1">Date</p>
                                         <p className="text-lg font-bold text-gray-900">{new Date(inview.scheduled_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                                     </div>
                                     <div className="text-center md:text-left">
-                                        <p className="text-xs font-black uppercase tracking-widest text-km-primary mb-1">Time</p>
+                                        <p className="text-xs font-black uppercase tracking-widest text-km-heading mb-1">Time</p>
                                         <p className="text-lg font-bold text-gray-900">{new Date(inview.scheduled_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
                                     </div>
                                     <div className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border
-                                        ${inview.status === 'Scheduled' ? 'bg-blue-50 text-km-primary border-blue-200' : ''}
+                                        ${inview.status === 'Scheduled' ? 'bg-blue-50 text-km-heading border-blue-200' : ''}
                                         ${inview.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ''}
                                         ${inview.status === 'Cancelled' ? 'bg-rose-50 text-rose-700 border-rose-200' : ''}
                                     `}>
@@ -110,9 +110,9 @@ export default function InterviewsPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            {inview.type === 'Video' && <VideoCameraIcon className="w-5 h-5 text-purple-500" />}
-                                            {inview.type === 'Phone' && <PhoneIcon className="w-5 h-5 text-emerald-500" />}
-                                            {inview.type === 'In-person' && <MapPinIcon className="w-5 h-5 text-rose-500" />}
+                                            {inview.type === 'Video' && <VideoCameraIcon className="w-5 h-5 text-purple-500 dark:text-purple-400" />}
+                                            {inview.type === 'Phone' && <PhoneIcon className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />}
+                                            {inview.type === 'In-person' && <MapPinIcon className="w-5 h-5 text-rose-500 dark:text-rose-400" />}
                                             <span className="font-bold text-gray-700">{inview.type} Interview</span>
                                         </div>
                                     </div>
@@ -150,7 +150,7 @@ export default function InterviewsPage() {
                                             </button>
                                             <button
                                                 onClick={() => handleUpdateStatus(inview.id, 'Cancelled')}
-                                                className="flex-1 px-4 py-2.5 bg-white border border-rose-200 text-rose-700 rounded-xl text-xs font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
+                                                className="flex-1 px-4 py-2.5 bg-km-surface-card border border-rose-200 text-rose-700 rounded-xl text-xs font-bold hover:bg-rose-50 transition-all flex items-center justify-center gap-2"
                                             >
                                                 <XCircleIcon weight="bold" className="w-4 h-4" />
                                                 Cancel

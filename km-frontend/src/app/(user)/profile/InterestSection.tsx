@@ -133,7 +133,7 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
     }, []);
 
     return (
-        <section className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm mt-6 font-sans">
+        <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm mt-6 font-sans">
             <h2 className="text-xl font-bold mb-4 text-gray-900">Interests</h2>
 
             {/* Tab Navigation */}
@@ -145,7 +145,7 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                             onClick={() => setActiveTab(tab)}
                             className={`pb-3 px-4 text-sm font-bold transition-all whitespace-nowrap cursor-pointer ${
                                 activeTab === tab
-                                    ? 'text-km-primary border-b-2 border-km-primary'
+                                    ? 'text-km-heading border-b-2 border-km-primary'
                                     : 'text-gray-500 hover:text-gray-700'
                             }`}
                         >
@@ -186,7 +186,7 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                     <div className="mt-6 pt-4 border-t border-gray-100 text-center">
                         <Link
                             href="/network"
-                            className="inline-flex items-center gap-1 text-km-primary font-bold text-sm hover:underline"
+                            className="inline-flex items-center gap-1 text-km-heading font-bold text-sm hover:underline"
                         >
                             <span>Explore All Experts & Mentors</span>
                             <CaretRightIcon weight="bold" size={16} />
@@ -217,7 +217,7 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                     <div className="mt-6 pt-4 border-t border-gray-100 text-center">
                         <Link
                             href="/jobs"
-                            className="inline-flex items-center gap-1 text-km-primary font-bold text-sm hover:underline"
+                            className="inline-flex items-center gap-1 text-km-heading font-bold text-sm hover:underline"
                         >
                             <span>Browse All Hiring Companies</span>
                             <CaretRightIcon weight="bold" size={16} />

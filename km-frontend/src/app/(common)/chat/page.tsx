@@ -17,8 +17,8 @@ import InstantPassModal from "@/components/instant-milega/InstantPassModal";
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
   ssr: false,
   loading: () => (
-    <div className="w-[330px] h-[370px] flex items-center justify-center bg-white rounded-2xl border border-slate-200 shadow-xl">
-      <CircleNotchIcon className="w-6 h-6 animate-spin text-[#071A4D]" />
+    <div className="w-[330px] h-[370px] flex items-center justify-center bg-km-surface-card rounded-2xl border border-slate-200 shadow-xl">
+      <CircleNotchIcon className="w-6 h-6 animate-spin text-km-heading" />
     </div>
   ),
 });
@@ -1498,21 +1498,21 @@ function ChatView() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-64px)] bg-[#F4F7FB] overflow-hidden relative font-sans w-full">
+    <div className="flex h-[calc(100dvh-64px)] bg-km-surface overflow-hidden relative font-sans w-full">
       {/* ── SIDEBAR / CONVERSATION LIST ── */}
       <aside
         className={`
-                    w-full md:w-80 lg:w-[360px] xl:w-[380px] bg-white border-r border-[#D9E0EA]
+                    w-full md:w-80 lg:w-[360px] xl:w-[380px] bg-km-surface-card border-r border-km-border
                     flex flex-col h-full shrink-0 shadow-xs z-10
                     transition-transform duration-300 ease-in-out
                     ${mobileChatOpen ? "hidden md:flex" : "flex"}
                 `}
       >
         {/* Sidebar Header */}
-        <div className="p-3.5 sm:p-4 border-b border-[#D9E0EA] space-y-2.5 bg-white">
+        <div className="p-3.5 sm:p-4 border-b border-km-border space-y-2.5 bg-km-surface-card">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-[#071A4D] font-poppins">
+              <h1 className="text-xl font-bold text-km-heading font-poppins">
                 Messages
               </h1>
               {conversations.reduce(
@@ -1532,7 +1532,7 @@ function ChatView() {
               disabled={isRefreshing}
               title="Refresh conversations"
               aria-label="Refresh conversations"
-              className="p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] active:bg-slate-200 active:scale-95 transition-all disabled:opacity-60"
+              className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-km-surface active:bg-slate-200 active:scale-95 transition-all disabled:opacity-60"
             >
               <ArrowsClockwiseIcon weight="bold"
                 size={18}
@@ -1546,13 +1546,13 @@ function ChatView() {
           </div>
 
           {/* Filter Tabs */}
-          <div className="flex bg-[#F4F7FB] p-1 rounded-xl border border-[#D9E0EA]">
+          <div className="flex bg-km-surface p-1 rounded-xl border border-km-border">
             <button
               onClick={() => setFilterTab("all")}
               className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all ${
                 filterTab === "all"
-                  ? "bg-white text-[#071A4D] shadow-xs"
-                  : "text-[#5B6472] hover:text-[#071A4D]"
+                  ? "bg-km-surface-card text-km-heading shadow-xs"
+                  : "text-km-text-secondary hover:text-km-heading"
               }`}
             >
               All Chats
@@ -1561,8 +1561,8 @@ function ChatView() {
               onClick={() => setFilterTab("unread")}
               className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${
                 filterTab === "unread"
-                  ? "bg-white text-[#071A4D] shadow-xs"
-                  : "text-[#5B6472] hover:text-[#071A4D]"
+                  ? "bg-km-surface-card text-km-heading shadow-xs"
+                  : "text-km-text-secondary hover:text-km-heading"
               }`}
             >
               <span>Unread</span>
@@ -1595,14 +1595,14 @@ function ChatView() {
           {/* Search Input */}
           <div className="relative">
             <MagnifyingGlassIcon weight="bold"
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5B6472]"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-km-text-secondary"
               size={16}
             />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => handlePlatformSearch(e.target.value)}
-              className="w-full bg-[#F4F7FB] rounded-xl py-2 pl-9 pr-8 text-base sm:text-sm text-[#111827] placeholder-[#5B6472] border border-[#D9E0EA] focus:border-[#071A4D] focus:bg-white focus:outline-none transition-all"
+              className="w-full bg-km-surface rounded-xl py-2 pl-9 pr-8 text-base sm:text-sm text-km-text-primary placeholder-[#5B6472] border border-km-border focus:border-[#071A4D] focus:bg-km-surface-card focus:outline-none transition-all dark:placeholder-km-text-muted dark:focus:border-km-link"
               placeholder="Search chats or find people..."
             />
             {searchQuery && (
@@ -1611,7 +1611,7 @@ function ChatView() {
                   setSearchQuery("");
                   setPlatformSearchResults([]);
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#5B6472] hover:text-[#111827]"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-km-text-secondary hover:text-km-text-primary"
               >
                 <XIcon weight="bold" size={15} />
               </button>
@@ -1619,15 +1619,15 @@ function ChatView() {
 
             {/* Search Results Dropdown (Platform Users) */}
             {searchQuery.trim().length >= 2 && (
-              <div className="absolute top-full left-0 right-0 mt-1.5 z-30 bg-white shadow-xl rounded-xl border border-[#D9E0EA] max-h-64 overflow-y-auto divide-y divide-[#F4F7FB]">
-                <div className="p-2 bg-[#F4F7FB] text-[11px] font-bold text-[#5B6472] uppercase tracking-wider">
+              <div className="absolute top-full left-0 right-0 mt-1.5 z-30 bg-km-surface-card shadow-xl rounded-xl border border-km-border max-h-64 overflow-y-auto divide-y divide-[#F4F7FB] dark:divide-km-border">
+                <div className="p-2 bg-km-surface text-[11px] font-bold text-km-text-secondary uppercase tracking-wider">
                   Platform Search Results
                 </div>
                 {isSearchingPlatform ? (
-                  <div className="p-4 text-center text-xs text-[#5B6472] flex items-center justify-center gap-2">
+                  <div className="p-4 text-center text-xs text-km-text-secondary flex items-center justify-center gap-2">
                     <CircleNotchIcon weight="bold"
                       size={14}
-                      className="animate-spin text-[#071A4D]"
+                      className="animate-spin text-km-heading"
                     />
                     Searching users...
                   </div>
@@ -1636,9 +1636,9 @@ function ChatView() {
                     <div
                       key={u.id}
                       onClick={() => startConversationWithUser(u)}
-                      className="p-3 hover:bg-[#F4F7FB] cursor-pointer flex items-center gap-3 transition-colors"
+                      className="p-3 hover:bg-km-surface cursor-pointer flex items-center gap-3 transition-colors"
                     >
-                      <div className="relative w-9 h-9 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden">
+                      <div className="relative w-9 h-9 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden dark:bg-km-primary">
                         {u.profile_image ? (
                           <img
                             src={getFullMediaUrl(u.profile_image)}
@@ -1649,14 +1649,14 @@ function ChatView() {
                           u.name?.[0]?.toUpperCase() || "U"
                         )}
                         {u.is_online && (
-                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-km-surface-card" />
                         )}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-[#111827] truncate">
+                        <p className="text-sm font-semibold text-km-text-primary truncate">
                           {u.name}
                         </p>
-                        <p className="text-xs text-[#5B6472] truncate">
+                        <p className="text-xs text-km-text-secondary truncate">
                           {u.headline ||
                             u.roles?.join(", ") ||
                             "KaamMilega Member"}
@@ -1665,7 +1665,7 @@ function ChatView() {
                     </div>
                   ))
                 ) : (
-                  <div className="p-4 text-center text-xs text-[#5B6472]">
+                  <div className="p-4 text-center text-xs text-km-text-secondary">
                     No users matching &quot;{searchQuery}&quot;
                   </div>
                 )}
@@ -1675,12 +1675,12 @@ function ChatView() {
         </div>
 
         {/* Conversation List */}
-        <div className="flex-1 overflow-y-auto divide-y divide-[#F4F7FB]">
+        <div className="flex-1 overflow-y-auto divide-y divide-[#F4F7FB] dark:divide-km-border">
           {loadingConversations ? (
-            <div className="p-6 text-center text-xs text-[#5B6472] space-y-2">
+            <div className="p-6 text-center text-xs text-km-text-secondary space-y-2">
               <CircleNotchIcon
                 size={20}
-                className="animate-spin mx-auto text-[#071A4D]"
+                className="animate-spin mx-auto text-km-heading"
               />
               <p>Loading conversations...</p>
             </div>
@@ -1700,11 +1700,11 @@ function ChatView() {
                   className={`p-3.5 flex items-center gap-3 cursor-pointer transition-all group ${
                     isActive
                       ? "bg-blue-50/70 border-l-4 border-l-[#071A4D]"
-                      : "hover:bg-[#F4F7FB] border-l-4 border-l-transparent"
+                      : "hover:bg-km-surface border-l-4 border-l-transparent"
                   }`}
                 >
                   {/* Avatar with solid presence dot */}
-                  <div className="relative w-11 h-11 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs">
+                  <div className="relative w-11 h-11 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs dark:bg-km-primary">
                     {partner?.profile_image ? (
                       <img
                         src={getFullMediaUrl(partner.profile_image)}
@@ -1717,7 +1717,7 @@ function ChatView() {
                     {partner?.is_online && (
                       <span
                         title="Online"
-                        className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"
+                        className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-km-surface-card"
                       />
                     )}
                   </div>
@@ -1728,14 +1728,14 @@ function ChatView() {
                       <h4
                         className={`text-sm truncate font-semibold ${
                           unread > 0
-                            ? "text-[#071A4D] font-bold"
-                            : "text-[#111827]"
+                            ? "text-km-heading font-bold"
+                            : "text-km-text-primary"
                         }`}
                       >
                         {partner?.name || "User"}
                       </h4>
                       <div className="flex items-center gap-1 shrink-0 ml-2">
-                        <span className="text-[11px] text-[#5B6472]">
+                        <span className="text-[11px] text-km-text-secondary">
                           {formatChatListDate(chat.updated_at)}
                         </span>
                         <button
@@ -1744,7 +1744,7 @@ function ChatView() {
                             promptDeleteConversation(chat.id);
                           }}
                           title="Delete conversation"
-                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-all"
+                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-all dark:hover:text-red-400"
                         >
                           <TrashIcon weight="bold" size={13} />
                         </button>
@@ -1759,8 +1759,8 @@ function ChatView() {
                         <p
                           className={`text-xs truncate ${
                             unread > 0
-                              ? "text-[#071A4D] font-medium"
-                              : "text-[#5B6472]"
+                              ? "text-km-heading font-medium"
+                              : "text-km-text-secondary"
                           }`}
                         >
                           {chat.last_message || "Started a new conversation"}
@@ -1777,12 +1777,12 @@ function ChatView() {
               );
             })
           ) : (
-            <div className="p-8 text-center text-[#5B6472] space-y-2">
+            <div className="p-8 text-center text-km-text-secondary space-y-2">
               <ChatIcon size={32} className="mx-auto text-[#D9E0EA]" />
-              <p className="text-sm font-semibold text-[#111827]">
+              <p className="text-sm font-semibold text-km-text-primary">
                 No conversations found
               </p>
-              <p className="text-xs text-[#5B6472] max-w-xs mx-auto">
+              <p className="text-xs text-km-text-secondary max-w-xs mx-auto">
                 Search for a candidate, recruiter, or colleague above to start
                 chatting.
               </p>
@@ -1794,8 +1794,8 @@ function ChatView() {
       {/* ── MAIN CHAT PANEL ── */}
       <main
         className={`
-                    flex-1 flex flex-col bg-white md:m-2.5 lg:m-3 md:rounded-2xl
-                    md:border md:border-[#D9E0EA] md:shadow-xs overflow-hidden h-full z-20
+                    flex-1 flex flex-col bg-km-surface-card md:m-2.5 lg:m-3 md:rounded-2xl
+                    md:border md:border-km-border md:shadow-xs overflow-hidden h-full z-20
                     transition-all duration-300
                     ${mobileChatOpen ? "flex" : "hidden md:flex"}
                 `}
@@ -1803,19 +1803,19 @@ function ChatView() {
         {activeChat ? (
           <>
             {/* Chat Header */}
-            <div className="p-3 sm:p-3.5 md:p-4 border-b border-[#D9E0EA] flex items-center justify-between bg-white z-10 shrink-0">
+            <div className="p-3 sm:p-3.5 md:p-4 border-b border-km-border flex items-center justify-between bg-km-surface-card z-10 shrink-0">
               <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
                 {/* Mobile Back Button */}
                 <button
                   onClick={closeMobileChat}
-                  className="md:hidden p-2 -ml-1.5 rounded-xl text-[#071A4D] hover:bg-[#F4F7FB] active:bg-slate-200 transition-colors shrink-0 flex items-center justify-center"
+                  className="md:hidden p-2 -ml-1.5 rounded-xl text-km-heading hover:bg-km-surface active:bg-slate-200 transition-colors shrink-0 flex items-center justify-center"
                   aria-label="Back to messages"
                 >
                   <CaretLeftIcon size={22} />
                 </button>
 
                 {/* Contact Avatar */}
-                <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs">
+                <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs dark:bg-km-primary">
                   {activePartner?.profile_image ? (
                     <img
                       src={getFullMediaUrl(activePartner.profile_image)}
@@ -1826,23 +1826,23 @@ function ChatView() {
                     activePartner?.name?.[0]?.toUpperCase() || "U"
                   )}
                   {activePartner?.is_online && (
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-km-surface-card" />
                   )}
                 </div>
 
                 {/* Contact Info */}
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 sm:gap-2">
-                    <h3 className="text-sm font-bold text-[#111827] leading-snug truncate">
+                    <h3 className="text-sm font-bold text-km-text-primary leading-snug truncate">
                       {activePartner?.name || "Direct Message"}
                     </h3>
                     {activePartner?.is_online && (
-                      <span className="hidden sm:inline-block text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full shrink-0">
+                      <span className="hidden sm:inline-block text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full shrink-0 dark:text-emerald-400">
                         Active now
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-[#5B6472] truncate">
+                  <div className="text-[11px] text-km-text-secondary truncate">
                     {isOtherTyping ? (
                       <span className="text-[#FF6B00] font-semibold flex items-center gap-1.5">
                         <span>Typing</span>
@@ -1867,7 +1867,7 @@ function ChatView() {
                   <Link
                     href={`/profile/${activePartner.id}`}
                     target="_blank"
-                    className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold text-[#071A4D] bg-[#F4F7FB] hover:bg-slate-200 active:bg-slate-300 rounded-xl border border-[#D9E0EA] transition-colors shrink-0"
+                    className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold text-km-heading bg-km-surface hover:bg-slate-200 active:bg-slate-300 rounded-xl border border-km-border transition-colors shrink-0"
                     title="View profile"
                     aria-label="View profile"
                   >
@@ -1881,7 +1881,7 @@ function ChatView() {
                 <div className="relative" ref={chatMenuRef}>
                   <button
                     onClick={() => setShowChatMenu(!showChatMenu)}
-                    className="p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] active:bg-slate-200 transition-colors shrink-0"
+                    className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-km-surface active:bg-slate-200 transition-colors shrink-0"
                     title="Chat options"
                     aria-label="Chat options"
                   >
@@ -1889,11 +1889,11 @@ function ChatView() {
                   </button>
 
                   {showChatMenu && (
-                    <div className="absolute right-0 top-full mt-1.5 w-52 bg-white border border-[#D9E0EA] rounded-xl shadow-lg z-30 py-1 text-xs">
+                    <div className="absolute right-0 top-full mt-1.5 w-52 bg-km-surface-card border border-km-border rounded-xl shadow-lg z-30 py-1 text-xs">
                       {isBlockedByMe ? (
                         <button
                           onClick={promptUnblockUser}
-                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 transition-colors"
+                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 transition-colors dark:text-emerald-400"
                         >
                           <CheckCircleIcon weight="bold" size={14} />
                           <span>Unblock user</span>
@@ -1912,7 +1912,7 @@ function ChatView() {
                         onClick={openReportModal}
                         className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 hover:bg-slate-50 transition-colors"
                       >
-                        <FlagIcon weight="bold" size={14} className="text-amber-500" />
+                        <FlagIcon weight="bold" size={14} className="text-amber-500 dark:text-amber-400" />
                         <span>Report conversation</span>
                       </button>
 
@@ -1920,7 +1920,7 @@ function ChatView() {
 
                       <button
                         onClick={() => promptDeleteConversation()}
-                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 transition-colors"
+                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 transition-colors dark:text-red-400"
                       >
                         <TrashIcon weight="bold" size={14} />
                         <span>Delete conversation</span>
@@ -1935,12 +1935,12 @@ function ChatView() {
             <div
               ref={messagesContainerRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-6 space-y-3.5 md:space-y-4 bg-[#F4F7FB]"
+              className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-6 space-y-3.5 md:space-y-4 bg-km-surface"
             >
               {/* Top reverse loading spinner for infinite scroll */}
               {loadingOlderMessages && (
                 <div className="flex items-center justify-center py-2 animate-in fade-in">
-                  <div className="flex items-center gap-2 px-3 py-1 bg-white/90 rounded-full border border-[#D9E0EA] text-xs text-[#5B6472] shadow-xs">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-km-surface-card/90 rounded-full border border-km-border text-xs text-km-text-secondary shadow-xs">
                     <CircleNotchIcon weight="bold"
                       size={13}
                       className="animate-spin text-[#FF6B00]"
@@ -1951,17 +1951,17 @@ function ChatView() {
               )}
 
               {loadingMessages ? (
-                <div className="flex flex-col items-center justify-center h-full text-xs text-[#5B6472] space-y-2">
-                  <CircleNotchIcon size={24} className="animate-spin text-[#071A4D]" />
+                <div className="flex flex-col items-center justify-center h-full text-xs text-km-text-secondary space-y-2">
+                  <CircleNotchIcon size={24} className="animate-spin text-km-heading" />
                   <p>Loading messages...</p>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-3">
-                  <ChatIcon size={32} weight="duotone" className="text-[#071A4D]" aria-hidden="true" />
-                  <p className="text-sm font-bold text-[#111827]">
+                  <ChatIcon size={32} weight="duotone" className="text-km-heading" aria-hidden="true" />
+                  <p className="text-sm font-bold text-km-text-primary">
                     Say hello to {activePartner?.name || "your contact"}!
                   </p>
-                  <p className="text-xs text-[#5B6472] max-w-sm">
+                  <p className="text-xs text-km-text-secondary max-w-sm">
                     Send a direct message, emoji, or share a document to start
                     collaborating.
                   </p>
@@ -1979,7 +1979,7 @@ function ChatView() {
                     <React.Fragment key={`${msg.id || "msg"}-${index}`}>
                       {showDateDivider && (
                         <div className="flex items-center justify-center my-3 sm:my-4">
-                          <span className="bg-white text-[#5B6472] text-[11px] font-semibold px-3 py-1 rounded-full border border-[#D9E0EA] shadow-xs">
+                          <span className="bg-km-surface-card text-km-text-secondary text-[11px] font-semibold px-3 py-1 rounded-full border border-km-border shadow-xs">
                             {getDateDividerLabel(msg.created_at)}
                           </span>
                         </div>
@@ -1990,7 +1990,7 @@ function ChatView() {
                       >
                         {/* Mini avatar for received messages */}
                         {!isMe && (
-                          <div className="w-7 h-7 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-[10px] shrink-0 overflow-hidden mt-1">
+                          <div className="w-7 h-7 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-[10px] shrink-0 overflow-hidden mt-1 dark:bg-km-primary">
                             {activePartner?.profile_image ? (
                               <img
                                 src={getFullMediaUrl(
@@ -2016,7 +2016,7 @@ function ChatView() {
                             <div
                               className={`absolute -top-3.5 sm:-top-4 ${
                                 isMe ? "right-1 sm:right-2" : "left-1 sm:left-2"
-                              } z-20 items-center gap-1 bg-white border border-[#D9E0EA] rounded-full shadow-md py-0.5 px-1.5 sm:px-2 transition-all duration-150 ${
+                              } z-20 items-center gap-1 bg-km-surface-card border border-km-border rounded-full shadow-md py-0.5 px-1.5 sm:px-2 transition-all duration-150 ${
                                 activeMessageMenuId === msg.id
                                   ? "flex opacity-100 scale-100 pointer-events-auto ring-1 ring-slate-300"
                                   : "hidden md:group-hover/msg:flex md:opacity-0 md:group-hover/msg:opacity-100 pointer-events-none md:pointer-events-auto"
@@ -2037,12 +2037,12 @@ function ChatView() {
                                       : "Copy message"
                                   }
                                   aria-label="Copy message"
-                                  className="p-1.5 rounded-full text-slate-500 hover:text-[#071A4D] hover:bg-slate-100 active:scale-90 transition-all flex items-center justify-center"
+                                  className="p-1.5 rounded-full text-slate-500 hover:text-km-heading hover:bg-slate-100 active:scale-90 transition-all flex items-center justify-center"
                                 >
                                   {copiedMessageId === msg.id ? (
                                     <CheckIcon weight="bold"
                                       size={13}
-                                      className="text-emerald-600 animate-in zoom-in-75"
+                                      className="text-emerald-600 animate-in zoom-in-75 dark:text-emerald-400"
                                     />
                                   ) : (
                                     <CopyIcon weight="bold" size={13} />
@@ -2061,7 +2061,7 @@ function ChatView() {
                                   }}
                                   title="Delete message"
                                   aria-label="Delete message"
-                                  className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 active:scale-90 transition-all flex items-center justify-center"
+                                  className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 active:scale-90 transition-all flex items-center justify-center dark:hover:text-red-400"
                                 >
                                   <TrashIcon weight="bold" size={13} />
                                 </button>
@@ -2082,14 +2082,14 @@ function ChatView() {
                               msg.is_deleted
                                 ? "bg-slate-100 text-slate-500 border border-slate-200 italic"
                                 : isMe
-                                  ? `bg-[#071A4D] text-white rounded-tr-xs ${
+                                  ? `bg-[#071A4D] text-white rounded-tr-xs dark:bg-km-primary ${
                                       activeMessageMenuId === msg.id
                                         ? "ring-2 ring-sky-300"
                                         : ""
                                     }`
-                                  : `bg-white text-[#111827] border border-[#D9E0EA] rounded-tl-xs ${
+                                  : `bg-km-surface-card text-km-text-primary border border-km-border rounded-tl-xs ${
                                       activeMessageMenuId === msg.id
-                                        ? "ring-2 ring-[#071A4D]/35"
+                                        ? "ring-2 ring-[#071A4D]/35 dark:ring-km-link"
                                         : ""
                                     }`
                             }`}
@@ -2149,14 +2149,14 @@ function ChatView() {
                                       className={`flex items-center gap-2.5 p-2 mb-2 rounded-xl border transition-colors ${
                                         isMe
                                           ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"
-                                          : "bg-[#F4F7FB] hover:bg-slate-200 border-[#D9E0EA] text-[#071A4D]"
+                                          : "bg-km-surface hover:bg-slate-200 border-km-border text-km-heading"
                                       }`}
                                     >
                                       <div
                                         className={`p-2 rounded-lg ${
                                           isMe
                                             ? "bg-white/20"
-                                            : "bg-white border border-[#D9E0EA]"
+                                            : "bg-km-surface-card border border-km-border"
                                         }`}
                                       >
                                         <FileTextIcon weight="bold" size={18} />
@@ -2171,7 +2171,7 @@ function ChatView() {
                                             className={`text-[10px] ${
                                               isMe
                                                 ? "text-white/70"
-                                                : "text-[#5B6472]"
+                                                : "text-km-text-secondary"
                                             }`}
                                           >
                                             {formatFileSize(
@@ -2203,7 +2203,7 @@ function ChatView() {
                                   ? "text-slate-400"
                                   : isMe
                                     ? "text-white/80"
-                                    : "text-[#5B6472]"
+                                    : "text-km-text-secondary"
                               }`}
                             >
                               <span className="leading-none">
@@ -2254,7 +2254,7 @@ function ChatView() {
               {/* Typing Indicator Bubble */}
               {isOtherTyping && (
                 <div className="flex gap-2.5 items-end">
-                  <div className="w-7 h-7 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-[10px] shrink-0 overflow-hidden">
+                  <div className="w-7 h-7 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-[10px] shrink-0 overflow-hidden dark:bg-km-primary">
                     {activePartner?.profile_image ? (
                       <img
                         src={getFullMediaUrl(activePartner.profile_image)}
@@ -2265,7 +2265,7 @@ function ChatView() {
                       activePartner?.name?.[0]?.toUpperCase() || "U"
                     )}
                   </div>
-                  <div className="bg-white border border-[#D9E0EA] rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-xs flex items-center gap-1.5">
+                  <div className="bg-km-surface-card border border-km-border rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-xs flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce [animation-delay:-0.3s]" />
                     <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce [animation-delay:-0.15s]" />
                     <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce" />
@@ -2283,38 +2283,38 @@ function ChatView() {
                 onClick={scrollToBottom}
                 title="Scroll to latest messages"
                 aria-label="Scroll to latest messages"
-                className="absolute bottom-20 sm:bottom-24 right-4 sm:right-6 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-[#D9E0EA] text-[#071A4D] shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all animate-in fade-in zoom-in-75"
+                className="absolute bottom-20 sm:bottom-24 right-4 sm:right-6 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-km-surface-card border border-km-border text-km-heading shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all animate-in fade-in zoom-in-75"
               >
                 <CaretDownIcon weight="bold" size={18} />
               </button>
             )}
 
             {/* Input Area */}
-            <div className="p-2 sm:p-3 md:p-4 bg-white border-t border-[#D9E0EA] space-y-2 shrink-0 relative pb-[max(0.6rem,env(safe-area-inset-bottom))]">
+            <div className="p-2 sm:p-3 md:p-4 bg-km-surface-card border-t border-km-border space-y-2 shrink-0 relative pb-[max(0.6rem,env(safe-area-inset-bottom))]">
               {/* Pending Attachment Draft Preview */}
               {pendingAttachment && (
-                <div className="flex items-center gap-3 p-2 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl">
+                <div className="flex items-center gap-3 p-2 bg-km-surface border border-km-border rounded-xl">
                   {pendingAttachment.isImage && pendingAttachment.previewUrl ? (
                     <img
                       src={pendingAttachment.previewUrl}
                       alt="Preview"
-                      className="w-12 h-12 object-cover rounded-lg border border-[#D9E0EA]"
+                      className="w-12 h-12 object-cover rounded-lg border border-km-border"
                     />
                   ) : (
-                    <FileTextIcon size={24} weight="duotone" className="text-[#071A4D]" aria-hidden="true" />
+                    <FileTextIcon size={24} weight="duotone" className="text-km-heading" aria-hidden="true" />
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-[#111827] truncate">
+                    <p className="text-xs font-semibold text-km-text-primary truncate">
                       {pendingAttachment.name}
                     </p>
-                    <p className="text-[10px] text-[#5B6472]">
+                    <p className="text-[10px] text-km-text-secondary">
                       {pendingAttachment.sizeFormatted}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={removePendingAttachment}
-                    className="p-1 rounded-lg text-[#5B6472] hover:text-red-500 hover:bg-white transition-colors"
+                    className="p-1 rounded-lg text-km-text-secondary hover:text-red-500 hover:bg-km-surface-card transition-colors dark:hover:text-red-400"
                     title="Remove file"
                   >
                     <XIcon weight="bold" size={16} />
@@ -2326,7 +2326,7 @@ function ChatView() {
               {showEmojiPicker && (
                 <div
                   ref={emojiPickerRef}
-                  className="absolute bottom-16 sm:bottom-20 left-2 right-2 sm:right-auto sm:left-4 z-50 shadow-2xl rounded-2xl border border-[#D9E0EA] bg-white animate-in fade-in zoom-in-95 duration-150 max-w-[340px] mx-auto sm:mx-0 overflow-hidden"
+                  className="absolute bottom-16 sm:bottom-20 left-2 right-2 sm:right-auto sm:left-4 z-50 shadow-2xl rounded-2xl border border-km-border bg-km-surface-card animate-in fade-in zoom-in-95 duration-150 max-w-[340px] mx-auto sm:mx-0 overflow-hidden"
                 >
                   <EmojiPicker
                     onEmojiClick={(emojiData) => {
@@ -2353,7 +2353,7 @@ function ChatView() {
                   <button
                     type="button"
                     onClick={promptUnblockUser}
-                    className="px-3.5 py-1.5 font-semibold text-xs text-[#071A4D] bg-white hover:bg-slate-50 rounded-xl border border-slate-300 transition-colors shrink-0 shadow-xs"
+                    className="px-3.5 py-1.5 font-semibold text-xs text-km-heading bg-km-surface-card hover:bg-slate-50 rounded-xl border border-slate-300 transition-colors shrink-0 shadow-xs"
                   >
                     Unblock
                   </button>
@@ -2367,7 +2367,7 @@ function ChatView() {
                 </div>
               ) : (
                 /* Input Bar Capsule */
-                <div className="flex items-end gap-1.5 sm:gap-2 bg-[#F4F7FB] rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 border border-[#D9E0EA] focus-within:border-[#071A4D] focus-within:bg-white transition-all">
+                <div className="flex items-end gap-1.5 sm:gap-2 bg-km-surface rounded-2xl px-2 sm:px-3 py-1.5 sm:py-2 border border-km-border focus-within:border-[#071A4D] focus-within:bg-km-surface-card transition-all dark:focus-within:border-km-link">
                   {/* Hidden File Input */}
                   <input
                     ref={fileInputRef}
@@ -2383,7 +2383,7 @@ function ChatView() {
                     onClick={() => fileInputRef.current?.click()}
                     title="Attach image or file"
                     disabled={isUploading}
-                    className="p-2 rounded-xl text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 active:bg-slate-200 transition-colors shrink-0 mb-0.5"
+                    className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-slate-200/60 active:bg-slate-200 transition-colors shrink-0 mb-0.5"
                   >
                     <PaperclipIcon weight="bold" size={18} />
                   </button>
@@ -2396,7 +2396,7 @@ function ChatView() {
                     className={`p-2 rounded-xl transition-colors shrink-0 mb-0.5 ${
                       showEmojiPicker
                         ? "text-[#FF6B00] bg-orange-50"
-                        : "text-[#5B6472] hover:text-[#071A4D] hover:bg-slate-200/60 active:bg-slate-200"
+                        : "text-km-text-secondary hover:text-km-heading hover:bg-slate-200/60 active:bg-slate-200"
                     }`}
                   >
                     <SmileyIcon size={19} />
@@ -2415,7 +2415,7 @@ function ChatView() {
                       }
                     }}
                     placeholder="Type a message..."
-                    className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm text-[#111827] placeholder-[#5B6472] resize-none py-1.5 min-h-[38px] max-h-24 sm:max-h-28 leading-normal"
+                    className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm text-km-text-primary placeholder-[#5B6472] resize-none py-1.5 min-h-[38px] max-h-24 sm:max-h-28 leading-normal dark:placeholder-km-text-muted"
                     style={{ scrollbarWidth: "none" }}
                   />
 
@@ -2428,7 +2428,7 @@ function ChatView() {
                     }
                     className={`p-2.5 sm:p-2.5 rounded-xl transition-all shrink-0 mb-0.5 flex items-center justify-center active:scale-95 ${
                       (inputText.trim() || pendingAttachment) && !isUploading
-                        ? "bg-[#071A4D] text-white hover:bg-[#0B1F52] shadow-sm cursor-pointer"
+                        ? "bg-[#071A4D] text-white hover:bg-[#0B1F52] shadow-sm cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                         : "bg-slate-200 text-slate-400 cursor-not-allowed"
                     }`}
                   >
@@ -2444,12 +2444,12 @@ function ChatView() {
           </>
         ) : (
           /* Desktop Empty State */
-          <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 text-center bg-white h-full">
-            <PaperPlaneRightIcon size={48} weight="duotone" className="text-[#071A4D] mb-4" aria-hidden="true" />
-            <h2 className="text-xl font-bold text-[#071A4D] font-poppins">
+          <div className="hidden md:flex flex-1 flex-col items-center justify-center p-8 text-center bg-km-surface-card h-full">
+            <PaperPlaneRightIcon size={48} weight="duotone" className="text-km-heading mb-4" aria-hidden="true" />
+            <h2 className="text-xl font-bold text-km-heading font-poppins">
               Select a conversation
             </h2>
-            <p className="text-sm text-[#5B6472] mt-1.5 max-w-sm">
+            <p className="text-sm text-km-text-secondary mt-1.5 max-w-sm">
               Pick an existing conversation from the left sidebar or search for
               a candidate or employer to send a message.
             </p>
@@ -2486,17 +2486,17 @@ function ChatView() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150"
         >
           <div
-            className="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-[#D9E0EA] space-y-4 animate-in zoom-in-95 duration-150"
+            className="bg-km-surface-card rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-km-border space-y-4 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3.5">
               <div
                 className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
                   confirmModal.type === "unblock"
-                    ? "bg-emerald-50 text-emerald-600"
+                    ? "bg-emerald-50 text-emerald-600 dark:text-emerald-400"
                     : confirmModal.type === "block"
                       ? "bg-slate-100 text-slate-700"
-                      : "bg-red-50 text-red-600"
+                      : "bg-red-50 text-red-600 dark:text-red-400"
                 }`}
               >
                 {confirmModal.type === "unblock" ? (
@@ -2508,13 +2508,13 @@ function ChatView() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <h3 className="text-base font-bold text-[#111827]">
+                <h3 className="text-base font-bold text-km-text-primary">
                   {confirmModal.title}
                 </h3>
               </div>
             </div>
 
-            <p className="text-xs sm:text-sm text-[#5B6472] leading-relaxed">
+            <p className="text-xs sm:text-sm text-km-text-secondary leading-relaxed">
               {confirmModal.description}
             </p>
 
@@ -2525,7 +2525,7 @@ function ChatView() {
                 onClick={() =>
                   setConfirmModal((prev) => ({ ...prev, isOpen: false }))
                 }
-                className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] border border-[#D9E0EA] transition-colors"
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface border border-km-border transition-colors"
               >
                 Cancel
               </button>
@@ -2537,7 +2537,7 @@ function ChatView() {
                   confirmModal.type === "unblock"
                     ? "bg-emerald-600 hover:bg-emerald-700"
                     : confirmModal.type === "block"
-                      ? "bg-slate-800 hover:bg-slate-900"
+                      ? "bg-km-ink-soft hover:bg-km-ink"
                       : "bg-red-600 hover:bg-red-700"
                 }`}
               >
@@ -2565,17 +2565,17 @@ function ChatView() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150"
         >
           <div
-            className="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-[#D9E0EA] space-y-4 animate-in zoom-in-95 duration-150"
+            className="bg-km-surface-card rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-km-border space-y-4 animate-in zoom-in-95 duration-150"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <FlagIcon size={24} weight="duotone" className="text-amber-600 shrink-0" aria-hidden="true" />
+                <FlagIcon size={24} weight="duotone" className="text-amber-600 shrink-0 dark:text-amber-400" aria-hidden="true" />
                 <div>
-                  <h3 className="text-base font-bold text-[#111827]">
+                  <h3 className="text-base font-bold text-km-text-primary">
                     Report conversation
                   </h3>
-                  <p className="text-xs text-[#5B6472]">
+                  <p className="text-xs text-km-text-secondary">
                     Help us keep KaamMilega safe and trustworthy
                   </p>
                 </div>
@@ -2605,7 +2605,7 @@ function ChatView() {
                       reason: e.target.value,
                     }))
                   }
-                  className="w-full text-xs sm:text-sm bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-white transition-all"
+                  className="w-full text-xs sm:text-sm bg-km-surface border border-km-border rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all dark:focus:border-km-link"
                 >
                   <option value="Spam or unwanted advertising">
                     Spam or unwanted advertising
@@ -2641,7 +2641,7 @@ function ChatView() {
                     }))
                   }
                   placeholder="Tell us what happened so our team can review this properly..."
-                  className="w-full text-xs sm:text-sm bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl p-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-white resize-none transition-all"
+                  className="w-full text-xs sm:text-sm bg-km-surface border border-km-border rounded-xl p-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card resize-none transition-all dark:focus:border-km-link"
                 />
               </div>
 
@@ -2655,7 +2655,7 @@ function ChatView() {
                       blockAlso: e.target.checked,
                     }))
                   }
-                  className="mt-0.5 rounded border-slate-300 text-[#071A4D] focus:ring-[#071A4D]"
+                  className="mt-0.5 rounded border-slate-300 text-km-heading focus:ring-[#071A4D] dark:focus:ring-km-link"
                 />
                 <span className="text-xs text-slate-600 leading-snug">
                   <strong className="text-slate-800 block">
@@ -2673,7 +2673,7 @@ function ChatView() {
                 onClick={() =>
                   setReportModal((prev) => ({ ...prev, isOpen: false }))
                 }
-                className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] border border-[#D9E0EA] transition-colors"
+                className="flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface border border-km-border transition-colors"
               >
                 Cancel
               </button>
@@ -2712,10 +2712,10 @@ function ChatView() {
 // Fallback skeleton while Suspense resolves useSearchParams
 function ChatLoadingFallback() {
   return (
-    <div className="flex h-[calc(100dvh-64px)] items-center justify-center bg-[#F4F7FB]">
+    <div className="flex h-[calc(100dvh-64px)] items-center justify-center bg-km-surface">
       <div className="text-center space-y-3">
-        <CircleNotchIcon size={32} className="animate-spin text-[#071A4D] mx-auto" />
-        <p className="text-sm font-semibold text-[#071A4D]">
+        <CircleNotchIcon size={32} className="animate-spin text-km-heading mx-auto" />
+        <p className="text-sm font-semibold text-km-heading">
           Loading conversations...
         </p>
       </div>

@@ -97,10 +97,10 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
 
     const cardContent = (
         <div
-            className={`relative bg-white flex flex-col justify-between transition-all duration-200 group/card ${
+            className={`relative bg-km-surface-card flex flex-col justify-between transition-all duration-200 group/card ${
                 isGrid
-                    ? 'w-full p-5 rounded-2xl border border-[#D9E0EA] hover:border-[#0B5ED7]/50 hover:shadow-md h-full text-center'
-                    : 'w-60 sm:w-64 p-5 rounded-2xl shrink-0 border border-[#D9E0EA] shadow-2xs hover:shadow-md hover:border-[#0B5ED7]/50 h-full text-center'
+                    ? 'w-full p-5 rounded-2xl border border-km-border hover:border-[#0B5ED7]/50 hover:shadow-md h-full text-center'
+                    : 'w-60 sm:w-64 p-5 rounded-2xl shrink-0 border border-km-border shadow-2xs hover:shadow-md hover:border-[#0B5ED7]/50 h-full text-center'
             }`}
         >
             {/* Dismiss action */}
@@ -120,7 +120,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 <button
                     type="button"
                     onClick={() => onRemove(userId)}
-                    className="absolute top-3 right-3 text-slate-300 hover:text-red-600 hover:bg-red-50 transition-colors p-1.5 rounded-lg cursor-pointer"
+                    className="absolute top-3 right-3 text-slate-300 hover:text-red-600 hover:bg-red-50 transition-colors p-1.5 rounded-lg cursor-pointer dark:hover:text-red-400"
                     aria-label="Remove connection"
                     title="Remove connection"
                 >
@@ -131,26 +131,26 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
             <Link href={profileHref} className="w-full flex flex-col items-center cursor-pointer">
                 {/* Avatar with online status */}
                 <div className="relative mb-2.5 shrink-0">
-                    <div className="w-16 h-16 rounded-full bg-[#F4F7FB] border-2 border-[#D9E0EA] group-hover/card:border-[#071A4D] flex items-center justify-center overflow-hidden shadow-2xs transition-colors">
+                    <div className="w-16 h-16 rounded-full bg-km-surface border-2 border-km-border group-hover/card:border-[#071A4D] flex items-center justify-center overflow-hidden shadow-2xs transition-colors dark:group-hover/card:border-km-link">
                         <UserAvatar src={user.profile_image} name={cleanName} />
                     </div>
-                    <div className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                    <div className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-km-surface-card" />
                 </div>
 
                 {/* Name */}
-                <h3 className="text-sm font-bold text-[#111827] group-hover/card:text-[#0B5ED7] transition-colors leading-tight mb-1 text-center line-clamp-1">
+                <h3 className="text-sm font-bold text-km-text-primary group-hover/card:text-km-link transition-colors leading-tight mb-1 text-center line-clamp-1">
                     {cleanName}
                 </h3>
 
                 {/* Headline */}
-                <p className="text-xs text-[#5B6472] mb-1.5 font-medium text-center line-clamp-2 max-w-[95%]">
+                <p className="text-xs text-km-text-secondary mb-1.5 font-medium text-center line-clamp-2 max-w-[95%]">
                     {headline}
                 </p>
 
                 {/* Location */}
                 {user.city && (
-                    <div className="flex items-center gap-1 text-[#5B6472] text-xs font-semibold mb-1.5">
-                        <MapPinIcon weight="bold" size={11} className="text-[#071A4D] shrink-0" />
+                    <div className="flex items-center gap-1 text-km-text-secondary text-xs font-semibold mb-1.5">
+                        <MapPinIcon weight="bold" size={11} className="text-km-heading shrink-0" />
                         <span className="line-clamp-1">{user.city}</span>
                     </div>
                 )}
@@ -159,12 +159,12 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 {user.mutual_skills && user.mutual_skills.length > 0 && (
                     <div className="flex flex-wrap items-center justify-center gap-1 mb-2 max-w-[95%]">
                         {user.mutual_skills.slice(0, 2).map((sk) => (
-                            <span key={sk} className="text-xs font-semibold bg-[#F4F7FB] text-[#071A4D] px-2 py-0.5 rounded-md border border-[#D9E0EA] truncate max-w-[120px]">
+                            <span key={sk} className="text-xs font-semibold bg-km-surface text-km-heading px-2 py-0.5 rounded-md border border-km-border truncate max-w-[120px]">
                                 {sk}
                             </span>
                         ))}
                         {user.mutual_skills.length > 2 && (
-                            <span className="text-xs font-bold text-[#5B6472]">
+                            <span className="text-xs font-bold text-km-text-secondary">
                                 +{user.mutual_skills.length - 2}
                             </span>
                         )}
@@ -174,7 +174,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 {/* Badge text */}
                 {displayBadge && (
                     <div className="mb-2">
-                        <span className="text-xs font-bold tracking-wide text-[#0B5ED7] bg-[#0B5ED7]/10 px-2.5 py-0.5 rounded-full inline-block border border-[#0B5ED7]/15">
+                        <span className="text-xs font-bold tracking-wide text-km-link bg-[#0B5ED7]/10 px-2.5 py-0.5 rounded-full inline-block border border-[#0B5ED7]/15">
                             {displayBadge}
                         </span>
                     </div>
@@ -182,7 +182,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
             </Link>
 
             {/* Action Buttons */}
-            <div className="w-full flex flex-col gap-1.5 mt-auto pt-2.5 border-t border-[#D9E0EA]/50">
+            <div className="w-full flex flex-col gap-1.5 mt-auto pt-2.5 border-t border-km-border/50">
                 {!isSelf && (
                     <>
                         {/* Connected State */}
@@ -191,7 +191,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => onChat(userId)}
-                                    className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+                                    className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98] dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
                                     <ChatIcon weight="bold" size={14} />
                                     <span>Message</span>
@@ -200,7 +200,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                     <button
                                         type="button"
                                         onClick={() => onRemove(userId)}
-                                        className="w-full py-1.5 bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-xl text-xs font-medium border border-slate-200 hover:border-red-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.98]"
+                                        className="w-full py-1.5 bg-km-surface-card hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-xl text-xs font-medium border border-slate-200 hover:border-red-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.98] dark:hover:text-red-400"
                                     >
                                         <UserMinusIcon weight="bold" size={13} />
                                         <span>Remove Connection</span>
@@ -219,7 +219,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                 <button
                                     type="button"
                                     onClick={() => onChat(userId)}
-                                    className="w-full py-1.5 rounded-xl border border-[#D9E0EA] text-[#071A4D] text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-[#F4F7FB] hover:border-[#071A4D] transition-all cursor-pointer active:scale-[0.98]"
+                                    className="w-full py-1.5 rounded-xl border border-km-border text-km-heading text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-km-surface hover:border-[#071A4D] transition-all cursor-pointer active:scale-[0.98] dark:hover:border-km-link"
                                 >
                                     <ChatIcon weight="bold" size={14} />
                                     <span>Chat</span>
@@ -234,14 +234,14 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                         disabled
                                         className="w-full py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-default border border-slate-200"
                                     >
-                                        <CheckCircleIcon weight="bold" size={13} className="text-emerald-500" />
+                                        <CheckCircleIcon weight="bold" size={13} className="text-emerald-500 dark:text-emerald-400" />
                                         <span>Pending</span>
                                     </button>
                                 ) : (
                                     <button
                                         type="button"
                                         onClick={() => handleConnectAction(userId, cleanName)}
-                                        className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
+                                        className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98] dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                     >
                                         <UserPlusIcon weight="bold" size={14} />
                                         <span>Connect</span>

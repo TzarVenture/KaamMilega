@@ -131,7 +131,7 @@ function AdminAnalyticsContent() {
           type="button"
           onClick={fetchStats}
           disabled={isRefreshing}
-          className="self-start sm:self-auto px-3.5 py-1.5 bg-white border border-purple-100 hover:border-purple-200 text-purple-700 rounded-xl text-xs font-semibold shadow-xs hover:shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          className="self-start sm:self-auto px-3.5 py-1.5 bg-km-surface-card border border-purple-100 hover:border-purple-200 text-purple-700 rounded-xl text-xs font-semibold shadow-xs hover:shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
         >
           <ArrowsClockwiseIcon weight="bold" size={13} className={isRefreshing ? 'animate-spin' : ''} />
           <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
@@ -142,67 +142,67 @@ function AdminAnalyticsContent() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <Link
           href="/admin/companies"
-          className="p-3 rounded-2xl bg-white border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 group-hover:scale-105 transition-transform">
+            <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 group-hover:scale-105 transition-transform dark:text-purple-400">
               <BuildingOfficeIcon weight="bold" size={14} />
             </div>
             <span className="truncate">Companies</span>
           </div>
-          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-purple-600 transition-colors shrink-0" />
+          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-purple-600 transition-colors shrink-0 dark:group-hover:text-purple-400" />
         </Link>
 
         <Link
           href="/admin/jobs"
-          className="p-3 rounded-2xl bg-white border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-105 transition-transform">
+            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-105 transition-transform dark:text-blue-400">
               <BriefcaseIcon weight="bold" size={14} />
             </div>
             <span className="truncate">Jobs</span>
           </div>
-          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-blue-600 transition-colors shrink-0" />
+          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-blue-600 transition-colors shrink-0 dark:group-hover:text-blue-400" />
         </Link>
 
         <Link
           href="/admin/disputes"
-          className="p-3 rounded-2xl bg-white border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 group-hover:scale-105 transition-transform">
+            <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 group-hover:scale-105 transition-transform dark:text-rose-400">
               <ShieldWarningIcon weight="bold" size={14} />
             </div>
             <span className="truncate">Disputes</span>
           </div>
-          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-rose-600 transition-colors shrink-0" />
+          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-rose-600 transition-colors shrink-0 dark:group-hover:text-rose-400" />
         </Link>
 
         <Link
           href="/admin/users"
-          className="p-3 rounded-2xl bg-white border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 group-hover:scale-105 transition-transform">
+            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 group-hover:scale-105 transition-transform dark:text-emerald-400">
               <UsersIcon weight="bold" size={14} />
             </div>
             <span className="truncate">Users</span>
           </div>
-          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-emerald-600 transition-colors shrink-0" />
+          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-emerald-600 transition-colors shrink-0 dark:group-hover:text-emerald-400" />
         </Link>
 
         <Link
           href="/admin/reports"
-          className="p-3 rounded-2xl bg-white border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group col-span-2 sm:col-span-1"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group col-span-2 sm:col-span-1"
         >
           <div className="flex items-center gap-2 min-w-0">
-            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 group-hover:scale-105 transition-transform">
+            <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 group-hover:scale-105 transition-transform dark:text-indigo-400">
               <FileXlsIcon weight="bold" size={14} />
             </div>
             <span className="truncate">Reports &amp; CSV</span>
           </div>
-          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-indigo-600 transition-colors shrink-0" />
+          <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400 group-hover:text-indigo-600 transition-colors shrink-0 dark:group-hover:text-indigo-400" />
         </Link>
       </div>
 
@@ -225,7 +225,7 @@ function AdminAnalyticsContent() {
               className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 isActive
                   ? 'bg-purple-600 text-white'
-                  : 'bg-white hover:bg-purple-50 text-slate-600 hover:text-purple-700 border border-purple-50'
+                  : 'bg-km-surface-card hover:bg-purple-50 text-slate-600 hover:text-purple-700 border border-purple-50'
               }`}
             >
               {tab.label}
@@ -236,7 +236,7 @@ function AdminAnalyticsContent() {
 
       {errorMessage && (
         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2">
-          <WarningCircleIcon weight="bold" size={14} className="text-amber-600 shrink-0" />
+          <WarningCircleIcon weight="bold" size={14} className="text-amber-600 shrink-0 dark:text-amber-400" />
           <span>{errorMessage}</span>
         </div>
       )}
@@ -258,7 +258,7 @@ function AdminAnalyticsContent() {
         <section className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Total Users */}
-            <div className="p-4 sm:p-5 bg-white rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
+            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -268,7 +268,7 @@ function AdminAnalyticsContent() {
                     {isLoading ? '...' : totalUsers !== undefined ? totalUsers.toLocaleString() : '0'}
                   </h3>
                 </div>
-                <div className="bg-purple-50 text-purple-600 p-2.5 rounded-xl">
+                <div className="bg-purple-50 text-purple-600 p-2.5 rounded-xl dark:text-purple-400">
                   <UsersIcon weight="bold" size={18} />
                 </div>
               </div>
@@ -286,7 +286,7 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Active Gigs */}
-            <div className="p-4 sm:p-5 bg-white rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
+            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -296,7 +296,7 @@ function AdminAnalyticsContent() {
                     {isLoading ? '...' : activeGigs !== undefined ? activeGigs.toLocaleString() : '0'}
                   </h3>
                 </div>
-                <div className="bg-amber-50 text-amber-600 p-2.5 rounded-xl">
+                <div className="bg-amber-50 text-amber-600 p-2.5 rounded-xl dark:text-amber-400">
                   <LightningIcon weight="bold" size={18} />
                 </div>
               </div>
@@ -310,7 +310,7 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Jobs Posted */}
-            <div className="p-4 sm:p-5 bg-white rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
+            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -320,7 +320,7 @@ function AdminAnalyticsContent() {
                     {isLoading ? '...' : jobsPosted !== undefined ? jobsPosted.toLocaleString() : '0'}
                   </h3>
                 </div>
-                <div className="bg-blue-50 text-blue-600 p-2.5 rounded-xl">
+                <div className="bg-blue-50 text-blue-600 p-2.5 rounded-xl dark:text-blue-400">
                   <BriefcaseIcon weight="bold" size={18} />
                 </div>
               </div>
@@ -336,7 +336,7 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Platform Revenue */}
-            <div className="p-4 sm:p-5 bg-white rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
+            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -346,7 +346,7 @@ function AdminAnalyticsContent() {
                     {isLoading ? '...' : revenue !== undefined && revenue > 0 ? `₹${revenue.toLocaleString('en-IN')}` : '₹0'}
                   </h3>
                 </div>
-                <div className="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl">
+                <div className="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl dark:text-emerald-400">
                   <CurrencyInrIcon weight="bold" size={18} />
                 </div>
               </div>
@@ -369,7 +369,7 @@ function AdminAnalyticsContent() {
             <h2 className="text-sm font-bold text-slate-900">User Breakdown</h2>
             <Link
               href="/admin/users"
-              className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1"
+              className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 dark:text-purple-400"
             >
               <span>View all</span>
               <ArrowUpRightIcon weight="bold" size={13} />
@@ -378,10 +378,10 @@ function AdminAnalyticsContent() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             {/* Candidates */}
-            <div className="bg-white rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs dark:text-blue-400">
                     JS
                   </div>
                   {candidatePercent !== null && (
@@ -404,7 +404,7 @@ function AdminAnalyticsContent() {
               <div className="mt-4 pt-2.5 border-t border-purple-50">
                 <Link
                   href="/admin/users?role=user"
-                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center justify-between"
+                  className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center justify-between dark:text-blue-400"
                 >
                   <span>Manage candidates</span>
                   <CaretRightIcon weight="bold" size={13} />
@@ -413,10 +413,10 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Employers */}
-            <div className="bg-white rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs dark:text-emerald-400">
                     EM
                   </div>
                   {recruiterPercent !== null && (
@@ -439,7 +439,7 @@ function AdminAnalyticsContent() {
               <div className="mt-4 pt-2.5 border-t border-purple-50">
                 <Link
                   href="/admin/companies"
-                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center justify-between"
+                  className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center justify-between dark:text-emerald-400"
                 >
                   <span>Manage companies</span>
                   <CaretRightIcon weight="bold" size={13} />
@@ -448,10 +448,10 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Experts */}
-            <div className="bg-white rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs">
+                  <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs dark:text-purple-400">
                     EX
                   </div>
                   {expertPercent !== null && (
@@ -474,7 +474,7 @@ function AdminAnalyticsContent() {
               <div className="mt-4 pt-2.5 border-t border-purple-50">
                 <Link
                   href="/admin/expert-requests"
-                  className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center justify-between"
+                  className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center justify-between dark:text-purple-400"
                 >
                   <span>Manage experts</span>
                   <CaretRightIcon weight="bold" size={13} />
@@ -492,7 +492,7 @@ function AdminAnalyticsContent() {
             <h2 className="text-sm font-bold text-slate-900">Operations</h2>
             <Link
               href="/admin/jobs"
-              className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1"
+              className="text-xs font-semibold text-purple-600 hover:text-purple-700 flex items-center gap-1 dark:text-purple-400"
             >
               <span>View jobs</span>
               <ArrowUpRightIcon weight="bold" size={13} />
@@ -500,7 +500,7 @@ function AdminAnalyticsContent() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            <div className="p-3.5 sm:p-4 bg-white rounded-2xl border border-purple-50 shadow-xs">
+            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700">
                   <MapPinIcon weight="bold" size={15} />
@@ -513,7 +513,7 @@ function AdminAnalyticsContent() {
               <p className="text-[11px] text-slate-400 mt-0.5">Active locations</p>
             </div>
 
-            <div className="p-3.5 sm:p-4 bg-white rounded-2xl border border-purple-50 shadow-xs">
+            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="p-1.5 rounded-lg bg-purple-50 text-purple-700">
                   <PhoneCallIcon weight="bold" size={15} />
@@ -526,7 +526,7 @@ function AdminAnalyticsContent() {
               <p className="text-[11px] text-slate-400 mt-0.5">Scheduled</p>
             </div>
 
-            <div className="p-3.5 sm:p-4 bg-white rounded-2xl border border-purple-50 shadow-xs">
+            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
                   <GraduationCapIcon weight="bold" size={15} />
@@ -539,7 +539,7 @@ function AdminAnalyticsContent() {
               <p className="text-[11px] text-slate-400 mt-0.5">Categories</p>
             </div>
 
-            <div className="p-3.5 sm:p-4 bg-white rounded-2xl border border-purple-50 shadow-xs">
+            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="p-1.5 rounded-lg bg-rose-50 text-rose-700">
                   <ShieldWarningIcon weight="bold" size={15} />
@@ -567,7 +567,7 @@ function AdminAnalyticsContent() {
             </span>
           </div>
 
-          <div className="bg-white rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs">
+          <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs">
             {isLoading ? (
               <p className="text-center text-slate-400 text-xs py-4">Loading activity...</p>
             ) : liveEvents.length === 0 ? (

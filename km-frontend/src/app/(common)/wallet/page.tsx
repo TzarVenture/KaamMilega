@@ -292,16 +292,16 @@ export default function WalletPage() {
                         <button 
                             onClick={fetchWallet}
                             disabled={loading}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-60"
+                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 bg-km-surface-card text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-60"
                         >
-                            <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600" : "text-slate-500"} />
+                            <ArrowsClockwiseIcon weight="bold" size={14} className={loading ? "animate-spin text-purple-600 dark:text-purple-400" : "text-slate-500"} />
                             <span>Refresh</span>
                         </button>
                     </div>
                 </div>
 
                 {/* Hero Total Balance Card */}
-                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-purple-950 to-indigo-950 p-6 sm:p-8 lg:p-10 text-white shadow-xl shadow-purple-950/20">
+                <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#020617] via-purple-950 to-indigo-950 p-6 sm:p-8 lg:p-10 text-white shadow-xl shadow-purple-950/20">
                     <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
                     <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
@@ -359,10 +359,10 @@ export default function WalletPage() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
                         {/* 1. Main Balance */}
-                        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <CreditCardIcon size={24} className="text-blue-600" aria-hidden="true" />
+                                    <CreditCardIcon size={24} className="text-blue-600 dark:text-blue-400" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full">
                                         Available
                                     </span>
@@ -378,7 +378,7 @@ export default function WalletPage() {
                         </div>
 
                         {/* 2. Earnings Balance */}
-                        <div className="bg-white rounded-2xl p-5 border border-emerald-200/80 shadow-xs hover:border-emerald-400 hover:shadow-md transition-all bg-emerald-50/20 flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-emerald-200/80 shadow-xs hover:border-emerald-400 hover:shadow-md transition-all bg-emerald-50/20 flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
                                     <ArrowUpRightIcon size={24} className="text-emerald-700" aria-hidden="true" />
@@ -397,16 +397,16 @@ export default function WalletPage() {
                         </div>
 
                         {/* 3. Locked in Escrow */}
-                        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-md transition-all flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-amber-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <LockIcon size={24} className="text-amber-600" aria-hidden="true" />
+                                    <LockIcon size={24} className="text-amber-600 dark:text-amber-400" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full">
                                         Protected
                                     </span>
                                 </div>
                                 <p className="text-xs font-semibold text-slate-500">In Escrow</p>
-                                <p className="text-2xl sm:text-3xl font-bold text-amber-600 mt-1 font-mono">
+                                <p className="text-2xl sm:text-3xl font-bold text-amber-600 mt-1 font-mono dark:text-amber-400">
                                     {formatCurrency(wallet?.locked_balance)}
                                 </p>
                             </div>
@@ -416,10 +416,10 @@ export default function WalletPage() {
                         </div>
 
                         {/* 4. Bonus Balance */}
-                        <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-slate-200/80 shadow-xs hover:border-purple-300 hover:shadow-md transition-all flex flex-col justify-between">
                             <div>
                                 <div className="flex items-center justify-between mb-3">
-                                    <GiftIcon size={24} className="text-purple-600" aria-hidden="true" />
+                                    <GiftIcon size={24} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                     <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full">
                                         Discounts
                                     </span>
@@ -456,7 +456,7 @@ export default function WalletPage() {
                         <div className="mt-6 relative z-10">
                             <Link 
                                 href="/jobs" 
-                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-orange-700 text-xs font-bold rounded-xl hover:bg-orange-50 transition shadow-xs active:scale-95"
+                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-km-surface-card text-orange-700 text-xs font-bold rounded-xl hover:bg-orange-50 transition shadow-xs active:scale-95"
                             >
                                 <span>Explore Jobs & Passes</span>
                                 <ArrowUpRightIcon weight="bold" size={14} />
@@ -482,7 +482,7 @@ export default function WalletPage() {
                         <div className="mt-6 relative z-10">
                             <Link 
                                 href="/mentorship" 
-                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-50 transition shadow-xs active:scale-95"
+                                className="inline-flex items-center gap-2 px-4 py-2.5 bg-km-surface-card text-indigo-700 text-xs font-bold rounded-xl hover:bg-indigo-50 transition shadow-xs active:scale-95"
                             >
                                 <span>Browse Mentors</span>
                                 <ArrowUpRightIcon weight="bold" size={14} />
@@ -498,7 +498,7 @@ export default function WalletPage() {
                         onClick={() => setActiveHistoryTab('ledger')}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                             activeHistoryTab === 'ledger'
-                                ? 'bg-white text-slate-900 shadow-xs'
+                                ? 'bg-km-surface-card text-slate-900 shadow-xs'
                                 : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
@@ -511,11 +511,11 @@ export default function WalletPage() {
                         onClick={() => setActiveHistoryTab('disputes')}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
                             activeHistoryTab === 'disputes'
-                                ? 'bg-white text-slate-900 shadow-xs'
+                                ? 'bg-km-surface-card text-slate-900 shadow-xs'
                                 : 'text-slate-600 hover:text-slate-900'
                         }`}
                     >
-                        <ShieldWarningIcon weight="bold" size={15} className="text-amber-600" />
+                        <ShieldWarningIcon weight="bold" size={15} className="text-amber-600 dark:text-amber-400" />
                         <span>Refunds & Disputes</span>
                     </button>
                 </div>
@@ -537,10 +537,10 @@ export default function WalletPage() {
             {/* Add Money Modal */}
             {isTopupModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-                    <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-6">
+                    <div className="bg-km-surface-card rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-6">
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <CreditCardIcon weight="bold" size={18} className="text-purple-600" />
+                                <CreditCardIcon weight="bold" size={18} className="text-purple-600 dark:text-purple-400" />
                                 <span>Add Money to Wallet</span>
                             </h3>
                             <button 
@@ -587,7 +587,7 @@ export default function WalletPage() {
 
                             <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 text-xs text-slate-600 space-y-1">
                                 <p className="font-semibold text-slate-800 flex items-center gap-1.5">
-                                    <CheckCircleIcon weight="bold" size={14} className="text-emerald-500" />
+                                    <CheckCircleIcon weight="bold" size={14} className="text-emerald-500 dark:text-emerald-400" />
                                     <span>Instant recharge via UPI, Cards & NetBanking</span>
                                 </p>
                                 <p className="text-[11px] text-slate-400 pl-5">
@@ -631,7 +631,7 @@ export default function WalletPage() {
             {/* Withdraw Modal (F71 Bank / UPI Payout) */}
             {isWithdrawModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
-                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 my-8">
+                    <div className="bg-km-surface-card rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 my-8">
                         {/* Modal Header */}
                         <div className="flex justify-between items-start">
                             <div className="flex items-center gap-2.5">
@@ -759,7 +759,7 @@ export default function WalletPage() {
                                             value={accountHolder}
                                             onChange={(e) => setAccountHolder(e.target.value)}
                                             placeholder="As per bank passbook"
-                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                             required={payoutMethod === 'bank'}
                                         />
                                     </div>
@@ -774,7 +774,7 @@ export default function WalletPage() {
                                                 value={accountNumber}
                                                 onChange={(e) => setAccountNumber(e.target.value)}
                                                 placeholder="e.g. 5010023456789"
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                                 required={payoutMethod === 'bank'}
                                             />
                                         </div>
@@ -787,7 +787,7 @@ export default function WalletPage() {
                                                 value={confirmAccountNumber}
                                                 onChange={(e) => setConfirmAccountNumber(e.target.value)}
                                                 placeholder="Re-enter A/C number"
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                                 required={payoutMethod === 'bank'}
                                             />
                                         </div>
@@ -804,7 +804,7 @@ export default function WalletPage() {
                                                 onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
                                                 placeholder="e.g. HDFC0001234"
                                                 maxLength={11}
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono uppercase font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-mono uppercase font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                                 required={payoutMethod === 'bank'}
                                             />
                                         </div>
@@ -817,7 +817,7 @@ export default function WalletPage() {
                                                 value={bankName}
                                                 onChange={(e) => setBankName(e.target.value)}
                                                 placeholder="e.g. HDFC Bank"
-                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-blue-500"
+                                                className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-blue-500"
                                             />
                                         </div>
                                     </div>
@@ -836,7 +836,7 @@ export default function WalletPage() {
                                             value={upiId}
                                             onChange={(e) => setUpiId(e.target.value)}
                                             placeholder="e.g. username@okhdfcbank or 9876543210@paytm"
-                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-white focus:outline-none focus:border-purple-500"
+                                            className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs font-medium text-slate-900 bg-km-surface-card focus:outline-none focus:border-purple-500"
                                             required={payoutMethod === 'upi'}
                                         />
                                     </div>
@@ -862,7 +862,7 @@ export default function WalletPage() {
 
                             {/* Info Callout */}
                             <div className="flex items-start gap-2 p-3 bg-amber-50/80 rounded-2xl border border-amber-200/60 text-amber-900 text-xs leading-relaxed">
-                                <WarningCircleIcon weight="bold" size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                                <WarningCircleIcon weight="bold" size={15} className="text-amber-600 shrink-0 mt-0.5 dark:text-amber-400" />
                                 <p>
                                     Requested amount is deducted immediately from your earnings to prevent double-spending, and recorded in your immutable ledger below. Payout is disbursed by admin via IMPS/UPI.
                                 </p>

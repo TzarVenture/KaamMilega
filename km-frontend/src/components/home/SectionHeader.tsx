@@ -28,13 +28,13 @@ export default function SectionHeader({ title, description, action, align = 'cen
                 <h2
                     id={id}
                     className={`text-2xl sm:text-[28px] lg:text-[32px] font-bold tracking-[-0.02em] leading-tight ${
-                        inverse ? 'text-white' : 'text-[#111827]'
+                        inverse ? 'text-white' : 'text-km-text-primary'
                     }`}
                 >
                     {title}
                 </h2>
                 {description && (
-                    <p className={`mt-2 text-[15px] sm:text-base leading-relaxed ${inverse ? 'text-white/75' : 'text-[#5B6472]'}`}>
+                    <p className={`mt-2 text-[15px] sm:text-base leading-relaxed ${inverse ? 'text-white/75' : 'text-km-text-secondary'}`}>
                         {description}
                     </p>
                 )}
@@ -43,7 +43,7 @@ export default function SectionHeader({ title, description, action, align = 'cen
                 <Link
                     href={action.href}
                     className={`group inline-flex items-center gap-1.5 text-sm font-semibold shrink-0 ${
-                        inverse ? 'text-white hover:text-white/80' : 'text-km-primary hover:text-km-blue'
+                        inverse ? 'text-white hover:text-white/80' : 'text-km-heading hover:text-km-blue'
                     } transition-colors`}
                 >
                     {action.label}

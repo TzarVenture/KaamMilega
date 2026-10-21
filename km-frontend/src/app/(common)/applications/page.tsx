@@ -121,7 +121,7 @@ export default function ApplicationsPage() {
         return (
             <div className="flex h-[80vh] items-center justify-center">
                 <div className="text-center space-y-4">
-                    <CircleNotchIcon className="w-10 h-10 animate-spin text-km-primary mx-auto" />
+                    <CircleNotchIcon className="w-10 h-10 animate-spin text-km-heading mx-auto" />
                     <p className="text-slate-500 font-medium">Crunching your career moves...</p>
                 </div>
             </div>
@@ -131,7 +131,7 @@ export default function ApplicationsPage() {
     if (error) {
         return (
             <div className="max-w-4xl mx-auto mt-20 p-8 bg-red-50 border border-red-100 rounded-3xl text-center">
-                <WarningCircleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <WarningCircleIcon className="w-12 h-12 text-red-500 mx-auto mb-4 dark:text-red-400" />
                 <h2 className="text-xl font-bold text-red-900 mb-2">Oops! Something went wrong</h2>
                 <p className="text-red-700">{error}</p>
                 <button
@@ -146,7 +146,7 @@ export default function ApplicationsPage() {
 
     if (applications.length === 0) {
         return (
-            <div className="max-w-4xl mx-auto mt-20 p-12 bg-white border border-slate-100 rounded-3xl text-center shadow-sm">
+            <div className="max-w-4xl mx-auto mt-20 p-12 bg-km-surface-card border border-slate-100 rounded-3xl text-center shadow-sm">
                 <BriefcaseIcon size={48} weight="duotone" className="text-slate-300 mx-auto mb-6" aria-hidden="true" />
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">No Applications Yet</h2>
                 <p className="text-slate-500 max-w-md mx-auto mb-8">
@@ -164,16 +164,16 @@ export default function ApplicationsPage() {
     }
 
     return (
-        <div className="bg-[#fcfcff] min-h-screen">
+        <div className="bg-[#fcfcff] min-h-screen dark:bg-white/5">
             <div className="max-w-350 mx-auto p-4 md:p-10">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar: Application List */}
                     <div className="w-full lg:w-100 shrink-0 space-y-6">
                         <div className="flex gap-2">
-                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-primary transition">
+                            <button className="px-4 py-2 bg-km-surface-card border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-heading transition">
                                 Recruiter Action (7)
                             </button>
-                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-primary transition">
+                            <button className="px-4 py-2 bg-km-surface-card border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-heading transition">
                                 Applied On KM (12)
                             </button>
                         </div>
@@ -187,7 +187,7 @@ export default function ApplicationsPage() {
                                         "w-full text-left p-5 rounded-2xl transition-all duration-300 border",
                                         selectedId === app.id
                                             ? "bg-blue-50/40 border-blue-200 shadow-sm ring-1 ring-km-primary/30"
-                                            : "bg-white border-slate-100 hover:border-blue-100 hover:bg-slate-50/50"
+                                            : "bg-km-surface-card border-slate-100 hover:border-blue-100 hover:bg-slate-50/50"
                                     )}
                                 >
                                     <h3 className="font-bold text-slate-900 truncate pr-4 text-[17px]">
@@ -195,7 +195,7 @@ export default function ApplicationsPage() {
                                     </h3>
                                     <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
                                         <span>{app?.job?.company}</span>
-                                        <div className="flex items-center gap-0.5 text-amber-500 font-medium">
+                                        <div className="flex items-center gap-0.5 text-amber-500 font-medium dark:text-amber-400">
                                             <StarIcon weight="fill" className="w-3.5 h-3.5 fill-current" />
                                             <span>{app?.job?.rating}</span>
                                         </div>
@@ -218,7 +218,7 @@ export default function ApplicationsPage() {
                     </div>
 
                     {/* Main Content: Application Detail */}
-                    <div className="flex-1 bg-white border border-slate-100 rounded-4xl p-8 md:p-12 shadow-sm min-h-175">
+                    <div className="flex-1 bg-km-surface-card border border-slate-100 rounded-4xl p-8 md:p-12 shadow-sm min-h-175">
                         {selectedApp ? (
                             <div className="space-y-10">
                                 {/* Job Header */}
@@ -228,14 +228,14 @@ export default function ApplicationsPage() {
                                     </h1>
                                     <div className="flex items-center gap-3 text-slate-500 font-medium">
                                         <span className="text-slate-900 font-bold">{selectedApp?.job?.company}</span>
-                                        <div className="flex items-center gap-1 text-amber-500">
+                                        <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
                                             <StarIcon weight="fill" className="w-4 h-4 fill-current" />
                                             <span>{selectedApp?.job?.rating}</span>
                                         </div>
                                         <span className="text-slate-300">|</span>
                                         <span>{selectedApp?.job?.reviews_count}</span>
                                     </div>
-                                    <button className="mt-4 text-km-primary font-bold text-sm hover:underline flex items-center gap-1">
+                                    <button className="mt-4 text-km-heading font-bold text-sm hover:underline flex items-center gap-1">
                                         View Similar Jobs
                                         <ArrowSquareOutIcon weight="bold" className="w-3 h-3" />
                                     </button>
@@ -278,12 +278,12 @@ export default function ApplicationsPage() {
                                                                     <div className={cn(
                                                                         "w-4 h-4 rounded-full border-4 z-10 transition-all duration-300 ring-4",
                                                                         isActive
-                                                                            ? "bg-white border-km-primary ring-blue-100"
-                                                                            : "bg-white border-slate-200 ring-transparent"
+                                                                            ? "bg-km-surface-card border-km-primary ring-blue-100"
+                                                                            : "bg-km-surface-card border-slate-200 ring-transparent"
                                                                     )} />
                                                                     <span className={cn(
                                                                         "mt-4 text-[11px] font-black uppercase tracking-wider text-center max-w-25",
-                                                                        isActive ? "text-km-primary font-bold" : "text-slate-400"
+                                                                        isActive ? "text-km-heading font-bold" : "text-slate-400"
                                                                     )}>
                                                                         {step.label}
                                                                     </span>
@@ -351,10 +351,10 @@ export default function ApplicationsPage() {
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <button className="p-3 bg-blue-50 text-km-primary rounded-xl hover:bg-blue-100 transition">
+                                        <button className="p-3 bg-blue-50 text-km-heading rounded-xl hover:bg-blue-100 transition">
                                             <PhoneCallIcon className="w-5 h-5" />
                                         </button>
-                                        <button className="px-6 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:border-km-primary hover:text-km-primary transition flex items-center gap-2 text-sm">
+                                        <button className="px-6 py-2.5 bg-km-surface-card border border-slate-200 rounded-xl font-bold text-slate-700 hover:border-km-primary hover:text-km-heading transition flex items-center gap-2 text-sm">
                                             <ChatIcon weight="bold" className="w-4 h-4" />
                                             Chat With HR
                                         </button>

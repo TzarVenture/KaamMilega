@@ -7,8 +7,8 @@ export default function RecruiterLoginPage() {
     return (
         <Suspense
             fallback={
-                <div className="min-h-screen bg-[#F4F7FB] flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-[#071A4D] border-t-[#FF6B00] rounded-full animate-spin" />
+                <div className="min-h-screen bg-km-surface flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-[#071A4D] border-t-[#FF6B00] rounded-full animate-spin dark:border-km-link" />
                 </div>
             }
         >

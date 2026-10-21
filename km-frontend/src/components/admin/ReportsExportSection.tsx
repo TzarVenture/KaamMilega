@@ -113,10 +113,10 @@ export default function ReportsExportSection({
   return (
     <div className="space-y-2.5 sm:space-y-3">
       {/* SECTION HEADER - Compact & Clean */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white p-3 sm:p-4 rounded-2xl border border-purple-50 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-km-surface-card p-3 sm:p-4 rounded-2xl border border-purple-50 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
-            <div className="p-1 rounded-lg bg-purple-50 text-purple-600">
+            <div className="p-1 rounded-lg bg-purple-50 text-purple-600 dark:text-purple-400">
               <FileXlsIcon weight="bold" size={15} />
             </div>
             <h2 className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
@@ -133,7 +133,7 @@ export default function ReportsExportSection({
             <button
               type="button"
               onClick={onRefreshStats}
-              className="px-2.5 py-1.5 bg-white border border-purple-100 hover:border-purple-200 text-purple-700 rounded-xl text-xs font-semibold shadow-xs hover:shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 py-1.5 bg-km-surface-card border border-purple-100 hover:border-purple-200 text-purple-700 rounded-xl text-xs font-semibold shadow-xs hover:shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <ArrowsClockwiseIcon weight="bold" size={11} />
               <span>Refresh</span>
@@ -165,7 +165,7 @@ export default function ReportsExportSection({
       {lastDownloaded && (
         <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-800 text-xs flex items-center justify-between gap-2 shadow-xs">
           <div className="flex items-center gap-2">
-            <CheckCircleIcon weight="bold" size={13} className="text-emerald-600 shrink-0" />
+            <CheckCircleIcon weight="bold" size={13} className="text-emerald-600 shrink-0 dark:text-emerald-400" />
             <span>
               Downloaded <strong>{lastDownloaded}</strong> successfully.
             </span>
@@ -173,7 +173,7 @@ export default function ReportsExportSection({
           <button
             type="button"
             onClick={() => setLastDownloaded(null)}
-            className="text-emerald-600 hover:text-emerald-800 text-xs font-medium cursor-pointer"
+            className="text-emerald-600 hover:text-emerald-800 text-xs font-medium cursor-pointer dark:text-emerald-400"
           >
             Dismiss
           </button>
@@ -183,13 +183,13 @@ export default function ReportsExportSection({
       {exportError && (
         <div className="p-2.5 rounded-xl bg-rose-50 border border-rose-100 text-rose-800 text-xs flex items-center justify-between gap-2 shadow-xs">
           <div className="flex items-center gap-2">
-            <WarningCircleIcon weight="bold" size={13} className="text-rose-600 shrink-0" />
+            <WarningCircleIcon weight="bold" size={13} className="text-rose-600 shrink-0 dark:text-rose-400" />
             <span>{exportError}</span>
           </div>
           <button
             type="button"
             onClick={() => setExportError(null)}
-            className="text-rose-600 hover:text-rose-800 text-xs font-medium cursor-pointer"
+            className="text-rose-600 hover:text-rose-800 text-xs font-medium cursor-pointer dark:text-rose-400"
           >
             Dismiss
           </button>
@@ -199,11 +199,11 @@ export default function ReportsExportSection({
       {/* THREE CARDS IN SAME ROW ON MD SCREENS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 sm:gap-3">
         {/* 1. USER LOGS */}
-        <div className="bg-white rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
+        <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <div className="p-1 rounded-lg bg-purple-50 text-purple-600">
+                <div className="p-1 rounded-lg bg-purple-50 text-purple-600 dark:text-purple-400">
                   <UsersIcon weight="bold" size={14} />
                 </div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900">User Logs</h3>
@@ -220,7 +220,7 @@ export default function ReportsExportSection({
             {/* Filter by role */}
             <div className="space-y-0.5 pt-0.5">
               <label className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
-                <FunnelSimpleIcon weight="bold" size={9} className="text-purple-600" />
+                <FunnelSimpleIcon weight="bold" size={9} className="text-purple-600 dark:text-purple-400" />
                 Filter Role:
               </label>
               <select
@@ -273,11 +273,11 @@ export default function ReportsExportSection({
         </div>
 
         {/* 2. JOB STATISTICS */}
-        <div className="bg-white rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
+        <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <div className="p-1 rounded-lg bg-blue-50 text-blue-600">
+                <div className="p-1 rounded-lg bg-blue-50 text-blue-600 dark:text-blue-400">
                   <BriefcaseIcon weight="bold" size={14} />
                 </div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900">Job Statistics</h3>
@@ -294,7 +294,7 @@ export default function ReportsExportSection({
             {/* Filter by status */}
             <div className="space-y-0.5 pt-0.5">
               <label className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
-                <FunnelSimpleIcon weight="bold" size={9} className="text-blue-600" />
+                <FunnelSimpleIcon weight="bold" size={9} className="text-blue-600 dark:text-blue-400" />
                 Filter Status:
               </label>
               <select
@@ -347,11 +347,11 @@ export default function ReportsExportSection({
         </div>
 
         {/* 3. REVENUE & FINANCIAL REPORTS */}
-        <div className="bg-white rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
+        <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-3.5 sm:p-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-1.5">
-                <div className="p-1 rounded-lg bg-emerald-50 text-emerald-600">
+                <div className="p-1 rounded-lg bg-emerald-50 text-emerald-600 dark:text-emerald-400">
                   <CurrencyInrIcon weight="bold" size={14} />
                 </div>
                 <h3 className="text-xs sm:text-sm font-bold text-slate-900">Revenue Reports</h3>
@@ -368,7 +368,7 @@ export default function ReportsExportSection({
             {/* Filter by transaction status */}
             <div className="space-y-0.5 pt-0.5">
               <label className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
-                <FunnelSimpleIcon weight="bold" size={9} className="text-emerald-600" />
+                <FunnelSimpleIcon weight="bold" size={9} className="text-emerald-600 dark:text-emerald-400" />
                 Filter Status:
               </label>
               <select

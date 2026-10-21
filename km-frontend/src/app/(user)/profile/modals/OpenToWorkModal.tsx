@@ -138,15 +138,15 @@ export const OpenToWorkModal: React.FC<Props> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs font-sans">
             <div 
-                className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+                className="bg-km-surface-card rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
                     <div className="flex items-center gap-2.5">
-                        <BriefcaseIcon size={22} className="text-km-primary" aria-hidden="true" />
+                        <BriefcaseIcon size={22} className="text-km-heading" aria-hidden="true" />
                         <div>
                             <h3 className="text-base font-black text-slate-900">Open To Work</h3>
                             <p className="text-xs text-slate-500 font-medium">Show recruiters the opportunities you are seeking</p>
@@ -196,7 +196,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                             {titles.map((t) => (
                                 <span
                                     key={t}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-km-primary border border-blue-200 rounded-xl text-xs font-bold"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-km-heading border border-blue-200 rounded-xl text-xs font-bold"
                                 >
                                     <span>{t}</span>
                                     <button
@@ -218,7 +218,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                     key={t}
                                     type="button"
                                     onClick={() => handleAddTitle(t)}
-                                    className="text-[11px] px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-km-primary font-semibold transition-colors cursor-pointer"
+                                    className="text-[11px] px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-km-heading font-semibold transition-colors cursor-pointer"
                                 >
                                     + {t}
                                 </button>
@@ -242,7 +242,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                         className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
                                             selected
                                                 ? 'bg-km-primary text-white border-km-primary shadow-2xs'
-                                                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                                                : 'bg-km-surface-card text-slate-700 border-slate-200 hover:border-slate-300'
                                         }`}
                                     >
                                         {selected && <CheckIcon weight="bold" size={12} />}
@@ -286,7 +286,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                     key={loc}
                                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold"
                                 >
-                                    <MapPinIcon weight="bold" size={11} className="text-km-primary" />
+                                    <MapPinIcon weight="bold" size={11} className="text-km-heading" />
                                     <span>{loc}</span>
                                     <button
                                         type="button"
@@ -361,7 +361,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                 type="button"
                                 onClick={handleRemove}
                                 disabled={removing || saving}
-                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5"
+                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5 dark:text-rose-400"
                             >
                                 {removing ? <CircleNotchIcon weight="bold" size={14} className="animate-spin" /> : <TrashIcon weight="bold" size={14} />}
                                 <span>Remove Status</span>

@@ -77,7 +77,7 @@ export default function ManageJobsPage() {
             </header>
 
             {/* Search and Filter Bar */}
-            <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4">
+            <div className="bg-km-surface-card p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4">
                 <div className="flex-1 relative">
                     <MagnifyingGlassIcon className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
                     <input
@@ -95,19 +95,19 @@ export default function ManageJobsPage() {
             </div>
 
             {filteredJobs.length === 0 ? (
-                <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                    <BriefcaseIcon size={40} weight="duotone" className="text-km-primary mb-4" aria-hidden="true" />
+                <div className="text-center py-16 bg-km-surface-card rounded-2xl border border-gray-100">
+                    <BriefcaseIcon size={40} weight="duotone" className="text-km-heading mb-4" aria-hidden="true" />
                     <h3 className="text-lg font-medium text-gray-900">No jobs found</h3>
                     <p className="text-gray-500 mt-1 mb-6">You haven't posted any jobs matching your search.</p>
                     <Link
                         href="/recruiter/jobs/create"
-                        className="text-km-primary font-bold hover:underline"
+                        className="text-km-heading font-bold hover:underline"
                     >
                         Post a new job
                     </Link>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="bg-km-surface-card rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-gray-600">
                             <thead className="bg-gray-50 text-gray-900 font-semibold border-b border-gray-200">
@@ -146,7 +146,7 @@ export default function ManageJobsPage() {
                                         </td>
 
                                         <td className="px-6 py-4 text-center">
-                                            <Link href={`/recruiter/applications?jobId=${job.id}`} className="inline-flex items-center justify-center px-3 py-1 bg-blue-50 text-km-primary border border-blue-100 rounded-xl font-bold text-xs hover:bg-blue-100 transition-colors">
+                                            <Link href={`/recruiter/applications?jobId=${job.id}`} className="inline-flex items-center justify-center px-3 py-1 bg-blue-50 text-km-heading border border-blue-100 rounded-xl font-bold text-xs hover:bg-blue-100 transition-colors">
                                                 {job.applicant_count || 0}
                                             </Link>
                                         </td>
@@ -154,21 +154,21 @@ export default function ManageJobsPage() {
                                             <div className="flex items-center justify-end gap-2">
                                                 <Link
                                                     href={`/recruiter/jobs/${job.id}`}
-                                                    className="p-1.5 text-gray-500 hover:text-km-primary hover:bg-blue-50 rounded-xl transition-colors"
+                                                    className="p-1.5 text-gray-500 hover:text-km-heading hover:bg-blue-50 rounded-xl transition-colors"
                                                     title="View Details"
                                                 >
                                                     <EyeIcon weight="bold" className="w-4 h-4" />
                                                 </Link>
                                                 <Link
                                                     href={`/recruiter/jobs/${job.id}/edit`}
-                                                    className="p-1.5 text-gray-500 hover:text-km-primary hover:bg-blue-50 rounded-xl transition-colors"
+                                                    className="p-1.5 text-gray-500 hover:text-km-heading hover:bg-blue-50 rounded-xl transition-colors"
                                                     title="Edit"
                                                 >
                                                     <NotePencilIcon weight="bold" className="w-4 h-4" />
                                                 </Link>
                                                 <button
                                                     onClick={() => handleDelete(job.id)}
-                                                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                                    className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors dark:hover:text-red-400"
                                                     title="Delete"
                                                 >
                                                     <TrashIcon weight="bold" className="w-4 h-4" />

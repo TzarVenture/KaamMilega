@@ -8,7 +8,7 @@ const ResourceDetailsPage = () => {
 
             {/* Left Sidebar: Curriculum/Content */}
             <div className="hidden lg:block w-72 space-y-4">
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100">
+                <div className="bg-km-surface-card rounded-2xl p-6 shadow-sm border border-slate-100">
                     <h2 className="text-xl font-bold text-slate-900 mb-6">Content</h2>
                     <div className="space-y-2">
                         <AccordionItem title="Introduction" active subtitle="Lorem Ipsum Dolor Sit Amet Sed Id Diam Consectetur." />
@@ -22,10 +22,10 @@ const ResourceDetailsPage = () => {
             {/* Main Content Area */}
             <div className="flex-1 space-y-8">
                 {/* Video Player Section */}
-                <div className="bg-white rounded-4xl overflow-hidden shadow-sm border border-slate-100">
+                <div className="bg-km-surface-card rounded-4xl overflow-hidden shadow-sm border border-slate-100">
                     <div className="aspect-video bg-linear-to-br from-slate-200 to-slate-400 relative group cursor-pointer">
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-20 h-20 bg-white/90 rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform">
+                            <div className="w-20 h-20 bg-km-surface-card/90 rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform">
                                 <PlayIcon weight="fill" className="text-slate-400 fill-slate-400 ml-1" size={32} />
                             </div>
                         </div>
@@ -37,7 +37,7 @@ const ResourceDetailsPage = () => {
                     {/* Video Tabs & Info */}
                     <div className="p-8">
                         <div className="flex border-b border-slate-100 mb-8">
-                            <button className="px-8 py-3 text-km-primary font-bold border-b-2 border-km-primary">Overview</button>
+                            <button className="px-8 py-3 text-km-heading font-bold border-b-2 border-km-primary">Overview</button>
                             <button className="px-8 py-3 text-slate-400 font-bold hover:text-slate-600 transition-colors">Q&A</button>
                         </div>
 
@@ -47,7 +47,7 @@ const ResourceDetailsPage = () => {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <div className="w-16 h-16 rounded-full bg-km-primary-dark relative flex items-center justify-center shadow-inner">
-                                        <div className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                                        <div className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full dark:border-km-surface-card" />
                                     </div>
                                     <div>
                                         <h4 className="text-lg font-bold">Expert Name</h4>
@@ -55,7 +55,7 @@ const ResourceDetailsPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex gap-3">
-                                    <button className="flex items-center gap-2 px-6 py-2.5 border border-km-primary rounded-xl text-km-primary font-bold hover:bg-blue-50 transition">
+                                    <button className="flex items-center gap-2 px-6 py-2.5 border border-km-primary rounded-xl text-km-heading font-bold hover:bg-blue-50 transition">
                                         <ChatCircleIcon weight="bold" size={18} /> Chat
                                     </button>
                                     <button className="px-8 py-2.5 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-md shadow-blue-900/10">
@@ -82,7 +82,7 @@ const ResourceDetailsPage = () => {
                                     <h4 className="font-bold text-slate-900">Learners</h4>
                                     <div className="flex items-center gap-3">
                                         <div className="flex -space-x-2">
-                                            {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-300" />)}
+                                            {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-300 dark:border-km-surface-card" />)}
                                         </div>
                                         <span className="text-xs text-slate-400 font-medium">90 people interested in this</span>
                                     </div>
@@ -94,7 +94,7 @@ const ResourceDetailsPage = () => {
                                 <h3 className="text-2xl font-bold text-slate-900">Learner Reviews</h3>
                                 <div className="flex flex-col md:flex-row gap-12 items-center bg-slate-50 p-8 rounded-3xl border border-slate-100">
                                     <div className="text-center">
-                                        <div className="text-6xl font-black text-km-primary">4.2</div>
+                                        <div className="text-6xl font-black text-km-heading">4.2</div>
                                         <div className="text-slate-500 font-bold mt-2">Out Of 5</div>
                                         <div className="flex gap-1 justify-center mt-3 text-amber-400">
                                             <StarIcon weight="fill" size={20} />
@@ -114,7 +114,7 @@ const ResourceDetailsPage = () => {
                                 </div>
 
                                 {/* Individual Review Card */}
-                                <div className="bg-white border border-slate-100 rounded-4xl p-8 space-y-6">
+                                <div className="bg-km-surface-card border border-slate-100 rounded-4xl p-8 space-y-6">
                                     <div className="flex justify-between">
                                         <div className="flex items-center gap-4">
                                             <div className="w-12 h-12 rounded-full bg-km-primary-dark" />
@@ -137,10 +137,10 @@ const ResourceDetailsPage = () => {
                                             Lorem ipsum dolor sit amet consectetur. Enim dictumst commodo diam arcu massa dui amet neque. Gravida sed euismod arcu nulla massa.
                                         </p>
                                         <div className="flex gap-6 pt-2">
-                                            <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-km-primary">
+                                            <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-km-heading">
                                                 <ThumbsUpIcon weight="bold" size={16} /> Like
                                             </button>
-                                            <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-rose-500">
+                                            <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-rose-500 dark:hover:text-rose-400">
                                                 <FlagIcon weight="bold" size={16} /> Report
                                             </button>
                                         </div>
@@ -154,7 +154,7 @@ const ResourceDetailsPage = () => {
 
             {/* Right Sidebar: Related Content */}
             <div className="w-full lg:w-80 space-y-6">
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+                <div className="bg-km-surface-card rounded-3xl p-6 shadow-sm border border-slate-100">
                     <h2 className="text-lg font-bold text-slate-800 mb-6">Related Videos</h2>
                     <div className="space-y-6">
                         {[1, 2, 3, 4].map((i) => (
@@ -168,17 +168,17 @@ const ResourceDetailsPage = () => {
                                     <h4 className="text-xs font-bold text-slate-800 leading-snug line-clamp-2">Lorem Ipsum Video Title Display Here</h4>
                                     <div className="flex items-center justify-between mt-1">
                                         <span className="text-[10px] text-slate-400">10K Viewers</span>
-                                        <BookmarkSimpleIcon weight="bold" size={12} className="text-km-primary" />
+                                        <BookmarkSimpleIcon weight="bold" size={12} className="text-km-heading" />
                                     </div>
                                 </div>
                             </div>
                         ))}
-                        <button className="w-full text-center text-km-primary font-bold text-sm pt-2 hover:underline">Show All</button>
+                        <button className="w-full text-center text-km-heading font-bold text-sm pt-2 hover:underline">Show All</button>
                     </div>
                 </div>
 
                 {/* Sidebar Ad */}
-                <div className="bg-white rounded-3xl h-100 flex items-center justify-center border border-slate-100 text-slate-400 font-bold italic shadow-sm">
+                <div className="bg-km-surface-card rounded-3xl h-100 flex items-center justify-center border border-slate-100 text-slate-400 font-bold italic shadow-sm">
                     Ad Banner
                 </div>
             </div>
@@ -189,12 +189,12 @@ const ResourceDetailsPage = () => {
 export default ResourceDetailsPage;
 
 const AccordionItem = ({ title, subtitle, active = false }: any) => (
-    <div className={`p-4 rounded-xl border transition-all cursor-pointer ${active ? 'bg-blue-50 border-blue-100' : 'bg-white border-transparent hover:bg-slate-50'}`}>
+    <div className={`p-4 rounded-xl border transition-all cursor-pointer ${active ? 'bg-blue-50 border-blue-100' : 'bg-km-surface-card border-transparent hover:bg-slate-50'}`}>
         <div className="flex items-center justify-between">
-            <span className={`text-sm font-bold ${active ? 'text-km-primary' : 'text-slate-800'}`}>{title}</span>
-            <CaretDownIcon weight="bold" size={16} className={active ? 'text-km-primary' : 'text-slate-400'} />
+            <span className={`text-sm font-bold ${active ? 'text-km-heading' : 'text-slate-800'}`}>{title}</span>
+            <CaretDownIcon weight="bold" size={16} className={active ? 'text-km-heading' : 'text-slate-400'} />
         </div>
-        {subtitle && <p className="text-[10px] text-km-primary/70 mt-2 font-medium leading-relaxed">{subtitle}</p>}
+        {subtitle && <p className="text-[10px] text-km-heading/70 mt-2 font-medium leading-relaxed">{subtitle}</p>}
     </div>
 );
 

@@ -129,7 +129,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
     };
 
     return (
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-km-surface-card rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
             {/* Header & Filter Tabs */}
             <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -157,7 +157,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
                             onClick={() => handleTabChange(tab.key as any)}
                             className={`px-3 sm:px-4 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
                                 activeTab === tab.key 
-                                    ? 'bg-white text-slate-900 shadow-xs' 
+                                    ? 'bg-km-surface-card text-slate-900 shadow-xs' 
                                     : 'text-slate-600 hover:text-slate-900'
                             }`}
                         >
@@ -300,7 +300,7 @@ export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute 
                                                 className="mt-1 text-[11px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 px-2.5 py-1 rounded-xl transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
                                                 title="Request refund or report an issue with this transaction"
                                             >
-                                                <ShieldWarningIcon weight="bold" size={12} className="text-amber-600" />
+                                                <ShieldWarningIcon weight="bold" size={12} className="text-amber-600 dark:text-amber-400" />
                                                 <span>Dispute / Refund</span>
                                             </button>
                                         )}

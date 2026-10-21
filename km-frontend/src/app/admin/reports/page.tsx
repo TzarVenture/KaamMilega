@@ -42,7 +42,7 @@ export default function AdminReportsPage() {
 
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
-            <ShieldCheckIcon weight="bold" size={13} className="text-emerald-500" />
+            <ShieldCheckIcon weight="bold" size={13} className="text-emerald-500 dark:text-emerald-400" />
             Admin Role Verified
           </span>
         </div>

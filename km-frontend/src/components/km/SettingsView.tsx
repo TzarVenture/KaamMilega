@@ -149,7 +149,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <SlidersHorizontalIcon className="w-8 h-8 text-km-primary" />
+                        <SlidersHorizontalIcon className="w-8 h-8 text-km-heading" />
                         Account & Preference Settings
                     </h1>
                     <p className="text-sm font-semibold text-slate-500 mt-1">
@@ -157,7 +157,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     </p>
                 </div>
                 {saving && (
-                    <div className="flex items-center gap-2 text-xs font-extrabold text-km-primary bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-100">
+                    <div className="flex items-center gap-2 text-xs font-extrabold text-km-heading bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-100">
                         <ArrowsClockwiseIcon weight="bold" className="w-3.5 h-3.5 animate-spin" /> Saving changes...
                     </div>
                 )}
@@ -170,7 +170,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                         activeTab === "notifications"
                             ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            : "bg-km-surface-card text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
                     <BellIcon weight="bold" className="w-4 h-4" /> Notifications
@@ -180,7 +180,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                         activeTab === "privacy"
                             ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            : "bg-km-surface-card text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
                     <EyeIcon weight="bold" className="w-4 h-4" /> Privacy & Visibility
@@ -190,7 +190,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                         activeTab === "security"
                             ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            : "bg-km-surface-card text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
                     <LockIcon weight="bold" className="w-4 h-4" /> Account Security
@@ -200,7 +200,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
                         activeTab === "preferences"
                             ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
-                            : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+                            : "bg-km-surface-card text-slate-600 border-slate-200 hover:bg-slate-50"
                     }`}
                 >
                     <GlobeIcon weight="bold" className="w-4 h-4" /> Preferences & Language
@@ -209,7 +209,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
             {/* TAB 1: NOTIFICATIONS */}
             {activeTab === "notifications" && (
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                     <div>
                         <h2 className="text-lg font-black text-slate-900 tracking-tight">Notification Channels & Alerts</h2>
                         <p className="text-xs text-slate-500 font-semibold mt-1">Control how and when Kaam Milega sends job recommendations and application alerts.</p>
@@ -228,7 +228,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     settings.email_job_alerts ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.email_job_alerts ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.email_job_alerts ? "translate-x-6" : "translate-x-0"}`} />
                             </button>
                         </div>
 
@@ -244,7 +244,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     settings.email_application_updates ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.email_application_updates ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.email_application_updates ? "translate-x-6" : "translate-x-0"}`} />
                             </button>
                         </div>
 
@@ -260,7 +260,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     settings.sms_alerts ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.sms_alerts ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.sms_alerts ? "translate-x-6" : "translate-x-0"}`} />
                             </button>
                         </div>
 
@@ -276,7 +276,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     settings.push_notifications ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.push_notifications ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.push_notifications ? "translate-x-6" : "translate-x-0"}`} />
                             </button>
                         </div>
 
@@ -292,7 +292,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     settings.email_marketing ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.email_marketing ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.email_marketing ? "translate-x-6" : "translate-x-0"}`} />
                             </button>
                         </div>
                     </div>
@@ -301,7 +301,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
             {/* TAB 2: PRIVACY & VISIBILITY */}
             {activeTab === "privacy" && (
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                     <div>
                         <h2 className="text-lg font-black text-slate-900 tracking-tight">Privacy & Profile Visibility</h2>
                         <p className="text-xs text-slate-500 font-semibold mt-1">Determine who can discover your candidate profile and experience details.</p>
@@ -326,7 +326,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                 >
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-bold text-slate-900">{opt.title}</p>
-                                        {settings.profile_visibility === opt.id && <CheckCircleIcon className="w-5 h-5 text-km-primary" />}
+                                        {settings.profile_visibility === opt.id && <CheckCircleIcon className="w-5 h-5 text-km-heading" />}
                                     </div>
                                     <p className="text-xs text-slate-500 font-medium leading-relaxed">{opt.desc}</p>
                                 </div>
@@ -339,7 +339,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div className="py-4 flex items-center justify-between gap-4">
                             <div>
                                 <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <SlidersHorizontalIcon weight="bold" className="w-4 h-4 text-km-primary" /> Automated Skill Matching & Recommendations
+                                    <SlidersHorizontalIcon weight="bold" className="w-4 h-4 text-km-heading" /> Automated Skill Matching & Recommendations
                                 </p>
                                 <p className="text-xs text-slate-500 font-medium mt-0.5">Match your verified profile and skills with relevant recruiter requirements.</p>
                             </div>
@@ -349,7 +349,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     settings.enable_ai_recommendations ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.enable_ai_recommendations ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.enable_ai_recommendations ? "translate-x-6" : "translate-x-0"}`} />
                             </button>
                         </div>
 
@@ -365,7 +365,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                     settings.search_engine_indexing ? "bg-km-primary" : "bg-slate-300"
                                 }`}
                             >
-                                <div className={`w-4 h-4 bg-white rounded-full transition-transform ${settings.search_engine_indexing ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.search_engine_indexing ? "translate-x-6" : "translate-x-0"}`} />
                             </button>
                         </div>
                     </div>
@@ -376,7 +376,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
             {activeTab === "security" && (
                 <div className="space-y-6">
                     {/* Status Overview Card */}
-                    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                    <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                         <div>
                             <h2 className="text-lg font-black text-slate-900 tracking-tight">Security Credentials & Verification</h2>
                             <p className="text-xs text-slate-500 font-semibold mt-1">Review authenticated devices and contact verification status.</p>
@@ -385,7 +385,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <DeviceMobileIcon size={24} weight="duotone" className="text-km-primary" aria-hidden="true" />
+                                    <DeviceMobileIcon size={24} weight="duotone" className="text-km-heading" aria-hidden="true" />
                                     <div>
                                         <p className="text-xs text-slate-400 font-extrabold uppercase">Mobile Verification</p>
                                         <p className="text-sm font-bold text-slate-900">{userProfile?.mobile || "Not Linked"}</p>
@@ -414,9 +414,9 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     </div>
 
                     {/* Change Password Form */}
-                    <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                    <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                         <div className="flex items-center gap-3">
-                            <KeyIcon size={24} weight="duotone" className="text-km-primary" aria-hidden="true" />
+                            <KeyIcon size={24} weight="duotone" className="text-km-heading" aria-hidden="true" />
                             <div>
                                 <h3 className="text-base font-black text-slate-900 tracking-tight">Change Password</h3>
                                 <p className="text-xs text-slate-500 font-semibold">Update your account login credentials securely.</p>
@@ -474,7 +474,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
             {/* TAB 4: PREFERENCES & LANGUAGE */}
             {activeTab === "preferences" && (
-                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
                     <div>
                         <h2 className="text-lg font-black text-slate-900 tracking-tight">App Regional Preferences</h2>
                         <p className="text-xs text-slate-500 font-semibold mt-1">Configure language display and portal localized settings.</p>
@@ -484,7 +484,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <div>
                             <label className="text-xs font-bold text-slate-700 block mb-2">Display Language</label>
                             <select
-                                className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-900 bg-white focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
+                                className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-900 bg-km-surface-card focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
                                 value={settings.language}
                                 onChange={e => handleSelectChange("language", e.target.value)}
                             >
@@ -499,7 +499,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                 <p className="text-sm font-bold text-slate-900">Color Theme Canvas</p>
                                 <p className="text-xs text-slate-500 font-medium mt-0.5">High-contrast brand canvas (#F8FAFC) enabled.</p>
                             </div>
-                            <span className="px-3 py-1.5 bg-blue-100 text-km-primary text-xs font-black rounded-xl">Light Mode</span>
+                            <span className="px-3 py-1.5 bg-blue-100 text-km-heading text-xs font-black rounded-xl">Light Mode</span>
                         </div>
                     </div>
                 </div>

@@ -5,7 +5,7 @@ const FeedSection: React.FC = () => {
         <div className="flex w-full gap-6 bg-gray-50 p-6">
             {/* Left Sidebar - Relative 25% width */}
             <aside className="w-1/4">
-                <div className="sticky top-6 bg-[#FDF4FF] rounded-2xl border border-purple-100 p-8 flex flex-col items-center text-center">
+                <div className="sticky top-6 bg-[#FDF4FF] rounded-2xl border border-purple-100 p-8 flex flex-col items-center text-center dark:bg-white/5">
                     <div className="w-20 h-20 bg-[#3B124D] rounded-full flex items-center justify-center mb-4">
                         <span className="text-white text-2xl">▲</span>
                     </div>
@@ -30,7 +30,7 @@ import { ChatIcon, DotsThreeVerticalIcon, RepeatIcon, ThumbsUpIcon } from '@phos
 
 const PostCard = () => {
     return (
-        <div className="bg-white border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
+        <div className="bg-km-surface-card border border-gray-200 rounded-3xl overflow-hidden shadow-sm">
             {/* Header */}
             <div className="p-4 flex justify-between items-center">
                 <div className="flex items-center space-x-3">
@@ -48,7 +48,7 @@ const PostCard = () => {
             </div>
 
             {/* Media Content */}
-            <div className="aspect-[16/9] bg-[#F9F9F9] flex items-center justify-center border-y border-gray-100">
+            <div className="aspect-[16/9] bg-[#F9F9F9] flex items-center justify-center border-y border-gray-100 dark:bg-white/5">
                 <span className="text-gray-300 text-7xl opacity-50">▲</span>
             </div>
 

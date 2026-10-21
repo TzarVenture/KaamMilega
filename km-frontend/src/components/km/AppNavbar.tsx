@@ -59,7 +59,7 @@ function AppNavbarContent() {
 export default function AppNavbar() {
     return (
         <Suspense fallback={
-            <div className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6">
+            <div className="h-14 bg-km-surface-card border-b border-gray-100 flex items-center justify-between px-4 md:px-6">
                 <div className="h-7 w-20 bg-slate-200 animate-pulse rounded" />
             </div>
         }>
