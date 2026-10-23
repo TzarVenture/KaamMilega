@@ -5,7 +5,19 @@ import { useSearchParams } from "next/navigation";
 import api from "@/lib/axios";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import { ArrowsClockwiseIcon, BellIcon, CheckCircleIcon, DeviceMobileIcon, EnvelopeSimpleIcon, EyeIcon, GlobeIcon, KeyIcon, LockIcon, ShieldCheckIcon, SlidersHorizontalIcon } from '@phosphor-icons/react';
+import { 
+    ArrowsClockwiseIcon, 
+    BellIcon, 
+    CheckCircleIcon, 
+    DeviceMobileIcon, 
+    EnvelopeSimpleIcon, 
+    EyeIcon, 
+    GlobeIcon, 
+    KeyIcon, 
+    LockIcon, 
+    ShieldCheckIcon, 
+    SlidersHorizontalIcon 
+} from '@phosphor-icons/react';
 import { FullPageSkeleton } from "@/components/ui/LoadingSkeleton";
 
 interface SettingsViewProps {
@@ -25,6 +37,7 @@ interface UserSettingsState {
 }
 
 export default function SettingsView({ mode = "candidate" }: SettingsViewProps) {
+    const isRecruiter = mode === "recruiter";
     const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<"notifications" | "privacy" | "security" | "preferences">("notifications");
 
@@ -34,6 +47,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
             setActiveTab(tab as any);
         }
     }, [searchParams]);
+
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [userProfile, setUserProfile] = useState<any>(null);
@@ -142,157 +156,200 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
     }
 
     return (
-        <div className="max-w-5xl mx-auto space-y-8 pb-16">
+        <div className="max-w-4xl mx-auto space-y-6 pb-16 font-sans text-km-text-primary">
             <ToastContainer />
 
             {/* Header Title */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200/80">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-km-border">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <SlidersHorizontalIcon className="w-8 h-8 text-km-heading" />
-                        Account & Preference Settings
+                    <h1 className="text-xl sm:text-2xl font-bold font-poppins text-km-text-primary flex items-center gap-2.5">
+                        <SlidersHorizontalIcon size={24} weight="duotone" className="text-km-primary dark:text-km-link" aria-hidden="true" />
+                        {isRecruiter ? "Employer Account Settings" : "Account & Preference Settings"}
                     </h1>
-                    <p className="text-sm font-semibold text-slate-500 mt-1">
-                        Manage your notification preferences, privacy visibility, and account security controls.
+                    <p className="text-xs text-km-text-secondary mt-1">
+                        {isRecruiter
+                            ? "Configure applicant alerts, company page visibility, and hiring team security credentials."
+                            : "Manage your notification preferences, privacy visibility, and account security controls."}
                     </p>
                 </div>
                 {saving && (
-                    <div className="flex items-center gap-2 text-xs font-extrabold text-km-heading bg-blue-50 px-3.5 py-2 rounded-xl border border-blue-100">
-                        <ArrowsClockwiseIcon weight="bold" className="w-3.5 h-3.5 animate-spin" /> Saving changes...
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-km-primary bg-blue-50 dark:bg-blue-950/40 px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900">
+                        <ArrowsClockwiseIcon size={14} weight="bold" className="animate-spin" /> 
+                        <span>Saving changes...</span>
                     </div>
                 )}
             </div>
 
             {/* Main Tabs Header */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-200/60">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-km-border">
                 <button
                     onClick={() => setActiveTab("notifications")}
-                    className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors border shrink-0 ${
                         activeTab === "notifications"
-                            ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
-                            : "bg-km-surface-card text-slate-600 border-slate-200 hover:bg-slate-50"
+                            ? "bg-km-primary text-white border-km-primary shadow-xs"
+                            : "bg-km-surface-card text-km-text-secondary border-km-border hover:bg-km-surface hover:text-km-text-primary"
                     }`}
                 >
-                    <BellIcon weight="bold" className="w-4 h-4" /> Notifications
+                    <BellIcon size={16} weight={activeTab === "notifications" ? "fill" : "regular"} aria-hidden="true" /> 
+                    <span>Notifications</span>
                 </button>
                 <button
                     onClick={() => setActiveTab("privacy")}
-                    className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors border shrink-0 ${
                         activeTab === "privacy"
-                            ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
-                            : "bg-km-surface-card text-slate-600 border-slate-200 hover:bg-slate-50"
+                            ? "bg-km-primary text-white border-km-primary shadow-xs"
+                            : "bg-km-surface-card text-km-text-secondary border-km-border hover:bg-km-surface hover:text-km-text-primary"
                     }`}
                 >
-                    <EyeIcon weight="bold" className="w-4 h-4" /> Privacy & Visibility
+                    <EyeIcon size={16} weight={activeTab === "privacy" ? "fill" : "regular"} aria-hidden="true" /> 
+                    <span>{isRecruiter ? "Company Visibility" : "Privacy & Visibility"}</span>
                 </button>
                 <button
                     onClick={() => setActiveTab("security")}
-                    className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors border shrink-0 ${
                         activeTab === "security"
-                            ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
-                            : "bg-km-surface-card text-slate-600 border-slate-200 hover:bg-slate-50"
+                            ? "bg-km-primary text-white border-km-primary shadow-xs"
+                            : "bg-km-surface-card text-km-text-secondary border-km-border hover:bg-km-surface hover:text-km-text-primary"
                     }`}
                 >
-                    <LockIcon weight="bold" className="w-4 h-4" /> Account Security
+                    <LockIcon size={16} weight={activeTab === "security" ? "fill" : "regular"} aria-hidden="true" /> 
+                    <span>Security & Access</span>
                 </button>
                 <button
                     onClick={() => setActiveTab("preferences")}
-                    className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl text-xs font-bold transition-all border shrink-0 ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors border shrink-0 ${
                         activeTab === "preferences"
-                            ? "bg-km-primary text-white border-km-primary shadow-md shadow-blue-900/20"
-                            : "bg-km-surface-card text-slate-600 border-slate-200 hover:bg-slate-50"
+                            ? "bg-km-primary text-white border-km-primary shadow-xs"
+                            : "bg-km-surface-card text-km-text-secondary border-km-border hover:bg-km-surface hover:text-km-text-primary"
                     }`}
                 >
-                    <GlobeIcon weight="bold" className="w-4 h-4" /> Preferences & Language
+                    <GlobeIcon size={16} weight={activeTab === "preferences" ? "fill" : "regular"} aria-hidden="true" /> 
+                    <span>Preferences</span>
                 </button>
             </div>
 
             {/* TAB 1: NOTIFICATIONS */}
             {activeTab === "notifications" && (
-                <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-6">
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 tracking-tight">Notification Channels & Alerts</h2>
-                        <p className="text-xs text-slate-500 font-semibold mt-1">Control how and when Kaam Milega sends job recommendations and application alerts.</p>
+                        <h2 className="text-sm font-bold font-poppins text-km-text-primary">
+                            {isRecruiter ? "Applicant Alerts & Communication" : "Notification Channels & Alerts"}
+                        </h2>
+                        <p className="text-xs text-km-text-secondary mt-0.5">
+                            {isRecruiter 
+                                ? "Configure how your hiring team is alerted when new applications or candidate responses arrive."
+                                : "Control how and when Kaam Milega sends job recommendations and application alerts."}
+                        </p>
                     </div>
 
-                    <div className="divide-y divide-slate-100">
-                        {/* Job Alerts */}
-                        <div className="py-4 flex items-center justify-between gap-4">
+                    <div className="divide-y divide-km-border/70">
+                        {/* Job Alerts / Application Alert */}
+                        <div className="py-3.5 flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-bold text-slate-900">Email Job Alerts</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">Receive daily emails about new job openings matching your profile and skills.</p>
+                                <p className="text-xs font-semibold text-km-text-primary">
+                                    {isRecruiter ? "New Candidate Application Alerts" : "Email Job Alerts"}
+                                </p>
+                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
+                                    {isRecruiter 
+                                        ? "Receive immediate emails as soon as qualified applicants submit resumes to your active jobs."
+                                        : "Receive daily emails about new job openings matching your profile and skills."}
+                                </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => handleToggle("email_job_alerts")}
-                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.email_job_alerts ? "bg-km-primary" : "bg-slate-300"
+                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
+                                    settings.email_job_alerts ? "bg-km-primary" : "bg-km-border"
                                 }`}
+                                aria-label="Toggle email job alerts"
                             >
-                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.email_job_alerts ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.email_job_alerts ? "translate-x-5" : "translate-x-0"}`} />
                             </button>
                         </div>
 
                         {/* Application Updates */}
-                        <div className="py-4 flex items-center justify-between gap-4">
+                        <div className="py-3.5 flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-bold text-slate-900">Application Status Notifications</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">Get notified instantly when a recruiter reviews, shortlists, or schedules an interview for your application.</p>
+                                <p className="text-xs font-semibold text-km-text-primary">
+                                    {isRecruiter ? "Interview & Stage Confirmations" : "Application Status Notifications"}
+                                </p>
+                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
+                                    {isRecruiter 
+                                        ? "Get notified when candidates accept scheduled interviews or submit assessment responses."
+                                        : "Get notified instantly when a recruiter reviews, shortlists, or schedules an interview."}
+                                </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => handleToggle("email_application_updates")}
-                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.email_application_updates ? "bg-km-primary" : "bg-slate-300"
+                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
+                                    settings.email_application_updates ? "bg-km-primary" : "bg-km-border"
                                 }`}
+                                aria-label="Toggle application updates"
                             >
-                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.email_application_updates ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.email_application_updates ? "translate-x-5" : "translate-x-0"}`} />
                             </button>
                         </div>
 
                         {/* SMS Alerts */}
-                        <div className="py-4 flex items-center justify-between gap-4">
+                        <div className="py-3.5 flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-bold text-slate-900">Urgent SMS Alerts</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">Receive high-priority SMS messages for interview invitations and recruiter call requests.</p>
+                                <p className="text-xs font-semibold text-km-text-primary">Urgent SMS Alerts</p>
+                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
+                                    {isRecruiter
+                                        ? "Receive priority SMS notifications for candidate confirmations within 2 hours of scheduled interviews."
+                                        : "Receive high-priority SMS messages for interview invitations and recruiter call requests."}
+                                </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => handleToggle("sms_alerts")}
-                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.sms_alerts ? "bg-km-primary" : "bg-slate-300"
+                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
+                                    settings.sms_alerts ? "bg-km-primary" : "bg-km-border"
                                 }`}
+                                aria-label="Toggle urgent SMS alerts"
                             >
-                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.sms_alerts ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.sms_alerts ? "translate-x-5" : "translate-x-0"}`} />
                             </button>
                         </div>
 
                         {/* Push Notifications */}
-                        <div className="py-4 flex items-center justify-between gap-4">
+                        <div className="py-3.5 flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-bold text-slate-900">Browser & Mobile Push Notifications</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">Allow real-time push alerts on your desktop or mobile device when active.</p>
+                                <p className="text-xs font-semibold text-km-text-primary">Browser & Desktop Notifications</p>
+                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
+                                    Allow real-time push alerts on your desktop when active in the recruiter portal.
+                                </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => handleToggle("push_notifications")}
-                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.push_notifications ? "bg-km-primary" : "bg-slate-300"
+                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
+                                    settings.push_notifications ? "bg-km-primary" : "bg-km-border"
                                 }`}
+                                aria-label="Toggle push notifications"
                             >
-                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.push_notifications ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.push_notifications ? "translate-x-5" : "translate-x-0"}`} />
                             </button>
                         </div>
 
                         {/* Marketing Updates */}
-                        <div className="py-4 flex items-center justify-between gap-4">
+                        <div className="py-3.5 flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-bold text-slate-900">Product Updates & Career News</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">Occasional news regarding platform features, salary insights, and career fairs.</p>
+                                <p className="text-xs font-semibold text-km-text-primary">Product Updates & Hiring Market Reports</p>
+                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
+                                    Occasional salary benchmarks, industry hiring trends, and ATS feature release announcements.
+                                </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => handleToggle("email_marketing")}
-                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.email_marketing ? "bg-km-primary" : "bg-slate-300"
+                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
+                                    settings.email_marketing ? "bg-km-primary" : "bg-km-border"
                                 }`}
+                                aria-label="Toggle marketing emails"
                             >
-                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.email_marketing ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.email_marketing ? "translate-x-5" : "translate-x-0"}`} />
                             </button>
                         </div>
                     </div>
@@ -301,71 +358,111 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
             {/* TAB 2: PRIVACY & VISIBILITY */}
             {activeTab === "privacy" && (
-                <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-6">
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 tracking-tight">Privacy & Profile Visibility</h2>
-                        <p className="text-xs text-slate-500 font-semibold mt-1">Determine who can discover your candidate profile and experience details.</p>
+                        <h2 className="text-sm font-bold font-poppins text-km-text-primary">
+                            {isRecruiter ? "Company Brand & Job Posting Visibility" : "Privacy & Profile Visibility"}
+                        </h2>
+                        <p className="text-xs text-km-text-secondary mt-0.5">
+                            {isRecruiter 
+                                ? "Manage how your organization profile and active listings appear to job seekers across India."
+                                : "Determine who can discover your candidate profile and experience details."}
+                        </p>
                     </div>
 
-                    <div className="space-y-4">
-                        <label className="text-xs font-black uppercase tracking-wider text-slate-400 block">Profile Visibility Mode</label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-3">
+                        <label className="text-xs font-semibold text-km-text-primary block">
+                            {isRecruiter ? "Company Profile Discovery Mode" : "Profile Visibility Mode"}
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             {[
-                                { id: "public", title: "Public (Recommended)", desc: "Visible to all verified employers, recruiters, and network connections." },
-                                { id: "connections", title: "Connections Only", desc: "Only recruiters you interact with or connect to can view your full details." },
-                                { id: "private", title: "Private / Hidden", desc: "Hidden from general candidate searches. Only visible when you apply directly." }
+                                { 
+                                    id: "public", 
+                                    title: "Public (Recommended)", 
+                                    desc: isRecruiter 
+                                        ? "Visible to all active job seekers, search engines, and candidate talent discovery."
+                                        : "Visible to all verified employers, recruiters, and network connections." 
+                                },
+                                { 
+                                    id: "connections", 
+                                    title: isRecruiter ? "Direct Applicants Only" : "Connections Only", 
+                                    desc: isRecruiter 
+                                        ? "Detailed company contact data is visible only to candidates who apply to your jobs."
+                                        : "Only recruiters you interact with or connect to can view your full details." 
+                                },
+                                { 
+                                    id: "private", 
+                                    title: "Private / Confidential", 
+                                    desc: isRecruiter 
+                                        ? "Company identity is masked on public boards. Ideal for discreet executive hiring."
+                                        : "Hidden from general candidate searches. Only visible when you apply directly." 
+                                }
                             ].map((opt) => (
                                 <div
                                     key={opt.id}
                                     onClick={() => handleSelectChange("profile_visibility", opt.id)}
-                                    className={`p-5 rounded-2xl border transition-all cursor-pointer space-y-2 ${
+                                    className={`p-4 rounded-xl border transition-colors cursor-pointer space-y-1.5 ${
                                         settings.profile_visibility === opt.id
-                                            ? "bg-blue-50/70 border-km-primary ring-2 ring-km-primary/20"
-                                            : "bg-slate-50/50 border-slate-200 hover:border-slate-300"
+                                            ? "bg-blue-50/60 dark:bg-blue-950/30 border-km-primary"
+                                            : "bg-km-surface border-km-border hover:border-km-text-secondary/40"
                                     }`}
                                 >
                                     <div className="flex items-center justify-between">
-                                        <p className="text-sm font-bold text-slate-900">{opt.title}</p>
-                                        {settings.profile_visibility === opt.id && <CheckCircleIcon className="w-5 h-5 text-km-heading" />}
+                                        <p className="text-xs font-semibold text-km-text-primary font-poppins">{opt.title}</p>
+                                        {settings.profile_visibility === opt.id && (
+                                            <CheckCircleIcon size={16} weight="fill" className="text-km-primary dark:text-km-link" aria-hidden="true" />
+                                        )}
                                     </div>
-                                    <p className="text-xs text-slate-500 font-medium leading-relaxed">{opt.desc}</p>
+                                    <p className="text-[11px] text-km-text-secondary leading-relaxed">{opt.desc}</p>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="divide-y divide-slate-100 pt-4">
+                    <div className="divide-y divide-km-border/70 pt-2">
                         {/* Automated Match */}
-                        <div className="py-4 flex items-center justify-between gap-4">
+                        <div className="py-3.5 flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                                    <SlidersHorizontalIcon weight="bold" className="w-4 h-4 text-km-heading" /> Automated Skill Matching & Recommendations
+                                <p className="text-xs font-semibold text-km-text-primary">
+                                    {isRecruiter ? "Automated Candidate Matchmaking" : "Automated Skill Matching"}
                                 </p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">Match your verified profile and skills with relevant recruiter requirements.</p>
+                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
+                                    {isRecruiter 
+                                        ? "Automatically recommend top verified candidate profiles based on your active job descriptions."
+                                        : "Match your verified profile and skills with relevant recruiter requirements."}
+                                </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => handleToggle("enable_ai_recommendations")}
-                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.enable_ai_recommendations ? "bg-km-primary" : "bg-slate-300"
+                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
+                                    settings.enable_ai_recommendations ? "bg-km-primary" : "bg-km-border"
                                 }`}
+                                aria-label="Toggle automated candidate matchmaking"
                             >
-                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.enable_ai_recommendations ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.enable_ai_recommendations ? "translate-x-5" : "translate-x-0"}`} />
                             </button>
                         </div>
 
                         {/* Search Indexing */}
-                        <div className="py-4 flex items-center justify-between gap-4">
+                        <div className="py-3.5 flex items-center justify-between gap-4">
                             <div>
-                                <p className="text-sm font-bold text-slate-900">Search Engine Indexing</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">Allow public search engines (Google Jobs) to index your candidate public profile link.</p>
+                                <p className="text-xs font-semibold text-km-text-primary">Search Engine & Google Jobs Indexing</p>
+                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
+                                    {isRecruiter
+                                        ? "Allow Google Jobs and external job aggregators to crawl and display your active openings for organic traffic."
+                                        : "Allow public search engines (Google Jobs) to index your candidate public profile link."}
+                                </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={() => handleToggle("search_engine_indexing")}
-                                className={`w-12 h-6 rounded-full transition-colors relative flex items-center px-1 shrink-0 ${
-                                    settings.search_engine_indexing ? "bg-km-primary" : "bg-slate-300"
+                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
+                                    settings.search_engine_indexing ? "bg-km-primary" : "bg-km-border"
                                 }`}
+                                aria-label="Toggle search engine indexing"
                             >
-                                <div className={`w-4 h-4 bg-km-surface-card rounded-full transition-transform ${settings.search_engine_indexing ? "translate-x-6" : "translate-x-0"}`} />
+                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.search_engine_indexing ? "translate-x-5" : "translate-x-0"}`} />
                             </button>
                         </div>
                     </div>
@@ -374,86 +471,88 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
             {/* TAB 3: ACCOUNT SECURITY */}
             {activeTab === "security" && (
-                <div className="space-y-6">
+                <div className="space-y-5">
                     {/* Status Overview Card */}
-                    <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                    <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-4">
                         <div>
-                            <h2 className="text-lg font-black text-slate-900 tracking-tight">Security Credentials & Verification</h2>
-                            <p className="text-xs text-slate-500 font-semibold mt-1">Review authenticated devices and contact verification status.</p>
+                            <h2 className="text-sm font-bold font-poppins text-km-text-primary">Security Credentials & Verification</h2>
+                            <p className="text-xs text-km-text-secondary mt-0.5">Review verified contact credentials for account recovery.</p>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                            <div className="p-3.5 bg-km-surface rounded-xl border border-km-border flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <DeviceMobileIcon size={24} weight="duotone" className="text-km-heading" aria-hidden="true" />
+                                    <DeviceMobileIcon size={20} weight="regular" className="text-km-primary dark:text-km-link" aria-hidden="true" />
                                     <div>
-                                        <p className="text-xs text-slate-400 font-extrabold uppercase">Mobile Verification</p>
-                                        <p className="text-sm font-bold text-slate-900">{userProfile?.mobile || "Not Linked"}</p>
+                                        <p className="text-[10px] text-km-text-secondary font-semibold uppercase">Mobile Number</p>
+                                        <p className="text-xs font-semibold text-km-text-primary font-mono">{userProfile?.mobile || "Not Linked"}</p>
                                     </div>
                                 </div>
-                                <span className="px-2.5 py-1 bg-emerald-100 text-emerald-700 font-extrabold text-[10px] rounded-full flex items-center gap-1">
-                                    <ShieldCheckIcon weight="bold" className="w-3 h-3" /> Verified
+                                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-semibold text-[10px] rounded-md border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
+                                    <ShieldCheckIcon size={12} weight="bold" /> Verified
                                 </span>
                             </div>
 
-                            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                            <div className="p-3.5 bg-km-surface rounded-xl border border-km-border flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <EnvelopeSimpleIcon size={24} weight="duotone" className="text-km-accent-dark" aria-hidden="true" />
-                                    <div>
-                                        <p className="text-xs text-slate-400 font-extrabold uppercase">Email Verification</p>
-                                        <p className="text-sm font-bold text-slate-900 truncate max-w-40">{userProfile?.email || "Not Set"}</p>
+                                    <EnvelopeSimpleIcon size={20} weight="regular" className="text-km-primary dark:text-km-link" aria-hidden="true" />
+                                    <div className="min-w-0">
+                                        <p className="text-[10px] text-km-text-secondary font-semibold uppercase">Work Email</p>
+                                        <p className="text-xs font-semibold text-km-text-primary truncate max-w-[140px] font-mono">{userProfile?.email || "Not Set"}</p>
                                     </div>
                                 </div>
-                                <span className={`px-2.5 py-1 font-extrabold text-[10px] rounded-full flex items-center gap-1 ${
-                                    userProfile?.is_email_verified ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                                <span className={`px-2 py-0.5 font-semibold text-[10px] rounded-md border flex items-center gap-1 ${
+                                    userProfile?.is_email_verified 
+                                        ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60" 
+                                        : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60"
                                 }`}>
-                                    <ShieldCheckIcon weight="bold" className="w-3 h-3" /> {userProfile?.is_email_verified ? "Verified" : "Pending"}
+                                    <ShieldCheckIcon size={12} weight="bold" /> {userProfile?.is_email_verified ? "Verified" : "Pending"}
                                 </span>
                             </div>
                         </div>
                     </div>
 
                     {/* Change Password Form */}
-                    <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
-                        <div className="flex items-center gap-3">
-                            <KeyIcon size={24} weight="duotone" className="text-km-heading" aria-hidden="true" />
+                    <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-4">
+                        <div className="flex items-center gap-2.5">
+                            <KeyIcon size={20} weight="regular" className="text-km-primary dark:text-km-link" aria-hidden="true" />
                             <div>
-                                <h3 className="text-base font-black text-slate-900 tracking-tight">Change Password</h3>
-                                <p className="text-xs text-slate-500 font-semibold">Update your account login credentials securely.</p>
+                                <h3 className="text-sm font-bold font-poppins text-km-text-primary">Change Password</h3>
+                                <p className="text-xs text-km-text-secondary mt-0.5">Update your account login password securely.</p>
                             </div>
                         </div>
 
-                        <form onSubmit={handlePasswordChange} className="space-y-4 max-w-xl">
-                            <div>
-                                <label className="text-xs font-bold text-slate-700 block mb-1">Current Password</label>
+                        <form onSubmit={handlePasswordChange} className="space-y-4 max-w-xl pt-2">
+                            <div className="space-y-1.5">
+                                <label className="text-xs font-semibold text-km-text-primary block">Current Password</label>
                                 <input
                                     type="password"
                                     required
                                     placeholder="Enter current password"
-                                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
+                                    className="w-full px-3.5 py-2 rounded-xl border border-km-border bg-km-surface text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
                                     value={passwordData.current_password}
                                     onChange={e => setPasswordData({ ...passwordData, current_password: e.target.value })}
                                 />
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 block mb-1">New Password</label>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-km-text-primary block">New Password</label>
                                     <input
                                         type="password"
                                         required
                                         placeholder="Min 6 characters"
-                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
+                                        className="w-full px-3.5 py-2 rounded-xl border border-km-border bg-km-surface text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
                                         value={passwordData.new_password}
                                         onChange={e => setPasswordData({ ...passwordData, new_password: e.target.value })}
                                     />
                                 </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-700 block mb-1">Confirm New Password</label>
+                                <div className="space-y-1.5">
+                                    <label className="text-xs font-semibold text-km-text-primary block">Confirm New Password</label>
                                     <input
                                         type="password"
                                         required
                                         placeholder="Re-type new password"
-                                        className="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs font-bold focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
+                                        className="w-full px-3.5 py-2 rounded-xl border border-km-border bg-km-surface text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
                                         value={passwordData.confirm_password}
                                         onChange={e => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
                                     />
@@ -463,7 +562,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             <button
                                 type="submit"
                                 disabled={updatingPassword}
-                                className="px-6 py-3 rounded-2xl bg-km-primary hover:bg-km-primary-dark text-white font-bold text-xs shadow-md shadow-blue-900/20 transition-all active:scale-[0.98] disabled:opacity-50"
+                                className="px-5 py-2 rounded-xl bg-km-primary hover:bg-km-primary-dark text-white font-semibold text-xs shadow-xs transition-colors disabled:opacity-50"
                             >
                                 {updatingPassword ? "Updating Password..." : "Update Password"}
                             </button>
@@ -474,17 +573,17 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
             {/* TAB 4: PREFERENCES & LANGUAGE */}
             {activeTab === "preferences" && (
-                <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-xs space-y-6">
+                <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-6">
                     <div>
-                        <h2 className="text-lg font-black text-slate-900 tracking-tight">App Regional Preferences</h2>
-                        <p className="text-xs text-slate-500 font-semibold mt-1">Configure language display and portal localized settings.</p>
+                        <h2 className="text-sm font-bold font-poppins text-km-text-primary">Regional & Language Preferences</h2>
+                        <p className="text-xs text-km-text-secondary mt-0.5">Configure language display and portal localized settings.</p>
                     </div>
 
-                    <div className="space-y-6 max-w-xl">
-                        <div>
-                            <label className="text-xs font-bold text-slate-700 block mb-2">Display Language</label>
+                    <div className="space-y-5 max-w-xl">
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-semibold text-km-text-primary block">Portal Display Language</label>
                             <select
-                                className="w-full px-4 py-3.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-900 bg-km-surface-card focus:border-km-primary focus:ring-2 focus:ring-km-primary/20 outline-none transition-all"
+                                className="w-full px-3.5 py-2.5 rounded-xl border border-km-border text-xs font-medium text-km-text-primary bg-km-surface focus:border-km-primary outline-none transition-colors"
                                 value={settings.language}
                                 onChange={e => handleSelectChange("language", e.target.value)}
                             >
@@ -494,12 +593,14 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             </select>
                         </div>
 
-                        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                        <div className="p-4 bg-km-surface rounded-xl border border-km-border flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-bold text-slate-900">Color Theme Canvas</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">High-contrast brand canvas (#F8FAFC) enabled.</p>
+                                <p className="text-xs font-semibold text-km-text-primary">Color Theme Canvas</p>
+                                <p className="text-[11px] text-km-text-secondary mt-0.5">High-contrast brand tokens applied across all dashboards.</p>
                             </div>
-                            <span className="px-3 py-1.5 bg-blue-100 text-km-heading text-xs font-black rounded-xl">Light Mode</span>
+                            <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/40 text-km-primary dark:text-km-link text-xs font-semibold rounded-lg border border-blue-100 dark:border-blue-900">
+                                System / Adaptive
+                            </span>
                         </div>
                     </div>
                 </div>
