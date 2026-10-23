@@ -134,8 +134,10 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
             <div className="flex items-end justify-between gap-4 pb-6">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-km-heading">Settings</h1>
-                    <p className="mt-1 text-sm text-km-text-secondary">Notifications, privacy, sign-in and your account.</p>
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-km-heading">{isRecruiter ? "Employer account settings" : "Settings"}</h1>
+                    <p className="mt-1 text-sm text-km-text-secondary">
+                        {isRecruiter ? "Alerts, sign-in security and your employer account." : "Notifications, privacy, sign-in and your account."}
+                    </p>
                 </div>
                 <p aria-live="polite" className={`text-sm font-medium text-emerald-700 inline-flex items-center gap-1 transition-opacity ${savedAt ? "opacity-100" : "opacity-0"}`}>
                     <CheckIcon size={14} weight="bold" aria-hidden="true" /> Saved
@@ -200,7 +202,9 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                 <SettingRow
                                     title="Urgent SMS alerts"
                                     badge={<SoonBadge />}
-                                    description="Interview invitations and employer call requests by text message."
+                                    description={isRecruiter
+                                        ? "Priority texts when candidates confirm or reschedule interviews."
+                                        : "Interview invitations and employer call requests by text message."}
                                     control={toggle("sms_alerts", "Urgent SMS alerts")}
                                 />
                                 <SettingRow

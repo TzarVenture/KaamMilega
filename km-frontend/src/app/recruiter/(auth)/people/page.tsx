@@ -1,110 +1,185 @@
-import React from 'react';
-import { ChatCircleIcon, MapPinIcon, XIcon } from '@phosphor-icons/react/ssr';
+"use client";
 
-const PeopleSection: React.FC = () => {
+import React, { useEffect, useState } from "react";
+import Link from "next/link";
+import api from "@/lib/axios";
+import {
+    ArrowUpRightIcon,
+    ChatCircleIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    ShieldCheckIcon,
+    UsersIcon,
+} from "@phosphor-icons/react";
+
+interface Candidate {
+    id: string;
+    _id?: string;
+    name?: string;
+    headline?: string;
+    location?: string;
+    city?: string;
+    skills?: string[];
+    avatar?: string;
+    experience?: any[];
+}
+
+export default function CandidateDirectoryPage() {
+    const [candidates, setCandidates] = useState<Candidate[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        let isMounted = true;
+        const fetchCandidates = async () => {
+            setLoading(true);
+            try {
+                let data: Candidate[] = [];
+                if (searchTerm.trim()) {
+                    data = await api.get(`/user/search?q=${encodeURIComponent(searchTerm.trim())}`) as Candidate[];
+                } else {
+                    const res = await api.get("/community/users?limit=18").catch(() => null);
+                    data = (res?.data || res || []) as Candidate[];
+                }
+                if (isMounted) {
+                    setCandidates(Array.isArray(data) ? data : []);
+                }
+            } catch (error) {
+                console.error("Failed to fetch candidates:", error);
+                if (isMounted) setCandidates([]);
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        const timer = setTimeout(fetchCandidates, 300);
+        return () => {
+            isMounted = false;
+            clearTimeout(timer);
+        };
+    }, [searchTerm]);
+
     return (
-        <div className="flex w-full gap-6 bg-gray-50 p-6">
-            {/* Consistent Sidebar */}
-            <aside className="w-1/4">
-                <div className="sticky top-6 bg-blue-50/40 rounded-2xl border border-blue-100 p-8 flex flex-col items-center text-center">
-                    <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center mb-4">
-                        <span className="text-white text-2xl">▲</span>
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900">Company Name</h2>
-                    <p className="text-sm text-gray-600 mt-1">10,238,546 Followers</p>
+        <div className="space-y-6 font-sans text-km-text-primary pb-16">
+            {/* Header */}
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-xl sm:text-2xl font-bold text-km-text-primary font-poppins">Candidate Directory</h1>
+                    <p className="text-xs text-km-text-secondary mt-0.5">
+                        Discover qualified professionals, verified talent, and skilled workers
+                    </p>
                 </div>
-            </aside>
+            </header>
 
-            {/* Main Content Area */}
-            <section className="w-3/4 space-y-12">
-                {/* Top Grid: People associated with the company */}
-                <div className="grid grid-cols-4 gap-4">
-                    {[...Array(8)].map((_, i) => (
-                        <PersonCard key={i} />
+            {/* Search Bar */}
+            <div className="bg-km-surface-card p-3 rounded-2xl border border-km-border shadow-xs flex items-center gap-3">
+                <div className="flex-1 relative">
+                    <MagnifyingGlassIcon size={16} weight="regular" className="absolute left-3 top-2.5 text-km-text-secondary" aria-hidden="true" />
+                    <input
+                        type="text"
+                        placeholder="Search candidates by name, job role, or skill..."
+                        className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 outline-none focus:border-km-primary transition-colors"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="text-xs text-km-text-secondary font-medium px-2 py-1 bg-km-surface rounded-lg border border-km-border/70 shrink-0">
+                    {candidates.length} {candidates.length === 1 ? "Candidate" : "Candidates"}
+                </div>
+            </div>
+
+            {/* Candidate Grid */}
+            {loading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {[1, 2, 3, 4, 5, 6].map((n) => (
+                        <div key={n} className="bg-km-surface-card p-5 rounded-2xl border border-km-border shadow-xs h-48 animate-pulse" />
                     ))}
                 </div>
-
-                {/* Popular People Section */}
-                <div>
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-gray-900">Popular People To Follow Across KaamMilega</h2>
-                        <button className="text-km-heading font-semibold text-sm hover:underline">See All</button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-6">
-                        {[...Array(6)].map((_, i) => (
-                            <PopularPersonRow key={i} />
-                        ))}
-                    </div>
+            ) : candidates.length === 0 ? (
+                <div className="bg-km-surface-card p-12 rounded-2xl shadow-xs border border-km-border text-center">
+                    <UsersIcon size={36} weight="duotone" className="text-km-text-secondary mx-auto mb-3" aria-hidden="true" />
+                    <h3 className="text-sm font-semibold text-km-text-primary font-poppins">No candidates found</h3>
+                    <p className="text-xs text-km-text-secondary mt-1 max-w-sm mx-auto">
+                        Try searching for another job title, skill keyword, or candidate name.
+                    </p>
                 </div>
-            </section>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {candidates.map((candidate) => {
+                        const candidateId = candidate.id || candidate._id || "";
+                        const displayName = candidate.name || "Candidate Profile";
+                        const headline = candidate.headline || "Open to opportunities";
+                        const location = candidate.city || candidate.location || "India";
+
+                        return (
+                            <div
+                                key={candidateId}
+                                className="bg-km-surface-card p-4 rounded-2xl border border-km-border shadow-xs hover:border-km-primary transition-colors flex flex-col justify-between"
+                            >
+                                <div>
+                                    <div className="flex items-start gap-3 mb-3">
+                                        <div className="w-10 h-10 rounded-xl bg-km-surface border border-km-border text-km-primary font-bold text-sm flex items-center justify-center uppercase shrink-0">
+                                            {displayName.charAt(0)}
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <h3 className="font-semibold text-xs text-km-text-primary truncate font-poppins">
+                                                    {displayName}
+                                                </h3>
+                                                <ShieldCheckIcon weight="bold" size={13} className="text-emerald-600 shrink-0" aria-hidden="true" />
+                                            </div>
+                                            <p className="text-[11px] text-km-text-secondary truncate mt-0.5">{headline}</p>
+                                            <p className="text-[11px] text-km-text-secondary flex items-center gap-1 mt-1">
+                                                <MapPinIcon size={12} weight="regular" aria-hidden="true" />
+                                                <span>{location}</span>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Skills Pills */}
+                                    {candidate.skills && candidate.skills.length > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 my-2">
+                                            {candidate.skills.slice(0, 3).map((skill, idx) => (
+                                                <span
+                                                    key={idx}
+                                                    className="px-2 py-0.5 bg-km-surface rounded-md border border-km-border/60 text-[10px] text-km-text-secondary font-medium"
+                                                >
+                                                    {skill}
+                                                </span>
+                                            ))}
+                                            {candidate.skills.length > 3 && (
+                                                <span className="px-1.5 py-0.5 text-[10px] text-km-text-secondary">
+                                                    +{candidate.skills.length - 3}
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="mt-4 pt-3 border-t border-km-border/70 flex items-center gap-2">
+                                    <Link
+                                        href={`/profile/${candidateId}`}
+                                        className="flex-1 py-1.5 px-3 rounded-lg border border-km-border text-km-text-primary hover:bg-km-surface text-xs font-medium text-center flex items-center justify-center gap-1 transition-colors"
+                                    >
+                                        <span>View Profile</span>
+                                        <ArrowUpRightIcon size={12} weight="bold" aria-hidden="true" />
+                                    </Link>
+                                    <Link
+                                        href={`/chat?user=${candidateId}`}
+                                        className="py-1.5 px-3 rounded-lg bg-km-primary hover:bg-km-primary-dark text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors shadow-xs"
+                                        title="Direct Message"
+                                        aria-label="Direct Message"
+                                    >
+                                        <ChatCircleIcon size={14} weight="regular" aria-hidden="true" />
+                                        <span>Chat</span>
+                                    </Link>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     );
-};
-
-export default PeopleSection;
-
-
-const PersonCard = () => (
-    <div className="bg-km-surface-card border border-gray-100 rounded-3xl p-5 flex flex-col items-center relative shadow-sm hover:shadow-md transition">
-        <button className="absolute top-3 right-3 text-gray-300 hover:text-gray-500">
-            <XIcon weight="bold" size={16} />
-        </button>
-
-        <div className="relative mb-3">
-            <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center text-white">▲</div>
-            <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full dark:border-km-surface-card"></div>
-        </div>
-
-        <h3 className="font-bold text-gray-900 text-sm">Person Name</h3>
-        <p className="text-[10px] text-gray-400 uppercase mb-2">Person Designation</p>
-
-        <div className="flex items-center text-gray-500 text-[10px] mb-1">
-            <MapPinIcon weight="bold" size={10} className="mr-1" />
-            <span>Location</span>
-        </div>
-        <p className="text-[10px] text-gray-400 mb-4 cursor-default">10 Mutual Connects</p>
-
-        <div className="w-full space-y-2">
-            <button className="w-full py-2 border border-km-primary text-km-heading rounded-xl text-xs font-semibold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
-                <ChatCircleIcon weight="bold" size={12} />
-                <span>Chat</span>
-            </button>
-            <button className="w-full py-2 bg-km-primary text-white rounded-xl text-xs font-semibold hover:bg-km-primary-dark transition-colors shadow-sm">
-                Follow
-            </button>
-        </div>
-    </div>
-);
-
-const PopularPersonRow = () => (
-    <div className="flex items-start space-x-3 relative group">
-        <button className="absolute -top-1 -right-1 text-gray-300 opacity-0 group-hover:opacity-100 transition">
-            <XIcon weight="bold" size={14} />
-        </button>
-
-        <div className="relative shrink-0">
-            <div className="w-14 h-14 bg-km-primary-dark rounded-full flex items-center justify-center text-white text-xs">▲</div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full dark:border-km-surface-card"></div>
-        </div>
-
-        <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-gray-900 text-sm truncate">Person Name</h3>
-            <p className="text-[10px] text-gray-400">Person Designation</p>
-            <div className="flex items-center text-gray-500 text-[10px] mt-1">
-                <MapPinIcon weight="bold" size={10} className="mr-1" />
-                <span>Location</span>
-            </div>
-            <p className="text-[9px] text-gray-400 mt-1">10 Mutual Connects</p>
-
-            <div className="flex space-x-2 mt-3">
-                <button className="flex-1 py-1.5 border border-km-primary text-km-heading rounded-xl text-[10px] font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
-                    <ChatCircleIcon weight="bold" size={10} />
-                    <span>Chat</span>
-                </button>
-                <button className="flex-1 py-1.5 bg-km-primary text-white rounded-xl text-[10px] font-bold hover:bg-km-primary-dark transition-colors shadow-sm">
-                    Follow
-                </button>
-            </div>
-        </div>
-    </div>
-);
+}
