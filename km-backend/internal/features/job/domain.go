@@ -22,6 +22,8 @@ type Job struct {
 
 	JobType      string   `bson:"job_type" json:"job_type"`
 	Status       string   `bson:"status" json:"status"`
+	// HiddenByAccount is set while the recruiter account is deactivated or pending deletion
+	HiddenByAccount bool `bson:"hidden_by_account,omitempty" json:"-"`
 	Requirements []string `bson:"requirements" json:"requirements"`
 	WeOffer      []string `bson:"we_offer" json:"we_offer"`
 

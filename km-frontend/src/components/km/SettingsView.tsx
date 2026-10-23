@@ -1,24 +1,19 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
-import api from "@/lib/axios";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { toast, ToastContainer } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
-import { 
-    ArrowsClockwiseIcon, 
-    BellIcon, 
-    CheckCircleIcon, 
-    DeviceMobileIcon, 
-    EnvelopeSimpleIcon, 
-    EyeIcon, 
-    GlobeIcon, 
-    KeyIcon, 
-    LockIcon, 
-    ShieldCheckIcon, 
-    SlidersHorizontalIcon 
-} from '@phosphor-icons/react';
+import "react-toastify/dist/ReactToastify.css";
+import { BellIcon, CheckIcon, GlobeIcon, LockIcon, ShieldCheckIcon, UserCircleIcon } from "@phosphor-icons/react";
+import type { Icon } from "@phosphor-icons/react";
+import api from "@/lib/axios";
+import { errorMessage } from "@/lib/account";
+import { FEATURES } from "@/config/features";
 import { FullPageSkeleton } from "@/components/ui/LoadingSkeleton";
+import ThemeToggle from "@/components/km/ThemeToggle";
+import { Badge, SettingRow, SettingsCard, Toggle, inputClass } from "@/components/settings/SettingsPrimitives";
+import SecuritySection from "@/components/settings/SecuritySection";
+import AccountSection from "@/components/settings/AccountSection";
 
 interface SettingsViewProps {
     mode?: "candidate" | "recruiter";
@@ -36,575 +31,284 @@ interface UserSettingsState {
     search_engine_indexing: boolean;
 }
 
+// Matches DefaultUserSettings in the backend (km-backend/internal/features/user/domain.go)
+const DEFAULT_SETTINGS: UserSettingsState = {
+    email_job_alerts: true,
+    email_application_updates: true,
+    email_marketing: false,
+    sms_alerts: true,
+    push_notifications: true,
+    profile_visibility: "public",
+    language: "en",
+    enable_ai_recommendations: true,
+    search_engine_indexing: true,
+};
+
+interface SettingsProfile {
+    email?: string;
+    is_email_verified?: boolean;
+    mobile?: string;
+    otp_verified_at?: string | null;
+    has_password?: boolean;
+}
+
+type Tab = "notifications" | "privacy" | "security" | "preferences" | "account";
+
+const SoonBadge = () => <Badge tone="soon">Coming soon</Badge>;
+
 export default function SettingsView({ mode = "candidate" }: SettingsViewProps) {
     const isRecruiter = mode === "recruiter";
+    const router = useRouter();
     const searchParams = useSearchParams();
-    const [activeTab, setActiveTab] = useState<"notifications" | "privacy" | "security" | "preferences">("notifications");
 
-    useEffect(() => {
-        const tab = searchParams?.get("tab");
-        if (tab && ["notifications", "privacy", "security", "preferences"].includes(tab)) {
-            setActiveTab(tab as any);
-        }
-    }, [searchParams]);
+    const tabs: { id: Tab; label: string; Icon: Icon }[] = [
+        { id: "notifications", label: "Notifications", Icon: BellIcon },
+        ...(!isRecruiter ? [{ id: "privacy" as Tab, label: "Privacy", Icon: ShieldCheckIcon }] : []),
+        { id: "security", label: "Sign-in & security", Icon: LockIcon },
+        { id: "preferences", label: "Preferences", Icon: GlobeIcon },
+        { id: "account", label: "Account", Icon: UserCircleIcon },
+    ];
+
+    const requested = searchParams?.get("tab") as Tab | null;
+    const activeTab: Tab = requested && tabs.some((t) => t.id === requested) ? requested : "notifications";
 
     const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [userProfile, setUserProfile] = useState<any>(null);
+    const [profile, setProfile] = useState<SettingsProfile | null>(null);
+    const [settings, setSettings] = useState<UserSettingsState>(DEFAULT_SETTINGS);
+    const [savedAt, setSavedAt] = useState(0);
+    // Saves are sent in order so a slower earlier request can't overwrite a later choice
+    const saveQueue = useRef<Promise<void>>(Promise.resolve());
 
-    const [settings, setSettings] = useState<UserSettingsState>({
-        email_job_alerts: true,
-        email_application_updates: true,
-        email_marketing: false,
-        sms_alerts: true,
-        push_notifications: true,
-        profile_visibility: "public",
-        language: "en",
-        enable_ai_recommendations: true,
-        search_engine_indexing: true
-    });
-
-    const [passwordData, setPasswordData] = useState({
-        current_password: "",
-        new_password: "",
-        confirm_password: ""
-    });
-    const [updatingPassword, setUpdatingPassword] = useState(false);
+    const loadProfile = useCallback(
+        () => api.get("/user/profile").then((p) => setProfile(p as SettingsProfile)).catch(() => null),
+        []
+    );
 
     useEffect(() => {
-        const fetchSettings = async () => {
+        Promise.all([
+            api.get("/user/settings").then((s) => setSettings({ ...DEFAULT_SETTINGS, ...(s as Partial<UserSettingsState>) })).catch(() => {
+                toast.error("Couldn’t load your saved settings. Showing defaults.");
+            }),
+            loadProfile(),
+        ]).finally(() => setLoading(false));
+    }, [loadProfile]);
+
+    const update = <K extends keyof UserSettingsState>(field: K, value: UserSettingsState[K]) => {
+        const previous = settings;
+        const next = { ...settings, [field]: value };
+        setSettings(next);
+        saveQueue.current = saveQueue.current.then(async () => {
             try {
-                const [settingsRes, profileRes] = await Promise.all([
-                    api.get("/user/settings").catch(() => null),
-                    api.get("/user/profile").catch(() => null)
-                ]);
-
-                if (settingsRes) {
-                    setSettings(prev => ({
-                        ...prev,
-                        ...settingsRes
-                    }));
-                }
-                if (profileRes) {
-                    setUserProfile(profileRes);
-                }
+                const saved = (await api.put("/user/settings", next)) as Partial<UserSettingsState> | null;
+                if (saved && typeof saved === "object") setSettings((s) => ({ ...s, ...saved }));
+                setSavedAt(Date.now());
             } catch (err) {
-                console.error("Failed to load user settings:", err);
-            } finally {
-                setLoading(false);
+                setSettings(previous);
+                toast.error(errorMessage(err, "Couldn’t save that change. Please try again."));
             }
-        };
-
-        fetchSettings();
-    }, []);
-
-    const handleToggle = (field: keyof UserSettingsState) => {
-        const updated = {
-            ...settings,
-            [field]: typeof settings[field] === "boolean" ? !settings[field] : settings[field]
-        };
-        setSettings(updated);
-        saveSettingsToBackend(updated);
+        });
     };
 
-    const handleSelectChange = (field: keyof UserSettingsState, value: any) => {
-        const updated = { ...settings, [field]: value };
-        setSettings(updated);
-        saveSettingsToBackend(updated);
+    useEffect(() => {
+        if (!savedAt) return;
+        const t = setTimeout(() => setSavedAt(0), 2000);
+        return () => clearTimeout(t);
+    }, [savedAt]);
+
+    const selectTab = (id: Tab) => {
+        const params = new URLSearchParams(searchParams?.toString());
+        params.set("tab", id);
+        router.replace(`?${params.toString()}`, { scroll: false });
     };
 
-    const saveSettingsToBackend = async (dataToSave: UserSettingsState) => {
-        setSaving(true);
-        try {
-            await api.put("/user/settings", dataToSave);
-            toast.success("Preferences updated successfully", { autoClose: 1500 });
-        } catch (err: any) {
-            toast.error(err.response?.data?.error || "Failed to save settings");
-        } finally {
-            setSaving(false);
-        }
-    };
+    if (loading) return <FullPageSkeleton />;
 
-    const handlePasswordChange = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (passwordData.new_password !== passwordData.confirm_password) {
-            toast.error("New passwords do not match");
-            return;
-        }
-        if (passwordData.new_password.length < 6) {
-            toast.error("Password must be at least 6 characters long");
-            return;
-        }
-
-        setUpdatingPassword(true);
-        try {
-            await api.put("/user/password", {
-                current_password: passwordData.current_password,
-                new_password: passwordData.new_password
-            });
-            toast.success("Password updated successfully!");
-            setPasswordData({ current_password: "", new_password: "", confirm_password: "" });
-        } catch (err: any) {
-            toast.error(err.response?.data?.error || "Failed to update password");
-        } finally {
-            setUpdatingPassword(false);
-        }
-    };
-
-    if (loading) {
-        return <FullPageSkeleton />;
-    }
+    const emailVerified = Boolean(profile?.is_email_verified);
+    const toggle = (field: keyof UserSettingsState, label: string) => (
+        <Toggle checked={Boolean(settings[field])} onChange={(v) => update(field, v as never)} label={label} />
+    );
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6 pb-16 font-sans text-km-text-primary">
-            <ToastContainer />
+        <div className="max-w-5xl mx-auto pb-16">
+            <ToastContainer position="top-center" autoClose={2500} hideProgressBar />
 
-            {/* Header Title */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-km-border">
+            <div className="flex items-end justify-between gap-4 pb-6">
                 <div>
-                    <h1 className="text-xl sm:text-2xl font-bold font-poppins text-km-text-primary flex items-center gap-2.5">
-                        <SlidersHorizontalIcon size={24} weight="duotone" className="text-km-primary dark:text-km-link" aria-hidden="true" />
-                        {isRecruiter ? "Employer Account Settings" : "Account & Preference Settings"}
-                    </h1>
-                    <p className="text-xs text-km-text-secondary mt-1">
-                        {isRecruiter
-                            ? "Configure applicant alerts, company page visibility, and hiring team security credentials."
-                            : "Manage your notification preferences, privacy visibility, and account security controls."}
+                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-km-heading">{isRecruiter ? "Employer account settings" : "Settings"}</h1>
+                    <p className="mt-1 text-sm text-km-text-secondary">
+                        {isRecruiter ? "Alerts, sign-in security and your employer account." : "Notifications, privacy, sign-in and your account."}
                     </p>
                 </div>
-                {saving && (
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-km-primary bg-blue-50 dark:bg-blue-950/40 px-3 py-1.5 rounded-xl border border-blue-200 dark:border-blue-900">
-                        <ArrowsClockwiseIcon size={14} weight="bold" className="animate-spin" /> 
-                        <span>Saving changes...</span>
-                    </div>
-                )}
+                <p aria-live="polite" className={`text-sm font-medium text-emerald-700 inline-flex items-center gap-1 transition-opacity ${savedAt ? "opacity-100" : "opacity-0"}`}>
+                    <CheckIcon size={14} weight="bold" aria-hidden="true" /> Saved
+                </p>
             </div>
 
-            {/* Main Tabs Header */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none border-b border-km-border">
-                <button
-                    onClick={() => setActiveTab("notifications")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors border shrink-0 ${
-                        activeTab === "notifications"
-                            ? "bg-km-primary text-white border-km-primary shadow-xs"
-                            : "bg-km-surface-card text-km-text-secondary border-km-border hover:bg-km-surface hover:text-km-text-primary"
-                    }`}
-                >
-                    <BellIcon size={16} weight={activeTab === "notifications" ? "fill" : "regular"} aria-hidden="true" /> 
-                    <span>Notifications</span>
-                </button>
-                <button
-                    onClick={() => setActiveTab("privacy")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors border shrink-0 ${
-                        activeTab === "privacy"
-                            ? "bg-km-primary text-white border-km-primary shadow-xs"
-                            : "bg-km-surface-card text-km-text-secondary border-km-border hover:bg-km-surface hover:text-km-text-primary"
-                    }`}
-                >
-                    <EyeIcon size={16} weight={activeTab === "privacy" ? "fill" : "regular"} aria-hidden="true" /> 
-                    <span>{isRecruiter ? "Company Visibility" : "Privacy & Visibility"}</span>
-                </button>
-                <button
-                    onClick={() => setActiveTab("security")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors border shrink-0 ${
-                        activeTab === "security"
-                            ? "bg-km-primary text-white border-km-primary shadow-xs"
-                            : "bg-km-surface-card text-km-text-secondary border-km-border hover:bg-km-surface hover:text-km-text-primary"
-                    }`}
-                >
-                    <LockIcon size={16} weight={activeTab === "security" ? "fill" : "regular"} aria-hidden="true" /> 
-                    <span>Security & Access</span>
-                </button>
-                <button
-                    onClick={() => setActiveTab("preferences")}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-colors border shrink-0 ${
-                        activeTab === "preferences"
-                            ? "bg-km-primary text-white border-km-primary shadow-xs"
-                            : "bg-km-surface-card text-km-text-secondary border-km-border hover:bg-km-surface hover:text-km-text-primary"
-                    }`}
-                >
-                    <GlobeIcon size={16} weight={activeTab === "preferences" ? "fill" : "regular"} aria-hidden="true" /> 
-                    <span>Preferences</span>
-                </button>
-            </div>
+            <div className="grid grid-cols-1 md:grid-cols-[220px_1fr] gap-6">
+                {/* Section nav: column on desktop, scrolling row on mobile */}
+                <nav aria-label="Settings sections" className="md:sticky md:top-24 self-start">
+                    <ul className="flex md:flex-col gap-1 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+                        {tabs.map(({ id, label, Icon }) => {
+                            const active = id === activeTab;
+                            return (
+                                <li key={id} className="shrink-0">
+                                    <button
+                                        type="button"
+                                        onClick={() => selectTab(id)}
+                                        aria-current={active ? "page" : undefined}
+                                        className={`w-full flex items-center gap-2.5 h-10 px-3 rounded-xl text-sm font-medium transition-colors cursor-pointer whitespace-nowrap ${
+                                            active ? "bg-km-surface-card text-km-heading border border-km-border shadow-xs" : "text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface-card/60 border border-transparent"
+                                        }`}
+                                    >
+                                        <Icon size={18} weight={active ? "fill" : "regular"} aria-hidden="true" />
+                                        {label}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                </nav>
 
-            {/* TAB 1: NOTIFICATIONS */}
-            {activeTab === "notifications" && (
-                <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-6">
-                    <div>
-                        <h2 className="text-sm font-bold font-poppins text-km-text-primary">
-                            {isRecruiter ? "Applicant Alerts & Communication" : "Notification Channels & Alerts"}
-                        </h2>
-                        <p className="text-xs text-km-text-secondary mt-0.5">
-                            {isRecruiter 
-                                ? "Configure how your hiring team is alerted when new applications or candidate responses arrive."
-                                : "Control how and when Kaam Milega sends job recommendations and application alerts."}
-                        </p>
-                    </div>
-
-                    <div className="divide-y divide-km-border/70">
-                        {/* Job Alerts / Application Alert */}
-                        <div className="py-3.5 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs font-semibold text-km-text-primary">
-                                    {isRecruiter ? "New Candidate Application Alerts" : "Email Job Alerts"}
-                                </p>
-                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
-                                    {isRecruiter 
-                                        ? "Receive immediate emails as soon as qualified applicants submit resumes to your active jobs."
-                                        : "Receive daily emails about new job openings matching your profile and skills."}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => handleToggle("email_job_alerts")}
-                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
-                                    settings.email_job_alerts ? "bg-km-primary" : "bg-km-border"
-                                }`}
-                                aria-label="Toggle email job alerts"
-                            >
-                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.email_job_alerts ? "translate-x-5" : "translate-x-0"}`} />
-                            </button>
-                        </div>
-
-                        {/* Application Updates */}
-                        <div className="py-3.5 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs font-semibold text-km-text-primary">
-                                    {isRecruiter ? "Interview & Stage Confirmations" : "Application Status Notifications"}
-                                </p>
-                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
-                                    {isRecruiter 
-                                        ? "Get notified when candidates accept scheduled interviews or submit assessment responses."
-                                        : "Get notified instantly when a recruiter reviews, shortlists, or schedules an interview."}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => handleToggle("email_application_updates")}
-                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
-                                    settings.email_application_updates ? "bg-km-primary" : "bg-km-border"
-                                }`}
-                                aria-label="Toggle application updates"
-                            >
-                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.email_application_updates ? "translate-x-5" : "translate-x-0"}`} />
-                            </button>
-                        </div>
-
-                        {/* SMS Alerts */}
-                        <div className="py-3.5 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs font-semibold text-km-text-primary">Urgent SMS Alerts</p>
-                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
-                                    {isRecruiter
-                                        ? "Receive priority SMS notifications for candidate confirmations within 2 hours of scheduled interviews."
-                                        : "Receive high-priority SMS messages for interview invitations and recruiter call requests."}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => handleToggle("sms_alerts")}
-                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
-                                    settings.sms_alerts ? "bg-km-primary" : "bg-km-border"
-                                }`}
-                                aria-label="Toggle urgent SMS alerts"
-                            >
-                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.sms_alerts ? "translate-x-5" : "translate-x-0"}`} />
-                            </button>
-                        </div>
-
-                        {/* Push Notifications */}
-                        <div className="py-3.5 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs font-semibold text-km-text-primary">Browser & Desktop Notifications</p>
-                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
-                                    Allow real-time push alerts on your desktop when active in the recruiter portal.
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => handleToggle("push_notifications")}
-                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
-                                    settings.push_notifications ? "bg-km-primary" : "bg-km-border"
-                                }`}
-                                aria-label="Toggle push notifications"
-                            >
-                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.push_notifications ? "translate-x-5" : "translate-x-0"}`} />
-                            </button>
-                        </div>
-
-                        {/* Marketing Updates */}
-                        <div className="py-3.5 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs font-semibold text-km-text-primary">Product Updates & Hiring Market Reports</p>
-                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
-                                    Occasional salary benchmarks, industry hiring trends, and ATS feature release announcements.
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => handleToggle("email_marketing")}
-                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
-                                    settings.email_marketing ? "bg-km-primary" : "bg-km-border"
-                                }`}
-                                aria-label="Toggle marketing emails"
-                            >
-                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.email_marketing ? "translate-x-5" : "translate-x-0"}`} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* TAB 2: PRIVACY & VISIBILITY */}
-            {activeTab === "privacy" && (
-                <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-6">
-                    <div>
-                        <h2 className="text-sm font-bold font-poppins text-km-text-primary">
-                            {isRecruiter ? "Company Brand & Job Posting Visibility" : "Privacy & Profile Visibility"}
-                        </h2>
-                        <p className="text-xs text-km-text-secondary mt-0.5">
-                            {isRecruiter 
-                                ? "Manage how your organization profile and active listings appear to job seekers across India."
-                                : "Determine who can discover your candidate profile and experience details."}
-                        </p>
-                    </div>
-
-                    <div className="space-y-3">
-                        <label className="text-xs font-semibold text-km-text-primary block">
-                            {isRecruiter ? "Company Profile Discovery Mode" : "Profile Visibility Mode"}
-                        </label>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            {[
-                                { 
-                                    id: "public", 
-                                    title: "Public (Recommended)", 
-                                    desc: isRecruiter 
-                                        ? "Visible to all active job seekers, search engines, and candidate talent discovery."
-                                        : "Visible to all verified employers, recruiters, and network connections." 
-                                },
-                                { 
-                                    id: "connections", 
-                                    title: isRecruiter ? "Direct Applicants Only" : "Connections Only", 
-                                    desc: isRecruiter 
-                                        ? "Detailed company contact data is visible only to candidates who apply to your jobs."
-                                        : "Only recruiters you interact with or connect to can view your full details." 
-                                },
-                                { 
-                                    id: "private", 
-                                    title: "Private / Confidential", 
-                                    desc: isRecruiter 
-                                        ? "Company identity is masked on public boards. Ideal for discreet executive hiring."
-                                        : "Hidden from general candidate searches. Only visible when you apply directly." 
-                                }
-                            ].map((opt) => (
-                                <div
-                                    key={opt.id}
-                                    onClick={() => handleSelectChange("profile_visibility", opt.id)}
-                                    className={`p-4 rounded-xl border transition-colors cursor-pointer space-y-1.5 ${
-                                        settings.profile_visibility === opt.id
-                                            ? "bg-blue-50/60 dark:bg-blue-950/30 border-km-primary"
-                                            : "bg-km-surface border-km-border hover:border-km-text-secondary/40"
-                                    }`}
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <p className="text-xs font-semibold text-km-text-primary font-poppins">{opt.title}</p>
-                                        {settings.profile_visibility === opt.id && (
-                                            <CheckCircleIcon size={16} weight="fill" className="text-km-primary dark:text-km-link" aria-hidden="true" />
-                                        )}
-                                    </div>
-                                    <p className="text-[11px] text-km-text-secondary leading-relaxed">{opt.desc}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="divide-y divide-km-border/70 pt-2">
-                        {/* Automated Match */}
-                        <div className="py-3.5 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs font-semibold text-km-text-primary">
-                                    {isRecruiter ? "Automated Candidate Matchmaking" : "Automated Skill Matching"}
-                                </p>
-                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
-                                    {isRecruiter 
-                                        ? "Automatically recommend top verified candidate profiles based on your active job descriptions."
-                                        : "Match your verified profile and skills with relevant recruiter requirements."}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => handleToggle("enable_ai_recommendations")}
-                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
-                                    settings.enable_ai_recommendations ? "bg-km-primary" : "bg-km-border"
-                                }`}
-                                aria-label="Toggle automated candidate matchmaking"
-                            >
-                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.enable_ai_recommendations ? "translate-x-5" : "translate-x-0"}`} />
-                            </button>
-                        </div>
-
-                        {/* Search Indexing */}
-                        <div className="py-3.5 flex items-center justify-between gap-4">
-                            <div>
-                                <p className="text-xs font-semibold text-km-text-primary">Search Engine & Google Jobs Indexing</p>
-                                <p className="text-[11px] text-km-text-secondary mt-0.5 leading-relaxed">
-                                    {isRecruiter
-                                        ? "Allow Google Jobs and external job aggregators to crawl and display your active openings for organic traffic."
-                                        : "Allow public search engines (Google Jobs) to index your candidate public profile link."}
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => handleToggle("search_engine_indexing")}
-                                className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 shrink-0 ${
-                                    settings.search_engine_indexing ? "bg-km-primary" : "bg-km-border"
-                                }`}
-                                aria-label="Toggle search engine indexing"
-                            >
-                                <div className={`w-5 h-5 bg-white rounded-full transition-transform shadow-xs ${settings.search_engine_indexing ? "translate-x-5" : "translate-x-0"}`} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* TAB 3: ACCOUNT SECURITY */}
-            {activeTab === "security" && (
-                <div className="space-y-5">
-                    {/* Status Overview Card */}
-                    <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-4">
-                        <div>
-                            <h2 className="text-sm font-bold font-poppins text-km-text-primary">Security Credentials & Verification</h2>
-                            <p className="text-xs text-km-text-secondary mt-0.5">Review verified contact credentials for account recovery.</p>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="p-3.5 bg-km-surface rounded-xl border border-km-border flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <DeviceMobileIcon size={20} weight="regular" className="text-km-primary dark:text-km-link" aria-hidden="true" />
-                                    <div>
-                                        <p className="text-[10px] text-km-text-secondary font-semibold uppercase">Mobile Number</p>
-                                        <p className="text-xs font-semibold text-km-text-primary font-mono">{userProfile?.mobile || "Not Linked"}</p>
-                                    </div>
-                                </div>
-                                <span className="px-2 py-0.5 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-semibold text-[10px] rounded-md border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1">
-                                    <ShieldCheckIcon size={12} weight="bold" /> Verified
-                                </span>
-                            </div>
-
-                            <div className="p-3.5 bg-km-surface rounded-xl border border-km-border flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <EnvelopeSimpleIcon size={20} weight="regular" className="text-km-primary dark:text-km-link" aria-hidden="true" />
-                                    <div className="min-w-0">
-                                        <p className="text-[10px] text-km-text-secondary font-semibold uppercase">Work Email</p>
-                                        <p className="text-xs font-semibold text-km-text-primary truncate max-w-[140px] font-mono">{userProfile?.email || "Not Set"}</p>
-                                    </div>
-                                </div>
-                                <span className={`px-2 py-0.5 font-semibold text-[10px] rounded-md border flex items-center gap-1 ${
-                                    userProfile?.is_email_verified 
-                                        ? "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800/60" 
-                                        : "bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60"
-                                }`}>
-                                    <ShieldCheckIcon size={12} weight="bold" /> {userProfile?.is_email_verified ? "Verified" : "Pending"}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Change Password Form */}
-                    <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-4">
-                        <div className="flex items-center gap-2.5">
-                            <KeyIcon size={20} weight="regular" className="text-km-primary dark:text-km-link" aria-hidden="true" />
-                            <div>
-                                <h3 className="text-sm font-bold font-poppins text-km-text-primary">Change Password</h3>
-                                <p className="text-xs text-km-text-secondary mt-0.5">Update your account login password securely.</p>
-                            </div>
-                        </div>
-
-                        <form onSubmit={handlePasswordChange} className="space-y-4 max-w-xl pt-2">
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-semibold text-km-text-primary block">Current Password</label>
-                                <input
-                                    type="password"
-                                    required
-                                    placeholder="Enter current password"
-                                    className="w-full px-3.5 py-2 rounded-xl border border-km-border bg-km-surface text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
-                                    value={passwordData.current_password}
-                                    onChange={e => setPasswordData({ ...passwordData, current_password: e.target.value })}
+                <div className="min-w-0 space-y-5">
+                    {activeTab === "notifications" && (
+                        <>
+                            <SettingsCard title="Email" description={emailVerified ? `Sent to ${profile?.email}` : undefined}>
+                                {!isRecruiter && (
+                                    <>
+                                        <SettingRow
+                                            title="Job alerts"
+                                            description={
+                                                emailVerified
+                                                    ? "A daily email with new jobs that match your city, skills and job title."
+                                                    : "A daily email with new matching jobs. Verify your email in Sign-in & security to receive it."
+                                            }
+                                            control={toggle("email_job_alerts", "Job alerts")}
+                                        />
+                                        <SettingRow
+                                            title="Application updates"
+                                            description="When an employer shortlists you, schedules an interview or changes your application status."
+                                            control={toggle("email_application_updates", "Application updates")}
+                                        />
+                                    </>
+                                )}
+                                <SettingRow
+                                    title="Product news & career tips"
+                                    description="Occasional emails about new features, salary insights and hiring events. Off unless you turn it on."
+                                    control={toggle("email_marketing", "Product news and career tips")}
                                 />
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-km-text-primary block">New Password</label>
-                                    <input
-                                        type="password"
-                                        required
-                                        placeholder="Min 6 characters"
-                                        className="w-full px-3.5 py-2 rounded-xl border border-km-border bg-km-surface text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
-                                        value={passwordData.new_password}
-                                        onChange={e => setPasswordData({ ...passwordData, new_password: e.target.value })}
-                                    />
+                            </SettingsCard>
+
+                            <SettingsCard title="SMS & push" description="Your choice is saved now and applied as soon as these channels launch.">
+                                <SettingRow
+                                    title="Urgent SMS alerts"
+                                    badge={<SoonBadge />}
+                                    description={isRecruiter
+                                        ? "Priority texts when candidates confirm or reschedule interviews."
+                                        : "Interview invitations and employer call requests by text message."}
+                                    control={toggle("sms_alerts", "Urgent SMS alerts")}
+                                />
+                                <SettingRow
+                                    title="Push notifications"
+                                    badge={<SoonBadge />}
+                                    description="Real-time alerts in the KaamMilega app and your browser."
+                                    control={toggle("push_notifications", "Push notifications")}
+                                />
+                            </SettingsCard>
+                        </>
+                    )}
+
+                    {activeTab === "privacy" && !isRecruiter && (
+                        <>
+                            <SettingsCard title="Who can see your profile">
+                                <fieldset className="pt-4">
+                                    <legend className="sr-only">Profile visibility</legend>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        {[
+                                            { id: "public", title: "Everyone", desc: "Employers and members can find and view your profile." },
+                                            { id: "connections", title: "Connections only", desc: "People can find you, but only connections and employers you apply to see your full profile." },
+                                            { id: "private", title: "Only employers I apply to", desc: "Hidden from search and suggestions. Employers see you only when you apply." },
+                                        ].map((opt) => {
+                                            const selected = settings.profile_visibility === opt.id;
+                                            return (
+                                                <label
+                                                    key={opt.id}
+                                                    className={`relative p-4 rounded-xl border cursor-pointer transition-colors ${
+                                                        selected ? "border-[#0B5ED7] bg-blue-50 ring-1 ring-[#0B5ED7]" : "border-km-border hover:border-slate-400"
+                                                    }`}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="profile_visibility"
+                                                        value={opt.id}
+                                                        checked={selected}
+                                                        onChange={() => update("profile_visibility", opt.id as UserSettingsState["profile_visibility"])}
+                                                        className="sr-only"
+                                                    />
+                                                    <span className="flex items-center justify-between gap-2">
+                                                        <span className="text-sm font-semibold text-km-text-primary">{opt.title}</span>
+                                                        <span
+                                                            aria-hidden="true"
+                                                            className={`h-4 w-4 rounded-full border-2 ${selected ? "border-[#0B5ED7] bg-[#0B5ED7] shadow-[inset_0_0_0_2px_white]" : "border-slate-300"}`}
+                                                        />
+                                                    </span>
+                                                    <span className="mt-1.5 block text-xs text-km-text-secondary leading-relaxed">{opt.desc}</span>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                </fieldset>
+                            </SettingsCard>
+
+                            <SettingsCard title="Discovery">
+                                <SettingRow
+                                    title="Suggest my profile to others"
+                                    description="Show you in “People you may know” and skill-based suggestions to other members and employers."
+                                    control={toggle("enable_ai_recommendations", "Suggest my profile to others")}
+                                />
+                                <SettingRow
+                                    title="Search engines"
+                                    badge={<Badge tone="neutral">Applies when public profiles launch</Badge>}
+                                    description="Let Google and other search engines show your public profile. Only applies while your profile is visible to everyone."
+                                    control={toggle("search_engine_indexing", "Search engines")}
+                                />
+                            </SettingsCard>
+                        </>
+                    )}
+
+                    {activeTab === "security" && <SecuritySection profile={profile || {}} onPasswordSet={loadProfile} />}
+
+                    {activeTab === "preferences" && (
+                        <SettingsCard title="Display">
+                            <SettingRow
+                                title="Language"
+                                badge={<SoonBadge />}
+                                description="Saved now. Hindi and Hinglish screens are on the way."
+                                control={
+                                    <select
+                                        aria-label="Language"
+                                        value={settings.language}
+                                        onChange={(e) => update("language", e.target.value as UserSettingsState["language"])}
+                                        className={`${inputClass} w-40`}
+                                    >
+                                        <option value="en">English</option>
+                                        <option value="hi">हिन्दी</option>
+                                        <option value="hinglish">Hinglish</option>
+                                    </select>
+                                }
+                            />
+                            {FEATURES.DARK_MODE && (
+                                <div className="py-4">
+                                    <p className="text-sm font-semibold text-km-text-primary">Theme</p>
+                                    <p className="mt-0.5 mb-3 text-sm text-km-text-secondary">System follows your device’s light or dark setting.</p>
+                                    <ThemeToggle className="max-w-sm" />
                                 </div>
-                                <div className="space-y-1.5">
-                                    <label className="text-xs font-semibold text-km-text-primary block">Confirm New Password</label>
-                                    <input
-                                        type="password"
-                                        required
-                                        placeholder="Re-type new password"
-                                        className="w-full px-3.5 py-2 rounded-xl border border-km-border bg-km-surface text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
-                                        value={passwordData.confirm_password}
-                                        onChange={e => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-                                    />
-                                </div>
-                            </div>
+                            )}
+                        </SettingsCard>
+                    )}
 
-                            <button
-                                type="submit"
-                                disabled={updatingPassword}
-                                className="px-5 py-2 rounded-xl bg-km-primary hover:bg-km-primary-dark text-white font-semibold text-xs shadow-xs transition-colors disabled:opacity-50"
-                            >
-                                {updatingPassword ? "Updating Password..." : "Update Password"}
-                            </button>
-                        </form>
-                    </div>
+                    {activeTab === "account" && <AccountSection />}
                 </div>
-            )}
-
-            {/* TAB 4: PREFERENCES & LANGUAGE */}
-            {activeTab === "preferences" && (
-                <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-6">
-                    <div>
-                        <h2 className="text-sm font-bold font-poppins text-km-text-primary">Regional & Language Preferences</h2>
-                        <p className="text-xs text-km-text-secondary mt-0.5">Configure language display and portal localized settings.</p>
-                    </div>
-
-                    <div className="space-y-5 max-w-xl">
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-semibold text-km-text-primary block">Portal Display Language</label>
-                            <select
-                                className="w-full px-3.5 py-2.5 rounded-xl border border-km-border text-xs font-medium text-km-text-primary bg-km-surface focus:border-km-primary outline-none transition-colors"
-                                value={settings.language}
-                                onChange={e => handleSelectChange("language", e.target.value)}
-                            >
-                                <option value="en">English (Default)</option>
-                                <option value="hi">हिंदी (Hindi)</option>
-                                <option value="hinglish">Hinglish (Mix)</option>
-                            </select>
-                        </div>
-
-                        <div className="p-4 bg-km-surface rounded-xl border border-km-border flex items-center justify-between">
-                            <div>
-                                <p className="text-xs font-semibold text-km-text-primary">Color Theme Canvas</p>
-                                <p className="text-[11px] text-km-text-secondary mt-0.5">High-contrast brand tokens applied across all dashboards.</p>
-                            </div>
-                            <span className="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/40 text-km-primary dark:text-km-link text-xs font-semibold rounded-lg border border-blue-100 dark:border-blue-900">
-                                System / Adaptive
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            )}
+            </div>
         </div>
     );
 }

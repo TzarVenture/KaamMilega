@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"strings"
 )
 
 // templateData is the single data-model passed to every email template.
@@ -36,6 +37,8 @@ type templateRegistry struct {
 	transactionReceipt *template.Template
 	withdrawalAdmin    *template.Template
 	emailOTP           *template.Template
+	accountNotice      *template.Template
+	jobAlert           *template.Template
 }
 
 // mustParseTemplates builds isolated template trees for every transactional email type.
@@ -47,6 +50,8 @@ func mustParseTemplates() *templateRegistry {
 		transactionReceipt: template.Must(template.New("transaction_receipt").Parse(baseLayout + transactionReceiptTmpl)),
 		withdrawalAdmin:    template.Must(template.New("withdrawal_admin").Parse(baseLayout + withdrawalAdminTmpl)),
 		emailOTP:           template.Must(template.New("email_otp").Parse(baseLayout + emailOTPTmpl)),
+		accountNotice:      template.Must(template.New("account_notice").Parse(baseLayout + accountNoticeTmpl)),
+		jobAlert:           template.Must(template.New("job_alert").Funcs(jobAlertFuncs).Parse(baseLayout + jobAlertTmpl)),
 	}
 }
 
@@ -64,6 +69,10 @@ func renderTemplate(reg *templateRegistry, name string, data templateData) (stri
 		t = reg.withdrawalAdmin
 	case "email_otp":
 		t = reg.emailOTP
+	case "account_notice":
+		t = reg.accountNotice
+	case "job_alert":
+		t = reg.jobAlert
 	default:
 		return "", fmt.Errorf("notification: unknown template %q", name)
 	}
@@ -292,6 +301,90 @@ const withdrawalAdminTmpl = `
 {{end}}
 `
 
+// ─── Account Lifecycle Notice Template ────────────────────────────────────────
+// .Status carries the notice kind; .Note the deletion date for "deletion_scheduled".
+// The badge-free layout keeps the message plain: this is a security-relevant email.
+
+const accountNoticeTmpl = `
+{{define "content"}}
+{{template "greeting" .}}
+{{if eq .Status "deactivated"}}
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  Your KaamMilega account has been <strong>deactivated</strong>. Your profile is hidden from employers and other members,
+  your job posts are paused, and you have been signed out on every device.
+</p>
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  Nothing has been deleted. Sign in any time to reactivate your account.
+</p>
+{{else if eq .Status "deletion_scheduled"}}
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  We received your request to <strong>delete your KaamMilega account</strong>. Your account is now deactivated and
+  will be permanently deleted on <strong>{{.Note}}</strong>.
+</p>
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  Changed your mind? Sign in before that date to restore your account. After it, your profile, photos and personal
+  details are erased and can't be recovered. Payment records are kept in anonymised form as required by law.
+</p>
+{{else if eq .Status "deletion_cancelled"}}
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  Your account deletion request was <strong>cancelled</strong>. Your account is active again and your profile and job posts are visible as before.
+</p>
+{{else if eq .Status "deleted"}}
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  Your KaamMilega account has been <strong>permanently deleted</strong>. Your profile, photos and personal details have been erased.
+</p>
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  Thank you for being part of KaamMilega. You're welcome back any time with a new account.
+</p>
+{{end}}
+{{template "cta_button" .}}
+<p style="margin:16px 0 0;color:#8F9AA8;font-size:13px;line-height:1.5;">
+  Didn't request this? Contact support@kaammilega.com right away.
+</p>
+{{end}}
+`
+
+// ─── Daily Job Alert Template ──────────────────────────────────────────────────
+// Each row: Label = job title, Value = "company · location|salary|url"
+
+var jobAlertFuncs = template.FuncMap{
+	"part": func(s string, i int) string {
+		parts := strings.SplitN(s, "|", 3)
+		if i < len(parts) {
+			return parts[i]
+		}
+		return ""
+	},
+}
+
+const jobAlertTmpl = `
+{{define "content"}}
+{{template "greeting" .}}
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  New jobs were posted that match your profile. Apply early: employers often hire from the first applicants.
+</p>
+{{range .Rows}}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #E3E9F1;border-radius:12px;margin:0 0 12px;">
+  <tr>
+    <td style="padding:14px 16px;">
+      <a href="{{part .Value 2}}" style="color:#071A4D;font-size:15px;font-weight:700;text-decoration:none;">{{.Label}}</a>
+      <div style="color:#5B6472;font-size:13px;margin-top:4px;">{{part .Value 0}}</div>
+      {{with part .Value 1}}<div style="color:#16A34A;font-size:13px;font-weight:600;margin-top:4px;">{{.}}</div>{{end}}
+    </td>
+    <td align="right" style="padding:14px 16px;white-space:nowrap;">
+      <a href="{{part .Value 2}}" style="color:#0B5ED7;font-size:13px;font-weight:600;text-decoration:none;">View job →</a>
+    </td>
+  </tr>
+</table>
+{{end}}
+{{template "cta_button" .}}
+<p style="margin:16px 0 0;color:#8F9AA8;font-size:12px;line-height:1.5;">
+  You get this email because job alerts are on.
+  <a href="https://kaammilega.com/settings?tab=notifications" style="color:#5B6472;">Turn off job alerts</a>
+</p>
+{{end}}
+`
+
 // ─── Email OTP Verification & Password Reset Template ─────────────────────────
 
 const emailOTPTmpl = `
@@ -300,6 +393,8 @@ const emailOTPTmpl = `
 <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
   {{if eq .Status "Password Reset"}}
     We received a request to reset your password. Use the 4-digit verification code below to proceed with setting a new password:
+  {{else if eq .Status "Account Verification"}}
+    Use the verification code below to confirm a change to your account (deactivation or deletion). Only enter it on kaammilega.com:
   {{else}}
     Please use the 4-digit verification code below to confirm your email address and complete your account setup:
   {{end}}
@@ -328,6 +423,8 @@ const emailOTPTmpl = `
 <p style="margin:0;color:#8F9AA8;font-size:13px;line-height:1.5;">
   {{if eq .Status "Password Reset"}}
     If you did not request a password reset, you can safely ignore this email. Your password will remain unchanged.
+  {{else if eq .Status "Account Verification"}}
+    If you did not request this, your account is safe: nothing changes without this code. Consider changing your password.
   {{else}}
     If you did not create an account or request this verification, please safely ignore this email.
   {{end}}

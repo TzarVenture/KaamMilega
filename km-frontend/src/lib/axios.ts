@@ -55,8 +55,15 @@ api.interceptors.response.use(
                 }
             }
 
-            // Keep the HTTP status so callers can tell auth failures from other errors
-            return Promise.reject(Object.assign(new Error(message), { status: error.response.status }));
+            // A deactivated or pending-deletion account can only reach the restore screen
+            if (error.response.status === 403 && errorData?.code === "ACCOUNT_INACTIVE" && typeof window !== "undefined") {
+                if (!window.location.pathname.startsWith("/account/restore")) {
+                    window.location.href = "/account/restore";
+                }
+            }
+
+            // Keep the HTTP status (and API error code) so callers can tell auth failures from other errors
+            return Promise.reject(Object.assign(new Error(message), { status: error.response.status, code: errorData?.code }));
         } else if (error.request) {
             // Network error
             return Promise.reject(new Error("Network Error. Please check your connection."));

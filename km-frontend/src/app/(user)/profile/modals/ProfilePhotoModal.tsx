@@ -89,7 +89,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
               type="file"
               ref={fileInputRef}
               className="hidden"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               onChange={handleFileChange}
             />
             {/* Edit Button - Trigger same file pick for now */}

@@ -2,11 +2,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowSquareOutIcon, BriefcaseIcon, CalendarBlankIcon, CaretDownIcon, DeviceMobileIcon, GraduationCapIcon, ListIcon, MagnifyingGlassIcon, SignInIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowSquareOutIcon, CaretDownIcon, DeviceMobileIcon, ListIcon, MagnifyingGlassIcon, SignInIcon, XIcon } from '@phosphor-icons/react';
+import { EventsNavIcon, InstantNavIcon, JobsNavIcon, MentorsNavIcon, NetworkNavIcon, type NavIcon } from './icons/NavIcons';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
-import AnimatedBoltIcon from './AnimatedBoltIcon';
 import { ThemeIconButton } from './ThemeToggle';
 import DownloadAppModal from './DownloadAppModal';
 import SearchHint from './SearchHint';
@@ -69,12 +69,12 @@ const GuestNavbar = () => {
         setMobileMenuOpen(false);
     };
 
-    const navLinks = [
-        { label: 'Jobs', href: '/jobs', icon: <BriefcaseIcon weight="bold" size={15} /> },
-        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', icon: <AnimatedBoltIcon size={16} />, isHighlighted: true }] : []),
-        { label: 'Mentors', href: '/mentorship', icon: <GraduationCapIcon weight="bold" size={15} /> },
-        { label: 'Events', href: '/events', icon: <CalendarBlankIcon weight="bold" size={15} /> },
-        { label: 'Network', href: '/network', icon: <UsersIcon weight="bold" size={15} /> },
+    const navLinks: { label: string; href: string; Icon: NavIcon; isHighlighted?: boolean }[] = [
+        { label: 'Jobs', href: '/jobs', Icon: JobsNavIcon },
+        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', Icon: InstantNavIcon, isHighlighted: true }] : []),
+        { label: 'Mentors', href: '/mentorship', Icon: MentorsNavIcon },
+        { label: 'Events', href: '/events', Icon: EventsNavIcon },
+        { label: 'Network', href: '/network', Icon: NetworkNavIcon },
     ];
 
     const isLinkActive = (item: { href: string }) => {
@@ -234,7 +234,7 @@ const GuestNavbar = () => {
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className={`relative flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${active
+                                        className={`group relative flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${active
                                                 ? item.isHighlighted
                                                     ? 'text-amber-900 bg-amber-100/80 font-bold shadow-xs'
                                                     : 'text-km-heading bg-blue-50/90 font-bold shadow-xs'
@@ -243,8 +243,8 @@ const GuestNavbar = () => {
                                                     : 'text-slate-600 hover:text-km-heading hover:bg-slate-50'
                                             }`}
                                     >
-                                        <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-heading') : (item.isHighlighted ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400')}>
-                                            {item.icon}
+                                        <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-heading') : (item.isHighlighted ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500')}>
+                                            <item.Icon size={17} strokeWidth={2} active={active} />
                                         </span>
                                         <span>{item.label}</span>
                                         {active && (
@@ -314,13 +314,13 @@ const GuestNavbar = () => {
                                         key={item.href}
                                         href={item.href}
                                         onClick={() => setMobileMenuOpen(false)}
-                                        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm font-semibold transition-colors ${item.isHighlighted
+                                        className={`group flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm font-semibold transition-colors ${item.isHighlighted
                                                 ? 'text-amber-800 bg-amber-50/80 font-bold border border-amber-200/60'
                                                 : 'text-slate-700 hover:bg-slate-50 hover:text-km-heading active:bg-slate-100'
                                             }`}
                                     >
                                         <span className={item.isHighlighted ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500'}>
-                                            {item.icon}
+                                            <item.Icon size={19} strokeWidth={1.9} active={isLinkActive(item)} />
                                         </span>
                                         <span>{item.label}</span>
                                     </Link>

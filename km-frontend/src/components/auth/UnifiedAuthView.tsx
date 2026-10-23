@@ -8,6 +8,7 @@ import AuthNavbar from '@/components/auth/AuthNavbar';
 import OtpInput from '@/components/ui/OtpInput';
 import api from '@/lib/axios';
 import { saveSession, isAuthenticated, getCurrentUser } from '@/lib/auth';
+import { ACCOUNT_RESTORE_PATH, needsAccountRestore } from '@/lib/account';
 
 export interface UnifiedAuthViewProps {
     initialRole?: 'user' | 'recruiter';
@@ -175,6 +176,11 @@ export default function UnifiedAuthView({
 
             if (res && res.user) {
                 saveSession(res.user, role);
+                // Deactivated or pending-deletion accounts restore themselves before anything else
+                if (needsAccountRestore(res.user)) {
+                    router.push(ACCOUNT_RESTORE_PATH);
+                    return;
+                }
 
                 if (isRecruiter) {
                     const hasCompany = Boolean(res.user?.company_name && res.user.company_name.trim());
@@ -281,6 +287,10 @@ export default function UnifiedAuthView({
 
             if (res && res.user) {
                 saveSession(res.user, 'user');
+                if (needsAccountRestore(res.user)) {
+                    router.push(ACCOUNT_RESTORE_PATH);
+                    return;
+                }
                 router.push(getCandidateRedirect());
             }
         } catch (err: any) {

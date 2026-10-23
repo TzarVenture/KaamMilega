@@ -200,6 +200,9 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 		andConditions = append(andConditions, bson.M{"salary_min": bson.M{"$lte": *filter.SalaryMax}})
 	}
 
+	// Jobs of a deactivated or pending-deletion recruiter account are hidden (internal/features/account)
+	andConditions = append(andConditions, bson.M{"hidden_by_account": bson.M{"$ne": true}})
+
 	// Experience
 	if filter.ExperienceMin != nil {
 		andConditions = append(andConditions, bson.M{"experience_max": bson.M{"$gte": *filter.ExperienceMin}})

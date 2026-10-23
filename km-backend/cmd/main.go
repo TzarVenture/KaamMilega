@@ -6,6 +6,7 @@ import (
 	common_api "km-backend/internal/common/api"
 	"km-backend/internal/config"
 	"km-backend/internal/database"
+	"km-backend/internal/features/account"
 	"km-backend/internal/features/application"
 	"km-backend/internal/features/chat"
 	"km-backend/internal/features/city"
@@ -20,6 +21,7 @@ import (
 	"km-backend/internal/features/event"
 	"km-backend/internal/features/file"
 	"km-backend/internal/features/job"
+	"km-backend/internal/features/jobalert"
 	"km-backend/internal/features/question"
 	"km-backend/internal/features/setting"
 	"km-backend/internal/features/skill"
@@ -46,6 +48,8 @@ import (
 func NewFiberServer() *fiber.App {
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
+		// Above file.MaxUploadSize (10 MB) so oversized uploads get a clear 413 from the handler
+		BodyLimit: 12 << 20,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
 			if e, ok := err.(*fiber.Error); ok {
@@ -162,6 +166,7 @@ func main() {
 			notification.NewNotificationRepository,
 			notification.NewNotificationHub,
 			testimonial.NewTestimonialRepository,
+			account.NewRepository,
 
 			// Services
 			notification.NewMailer,
@@ -187,6 +192,8 @@ func main() {
 			subscription.NewSubscriptionService,
 			instant_work.NewInstantWorkService,
 			testimonial.NewTestimonialService,
+			account.NewService,
+			jobalert.NewService,
 
 			// controllers
 			file.NewFileController,
@@ -210,6 +217,7 @@ func main() {
 			instant_work.NewInstantWorkController,
 			notification.NewNotificationController,
 			testimonial.NewTestimonialController,
+			account.NewController,
 
 			// routes
 			AsRoute(file.NewFileApi),
@@ -234,11 +242,20 @@ func main() {
 			AsRoute(instant_work.NewInstantWorkApi),
 			AsRoute(notification.NewNotificationApi),
 			AsRoute(testimonial.NewTestimonialApi),
+			AsRoute(account.NewApi),
 		),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}
 		}),
 		fx.Invoke(
+			// Every authenticated request checks the session version and account status
+			func(repo user.UserRepository) {
+				middleware.SetSessionLoader(user.NewSessionLoader(repo))
+			},
+			// Final account deletions after the grace period
+			account.RegisterDeletionWorker,
+			// Daily job-alert emails (settings.email_job_alerts)
+			jobalert.RegisterWorker,
 			// Register Routes & Start
 			RegisterAllRoutesWithAnnotation,
 			StartServer,

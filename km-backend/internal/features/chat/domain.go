@@ -24,6 +24,8 @@ type ParticipantInfo struct {
 	Headline     string   `json:"headline,omitempty"`
 	Roles        []string `json:"roles,omitempty"`
 	IsOnline     bool     `json:"is_online"`
+	// Unavailable: the account is deactivated or deleted; the chat is read-only
+	Unavailable bool `json:"unavailable,omitempty"`
 }
 
 type ConversationResponse struct {

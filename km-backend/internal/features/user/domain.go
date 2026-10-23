@@ -14,6 +14,23 @@ const (
 	RoleExpert    = "expert"
 )
 
+// Account lifecycle states (internal/features/account). An empty value means active,
+// so accounts created before the lifecycle existed need no migration.
+const (
+	AccountActive          = "active"
+	AccountDeactivated     = "deactivated"
+	AccountPendingDeletion = "pending_deletion"
+	AccountDeleted         = "deleted"
+)
+
+// InactiveAccountStatuses are hidden from every listing, search and profile view
+var InactiveAccountStatuses = []string{AccountDeactivated, AccountPendingDeletion, AccountDeleted}
+
+// IsActiveAccount reports whether a stored account_status counts as active
+func IsActiveAccount(status string) bool {
+	return status == "" || status == AccountActive
+}
+
 type Document struct {
 	Name string `bson:"name" json:"name"`
 	URL  string `bson:"url" json:"url"`
@@ -92,6 +109,20 @@ type User struct {
 	PostImpressions   int      `bson:"post_impressions,omitempty" json:"post_impressions"`
 	SearchAppearances int      `bson:"search_appearances,omitempty" json:"search_appearances"`
 	ProfileViewers    []string `bson:"profile_viewers,omitempty" json:"profile_viewers,omitempty"`
+
+	// Account lifecycle (see internal/features/account)
+	AccountStatus        string     `bson:"account_status,omitempty" json:"account_status,omitempty"`
+	DeactivatedAt        *time.Time `bson:"deactivated_at,omitempty" json:"deactivated_at,omitempty"`
+	DeletionRequestedAt  *time.Time `bson:"deletion_requested_at,omitempty" json:"deletion_requested_at,omitempty"`
+	DeletionScheduledFor *time.Time `bson:"deletion_scheduled_for,omitempty" json:"deletion_scheduled_for,omitempty"`
+	DeletedAt            *time.Time `bson:"deleted_at,omitempty" json:"-"`
+	// SessionVersion is embedded in every login token; incrementing it signs the user out everywhere
+	SessionVersion int `bson:"session_version,omitempty" json:"-"`
+	// JobAlertsLastRunAt is written by the job-alert worker. It must be part of this struct:
+	// UpdateUser replaces the whole document, so unknown fields would be erased on every save.
+	JobAlertsLastRunAt *time.Time `bson:"job_alerts_last_run_at,omitempty" json:"-"`
+	// HasPassword is computed for the owner's own profile response (never stored)
+	HasPassword bool `bson:"-" json:"has_password"`
 }
 
 type Education struct {
@@ -217,6 +248,9 @@ type UserFilter struct {
 	ExpertApprovalStatus string
 	Page                 int
 	Limit                int
+	// AdminView (admin endpoints only) also returns deactivated/deleted accounts and private
+	// profiles, and lets Search match mobile and email. Public views never search contact details.
+	AdminView bool
 }
 
 type ApplyExpertRequest struct {

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
+	"km-backend/internal/middleware"
 	"km-backend/internal/config"
 )
 
@@ -108,15 +108,9 @@ func (ctrl *CourseController) RecordView(c *fiber.Ctx) error {
 			tokenString = c.Cookies("km_auth_token")
 		}
 		if tokenString != "" {
-			token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
-				return []byte(ctrl.cfg.JWTSecret), nil
-			})
-			if err == nil && token.Valid {
-				if claims, ok := token.Claims.(jwt.MapClaims); ok {
-					if sub, ok := claims["sub"].(string); ok {
-						viewerID = sub
-					}
-				}
+			// A revoked or inactive session counts as an anonymous viewer
+			if sub, err := middleware.VerifyToken(c.Context(), tokenString, ctrl.cfg.JWTSecret); err == nil {
+				viewerID = sub
 			}
 		}
 	}

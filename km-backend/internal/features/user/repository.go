@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -44,6 +45,9 @@ type UserRepository interface {
 	FindUserByUsername(ctx context.Context, username string) (*User, error)
 	BackfillUsernames(ctx context.Context) error
 	HasActivePassOrSubscription(ctx context.Context, userID string) (bool, error)
+	BumpSessionVersion(ctx context.Context, userID string) (int, error)
+	HasRestrictedProfileAccess(ctx context.Context, ownerID, viewerID string, allowConnections bool) (bool, error)
+	GetSessionState(ctx context.Context, userID string) (found bool, status string, version int, err error)
 
 	ExportUsersCSV(ctx context.Context, role string) ([]byte, error)
 	ExportJobsCSV(ctx context.Context, status string) ([]byte, error)
@@ -204,13 +208,107 @@ func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *User) (*User,
 	return user, nil
 }
 
+// sessionVersionFilter matches a stored session_version (a missing field counts as 0)
+func sessionVersionFilter(version int) bson.M {
+	if version == 0 {
+		return bson.M{"$or": []bson.M{{"session_version": bson.M{"$exists": false}}, {"session_version": 0}}}
+	}
+	return bson.M{"session_version": version}
+}
+
+// ErrStaleUser is returned when the user changed account state (deactivated, deletion requested,
+// signed out everywhere) after this copy was read. Replacing it would silently undo that change.
+var ErrStaleUser = errors.New("your account changed in another session; please reload and try again")
+
 func (r *UserRepositoryImpl) UpdateUser(ctx context.Context, user *User) (*User, error) {
 	user.UpdatedAt = time.Now()
-	_, err := r.userColl.ReplaceOne(ctx, bson.M{"_id": user.ID}, user)
+	// Full-document replace, but only while the session version is unchanged: every account
+	// lifecycle transition bumps it, so a stale copy can never revert one
+	filter := bson.M{"$and": []bson.M{{"_id": user.ID}, sessionVersionFilter(user.SessionVersion)}}
+	res, err := r.userColl.ReplaceOne(ctx, filter, user)
 	if err != nil {
 		return nil, err
 	}
+	if res.MatchedCount == 0 {
+		return nil, ErrStaleUser
+	}
 	return user, nil
+}
+
+// HasRestrictedProfileAccess reports whether viewer may see owner's private or connections-only
+// profile: a recruiter the owner applied to always may; connections may when allowConnections.
+func (r *UserRepositoryImpl) HasRestrictedProfileAccess(ctx context.Context, ownerID, viewerID string, allowConnections bool) (bool, error) {
+	owner, err := primitive.ObjectIDFromHex(ownerID)
+	if err != nil {
+		return false, nil
+	}
+	viewer, err := primitive.ObjectIDFromHex(viewerID)
+	if err != nil {
+		return false, nil
+	}
+	applied, err := r.db.DB.Collection("applications").CountDocuments(ctx,
+		bson.M{"candidate_id": owner, "recruiter_id": viewer}, options.Count().SetLimit(1))
+	if err != nil {
+		return false, err
+	}
+	if applied > 0 {
+		return true, nil
+	}
+	if !allowConnections {
+		return false, nil
+	}
+	connected, err := r.db.DB.Collection("network_connections").CountDocuments(ctx, bson.M{
+		"status": "accepted",
+		"$or": []bson.M{
+			{"sender_id": owner, "receiver_id": viewer},
+			{"sender_id": viewer, "receiver_id": owner},
+		},
+	}, options.Count().SetLimit(1))
+	if err != nil {
+		return false, err
+	}
+	return connected > 0, nil
+}
+
+// BumpSessionVersion invalidates every login token issued so far and returns the new version
+func (r *UserRepositoryImpl) BumpSessionVersion(ctx context.Context, userID string) (int, error) {
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return 0, err
+	}
+	var out struct {
+		SessionVersion int `bson:"session_version"`
+	}
+	err = r.userColl.FindOneAndUpdate(ctx, bson.M{"_id": oid},
+		bson.M{"$inc": bson.M{"session_version": 1}, "$set": bson.M{"updated_at": time.Now()}},
+		options.FindOneAndUpdate().SetReturnDocument(options.After).SetProjection(bson.M{"session_version": 1}),
+	).Decode(&out)
+	if err != nil {
+		return 0, err
+	}
+	return out.SessionVersion, nil
+}
+
+// GetSessionState returns just the fields the auth middleware checks on every request
+func (r *UserRepositoryImpl) GetSessionState(ctx context.Context, userID string) (found bool, status string, version int, err error) {
+	oid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return false, "", 0, nil
+	}
+	var out struct {
+		AccountStatus  string `bson:"account_status"`
+		SessionVersion int    `bson:"session_version"`
+	}
+	err = r.userColl.FindOne(ctx, bson.M{"_id": oid},
+		options.FindOne().SetProjection(bson.M{"account_status": 1, "session_version": 1}),
+	).Decode(&out)
+	if err == mongo.ErrNoDocuments {
+		return false, "", 0, nil
+	}
+	if err != nil {
+		return false, "", 0, err
+	}
+	return true, out.AccountStatus, out.SessionVersion, nil
 }
 
 func (r *UserRepositoryImpl) UpdatePassword(ctx context.Context, userID string, passwordHash string) error {
@@ -300,13 +398,18 @@ func (r *UserRepositoryImpl) FindUsers(ctx context.Context, filter UserFilter) (
 	}
 
 	if filter.Search != "" {
-		regex := bson.M{"$regex": filter.Search, "$options": "i"}
-		andConditions = append(andConditions, bson.M{"$or": []bson.M{
+		// Escape the query so user input is matched literally, not as a regular expression
+		regex := bson.M{"$regex": regexp.QuoteMeta(filter.Search), "$options": "i"}
+		searchFields := []bson.M{
 			{"name": regex},
-			{"email": regex},
-			{"mobile": regex},
+			{"headline": regex},
 			{"company_name": regex},
-		}})
+		}
+		// Looking people up by phone number or email is an admin-only capability
+		if filter.AdminView {
+			searchFields = append(searchFields, bson.M{"email": regex}, bson.M{"mobile": regex})
+		}
+		andConditions = append(andConditions, bson.M{"$or": searchFields})
 	}
 
 	if filter.CompanyName != "" {
@@ -321,18 +424,12 @@ func (r *UserRepositoryImpl) FindUsers(ctx context.Context, filter UserFilter) (
 		andConditions = append(andConditions, bson.M{"expert_approval_status": filter.ExpertApprovalStatus})
 	}
 
-	// Enforce profile visibility: exclude "private" profiles from candidate search results.
-	// This ensures that users who set their profile to private are not discoverable
-	// by recruiters or other users via the search/listing endpoints.
-	if filter.Role == RoleUser || filter.Role == RoleExpert {
-		andConditions = append(andConditions, bson.M{
-			"$or": []bson.M{
-				{"settings.profile_visibility": bson.M{"$exists": false}},
-				{"settings.profile_visibility": ""},
-				{"settings.profile_visibility": "public"},
-				{"settings.profile_visibility": "connections"},
-			},
-		})
+	if !filter.AdminView {
+		// Private profiles are never discoverable through search or listings. Connections-only
+		// profiles stay findable (so people can connect) but their details are gated on view.
+		andConditions = append(andConditions, bson.M{"settings.profile_visibility": bson.M{"$ne": "private"}})
+		// Deactivated, pending-deletion and deleted accounts disappear everywhere
+		andConditions = append(andConditions, bson.M{"account_status": bson.M{"$nin": InactiveAccountStatuses}})
 	}
 
 	if len(andConditions) > 0 {

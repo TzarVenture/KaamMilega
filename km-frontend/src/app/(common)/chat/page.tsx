@@ -31,6 +31,8 @@ interface User {
   roles?: string[];
   headline?: string;
   is_online?: boolean;
+  /** Deactivated or deleted account: history stays, new messages are blocked */
+  unavailable?: boolean;
 }
 
 interface Conversation {
@@ -858,6 +860,7 @@ function ChatView() {
           openMobileChat();
         } catch (e) {
           console.error("Failed to resolve target user for chat deep-link", e);
+          toast.error("This member isn't available to message right now.");
         }
       }
     };
@@ -1117,6 +1120,10 @@ function ChatView() {
     }
     if (isBlockedByOther) {
       toast.error("You cannot send messages to this conversation.");
+      return;
+    }
+    if (other?.unavailable) {
+      toast.error("This member isn't available on KaamMilega right now.");
       return;
     }
 
@@ -2342,7 +2349,14 @@ function ChatView() {
               )}
 
               {/* Input Bar or Blocked Notice (F59) */}
-              {isBlockedByMe ? (
+              {activePartner?.unavailable ? (
+                <div role="status" className="flex items-center gap-2.5 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-600 shadow-xs">
+                  <ProhibitIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
+                  <span className="font-medium">
+                    This account is no longer active, so you can&apos;t reply. Your earlier messages stay here.
+                  </span>
+                </div>
+              ) : isBlockedByMe ? (
                 <div className="flex items-center justify-between gap-3 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-700 shadow-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <ProhibitIcon weight="bold" size={17} className="text-slate-500 shrink-0" />
@@ -2372,7 +2386,7 @@ function ChatView() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    accept="image/jpeg,image/png,image/webp,image/gif,.pdf,.doc,.docx,.txt"
                     onChange={handleFileSelect}
                     className="hidden"
                   />

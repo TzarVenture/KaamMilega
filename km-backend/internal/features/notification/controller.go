@@ -8,7 +8,7 @@ import (
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
+	"km-backend/internal/middleware"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -165,23 +165,9 @@ func (c *NotificationController) WebSocketHandler(conn *websocket.Conn) {
 		return
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		return []byte(c.config.JWTSecret), nil
-	})
-
-	if err != nil || !token.Valid {
-		conn.Close()
-		return
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		conn.Close()
-		return
-	}
-
-	userID, ok := claims["sub"].(string)
-	if !ok || userID == "" {
+	// Same checks as the HTTP middleware: signed-out sessions and inactive accounts can't connect
+	userID, err := middleware.VerifyToken(context.Background(), tokenString, c.config.JWTSecret)
+	if err != nil {
 		conn.Close()
 		return
 	}

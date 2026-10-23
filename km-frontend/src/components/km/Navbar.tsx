@@ -1,12 +1,23 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
 
-import { ArrowUpRightIcon, BellIcon, BooksIcon, BriefcaseIcon, CardsThreeIcon, CalendarDotsIcon, CaretDownIcon, ChalkboardTeacherIcon, ChatCircleDotsIcon, ChatIcon, CheckCircleIcon, CheckIcon, HouseSimpleIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, UsersIcon, UsersThreeIcon, XIcon } from '@phosphor-icons/react';
-import type { Icon } from '@phosphor-icons/react';
+import { ArrowUpRightIcon, CaretDownIcon, CheckCircleIcon, CheckIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, XIcon } from '@phosphor-icons/react';
+import {
+  ChatNavIcon,
+  EventsNavIcon,
+  FeedNavIcon,
+  HomeNavIcon,
+  InstantNavIcon,
+  JobsNavIcon,
+  MentorsNavIcon,
+  NetworkNavIcon,
+  NotificationsNavIcon,
+  ResourcesNavIcon,
+  type NavIcon,
+} from "./icons/NavIcons";
 import CitySelector from "./CitySelector";
 import BrandLogo from "./BrandLogo";
 import ThemeToggle, { ThemeIconButton } from "./ThemeToggle";
-import AnimatedBoltIcon from "./AnimatedBoltIcon";
 import SearchHint from "./SearchHint";
 import CustomImage from "@/components/ui/CustomImage";
 import Image from "next/image";
@@ -21,7 +32,7 @@ import {
 
 interface NavLink {
   href: string;
-  Icon: Icon | typeof AnimatedBoltIcon;
+  Icon: NavIcon;
   label: string;
   /** Brand-coloured icon */
   accent?: boolean;
@@ -165,17 +176,17 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
   };
 
   const navLinks: NavLink[] = [
-    { href: "/", Icon: HouseSimpleIcon, label: "Home" },
-    { href: "/feed", Icon: CardsThreeIcon, label: "Feed" },
+    { href: "/", Icon: HomeNavIcon, label: "Home" },
+    { href: "/feed", Icon: FeedNavIcon, label: "Feed" },
     ...(FEATURES.INSTANT_MILEGA
-      ? [{ href: "/instant-milega", Icon: AnimatedBoltIcon, label: "InstantMilega™" }]
+      ? [{ href: "/instant-milega", Icon: InstantNavIcon, label: "InstantMilega™" }]
       : []),
-    { href: "/network", Icon: UsersThreeIcon, label: "Network" },
-    { href: "/events", Icon: CalendarDotsIcon, label: "Events" },
-    { href: "/jobs", Icon: BriefcaseIcon, label: "Jobs" },
-    { href: "/mentorship", Icon: ChalkboardTeacherIcon, label: "Mentors" },
-    { href: "/chat", Icon: ChatCircleDotsIcon, label: "Chat" },
-    ...(!isRecruiter ? [{ href: "/resources", Icon: BooksIcon, label: "Resources" }] : []),
+    { href: "/network", Icon: NetworkNavIcon, label: "Network" },
+    { href: "/events", Icon: EventsNavIcon, label: "Events" },
+    { href: "/jobs", Icon: JobsNavIcon, label: "Jobs" },
+    { href: "/mentorship", Icon: MentorsNavIcon, label: "Mentors" },
+    { href: "/chat", Icon: ChatNavIcon, label: "Chat" },
+    ...(!isRecruiter ? [{ href: "/resources", Icon: ResourcesNavIcon, label: "Resources" }] : []),
   ];
 
   return (
@@ -240,7 +251,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     aria-current={isActive ? "page" : undefined}
                   >
                     <span className="relative">
-                      <Icon size={22} weight="duotone" className={accent ? "text-[#FF6B00]" : undefined} aria-hidden="true" />
+                      <Icon size={22} active={isActive} className={accent ? "text-[#FF6B00]" : undefined} />
                       {href === "/chat" && chatUnreadCount > 0 && (
                         <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-[#FF6B00] text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white dark:border-km-surface-card">
                           {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
@@ -272,7 +283,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 aria-label="Notifications"
               >
                 <span className="relative">
-                  <BellIcon size={22} weight="duotone" aria-hidden="true" />
+                  <NotificationsNavIcon size={22} active={pathname === "/notifications" || notifDropdownOpen} />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white dark:border-km-surface-card">
                       {unreadCount > 99 ? "99+" : unreadCount}
@@ -394,19 +405,19 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                                   </div>
                                 ) : notif.category === "messages" ? (
                                   <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
-                                    <ChatIcon size={22} weight="duotone" />
+                                    <ChatNavIcon size={22} />
                                   </span>
                                 ) : notif.category === "jobs" ? (
                                   <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
-                                    <BriefcaseIcon size={22} weight="duotone" />
+                                    <JobsNavIcon size={22} />
                                   </span>
                                 ) : notif.category === "network" ? (
                                   <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
-                                    <UsersIcon size={22} weight="duotone" />
+                                    <NetworkNavIcon size={22} />
                                   </span>
                                 ) : (
                                   <span className="w-8 h-8 flex items-center justify-center text-km-heading" aria-hidden="true">
-                                    <BellIcon size={22} weight="duotone" />
+                                    <NotificationsNavIcon size={22} />
                                   </span>
                                 )}
                               </div>
@@ -652,13 +663,10 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
               className="p-1 block relative"
               aria-label="Notifications"
             >
-              <BellIcon weight="fill"
-                size={20}
-                className={
-                  unreadCount > 0
-                    ? "fill-gray-700 text-gray-700"
-                    : "text-gray-600"
-                }
+              <NotificationsNavIcon
+                size={22}
+                active={pathname === "/notifications"}
+                className={unreadCount > 0 ? "text-km-heading" : "text-gray-600"}
               />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white shadow-2xs dark:border-km-surface-card">
@@ -762,10 +770,11 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileNavOpen(false)}
-                  className="flex items-center justify-between px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-km-heading transition-colors"
+                  aria-current={isLinkActive(link.href) ? "page" : undefined}
+                  className={`group flex items-center justify-between px-5 py-3 text-sm font-semibold hover:bg-blue-50 hover:text-km-heading transition-colors ${isLinkActive(link.href) ? "text-km-heading" : "text-gray-700"}`}
                 >
                   <div className="flex items-center gap-4">
-                    <link.Icon size={18} weight="bold" className={link.accent ? "text-[#FF6B00]" : undefined} aria-hidden="true" /> {link.label}
+                    <link.Icon size={20} strokeWidth={1.9} active={isLinkActive(link.href)} className={link.accent ? "text-[#FF6B00]" : undefined} /> {link.label}
                   </div>
                   {link.href === "/chat" && chatUnreadCount > 0 && (
                     <span className="min-w-[18px] h-[18px] px-1.5 bg-[#FF6B00] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
