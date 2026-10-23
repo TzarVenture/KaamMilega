@@ -1,5 +1,6 @@
 'use client';
 
+import { BriefcaseIcon, ChatIcon } from '@phosphor-icons/react';
 import { notify } from '@/lib/notify';
 import { useTheme } from '@/lib/theme';
 
@@ -36,6 +37,13 @@ const examples: { group: string; items: { label: string; run: () => void }[] }[]
         items: [
             { label: 'Apply (succeeds)', run: () => void notify.promise(wait(1800), { loading: 'Sending application…', success: 'Application sent', error: 'Could not apply' }).catch(() => {}) },
             { label: 'Apply (fails, server reason)', run: () => void notify.promise(wait(1800, true), { loading: 'Sending application…', success: 'Application sent', error: 'Could not apply' }).catch(() => {}) },
+        ],
+    },
+    {
+        group: 'Live notifications',
+        items: [
+            { label: 'New message', run: () => notify.alert({ id: `demo-msg-${Date.now()}`, title: 'Priya Sharma', description: 'Hi! Is the electrician role in Pune still open?', icon: <ChatIcon size={16} weight="bold" />, actionLabel: 'Reply', onAction: () => {} }) },
+            { label: 'Job update', run: () => notify.alert({ id: `demo-job-${Date.now()}`, title: 'Application shortlisted', description: 'Sharma Electricals shortlisted you for Site Electrician.', icon: <BriefcaseIcon size={16} weight="bold" />, actionLabel: 'View', onAction: () => {} }) },
         ],
     },
     {

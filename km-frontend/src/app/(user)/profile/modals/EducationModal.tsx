@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
+import { notify } from "@/lib/notify";
 
 interface EducationModalProps {
     isOpen: boolean;
@@ -58,8 +59,10 @@ const EducationModal = ({ isOpen, onClose, onSuccess, educationToEdit }: Educati
             }
             onSuccess(response);
             onClose();
+            notify.success("Education saved");
         } catch (error) {
             console.error("Failed to save education:", error);
+            notify.error(error, "Could not save this education. Please try again.");
         } finally {
             setLoading(false);
         }

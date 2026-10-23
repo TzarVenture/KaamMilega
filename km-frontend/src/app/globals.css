@@ -634,12 +634,14 @@ body {
   }
 }
 
-/* Toasts (sonner, mounted once by components/km/AppToaster.tsx). Cards use the KaamMilega surface
-   tokens, so dark mode follows the app; each type gets a tinted icon chip. sonner injects its
-   CSS at runtime, after this file, so selectors carry an html prefix (and the theme attribute,
-   to beat sonner's own [data-sonner-theme=dark] palette) to win. */
+/* Toasts (sonner, mounted once by components/km/AppToaster.tsx). The card matches the app’s
+   raised surface (white on light pages, raised navy on dark pages, the same as menus and
+   modals) and separates from the page with a border and a soft brand shadow; the type colour
+   lives in the icon chip only. sonner injects its CSS at runtime, after this file, so selectors
+   carry an html prefix (and the theme attribute, to beat sonner's own [data-sonner-theme=dark]
+   palette) to win. */
 html [data-sonner-toaster][data-sonner-theme] {
-  --normal-bg: var(--km-surface-card);
+  --normal-bg: var(--km-surface-raised);
   --normal-border: var(--km-border);
   --normal-text: var(--km-text-primary);
   --border-radius: 14px;
@@ -648,7 +650,8 @@ html [data-sonner-toaster][data-sonner-theme] {
   --km-toast-error: #DC2626;
   --km-toast-warning: #B45309;
   --km-toast-info: #1D4ED8;
-  --km-toast-shadow: 0 12px 32px -14px rgba(7, 26, 77, 0.35), 0 2px 6px rgba(7, 26, 77, 0.06);
+  --km-toast-loading: #071A4D;
+  --km-toast-shadow: 0 16px 36px -16px rgba(7, 26, 77, 0.38), 0 2px 6px rgba(7, 26, 77, 0.07);
   font-family: var(--font-poppins), system-ui, sans-serif;
 }
 html.dark [data-sonner-toaster][data-sonner-theme] {
@@ -656,18 +659,22 @@ html.dark [data-sonner-toaster][data-sonner-theme] {
   --km-toast-error: #F87171;
   --km-toast-warning: #FBBF24;
   --km-toast-info: #60A5FA;
-  --km-toast-shadow: 0 14px 36px -12px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.3);
+  --km-toast-loading: #93C5FD;
+  --km-toast-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
-  padding: 14px 16px;
+  padding: 12px 40px 12px 14px;
   gap: 12px;
-  align-items: flex-start;
+  align-items: center;
   box-shadow: var(--km-toast-shadow);
+}
+html [data-sonner-toaster] [data-sonner-toast] [data-content] {
+  min-width: 0;
 }
 html [data-sonner-toaster] [data-sonner-toast] [data-title] {
   font-size: 14px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 html [data-sonner-toaster] [data-sonner-toast] [data-description] {
   margin-top: 2px;
@@ -675,38 +682,88 @@ html [data-sonner-toaster] [data-sonner-toast] [data-description] {
   line-height: 1.45;
   color: var(--km-text-secondary);
 }
-/* Icon chip tinted per type */
-html [data-sonner-toaster] [data-sonner-toast] [data-icon] {
-  width: 28px;
-  height: 28px;
-  margin: -3px 0 0;
+/* Icon chip: 30px circle, glyph centred, tinted with the type colour */
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon] {
+  width: 30px;
+  height: 30px;
+  margin: 0;
   flex-shrink: 0;
+  align-self: flex-start;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
-  color: var(--km-toast-tone, var(--km-primary));
-  background: color-mix(in srgb, var(--km-toast-tone, var(--km-primary)) 14%, transparent);
+  color: var(--km-toast-tone);
+  background: color-mix(in srgb, var(--km-toast-tone) 15%, transparent);
 }
-html [data-sonner-toaster] [data-sonner-toast] [data-icon] svg {
-  width: 17px;
-  height: 17px;
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon] svg {
   margin: 0;
 }
 html [data-sonner-toaster] [data-sonner-toast][data-type="success"] { --km-toast-tone: var(--km-toast-success); }
 html [data-sonner-toaster] [data-sonner-toast][data-type="error"] { --km-toast-tone: var(--km-toast-error); }
 html [data-sonner-toaster] [data-sonner-toast][data-type="warning"] { --km-toast-tone: var(--km-toast-warning); }
 html [data-sonner-toaster] [data-sonner-toast][data-type="info"] { --km-toast-tone: var(--km-toast-info); }
-html [data-sonner-toaster] [data-sonner-toast][data-type="loading"] { --km-toast-tone: var(--km-link); }
-/* Close button: always visible, 24px target, theme colours */
-html [data-sonner-toaster] [data-sonner-toast] [data-close-button] {
-  width: 22px;
-  height: 22px;
-  background: var(--km-surface-card);
-  border-color: var(--km-border);
+html [data-sonner-toaster] [data-sonner-toast][data-type="loading"],
+html [data-sonner-toaster] [data-sonner-toast][data-type="default"],
+html [data-sonner-toaster] [data-sonner-toast]:not([data-type]) { --km-toast-tone: var(--km-toast-loading); }
+/* Live notification alerts: sender photo fills the chip */
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon] img {
+  width: 30px;
+  height: 30px;
+  border-radius: 9999px;
+  object-fit: cover;
+}
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon]:has(img) {
+  background: transparent;
+}
+/* Action button (Reply / View): brand navy, readable in both themes */
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button] {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: #071A4D;
+  color: #FFFFFF;
+}
+html.dark [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button] {
+  background: #E8EEF8;
+  color: #071A4D;
+}
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button]:hover {
+  opacity: 0.9;
+}
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button]:focus-visible {
+  outline: 2px solid var(--km-link);
+  outline-offset: 2px;
+}
+.km-toast-spin {
+  animation: km-toast-spin 0.8s linear infinite;
+}
+@keyframes km-toast-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .km-toast-spin { animation-duration: 2.4s; }
+}
+/* Close button inside the card, top-right, 28px target */
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button] {
+  left: auto;
+  right: 8px;
+  top: 8px;
+  transform: none;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   color: var(--km-text-secondary);
 }
-html [data-sonner-toaster] [data-sonner-toast] [data-close-button]:hover {
-  background: var(--km-surface-raised);
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button]:hover {
+  background: var(--km-surface);
   color: var(--km-text-primary);
+}
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button]:focus-visible {
+  outline: 2px solid var(--km-link);
+  outline-offset: 1px;
 }

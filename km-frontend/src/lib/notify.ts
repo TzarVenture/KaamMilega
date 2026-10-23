@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { toast } from 'sonner';
 
 /**
@@ -76,6 +77,21 @@ export const notify = {
             error: (err: unknown) => (typeof m.error === 'function' ? m.error(err) : errorText(err, m.error)),
         });
         return p;
+    },
+
+    /**
+     * Live activity (new message, job update...): neutral card with the sender's avatar or a
+     * category icon and an action button. Same toaster, so it stacks with everything else.
+     */
+    alert(a: { id: string; title: string; description?: string; icon?: ReactNode; actionLabel: string; onAction: () => void }) {
+        if (typeof window === 'undefined') return undefined;
+        return toast(clean(a.title), {
+            id: `alert:${a.id}`,
+            description: a.description ? clean(a.description) : undefined,
+            icon: a.icon,
+            duration: 6000,
+            action: { label: a.actionLabel, onClick: a.onAction },
+        });
     },
 
     dismiss: (id?: string | number) => toast.dismiss(id),

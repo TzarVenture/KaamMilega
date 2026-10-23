@@ -7,7 +7,7 @@ import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '@/components/ui/UserAvatar';
 import ProfileConnectionCard, { ProfileCardUser } from '@/components/network/ProfileConnectionCard';
-import { errorText } from "@/lib/notify";
+import { errorText, notify } from "@/lib/notify";
 
 // --- Types ---
 interface User extends ProfileCardUser {
@@ -140,8 +140,10 @@ const NetworkPage = () => {
             await api.post('/network/accept', { sender_id: senderId });
             setInvitations(prev => prev.filter(inv => inv.sender_id !== senderId));
             setConnections(prev => [...prev, senderId]);
+            notify.success("Invitation accepted");
         } catch (e) {
             console.error("Failed to accept", e);
+            notify.error(e, "Could not accept this invitation. Please try again.");
         }
     };
 
@@ -151,6 +153,7 @@ const NetworkPage = () => {
             setInvitations(prev => prev.filter(inv => inv.sender_id !== senderId));
         } catch (e) {
             console.error("Failed to ignore", e);
+            notify.error(e, "Could not ignore this invitation. Please try again.");
         }
     };
 

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
+import { notify } from "@/lib/notify";
 
 interface ExperienceModalProps {
     isOpen: boolean;
@@ -61,8 +62,10 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess, experienceToEdit }: Exper
             }
             onSuccess(response);
             onClose();
+            notify.success("Experience saved");
         } catch (error) {
             console.error("Failed to save experience:", error);
+            notify.error(error, "Could not save this experience. Please try again.");
         } finally {
             setLoading(false);
         }

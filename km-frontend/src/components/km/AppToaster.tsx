@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { Toaster } from 'sonner';
+import { CheckIcon, CircleNotchIcon, InfoIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
 
 // Watch the class on <html> itself: the theme switch animates, so the `dark` class can flip
 // after useTheme's change event has already been read
@@ -11,6 +12,15 @@ function subscribe(onChange: () => void) {
     return () => observer.disconnect();
 }
 const readIsDark = () => document.documentElement.classList.contains('dark');
+
+// Our own glyphs, centred in the tinted chip (sonner's defaults are built for a 16px left-aligned slot)
+const icons = {
+    success: <CheckIcon size={15} weight="bold" />,
+    error: <XIcon size={15} weight="bold" />,
+    warning: <WarningIcon size={15} weight="bold" />,
+    info: <InfoIcon size={16} weight="bold" />,
+    loading: <CircleNotchIcon size={16} weight="bold" className="km-toast-spin" />,
+};
 
 /**
  * The single toast viewport for the whole app (mounted once in the root layout): top-centre
@@ -28,6 +38,7 @@ export default function AppToaster() {
             visibleToasts={3}
             gap={10}
             closeButton
+            icons={icons}
             containerAriaLabel="Notifications"
             toastOptions={{ closeButtonAriaLabel: 'Dismiss notification' }}
         />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import api from '@/lib/axios';
+import { notify } from "@/lib/notify";
 
 interface EditAboutModalProps {
   isOpen: boolean;
@@ -26,8 +27,10 @@ const EditAboutModal = ({ isOpen, onClose, user, onSuccess }: EditAboutModalProp
       const response = await api.patch('/user/profile', { about: aboutText });
       onSuccess(response);
       onClose();
+      notify.success("About section saved");
     } catch (error) {
       console.error("Failed to update about section:", error);
+      notify.error(error, "Could not save your About section. Please try again.");
     } finally {
       setLoading(false);
     }

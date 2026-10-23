@@ -3,6 +3,7 @@ import ModalWrapper from '@/components/ui/ModalWrapper';
 import { CameraIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import CustomImage from '@/components/ui/CustomImage';
+import { notify } from "@/lib/notify";
 
 interface ProfilePhotoModalProps {
   isOpen: boolean;
@@ -35,8 +36,10 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
       const userResponse = await api.patch('/user/profile', { profile_image: newImageUrl });
       onSuccess(userResponse);
       onClose();
+      notify.success("Profile photo updated");
     } catch (error) {
       console.error("Failed to upload/update profile photo:", error);
+      notify.error(error, "Could not update your profile photo. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -49,8 +52,10 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
       const response = await api.patch('/user/profile', { profile_image: "" });
       onSuccess(response);
       onClose();
+      notify.success("Profile photo removed");
     } catch (error) {
       console.error("Failed to delete profile photo:", error);
+      notify.error(error, "Could not remove your profile photo. Please try again.");
     } finally {
       setLoading(false);
     }
