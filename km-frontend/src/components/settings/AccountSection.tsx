@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import { ArrowRightIcon, DownloadSimpleIcon, LockIcon, PauseCircleIcon, TrashIcon, WarningIcon } from '@phosphor-icons/react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import OtpInput from '@/components/ui/OtpInput';
@@ -153,7 +153,7 @@ function AccountActionDialog({ kind, overview, onClose }: { kind: Kind; overview
                             )}
                         </ul>
                         {isDelete && (
-                            <button type="button" onClick={() => downloadAccountData().catch(() => toast.error('Could not prepare your data.'))}
+                            <button type="button" onClick={() => downloadAccountData().catch(() => notify.error('Could not prepare your data.'))}
                                 className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-km-link hover:underline cursor-pointer">
                                 <DownloadSimpleIcon size={16} weight="bold" aria-hidden="true" /> Download a copy of your data first
                             </button>
@@ -292,7 +292,7 @@ export default function AccountSection() {
         try {
             await downloadAccountData();
         } catch {
-            toast.error('Could not prepare your data. Please try again.');
+            notify.error('Could not prepare your data. Please try again.');
         } finally {
             setExporting(false);
         }

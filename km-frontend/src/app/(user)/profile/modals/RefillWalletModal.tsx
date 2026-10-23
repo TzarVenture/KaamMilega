@@ -5,6 +5,7 @@ import ModalWrapper from '@/components/ui/ModalWrapper';
 import { ArrowRightIcon, ArrowSquareOutIcon, ShieldCheckIcon, WalletIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import Link from 'next/link';
+import { errorText } from "@/lib/notify";
 
 interface RefillWalletModalProps {
     isOpen: boolean;
@@ -95,7 +96,7 @@ export default function RefillWalletModal({
                         onClose();
                     } catch (verifyErr: any) {
                         console.error('Payment verification failed', verifyErr);
-                        setError(verifyErr?.response?.data?.error || 'Payment verification failed. Please contact support.');
+                        setError(errorText(verifyErr, 'Payment verification failed. Please contact support.'));
                     } finally {
                         setLoading(false);
                     }
@@ -118,7 +119,7 @@ export default function RefillWalletModal({
             rzp.open();
         } catch (err: any) {
             console.error('Failed to initiate recharge:', err);
-            setError(err?.response?.data?.error || err.message || 'Failed to initiate recharge.');
+            setError(errorText(err, 'Failed to initiate recharge.'));
             setLoading(false);
         }
     };

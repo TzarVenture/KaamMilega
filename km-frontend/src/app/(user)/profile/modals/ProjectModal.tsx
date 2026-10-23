@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
+import { errorText } from "@/lib/notify";
 
 interface ProjectModalProps {
     isOpen: boolean;
@@ -177,9 +178,7 @@ const ProjectModal = ({ isOpen, projectToEdit, onClose, onSuccess }: ProjectModa
         } catch (err: any) {
             console.error('Failed to save project:', err);
             setError(
-                err.response?.data?.error ||
-                err.message ||
-                'Failed to save project. Please try again.'
+                errorText(err, 'Failed to save project. Please try again.')
             );
         } finally {
             setLoading(false);

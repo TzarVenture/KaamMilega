@@ -2,8 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { notify } from "@/lib/notify";
 import { BellIcon, CheckIcon, GlobeIcon, LockIcon, ShieldCheckIcon, UserCircleIcon } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
 import api from "@/lib/axios";
@@ -87,7 +86,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
     useEffect(() => {
         Promise.all([
             api.get("/user/settings").then((s) => setSettings({ ...DEFAULT_SETTINGS, ...(s as Partial<UserSettingsState>) })).catch(() => {
-                toast.error("Couldn’t load your saved settings. Showing defaults.");
+                notify.error("Couldn’t load your saved settings. Showing defaults.");
             }),
             loadProfile(),
         ]).finally(() => setLoading(false));
@@ -104,7 +103,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                 setSavedAt(Date.now());
             } catch (err) {
                 setSettings(previous);
-                toast.error(errorMessage(err, "Couldn’t save that change. Please try again."));
+                notify.error(errorMessage(err, "Couldn’t save that change. Please try again."));
             }
         });
     };
@@ -130,7 +129,6 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
 
     return (
         <div className="max-w-5xl mx-auto pb-16">
-            <ToastContainer position="top-center" autoClose={2500} hideProgressBar />
 
             <div className="flex items-end justify-between gap-4 pb-6">
                 <div>

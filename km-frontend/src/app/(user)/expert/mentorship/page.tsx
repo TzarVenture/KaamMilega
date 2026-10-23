@@ -4,8 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowSquareOutIcon, ArrowUpRightIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, LinkSimpleIcon, NotePencilIcon, PlusIcon, ShieldCheckIcon, TrashIcon, UserIcon, VideoCameraIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import Link from 'next/link';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify, errorText } from "@/lib/notify";
 
 interface WalletSummary {
   wallet_id: string;
@@ -60,7 +59,6 @@ export default function ExpertMentorshipManagement() {
 
   return (
     <main className="min-h-screen bg-[#fafafa] pb-20 dark:bg-white/5">
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-8">
         
         {/* Header with Quick Wallet & Payout Stats */}
@@ -198,16 +196,16 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
       setActionLoadingId(booking.id);
       await api.patch(`/mentorships/bookings/${booking.id}/status?status=${status}`);
       if (status === 'completed') {
-        toast.success(`🎉 Session Completed! ₹${booking.amount || 0} has been released from escrow into your Wallet Earnings!`);
+        notify.success(`🎉 Session Completed! ₹${booking.amount || 0} has been released from escrow into your Wallet Earnings!`);
       } else if (status === 'confirmed') {
-        toast.success("Session confirmed! Candidate has been notified.");
+        notify.success("Session confirmed! Candidate has been notified.");
       } else if (status === 'cancelled') {
-        toast.info("Session cancelled. Escrow payment was safely refunded to the candidate.");
+        notify.info("Session cancelled. Escrow payment was safely refunded to the candidate.");
       }
       onUpdate();
     } catch (e: any) {
-      const msg = e?.response?.data?.error || e.message || "Status update failed";
-      toast.error(`Error: ${msg}`);
+      const msg = errorText(e, "Status update failed");
+      notify.error(`Error: ${msg}`);
       console.error("Status update failed", e);
     } finally {
       setActionLoadingId(null);
@@ -221,11 +219,11 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
       await api.patch(`/mentorships/bookings/${meetingModalBooking.id}/meeting-link`, {
         meeting_link: meetingUrlInput.trim()
       });
-      toast.success("Meeting link updated successfully!");
+      notify.success("Meeting link updated successfully!");
       setMeetingModalBooking(null);
       onUpdate();
     } catch (e: any) {
-      toast.error("Failed to update meeting link");
+      notify.error("Failed to update meeting link");
     } finally {
       setIsSavingMeeting(false);
     }
@@ -486,14 +484,14 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
       setSaving(true);
       const activeDays = schedule.filter(d => d.isActive);
       if (activeDays.length === 0) {
-        toast.warning("Please enable at least one day of availability.");
+        notify.warning("Please enable at least one day of availability.");
         setSaving(false);
         return;
       }
       
       for (const d of activeDays) {
         if (d.startTime >= d.endTime) {
-          toast.error(`${d.name}: End time must be after start time.`);
+          notify.error(`${d.name}: End time must be after start time.`);
           setSaving(false);
           return;
         }
@@ -506,11 +504,11 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
       }));
 
       await api.put('/mentorships/availability', payload);
-      toast.success("Availability updated successfully!");
+      notify.success("Availability updated successfully!");
       if (onSaved) onSaved();
     } catch (err: any) {
       console.error("Failed to update availability", err);
-      toast.error(err?.response?.data?.error || "Failed to update availability");
+      notify.error(err, "Failed to update availability");
     } finally {
       setSaving(false);
     }
@@ -518,7 +516,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
 
   const handleDiscard = () => {
     setSchedule(buildInitialState());
-    toast.info("Changes reverted to saved schedule.");
+    notify.info("Changes reverted to saved schedule.");
   };
 
   const setWeekdayPreset = () => {

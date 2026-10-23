@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { PageHeaderSkeleton, CardGridSkeleton } from '@/components/ui/LoadingSkeleton';
 import TopEmployersWidget from '@/components/profile/TopEmployersWidget';
 import UserAvatar from '@/components/ui/UserAvatar';
+import { errorText } from "@/lib/notify";
 
 const OtherUserProfilePage = () => {
     const params = useParams();
@@ -45,7 +46,7 @@ const OtherUserProfilePage = () => {
             setIsPending(true);
         } catch (error: any) {
             console.error('Failed to send connection request:', error);
-            const msg = error?.response?.data?.error || error.message || '';
+            const msg = errorText(error, '');
             if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
                 setIsPending(true);
             }

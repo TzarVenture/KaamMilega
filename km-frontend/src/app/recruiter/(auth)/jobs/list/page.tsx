@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import Link from "next/link";
-import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 import { BriefcaseIcon, EyeIcon, FunnelSimpleIcon, MagnifyingGlassIcon, MapPinIcon, NotePencilIcon, TrashIcon } from '@phosphor-icons/react';
 
 import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -21,7 +20,7 @@ export default function ManageJobsPage() {
 
         } catch (error) {
             console.error("Failed to fetch jobs:", error);
-            toast.error("Failed to load jobs");
+            notify.error("Failed to load jobs");
         } finally {
             setLoading(false);
         }
@@ -37,10 +36,10 @@ export default function ManageJobsPage() {
         try {
             await api.delete(`/jobs/${id}`);
             setJobs(jobs.filter(job => job.id !== id));
-            toast.success("Job deleted successfully");
+            notify.success("Job deleted successfully");
         } catch (error) {
             console.error("Failed to delete job:", error);
-            toast.error("Failed to delete job");
+            notify.error("Failed to delete job");
         }
     };
 
@@ -60,7 +59,6 @@ export default function ManageJobsPage() {
 
     return (
         <div className="space-y-6 font-sans text-km-text-primary pb-16">
-            <ToastContainer />
 
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

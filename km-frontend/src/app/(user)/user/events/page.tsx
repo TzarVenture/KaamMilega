@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { BookmarkSimpleIcon, CalendarBlankIcon, CaretDownIcon, MapPinIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 
 interface EventData {
     id: string;
@@ -31,7 +31,7 @@ const EventsPage = () => {
             }
             setHasMore((res.data || []).length === 5); // Simple simple hasMore check
         } catch (error: any) {
-            toast.error(error.message || "Failed to load events");
+            notify.error(error.message || "Failed to load events");
         } finally {
             setLoading(false);
         }

@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { BuildingOfficeIcon, ChatIcon, CheckCircleIcon, ClockIcon, MapPinIcon, PhoneIcon, ShieldCheckIcon } from '@phosphor-icons/react';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import api from '@/lib/axios';
 
 export interface ActiveGig {
@@ -38,10 +38,10 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
         setCompleting(true);
         try {
             const updated: any = await api.put(`/instant-work/jobs/${job.id}/complete`);
-            toast.success('Shift marked complete. Awaiting employer approval.');
+            notify.success('Shift marked complete. Awaiting employer approval.');
             onStatusChange(updated);
         } catch (err: any) {
-            toast.error(err.message || 'Failed to update job status');
+            notify.error(err.message || 'Failed to update job status');
         } finally {
             setCompleting(false);
         }
@@ -114,7 +114,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                             ) : (
                                 <button
                                     type="button"
-                                    onClick={() => toast.info('Connecting with employer...')}
+                                    onClick={() => notify.info('Connecting with employer...')}
                                     className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
                                     <PhoneIcon weight="fill" size={14} className="fill-white" />

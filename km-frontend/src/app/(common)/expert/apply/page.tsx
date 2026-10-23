@@ -7,8 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { isAuthenticated } from "@/lib/auth";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { notify } from "@/lib/notify";
 
 interface PlanDetails {
   plan_type: string;
@@ -154,7 +153,7 @@ export default function ExpertProSubscriptionPage() {
       setPaymentProcessing(true);
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        toast.error("Failed to load Razorpay checkout gateway. Please check your connection.");
+        notify.error("Failed to load Razorpay checkout gateway. Please check your connection.");
         setPaymentProcessing(false);
         return;
       }
@@ -184,14 +183,14 @@ export default function ExpertProSubscriptionPage() {
               razorpay_signature: response.razorpay_signature,
             });
 
-            toast.success("🎉 Welcome to KaamMilega Pro Expert! Subscription activated.");
+            notify.success("🎉 Welcome to KaamMilega Pro Expert! Subscription activated.");
             setCheckoutModalOpen(false);
             setTimeout(() => {
               router.push("/expert/mentorship");
             }, 1200);
           } catch (err: any) {
             console.error("Verification failed", err);
-            toast.error(err?.response?.data?.error || "Payment verification failed. Please contact support.");
+            notify.error(err, "Payment verification failed. Please contact support.");
           } finally {
             setPaymentProcessing(false);
           }
@@ -210,7 +209,7 @@ export default function ExpertProSubscriptionPage() {
       rzp.open();
     } catch (err: any) {
       console.error("Order creation failed", err);
-      toast.error(err?.response?.data?.error || "Failed to initiate payment. Please try again.");
+      notify.error(err, "Failed to initiate payment. Please try again.");
       setPaymentProcessing(false);
     }
   };
@@ -222,14 +221,14 @@ export default function ExpertProSubscriptionPage() {
         plan_type: selectedPlan.plan_type,
       });
 
-      toast.success("🎉 Subscribed successfully via KaamMilega Wallet!");
+      notify.success("🎉 Subscribed successfully via KaamMilega Wallet!");
       setCheckoutModalOpen(false);
       setTimeout(() => {
         router.push("/expert/mentorship");
       }, 1200);
     } catch (err: any) {
       console.error("Wallet checkout failed", err);
-      toast.error(err?.response?.data?.error || "Wallet checkout failed. Please check your balance.");
+      notify.error(err, "Wallet checkout failed. Please check your balance.");
     } finally {
       setPaymentProcessing(false);
     }
@@ -240,7 +239,6 @@ export default function ExpertProSubscriptionPage() {
 
   return (
     <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-white/5">
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
       {/* Hero Banner */}
       <section className="bg-linear-to-br from-[#020617] via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">

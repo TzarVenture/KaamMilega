@@ -4,6 +4,7 @@ import { ArrowSquareOutIcon, BriefcaseIcon, CameraIcon, CaretDownIcon, CaretRigh
 import InterestsSection from './InterestSection';
 import { useEffect, useState, useRef } from 'react';
 import api from '@/lib/axios';
+import { notify } from '@/lib/notify';
 import { useRouter } from 'next/navigation';
 import EducationModal from './modals/EducationModal';
 import ExperienceModal from './modals/ExperienceModal';
@@ -125,7 +126,7 @@ const ProfilePage = () => {
             setUser(response);
         } catch (error) {
             console.error('Failed to delete experience:', error);
-            alert('Failed to delete experience. Please try again.');
+            notify.error(error, 'Failed to delete experience. Please try again.');
         } finally {
             setDeletingExpId(null);
         }
@@ -150,7 +151,7 @@ const ProfilePage = () => {
             setUser(response);
         } catch (error) {
             console.error('Failed to delete education:', error);
-            alert('Failed to delete education. Please try again.');
+            notify.error(error, 'Failed to delete education. Please try again.');
         } finally {
             setDeletingEduId(null);
         }
@@ -164,7 +165,7 @@ const ProfilePage = () => {
             setUser(response);
         } catch (error) {
             console.error('Failed to remove skill:', error);
-            alert('Failed to remove skill. Please try again.');
+            notify.error(error, 'Failed to remove skill. Please try again.');
         } finally {
             setDeletingSkill(null);
         }
@@ -189,7 +190,7 @@ const ProfilePage = () => {
             setUser(response);
         } catch (error) {
             console.error('Failed to delete project:', error);
-            alert('Failed to delete project. Please try again.');
+            notify.error(error, 'Failed to delete project. Please try again.');
         } finally {
             setDeletingProjectId(null);
         }
@@ -214,7 +215,7 @@ const ProfilePage = () => {
             setConnectedUserIds((prev) => [...prev, targetId]);
         } catch (err: any) {
             console.error('Failed to send connection request:', err);
-            alert(err.message || 'Could not send invitation.');
+            notify.error(err, 'Could not send invitation.');
         } finally {
             setConnectingUserId(null);
         }

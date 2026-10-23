@@ -8,8 +8,7 @@ import Image from 'next/image';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getCurrentPortalRole } from '@/lib/auth';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 import HeroSection from '@/components/home/HeroSection';
 import SevenServicesSection from '@/components/home/SevenServicesSection';
@@ -65,7 +64,7 @@ export default function LandingPage() {
 
   const handleChat = (id: string) => {
     if (!isAuthenticated()) {
-      toast.info("Please sign in to chat with professionals", { position: "top-center" });
+      notify.info("Please sign in to chat with professionals");
       router.push(`/login?redirect=${encodeURIComponent(`/chat?userId=${id}`)}`);
       return;
     }
@@ -74,22 +73,22 @@ export default function LandingPage() {
 
   const handleConnect = async (id: string, name?: string) => {
     if (!isAuthenticated()) {
-      toast.info("Please sign in to connect with professionals", { position: "top-center" });
+      notify.info("Please sign in to connect with professionals");
       router.push('/login?redirect=/');
       return;
     }
 
     try {
       await api.post('/network/connect', { receiver_id: id });
-      toast.success(`Invitation sent to ${name || 'member'}!`);
+      notify.success(`Invitation sent to ${name || 'member'}!`);
       setPendingConnectIds(prev => [...prev, id]);
     } catch (e: any) {
       const msg = e.message || '';
       if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending') || msg.toLowerCase().includes('duplicate')) {
-        toast.info("Invitation already sent.");
+        notify.info("Invitation already sent.");
         setPendingConnectIds(prev => [...prev, id]);
       } else {
-        toast.error(msg || "Could not send invitation. Please try again.");
+        notify.error(msg || "Could not send invitation. Please try again.");
       }
     }
   };
@@ -206,7 +205,6 @@ export default function LandingPage() {
 
   return (
     <main className="min-h-screen font-sans antialiased">
-      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
       <HeroSection cities={cities} stats={stats} />
       <SuccessTicker />
       {isLoggedIn && currentUser && !['recruiter', 'admin'].includes(getCurrentPortalRole()) && (

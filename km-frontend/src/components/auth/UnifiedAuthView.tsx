@@ -9,6 +9,7 @@ import OtpInput from '@/components/ui/OtpInput';
 import api from '@/lib/axios';
 import { saveSession, isAuthenticated, getCurrentUser } from '@/lib/auth';
 import { ACCOUNT_RESTORE_PATH, needsAccountRestore } from '@/lib/account';
+import { errorText } from "@/lib/notify";
 
 export interface UnifiedAuthViewProps {
     initialRole?: 'user' | 'recruiter';
@@ -144,7 +145,7 @@ export default function UnifiedAuthView({
             setOtpStep('verify');
             setResendTimer(30);
         } catch (err: any) {
-            const rawMsg = err.response?.data?.error || err.message || '';
+            const rawMsg = errorText(err, '');
             setError(rawMsg || 'Failed to send verification code. Please try again.');
         } finally {
             setLoading(false);
@@ -213,7 +214,7 @@ export default function UnifiedAuthView({
                 }
             }
         } catch (err: any) {
-            setError(err.response?.data?.error || err.message || 'Invalid verification code.');
+            setError(errorText(err, 'Invalid verification code.'));
         } finally {
             setLoading(false);
         }
@@ -250,7 +251,7 @@ export default function UnifiedAuthView({
 
             router.push(getCandidateRedirect());
         } catch (err: any) {
-            setError(err.response?.data?.error || err.message || 'Failed to save name. Please try again.');
+            setError(errorText(err, 'Failed to save name. Please try again.'));
             setLoading(false);
         }
     };
@@ -294,7 +295,7 @@ export default function UnifiedAuthView({
                 router.push(getCandidateRedirect());
             }
         } catch (err: any) {
-            setError(err.response?.data?.error || err.message || 'Invalid email/mobile or password.');
+            setError(errorText(err, 'Invalid email/mobile or password.'));
         } finally {
             setLoading(false);
         }
@@ -318,7 +319,7 @@ export default function UnifiedAuthView({
             setForgotStep('reset');
             setSuccessMsg(`Reset code sent to ${forgotEmail}. Please check your inbox.`);
         } catch (err: any) {
-            setError(err.response?.data?.error || err.message || 'Failed to send reset code.');
+            setError(errorText(err, 'Failed to send reset code.'));
         } finally {
             setLoading(false);
         }
@@ -351,7 +352,7 @@ export default function UnifiedAuthView({
             setForgotCode('');
             setNewPassword('');
         } catch (err: any) {
-            setError(err.response?.data?.error || err.message || 'Failed to reset password.');
+            setError(errorText(err, 'Failed to reset password.'));
         } finally {
             setLoading(false);
         }

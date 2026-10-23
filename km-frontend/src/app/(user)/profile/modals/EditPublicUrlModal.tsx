@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CheckCircleIcon, CheckIcon, CircleNotchIcon, CopyIcon, GlobeIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 
 interface Props {
     isOpen: boolean;
@@ -129,12 +129,12 @@ export const EditPublicUrlModal: React.FC<Props> = ({
             const res = (await api.patch('/user/username', { username: trimmed })) as {
                 message?: string;
             };
-            toast.success(res?.message || 'Custom profile URL updated successfully');
+            notify.success(res?.message || 'Custom profile URL updated successfully');
             onUpdated(trimmed);
             onClose();
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : 'Failed to update URL';
-            toast.error(msg);
+            notify.error(msg);
         } finally {
             setSaving(false);
         }

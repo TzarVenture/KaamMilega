@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "@/lib/axios";
 import { ArrowSquareOutIcon, BriefcaseIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, CircleNotchIcon, ClockIcon, LightningIcon, PhoneCallIcon, StarIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { cn } from "@/lib/utils";
+import { errorText } from "@/lib/notify";
 
 type JobInfo = {
     id: string;
@@ -105,7 +106,7 @@ export default function ApplicationsPage() {
                     setSelectedId(data[0].id);
                 }
             } catch (err: any) {
-                setError(err.response?.data?.error || "Failed to load applications");
+                setError(errorText(err, "Failed to load applications"));
             } finally {
                 setLoading(false);
             }

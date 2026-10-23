@@ -7,6 +7,7 @@ import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '@/components/ui/UserAvatar';
 import ProfileConnectionCard, { ProfileCardUser } from '@/components/network/ProfileConnectionCard';
+import { errorText } from "@/lib/notify";
 
 // --- Types ---
 interface User extends ProfileCardUser {
@@ -159,7 +160,7 @@ const NetworkPage = () => {
             setSentPending(prev => [...prev, userId]);
         } catch (e: any) {
             console.error("Failed to connect", e);
-            const msg = e?.response?.data?.error || e.message || '';
+            const msg = errorText(e, '');
             if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
                 setSentPending(prev => [...prev, userId]);
             }

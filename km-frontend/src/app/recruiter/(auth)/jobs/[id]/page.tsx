@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import api from "@/lib/axios";
 import { ArrowLeftIcon, BuildingOfficeIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, CurrencyInrIcon, NotePencilIcon, TrashIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import Link from "next/link";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 
 export default function JobDetailsPage() {
     const router = useRouter();
@@ -22,7 +22,7 @@ export default function JobDetailsPage() {
                 setJob(data);
             } catch (error) {
                 console.error("Failed to fetch job", error);
-                toast.error("Job not found or access denied");
+                notify.error("Job not found or access denied");
                 router.push("/recruiter/jobs/list");
             } finally {
                 setLoading(false);
@@ -37,10 +37,10 @@ export default function JobDetailsPage() {
 
         try {
             await api.delete(`/jobs/${jobId}`);
-            toast.success("Job deleted successfully");
+            notify.success("Job deleted successfully");
             router.push("/recruiter/jobs/list");
         } catch (error) {
-            toast.error("Failed to delete job");
+            notify.error("Failed to delete job");
         }
     };
 

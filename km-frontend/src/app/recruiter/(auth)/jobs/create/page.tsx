@@ -19,7 +19,7 @@ import {
     ShieldCheckIcon 
 } from '@phosphor-icons/react';
 import Link from "next/link";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Step = 1 | 2 | 3;
@@ -118,10 +118,10 @@ export default function CreateJobPage() {
             };
 
             await api.post("/jobs", jobData);
-            toast.success("Job posted successfully!");
+            notify.success("Job posted successfully!");
             router.push("/recruiter");
         } catch (err: any) {
-            toast.error(err.message || "Failed to post job");
+            notify.error(err.message || "Failed to post job");
         } finally {
             setLoading(false);
         }

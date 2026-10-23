@@ -6,8 +6,7 @@ import { ArrowLeftIcon, ArrowSquareOutIcon, ArrowsClockwiseIcon, CalendarBlankIc
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 
 export default function MyMentorshipSessionsPage() {
   const [myBookings, setMyBookings] = useState<any[]>([]);
@@ -39,7 +38,7 @@ export default function MyMentorshipSessionsPage() {
       setMyBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch my bookings", err);
-      toast.error("Could not load booked sessions");
+      notify.error("Could not load booked sessions");
     } finally {
       setLoading(false);
     }
@@ -61,7 +60,7 @@ export default function MyMentorshipSessionsPage() {
         review: reviewComment,
       });
 
-      toast.success("Thank you! Your review has been submitted.");
+      notify.success("Thank you! Your review has been submitted.");
       setMyBookings(prev => prev.map(b => {
         const bId = b.id || b._id;
         if (bId === bookingId) {
@@ -72,7 +71,7 @@ export default function MyMentorshipSessionsPage() {
       setReviewModalBooking(null);
     } catch (err: any) {
       console.error("Failed to submit review", err);
-      toast.error(err?.response?.data?.error || "Failed to submit review. Make sure session is completed.");
+      notify.error(err, "Failed to submit review. Make sure session is completed.");
     } finally {
       setSubmittingReview(false);
     }
@@ -92,7 +91,6 @@ export default function MyMentorshipSessionsPage() {
 
   return (
     <main className="min-h-screen bg-[#fafafa] pb-24 dark:bg-white/5">
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
       {/* Clean Dashboard Header */}
       <section className="bg-km-surface-card border-b border-slate-200/80 pt-8 pb-8 px-4 md:px-8">

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import { CheckCircleIcon, DevicesIcon, EyeIcon, EyeSlashIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { errorMessage, revokeOtherSessions } from '@/lib/account';
@@ -44,7 +44,7 @@ export default function SecuritySection({ profile, onPasswordSet }: { profile: S
         setSaving(true);
         try {
             const res = (await api.put('/user/password', { current_password: hasPassword ? current : '', new_password: next })) as { message?: string };
-            toast.success(errorMessage(res, 'Password updated'));
+            notify.success(errorMessage(res, 'Password updated'));
             setCurrent('');
             setNext('');
             setConfirm('');
@@ -60,10 +60,10 @@ export default function SecuritySection({ profile, onPasswordSet }: { profile: S
         setSigningOut(true);
         try {
             const res = await revokeOtherSessions();
-            toast.success(res.message);
+            notify.success(res.message);
             setConfirmSignOut(false);
         } catch (err) {
-            toast.error(errorMessage(err, 'Could not sign out other devices.'));
+            notify.error(errorMessage(err, 'Could not sign out other devices.'));
         } finally {
             setSigningOut(false);
         }

@@ -20,7 +20,7 @@ import {
     ShieldCheckIcon 
 } from '@phosphor-icons/react';
 import Link from "next/link";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Step = 1 | 2 | 3;
@@ -87,7 +87,7 @@ export default function EditJobPage() {
                 });
             } catch (error: any) {
                 console.error("Failed to fetch job data", error);
-                toast.error("Failed to load job details");
+                notify.error("Failed to load job details");
                 router.push("/recruiter/jobs/list");
             } finally {
                 setFetching(false);
@@ -147,10 +147,10 @@ export default function EditJobPage() {
             };
 
             await api.patch(`/jobs/${jobId}`, jobData);
-            toast.success("Job updated successfully!");
+            notify.success("Job updated successfully!");
             router.push("/recruiter/jobs/list");
         } catch (err: any) {
-            toast.error(err.message || "Failed to update job");
+            notify.error(err.message || "Failed to update job");
         } finally {
             setLoading(false);
         }

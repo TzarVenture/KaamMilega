@@ -591,20 +591,6 @@ body {
   box-shadow: 0 0 0 1000px var(--km-surface-raised) inset;
   transition: background-color 9999s ease-out 0s;
 }
-/* react-toastify (light theme) reads these */
-.dark {
-  --toastify-color-light: var(--km-surface-raised);
-  --toastify-text-color-light: var(--km-text-primary);
-  --toastify-color-progress-light: linear-gradient(to right, #5b9bf0, #ff8a33);
-}
-.dark .Toastify__toast {
-  border: 1px solid var(--km-border);
-}
-.dark .Toastify__close-button--light {
-  color: var(--km-text-secondary);
-  opacity: 0.8;
-}
-
 /* ─── Theme switch (lib/theme.ts) ───────────────────────────────────────────────
    Default view transition = cross-fade. For the circular reveal the new snapshot is
    clipped open by JS, so the default fade is turned off and the new view sits on top. */
@@ -646,4 +632,41 @@ body {
     animation: none;
     opacity: 0;
   }
+}
+
+/* Toasts (sileo, mounted once by components/km/AppToaster). Light pages get a navy pill, dark
+   pages a light pill; state colours are re-tuned so titles and icons keep 4.5:1 contrast on each. */
+html [data-sileo-viewport] {
+  --sileo-width: min(360px, calc(100vw - 24px));
+  --sileo-height: 42px;
+  font-family: var(--font-poppins), system-ui, sans-serif;
+  z-index: 70;
+}
+[data-sileo-viewport][data-theme="light"] {
+  --sileo-state-success: #4ADE80;
+  --sileo-state-error: #FF8A80;
+  --sileo-state-warning: #FFC24B;
+  --sileo-state-info: #8EC5FF;
+  --sileo-state-loading: #CBD5E1;
+  --sileo-state-action: #FF9A4D;
+}
+[data-sileo-viewport][data-theme="dark"] {
+  --sileo-state-success: #15803D;
+  --sileo-state-error: #C62828;
+  --sileo-state-warning: #A15C00;
+  --sileo-state-info: #1D4ED8;
+  --sileo-state-loading: #475569;
+  --sileo-state-action: #C2410C;
+}
+/* sileo capitalises every word; our copy is sentence case. sileo injects its CSS at runtime,
+   after this file, so these overrides need the extra html prefix to win. */
+html [data-sileo-viewport] [data-sileo-title] {
+  text-transform: none;
+  font-weight: 600;
+}
+html [data-sileo-viewport][data-theme="light"] [data-sileo-description] {
+  color: rgba(255, 255, 255, 0.82);
+}
+html [data-sileo-viewport][data-theme="dark"] [data-sileo-description] {
+  color: #334155;
 }

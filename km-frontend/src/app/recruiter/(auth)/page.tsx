@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import Link from "next/link";
-import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 import { ArrowUpRightIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CaretRightIcon, ClockIcon, FileTextIcon, KanbanIcon, PlusCircleIcon, ShieldCheckIcon, TrendUpIcon, UserCheckIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 
 // --- Shimmer Loading Skeleton ---
@@ -43,7 +42,7 @@ export default function RecruiterDashboard() {
 
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
-            toast.error("Failed to refresh recruiter dashboard");
+            notify.error("Failed to refresh recruiter dashboard");
         } finally {
             setLoading(false);
         }
@@ -59,9 +58,9 @@ export default function RecruiterDashboard() {
                 app.id === id ? { ...app, status: newStatus } : app
             ));
             await api.patch(`/applications/${id}/status`, { status: newStatus });
-            toast.success(`Applicant status updated to ${newStatus}`);
+            notify.success(`Applicant status updated to ${newStatus}`);
         } catch (error) {
-            toast.error("Failed to update status");
+            notify.error("Failed to update status");
             fetchDashboardData();
         }
     };
@@ -83,7 +82,6 @@ export default function RecruiterDashboard() {
 
     return (
         <div className="space-y-6 font-sans text-km-text-primary pb-16">
-            <ToastContainer />
 
             {/* Recruiter Welcome Banner */}
             <div className="km-on-dark bg-gradient-to-r from-km-primary via-km-primary-dark to-km-primary text-white rounded-2xl p-6 sm:p-7 border border-km-primary-dark shadow-sm relative overflow-hidden">

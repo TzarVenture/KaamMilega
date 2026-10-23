@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { CircleNotchIcon, TrashIcon, WrenchIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 
 interface Props {
     isOpen: boolean;
@@ -63,7 +63,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (services.length === 0) {
-            toast.error('Please specify at least one service offered');
+            notify.error('Please specify at least one service offered');
             return;
         }
 
@@ -78,14 +78,14 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                 currency: 'INR',
                 description: description.trim(),
             })) as { user?: Record<string, unknown> };
-            toast.success('Service offerings updated');
+            notify.success('Service offerings updated');
             if (res?.user) {
                 onSuccess(res.user);
             }
             onClose();
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : 'Failed to save service offerings';
-            toast.error(msg);
+            notify.error(msg);
         } finally {
             setSaving(false);
         }
@@ -101,14 +101,14 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                 currency: 'INR',
                 description: description.trim(),
             })) as { user?: Record<string, unknown> };
-            toast.success('Removed service offerings from profile');
+            notify.success('Removed service offerings from profile');
             if (res?.user) {
                 onSuccess(res.user);
             }
             onClose();
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : 'Failed to update service offerings';
-            toast.error(msg);
+            notify.error(msg);
         } finally {
             setRemoving(false);
         }

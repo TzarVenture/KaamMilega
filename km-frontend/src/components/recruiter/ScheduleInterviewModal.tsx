@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import { CalendarBlankIcon, ClockIcon, FileTextIcon, MapPinIcon, PhoneIcon, VideoCameraIcon } from '@phosphor-icons/react';
 
 interface ScheduleInterviewModalProps {
@@ -37,12 +37,12 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
             };
 
             await api.post('/interviews', payload);
-            toast.success("Interview scheduled successfully!");
+            notify.success("Interview scheduled successfully!");
             onSuccess();
             onClose();
         } catch (error: any) {
             console.error("Failed to schedule interview:", error);
-            toast.error(error.message || "Failed to schedule interview");
+            notify.error(error.message || "Failed to schedule interview");
         } finally {
             setLoading(false);
         }

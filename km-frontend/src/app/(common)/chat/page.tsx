@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowSquareOutIcon, ArrowsClockwiseIcon, CaretDownIcon, CaretLeftIcon, ChatIcon, CheckCircleIcon, CheckIcon, ChecksIcon, CircleNotchIcon, ClockIcon, CopyIcon, DotsThreeVerticalIcon, DownloadSimpleIcon, FileTextIcon, FlagIcon, MagnifyingGlassIcon, PaperPlaneRightIcon, PaperclipIcon, ProhibitIcon, SmileyIcon, TrashIcon, UserIcon, XIcon } from '@phosphor-icons/react';
 import dynamic from "next/dynamic";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { playMessageReceivedSound } from "@/lib/sound";
 import {
@@ -474,7 +474,7 @@ function ChatView() {
           checkBlockStatus(otherId);
         }
       }
-      toast.success("Updated", { autoClose: 1200 });
+      notify.success("Updated");
     } catch (err) {
       console.error("Refresh failed", err);
     } finally {
@@ -860,7 +860,7 @@ function ChatView() {
           openMobileChat();
         } catch (e) {
           console.error("Failed to resolve target user for chat deep-link", e);
-          toast.error("This member isn't available to message right now.");
+          notify.error("This member isn't available to message right now.");
         }
       }
     };
@@ -1071,7 +1071,7 @@ function ChatView() {
 
     // Limit file size to 10MB
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size exceeds the 10 MB limit");
+      notify.error("File size exceeds the 10 MB limit");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -1115,15 +1115,15 @@ function ChatView() {
     if (!otherId) return;
 
     if (isBlockedByMe) {
-      toast.error("You have blocked this user. Unblock them to send messages.");
+      notify.error("You have blocked this user. Unblock them to send messages.");
       return;
     }
     if (isBlockedByOther) {
-      toast.error("You cannot send messages to this conversation.");
+      notify.error("You cannot send messages to this conversation.");
       return;
     }
     if (other?.unavailable) {
-      toast.error("This member isn't available on KaamMilega right now.");
+      notify.error("This member isn't available on KaamMilega right now.");
       return;
     }
 
@@ -1159,7 +1159,7 @@ function ChatView() {
         uploadedSize = uploadRes.size || pendingAttachment.file.size || 0;
       } catch (err: any) {
         console.error("File upload failed", err);
-        toast.error(
+        notify.error(
           err?.message || "Attachment upload failed. Please try again.",
         );
         setIsUploading(false);
@@ -1252,7 +1252,7 @@ function ChatView() {
         setIsPassModalOpen(true);
         loadChatEntitlement();
       }
-      toast.error(errMsg);
+      notify.error(errMsg);
       // Remove optimistic message on failure
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     } finally {
@@ -1431,7 +1431,7 @@ function ChatView() {
         block_user: reportModal.blockAlso,
       });
 
-      toast.success(
+      notify.success(
         "Thank you for letting us know. Our team will review this report.",
       );
 
@@ -1442,7 +1442,7 @@ function ChatView() {
       setReportModal((prev) => ({ ...prev, isOpen: false }));
     } catch (err: any) {
       console.error("Failed to submit chat report", err);
-      toast.error(err?.response?.data?.error || "Failed to submit report");
+      notify.error(err, "Failed to submit report");
     } finally {
       setReportModal((prev) => ({ ...prev, isSubmitting: false }));
     }
@@ -1473,7 +1473,7 @@ function ChatView() {
         if (currentUser) {
           loadConversations(currentUser.id, false);
         }
-        toast.success("Message deleted");
+        notify.success("Message deleted");
       } else if (confirmModal.type === "conversation") {
         const convId = confirmModal.targetId;
         await api.delete(`/chats/${convId}`);
@@ -1483,21 +1483,21 @@ function ChatView() {
           setMessages([]);
           setMobileChatOpen(false);
         }
-        toast.success("Conversation removed from your inbox");
+        notify.success("Conversation removed from your inbox");
       } else if (confirmModal.type === "block") {
         const targetUserId = confirmModal.targetId;
         await api.post(`/chats/users/${targetUserId}/block`);
         setIsBlockedByMe(true);
-        toast.success("User blocked");
+        notify.success("User blocked");
       } else if (confirmModal.type === "unblock") {
         const targetUserId = confirmModal.targetId;
         await api.post(`/chats/users/${targetUserId}/unblock`);
         setIsBlockedByMe(false);
-        toast.success("User unblocked");
+        notify.success("User unblocked");
       }
     } catch (e: any) {
       console.error("Action failed", e);
-      toast.error(e?.response?.data?.error || "Failed to complete request");
+      notify.error(e, "Failed to complete request");
     } finally {
       setIsDeleting(false);
       setConfirmModal((prev) => ({ ...prev, isOpen: false }));

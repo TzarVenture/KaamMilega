@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import { LinkIcon } from '@phosphor-icons/react';
+import { errorText } from "@/lib/notify";
 
 interface PortfolioLinkModalProps {
     isOpen: boolean;
@@ -42,7 +43,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
             onClose();
         } catch (err: any) {
             console.error('Failed to update portfolio link:', err);
-            setError(err.response?.data?.error || err.message || 'Failed to update link. Please check the URL.');
+            setError(errorText(err, 'Failed to update link. Please check the URL.'));
         } finally {
             setLoading(false);
         }
@@ -61,7 +62,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
             onClose();
         } catch (err: any) {
             console.error('Failed to remove portfolio link:', err);
-            setError(err.response?.data?.error || err.message || 'Failed to remove link.');
+            setError(errorText(err, 'Failed to remove link.'));
         } finally {
             setLoading(false);
         }
