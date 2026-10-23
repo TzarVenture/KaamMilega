@@ -13,6 +13,7 @@ type File struct {
 	Path             string             `json:"path" bson:"path"`
 	Size             int64              `json:"size" bson:"size"`
 	MimeType         string             `json:"mime_type" bson:"mime_type"`
+	ModuleName       string             `json:"module_name,omitempty" bson:"module_name,omitempty"`
 	RecordID         string             `json:"record_id,omitempty" bson:"record_id,omitempty"`
 	UploadedBy       primitive.ObjectID `json:"uploaded_by" bson:"uploaded_by"`
 	CreatedAt        time.Time          `json:"created_at" bson:"created_at"`

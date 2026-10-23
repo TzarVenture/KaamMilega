@@ -83,6 +83,15 @@ func (s *service) GetConversations(ctx context.Context, userID primitive.ObjectI
 					Roles:        roles,
 					IsOnline:     isOnline,
 				}
+				// History stays readable, but the other person is shown as unavailable and can't be messaged
+				if !user.IsActiveAccount(u.AccountStatus) {
+					otherUser = &ParticipantInfo{
+						ID:          otherID.Hex(),
+						Name:        "KaamMilega member",
+						Roles:       []string{"user"},
+						Unavailable: true,
+					}
+				}
 			}
 		}
 
@@ -103,7 +112,23 @@ func (s *service) GetConversations(ctx context.Context, userID primitive.ObjectI
 	return responses, nil
 }
 
+// ErrRecipientUnavailable: the receiver does not exist or is deactivated, pending deletion or deleted
+var ErrRecipientUnavailable = errors.New("This member isn't available on KaamMilega right now, so you can't message them.")
+
+// ErrMessageSelf: a conversation needs two different people
+var ErrMessageSelf = errors.New("You can't send a message to yourself.")
+
 func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, req CreateMessageRequest) (*Message, error) {
+	if req.ReceiverID == senderID {
+		return nil, ErrMessageSelf
+	}
+	if s.userRepo != nil {
+		receiver, err := s.userRepo.FindUserByID(ctx, req.ReceiverID.Hex())
+		if err != nil || receiver == nil || !user.IsActiveAccount(receiver.AccountStatus) {
+			return nil, ErrRecipientUnavailable
+		}
+	}
+
 	// Safety & Trust: Check if either party blocked the other
 	blocked, err := s.repo.IsBlockedEitherWay(ctx, senderID, req.ReceiverID)
 	if err != nil {

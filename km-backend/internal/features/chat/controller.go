@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -77,6 +78,12 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 	}
 
 	msg, err := c.service.SendMessage(ctx.Context(), senderID, req)
+	switch {
+	case errors.Is(err, ErrRecipientUnavailable):
+		return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error(), "code": "RECIPIENT_UNAVAILABLE"})
+	case errors.Is(err, ErrMessageSelf):
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

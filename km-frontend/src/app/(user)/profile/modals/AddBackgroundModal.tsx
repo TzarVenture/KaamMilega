@@ -51,7 +51,7 @@ const AddBackgroundModal = ({ isOpen, onClose, onSuccess }: AddBackgroundModalPr
           type="file"
           ref={fileInputRef}
           className="hidden"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           onChange={handleFileChange}
         />
 

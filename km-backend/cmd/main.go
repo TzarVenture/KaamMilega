@@ -48,6 +48,8 @@ import (
 func NewFiberServer() *fiber.App {
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
+		// Above file.MaxUploadSize (10 MB) so oversized uploads get a clear 413 from the handler
+		BodyLimit: 12 << 20,
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
 			code := fiber.StatusInternalServerError
 			if e, ok := err.(*fiber.Error); ok {

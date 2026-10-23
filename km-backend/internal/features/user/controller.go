@@ -300,7 +300,10 @@ func (ctrl *UserController) GetOtherUserProfile(c *fiber.Ctx) error {
 			}
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": msg, "visible": false})
 		}
-		// Owner-only detail
+		// Contact details and other owner-only fields never reach other members; admins see everything
+		if !hasRole(c, RoleAdmin) {
+			user = user.PublicView()
+		}
 		user.HasPassword = false
 		// Record view only for authentic other-user visits
 		if requesterID != "" {
@@ -322,7 +325,7 @@ func (ctrl *UserController) GetProfileViewers(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(viewers)
+	return c.JSON(PublicViews(viewers))
 }
 
 func (ctrl *UserController) AddEducation(c *fiber.Ctx) error {
@@ -669,7 +672,8 @@ func (ctrl *UserController) GetExperts(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(users)
+	// Public route: no contact details
+	return c.JSON(PublicViews(users))
 }
 
 func (ctrl *UserController) GetCommunityUsers(c *fiber.Ctx) error {
@@ -677,7 +681,8 @@ func (ctrl *UserController) GetCommunityUsers(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(users)
+	// Public route: no contact details
+	return c.JSON(PublicViews(users))
 }
 
 func (ctrl *UserController) GetPlatformStats(c *fiber.Ctx) error {
@@ -703,7 +708,7 @@ func (ctrl *UserController) SearchUsers(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	// Return basic info only
-	return c.JSON(users)
+	return c.JSON(PublicViews(users))
 }
 
 func (ctrl *UserController) ApplyForExpert(c *fiber.Ctx) error {

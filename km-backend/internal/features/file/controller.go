@@ -10,6 +10,7 @@ import (
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type FileController struct {
@@ -31,36 +32,49 @@ func NewFileController(fileService FileService, cfg *config.Config) *FileControl
 
 // UploadFile godoc
 // @Summary Upload file
-// @Description Upload a file associated with a module and record
+// @Description Upload an image, PDF, Word document or text file (max 10 MB). Requires sign-in.
 // @Tags files
 // @Accept multipart/form-data
 // @Produce json
 // @Param file formData file true "File to upload"
-// @Param module_name formData string true "Module Name"
-// @Param record_id formData string true "Record ID"
-// @Param description formData string false "File Description"
-// @Param is_shared formData boolean false "Shared status"
+// @Param module_name formData string false "Module Name"
+// @Param record_id formData string false "Record ID"
 // @Success 201 {object} File
 // @Failure 400 {object} map[string]any
 // @Failure 401 {object} map[string]any
+// @Failure 413 {object} map[string]any
+// @Failure 415 {object} map[string]any
 // @Failure 500 {object} map[string]any
 // @Router /api/files/upload [post]
 func (ctrl *FileController) UploadFile(c *fiber.Ctx) error {
-	file, err := c.FormFile("file")
+	uploader, err := primitive.ObjectIDFromHex(fmt.Sprint(c.Locals("user_id")))
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	fh, err := c.FormFile("file")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Error retrieving file",
 		})
 	}
 
-	originalName := filepath.Base(file.Filename)
-	timestamp := time.Now().UnixNano()
-	uniqueName := fmt.Sprintf("%d_%s", timestamp, originalName)
-	uniqueName = strings.ReplaceAll(uniqueName, " ", "_")
+	ext, mimeType, err := validateUpload(fh)
+	switch err {
+	case nil:
+	case errFileTooLarge:
+		return c.Status(fiber.StatusRequestEntityTooLarge).JSON(fiber.Map{"error": err.Error()})
+	case errFileType, errFileMismatch:
+		return c.Status(fiber.StatusUnsupportedMediaType).JSON(fiber.Map{"error": err.Error()})
+	default:
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 
+	originalName := filepath.Base(fh.Filename)
+	uniqueName := fmt.Sprintf("%d_%s%s", time.Now().UnixNano(), safeName(originalName), ext)
 	dstPath := filepath.Join(ctrl.UploadDir, uniqueName)
 
-	if err := c.SaveFile(file, dstPath); err != nil {
+	if err := c.SaveFile(fh, dstPath); err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Error saving file to disk",
 		})
@@ -70,12 +84,16 @@ func (ctrl *FileController) UploadFile(c *fiber.Ctx) error {
 		OriginalFilename: originalName,
 		Path:             dstPath,
 		URL:              ctrl.Config.FSURL + "/" + uniqueName,
-		Size:             file.Size,
-		MimeType:         file.Header.Get("Content-Type"),
+		Size:             fh.Size,
+		MimeType:         mimeType,
+		ModuleName:       strings.TrimSpace(c.FormValue("module_name")),
+		RecordID:         strings.TrimSpace(c.FormValue("record_id")),
+		UploadedBy:       uploader,
 		CreatedAt:        time.Now(),
 	}
 
 	if err := ctrl.FileService.SaveFile(c.UserContext(), fileRecord); err != nil {
+		os.Remove(dstPath)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "Error saving file metadata",
 		})
@@ -95,25 +113,24 @@ func (ctrl *FileController) UploadFile(c *fiber.Ctx) error {
 func (ctrl *FileController) DownloadFile(c *fiber.Ctx) error {
 	fileID := c.Params("id")
 
-	// Try to serve directly from disk first if it matches the pattern (unique name)
-	// This allows public access without tenant context/auth
-	filePath := filepath.Join(ctrl.UploadDir, fileID)
-	if _, err := os.Stat(filePath); err == nil {
-		// Extract original filename from unique name if possible
-		// Unique name format: timestamp_originalName
-		originalName := fileID
-		if parts := strings.SplitN(fileID, "_", 2); len(parts) > 1 {
-			originalName = parts[1]
+	// Only a bare stored name: anything with a separator or ".." could escape the upload folder
+	if fileID != "" && fileID == filepath.Base(fileID) && !strings.Contains(fileID, "..") && !strings.ContainsAny(fileID, `/\`) {
+		filePath := filepath.Join(ctrl.UploadDir, fileID)
+		if info, err := os.Stat(filePath); err == nil && !info.IsDir() {
+			// Unique name format: timestamp_originalName
+			originalName := fileID
+			if parts := strings.SplitN(fileID, "_", 2); len(parts) > 1 {
+				originalName = parts[1]
+			}
+			setSafeFileHeaders(c)
+			return c.Download(filePath, originalName)
 		}
-		return c.Download(filePath, originalName)
 	}
 
-	// Fallback to DB lookup if fileID is an ObjectID
-	// Note: This will only work if tenant context is present (from Auth)
-	// We wrap in a check to avoid panics if context is missing
 	if ctx := c.UserContext(); ctx != nil {
 		file, err := ctrl.FileService.GetFile(ctx, fileID)
 		if err == nil {
+			setSafeFileHeaders(c)
 			return c.Download(file.Path, file.OriginalFilename)
 		}
 	}
@@ -121,4 +138,12 @@ func (ctrl *FileController) DownloadFile(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 		"error": "File not found",
 	})
+}
+
+// setSafeFileHeaders stops an uploaded file from running as a page on the API origin: the
+// browser must not guess another type, and a sandboxed CSP blocks scripts in SVG or HTML.
+func setSafeFileHeaders(c *fiber.Ctx) {
+	c.Set("X-Content-Type-Options", "nosniff")
+	c.Set("Content-Security-Policy", "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox")
+	c.Set("Cross-Origin-Resource-Policy", "cross-origin")
 }
