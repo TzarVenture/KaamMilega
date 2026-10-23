@@ -55,7 +55,7 @@ export default function ToastPreview() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-bold text-km-heading">Toast preview</h1>
-                        <p className="text-sm text-km-text-secondary mt-1">sileo, KaamMilega theme. Toasts appear top-centre under the navbar. Hover a toast to keep it open; click to dismiss.</p>
+                        <p className="text-sm text-km-text-secondary mt-1">sonner, KaamMilega theme. Toasts stack top-centre under the navbar; hover to expand and pause, swipe or × to dismiss.</p>
                     </div>
                     <button
                         type="button"

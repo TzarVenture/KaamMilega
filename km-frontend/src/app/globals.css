@@ -634,39 +634,79 @@ body {
   }
 }
 
-/* Toasts (sileo, mounted once by components/km/AppToaster). Light pages get a navy pill, dark
-   pages a light pill; state colours are re-tuned so titles and icons keep 4.5:1 contrast on each. */
-html [data-sileo-viewport] {
-  --sileo-width: min(360px, calc(100vw - 24px));
-  --sileo-height: 42px;
+/* Toasts (sonner, mounted once by components/km/AppToaster.tsx). Cards use the KaamMilega surface
+   tokens, so dark mode follows the app; each type gets a tinted icon chip. sonner injects its
+   CSS at runtime, after this file, so selectors carry an html prefix (and the theme attribute,
+   to beat sonner's own [data-sonner-theme=dark] palette) to win. */
+html [data-sonner-toaster][data-sonner-theme] {
+  --normal-bg: var(--km-surface-card);
+  --normal-border: var(--km-border);
+  --normal-text: var(--km-text-primary);
+  --border-radius: 14px;
+  --width: 380px;
+  --km-toast-success: #15803D;
+  --km-toast-error: #DC2626;
+  --km-toast-warning: #B45309;
+  --km-toast-info: #1D4ED8;
+  --km-toast-shadow: 0 12px 32px -14px rgba(7, 26, 77, 0.35), 0 2px 6px rgba(7, 26, 77, 0.06);
   font-family: var(--font-poppins), system-ui, sans-serif;
-  z-index: 70;
 }
-[data-sileo-viewport][data-theme="light"] {
-  --sileo-state-success: #4ADE80;
-  --sileo-state-error: #FF8A80;
-  --sileo-state-warning: #FFC24B;
-  --sileo-state-info: #8EC5FF;
-  --sileo-state-loading: #CBD5E1;
-  --sileo-state-action: #FF9A4D;
+html.dark [data-sonner-toaster][data-sonner-theme] {
+  --km-toast-success: #4ADE80;
+  --km-toast-error: #F87171;
+  --km-toast-warning: #FBBF24;
+  --km-toast-info: #60A5FA;
+  --km-toast-shadow: 0 14px 36px -12px rgba(0, 0, 0, 0.65), 0 2px 6px rgba(0, 0, 0, 0.3);
 }
-[data-sileo-viewport][data-theme="dark"] {
-  --sileo-state-success: #15803D;
-  --sileo-state-error: #C62828;
-  --sileo-state-warning: #A15C00;
-  --sileo-state-info: #1D4ED8;
-  --sileo-state-loading: #475569;
-  --sileo-state-action: #C2410C;
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+  padding: 14px 16px;
+  gap: 12px;
+  align-items: flex-start;
+  box-shadow: var(--km-toast-shadow);
 }
-/* sileo capitalises every word; our copy is sentence case. sileo injects its CSS at runtime,
-   after this file, so these overrides need the extra html prefix to win. */
-html [data-sileo-viewport] [data-sileo-title] {
-  text-transform: none;
+html [data-sonner-toaster] [data-sonner-toast] [data-title] {
+  font-size: 14px;
   font-weight: 600;
+  line-height: 1.35;
 }
-html [data-sileo-viewport][data-theme="light"] [data-sileo-description] {
-  color: rgba(255, 255, 255, 0.82);
+html [data-sonner-toaster] [data-sonner-toast] [data-description] {
+  margin-top: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--km-text-secondary);
 }
-html [data-sileo-viewport][data-theme="dark"] [data-sileo-description] {
-  color: #334155;
+/* Icon chip tinted per type */
+html [data-sonner-toaster] [data-sonner-toast] [data-icon] {
+  width: 28px;
+  height: 28px;
+  margin: -3px 0 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  color: var(--km-toast-tone, var(--km-primary));
+  background: color-mix(in srgb, var(--km-toast-tone, var(--km-primary)) 14%, transparent);
+}
+html [data-sonner-toaster] [data-sonner-toast] [data-icon] svg {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+}
+html [data-sonner-toaster] [data-sonner-toast][data-type="success"] { --km-toast-tone: var(--km-toast-success); }
+html [data-sonner-toaster] [data-sonner-toast][data-type="error"] { --km-toast-tone: var(--km-toast-error); }
+html [data-sonner-toaster] [data-sonner-toast][data-type="warning"] { --km-toast-tone: var(--km-toast-warning); }
+html [data-sonner-toaster] [data-sonner-toast][data-type="info"] { --km-toast-tone: var(--km-toast-info); }
+html [data-sonner-toaster] [data-sonner-toast][data-type="loading"] { --km-toast-tone: var(--km-link); }
+/* Close button: always visible, 24px target, theme colours */
+html [data-sonner-toaster] [data-sonner-toast] [data-close-button] {
+  width: 22px;
+  height: 22px;
+  background: var(--km-surface-card);
+  border-color: var(--km-border);
+  color: var(--km-text-secondary);
+}
+html [data-sonner-toaster] [data-sonner-toast] [data-close-button]:hover {
+  background: var(--km-surface-raised);
+  color: var(--km-text-primary);
 }

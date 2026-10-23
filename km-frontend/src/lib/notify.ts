@@ -1,10 +1,10 @@
 'use client';
 
-import { sileo } from 'sileo';
+import { toast } from 'sonner';
 
 /**
  * The one way to show a toast in KaamMilega. Pages never import the toast library directly,
- * so the library (sileo today) can be swapped by editing this file and AppToaster only.
+ * so the library (sonner) can be swapped by editing this file and AppToaster only.
  *
  *   notify.success('Profile updated')
  *   notify.error(err, 'Could not save your profile')   // shows the server's message when there is one
@@ -13,44 +13,19 @@ import { sileo } from 'sileo';
 
 type Kind = 'success' | 'error' | 'warning' | 'info';
 
-// Short messages fit in the pill; longer ones go in the expanding body under a short heading
-const MAX_TITLE = 38;
-const HEADINGS: Record<Kind, string> = {
-    success: 'Done',
-    error: 'Something went wrong',
-    warning: 'Heads up',
-    info: 'For your information',
-};
 const DURATION: Record<Kind, number> = { success: 4000, info: 5000, warning: 6000, error: 7000 };
-
-// Same toast fired twice in quick succession (double clicks, effects re-running) shows once
-const DEDUPE_MS = 1500;
-const recent = new Map<string, number>();
-
-function isDuplicate(key: string): boolean {
-    const now = Date.now();
-    for (const [k, t] of recent) if (now - t > DEDUPE_MS) recent.delete(k);
-    if (recent.has(key)) return true;
-    recent.set(key, now);
-    return false;
-}
 
 function clean(text: string): string {
     return text.replace(/\s+/g, ' ').trim();
 }
 
-function show(kind: Kind, message: string, description?: string): string | undefined {
+function show(kind: Kind, message: string, description?: string): string | number | undefined {
     const text = clean(message);
     if (!text || typeof window === 'undefined') return undefined;
-    if (isDuplicate(`${kind}:${text}:${description ?? ''}`)) return undefined;
-
-    const fits = text.length <= MAX_TITLE;
-    const extra = description ? clean(description) : '';
-    return sileo[kind]({
-        title: fits ? text : HEADINGS[kind],
-        description: fits ? extra || undefined : [text, extra].filter(Boolean).join(' '),
-        duration: DURATION[kind],
-    });
+    const extra = description ? clean(description) : undefined;
+    // A stable id makes a repeat of the same toast (double clicks, effects re-running) refresh
+    // the visible one instead of stacking copies
+    return toast[kind](text, { id: `${kind}:${text}:${extra ?? ''}`, description: extra, duration: DURATION[kind] });
 }
 
 /** Errors whose UI is handled elsewhere (e.g. the axios interceptor redirects) */
@@ -92,22 +67,16 @@ export const notify = {
         return show('error', errorText(errOrMessage, fallback));
     },
 
-    /** Loading toast that turns into success or error when the promise settles */
+    /** Loading toast that turns into success or error when the promise settles; returns the original promise */
     promise<T>(promise: Promise<T> | (() => Promise<T>), m: PromiseMessages<T>): Promise<T> {
-        const asOptions = (text: string) => {
-            const t = clean(text);
-            return t.length <= MAX_TITLE ? { title: t } : { title: t.slice(0, MAX_TITLE - 1) + '…', description: t };
-        };
-        return sileo.promise(promise, {
-            loading: asOptions(m.loading),
-            success: (data: T) => ({ ...asOptions(typeof m.success === 'function' ? m.success(data) : m.success), duration: DURATION.success }),
-            error: (err: unknown) => ({
-                ...asOptions(typeof m.error === 'function' ? m.error(err) : errorText(err, m.error)),
-                duration: DURATION.error,
-            }),
+        const p = typeof promise === 'function' ? promise() : promise;
+        toast.promise(p, {
+            loading: m.loading,
+            success: (data: T) => (typeof m.success === 'function' ? m.success(data) : m.success),
+            error: (err: unknown) => (typeof m.error === 'function' ? m.error(err) : errorText(err, m.error)),
         });
+        return p;
     },
 
-    dismiss: (id: string) => sileo.dismiss(id),
-    clear: () => sileo.clear(),
+    dismiss: (id?: string | number) => toast.dismiss(id),
 };
