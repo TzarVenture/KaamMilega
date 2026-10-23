@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import CityModal from '@/components/modals/admin/CityModal';
 import Pagination from '@/components/ui/Pagination';
 import api from '@/lib/axios';
+import { notify } from "@/lib/notify";
 
 interface City {
     id: string;
@@ -84,8 +85,10 @@ export default function CitiesPage() {
             try {
                 await api.delete(`/cities/${id}`);
                 fetchCities();
+                notify.success("City removed");
             } catch (error) {
                 console.error('Failed to delete city:', error);
+                notify.error(error, "Could not delete this city.");
             }
         }
         setActiveActionMenu(null);

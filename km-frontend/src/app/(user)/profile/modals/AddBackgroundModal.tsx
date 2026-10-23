@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import { ImageIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
+import { notify } from "@/lib/notify";
 
 interface AddBackgroundModalProps {
   isOpen: boolean;
@@ -31,8 +32,10 @@ const AddBackgroundModal = ({ isOpen, onClose, onSuccess }: AddBackgroundModalPr
       const userResponse = await api.patch('/user/profile', { cover_image: newImageUrl });
       onSuccess(userResponse);
       onClose();
+      notify.success("Cover photo updated");
     } catch (error) {
       console.error("Failed to upload/update cover photo:", error);
+      notify.error(error, "Could not update your cover photo. Please try again.");
     } finally {
       setLoading(false);
     }

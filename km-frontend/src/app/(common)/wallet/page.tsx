@@ -3,8 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowDownLeftIcon, ArrowUpRightIcon, ArrowsClockwiseIcon, BuildingOfficeIcon, CheckCircleIcon, CreditCardIcon, GiftIcon, LightningIcon, LockIcon, PhoneIcon, ReceiptIcon, ShieldCheckIcon, ShieldWarningIcon, UsersIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 import Link from 'next/link';
 import WalletTransactionsList, { TransactionItem } from '@/components/km/WalletTransactionsList';
 import WalletDisputesList from '@/components/km/WalletDisputesList';
@@ -109,11 +108,11 @@ export default function WalletPage() {
     const handleInitiatePayment = async () => {
         const amt = parseFloat(topupAmount);
         if (isNaN(amt) || amt < 10) {
-            toast.error("Please enter a valid amount of at least ₹10");
+            notify.error("Please enter a valid amount of at least ₹10");
             return;
         }
         if (amt > 100000) {
-            toast.error("Maximum single recharge amount is ₹1,00,000");
+            notify.error("Maximum single recharge amount is ₹1,00,000");
             return;
         }
 
@@ -121,7 +120,7 @@ export default function WalletPage() {
         try {
             const scriptLoaded = await loadRazorpayScript();
             if (!scriptLoaded) {
-                toast.error("Failed to load Razorpay checkout gateway. Please check your internet connection.");
+                notify.error("Failed to load Razorpay checkout gateway. Please check your internet connection.");
                 setIsPaymentProcessing(false);
                 return;
             }
@@ -132,7 +131,7 @@ export default function WalletPage() {
             });
 
             if (!orderRes || !orderRes.order_id) {
-                toast.error(orderRes?.error || "Failed to initiate recharge order");
+                notify.error(orderRes?.error || "Failed to initiate recharge order");
                 setIsPaymentProcessing(false);
                 return;
             }
@@ -149,7 +148,7 @@ export default function WalletPage() {
                 order_id: orderRes.order_id,
                 handler: async function (response: any) {
                     try {
-                        toast.info("Verifying payment with secure ledger...");
+                        notify.info("Verifying payment with secure ledger...");
                         // 3. Verify payment signature with backend and record into immutable ledger
                         await api.post('/wallet/topup/verify', {
                             razorpay_order_id: response.razorpay_order_id,
@@ -158,12 +157,12 @@ export default function WalletPage() {
                             amount: amt
                         });
 
-                        toast.success(`₹${amt} successfully added to your Main Balance!`);
+                        notify.success(`₹${amt} successfully added to your Main Balance!`);
                         setIsTopupModalOpen(false);
                         fetchWallet(); // Refreshes balance cards and F72 transaction ledger
                     } catch (verifyErr: any) {
                         console.error("Payment verification failed", verifyErr);
-                        toast.error(verifyErr?.response?.data?.error || "Payment verification failed. Please contact support.");
+                        notify.error(verifyErr, "Payment verification failed. Please contact support.");
                     } finally {
                         setIsPaymentProcessing(false);
                     }
@@ -180,13 +179,13 @@ export default function WalletPage() {
 
             const rzp = new (window as any).Razorpay(options);
             rzp.on('payment.failed', function (resp: any) {
-                toast.error(`Payment failed: ${resp.error?.description || 'Transaction cancelled'}`);
+                notify.error(`Payment failed: ${resp.error?.description || 'Transaction cancelled'}`);
                 setIsPaymentProcessing(false);
             });
             rzp.open();
         } catch (err: any) {
             console.error("Payment initiation error", err);
-            toast.error(err?.response?.data?.error || "Failed to initiate payment. Please try again.");
+            notify.error(err, "Failed to initiate payment. Please try again.");
             setIsPaymentProcessing(false);
         }
     };
@@ -196,42 +195,42 @@ export default function WalletPage() {
         e.preventDefault();
         const amt = parseFloat(withdrawAmount);
         if (isNaN(amt) || amt < 50) {
-            toast.error("Minimum withdrawal amount is ₹50");
+            notify.error("Minimum withdrawal amount is ₹50");
             return;
         }
 
         const available = wallet?.withdrawable_balance || 0;
         if (amt > available) {
-            toast.error(`Insufficient earnings balance. Maximum withdrawable: ₹${available.toFixed(2)}`);
+            notify.error(`Insufficient earnings balance. Maximum withdrawable: ₹${available.toFixed(2)}`);
             return;
         }
 
         if (payoutMethod === 'bank') {
             if (!accountHolder.trim()) {
-                toast.error("Please enter account holder name");
+                notify.error("Please enter account holder name");
                 return;
             }
             if (!accountNumber.trim()) {
-                toast.error("Please enter bank account number");
+                notify.error("Please enter bank account number");
                 return;
             }
             if (accountNumber.trim() !== confirmAccountNumber.trim()) {
-                toast.error("Account numbers do not match");
+                notify.error("Account numbers do not match");
                 return;
             }
             if (!ifscCode.trim() || ifscCode.trim().length < 8) {
-                toast.error("Please enter a valid IFSC code (e.g. HDFC0001234)");
+                notify.error("Please enter a valid IFSC code (e.g. HDFC0001234)");
                 return;
             }
         } else {
             if (!upiId.trim() || !upiId.includes('@')) {
-                toast.error("Please enter a valid UPI ID (e.g. name@okhdfcbank)");
+                notify.error("Please enter a valid UPI ID (e.g. name@okhdfcbank)");
                 return;
             }
         }
 
         if (!phoneNumber.trim() || phoneNumber.trim().length < 10) {
-            toast.error("Please provide a valid 10-digit contact phone number");
+            notify.error("Please provide a valid 10-digit contact phone number");
             return;
         }
 
@@ -248,7 +247,7 @@ export default function WalletPage() {
                 phone_number: phoneNumber.trim()
             });
 
-            toast.success(res?.message || "Withdrawal request submitted! Funds will be transferred shortly.");
+            notify.success(res?.message || "Withdrawal request submitted! Funds will be transferred shortly.");
             setIsWithdrawModalOpen(false);
             // Reset form
             setWithdrawAmount("500");
@@ -263,7 +262,7 @@ export default function WalletPage() {
             fetchWallet();
         } catch (err: any) {
             console.error("Withdrawal request error", err);
-            toast.error(err?.response?.data?.error || "Failed to submit withdrawal request. Please try again.");
+            notify.error(err, "Failed to submit withdrawal request. Please try again.");
         } finally {
             setIsWithdrawing(false);
         }
@@ -271,7 +270,6 @@ export default function WalletPage() {
 
     return (
         <div className="min-h-screen bg-slate-50/60 py-6 sm:py-8 lg:py-10 px-4 sm:px-6 lg:px-8">
-            <ToastContainer position="top-right" autoClose={3000} />
 
             <div className="max-w-6xl mx-auto space-y-6 sm:space-y-8">
                 {/* Header Title */}

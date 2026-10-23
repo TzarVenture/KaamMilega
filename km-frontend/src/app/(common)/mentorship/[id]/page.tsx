@@ -7,8 +7,7 @@ import Link from 'next/link';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 
 interface AvailabilitySlot {
   day_of_week: number;
@@ -131,7 +130,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
       }
     } catch (error: any) {
       console.error("Failed to fetch details", error);
-      toast.error(error.message || "Failed to load mentorship details");
+      notify.error(error.message || "Failed to load mentorship details");
     } finally {
       setLoading(false);
     }
@@ -177,7 +176,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   // Opens the checkout modal or redirects to login if unauthenticated
   const handleOpenCheckout = () => {
     if (!isAuthenticated()) {
-      toast.warn("Please login to your account to book a mentorship session");
+      notify.warning("Please login to your account to book a mentorship session");
       setTimeout(() => {
         router.push(`/login?redirect=/mentorship/${id}`);
       }, 1200);
@@ -185,7 +184,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
     }
 
     if (!selectedDate || !selectedSlot) {
-      toast.warn("Please select an available date and time slot");
+      notify.warning("Please select an available date and time slot");
       return;
     }
 
@@ -223,10 +222,10 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
       setIsCheckoutModalOpen(false);
       setIsSuccessModalOpen(true);
-      toast.success("Session confirmed & fee locked safely in Escrow!");
+      notify.success("Session confirmed & fee locked safely in Escrow!");
     } catch (err: any) {
       console.error("Wallet booking error", err);
-      toast.error(err.message || "Failed to complete payment via wallet");
+      notify.error(err.message || "Failed to complete payment via wallet");
     } finally {
       setPaymentProcessing(false);
     }
@@ -244,7 +243,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
     try {
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        toast.error("Unable to load Razorpay payment gateway. Please check your internet connection.");
+        notify.error("Unable to load Razorpay payment gateway. Please check your internet connection.");
         setPaymentProcessing(false);
         return;
       }
@@ -257,7 +256,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
       });
 
       if (!orderRes || !orderRes.order_id) {
-        toast.error(orderRes?.error || "Failed to initialize payment order");
+        notify.error(orderRes?.error || "Failed to initialize payment order");
         setPaymentProcessing(false);
         return;
       }
@@ -274,7 +273,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
         order_id: orderRes.order_id,
         handler: async function (response: any) {
           try {
-            toast.info("Verifying payment with secure Escrow ledger...");
+            notify.info("Verifying payment with secure Escrow ledger...");
             const verifyRes: any = await api.post('/mentorships/verify-payment', {
               booking_id: orderRes.booking_id,
               razorpay_order_id: response.razorpay_order_id,
@@ -293,10 +292,10 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             setIsCheckoutModalOpen(false);
             setIsSuccessModalOpen(true);
             fetchWallet();
-            toast.success("Payment verified! Your mentorship session is confirmed.");
+            notify.success("Payment verified! Your mentorship session is confirmed.");
           } catch (verifyErr: any) {
             console.error("Payment verification failed", verifyErr);
-            toast.error(verifyErr?.response?.data?.error || verifyErr.message || "Payment verification failed. Please contact support.");
+            notify.error(verifyErr, "Payment verification failed. Please contact support.");
           } finally {
             setPaymentProcessing(false);
           }
@@ -313,13 +312,13 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
       const rzp = new (window as any).Razorpay(options);
       rzp.on('payment.failed', function (resp: any) {
-        toast.error(`Payment failed: ${resp.error?.description || 'Transaction was cancelled'}`);
+        notify.error(`Payment failed: ${resp.error?.description || 'Transaction was cancelled'}`);
         setPaymentProcessing(false);
       });
       rzp.open();
     } catch (err: any) {
       console.error("Razorpay initiation error", err);
-      toast.error(err?.response?.data?.error || err.message || "Failed to initiate payment. Please try again.");
+      notify.error(err, "Failed to initiate payment. Please try again.");
       setPaymentProcessing(false);
     }
   };
@@ -359,7 +358,6 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <main className="min-h-screen bg-[#fafafa] pb-10 md:pb-20 dark:bg-white/5">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-10">
         <Link 

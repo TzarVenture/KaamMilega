@@ -7,6 +7,7 @@ import { ArrowLeftIcon, CaretRightIcon, CircleNotchIcon, KeyIcon, PhoneIcon, Shi
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { saveSession } from '@/lib/auth';
+import { errorText } from "@/lib/notify";
 
 export default function AdminLoginPage() {
     const router = useRouter();
@@ -25,7 +26,7 @@ export default function AdminLoginPage() {
             await api.post('/auth/otp/send', { mobile, role: 'admin' });
             setStep('VERIFY_OTP');
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Failed to send OTP. Please check your number.');
+            setError(errorText(err, 'Failed to send OTP. Please check your number.'));
         } finally {
             setIsLoading(false);
         }
@@ -45,7 +46,7 @@ export default function AdminLoginPage() {
                 setError('Invalid response from server.');
             }
         } catch (err: any) {
-            setError(err.response?.data?.error || 'Invalid OTP. Please try again.');
+            setError(errorText(err, 'Invalid OTP. Please try again.'));
         } finally {
             setIsLoading(false);
         }

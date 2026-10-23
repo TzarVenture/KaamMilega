@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
+import { errorText, notify } from "@/lib/notify";
 
 export interface ExpertUser {
     id: string;
@@ -100,7 +101,7 @@ export default function ExpertsPage() {
             setMyExperts(prev => prev.filter(c => c.id !== id));
         } catch (err) {
             console.error("Failed to delete connection", err);
-            alert("Could not remove connection");
+            notify.error(err, "Could not remove connection.");
         }
     };
 
@@ -174,7 +175,7 @@ export default function ExpertsPage() {
                                 setPendingExpertIds(prev => [...prev, id]);
                             } catch (e: any) {
                                 console.error("Failed to connect", e);
-                                const msg = e?.response?.data?.error || e.message || '';
+                                const msg = errorText(e, '');
                                 if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
                                     setPendingExpertIds(prev => [...prev, id]);
                                 }

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { ArrowSquareOutIcon, ArrowsClockwiseIcon, CalendarBlankIcon, CircleNotchIcon, ClockIcon, EyeIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlayCircleIcon, PlusIcon, StackIcon, TrashIcon, UserIcon, VideoCameraIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import api from '@/lib/axios';
 import LearnVideoModal, { CourseVideo } from '@/components/modals/admin/LearnVideoModal';
 import { openYouTubeVideo } from '@/lib/youtube';
@@ -41,7 +41,7 @@ export default function LearnVideosPage() {
             setVideos(data);
         } catch (err: any) {
             console.error('Failed to fetch videos:', err);
-            toast.error(err?.message || 'Failed to load learn videos catalog');
+            notify.error(err?.message || 'Failed to load learn videos catalog');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -119,7 +119,7 @@ export default function LearnVideosPage() {
                 thumbnail_url: formData.thumbnail_url,
                 description: formData.description
             });
-            toast.success('Video updated successfully');
+            notify.success('Video updated successfully');
             setVideos(prev => prev.map(v => v.id === formData.id ? { ...v, ...updated } : v));
         } else {
             // Create
@@ -131,7 +131,7 @@ export default function LearnVideosPage() {
                 thumbnail_url: formData.thumbnail_url,
                 description: formData.description
             });
-            toast.success('New video added to catalog');
+            notify.success('New video added to catalog');
             setVideos(prev => [created, ...prev]);
         }
         setIsAddEditModalOpen(false);
@@ -144,11 +144,11 @@ export default function LearnVideosPage() {
         setIsDeleting(true);
         try {
             await api.delete(`/courses/${deleteModalVideo.id}`);
-            toast.success('Video deleted from catalog');
+            notify.success('Video deleted from catalog');
             setVideos(prev => prev.filter(v => v.id !== deleteModalVideo.id));
             setDeleteModalVideo(null);
         } catch (err: any) {
-            toast.error(err?.message || 'Failed to delete video');
+            notify.error(err?.message || 'Failed to delete video');
         } finally {
             setIsDeleting(false);
         }

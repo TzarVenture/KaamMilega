@@ -3,6 +3,7 @@ import { CheckCircleIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
+import { notify } from "@/lib/notify";
 
 interface SkillModalProps {
     isOpen: boolean;
@@ -43,8 +44,10 @@ const SkillModal = ({ isOpen, onClose, onSuccess }: SkillModalProps) => {
             const response = await api.post('/user/skill', { skill_name: skillName });
             onSuccess(response);
             onClose();
+            notify.success("Skill added");
         } catch (error) {
             console.error("Failed to add skill:", error);
+            notify.error(error, "Could not add this skill. Please try again.");
         } finally {
             setSaving(false);
         }

@@ -15,7 +15,7 @@ import {
     SparkleIcon
 } from "@phosphor-icons/react";
 import api from "@/lib/axios";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 
 interface Post {
     id: number;
@@ -84,7 +84,7 @@ export default function RecruiterPostsPage() {
     const handleCreatePost = (e: React.FormEvent) => {
         e.preventDefault();
         if (!postContent.trim()) {
-            toast.warn("Please write some content for your update");
+            notify.warning("Please write some content for your update");
             return;
         }
 
@@ -108,7 +108,7 @@ export default function RecruiterPostsPage() {
             setPostContent("");
             setSelectedTag(null);
             setIsPublishing(false);
-            toast.success("Hiring update published to candidate community!");
+            notify.success("Hiring update published to candidate community!");
         }, 500);
     };
 
@@ -188,7 +188,7 @@ export default function RecruiterPostsPage() {
                         <div className="flex items-center gap-2">
                             <button
                                 type="button"
-                                onClick={() => toast.info("Attaching media will be available in the next release.")}
+                                onClick={() => notify.info("Attaching media will be available in the next release.")}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-lg transition-colors border border-transparent hover:border-km-border"
                             >
                                 <ImageSquareIcon size={16} weight="regular" aria-hidden="true" />
@@ -196,7 +196,7 @@ export default function RecruiterPostsPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => toast.info("Link active jobs from your Manage Jobs portal.")}
+                                onClick={() => notify.info("Link active jobs from your Manage Jobs portal.")}
                                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-lg transition-colors border border-transparent hover:border-km-border"
                             >
                                 <LinkSimpleIcon size={16} weight="regular" aria-hidden="true" />
@@ -296,7 +296,7 @@ export default function RecruiterPostsPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => toast.info("Opening comments...")}
+                                onClick={() => notify.info("Opening comments...")}
                                 className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface transition-colors"
                             >
                                 <ChatCircleIcon size={16} weight="regular" aria-hidden="true" />
@@ -304,7 +304,7 @@ export default function RecruiterPostsPage() {
                             </button>
                             <button
                                 type="button"
-                                onClick={() => toast.success("Link copied to clipboard!")}
+                                onClick={() => notify.success("Link copied to clipboard!")}
                                 className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface transition-colors"
                             >
                                 <ShareNetworkIcon size={16} weight="regular" aria-hidden="true" />

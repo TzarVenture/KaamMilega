@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { BriefcaseIcon, CheckIcon, CircleNotchIcon, MapPinIcon, TrashIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 
 interface Props {
     isOpen: boolean;
@@ -88,7 +88,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (titles.length === 0) {
-            toast.error('Please add at least one target job title');
+            notify.error('Please add at least one target job title');
             return;
         }
 
@@ -101,14 +101,14 @@ export const OpenToWorkModal: React.FC<Props> = ({
                 locations: locations,
                 visibility: visibility,
             })) as { user?: Record<string, unknown> };
-            toast.success('Open to work preferences saved');
+            notify.success('Open to work preferences saved');
             if (res?.user) {
                 onSuccess(res.user);
             }
             onClose();
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : 'Failed to save preferences';
-            toast.error(msg);
+            notify.error(msg);
         } finally {
             setSaving(false);
         }
@@ -124,14 +124,14 @@ export const OpenToWorkModal: React.FC<Props> = ({
                 locations: locations,
                 visibility: visibility,
             })) as { user?: Record<string, unknown> };
-            toast.success('Removed Open to Work status from profile');
+            notify.success('Removed Open to Work status from profile');
             if (res?.user) {
                 onSuccess(res.user);
             }
             onClose();
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : 'Failed to update preferences';
-            toast.error(msg);
+            notify.error(msg);
         } finally {
             setRemoving(false);
         }

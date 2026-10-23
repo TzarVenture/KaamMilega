@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import api from "@/lib/axios";
-import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 import { CalendarBlankIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, MapPinIcon, PhoneIcon, UserIcon, VideoCameraIcon, XCircleIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { CardGridSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
@@ -18,7 +17,7 @@ export default function InterviewsPage() {
             setInterviews(data);
         } catch (error) {
             console.error("Failed to fetch interviews:", error);
-            toast.error("Failed to load interviews");
+            notify.error("Failed to load interviews");
         } finally {
             setLoading(false);
         }
@@ -34,9 +33,9 @@ export default function InterviewsPage() {
             setInterviews(prev => prev.map(inview =>
                 inview.id === id ? { ...inview, status: newStatus } : inview
             ));
-            toast.success(`Interview marked as ${newStatus}`);
+            notify.success(`Interview marked as ${newStatus}`);
         } catch (error) {
-            toast.error("Failed to update status");
+            notify.error("Failed to update status");
         }
     };
 
@@ -51,7 +50,6 @@ export default function InterviewsPage() {
 
     return (
         <div className="space-y-6 font-sans text-km-text-primary pb-16">
-            <ToastContainer />
 
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>

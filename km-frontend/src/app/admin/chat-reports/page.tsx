@@ -3,8 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ArrowSquareOutIcon, ArrowsClockwiseIcon, CaretLeftIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, CheckIcon, CircleNotchIcon, ClockIcon, FlagIcon, MagnifyingGlassIcon, PaperclipIcon, ShieldIcon, WarningIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from "@/lib/axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { notify, errorText } from "@/lib/notify";
 
 interface ReportedMessageSnapshot {
   id: string;
@@ -83,8 +82,8 @@ export default function AdminChatReportsPage() {
         }
       } catch (error: any) {
         console.error("Failed to load chat reports", error);
-        toast.error(
-          error?.response?.data?.error || "Failed to load chat reports",
+        notify.error(
+          errorText(error, "Failed to load chat reports"),
         );
         setReports([]);
         setTotalPages(1);
@@ -194,13 +193,13 @@ export default function AdminChatReportsPage() {
         admin_notes: adminNotes,
       });
 
-      toast.success("Chat report updated successfully");
+      notify.success("Chat report updated successfully");
       setSelectedReport(null);
       fetchReports(page, statusFilter);
     } catch (err: any) {
       console.error("Failed to resolve chat report", err);
-      toast.error(
-        err?.response?.data?.error || "Failed to update report decision",
+      notify.error(
+        errorText(err, "Failed to update report decision"),
       );
     } finally {
       setIsSubmitting(false);
@@ -226,7 +225,6 @@ export default function AdminChatReportsPage() {
 
   return (
     <div className="space-y-6">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

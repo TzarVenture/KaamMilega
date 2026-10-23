@@ -5,6 +5,7 @@ import { ArrowsClockwiseIcon, CheckCircleIcon, CircleNotchIcon, DatabaseIcon, Gr
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
 import ProfessionModal from '@/components/modals/admin/ProfessionModal';
+import { errorText } from "@/lib/notify";
 
 interface Skill {
     id: string;
@@ -116,7 +117,7 @@ export default function ProfessionsPage() {
             setEditingSkill(null);
         } catch (error: any) {
             console.error('Save failed:', error);
-            const msg = error?.response?.data?.error || error?.message || 'Failed to save profession';
+            const msg = errorText(error, 'Failed to save profession');
             setStatusBanner({ type: 'error', message: msg });
             throw error;
         }
@@ -140,7 +141,7 @@ export default function ProfessionsPage() {
             console.error('Delete failed:', error);
             setStatusBanner({
                 type: 'error',
-                message: error?.response?.data?.error || 'Failed to delete profession.'
+                message: errorText(error, 'Failed to delete profession.')
             });
         } finally {
             setDeletingId(null);
@@ -161,7 +162,7 @@ export default function ProfessionsPage() {
             console.error('Seed failed:', error);
             setStatusBanner({
                 type: 'error',
-                message: error?.response?.data?.error || 'Failed to seed catalog.'
+                message: errorText(error, 'Failed to seed catalog.')
             });
         } finally {
             setIsSeeding(false);

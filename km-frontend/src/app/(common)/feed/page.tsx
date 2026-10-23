@@ -22,8 +22,7 @@ import {
 } from '@/components/feed/feedStorage';
 import { getCurrentUser } from '@/lib/auth';
 import { BookmarkSimpleIcon, TrayIcon } from '@phosphor-icons/react';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 
 export default function FeedPage() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -93,7 +92,7 @@ export default function FeedPage() {
     });
 
     setPosts(getFeedPosts());
-    toast.success('Your post has been published to the feed!');
+    notify.success('Your post has been published to the feed!');
   };
 
   const handleLikePost = (postId: string, reaction: ReactionType = 'like') => {
@@ -127,7 +126,7 @@ export default function FeedPage() {
     });
 
     setPosts(updated);
-    toast.success('Comment added!');
+    notify.success('Comment added!');
   };
 
   const handleDeletePost = (postId: string) => {
@@ -145,7 +144,6 @@ export default function FeedPage() {
 
   return (
     <div className="min-h-screen bg-km-surface py-5 sm:py-7 px-4 sm:px-6 lg:px-8 font-poppins">
-      <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
 
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* 1. Left Sidebar (4 cols on lg, sticky) */}

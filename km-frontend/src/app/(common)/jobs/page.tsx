@@ -3,8 +3,7 @@
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowUpRightIcon, ArrowsDownUpIcon, BookmarkSimpleIcon, BriefcaseIcon, BuildingOfficeIcon, CaretDownIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, MapPinIcon, ShieldCheckIcon, SlidersHorizontalIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify, errorText } from "@/lib/notify";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -500,7 +499,7 @@ const JobsPageContent = () => {
             setTotalJobs(res.total || 0);
         } catch (error) {
             console.error('Failed to fetch jobs', error);
-            toast.error('Failed to load jobs');
+            notify.error('Failed to load jobs');
         } finally {
             setLoading(false);
         }
@@ -543,7 +542,7 @@ const JobsPageContent = () => {
         e.stopPropagation();
         e.preventDefault();
         if (!user) {
-            toast.info('Please login to save jobs');
+            notify.info('Please login to save jobs');
             return;
         }
 
@@ -563,7 +562,7 @@ const JobsPageContent = () => {
             if (res?.bookmarked_jobs && Array.isArray(res.bookmarked_jobs)) {
                 setBookmarkedJobIds(new Set(res.bookmarked_jobs));
             }
-            toast.success(isBookmarked ? 'Job removed from saved items' : 'Job saved to your bookmarks');
+            notify.success(isBookmarked ? 'Job removed from saved items' : 'Job saved to your bookmarks');
         } catch (error) {
             setBookmarkedJobIds(prev => {
                 const next = new Set(prev);
@@ -574,39 +573,39 @@ const JobsPageContent = () => {
                 }
                 return next;
             });
-            toast.error('Failed to update saved job');
+            notify.error('Failed to update saved job');
         }
     };
 
     const handleApply = async (jobId: string) => {
         if (!user) {
-            toast.info('Please login to apply');
+            notify.info('Please login to apply');
             return;
         }
 
         if (appliedJobIds.has(jobId)) {
-            toast.info('You have already applied for this job');
+            notify.info('You have already applied for this job');
             return;
         }
 
         const roles = Array.isArray(user?.roles) ? user.roles : user?.role ? [user.role] : [];
         const isOnlyUser = roles.includes('user') && !roles.includes('recruiter') && !roles.includes('expert');
         if (!isOnlyUser) {
-            toast.warning('Only candidates are allowed to apply for jobs.');
+            notify.warning('Only candidates are allowed to apply for jobs.');
             return;
         }
 
         setApplyingId(jobId);
         try {
             await api.post('/applications', { job_id: jobId });
-            toast.success('Applied successfully');
+            notify.success('Applied successfully');
             setAppliedJobIds(prev => new Set(prev).add(jobId));
         } catch (error: any) {
             if (error.response?.status === 409) {
                 setAppliedJobIds(prev => new Set(prev).add(jobId));
-                toast.info(error.response?.data?.error || 'You have already applied for this job');
+                notify.info(errorText(error, 'You have already applied for this job'));
             } else {
-                toast.error(error.response?.data?.error || 'Failed to apply');
+                notify.error(error, 'Failed to apply');
             }
         } finally {
             setApplyingId(null);
@@ -682,7 +681,6 @@ const JobsPageContent = () => {
 
     return (
         <div className="bg-km-surface min-h-screen font-sans text-km-text-primary pb-20">
-            <ToastContainer />
 
             {/* Mobile Filter Drawer */}
             <AnimatePresence>

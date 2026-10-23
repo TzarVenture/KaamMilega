@@ -19,7 +19,7 @@
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-toastify": "^11.0.5",
+    "sonner": "2.0.8",
     "uisfx": "^0.4.0"
   },
   "devDependencies": {

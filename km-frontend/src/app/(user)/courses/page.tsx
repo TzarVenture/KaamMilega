@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRightIcon, ArrowSquareOutIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, CircleNotchIcon, GraduationCapIcon, PlayIcon, UploadSimpleIcon, VideoCameraIcon, WarningCircleIcon } from '@phosphor-icons/react';
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
 import { 
@@ -110,27 +110,27 @@ export default function CoursesExpertStudioPage() {
         e.preventDefault();
 
         if (!title.trim()) {
-            toast.error("Please enter a course title");
+            notify.error("Please enter a course title");
             return;
         }
 
         if (titleWordCount > 10) {
-            toast.error("Course title cannot exceed 10 words");
+            notify.error("Course title cannot exceed 10 words");
             return;
         }
 
         if (descWordCount > 50) {
-            toast.error("Course description cannot exceed 50 words");
+            notify.error("Course description cannot exceed 50 words");
             return;
         }
 
         if (!extractedVideoId) {
-            toast.error("Please provide a valid YouTube video URL");
+            notify.error("Please provide a valid YouTube video URL");
             return;
         }
 
         if (!duration.trim()) {
-            toast.error("Please enter the video duration (e.g. 30 Min)");
+            notify.error("Please enter the video duration (e.g. 30 Min)");
             return;
         }
 
@@ -149,7 +149,7 @@ export default function CoursesExpertStudioPage() {
             };
 
             const created: any = await api.post("/courses", payload);
-            toast.success("Course published successfully!");
+            notify.success("Course published successfully!");
 
             // Reset form
             setTitle("");
@@ -168,7 +168,7 @@ export default function CoursesExpertStudioPage() {
                 fetchMyCourses();
             }
         } catch (error: any) {
-            toast.error(error.message || "Failed to publish course");
+            notify.error(error.message || "Failed to publish course");
         } finally {
             setSubmitting(false);
         }

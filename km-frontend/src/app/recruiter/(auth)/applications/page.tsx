@@ -4,8 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import api from "@/lib/axios";
-import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 import { KanbanSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
 import { BriefcaseIcon, CalendarBlankIcon, ClockIcon, FileTextIcon, KanbanIcon, ListBulletsIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import ScheduleInterviewModal from "@/components/recruiter/ScheduleInterviewModal";
@@ -42,7 +41,7 @@ function ApplicationsContent() {
                 setApplications(data || []);
             } catch (error) {
                 console.error("Failed to fetch applications:", error);
-                toast.error("Failed to load applicant pipeline");
+                notify.error("Failed to load applicant pipeline");
             } finally {
                 setLoading(false);
             }
@@ -58,10 +57,10 @@ function ApplicationsContent() {
                 app.id === id ? { ...app, status: newStatus, updated_at: new Date().toISOString() } : app
             ));
             await api.patch(`/applications/${id}/status`, { status: newStatus });
-            toast.success(`Applicant moved to ${newStatus}`);
+            notify.success(`Applicant moved to ${newStatus}`);
         } catch (error) {
             console.error("Failed to update status:", error);
-            toast.error("Failed to update applicant status");
+            notify.error("Failed to update applicant status");
             // Revert on error
             const data = await api.get(jobId ? `/applications/job/${jobId}` : "/applications/recruiter/all") as any[];
             setApplications(data || []);
@@ -122,7 +121,6 @@ function ApplicationsContent() {
 
     return (
         <div className="space-y-6 font-sans text-km-text-primary pb-16">
-            <ToastContainer />
 
             {/* Header & Controls */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
