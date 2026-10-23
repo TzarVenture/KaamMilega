@@ -1,12 +1,30 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ArrowSquareOutIcon, ArrowsClockwiseIcon, CalendarBlankIcon, CircleNotchIcon, ClockIcon, EyeIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlayCircleIcon, PlusIcon, StackIcon, TrashIcon, UserIcon, VideoCameraIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
+import Link from 'next/link';
+import { 
+    ArrowSquareOutIcon, 
+    ArrowsClockwiseIcon, 
+    CircleNotchIcon, 
+    ClockIcon, 
+    EyeIcon, 
+    MagnifyingGlassIcon, 
+    PencilSimpleIcon, 
+    PlayIcon, 
+    PlusIcon, 
+    StackIcon, 
+    TrashIcon, 
+    UserIcon, 
+    VideoCameraIcon, 
+    WarningIcon, 
+    XIcon 
+} from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import api from '@/lib/axios';
 import LearnVideoModal, { CourseVideo } from '@/components/modals/admin/LearnVideoModal';
-import { openYouTubeVideo } from '@/lib/youtube';
+import Pagination from '@/components/ui/Pagination';
+import { openYouTubeVideo, getYouTubeThumbnail } from '@/lib/youtube';
 
 export default function LearnVideosPage() {
     // Catalog state
@@ -18,6 +36,10 @@ export default function LearnVideosPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [sortBy, setSortBy] = useState<'recent' | 'views' | 'title'>('recent');
+
+    // Pagination state - Fixed 6 per page matching /courses/manage
+    const [currentPage, setCurrentPage] = useState(1);
+    const pageSize = 6;
 
     // Modals
     const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
@@ -99,7 +121,20 @@ export default function LearnVideosPage() {
         return result;
     }, [videos, searchTerm, selectedCategory, sortBy]);
 
-    // Handle Create or Update
+    // Reset page on filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedCategory, sortBy, pageSize]);
+
+    // Paginated subset
+    const totalItems = filteredVideos.length;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    const paginatedVideos = useMemo(() => {
+        const start = (currentPage - 1) * pageSize;
+        return filteredVideos.slice(start, start + pageSize);
+    }, [filteredVideos, currentPage, pageSize]);
+
+    // Handle Create or Update with Admin privileges across platform
     const handleSaveVideo = async (formData: {
         id?: string;
         title: string;
@@ -110,7 +145,7 @@ export default function LearnVideosPage() {
         description?: string;
     }) => {
         if (formData.id) {
-            // Update
+            // Update across platform
             const updated: any = await api.put(`/courses/${formData.id}`, {
                 title: formData.title,
                 youtube_url: formData.youtube_url,
@@ -119,10 +154,10 @@ export default function LearnVideosPage() {
                 thumbnail_url: formData.thumbnail_url,
                 description: formData.description
             });
-            toast.success('Video updated successfully');
+            toast.success('Course updated platform-wide!');
             setVideos(prev => prev.map(v => v.id === formData.id ? { ...v, ...updated } : v));
         } else {
-            // Create
+            // Create across platform
             const created: any = await api.post('/courses', {
                 title: formData.title,
                 youtube_url: formData.youtube_url,
@@ -131,24 +166,27 @@ export default function LearnVideosPage() {
                 thumbnail_url: formData.thumbnail_url,
                 description: formData.description
             });
-            toast.success('New video added to catalog');
+            toast.success('New course added platform-wide!');
             setVideos(prev => [created, ...prev]);
         }
         setIsAddEditModalOpen(false);
         setEditingVideo(null);
     };
 
-    // Handle Delete Confirmation
+    // Handle Delete Confirmation with Admin privileges across platform
     const handleConfirmDelete = async () => {
         if (!deleteModalVideo) return;
         setIsDeleting(true);
         try {
             await api.delete(`/courses/${deleteModalVideo.id}`);
-            toast.success('Video deleted from catalog');
+            toast.success('Course permanently deleted platform-wide!');
             setVideos(prev => prev.filter(v => v.id !== deleteModalVideo.id));
+            if (paginatedVideos.length === 1 && currentPage > 1) {
+                setCurrentPage(prev => prev - 1);
+            }
             setDeleteModalVideo(null);
         } catch (err: any) {
-            toast.error(err?.message || 'Failed to delete video');
+            toast.error(err?.message || 'Failed to delete course');
         } finally {
             setIsDeleting(false);
         }
@@ -174,41 +212,41 @@ export default function LearnVideosPage() {
 
     return (
         <div className="space-y-6">
-            {/* Header & Stats Banner */}
-            <div className="bg-km-surface-card rounded-3xl p-6 border border-purple-50 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            {/* ─── Top Bar / Admin Banner ─── */}
+            <div className="bg-km-surface-card rounded-2xl p-4 sm:p-5 border border-km-border shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                        <div className="p-2 bg-purple-50 text-purple-600 rounded-xl dark:text-purple-400">
-                            <VideoCameraIcon size={22} />
+                        <div className="p-2 bg-[#071A4D]/10 text-[#071A4D] rounded-xl dark:bg-km-primary/10 dark:text-km-primary">
+                            <VideoCameraIcon size={20} weight="bold" />
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900">
-                            Learn Videos Catalog
+                        <h1 className="text-xl sm:text-2xl font-bold text-km-heading">
+                            Admin Learn Videos Management
                         </h1>
                     </div>
-                    <p className="text-sm text-gray-500">
-                        Manage skill training courses and tutorials for candidates and blue-collar job seekers.
+                    <p className="text-xs text-km-text-secondary">
+                        Manage, edit, or remove any learning video across Kaammilega.
                     </p>
                 </div>
 
                 {/* Stats Chips & Add Button */}
-                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                    <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-semibold text-slate-700">
-                        <StackIcon weight="bold" size={14} className="text-purple-600 dark:text-purple-400" />
-                        <span>{videos.length} Videos</span>
+                <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-heading">
+                        <StackIcon size={14} className="text-[#0B5ED7]" />
+                        <span>{videos.length} Courses</span>
                     </div>
 
-                    <div className="flex items-center gap-2 px-3.5 py-2 bg-slate-50 border border-slate-100 rounded-2xl text-xs font-semibold text-slate-700">
-                        <EyeIcon weight="bold" size={14} className="text-emerald-600 dark:text-emerald-400" />
-                        <span>{totalViews.toLocaleString()} Total Views</span>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-heading">
+                        <EyeIcon size={14} className="text-emerald-600" />
+                        <span>{totalViews.toLocaleString()} Views</span>
                     </div>
 
                     <button
                         onClick={() => fetchVideos(false)}
                         disabled={refreshing}
                         title="Refresh Catalog"
-                        className="p-2.5 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-2xl border border-slate-200 transition-all disabled:opacity-50"
+                        className="p-2 bg-km-surface hover:bg-km-surface-card text-km-text-secondary hover:text-km-heading rounded-xl border border-km-border transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
                     >
-                        <ArrowsClockwiseIcon weight="bold" size={16} className={refreshing ? 'animate-spin' : ''} />
+                        <ArrowsClockwiseIcon size={15} className={refreshing ? 'animate-spin' : ''} />
                     </button>
 
                     <button
@@ -216,44 +254,44 @@ export default function LearnVideosPage() {
                             setEditingVideo(null);
                             setIsAddEditModalOpen(true);
                         }}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-sm font-bold shadow-lg shadow-purple-600/20 active:scale-95 transition-all"
+                        className="flex items-center gap-1.5 px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                     >
-                        <PlusIcon weight="bold" size={16} />
-                        <span>Add Video</span>
+                        <PlusIcon weight="bold" size={14} />
+                        <span>Add New Course</span>
                     </button>
                 </div>
             </div>
 
-            {/* Filter and Search Controls */}
-            <div className="bg-km-surface-card p-5 rounded-3xl border border-purple-50 shadow-sm space-y-4">
+            {/* ─── Filter and Search Controls ─── */}
+            <div className="bg-km-surface-card p-3.5 sm:p-4 rounded-2xl border border-km-border shadow-xs space-y-3">
                 <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
                     {/* Search Input */}
                     <div className="relative flex-1">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary" size={16} />
                         <input
                             type="text"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Search by title, category, author or keywords..."
-                            className="w-full pl-11 pr-10 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-300 transition-all"
+                            placeholder="Search courses by title, category, expert name or description..."
+                            className="w-full pl-9 pr-9 py-2 bg-km-surface hover:bg-km-surface/80 focus:bg-km-surface-card border border-km-border rounded-xl text-xs sm:text-sm text-km-text-primary focus:outline-hidden focus:ring-2 focus:ring-[#0B5ED7]/20 focus:border-[#0B5ED7] transition-all"
                         />
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-1"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-km-text-secondary hover:text-km-text-primary p-0.5"
                             >
-                                <XIcon weight="bold" size={14} />
+                                <XIcon weight="bold" size={13} />
                             </button>
                         )}
                     </div>
 
                     {/* Sort Options */}
                     <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs font-semibold text-gray-500">Sort:</span>
+                        <span className="text-xs font-semibold text-km-text-secondary">Sort:</span>
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value as any)}
-                            className="bg-slate-50 border border-gray-200 rounded-xl px-3 py-2 text-xs font-semibold text-gray-700 focus:outline-none focus:border-purple-300 transition-all cursor-pointer"
+                            className="bg-km-surface border border-km-border rounded-xl px-3 py-1.5 text-xs font-semibold text-km-heading focus:outline-hidden focus:border-[#0B5ED7] transition-all cursor-pointer"
                         >
                             <option value="recent">Recently Added</option>
                             <option value="views">Most Viewed</option>
@@ -264,17 +302,17 @@ export default function LearnVideosPage() {
 
                 {/* Category Pills */}
                 {categories.length > 1 && (
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
                         {categories.map((cat) => {
                             const isSelected = selectedCategory === cat;
                             return (
                                 <button
                                     key={cat}
                                     onClick={() => setSelectedCategory(cat)}
-                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border ${
+                                    className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
                                         isSelected
-                                            ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
-                                            : 'bg-slate-50 hover:bg-purple-50/60 text-gray-600 border-slate-200 hover:border-purple-200'
+                                            ? 'bg-[#071A4D] text-white border-[#071A4D] shadow-2xs dark:bg-km-primary dark:border-km-primary'
+                                            : 'bg-km-surface hover:bg-km-surface-card text-km-text-secondary border-km-border hover:border-[#0B5ED7]/40'
                                     }`}
                                 >
                                     {cat}
@@ -285,23 +323,23 @@ export default function LearnVideosPage() {
                 )}
             </div>
 
-            {/* Video Cards Grid */}
+            {/* ─── Video Cards Grid (Exact Card Layout from /courses/manage) ─── */}
             {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-km-surface-card rounded-3xl border border-purple-50 shadow-sm">
-                    <CircleNotchIcon size={36} className="text-purple-600 animate-spin mb-3 dark:text-purple-400" />
-                    <p className="text-sm font-semibold text-gray-500">Loading videos catalog...</p>
+                <div className="flex flex-col items-center justify-center py-20 bg-km-surface-card rounded-2xl border border-km-border shadow-xs">
+                    <CircleNotchIcon size={32} className="text-km-link animate-spin mb-2.5" />
+                    <p className="text-xs font-semibold text-km-text-secondary">Loading courses catalog...</p>
                 </div>
             ) : filteredVideos.length === 0 ? (
-                <div className="bg-km-surface-card rounded-3xl p-12 text-center border border-purple-50 shadow-sm space-y-4">
-                    <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto dark:text-purple-400">
-                        <VideoCameraIcon size={30} />
+                <div className="bg-km-surface-card rounded-2xl p-10 text-center border border-km-border shadow-xs space-y-3">
+                    <div className="w-14 h-14 bg-km-surface text-km-text-secondary rounded-full flex items-center justify-center mx-auto">
+                        <VideoCameraIcon size={26} />
                     </div>
                     <div className="space-y-1">
-                        <h3 className="text-lg font-bold text-gray-800">No Learning Videos Found</h3>
-                        <p className="text-sm text-gray-500 max-w-sm mx-auto">
+                        <h3 className="text-base font-bold text-km-heading">No Learning Courses Found</h3>
+                        <p className="text-xs text-km-text-secondary max-w-sm mx-auto">
                             {searchTerm || selectedCategory !== 'All'
-                                ? 'No videos match your active search or category filters. Try clearing filters.'
-                                : 'Your catalog is empty. Add your first learning video to help candidates upskill!'}
+                                ? 'No courses match your active search or category filters. Try clearing filters.'
+                                : 'The catalog is empty. Add a new course to make it available platform-wide.'}
                         </p>
                     </div>
                     {searchTerm || selectedCategory !== 'All' ? (
@@ -310,7 +348,7 @@ export default function LearnVideosPage() {
                                 setSearchTerm('');
                                 setSelectedCategory('All');
                             }}
-                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-all"
+                            className="px-3.5 py-1.5 bg-km-surface hover:bg-km-surface/80 text-km-heading text-xs font-bold rounded-xl transition-all cursor-pointer border border-km-border"
                         >
                             Reset Filters
                         </button>
@@ -320,129 +358,170 @@ export default function LearnVideosPage() {
                                 setEditingVideo(null);
                                 setIsAddEditModalOpen(true);
                             }}
-                            className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-purple-600/20 transition-all inline-flex items-center gap-2"
+                            className="px-5 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-bold rounded-xl shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                         >
-                            <PlusIcon weight="bold" size={14} /> Add First Video
+                            <PlusIcon weight="bold" size={14} /> Add First Course
                         </button>
                     )}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {filteredVideos.map((video) => (
-                        <motion.div
-                            key={video.id}
-                            layout
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="bg-km-surface-card rounded-3xl border border-purple-50 shadow-sm hover:shadow-md transition-all flex flex-col overflow-hidden group"
-                        >
-                            {/* Thumbnail & Badges */}
-                            <div className="relative aspect-video w-full bg-slate-100 overflow-hidden cursor-pointer"
-                                onClick={() => setPreviewVideo(video)}
-                            >
-                                <img
-                                    src={video.thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400&auto=format&fit=crop'}
-                                    alt={video.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=400&auto=format&fit=crop';
-                                    }}
-                                />
+                <div className="space-y-6">
+                    {/* Exact Card Grid from /courses/manage - Mobile, Tablet, Laptop, Monitor friendly */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                        {paginatedVideos.map((video) => {
+                            const formattedViews = (video.views || 0) >= 1000 
+                                ? `${((video.views || 0) / 1000).toFixed(1)}K` 
+                                : String(video.views || 0);
 
-                                {/* Duration Badge */}
-                                <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 bg-black/80 backdrop-blur-sm text-white text-[11px] font-bold rounded-md flex items-center gap-1">
-                                    <ClockIcon weight="bold" size={11} />
-                                    <span>{video.duration || '15 Min'}</span>
-                                </div>
+                            return (
+                                <div
+                                    key={video.id}
+                                    className="bg-km-surface-card rounded-2xl border border-km-border overflow-hidden shadow-xs hover:border-[#0B5ED7]/40 hover:shadow-md transition-all flex flex-col justify-between"
+                                >
+                                    <div>
+                                        {/* Thumbnail Box */}
+                                        <div 
+                                            className="relative w-full aspect-video sm:h-44 bg-slate-100 overflow-hidden cursor-pointer"
+                                            onClick={() => setPreviewVideo(video)}
+                                        >
+                                            <img
+                                                src={video.thumbnail_url || getYouTubeThumbnail(video.youtube_video_id || '')}
+                                                alt={video.title}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    if (video.youtube_video_id) {
+                                                        (e.target as HTMLImageElement).src = getYouTubeThumbnail(video.youtube_video_id);
+                                                    }
+                                                }}
+                                            />
 
-                                {/* Category Badge */}
-                                <div className="absolute top-2.5 left-2.5 px-2.5 py-1 bg-purple-600/90 backdrop-blur-sm text-white text-[10px] font-extrabold uppercase tracking-wider rounded-lg shadow-sm">
-                                    {video.category || 'General'}
-                                </div>
+                                            {/* Category Badge on Top-Left matching reference screenshot */}
+                                            {video.category && (
+                                                <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-xs font-semibold px-3.5 py-1.5 rounded-tl-xl rounded-br-2xl shadow-xs z-10 dark:bg-km-primary">
+                                                    {video.category}
+                                                </span>
+                                            )}
 
-                                {/* Play Overlay */}
-                                <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                                    <div className="w-12 h-12 rounded-full bg-km-surface-card/90 backdrop-blur-sm flex items-center justify-center text-purple-600 shadow-lg group-hover:scale-110 transition-transform dark:text-purple-400">
-                                        <PlayCircleIcon size={28} />
+                                            {/* Minimalist Play Icon in Center */}
+                                            <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                                                <div className="w-10 h-10 bg-km-surface-card text-km-heading rounded-full flex items-center justify-center shadow-xs">
+                                                    <PlayIcon weight="fill" size={15} className="ml-0.5" />
+                                                </div>
+                                            </div>
+
+                                            {/* Duration */}
+                                            <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 dark:bg-km-primary">
+                                                <ClockIcon weight="bold" size={11} /> {video.duration || "30 Min"}
+                                            </span>
+                                        </div>
+
+                                        {/* Info */}
+                                        <div className="p-4 space-y-2">
+                                            <h3 
+                                                onClick={() => setPreviewVideo(video)}
+                                                className="text-sm font-bold text-km-text-primary line-clamp-2 leading-snug cursor-pointer hover:text-km-link transition-colors"
+                                                title={video.title}
+                                            >
+                                                {video.title}
+                                            </h3>
+
+                                            {/* Full description without trimming */}
+                                            {video.description && (
+                                                <p className="text-xs text-km-text-secondary leading-relaxed break-words whitespace-pre-line line-clamp-3">
+                                                    {video.description}
+                                                </p>
+                                            )}
+
+                                            <div className="pt-2 border-t border-km-border/60 flex flex-col gap-2 text-xs text-km-text-secondary">
+                                                {/* Expert Profile Redirection - Clicking redirects to expert's profile */}
+                                                <div className="flex items-center justify-between gap-2">
+                                                    {video.expert_id ? (
+                                                        <Link 
+                                                            href={`/profile/${video.expert_id}`}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                            className="flex items-center gap-1.5 font-bold text-km-heading hover:text-km-link hover:underline truncate max-w-[170px] transition-colors"
+                                                            title={`View ${video.expert_name || 'Expert'}'s Profile`}
+                                                        >
+                                                            <UserIcon weight="bold" size={14} className="text-km-link shrink-0" />
+                                                            <span className="truncate">{video.expert_name || 'Expert'}</span>
+                                                        </Link>
+                                                    ) : (
+                                                        <div className="flex items-center gap-1.5 font-bold text-km-text-secondary truncate max-w-[170px]">
+                                                            <UserIcon weight="bold" size={14} className="shrink-0" />
+                                                            <span className="truncate">{video.expert_name || 'Admin'}</span>
+                                                        </div>
+                                                    )}
+
+                                                    <span className="text-[11px] text-km-text-secondary">
+                                                        {formatDate(video.created_at)}
+                                                    </span>
+                                                </div>
+
+                                                {/* Views and Watch button */}
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-1 font-bold text-km-heading">
+                                                        <EyeIcon weight="bold" size={13} className="text-km-link" />
+                                                        <span>{formattedViews} Viewers</span>
+                                                    </div>
+
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openYouTubeVideo(video.youtube_video_id || '', video.youtube_url)}
+                                                        className="text-[#FF6B00] hover:underline flex items-center gap-1 font-semibold cursor-pointer"
+                                                    >
+                                                        <span>Watch</span>
+                                                        <ArrowSquareOutIcon weight="bold" size={11} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            {/* Video Information */}
-                            <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
-                                <div className="space-y-2">
-                                    <h3 
-                                        onClick={() => setPreviewVideo(video)}
-                                        className="text-base font-bold text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-2 cursor-pointer leading-snug dark:group-hover:text-purple-400"
-                                        title={video.title}
-                                    >
-                                        {video.title}
-                                    </h3>
-
-                                    {video.description && (
-                                        <p className="text-xs text-gray-500 line-clamp-2 leading-relaxed">
-                                            {video.description}
-                                        </p>
-                                    )}
-                                </div>
-
-                                {/* Metadata row */}
-                                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-gray-500">
-                                    <div className="flex items-center gap-1 font-medium truncate max-w-[130px]">
-                                        <UserIcon weight="bold" size={13} className="text-purple-500 shrink-0 dark:text-purple-400" />
-                                        <span className="truncate">{video.expert_name || 'Admin'}</span>
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <span className="flex items-center gap-1 text-slate-600 font-semibold">
-                                            <EyeIcon weight="bold" size={13} className="text-emerald-500 dark:text-emerald-400" />
-                                            {video.views || 0}
-                                        </span>
-                                        <span className="flex items-center gap-1 text-slate-400">
-                                            <CalendarBlankIcon weight="bold" size={13} />
-                                            {formatDate(video.created_at)}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Action Buttons */}
-                                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                                    <button
-                                        onClick={() => openYouTubeVideo(video.youtube_video_id || '', video.youtube_url)}
-                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all dark:hover:text-purple-400"
-                                        title="Open on YouTube"
-                                    >
-                                        <ArrowSquareOutIcon weight="bold" size={13} />
-                                        <span>YouTube</span>
-                                    </button>
-
-                                    <div className="flex items-center gap-1">
+                                    {/* Action Buttons: Edit and Delete with Admin Privileges */}
+                                    <div className="p-3 bg-km-surface/70 border-t border-km-border flex items-center justify-between gap-2">
                                         <button
+                                            type="button"
                                             onClick={() => {
                                                 setEditingVideo(video);
                                                 setIsAddEditModalOpen(true);
                                             }}
-                                            className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all dark:hover:text-purple-400"
-                                            title="Edit Video"
+                                            className="flex-1 py-2 px-3 bg-km-surface-card hover:bg-blue-50 border border-km-border hover:border-[#0B5ED7]/50 text-km-heading hover:text-km-link rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
                                         >
-                                            <PencilSimpleIcon weight="bold" size={15} />
+                                            <PencilSimpleIcon weight="bold" size={13} />
+                                            <span>Edit</span>
                                         </button>
+
                                         <button
+                                            type="button"
                                             onClick={() => setDeleteModalVideo(video)}
-                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all dark:hover:text-red-400"
-                                            title="Delete Video"
+                                            className="flex-1 py-2 px-3 bg-km-surface-card hover:bg-red-50 border border-km-border hover:border-red-300 text-red-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs dark:text-red-400 cursor-pointer"
                                         >
-                                            <TrashIcon weight="bold" size={15} />
+                                            <TrashIcon weight="bold" size={13} />
+                                            <span>Delete</span>
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
+                            );
+                        })}
+                    </div>
+
+                    {/* ─── Pagination Controls (Centered matching /courses/manage) ─── */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-center pt-8 pb-4">
+                            <Pagination
+                                current={currentPage}
+                                total={totalPages}
+                                onPageChange={(p) => {
+                                    setCurrentPage(p);
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                            />
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Add / Edit Video Modal */}
+            {/* ─── Add / Edit Video Modal (Admin Power Across Platform) ─── */}
             <LearnVideoModal
                 isOpen={isAddEditModalOpen}
                 onClose={() => {
@@ -453,35 +532,35 @@ export default function LearnVideosPage() {
                 initialData={editingVideo}
             />
 
-            {/* Delete Confirmation Modal */}
+            {/* ─── Delete Confirmation Modal (Admin Power Across Platform) ─── */}
             <AnimatePresence>
                 {deleteModalVideo && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="w-full max-w-md bg-km-surface-card rounded-3xl p-6 shadow-2xl border border-red-50 space-y-5"
+                            className="w-full max-w-md bg-km-surface-card rounded-2xl p-6 shadow-2xl border border-red-100 space-y-4"
                         >
-                            <div className="w-12 h-12 bg-red-50 text-red-600 rounded-2xl flex items-center justify-center mx-auto dark:text-red-400">
-                                <WarningIcon size={24} />
+                            <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mx-auto">
+                                <WarningIcon weight="bold" size={24} />
                             </div>
 
-                            <div className="text-center space-y-2">
-                                <h3 className="text-lg font-bold text-gray-900">
-                                    Delete Learning Video?
+                            <div className="text-center space-y-1.5">
+                                <h3 className="text-base font-bold text-km-heading">
+                                    Delete Course Platform-Wide?
                                 </h3>
-                                <p className="text-sm text-gray-500">
-                                    Are you sure you want to delete <span className="font-semibold text-gray-800">"{deleteModalVideo.title}"</span>? This action cannot be undone.
+                                <p className="text-xs text-km-text-secondary leading-relaxed">
+                                    Are you sure you want to delete <span className="font-semibold text-km-heading">"{deleteModalVideo.title}"</span>? As an admin, this will permanently remove it from the catalog across the entire platform, including candidate search and the creator's course studio.
                                 </p>
                             </div>
 
-                            <div className="flex items-center justify-center gap-3 pt-2">
+                            <div className="flex items-center justify-center gap-2.5 pt-2">
                                 <button
                                     type="button"
                                     onClick={() => setDeleteModalVideo(null)}
                                     disabled={isDeleting}
-                                    className="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all"
+                                    className="px-4 py-2 text-xs font-semibold text-km-text-secondary hover:text-km-heading hover:bg-km-surface rounded-xl transition-all cursor-pointer border border-km-border"
                                 >
                                     Cancel
                                 </button>
@@ -489,10 +568,10 @@ export default function LearnVideosPage() {
                                     type="button"
                                     onClick={handleConfirmDelete}
                                     disabled={isDeleting}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-600/20 active:scale-95 transition-all disabled:opacity-50"
+                                    className="flex items-center gap-1.5 px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
                                 >
-                                    {isDeleting && <CircleNotchIcon weight="bold" size={16} className="animate-spin" />}
-                                    Delete Video
+                                    {isDeleting && <CircleNotchIcon size={14} className="animate-spin" />}
+                                    Delete Platform-Wide
                                 </button>
                             </div>
                         </motion.div>
@@ -500,32 +579,32 @@ export default function LearnVideosPage() {
                 )}
             </AnimatePresence>
 
-            {/* Embedded Video Player Modal */}
+            {/* ─── Embedded Video Player Modal ─── */}
             <AnimatePresence>
                 {previewVideo && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="w-full max-w-3xl bg-km-surface-card rounded-3xl overflow-hidden shadow-2xl"
+                            className="w-full max-w-3xl bg-km-surface-card rounded-2xl overflow-hidden shadow-2xl border border-km-border"
                         >
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                            <div className="flex items-center justify-between px-5 py-3.5 border-b border-km-border">
                                 <div className="truncate pr-4">
-                                    <h3 className="font-bold text-gray-900 truncate">
+                                    <h3 className="font-bold text-km-heading text-sm truncate">
                                         {previewVideo.title}
                                     </h3>
-                                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-                                        <span className="text-purple-600 font-semibold dark:text-purple-400">{previewVideo.category}</span>
+                                    <div className="flex items-center gap-2 text-[11px] text-km-text-secondary mt-0.5">
+                                        <span className="text-[#0B5ED7] font-semibold">{previewVideo.category}</span>
                                         <span>•</span>
                                         <span>{previewVideo.duration}</span>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setPreviewVideo(null)}
-                                    className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+                                    className="p-1.5 text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-lg transition-all cursor-pointer"
                                 >
-                                    <XIcon size={20} />
+                                    <XIcon size={18} />
                                 </button>
                             </div>
 
@@ -540,21 +619,32 @@ export default function LearnVideosPage() {
                                         className="w-full h-full border-0"
                                     />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white">
+                                    <div className="w-full h-full flex items-center justify-center text-white text-xs">
                                         <p>No valid YouTube video ID found.</p>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="p-4 bg-slate-50 flex items-center justify-between">
-                                <p className="text-xs text-gray-500">
-                                    By <span className="font-semibold text-gray-700">{previewVideo.expert_name || 'Admin'}</span>
+                            <div className="p-3 bg-km-surface flex items-center justify-between border-t border-km-border">
+                                <p className="text-xs text-km-text-secondary">
+                                    Uploaded by{' '}
+                                    {previewVideo.expert_id ? (
+                                        <Link 
+                                            href={`/profile/${previewVideo.expert_id}`}
+                                            className="font-semibold text-km-heading hover:text-[#0B5ED7] hover:underline"
+                                            title="View Expert Profile"
+                                        >
+                                            {previewVideo.expert_name || 'Admin'}
+                                        </Link>
+                                    ) : (
+                                        <span className="font-semibold text-km-heading">{previewVideo.expert_name || 'Admin'}</span>
+                                    )}
                                 </p>
                                 <button
                                     onClick={() => openYouTubeVideo(previewVideo.youtube_video_id || '', previewVideo.youtube_url)}
-                                    className="flex items-center gap-1.5 text-xs font-bold text-purple-600 hover:text-purple-700 dark:text-purple-400"
+                                    className="flex items-center gap-1.5 text-xs font-bold text-[#FF6B00] hover:underline cursor-pointer"
                                 >
-                                    <ArrowSquareOutIcon weight="bold" size={14} /> Open in YouTube App/Tab
+                                    <ArrowSquareOutIcon size={14} /> Open in YouTube App/Tab
                                 </button>
                             </div>
                         </motion.div>
