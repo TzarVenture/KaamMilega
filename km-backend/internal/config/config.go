@@ -27,6 +27,14 @@ type Config struct {
 	SMTPFromName  string
 	RazorpayKeyID     string
 	RazorpayKeySecret string
+	// Push notifications (Firebase Cloud Messaging). The service-account key is a server secret:
+	// give it as a file path (FIREBASE_CREDENTIALS_FILE) or the JSON itself, raw or base64
+	// (FIREBASE_CREDENTIALS_JSON). Without either, push is off and everything else works as before.
+	FirebaseProjectID       string
+	FirebaseCredentialsFile string
+	FirebaseCredentialsJSON string
+	// FrontendURL is the website origin used for links inside push notifications
+	FrontendURL string
 }
 
 // LoadConfig loads configuration from environment variables
@@ -55,6 +63,10 @@ func LoadConfig() (*Config, error) {
 		SMTPFromName:      getEnv("SMTP_FROM_NAME", "KaamMilega Verification"),
 		RazorpayKeyID:     getEnv("RAZORPAY_KEY_ID", ""),
 		RazorpayKeySecret: getEnv("RAZORPAY_KEY_SECRET", ""),
+		FirebaseProjectID:       getEnv("FIREBASE_PROJECT_ID", "kaammilega-7a667"),
+		FirebaseCredentialsFile: getEnv("FIREBASE_CREDENTIALS_FILE", ""),
+		FirebaseCredentialsJSON: getEnv("FIREBASE_CREDENTIALS_JSON", ""),
+		FrontendURL:             getEnv("FRONTEND_URL", "https://kaammilega.com"),
 	}, nil
 }
 
