@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { NotificationProvider } from "@/lib/notifications";
 import AppToaster from "@/components/km/AppToaster";
 import PushSync from "@/components/km/PushSync";
+import PushInvite from "@/components/km/PushInvite";
 import { FEATURES } from "@/config/features";
 import { THEME_INIT_SCRIPT } from "@/lib/themeScript";
 import "./globals.css";
@@ -92,6 +93,7 @@ export default function RootLayout({
         </NotificationProvider>
         <AppToaster />
         <PushSync />
+        <PushInvite />
       </body>
     </html>
   );
