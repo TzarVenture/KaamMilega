@@ -62,9 +62,8 @@ export default function PushPrompt({ variant = 'inline', onClose }: { variant?: 
                     : 'relative bg-km-surface-card rounded-2xl border border-km-border shadow-xs p-4 pr-11 flex items-start gap-3'
             }
         >
-            <span className="shrink-0 w-10 h-10 rounded-full bg-[#FF6B00]/12 text-[#C2410C] dark:text-[#FF9A4D] flex items-center justify-center" aria-hidden="true">
-                <BellRingingIcon size={20} weight="bold" />
-            </span>
+            {/* icons.md: no icon containers; the glyph sits directly in the layout */}
+            <BellRingingIcon size={24} weight="duotone" className="shrink-0 mt-0.5 text-km-heading dark:text-km-link" aria-hidden="true" />
             <div className="min-w-0">
                 <h2 className="text-sm font-bold text-km-heading">Never miss a reply</h2>
                 <p className="mt-0.5 text-xs text-km-text-secondary leading-relaxed">
