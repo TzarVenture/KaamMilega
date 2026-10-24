@@ -160,3 +160,42 @@ export function mergeHiringCompanies(dbCompanies?: Array<RawCompanyInput | Hirin
 
     return Array.from(map.values());
 }
+
+/** Shape of GET /api/companies/top items (recruiter company profiles) */
+export interface ApiCompany {
+    id?: string;
+    name?: string;
+    logo?: string;
+    website?: string;
+    category?: string;
+    location?: string;
+    verified?: boolean;
+}
+
+/**
+ * Real companies only: maps /companies/top items without inventing ratings, openings or
+ * verification, and without mixing in the ENTERPRISE_COMPANIES showcase list.
+ */
+export function companiesFromApi(list: unknown): HiringCompany[] {
+    const items: ApiCompany[] = Array.isArray(list) ? list : ((list as { data?: ApiCompany[] } | null)?.data ?? []);
+    const seen = new Set<string>();
+    const out: HiringCompany[] = [];
+    for (const c of items) {
+        const name = typeof c?.name === 'string' ? c.name.trim() : '';
+        if (!name || seen.has(name.toLowerCase())) continue;
+        seen.add(name.toLowerCase());
+        out.push({
+            id: c.id,
+            name,
+            logo: c.logo || '',
+            // The API fills an empty category with this placeholder; show nothing instead
+            category: c.category && c.category !== 'Enterprise Employer' ? c.category : '',
+            location: c.location || '',
+            openings: '',
+            jobCount: 0,
+            verified: c.verified === true,
+            website: c.website,
+        });
+    }
+    return out;
+}
