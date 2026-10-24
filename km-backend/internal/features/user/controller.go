@@ -1,6 +1,7 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -528,6 +529,9 @@ func (ctrl *UserController) AddSkill(c *fiber.Ctx) error {
 	}
 
 	user, err := ctrl.service.AddSkill(c.Context(), userID, req.SkillName)
+	if errors.Is(err, ErrSkillNotInCatalogue) || errors.Is(err, ErrSkillRequired) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

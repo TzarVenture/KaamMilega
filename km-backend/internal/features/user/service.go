@@ -827,15 +827,27 @@ func (s *UserServiceImpl) DeleteProject(ctx context.Context, userID string, proj
 	return s.repo.UpdateUser(ctx, user)
 }
 
+// ErrSkillNotInCatalogue: profile skills must come from the admin-managed skills catalogue
+var ErrSkillNotInCatalogue = errors.New("This skill isn't in the KaamMilega skills list. Pick one from the suggestions.")
+
+// ErrSkillRequired: an empty skill name
+var ErrSkillRequired = errors.New("Enter a skill to add.")
+
 func (s *UserServiceImpl) AddSkill(ctx context.Context, userID string, skillName string) (*User, error) {
-	// 1. Verify skill exists in admin-defined skills
+	skillName = strings.TrimSpace(skillName)
+	if skillName == "" {
+		return nil, ErrSkillRequired
+	}
+	// 1. Verify skill exists in admin-defined skills (case-insensitive)
 	existingSkill, err := s.skillRepo.GetSkillByName(ctx, skillName)
 	if err != nil {
 		return nil, err
 	}
 	if existingSkill == nil {
-		return nil, errors.New("skill not found in predefined list")
+		return nil, ErrSkillNotInCatalogue
 	}
+	// Store the catalogue's spelling, not what was typed
+	skillName = existingSkill.Name
 
 	user, err := s.repo.FindUserByID(ctx, userID)
 	if err != nil {

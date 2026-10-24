@@ -682,19 +682,17 @@ html [data-sonner-toaster] [data-sonner-toast] [data-description] {
   line-height: 1.45;
   color: var(--km-text-secondary);
 }
-/* Icon chip: 30px circle, glyph centred, tinted with the type colour */
+/* Status glyph in the type colour, no container (icons.md); 22px slot aligned with the title */
 html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon] {
-  width: 30px;
-  height: 30px;
+  width: 22px;
+  height: 22px;
   margin: 0;
   flex-shrink: 0;
   align-self: flex-start;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9999px;
   color: var(--km-toast-tone);
-  background: color-mix(in srgb, var(--km-toast-tone) 15%, transparent);
 }
 html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon] svg {
   margin: 0;
@@ -706,15 +704,16 @@ html [data-sonner-toaster] [data-sonner-toast][data-type="info"] { --km-toast-to
 html [data-sonner-toaster] [data-sonner-toast][data-type="loading"],
 html [data-sonner-toaster] [data-sonner-toast][data-type="default"],
 html [data-sonner-toaster] [data-sonner-toast]:not([data-type]) { --km-toast-tone: var(--km-toast-loading); }
-/* Live notification alerts: sender photo fills the chip */
+/* Live notification alerts: the sender's photo (avatars are the icons.md exception) */
+html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon]:has(img) {
+  width: 32px;
+  height: 32px;
+}
 html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon] img {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 9999px;
   object-fit: cover;
-}
-html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-icon]:has(img) {
-  background: transparent;
 }
 /* Action button (Reply / View): brand navy, readable in both themes */
 html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-button] {
@@ -766,4 +765,24 @@ html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-b
 html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-button]:focus-visible {
   outline: 2px solid var(--km-link);
   outline-offset: 1px;
+}
+
+/* Chat typing indicator (app/(common)/chat): three dots rising and brightening in turn, like WhatsApp.
+   A soft wave, not a blink; under reduced motion the dots stay still. */
+.km-typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--km-text-secondary);
+  opacity: 0.45;
+  animation: km-typing 1.3s ease-in-out infinite;
+}
+.km-typing-dot:nth-child(3) { animation-delay: 0.16s; }
+.km-typing-dot:nth-child(4) { animation-delay: 0.32s; }
+@keyframes km-typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30% { transform: translateY(-3px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .km-typing-dot { animation: none; opacity: 0.7; }
 }

@@ -1101,6 +1101,13 @@ function ChatView() {
       // Only smooth scroll down when a message is added to the end
       prevLastMsgId.current = lastMsgId;
       container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    } else if (isOtherTyping) {
+      // Show the typing bubble like WhatsApp, but only if the user is reading the latest
+      // messages; never yank them down while they scroll through older ones
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      if (distanceFromBottom < 220) {
+        container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      }
     }
   }, [messages, activeChat, isOtherTyping]);
 
@@ -2223,11 +2230,21 @@ function ChatView() {
                 })
               )}
 
-              {/* Typing indicator */}
+              {/* Typing indicator: an incoming-style bubble with three dots in a soft wave
+                  (WhatsApp pattern; still dots under reduced motion) */}
               {isOtherTyping && (
-                <p className="pl-9 text-xs text-km-text-secondary" aria-live="polite">
-                  {activePartner?.name?.split(" ")[0] || "They"} is typing…
-                </p>
+                <div className="flex gap-2 sm:gap-2.5 items-end">
+                  <ChatAvatar name={activePartner?.name} image={activePartner?.profile_image} size="sm" />
+                  <div
+                    role="status"
+                    className="bg-km-surface-card border border-km-border rounded-2xl rounded-tl-xs px-4 py-3 flex items-center gap-1"
+                  >
+                    <span className="sr-only">{activePartner?.name?.split(" ")[0] || "They"} is typing</span>
+                    <span className="km-typing-dot" aria-hidden="true" />
+                    <span className="km-typing-dot" aria-hidden="true" />
+                    <span className="km-typing-dot" aria-hidden="true" />
+                  </div>
+                </div>
               )}
 
               <div ref={messagesEndRef} />

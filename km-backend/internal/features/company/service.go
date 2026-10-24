@@ -3,18 +3,39 @@ package company
 import (
 	"context"
 	"errors"
-	"km-backend/internal/features/user"
+	"strings"
 	"time"
+
+	"km-backend/internal/features/job"
+	"km-backend/internal/features/user"
 )
 
 type CompanyService struct {
 	userRepo user.UserRepository
+	jobRepo  job.JobRepository
 }
 
-func NewCompanyService(userRepo user.UserRepository) *CompanyService {
+func NewCompanyService(userRepo user.UserRepository, jobRepo job.JobRepository) *CompanyService {
 	return &CompanyService{
 		userRepo: userRepo,
+		jobRepo:  jobRepo,
 	}
+}
+
+// openJobCount counts the recruiter's live listings (status "Open", not hidden because the
+// account is deactivated)
+func (s *CompanyService) openJobCount(ctx context.Context, recruiterID string) int {
+	jobs, err := s.jobRepo.FindByRecruiter(ctx, recruiterID)
+	if err != nil {
+		return 0
+	}
+	n := 0
+	for _, j := range jobs {
+		if strings.EqualFold(j.Status, "Open") && !j.HiddenByAccount {
+			n++
+		}
+	}
+	return n
 }
 
 // Helper to convert User document to Company response document
@@ -221,14 +242,10 @@ func (s *CompanyService) GetTopCompanies(ctx context.Context, limit int) ([]TopC
 	var top []TopCompanyResponse
 	for _, u := range users {
 		if u.CompanyName != "" {
-			category := u.Headline
-			if category == "" {
-				category = "Enterprise Employer"
-			}
-			location := u.City
-			if location == "" {
-				location = "India"
-			}
+			// The company's industry, not the recruiter's personal headline ("HR", "Founder");
+			// empty values stay empty instead of placeholder text
+			category := strings.TrimSpace(u.Industry)
+			location := strings.TrimSpace(u.City)
 			top = append(top, TopCompanyResponse{
 				ID:       u.ID.Hex(),
 				Name:     u.CompanyName,
@@ -236,7 +253,7 @@ func (s *CompanyService) GetTopCompanies(ctx context.Context, limit int) ([]TopC
 				Website:  u.CompanyWebsite,
 				Category: category,
 				Location: location,
-				JobCount: 1,
+				JobCount: s.openJobCount(ctx, u.ID.Hex()),
 				Verified: u.VerificationStatus == "verified",
 			})
 		}

@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react';
 import { Toaster } from 'sonner';
-import { CheckIcon, CircleNotchIcon, InfoIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
+import { CheckCircleIcon, CircleNotchIcon, InfoIcon, WarningCircleIcon, XCircleIcon } from '@phosphor-icons/react';
 
 // Watch the class on <html> itself: the theme switch animates, so the `dark` class can flip
 // after useTheme's change event has already been read
@@ -13,13 +13,14 @@ function subscribe(onChange: () => void) {
 }
 const readIsDark = () => document.documentElement.classList.contains('dark');
 
-// Our own glyphs, centred in the tinted chip (sonner's defaults are built for a 16px left-aligned slot)
+// Filled status glyphs in the type colour, placed directly in the layout (icons.md: no icon
+// containers). sonner's defaults are built for a 16px left-aligned slot, so we supply our own.
 const icons = {
-    success: <CheckIcon size={15} weight="bold" />,
-    error: <XIcon size={15} weight="bold" />,
-    warning: <WarningIcon size={15} weight="bold" />,
-    info: <InfoIcon size={16} weight="bold" />,
-    loading: <CircleNotchIcon size={16} weight="bold" className="km-toast-spin" />,
+    success: <CheckCircleIcon size={22} weight="fill" />,
+    error: <XCircleIcon size={22} weight="fill" />,
+    warning: <WarningCircleIcon size={22} weight="fill" />,
+    info: <InfoIcon size={22} weight="fill" />,
+    loading: <CircleNotchIcon size={20} weight="bold" className="km-toast-spin" />,
 };
 
 /**
