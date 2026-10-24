@@ -80,6 +80,7 @@ type JobInfo struct {
 	SalaryMin     int     `json:"salary_min"`
 	SalaryMax     int     `json:"salary_max"`
 	JobType       string  `json:"job_type"`
+	Status        string  `json:"status"`
 	ExperienceMin int     `json:"experience_min"`
 	ExperienceMax int     `json:"experience_max"`
 	Rating        float64 `json:"rating"`        // Mocked for now

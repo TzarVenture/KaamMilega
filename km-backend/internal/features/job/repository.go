@@ -202,6 +202,7 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 
 	// Jobs of a deactivated or pending-deletion recruiter account are hidden (internal/features/account)
 	andConditions = append(andConditions, bson.M{"hidden_by_account": bson.M{"$ne": true}})
+	andConditions = append(andConditions, bson.M{"status": bson.M{"$ne": "Deleted"}})
 
 	// Experience
 	if filter.ExperienceMin != nil {
@@ -249,7 +250,10 @@ func (r *JobRepositoryImpl) FindByRecruiter(ctx context.Context, recruiterID str
 		return nil, err
 	}
 
-	filter := bson.M{"recruiter_id": oid}
+	filter := bson.M{
+		"recruiter_id": oid,
+		"status":       bson.M{"$ne": "Deleted"},
+	}
 	opts := options.Find().SetSort(bson.M{"created_at": -1})
 
 	cursor, err := r.jobColl.Find(ctx, filter, opts)
@@ -311,6 +315,12 @@ func (r *JobRepositoryImpl) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.jobColl.DeleteOne(ctx, bson.M{"_id": oid})
+	update := bson.M{
+		"$set": bson.M{
+			"status":     "Deleted",
+			"updated_at": time.Now(),
+		},
+	}
+	_, err = r.jobColl.UpdateOne(ctx, bson.M{"_id": oid}, update)
 	return err
 }

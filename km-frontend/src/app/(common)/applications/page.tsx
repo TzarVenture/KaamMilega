@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import api from "@/lib/axios";
+import Link from "next/link";
 import { ArrowSquareOutIcon, BriefcaseIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, CircleNotchIcon, ClockIcon, LightningIcon, PhoneCallIcon, StarIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { cn } from "@/lib/utils";
 import { errorText } from "@/lib/notify";
@@ -10,12 +11,13 @@ type JobInfo = {
     id: string;
     title: string;
     company: string;
-    company_id: string;
+    company_id?: string;
     location: string;
     city_name: string;
     salary_min: number;
     salary_max: number;
     job_type: string;
+    status?: string;
     experience_min: number;
     experience_max: number;
     rating: number;
@@ -30,7 +32,7 @@ type ApplicationDetail = {
     status: string;
     created_at: string;
     updated_at: string;
-    job: JobInfo;
+    job?: JobInfo | null;
 };
 
 const STEPS = [
@@ -180,41 +182,61 @@ export default function ApplicationsPage() {
                         </div>
 
                         <div className="space-y-3">
-                            {applications.map((app) => (
-                                <button
-                                    key={app.id}
-                                    onClick={() => setSelectedId(app.id)}
-                                    className={cn(
-                                        "w-full text-left p-5 rounded-2xl transition-all duration-300 border",
-                                        selectedId === app.id
-                                            ? "bg-blue-50/40 border-blue-200 shadow-sm ring-1 ring-km-primary/30"
-                                            : "bg-km-surface-card border-slate-100 hover:border-blue-100 hover:bg-slate-50/50"
-                                    )}
-                                >
-                                    <h3 className="font-bold text-slate-900 truncate pr-4 text-[17px]">
-                                        {app?.job?.title}
-                                    </h3>
-                                    <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
-                                        <span>{app?.job?.company}</span>
-                                        <div className="flex items-center gap-0.5 text-amber-500 font-medium dark:text-amber-400">
-                                            <StarIcon weight="fill" className="w-3.5 h-3.5 fill-current" />
-                                            <span>{app?.job?.rating}</span>
-                                        </div>
-                                        <span className="text-slate-300">|</span>
-                                        <span>{app?.job?.reviews_count}</span>
-                                    </div>
+                            {applications.map((app) => {
+                                const isJobDeleted = !app.job || app.job.status === "Deleted";
+                                const isJobClosed = app.job?.status === "Closed";
 
-                                    <div className="mt-4 flex items-center justify-between">
-                                        <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border", getStatusBadgeClass(app.status))}>
-                                            <CheckCircleIcon weight="bold" className="w-3 h-3" />
-                                            {getStatusDisplay(app.status)} {formatTimeAgo(app.updated_at)}
+                                return (
+                                    <button
+                                        key={app.id}
+                                        onClick={() => setSelectedId(app.id)}
+                                        className={cn(
+                                            "w-full text-left p-5 rounded-2xl transition-all duration-300 border cursor-pointer",
+                                            selectedId === app.id
+                                                ? "bg-blue-50/40 border-blue-200 shadow-sm ring-1 ring-km-primary/30"
+                                                : "bg-km-surface-card border-slate-100 hover:border-blue-100 hover:bg-slate-50/50"
+                                        )}
+                                    >
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h3 className="font-bold text-slate-900 truncate text-[17px]">
+                                                {app?.job?.title || "Position Closed / Removed"}
+                                            </h3>
+                                            {isJobDeleted ? (
+                                                <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
+                                                    Removed
+                                                </span>
+                                            ) : isJobClosed ? (
+                                                <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200/80 font-medium">
+                                                    Closed
+                                                </span>
+                                            ) : null}
                                         </div>
-                                        <span className="text-[11px] text-slate-400 font-medium">
-                                            {app?.job?.last_active}
-                                        </span>
-                                    </div>
-                                </button>
-                            ))}
+                                        <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
+                                            <span>{app?.job?.company || "Listing archived"}</span>
+                                            {app?.job?.rating ? (
+                                                <>
+                                                    <div className="flex items-center gap-0.5 text-amber-500 font-medium dark:text-amber-400">
+                                                        <StarIcon weight="fill" className="w-3.5 h-3.5 fill-current" />
+                                                        <span>{app?.job?.rating}</span>
+                                                    </div>
+                                                    <span className="text-slate-300">|</span>
+                                                    <span>{app?.job?.reviews_count}</span>
+                                                </>
+                                            ) : null}
+                                        </div>
+
+                                        <div className="mt-4 flex items-center justify-between">
+                                            <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border", getStatusBadgeClass(app.status))}>
+                                                <CheckCircleIcon weight="bold" className="w-3 h-3" />
+                                                {getStatusDisplay(app.status)} {formatTimeAgo(app.updated_at)}
+                                            </div>
+                                            <span className="text-[11px] text-slate-400 font-medium">
+                                                {app?.job?.last_active || (isJobDeleted ? "Archived" : "")}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
@@ -223,23 +245,46 @@ export default function ApplicationsPage() {
                         {selectedApp ? (
                             <div className="space-y-10">
                                 {/* Job Header */}
-                                <div className="space-y-2">
-                                    <h1 className="text-3xl font-black text-slate-900">
-                                        {selectedApp?.job?.title} | {selectedApp?.job?.location}
+                                <div className="space-y-3">
+                                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+                                        {selectedApp?.job?.title || "Position Closed / Removed"}
+                                        {selectedApp?.job?.location ? ` | ${selectedApp.job.location}` : ""}
                                     </h1>
-                                    <div className="flex items-center gap-3 text-slate-500 font-medium">
-                                        <span className="text-slate-900 font-bold">{selectedApp?.job?.company}</span>
-                                        <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
-                                            <StarIcon weight="fill" className="w-4 h-4 fill-current" />
-                                            <span>{selectedApp?.job?.rating}</span>
+
+                                    {(!selectedApp.job || selectedApp.job.status === "Deleted") && (
+                                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-2">
+                                            <WarningCircleIcon size={16} weight="regular" className="text-slate-500 shrink-0" aria-hidden="true" />
+                                            <span>This opening was removed by the employer. Your past application record remains securely preserved below.</span>
                                         </div>
-                                        <span className="text-slate-300">|</span>
-                                        <span>{selectedApp?.job?.reviews_count}</span>
+                                    )}
+
+                                    {selectedApp.job && selectedApp.job.status === "Closed" && (
+                                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
+                                            <WarningCircleIcon size={16} weight="regular" className="text-amber-600 shrink-0" aria-hidden="true" />
+                                            <span>This opening is closed to new applicants. Your application is under review.</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-3 text-slate-500 font-medium">
+                                        <span className="text-slate-900 font-bold">{selectedApp?.job?.company || "Employer"}</span>
+                                        {selectedApp?.job?.rating ? (
+                                            <>
+                                                <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
+                                                    <StarIcon weight="fill" className="w-4 h-4 fill-current" />
+                                                    <span>{selectedApp?.job?.rating}</span>
+                                                </div>
+                                                <span className="text-slate-300">|</span>
+                                                <span>{selectedApp?.job?.reviews_count}</span>
+                                            </>
+                                        ) : null}
                                     </div>
-                                    <button className="mt-4 text-km-heading font-bold text-sm hover:underline flex items-center gap-1">
-                                        View Similar Jobs
-                                        <ArrowSquareOutIcon weight="bold" className="w-3 h-3" />
-                                    </button>
+                                    <Link 
+                                        href={`/jobs${selectedApp?.job?.title ? `?search=${encodeURIComponent(selectedApp.job.title)}` : ""}`}
+                                        className="mt-2 text-km-heading font-bold text-sm hover:underline inline-flex items-center gap-1"
+                                    >
+                                        <span>View Similar Jobs</span>
+                                        <ArrowSquareOutIcon weight="bold" className="w-3.5 h-3.5" aria-hidden="true" />
+                                    </Link>
                                 </div>
 
                                 <div className="h-px bg-slate-100 w-full" />
@@ -344,8 +389,8 @@ export default function ApplicationsPage() {
                                             </div>
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-900 text-lg">{selectedApp.job.company}</h3>
-                                            <p className="text-slate-500 text-sm font-medium">About company line, Location</p>
+                                            <h3 className="font-bold text-slate-900 text-lg">{selectedApp?.job?.company || "Employer"}</h3>
+                                            <p className="text-slate-500 text-sm font-medium">{selectedApp?.job?.city_name || selectedApp?.job?.location || "Location not specified"}</p>
                                             <p className="text-[11px] text-slate-400 mt-1 font-bold italic">
                                                 {getStatusDisplay(selectedApp.status)} {formatTimeAgo(selectedApp.updated_at)}
                                             </p>

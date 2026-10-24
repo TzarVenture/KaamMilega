@@ -62,8 +62,8 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 		return nil, ErrJobNotFound
 	}
 
-	// Check if job is closed
-	if jobInfo.Status == "Closed" || jobInfo.Status == "closed" || jobInfo.HiddenByAccount {
+	// Check if job is closed, deleted, or on hold
+	if strings.EqualFold(jobInfo.Status, "closed") || strings.EqualFold(jobInfo.Status, "deleted") || strings.EqualFold(jobInfo.Status, "on hold") || strings.EqualFold(jobInfo.Status, "onhold") || jobInfo.HiddenByAccount {
 		return nil, ErrJobClosed
 	}
 
@@ -184,6 +184,7 @@ func (s *ApplicationService) GetApplicationsByCandidateDetailed(ctx context.Cont
 				SalaryMin:     jobInfo.SalaryMin,
 				SalaryMax:     jobInfo.SalaryMax,
 				JobType:       jobInfo.JobType,
+				Status:        jobInfo.Status,
 				ExperienceMin: jobInfo.ExperienceMin,
 				ExperienceMax: jobInfo.ExperienceMax,
 				Rating:        4.2,             // Mocked
@@ -245,6 +246,7 @@ func (s *ApplicationService) GetRecruiterApplicationsDetailed(ctx context.Contex
 				SalaryMin:     jobInfo.SalaryMin,
 				SalaryMax:     jobInfo.SalaryMax,
 				JobType:       jobInfo.JobType,
+				Status:        jobInfo.Status,
 				ExperienceMin: jobInfo.ExperienceMin,
 				ExperienceMax: jobInfo.ExperienceMax,
 			}
