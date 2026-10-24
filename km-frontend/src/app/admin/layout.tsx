@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import BrandLogo from '@/components/km/BrandLogo';
 import { clearSession, isAuthenticated } from '@/lib/auth';
 
-import { BellIcon, BriefcaseIcon, BuildingOfficeIcon, CaretDownIcon, DownloadSimpleIcon, FileXlsIcon, FlagIcon, GraduationCapIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, QuestionIcon, QuotesIcon, ShieldCheckIcon, ShieldIcon, ShieldWarningIcon, SidebarSimpleIcon, SignOutIcon, SquaresFourIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
+import { BellIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CaretDownIcon, DownloadSimpleIcon, FileXlsIcon, FlagIcon, GraduationCapIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, QuestionIcon, QuotesIcon, ShieldCheckIcon, ShieldIcon, ShieldWarningIcon, SidebarSimpleIcon, SignOutIcon, SquaresFourIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,6 +15,7 @@ const navItems = [
     { name: 'Reports & Analytics', icon: FileXlsIcon, href: '/admin/reports' },
     { name: 'User Module', icon: UsersIcon, href: '/admin/users' },
     { name: 'Recruiter / Company', icon: BuildingOfficeIcon, href: '/admin/companies' },
+    { name: 'Events & Workshops', icon: CalendarBlankIcon, href: '/admin/events' },
     { name: 'Testimonials', icon: QuotesIcon, href: '/admin/testimonials' },
     { name: 'Policies', icon: ShieldCheckIcon, href: '/admin/policies' },
     { name: 'Questions', icon: QuestionIcon, href: '/admin/questions' },
@@ -28,6 +29,7 @@ const navItems = [
     { name: 'Wallet Disputes', icon: ShieldWarningIcon, href: '/admin/disputes' },
     { name: 'Chat Reports', icon: FlagIcon, href: '/admin/chat-reports' },
 ];
+
 
 export default function AdminLayout({
     children,
