@@ -14,7 +14,7 @@ import HeroSection from '@/components/home/HeroSection';
 import SevenServicesSection from '@/components/home/SevenServicesSection';
 import SuccessTicker from '@/components/home/SuccessTicker';
 import UserAvatar from '@/components/ui/UserAvatar';
-import { ENTERPRISE_COMPANIES as enterprisePartners } from '@/lib/constants/companies';
+import { companiesFromApi, type HiringCompany } from '@/lib/constants/companies';
 import CompanyCard from '@/components/company/CompanyCard';
 import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
@@ -35,7 +35,8 @@ export default function LandingPage() {
   useUniformMarqueeSpeed();
   const [cities, setCities] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
+  // Registered employers with their live job counts (GET /companies/top)
+  const [topCompanies, setTopCompanies] = useState<HiringCompany[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [experts, setExperts] = useState<any[]>([]);
@@ -46,6 +47,16 @@ export default function LandingPage() {
   const [connectedIds, setConnectedIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    api.get('/companies/top?limit=6')
+      .then((res) => alive && setTopCompanies(companiesFromApi(res)))
+      .catch(() => alive && setTopCompanies([]));
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
@@ -177,19 +188,6 @@ export default function LandingPage() {
 
         if (jobsRes.status === 'fulfilled') {
           const jobsData = (jobsRes.value as any).jobs || [];
-          // Extract unique companies from jobs
-          const companiesMap = new Map();
-          jobsData.forEach((job: any) => {
-            if (job.company && !companiesMap.has(job.company)) {
-              companiesMap.set(job.company, {
-                name: job.company,
-                rating: "4.5", // Mock
-                reviews: "100+ Reviews",
-                desc: job.description?.substring(0, 100) + "..."
-              });
-            }
-          });
-          setCompanies(Array.from(companiesMap.values()));
           setJobs(jobsData);
         }
 
@@ -225,7 +223,7 @@ export default function LandingPage() {
           onFollow={handleConnect}
         />
       )}
-      <FeaturedCompanies companies={companies} />
+      <FeaturedCompanies companies={topCompanies} />
       <QualificationSearch />
       <JobTypeSection />
       <DiversityBanner />
@@ -521,19 +519,21 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
 };
 
 // --- Featured Companies Grid ---
-const FeaturedCompanies = ({ companies }: { companies: any[] }) => {
+// Real employers only; the section is hidden until there are some
+const FeaturedCompanies = ({ companies }: { companies: HiringCompany[] }) => {
+  if (companies.length === 0) return null;
   return (
     <section className={SECTION} aria-labelledby="companies-title">
       <div className={CONTAINER}>
         <SectionHeader
           id="companies-title"
           title="Featured companies actively hiring"
-          description="Leading employers hiring for verified roles in your area."
-          action={{ href: '/jobs', label: 'View all 5,000+ employers' }}
+          description="Employers hiring on KaamMilega."
+          action={{ href: '/jobs', label: 'View all jobs' }}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-          {enterprisePartners.map((co, i) => (
+          {companies.map((co, i) => (
             <CompanyCard key={co.name || i} company={co} variant="expanded" />
           ))}
         </div>
