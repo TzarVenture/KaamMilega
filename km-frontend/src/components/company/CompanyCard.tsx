@@ -99,7 +99,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                         </Link>
                         {verifiedSeal(14)}
                     </div>
-                    <p className="text-xs text-km-text-secondary truncate mt-0.5">{company.category}</p>
+                    {company.category && <p className="text-xs text-km-text-secondary truncate mt-0.5">{company.category}</p>}
                 </div>
             </div>
 
@@ -111,6 +111,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                     View jobs
                     <CaretRightIcon weight="bold" size={12} aria-hidden="true" />
                 </Link>
+                {onToggleFollow && (
                 <button
                     type="button"
                     onClick={handleFollowClick}
@@ -132,6 +133,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                         </>
                     )}
                 </button>
+                )}
             </div>
         </div>
     );

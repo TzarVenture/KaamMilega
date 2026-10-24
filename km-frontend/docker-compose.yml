@@ -3,6 +3,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      # NEXT_PUBLIC_* are compiled in at build time; taken from the deployment environment
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-https://api.kaammilega.com}
+        NEXT_PUBLIC_ENABLE_DARK_MODE: ${NEXT_PUBLIC_ENABLE_DARK_MODE:-}
+        NEXT_PUBLIC_ENABLE_INSTANT_MILEGA: ${NEXT_PUBLIC_ENABLE_INSTANT_MILEGA:-}
+        NEXT_PUBLIC_RAZORPAY_KEY_ID: ${NEXT_PUBLIC_RAZORPAY_KEY_ID:-}
     ports:
       - "3000"
       - "60001:3000"

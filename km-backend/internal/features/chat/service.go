@@ -165,9 +165,9 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 	lastPreview := req.Content
 	if lastPreview == "" && req.AttachmentName != "" {
 		if req.AttachmentType == "image" {
-			lastPreview = "📷 Photo"
+			lastPreview = "Photo"
 		} else {
-			lastPreview = "📎 " + req.AttachmentName
+			lastPreview = "Attachment: " + req.AttachmentName
 		}
 	}
 

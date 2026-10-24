@@ -1,7 +1,8 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
 
-import { ArrowUpRightIcon, CaretDownIcon, CheckCircleIcon, CheckIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowUpRightIcon, BookOpenIcon, BriefcaseIcon, BuildingsIcon, CalendarCheckIcon, CalendarPlusIcon, CaretDownIcon, CaretRightIcon, ChalkboardTeacherIcon, CheckCircleIcon, CheckIcon, FileTextIcon, GearSixIcon, LifebuoyIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, NewspaperIcon, SealCheckIcon, SignOutIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
+import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
 import {
   ChatNavIcon,
   EventsNavIcon,
@@ -539,14 +540,10 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   <h5 className="px-4 text-[13px] font-bold text-gray-900 mt-2">
                     Account
                   </h5>
-                  <MenuItem label="Digital Wallet" href="/wallet" />
-                  {!isRecruiter && <MenuItem label="Try Premium" />}
-                  <MenuItem
-                    label="Setting & Privacy"
-                    href={isRecruiter ? "/recruiter/settings" : "/settings"}
-                  />
-                  <MenuItem label="Help" />
-                  <MenuItem label="Language" />
+                  <MenuItem label="Settings & privacy" href={isRecruiter ? "/recruiter/settings" : "/settings"} />
+                  <MenuItem label="Wallet" href="/wallet" />
+                  <MenuItem label="Language" href={`${isRecruiter ? "/recruiter/settings" : "/settings"}?tab=preferences`} />
+                  <MenuItem label="Help & support" href="/support" />
                   {FEATURES.DARK_MODE && (
                     <div className="px-4 pt-3">
                       <p className="text-xs font-semibold text-km-text-secondary mb-1.5">Theme</p>
@@ -572,10 +569,10 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                         label="Interviews"
                         href="/recruiter/interviews"
                       />
+                      <MenuItem label="Posts & activity" href="/recruiter/posts" />
                     </>
                   ) : (
                     <>
-                      <MenuItem label="Posts & Activity" />
                       <MenuItem label="Job Posting Account" href="/recruiter" />
                       <MenuItem
                         label="Applied Jobs Status"
@@ -641,8 +638,12 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
         </div>
 
         {/* Mobile Right: Search + Avatar + Hamburger */}
-        <div className="flex md:hidden items-center gap-2 ml-2 shrink-0">
-          {FEATURES.DARK_MODE && <ThemeIconButton />}
+        <div className="flex md:hidden items-center gap-1 ml-2 shrink-0">
+          {FEATURES.DARK_MODE && (
+            <div className="hidden sm:block">
+              <ThemeIconButton />
+            </div>
+          )}
           <button
             onClick={() => {
               setMobileSearchOpen(!mobileSearchOpen);
@@ -736,46 +737,57 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           />
           <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
             {/* User identity */}
-            <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100">
-              <div className="w-10 h-10 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
+            <Link
+              href="/profile"
+              onClick={() => setMobileNavOpen(false)}
+              className="flex items-center gap-3 px-4 py-4 border-b border-km-border hover:bg-km-surface transition-colors"
+            >
+              <div className="w-11 h-11 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
                 {user?.profile_image ? (
-                  <CustomImage
-                    src={user.profile_image}
-                    alt={displayName}
-                    className="w-full h-full object-cover"
-                  />
+                  <CustomImage src={user.profile_image} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
-                  <span className="rotate-45 text-sm">▲▲</span>
+                  <span className="text-base font-bold">{displayName?.[0]?.toUpperCase() || "U"}</span>
                 )}
               </div>
-              <div>
-                <p className="font-bold text-gray-900 text-sm">{displayName}</p>
-                <p className="text-xs text-gray-500 italic">{roleLabel}</p>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-km-text-primary text-sm truncate">{displayName}</p>
+                <p className="text-xs text-km-text-secondary">View profile · {roleLabel}</p>
               </div>
-              <Link
-                href="/profile"
-                className="ml-auto"
-                onClick={() => setMobileNavOpen(false)}
-              >
-                <span className="text-xs font-bold text-km-heading border border-blue-200 px-3 py-1 rounded-full hover:bg-blue-50 transition-colors">
-                  Profile
-                </span>
-              </Link>
-            </div>
+              <CaretRightIcon size={16} weight="bold" className="text-km-text-secondary shrink-0" aria-hidden="true" />
+            </Link>
 
-            {/* Nav links */}
-            <div className="py-2">
+            {/* Account: the things people look for first */}
+            <MobileSection title="Account">
+              <MobileRow
+                href={isRecruiter ? "/recruiter/settings" : "/settings"}
+                Icon={GearSixIcon}
+                label="Settings & privacy"
+                onNavigate={() => setMobileNavOpen(false)}
+              />
+              <MobileRow href="/wallet" Icon={WalletIcon} label="Wallet" onNavigate={() => setMobileNavOpen(false)} />
+              <MobileRow href="/support" Icon={LifebuoyIcon} label="Help & support" onNavigate={() => setMobileNavOpen(false)} />
+              {FEATURES.DARK_MODE && (
+                <div className="px-4 pt-2 pb-1">
+                  <p className="text-xs font-semibold text-km-text-secondary mb-1.5">Appearance</p>
+                  <ThemeToggle />
+                </div>
+              )}
+            </MobileSection>
+
+            {/* Main navigation */}
+            <MobileSection title="Browse">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileNavOpen(false)}
                   aria-current={isLinkActive(link.href) ? "page" : undefined}
-                  className={`group flex items-center justify-between px-5 py-3 text-sm font-semibold hover:bg-blue-50 hover:text-km-heading transition-colors ${isLinkActive(link.href) ? "text-km-heading" : "text-gray-700"}`}
+                  className={`group flex items-center justify-between min-h-11 px-4 text-sm font-semibold rounded-xl hover:bg-km-surface transition-colors ${isLinkActive(link.href) ? "text-km-heading bg-km-surface" : "text-km-text-primary"}`}
                 >
-                  <div className="flex items-center gap-4">
-                    <link.Icon size={20} strokeWidth={1.9} active={isLinkActive(link.href)} className={link.accent ? "text-[#FF6B00]" : undefined} /> {link.label}
-                  </div>
+                  <span className="flex items-center gap-3.5">
+                    <link.Icon size={20} strokeWidth={1.9} active={isLinkActive(link.href)} className={link.accent ? "text-[#FF6B00]" : undefined} />
+                    {link.label}
+                  </span>
                   {link.href === "/chat" && chatUnreadCount > 0 && (
                     <span className="min-w-[18px] h-[18px] px-1.5 bg-[#FF6B00] text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                       {chatUnreadCount > 99 ? "99+" : chatUnreadCount}
@@ -783,122 +795,51 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   )}
                 </Link>
               ))}
+            </MobileSection>
 
-            </div>
+            {/* Role-specific */}
+            {isRecruiter ? (
+              <MobileSection title="Hiring">
+                <MobileRow href="/recruiter/jobs/list" Icon={BriefcaseIcon} label="My jobs" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter/applications" Icon={FileTextIcon} label="Applications" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter/interviews" Icon={CalendarCheckIcon} label="Interviews" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter/posts" Icon={NewspaperIcon} label="Posts & activity" onNavigate={() => setMobileNavOpen(false)} />
+              </MobileSection>
+            ) : (
+              <MobileSection title="Your activity">
+                <MobileRow href="/applications" Icon={FileTextIcon} label="My applications" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/interviews" Icon={CalendarCheckIcon} label="Interviews" onNavigate={() => setMobileNavOpen(false)} />
+              </MobileSection>
+            )}
 
-            <hr className="border-gray-100" />
+            {isExpert && (
+              <MobileSection title="Expert portal">
+                <MobileRow href="/user/events/create" Icon={CalendarPlusIcon} label="Create event" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/courses" Icon={BookOpenIcon} label="My courses" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/expert/mentorship" Icon={ChalkboardTeacherIcon} label="Manage mentorships" onNavigate={() => setMobileNavOpen(false)} />
+              </MobileSection>
+            )}
 
-            {/* Account actions */}
-            <div className="py-2 px-4 flex flex-col gap-1">
-              <Link
-                href="/wallet"
-                onClick={() => setMobileNavOpen(false)}
-                className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium"
-              >
-                Digital Wallet & Ledger
-              </Link>
-              {!isRecruiter && (
-                <Link
-                  href="/settings"
-                  onClick={() => setMobileNavOpen(false)}
-                  className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                >
-                  Setting & Privacy
-                </Link>
-              )}
-              {isRecruiter ? (
-                <>
-                  <Link
-                    href="/recruiter/jobs/list"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                  >
-                    My Jobs
-                  </Link>
-                  <Link
-                    href="/recruiter/applications"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                  >
-                    Active Applications
-                  </Link>
-                  <Link
-                    href="/recruiter/interviews"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                  >
-                    Interviews
-                  </Link>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/applications"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                  >
-                    Applied Jobs Status
-                  </Link>
-                  <Link
-                    href="/interviews"
-                    onClick={() => setMobileNavOpen(false)}
-                    className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                  >
-                    Interviews
-                  </Link>
-                  {!isExpert && (
-                    <Link
-                      href="/expert/apply"
-                      onClick={() => setMobileNavOpen(false)}
-                      className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                    >
-                      Apply to be an Expert
-                    </Link>
-                  )}
-                  {isExpert && (
-                    <>
-                      <hr className="border-gray-100 my-2" />
-                      <h5 className="px-4 text-[13px] font-bold text-km-heading">
-                        Expert Portal
-                      </h5>
-                      <Link
-                        href="/events/create"
-                        onClick={() => setMobileNavOpen(false)}
-                        className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                      >
-                        Create Event
-                      </Link>
-                      <Link
-                        href="/courses"
-                        onClick={() => setMobileNavOpen(false)}
-                        className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                      >
-                        My Courses
-                      </Link>
-                      <Link
-                        href="/expert/mentorship"
-                        onClick={() => setMobileNavOpen(false)}
-                        className="py-2 text-sm text-gray-600 hover:text-km-heading font-medium transition-colors"
-                      >
-                        Manage Mentorships
-                      </Link>
-                    </>
-                  )}
-                </>
-              )}
-            </div>
+            {!isRecruiter && (
+              <MobileSection title="Grow with KaamMilega">
+                <MobileRow href="/recruiter/register" Icon={BuildingsIcon} label="Create a company page" onNavigate={() => setMobileNavOpen(false)} />
+                {!isExpert && (
+                  <MobileRow href="/expert/apply" Icon={SealCheckIcon} label="Become an expert" onNavigate={() => setMobileNavOpen(false)} />
+                )}
+              </MobileSection>
+            )}
 
-            <hr className="border-gray-100" />
-
-            <div className="px-4 py-3">
+            <div className="px-3 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))] border-t border-km-border">
               <button
+                type="button"
                 onClick={async () => {
                   await clearSession();
                   window.location.href = "/login";
                 }}
-                className="w-full text-center py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer dark:text-red-400"
+                className="w-full min-h-11 flex items-center gap-3.5 px-4 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer dark:text-red-400 dark:hover:bg-red-500/10"
               >
-                Sign Out
+                <SignOutIcon size={20} weight="bold" aria-hidden="true" />
+                Sign out
               </button>
             </div>
           </div>
@@ -908,6 +849,9 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
   );
 };
 
+const menuItemClass =
+  "block w-full text-left px-4 py-2 text-xs text-km-text-secondary hover:bg-km-surface hover:text-km-text-primary cursor-pointer transition-colors focus-visible:outline-none focus-visible:bg-km-surface";
+
 const MenuItem = ({
   label,
   onClick,
@@ -916,22 +860,45 @@ const MenuItem = ({
   label: string;
   onClick?: () => void;
   href?: string;
-}) => {
-  const content = (
-    <div
-      onClick={onClick}
-      className="px-4 py-1.5 text-xs text-gray-500 hover:bg-gray-50 cursor-pointer transition-colors"
-    >
+}) =>
+  href ? (
+    <Link href={href} onClick={onClick} className={menuItemClass}>
       {label}
-    </div>
+    </Link>
+  ) : (
+    <button type="button" onClick={onClick} className={menuItemClass}>
+      {label}
+    </button>
   );
 
-  if (href) {
-    return <Link href={href}>{content}</Link>;
-  }
+// Mobile drawer building blocks: a titled group, and a 44px-tall row with an icon
+const MobileSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <div className="px-3 py-2 border-t border-km-border first:border-t-0">
+    <p className="px-4 pt-1 pb-1.5 text-xs font-semibold text-km-text-secondary">{title}</p>
+    <div className="flex flex-col">{children}</div>
+  </div>
+);
 
-  return content;
-};
+const MobileRow = ({
+  href,
+  Icon,
+  label,
+  onNavigate,
+}: {
+  href: string;
+  Icon: PhosphorIcon;
+  label: string;
+  onNavigate: () => void;
+}) => (
+  <Link
+    href={href}
+    onClick={onNavigate}
+    className="flex items-center gap-3.5 min-h-11 px-4 text-sm font-semibold text-km-text-primary rounded-xl hover:bg-km-surface transition-colors"
+  >
+    <Icon size={20} weight="regular" className="text-km-text-secondary shrink-0" aria-hidden="true" />
+    {label}
+  </Link>
+);
 
 function formatRelativeTime(dateString: string): string {
   if (!dateString) return "";

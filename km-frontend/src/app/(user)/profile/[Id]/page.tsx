@@ -10,7 +10,8 @@ import Link from 'next/link';
 import { PageHeaderSkeleton, CardGridSkeleton } from '@/components/ui/LoadingSkeleton';
 import TopEmployersWidget from '@/components/profile/TopEmployersWidget';
 import UserAvatar from '@/components/ui/UserAvatar';
-import { errorText } from "@/lib/notify";
+import { errorText, notify } from "@/lib/notify";
+import { getCurrentUser } from "@/lib/auth";
 
 const OtherUserProfilePage = () => {
     const params = useParams();
@@ -18,6 +19,8 @@ const OtherUserProfilePage = () => {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [isPrivate, setIsPrivate] = useState(false);
+    // Server's reason for a hidden profile (private, or connections only)
+    const [privateReason, setPrivateReason] = useState('');
 
     // Sidebar Live Data
     const [sidebarUsers, setSidebarUsers] = useState<any[]>([]);
@@ -49,6 +52,8 @@ const OtherUserProfilePage = () => {
             const msg = errorText(error, '');
             if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
                 setIsPending(true);
+            } else {
+                notify.error(error, 'Could not send the connection request. Please try again.');
             }
         } finally {
             setIsConnecting(false);
@@ -58,6 +63,12 @@ const OtherUserProfilePage = () => {
     useEffect(() => {
         const fetchProfile = async () => {
             if (!params.Id) return;
+            // Your own public profile: open the editable one instead
+            const me = getCurrentUser();
+            if (me?.id && me.id === params.Id) {
+                router.replace('/profile');
+                return;
+            }
             try {
                 const response = await api.get(`/user/${params.Id}`);
                 setUser(response);
@@ -70,6 +81,7 @@ const OtherUserProfilePage = () => {
             } catch (error: any) {
                 if (error?.response?.status === 403 || error?.status === 403) {
                     setIsPrivate(true);
+                    setPrivateReason(errorText(error, ''));
                 } else {
                     console.error("Failed to fetch user profile:", error);
                 }
@@ -128,8 +140,10 @@ const OtherUserProfilePage = () => {
             <div className="min-h-screen flex items-center justify-center bg-gray-100">
                 <div className="text-center max-w-sm mx-auto p-8 bg-km-surface-card rounded-2xl shadow-sm border border-gray-200">
                     <LockIcon size={36} weight="duotone" className="text-km-heading mx-auto mb-4" aria-hidden="true" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">This Profile is Private</h2>
-                    <p className="text-gray-500 text-sm">This user has chosen to keep their profile private. Only they can view it.</p>
+                    <h2 className="text-xl font-bold text-gray-800 mb-2">This profile isn’t visible to you</h2>
+                    <p className="text-gray-500 text-sm">
+                        {privateReason || 'This member has chosen to keep their profile private.'}
+                    </p>
                 </div>
             </div>
         );
@@ -203,16 +217,23 @@ const OtherUserProfilePage = () => {
                                 </div>
 
                                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                                    {user?.first_name ? `${user?.first_name} ${user?.last_name || ''}` : user?.name || "User Name"}
+                                    {user?.first_name ? `${user?.first_name} ${user?.last_name || ''}` : user?.name || "KaamMilega member"}
                                 </h1>
-                                <p className="text-gray-600 text-sm sm:text-base mt-0.5">
-                                    {user?.headline || user?.designation || "No headline"}
-                                </p>
-                                <p className="text-xs sm:text-sm text-gray-400 mt-1 flex flex-wrap gap-x-2 items-center">
-                                    <span>{locationString || "Location not set"}</span>
-                                    <span>•</span>
-                                    <span className="text-km-heading font-semibold">{user?.connections_count || 0} Connections</span>
-                                </p>
+                                {(user?.headline || user?.designation) && (
+                                    <p className="text-gray-600 text-sm sm:text-base mt-0.5">{user.headline || user.designation}</p>
+                                )}
+                                {/* Only values the API actually sends: no placeholder location or "0 Connections" */}
+                                {(locationString || typeof user?.connections_count === 'number') && (
+                                    <p className="text-xs sm:text-sm text-gray-400 mt-1 flex flex-wrap gap-x-2 items-center">
+                                        {locationString && <span>{locationString}</span>}
+                                        {locationString && typeof user?.connections_count === 'number' && <span>•</span>}
+                                        {typeof user?.connections_count === 'number' && (
+                                            <span className="text-km-heading font-semibold">
+                                                {user.connections_count} {user.connections_count === 1 ? 'connection' : 'connections'}
+                                            </span>
+                                        )}
+                                    </p>
+                                )}
 
                                 {/* Portfolio / Website Link */}
                                 {user?.portfolio_url && (
@@ -489,7 +510,7 @@ const OtherUserProfilePage = () => {
                         {/* People Also Viewed (Live Community Users) */}
                         <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm">
                             <h3 className="font-bold text-gray-900 mb-4 flex justify-between items-center text-base">
-                                <span>People Also <span className="text-km-heading">Viewed</span></span>
+                                <span>People on <span className="text-km-heading">KaamMilega</span></span>
                                 <Link href="/network" className="text-xs font-semibold text-km-heading hover:underline">
                                     See all
                                 </Link>
@@ -498,8 +519,8 @@ const OtherUserProfilePage = () => {
                             <div className="space-y-5">
                                 {sidebarUsers.length > 0 ? (
                                     sidebarUsers.map((person: any, i: number) => {
-                                        const pName = person.name || (person.first_name ? `${person.first_name} ${person.last_name || ''}` : 'Community Member');
-                                        const pHeadline = person.headline || person.designation || 'Active Professional';
+                                        const pName = person.name || (person.first_name ? `${person.first_name} ${person.last_name || ''}` : 'KaamMilega member');
+                                        const pHeadline = person.headline || person.designation || '';
                                         const pId = person.id || person._id;
 
                                         return (
@@ -510,8 +531,7 @@ const OtherUserProfilePage = () => {
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="font-bold text-sm text-gray-900 truncate">{pName}</p>
-                                                        <p className="text-xs text-gray-500 truncate">{pHeadline}</p>
-                                                        <p className="text-[10px] text-gray-400 mt-0.5">Active recently</p>
+                                                        {pHeadline && <p className="text-xs text-gray-500 truncate">{pHeadline}</p>}
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2">
@@ -548,8 +568,8 @@ const OtherUserProfilePage = () => {
                             <div className="space-y-4">
                                 {sidebarExperts.length > 0 ? (
                                     sidebarExperts.map((exp: any, i: number) => {
-                                        const eName = exp.name || (exp.first_name ? `${exp.first_name} ${exp.last_name || ''}` : 'Industry Expert');
-                                        const eHeadline = exp.headline || exp.designation || exp.expertise || 'Career Specialist';
+                                        const eName = exp.name || (exp.first_name ? `${exp.first_name} ${exp.last_name || ''}` : 'KaamMilega expert');
+                                        const eHeadline = exp.headline || exp.designation || exp.expert_category || '';
                                         const eId = exp.id || exp._id;
 
                                         return (
@@ -560,7 +580,7 @@ const OtherUserProfilePage = () => {
                                                     </div>
                                                     <div className="min-w-0">
                                                         <p className="font-bold text-sm text-gray-900 truncate leading-none">{eName}</p>
-                                                        <p className="text-xs text-gray-500 truncate mt-1">{eHeadline}</p>
+                                                        {eHeadline && <p className="text-xs text-gray-500 truncate mt-1">{eHeadline}</p>}
                                                     </div>
                                                 </div>
                                                 <Link href={`/chat?userId=${eId}`}>

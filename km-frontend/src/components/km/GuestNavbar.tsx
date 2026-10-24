@@ -7,7 +7,7 @@ import { EventsNavIcon, InstantNavIcon, JobsNavIcon, MentorsNavIcon, NetworkNavI
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
-import { ThemeIconButton } from './ThemeToggle';
+import ThemeToggle, { ThemeIconButton } from './ThemeToggle';
 import DownloadAppModal from './DownloadAppModal';
 import SearchHint from './SearchHint';
 import { FEATURES } from '@/config/features';
@@ -191,8 +191,12 @@ const GuestNavbar = () => {
                     </div>
 
                     {/* Mobile Right: Search + Hamburger */}
-                    <div className="flex lg:hidden items-center gap-1.5 shrink-0">
-                        {FEATURES.DARK_MODE && <ThemeIconButton />}
+                    <div className="flex lg:hidden items-center gap-1 shrink-0">
+                        {FEATURES.DARK_MODE && (
+                            <div className="hidden sm:block">
+                                <ThemeIconButton />
+                            </div>
+                        )}
                         <button
                             onClick={() => {
                                 setMobileSearchOpen(!mobileSearchOpen);
@@ -305,8 +309,8 @@ const GuestNavbar = () => {
                     <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
                         {/* Core Services Links */}
                         <div className="px-5 py-4 border-b border-slate-100">
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
-                                Explore Ecosystem
+                            <p className="text-xs font-semibold text-slate-500 mb-2">
+                                Browse
                             </p>
                             <div className="space-y-1">
                                 {navLinks.map((item) => (
@@ -327,6 +331,13 @@ const GuestNavbar = () => {
                                 ))}
                             </div>
                         </div>
+
+                        {FEATURES.DARK_MODE && (
+                            <div className="px-5 py-4 border-b border-slate-100 sm:hidden">
+                                <p className="text-xs font-semibold text-slate-500 mb-2">Appearance</p>
+                                <ThemeToggle />
+                            </div>
+                        )}
 
                         {/* Account & Recruitment CTAs */}
                         <div className="p-5 space-y-3 border-b border-slate-100 bg-slate-50/50">
