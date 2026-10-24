@@ -197,7 +197,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                 />
                             </SettingsCard>
 
-                            <SettingsCard title="Push notifications" description="Alerts from your browser, even when KaamMilega is closed.">
+                            <SettingsCard title="Push notifications" description="Alerts on your device for activity that needs your attention.">
                                 <PushSettingRow onEnabled={() => setSettings((s) => ({ ...s, push_notifications: true }))} />
                             </SettingsCard>
 
