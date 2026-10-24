@@ -42,8 +42,8 @@ const examples: { group: string; items: { label: string; run: () => void }[] }[]
     {
         group: 'Live notifications',
         items: [
-            { label: 'New message', run: () => notify.alert({ id: `demo-msg-${Date.now()}`, title: 'Priya Sharma', description: 'Hi! Is the electrician role in Pune still open?', icon: <ChatIcon size={16} weight="bold" />, actionLabel: 'Reply', onAction: () => {} }) },
-            { label: 'Job update', run: () => notify.alert({ id: `demo-job-${Date.now()}`, title: 'Application shortlisted', description: 'Sharma Electricals shortlisted you for Site Electrician.', icon: <BriefcaseIcon size={16} weight="bold" />, actionLabel: 'View', onAction: () => {} }) },
+            { label: 'New message', run: () => notify.alert({ id: `demo-msg-${Date.now()}`, title: 'Priya Sharma', description: 'Hi! Is the electrician role in Pune still open?', icon: <ChatIcon size={22} />, actionLabel: 'Reply', onAction: () => {} }) },
+            { label: 'Job update', run: () => notify.alert({ id: `demo-job-${Date.now()}`, title: 'Application shortlisted', description: 'Sharma Electricals shortlisted you for Site Electrician.', icon: <BriefcaseIcon size={22} />, actionLabel: 'View', onAction: () => {} }) },
         ],
     },
     {

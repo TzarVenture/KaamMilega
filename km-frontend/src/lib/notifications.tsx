@@ -250,15 +250,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const icon = n.actor_avatar ? (
             <CustomImage src={n.actor_avatar} alt="" className="w-full h-full object-cover rounded-full" />
         ) : n.type === "interview_scheduled" ? (
-            <CalendarBlankIcon size={16} weight="bold" />
+            <CalendarBlankIcon size={22} />
         ) : isMessage ? (
-            <ChatIcon size={16} weight="bold" />
+            <ChatIcon size={22} />
         ) : n.category === "jobs" ? (
-            <BriefcaseIcon size={16} weight="bold" />
+            <BriefcaseIcon size={22} />
         ) : n.category === "network" ? (
-            <UsersIcon size={16} weight="bold" />
+            <UsersIcon size={22} />
         ) : (
-            <BellIcon size={16} weight="bold" />
+            <BellIcon size={22} />
         );
         const id = n.id || String(Date.now());
         alertIdsRef.current.add(id);
