@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -91,7 +92,10 @@ func (r *SkillRepositoryImpl) GetSkills(ctx context.Context, query string, categ
 
 func (r *SkillRepositoryImpl) GetSkillByName(ctx context.Context, name string) (*Skill, error) {
 	var skill Skill
-	err := r.skillColl.FindOne(ctx, bson.M{"name": name}).Decode(&skill)
+	// Case-insensitive: "electrician" finds "Electrician" (also keeps admins from adding
+	// near-duplicates that differ only in case)
+	ci := options.FindOne().SetCollation(&options.Collation{Locale: "en", Strength: 2})
+	err := r.skillColl.FindOne(ctx, bson.M{"name": strings.TrimSpace(name)}, ci).Decode(&skill)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nil, nil
