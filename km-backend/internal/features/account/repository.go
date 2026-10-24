@@ -331,6 +331,11 @@ func (r *mongoRepository) EraseRelatedData(ctx context.Context, u *user.User, no
 			_, err := r.db.Collection("notifications").DeleteMany(ctx, bson.M{"user_id": id})
 			return err
 		},
+		// Browser and phone push registrations
+		func() error {
+			_, err := r.db.Collection("push_tokens").DeleteMany(ctx, bson.M{"user_id": id})
+			return err
+		},
 		// Applications stay for the employer's records, minus the candidate's documents
 		func() error {
 			_, err := r.db.Collection("applications").UpdateMany(ctx, bson.M{"candidate_id": id},

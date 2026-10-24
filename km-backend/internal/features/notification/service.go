@@ -70,6 +70,8 @@ func (s *notificationService) CreateOrDebounceChatNotification(ctx context.Conte
 				"notification": existing,
 				"unread_count": unreadCount,
 			})
+			// Same push tag as the first message, so the device shows one updated alert
+			dispatchPush(existing)
 
 			return existing, nil
 		}
@@ -122,6 +124,9 @@ func (s *notificationService) CreateNotification(ctx context.Context, req Create
 		"notification": created,
 		"unread_count": unreadCount,
 	})
+
+	// Browsers and phones (background; no-op until a push sender is installed)
+	dispatchPush(created)
 
 	return created, nil
 }

@@ -13,6 +13,7 @@ import ThemeToggle from "@/components/km/ThemeToggle";
 import { Badge, SettingRow, SettingsCard, Toggle, inputClass } from "@/components/settings/SettingsPrimitives";
 import SecuritySection from "@/components/settings/SecuritySection";
 import AccountSection from "@/components/settings/AccountSection";
+import PushSettingRow from "@/components/settings/PushSettingRow";
 
 interface SettingsViewProps {
     mode?: "candidate" | "recruiter";
@@ -98,8 +99,8 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
         setSettings(next);
         saveQueue.current = saveQueue.current.then(async () => {
             try {
-                const saved = (await api.put("/user/settings", next)) as Partial<UserSettingsState> | null;
-                if (saved && typeof saved === "object") setSettings((s) => ({ ...s, ...saved }));
+                const res = (await api.put("/user/settings", next)) as { settings?: Partial<UserSettingsState> } | null;
+                if (res?.settings && typeof res.settings === "object") setSettings((s) => ({ ...s, ...res.settings }));
                 setSavedAt(Date.now());
             } catch (err) {
                 setSettings(previous);
@@ -196,7 +197,11 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                 />
                             </SettingsCard>
 
-                            <SettingsCard title="SMS & push" description="Your choice is saved now and applied as soon as these channels launch.">
+                            <SettingsCard title="Push notifications" description="Alerts from your browser, even when KaamMilega is closed.">
+                                <PushSettingRow onEnabled={() => setSettings((s) => ({ ...s, push_notifications: true }))} />
+                            </SettingsCard>
+
+                            <SettingsCard title="SMS" description="Your choice is saved now and applied as soon as SMS alerts launch.">
                                 <SettingRow
                                     title="Urgent SMS alerts"
                                     badge={<SoonBadge />}
@@ -204,12 +209,6 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                                         ? "Priority texts when candidates confirm or reschedule interviews."
                                         : "Interview invitations and employer call requests by text message."}
                                     control={toggle("sms_alerts", "Urgent SMS alerts")}
-                                />
-                                <SettingRow
-                                    title="Push notifications"
-                                    badge={<SoonBadge />}
-                                    description="Real-time alerts in the KaamMilega app and your browser."
-                                    control={toggle("push_notifications", "Push notifications")}
                                 />
                             </SettingsCard>
                         </>

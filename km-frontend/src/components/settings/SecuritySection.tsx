@@ -6,6 +6,7 @@ import { notify } from "@/lib/notify";
 import { CheckCircleIcon, DevicesIcon, EyeIcon, EyeSlashIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { errorMessage, revokeOtherSessions } from '@/lib/account';
+import { syncPush } from '@/lib/push/push';
 import { Badge, SettingRow, SettingsCard, buttonPrimary, buttonSecondary, inputClass } from './SettingsPrimitives';
 
 const MIN_PASSWORD = 8;
@@ -60,6 +61,8 @@ export default function SecuritySection({ profile, onPasswordSet }: { profile: S
         setSigningOut(true);
         try {
             const res = await revokeOtherSessions();
+            // The session was renewed: keep this browser's push registration on the new session
+            void syncPush(true);
             notify.success(res.message);
             setConfirmSignOut(false);
         } catch (err) {

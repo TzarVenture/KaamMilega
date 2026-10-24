@@ -15,6 +15,7 @@ import (
 	"km-backend/internal/features/mentorship"
 	"km-backend/internal/features/network"
 	"km-backend/internal/features/notification"
+	"km-backend/internal/features/push"
 
 	"km-backend/internal/features/company"
 	"km-backend/internal/features/course"
@@ -167,10 +168,13 @@ func main() {
 			notification.NewNotificationHub,
 			testimonial.NewTestimonialRepository,
 			account.NewRepository,
+			push.NewRepository,
 
 			// Services
 			notification.NewMailer,
 			notification.NewNotificationService,
+			push.NewService,
+			push.NewController,
 			setting.NewSettingService,
 			file.NewFileService,
 			sms.NewSMSService,
@@ -243,6 +247,7 @@ func main() {
 			AsRoute(notification.NewNotificationApi),
 			AsRoute(testimonial.NewTestimonialApi),
 			AsRoute(account.NewApi),
+			AsRoute(push.NewApi),
 		),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}
@@ -252,6 +257,8 @@ func main() {
 			func(repo user.UserRepository) {
 				middleware.SetSessionLoader(user.NewSessionLoader(repo))
 			},
+			// Every new notification also goes out as a push (browsers, Android, iOS)
+			push.Install,
 			// Final account deletions after the grace period
 			account.RegisterDeletionWorker,
 			// Daily job-alert emails (settings.email_job_alerts)
