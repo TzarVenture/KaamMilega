@@ -30,6 +30,8 @@ var (
 	ErrInvalidToken    = errors.New("invalid push token")
 	ErrInvalidPlatform = errors.New("platform must be web, android or ios")
 	ErrUnknownUser     = errors.New("user not found")
+	ErrPushDisabled    = errors.New("push notifications are not configured on the server yet")
+	ErrTestTooSoon     = errors.New("please wait a few seconds before sending another test")
 )
 
 // Token is one browser or phone that can receive pushes for a user.

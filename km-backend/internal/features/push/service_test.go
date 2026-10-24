@@ -244,3 +244,27 @@ func TestCredentials(t *testing.T) {
 		t.Fatal("non service-account key must be rejected")
 	}
 }
+
+func TestSendTest(t *testing.T) {
+	u := activeUser()
+	u.Settings.PushNotifications = false // an explicit test ignores the account switch
+	s, repo, fcm := setup(u)
+	repo.tokens[tokA] = Token{UserID: u.ID, Token: tokA, SessionVersion: 3}
+	repo.tokens[tokB] = Token{UserID: u.ID, Token: tokB, SessionVersion: 2} // old session
+
+	res, err := s.SendTest(context.Background(), u.ID.Hex())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Devices != 1 || res.Sent != 1 || len(fcm.calls) != 1 {
+		t.Fatalf("result %+v, calls %d", res, len(fcm.calls))
+	}
+	if _, err := s.SendTest(context.Background(), u.ID.Hex()); !errors.Is(err, ErrTestTooSoon) {
+		t.Fatalf("second test within 30s: %v", err)
+	}
+
+	off := &Service{repo: repo, users: fakeUsers{u.ID.Hex(): u}, now: time.Now}
+	if _, err := off.SendTest(context.Background(), u.ID.Hex()); !errors.Is(err, ErrPushDisabled) {
+		t.Fatalf("without credentials: %v", err)
+	}
+}

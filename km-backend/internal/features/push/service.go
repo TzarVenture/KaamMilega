@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"strings"
+	"sync"
 	"time"
 	"unicode/utf8"
 
@@ -31,6 +32,9 @@ type Service struct {
 	fcm         messenger // nil when Firebase credentials are not configured
 	frontendURL string
 	now         func() time.Time
+
+	testMu   sync.Mutex
+	lastTest map[string]time.Time
 }
 
 func NewService(repo Repository, users user.UserRepository, cfg *config.Config) *Service {
@@ -99,6 +103,82 @@ func (s *Service) Unregister(ctx context.Context, userID string, req UnregisterR
 		return ErrUnknownUser
 	}
 	return s.repo.Delete(ctx, id, token)
+}
+
+// TestResult reports a test push to the user's own devices
+type TestResult struct {
+	Devices int `json:"devices"`
+	Sent    int `json:"sent"`
+	Failed  int `json:"failed"`
+}
+
+// SendTest sends a real push to the signed-in user's own registered devices so they (or
+// support) can check delivery end to end. It ignores the account push switch on purpose: the
+// user asked for it explicitly. Rate limited per user.
+func (s *Service) SendTest(ctx context.Context, userID string) (*TestResult, error) {
+	if s.fcm == nil {
+		return nil, ErrPushDisabled
+	}
+	if !s.allowTest(userID) {
+		return nil, ErrTestTooSoon
+	}
+	u, err := s.users.FindUserByID(ctx, userID)
+	if err != nil || u == nil {
+		return nil, ErrUnknownUser
+	}
+	tokens, err := s.repo.ForSession(ctx, u.ID, u.SessionVersion)
+	if err != nil {
+		return nil, err
+	}
+	res := &TestResult{Devices: len(tokens)}
+	if len(tokens) == 0 {
+		return res, nil
+	}
+	list := make([]string, len(tokens))
+	for i, t := range tokens {
+		list[i] = t.Token
+	}
+	n := &notification.Notification{
+		ID:       primitive.NewObjectID(),
+		UserID:   u.ID,
+		Type:     "push_test",
+		Category: notification.CategorySystem,
+		Title:    "Notifications are working",
+		Message:  "This is a test from KaamMilega. You’ll get alerts like this for messages and application updates.",
+		Link:     "/settings?tab=notifications",
+	}
+	resp, err := s.fcm.SendEachForMulticast(ctx, s.buildMessage(n, list))
+	if err != nil {
+		return nil, err
+	}
+	var dead []string
+	for i, r := range resp.Responses {
+		if r != nil && r.Success {
+			res.Sent++
+			continue
+		}
+		res.Failed++
+		if r != nil && i < len(list) && (messaging.IsUnregistered(r.Error) || messaging.IsSenderIDMismatch(r.Error)) {
+			dead = append(dead, list[i])
+		}
+	}
+	return res, s.repo.DeleteTokens(ctx, dead)
+}
+
+const testInterval = 30 * time.Second
+
+func (s *Service) allowTest(userID string) bool {
+	s.testMu.Lock()
+	defer s.testMu.Unlock()
+	if s.lastTest == nil {
+		s.lastTest = map[string]time.Time{}
+	}
+	now := s.now()
+	if last, ok := s.lastTest[userID]; ok && now.Sub(last) < testInterval {
+		return false
+	}
+	s.lastTest[userID] = now
+	return true
 }
 
 // Push implements notification.PushSender: it returns at once and delivers in the background.

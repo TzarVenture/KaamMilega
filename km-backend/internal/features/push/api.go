@@ -22,6 +22,7 @@ func (api *Api) Setup(app *fiber.App) {
 	g := app.Group("/api/push", middleware.AuthMiddleware(api.config.JWTSecret))
 	g.Post("/tokens", api.controller.Register)
 	g.Delete("/tokens", api.controller.Unregister)
+	g.Post("/test", api.controller.SendTest)
 }
 
 // Install makes every notification created by the notification service also go out as a push

@@ -67,14 +67,39 @@ func (ctrl *Controller) Unregister(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"unregistered": true})
 }
 
+// SendTest godoc
+// @Summary Send a test push to my devices
+// @Description Sends a real push notification to the signed-in user's own registered browsers and phones (rate limited).
+// @Tags push
+// @Produce json
+// @Success 200 {object} TestResult
+// @Failure 429 {object} map[string]any
+// @Failure 503 {object} map[string]any
+// @Router /api/push/test [post]
+func (ctrl *Controller) SendTest(c *fiber.Ctx) error {
+	userID, _ := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	res, err := ctrl.service.SendTest(c.UserContext(), userID)
+	if err != nil {
+		return fail(c, err)
+	}
+	return c.JSON(res)
+}
+
 func fail(c *fiber.Ctx, err error) error {
 	switch {
+	case errors.Is(err, ErrPushDisabled):
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": err.Error()})
+	case errors.Is(err, ErrTestTooSoon):
+		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{"error": err.Error()})
 	case errors.Is(err, ErrInvalidToken), errors.Is(err, ErrInvalidPlatform):
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	case errors.Is(err, ErrUnknownUser):
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	default:
 		log.Printf("[push] %v", err)
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not update push settings for this device"})
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Push notification request failed. Please try again."})
 	}
 }
