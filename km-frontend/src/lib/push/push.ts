@@ -145,6 +145,7 @@ export async function enablePush(): Promise<void> {
     await registerWithServer(token);
     await ensureAccountPushOn();
     writePref('on');
+    void listenInForeground();
 }
 
 /** Stop push in this browser only (phones and other browsers keep theirs) */
@@ -176,6 +177,28 @@ export async function unregisterPushOnSignOut(): Promise<void> {
     writePref('off');
 }
 
+let foregroundListening = false;
+
+/**
+ * When a KaamMilega tab is visible, Firebase hands pushes to the page instead of showing a
+ * system notification. Real notifications already appear through the live in-app alerts, so only
+ * the test push is surfaced here; everything else is ignored to avoid duplicates.
+ */
+async function listenInForeground() {
+    if (foregroundListening) return;
+    foregroundListening = true;
+    try {
+        const [{ onMessage }, m, { notify }] = await Promise.all([import('firebase/messaging'), messaging(), import('@/lib/notify')]);
+        onMessage(m, (payload) => {
+            if (payload.data?.type === 'push_test') {
+                notify.success('Test notification received', 'KaamMilega was on screen, so it arrived here. Switch to another app before it’s sent to see the system notification.');
+            }
+        });
+    } catch {
+        foregroundListening = false;
+    }
+}
+
 /**
  * Runs once per page load for signed-in users with push on: re-registers the token (it can
  * rotate, and the backend needs it tied to the current session). If the user revoked the
@@ -195,6 +218,7 @@ export async function syncPush(signedIn: boolean): Promise<void> {
     }
     try {
         await registerWithServer(await currentToken());
+        void listenInForeground();
     } catch {
         // Offline or temporary failure: next page load tries again
     }

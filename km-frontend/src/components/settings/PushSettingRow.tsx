@@ -7,6 +7,8 @@ import { PushPermissionError } from '@/lib/push/push';
 import { usePush } from '@/lib/push/usePush';
 import { Badge, SettingRow, Toggle, buttonSecondary } from './SettingsPrimitives';
 
+const TEST_DELAY_SECONDS = 5;
+
 /**
  * "Push notifications on this browser". The switch is per browser: turning it off here leaves
  * the user's phone and other browsers untouched. Turning it on also switches on the account's
@@ -16,6 +18,7 @@ import { Badge, SettingRow, Toggle, buttonSecondary } from './SettingsPrimitives
 export default function PushSettingRow({ onEnabled }: { onEnabled: () => void }) {
     const { status, busy, enable, disable } = usePush();
     const [testing, setTesting] = useState(false);
+    const [countdown, setCountdown] = useState(0);
 
     const change = async (next: boolean) => {
         try {
@@ -33,15 +36,22 @@ export default function PushSettingRow({ onEnabled }: { onEnabled: () => void })
         }
     };
 
-    // A real push to the user's own devices, to check delivery end to end
+    // A real push to the user's own devices, to check delivery end to end. Browsers only show a
+    // system notification while KaamMilega isn't on screen, so it's sent after a short countdown
+    // that gives the user time to switch to another tab or app.
     const sendTest = async () => {
         setTesting(true);
         try {
+            for (let s = TEST_DELAY_SECONDS; s > 0; s--) {
+                setCountdown(s);
+                await new Promise((r) => setTimeout(r, 1000));
+            }
+            setCountdown(0);
             const res = (await api.post('/push/test')) as { devices: number; sent: number };
             if (res.sent > 0) {
                 notify.success(
                     'Test notification sent',
-                    `Sent to ${res.sent} device${res.sent === 1 ? '' : 's'}. If this tab is open, switch to another tab or app to see it.`,
+                    `Sent to ${res.sent} device${res.sent === 1 ? '' : 's'}. It appears as a system notification while KaamMilega isn’t the tab or app you’re looking at.`,
                 );
             } else {
                 notify.warning('No device received it', 'Turn notifications off and on again in this browser, then retry.');
@@ -49,6 +59,7 @@ export default function PushSettingRow({ onEnabled }: { onEnabled: () => void })
         } catch (err) {
             notify.error(err, 'Could not send a test notification.');
         } finally {
+            setCountdown(0);
             setTesting(false);
         }
     };
@@ -78,10 +89,12 @@ export default function PushSettingRow({ onEnabled }: { onEnabled: () => void })
             {status === 'on' && (
                 <SettingRow
                     title="Test notification"
-                    description="Send one to check this browser and your other signed-in devices."
+                    description={countdown > 0
+                        ? `Sending in ${countdown}s. Switch to another tab or app now to see it arrive.`
+                        : "Sends one 5 seconds after you click, so you can switch to another tab or app and see it arrive."}
                     control={
                         <button type="button" onClick={() => void sendTest()} disabled={testing} className={buttonSecondary}>
-                            {testing ? 'Sending…' : 'Send test'}
+                            {countdown > 0 ? `Sending in ${countdown}…` : testing ? 'Sending…' : 'Send test'}
                         </button>
                     }
                 />
