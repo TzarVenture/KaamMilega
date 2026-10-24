@@ -77,9 +77,19 @@ async function messaging() {
     return getMessaging(app);
 }
 
+let updateChecked = false;
+
 async function serviceWorker(): Promise<ServiceWorkerRegistration> {
     const existing = await navigator.serviceWorker.getRegistration(PUSH_SW_SCOPE);
-    if (existing?.active?.scriptURL.endsWith(PUSH_SW_URL)) return existing;
+    if (existing?.active?.scriptURL.endsWith(PUSH_SW_URL)) {
+        // The push worker controls no pages, so browsers never check it for updates on their
+        // own: ask once per page load (a cheap byte comparison; a new version activates by itself)
+        if (!updateChecked) {
+            updateChecked = true;
+            existing.update().catch(() => undefined);
+        }
+        return existing;
+    }
     const reg = await navigator.serviceWorker.register(PUSH_SW_URL, { scope: PUSH_SW_SCOPE });
     await waitUntilActive(reg);
     return reg;

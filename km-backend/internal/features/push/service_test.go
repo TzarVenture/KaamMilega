@@ -268,3 +268,17 @@ func TestSendTest(t *testing.T) {
 		t.Fatalf("without credentials: %v", err)
 	}
 }
+
+func TestBuildMessageHTTPFrontendOmitsFCMLink(t *testing.T) {
+	u := activeUser()
+	s, _, _ := setup(u)
+	s.frontendURL = "http://localhost:3000"
+	n := &notification.Notification{ID: primitive.NewObjectID(), UserID: u.ID, Title: "Hi", Link: "/jobs"}
+	m := s.buildMessage(n, []string{tokA})
+	if m.Webpush.FCMOptions != nil {
+		t.Fatal("FCM rejects http links; the service worker opens data.link instead")
+	}
+	if m.Data["link"] != "/jobs" {
+		t.Fatalf("data link %q", m.Data["link"])
+	}
+}

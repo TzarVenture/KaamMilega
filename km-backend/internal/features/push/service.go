@@ -264,6 +264,13 @@ func (s *Service) buildMessage(n *notification.Notification, tokens []string) *m
 	}
 	ttl := pushTTL
 
+	// The site's service worker opens data.link on its own origin when the notification is
+	// clicked. FCM only accepts https links here, so local http development leaves it out.
+	var fcmOptions *messaging.WebpushFCMOptions
+	if strings.HasPrefix(s.frontendURL, "https://") {
+		fcmOptions = &messaging.WebpushFCMOptions{Link: s.frontendURL + path}
+	}
+
 	return &messaging.MulticastMessage{
 		Tokens:       tokens,
 		Notification: &messaging.Notification{Title: title, Body: body},
@@ -282,7 +289,7 @@ func (s *Service) buildMessage(n *notification.Notification, tokens []string) *m
 				Tag:      tag,
 				Renotify: isChat,
 			},
-			FCMOptions: &messaging.WebpushFCMOptions{Link: s.frontendURL + path},
+			FCMOptions: fcmOptions,
 		},
 		Android: &messaging.AndroidConfig{
 			Priority: priority,

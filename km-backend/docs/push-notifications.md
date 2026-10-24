@@ -93,7 +93,10 @@ Each push contains a display notification plus data:
 
 Platform specifics already set by the backend:
 
-- **Web**: shown by `public/firebase-messaging-sw.js`; click opens `https://kaammilega.com` + `link`.
+- **Web**: shown by `public/firebase-messaging-sw.js`. On click it opens `link` on the site the
+  worker runs on (localhost, staging or kaammilega.com); if a KaamMilega tab is open it focuses it,
+  navigates there and marks the notification read. FCM only accepts https links, so the backend
+  adds `fcm_options.link` only when `FRONTEND_URL` is https.
 - **Android**: `priority` high for chat, normal otherwise; TTL 24 h; `tag` so repeated chat
   messages from one person replace each other. Map `data.link` to the matching app screen in
   your notification-tap handler. If the app defines a notification channel, tell the backend
