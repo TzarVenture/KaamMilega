@@ -115,9 +115,9 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 			preview := req.Content
 			if preview == "" && req.AttachmentName != "" {
 				if req.AttachmentType == "image" {
-					preview = "📷 Photo"
+					preview = "Photo"
 				} else {
-					preview = "📎 " + req.AttachmentName
+					preview = "Attachment: " + req.AttachmentName
 				}
 			}
 			if len(preview) > 80 {

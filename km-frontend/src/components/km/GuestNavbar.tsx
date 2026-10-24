@@ -309,8 +309,8 @@ const GuestNavbar = () => {
                     <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
                         {/* Core Services Links */}
                         <div className="px-5 py-4 border-b border-slate-100">
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
-                                Explore Ecosystem
+                            <p className="text-xs font-semibold text-slate-500 mb-2">
+                                Browse
                             </p>
                             <div className="space-y-1">
                                 {navLinks.map((item) => (
@@ -334,7 +334,7 @@ const GuestNavbar = () => {
 
                         {FEATURES.DARK_MODE && (
                             <div className="px-5 py-4 border-b border-slate-100 sm:hidden">
-                                <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">Appearance</p>
+                                <p className="text-xs font-semibold text-slate-500 mb-2">Appearance</p>
                                 <ThemeToggle />
                             </div>
                         )}

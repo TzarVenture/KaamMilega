@@ -874,7 +874,7 @@ const MenuItem = ({
 // Mobile drawer building blocks: a titled group, and a 44px-tall row with an icon
 const MobileSection = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <div className="px-3 py-2 border-t border-km-border first:border-t-0">
-    <p className="px-4 pt-1 pb-1.5 text-[11px] font-bold uppercase tracking-wide text-km-text-secondary">{title}</p>
+    <p className="px-4 pt-1 pb-1.5 text-xs font-semibold text-km-text-secondary">{title}</p>
     <div className="flex flex-col">{children}</div>
   </div>
 );
