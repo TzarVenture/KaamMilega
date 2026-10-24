@@ -37,6 +37,8 @@ export default function EditJobPage() {
     const [searchCity, setSearchCity] = useState("");
     const [isCityOpen, setIsCityOpen] = useState(false);
     const cityRef = useRef<HTMLDivElement>(null);
+    const [isStatusOpen, setIsStatusOpen] = useState(false);
+    const statusRef = useRef<HTMLDivElement>(null);
 
     const [formData, setFormData] = useState({
         title: "",
@@ -67,6 +69,13 @@ export default function EditJobPage() {
                 // Fetch job details
                 const jobData: any = await api.get(`/jobs/${jobId}`);
 
+                const normalizeStatus = (status?: string) => {
+                    const s = (status || "").toLowerCase();
+                    if (s === "closed") return "Closed";
+                    if (s === "on hold" || s === "onhold") return "On Hold";
+                    return "Open";
+                };
+
                 setFormData({
                     title: jobData.title || "",
                     company: jobData.company || "",
@@ -83,7 +92,7 @@ export default function EditJobPage() {
                     experience_max: jobData.experience_max?.toString() || "",
                     gender: jobData.gender || "",
                     education: jobData.education || "",
-                    status: jobData.status || "Open"
+                    status: normalizeStatus(jobData.status)
                 });
             } catch (error: any) {
                 console.error("Failed to fetch job data", error);
@@ -101,6 +110,9 @@ export default function EditJobPage() {
         const handleClickOutside = (event: MouseEvent) => {
             if (cityRef.current && !cityRef.current.contains(event.target as Node)) {
                 setIsCityOpen(false);
+            }
+            if (statusRef.current && !statusRef.current.contains(event.target as Node)) {
+                setIsStatusOpen(false);
             }
         };
         document.addEventListener("mousedown", handleClickOutside);
@@ -231,22 +243,74 @@ export default function EditJobPage() {
                                 </div>
                                 <div className="flex items-center gap-2.5">
                                     <label className="text-sm font-semibold text-km-text-secondary">Status:</label>
-                                    <select
-                                        name="status"
-                                        value={formData.status}
-                                        onChange={handleChange}
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors outline-none cursor-pointer ${
-                                            formData.status === 'Open' 
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60' 
-                                                : formData.status === 'Closed'
-                                                ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60'
-                                                : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
-                                        }`}
-                                    >
-                                        <option value="Open">Open</option>
-                                        <option value="Closed">Closed</option>
-                                        <option value="On Hold">On Hold</option>
-                                    </select>
+                                    <div className="relative" ref={statusRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsStatusOpen(!isStatusOpen)}
+                                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer select-none ${
+                                                formData.status === 'Closed' 
+                                                    ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60' 
+                                                    : formData.status === 'On Hold'
+                                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100/70 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
+                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/70 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60'
+                                            }`}
+                                            aria-haspopup="listbox"
+                                            aria-expanded={isStatusOpen}
+                                        >
+                                            <span>{formData.status || "Open"}</span>
+                                            <CaretDownIcon size={12} weight="bold" className={`transition-transform ${isStatusOpen ? "rotate-180" : ""}`} aria-hidden="true" />
+                                        </button>
+
+                                        {isStatusOpen && (
+                                            <div className="absolute right-0 top-full mt-1.5 w-36 bg-km-surface-card rounded-xl border border-km-border shadow-lg py-1 z-50 overflow-hidden divide-y divide-km-border/40">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, status: "Open" }));
+                                                        setIsStatusOpen(false);
+                                                    }}
+                                                    className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                                                        formData.status === "Open"
+                                                            ? "bg-emerald-50 text-emerald-700"
+                                                            : "text-emerald-700 hover:bg-emerald-50/60"
+                                                    }`}
+                                                >
+                                                    <span>Open</span>
+                                                    {formData.status === "Open" && <CheckCircleIcon size={14} weight="fill" className="text-emerald-600" aria-hidden="true" />}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, status: "Closed" }));
+                                                        setIsStatusOpen(false);
+                                                    }}
+                                                    className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                                                        formData.status === "Closed"
+                                                            ? "bg-rose-50 text-rose-700"
+                                                            : "text-rose-700 hover:bg-rose-50/60"
+                                                    }`}
+                                                >
+                                                    <span>Closed</span>
+                                                    {formData.status === "Closed" && <CheckCircleIcon size={14} weight="fill" className="text-rose-600" aria-hidden="true" />}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setFormData(prev => ({ ...prev, status: "On Hold" }));
+                                                        setIsStatusOpen(false);
+                                                    }}
+                                                    className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
+                                                        formData.status === "On Hold"
+                                                            ? "bg-amber-50 text-amber-700"
+                                                            : "text-amber-700 hover:bg-amber-50/60"
+                                                    }`}
+                                                >
+                                                    <span>On Hold</span>
+                                                    {formData.status === "On Hold" && <CheckCircleIcon size={14} weight="fill" className="text-amber-600" aria-hidden="true" />}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
