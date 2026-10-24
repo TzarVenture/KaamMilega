@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type EventController struct {
@@ -18,6 +19,12 @@ func (ctrl *EventController) CreateEvent(c *fiber.Ctx) error {
 	var e Event
 	if err := c.BodyParser(&e); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	if userID, ok := c.Locals("user_id").(string); ok && userID != "" {
+		if uID, err := primitive.ObjectIDFromHex(userID); err == nil {
+			e.OrganizerID = uID
+		}
 	}
 
 	created, err := ctrl.service.CreateEvent(c.Context(), &e)
@@ -232,4 +239,99 @@ func (ctrl *EventController) GetEventAttendees(c *fiber.Ctx) error {
 
 	return c.JSON(attendees)
 }
+
+// ──────────────────────────────────────────
+// Admin Superpower Handlers (Strictly Protected)
+// ──────────────────────────────────────────
+
+func (ctrl *EventController) AdminGetAllEvents(c *fiber.Ctx) error {
+	search := c.Query("search", "")
+	page, _ := strconv.Atoi(c.Query("page", "1"))
+	limit, _ := strconv.Atoi(c.Query("limit", "10"))
+
+	items, total, err := ctrl.service.AdminGetAllEvents(c.Context(), search, page, limit)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"data":  items,
+		"total": total,
+		"page":  page,
+		"limit": limit,
+	})
+}
+
+func (ctrl *EventController) AdminGetEventDetail(c *fiber.Ctx) error {
+	eventID := c.Params("id")
+	if eventID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Event ID is required"})
+	}
+
+	detail, err := ctrl.service.AdminGetEventDetail(c.Context(), eventID)
+	if err != nil {
+		if err.Error() == "event not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(detail)
+}
+
+func (ctrl *EventController) AdminCreateEvent(c *fiber.Ctx) error {
+	var e Event
+	if err := c.BodyParser(&e); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid payload"})
+	}
+
+	created, err := ctrl.service.AdminCreateEvent(c.Context(), &e)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(created)
+}
+
+func (ctrl *EventController) AdminUpdateEvent(c *fiber.Ctx) error {
+	eventID := c.Params("id")
+	if eventID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Event ID is required"})
+	}
+
+	var req AdminUpdateEventRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid update payload"})
+	}
+
+	updated, err := ctrl.service.AdminUpdateEvent(c.Context(), eventID, req)
+	if err != nil {
+		if err.Error() == "event not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(updated)
+}
+
+func (ctrl *EventController) AdminDeleteEvent(c *fiber.Ctx) error {
+	eventID := c.Params("id")
+	if eventID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Event ID is required"})
+	}
+
+	if err := ctrl.service.AdminDeleteEvent(c.Context(), eventID); err != nil {
+		if err.Error() == "event not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"message": "Event deleted successfully and related tickets updated",
+		"id":      eventID,
+	})
+}
+
 

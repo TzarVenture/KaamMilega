@@ -38,4 +38,13 @@ func (a *EventApi) Setup(app *fiber.App) {
 
 	// Dynamic public event detail route
 	app.Get("/api/events/:id", a.ctrl.GetEventByID)
+
+	// Admin Superpower Routes (Strictly Authenticated & Admin-Only)
+	adminEvents := app.Group("/api/admin/events", jwtAuth, middleware.RequireRole("admin"))
+	adminEvents.Get("/", a.ctrl.AdminGetAllEvents)
+	adminEvents.Post("/", a.ctrl.AdminCreateEvent)
+	adminEvents.Get("/:id", a.ctrl.AdminGetEventDetail)
+	adminEvents.Put("/:id", a.ctrl.AdminUpdateEvent)
+	adminEvents.Delete("/:id", a.ctrl.AdminDeleteEvent)
 }
+

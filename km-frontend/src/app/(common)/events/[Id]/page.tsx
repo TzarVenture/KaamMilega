@@ -15,6 +15,7 @@ interface EventDetails {
     title: string;
     description: string;
     organizer: string;
+    organizer_id?: string;
     date: string;
     time: string;
     location: string;

@@ -11,6 +11,7 @@ interface EventData {
     id: string;
     title: string;
     organizer: string;
+    organizer_id?: string;
     date: string;
     time: string;
     location: string;
