@@ -23,6 +23,7 @@ export default function RecruiterDashboard() {
     const [user, setUser] = useState<any>(null);
     const [jobs, setJobs] = useState<any[]>([]);
     const [applications, setApplications] = useState<any[]>([]);
+    const [interviews, setInterviews] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const fetchDashboardData = async () => {
@@ -34,15 +35,19 @@ export default function RecruiterDashboard() {
 
             // Fetch Recruiter Jobs
             const myJobs = await api.get("/jobs/my").catch(() => []) as any[];
-            setJobs(myJobs || []);
+            setJobs(Array.isArray(myJobs) ? myJobs : []);
 
             // Fetch Applications Received
             const myApps = await api.get("/applications/recruiter/all").catch(() => []) as any[];
-            setApplications(myApps || []);
+            setApplications(Array.isArray(myApps) ? myApps : []);
+
+            // Fetch Scheduled Interviews
+            const myInterviews = await api.get("/interviews/my").catch(() => []) as any[];
+            setInterviews(Array.isArray(myInterviews) ? myInterviews : []);
 
         } catch (error) {
             console.error("Failed to fetch dashboard data:", error);
-            notify.error("Failed to refresh recruiter dashboard");
+            notify.error(error, "Failed to refresh recruiter dashboard");
         } finally {
             setLoading(false);
         }
@@ -60,7 +65,7 @@ export default function RecruiterDashboard() {
             await api.patch(`/applications/${id}/status`, { status: newStatus });
             notify.success(`Applicant status updated to ${newStatus}`);
         } catch (error) {
-            notify.error("Failed to update status");
+            notify.error(error, "Failed to update status");
             fetchDashboardData();
         }
     };
@@ -70,13 +75,34 @@ export default function RecruiterDashboard() {
     }
 
     const companyName = user?.company_name || user?.name || "Company Portal";
-    const verificationStatus = user?.verification_status || "verified";
+    const rawVerification = user?.verification_status || (user?.is_verified ? "verified" : "pending");
+    const isVerified = String(rawVerification).toLowerCase() === "verified";
 
-    // Dynamic Calculated Stats
-    const activeJobsCount = jobs.filter(j => j.status === 'Open' || !j.status).length;
+    // Dynamic Calculated Stats (Case-insensitive)
+    const activeJobsCount = jobs.filter(j => {
+        const s = String(j.status || "").toLowerCase().trim();
+        return s === "open" || s === "active" || s === "";
+    }).length;
+
     const totalApplications = applications.length;
-    const interviewingCount = applications.filter(a => a.status === 'Interviewing' || a.status === 'Interview').length;
-    const hiredCount = applications.filter(a => a.status === 'Hired').length;
+
+    const scheduledInterviews = interviews.filter((i: any) => {
+        const s = String(i.status || "").toLowerCase().trim();
+        return s === "scheduled" || s === "confirmed" || !s;
+    });
+
+    const interviewingCount = interviews.length > 0
+        ? scheduledInterviews.length
+        : applications.filter(a => {
+            const s = String(a.status || "").toLowerCase().trim();
+            return s === "interviewing" || s === "interview";
+        }).length;
+
+    const hiredCount = applications.filter(a => {
+        const s = String(a.status || "").toLowerCase().trim();
+        return s === "hired";
+    }).length;
+
     const recentJobs = jobs.slice(0, 5);
     const recentApplications = applications.slice(0, 5);
 
@@ -93,7 +119,7 @@ export default function RecruiterDashboard() {
                                 <span className="text-white">{companyName}</span>
                             </span>
 
-                            {verificationStatus === "verified" ? (
+                            {isVerified ? (
                                 <span className="px-2.5 py-1 rounded-md bg-emerald-500/25 border border-emerald-300/40 text-emerald-100 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
                                     <ShieldCheckIcon weight="bold" size={13} className="text-emerald-300" aria-hidden="true" />
                                     <span className="text-emerald-100">Verified Employer</span>
@@ -220,45 +246,68 @@ export default function RecruiterDashboard() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-km-border/60">
-                                {recentJobs.map((job) => (
-                                    <tr key={job.id} className="hover:bg-km-surface/50 transition-colors">
-                                        <td className="py-3.5 px-5">
-                                            <p className="font-semibold text-km-text-primary text-xs">{job.title}</p>
-                                            <p className="text-km-text-secondary text-[11px]">{job.company}</p>
-                                        </td>
-                                        <td className="py-3.5 px-5">
-                                            <span
-                                                className={`px-2 py-0.5 rounded-md text-[11px] font-medium border ${
-                                                    job.status === "Closed"
-                                                        ? "bg-km-surface text-km-text-secondary border-km-border"
-                                                        : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-400"
-                                                }`}
-                                            >
-                                                {job.status || "Active"}
+                                {recentJobs.map((job) => {
+                                    const rawStatus = String(job.status || "Open").trim();
+                                    const norm = rawStatus.toLowerCase();
+                                    let statusBadge = (
+                                        <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-400">
+                                            Open
+                                        </span>
+                                    );
+                                    if (norm === "closed") {
+                                        statusBadge = (
+                                            <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:border-rose-900/50 dark:text-rose-400">
+                                                Closed
                                             </span>
-                                        </td>
-                                        <td className="py-3.5 px-5 text-km-text-secondary">
-                                            {job.city_name || job.location || "N/A"}
-                                        </td>
-                                        <td className="py-3.5 px-5 text-center">
-                                            <Link
-                                                href={`/recruiter/applications?jobId=${job.id}`}
-                                                className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-blue-50 text-km-blue border border-blue-200 text-xs font-semibold hover:bg-blue-100 transition-colors dark:bg-blue-950/30 dark:border-blue-900/40 dark:text-km-link"
-                                            >
-                                                {applications.filter(a => a.job_id === job.id || a.job?.id === job.id).length} Applicants
-                                            </Link>
-                                        </td>
-                                        <td className="py-3.5 px-5 text-right">
-                                            <Link
-                                                href={`/recruiter/applications?jobId=${job.id}`}
-                                                className="inline-flex items-center gap-1 px-3 py-1 bg-km-surface hover:bg-km-primary hover:text-white text-km-text-primary border border-km-border rounded-lg text-xs font-medium transition-colors"
-                                            >
-                                                <span>Pipeline</span>
-                                                <ArrowUpRightIcon weight="bold" size={12} aria-hidden="true" />
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
+                                        );
+                                    } else if (norm === "on hold" || norm === "on_hold" || norm === "paused") {
+                                        statusBadge = (
+                                            <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-400">
+                                                On Hold
+                                            </span>
+                                        );
+                                    }
+
+                                    const applicantCount = typeof job.applicant_count === "number"
+                                        ? job.applicant_count
+                                        : typeof job.applicants_count === "number"
+                                        ? job.applicants_count
+                                        : applications.filter(a => a.job_id === job.id || a.job?.id === job.id || a.job_id === job._id).length;
+
+                                    const jobId = job.id || job._id;
+
+                                    return (
+                                        <tr key={jobId} className="hover:bg-km-surface/50 transition-colors">
+                                            <td className="py-3.5 px-5">
+                                                <p className="font-semibold text-km-text-primary text-xs">{job.title}</p>
+                                                <p className="text-km-text-secondary text-[11px]">{job.company}</p>
+                                            </td>
+                                            <td className="py-3.5 px-5">
+                                                {statusBadge}
+                                            </td>
+                                            <td className="py-3.5 px-5 text-km-text-secondary">
+                                                {job.city_name || job.location || "N/A"}
+                                            </td>
+                                            <td className="py-3.5 px-5 text-center">
+                                                <Link
+                                                    href={`/recruiter/applications?jobId=${jobId}`}
+                                                    className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-blue-50 text-km-blue border border-blue-200 text-xs font-semibold hover:bg-blue-100 transition-colors dark:bg-blue-950/30 dark:border-blue-900/40 dark:text-km-link"
+                                                >
+                                                    {applicantCount} {applicantCount === 1 ? "Applicant" : "Applicants"}
+                                                </Link>
+                                            </td>
+                                            <td className="py-3.5 px-5 text-right">
+                                                <Link
+                                                    href={`/recruiter/applications?jobId=${jobId}`}
+                                                    className="inline-flex items-center gap-1 px-3 py-1 bg-km-surface hover:bg-km-primary hover:text-white text-km-text-primary border border-km-border rounded-lg text-xs font-medium transition-colors"
+                                                >
+                                                    <span>Pipeline</span>
+                                                    <ArrowUpRightIcon weight="bold" size={12} aria-hidden="true" />
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

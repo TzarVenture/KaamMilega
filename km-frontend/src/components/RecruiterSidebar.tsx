@@ -14,6 +14,7 @@ import {
     SignOutIcon,
     SquaresFourIcon,
     WalletIcon,
+    WarningCircleIcon,
 } from "@phosphor-icons/react";
 import api from "@/lib/axios";
 import { clearSession } from "@/lib/auth";
@@ -55,6 +56,8 @@ export default function RecruiterSidebar() {
     }, []);
 
     const companyName = user?.company_name || user?.name || "Company Portal";
+    const rawVerification = user?.verification_status || (user?.is_verified ? "verified" : "pending");
+    const isVerified = String(rawVerification).toLowerCase() === "verified";
 
     return (
         <>
@@ -70,10 +73,17 @@ export default function RecruiterSidebar() {
                             <p className="text-xs font-semibold text-km-text-primary truncate">
                                 {companyName}
                             </p>
-                            <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
-                                <ShieldCheckIcon weight="bold" size={13} aria-hidden="true" />
-                                <span>Verified Employer</span>
-                            </p>
+                            {isVerified ? (
+                                <p className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5">
+                                    <ShieldCheckIcon weight="bold" size={13} aria-hidden="true" />
+                                    <span>Verified Employer</span>
+                                </p>
+                            ) : (
+                                <p className="text-[11px] font-medium text-amber-600 dark:text-amber-400 flex items-center gap-1 mt-0.5">
+                                    <WarningCircleIcon weight="bold" size={13} aria-hidden="true" />
+                                    <span>Verification Pending</span>
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
