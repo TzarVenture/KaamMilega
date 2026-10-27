@@ -66,3 +66,48 @@ func (c *InterviewController) UpdateInterviewStatus(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(interview)
 }
+
+func (c *InterviewController) UpdateInterview(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	var req UpdateInterviewRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	interview, err := c.service.UpdateInterview(ctx.Context(), id, &req, userID)
+	if err != nil {
+		if err.Error() == "interview not found" {
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		}
+		if err.Error() == "unauthorized to update this interview" {
+			return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(interview)
+}
+
+func (c *InterviewController) DeleteInterview(ctx *fiber.Ctx) error {
+	id := ctx.Params("id")
+	userID, ok := ctx.Locals("user_id").(string)
+	if !ok {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	err := c.service.DeleteInterview(ctx.Context(), id, userID)
+	if err != nil {
+		if err.Error() == "interview not found" {
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		}
+		if err.Error() == "unauthorized to delete this interview" {
+			return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	return ctx.JSON(fiber.Map{"message": "Interview deleted successfully"})
+}

@@ -20,6 +20,8 @@ type InterviewRepository interface {
 	FindByRecruiter(ctx context.Context, recruiterID string) ([]Interview, error)
 	FindByParticipant(ctx context.Context, userID string) ([]Interview, error)
 	UpdateStatus(ctx context.Context, id string, status string) (*Interview, error)
+	Update(ctx context.Context, id string, update bson.M) (*Interview, error)
+	Delete(ctx context.Context, id string) error
 }
 
 type InterviewRepositoryImpl struct {
@@ -139,4 +141,26 @@ func (r *InterviewRepositoryImpl) UpdateStatus(ctx context.Context, id string, s
 		return nil, err
 	}
 	return r.FindByID(ctx, id)
+}
+
+func (r *InterviewRepositoryImpl) Update(ctx context.Context, id string, update bson.M) (*Interview, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, err
+	}
+	update["updated_at"] = time.Now()
+	_, err = r.intColl.UpdateOne(ctx, bson.M{"_id": oid}, bson.M{"$set": update})
+	if err != nil {
+		return nil, err
+	}
+	return r.FindByID(ctx, id)
+}
+
+func (r *InterviewRepositoryImpl) Delete(ctx context.Context, id string) error {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = r.intColl.DeleteOne(ctx, bson.M{"_id": oid})
+	return err
 }

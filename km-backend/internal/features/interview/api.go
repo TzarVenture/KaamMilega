@@ -21,4 +21,6 @@ func (api *InterviewApi) Setup(app *fiber.App) {
 	protected.Post("/", api.controller.ScheduleInterview)
 	protected.Get("/my", api.controller.GetMyInterviews)
 	protected.Patch("/:id/status", api.controller.UpdateInterviewStatus)
+	protected.Patch("/:id", api.controller.UpdateInterview)
+	protected.Delete("/:id", api.controller.DeleteInterview)
 }

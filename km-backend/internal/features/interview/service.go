@@ -11,6 +11,8 @@ import (
 	"km-backend/internal/features/job"
 	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type InterviewService struct {
@@ -203,20 +205,36 @@ func (s *InterviewService) GetMyInterviews(ctx context.Context, userID string) (
 		// Fetch Candidate Info
 		c, _ := s.userRepo.FindUserByID(ctx, in.CandidateID.Hex())
 		if c != nil {
+			candName := c.Name
+			if candName == "" {
+				candName = strings.TrimSpace(c.FirstName + " " + c.LastName)
+			}
 			detail.Candidate = &InterviewUserInfo{
-				ID:    c.ID.Hex(),
-				Name:  c.Name,
-				Email: c.Email,
+				ID:           c.ID.Hex(),
+				Name:         candName,
+				Email:        c.Email,
+				Mobile:       c.Mobile,
+				Headline:     c.Headline,
+				ProfileImage: c.ProfileImage,
+				Username:     c.Username,
 			}
 		}
 
 		// Fetch Recruiter Info
 		r, _ := s.userRepo.FindUserByID(ctx, in.RecruiterID.Hex())
 		if r != nil {
+			recName := r.Name
+			if recName == "" {
+				recName = strings.TrimSpace(r.FirstName + " " + r.LastName)
+			}
 			detail.Recruiter = &InterviewUserInfo{
-				ID:    r.ID.Hex(),
-				Name:  r.Name,
-				Email: r.Email,
+				ID:           r.ID.Hex(),
+				Name:         recName,
+				Email:        r.Email,
+				Mobile:       r.Mobile,
+				Headline:     r.Headline,
+				ProfileImage: r.ProfileImage,
+				Username:     r.Username,
 			}
 		}
 
@@ -228,4 +246,91 @@ func (s *InterviewService) GetMyInterviews(ctx context.Context, userID string) (
 
 func (s *InterviewService) UpdateInterviewStatus(ctx context.Context, id string, status string) (*Interview, error) {
 	return s.repo.UpdateStatus(ctx, id, status)
+}
+
+func (s *InterviewService) UpdateInterview(ctx context.Context, id string, req *UpdateInterviewRequest, userID string) (*Interview, error) {
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if existing == nil {
+		return nil, errors.New("interview not found")
+	}
+
+	if existing.RecruiterID.Hex() != userID {
+		return nil, errors.New("unauthorized to update this interview")
+	}
+
+	update := bson.M{}
+	timeChanged := false
+	if req.ScheduledAt != nil && !req.ScheduledAt.IsZero() {
+		update["scheduled_at"] = *req.ScheduledAt
+		if !req.ScheduledAt.Equal(existing.ScheduledAt) {
+			timeChanged = true
+		}
+	}
+	if req.Type != "" {
+		update["type"] = req.Type
+	}
+	if req.Location != "" {
+		update["location"] = req.Location
+	}
+	if req.Notes != "" {
+		update["notes"] = req.Notes
+	}
+	if req.Status != "" {
+		update["status"] = req.Status
+	}
+
+	if len(update) == 0 {
+		return existing, nil
+	}
+
+	updated, err := s.repo.Update(ctx, id, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if timeChanged && s.notifService != nil {
+		go func() {
+			jobTitle := "your position"
+			if app, _ := s.appRepo.FindByID(context.Background(), existing.ApplicationID.Hex()); app != nil {
+				if j, _ := s.jobRepo.FindByID(context.Background(), app.JobID.Hex()); j != nil && j.Title != "" {
+					jobTitle = j.Title
+				}
+			}
+
+			timeStr := updated.ScheduledAt.Format("02 Jan 2006 at 03:04 PM")
+			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+				UserID:   existing.CandidateID,
+				Type:     notification.TypeInterviewScheduled,
+				Category: notification.CategoryJobs,
+				Title:    "Interview Rescheduled",
+				Message:  fmt.Sprintf("Your interview for %s has been rescheduled to %s", jobTitle, timeStr),
+				Link:     "/interviews",
+				Metadata: map[string]interface{}{
+					"interview_id":   updated.ID.Hex(),
+					"application_id": existing.ApplicationID.Hex(),
+				},
+			})
+		}()
+	}
+
+	return updated, nil
+}
+
+func (s *InterviewService) DeleteInterview(ctx context.Context, id string, userID string) error {
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+	if existing == nil {
+		return errors.New("interview not found")
+	}
+
+	if existing.RecruiterID.Hex() != userID {
+		return errors.New("unauthorized to delete this interview")
+	}
+
+	return s.repo.Delete(ctx, id)
 }
