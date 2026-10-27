@@ -60,7 +60,6 @@ type TestimonialRepository interface {
 	Create(ctx context.Context, t *Testimonial) (*Testimonial, error)
 	Update(ctx context.Context, t *Testimonial) error
 	Delete(ctx context.Context, id primitive.ObjectID) error
-	SeedDefaultsIfEmpty(ctx context.Context) error
 }
 
 type TestimonialService interface {

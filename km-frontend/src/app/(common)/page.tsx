@@ -446,20 +446,52 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
   </section>
 );
 
+// --- Real open-job counts (GET /jobs?…&limit=1 returns the matching `total`) ---
+// Category cards show these instead of invented totals; while loading, or with no matches,
+// they say "Browse jobs".
+function useJobCounts(queries: string[]): Record<string, number> {
+  const [counts, setCounts] = useState<Record<string, number>>({});
+  const key = queries.join("\n");
+  useEffect(() => {
+    let alive = true;
+    Promise.all(
+      key.split("\n").map((q) =>
+        api
+          .get(`/jobs?limit=1&${q}`)
+          .then((res) => {
+            const total = (res as unknown as { total?: unknown })?.total;
+            return [q, typeof total === "number" ? total : 0] as const;
+          })
+          .catch(() => [q, 0] as const),
+      ),
+    ).then((entries) => alive && setCounts(Object.fromEntries(entries)));
+    return () => {
+      alive = false;
+    };
+  }, [key]);
+  return counts;
+}
+
+const openingsLabel = (n?: number) =>
+  n && n > 0 ? `${n.toLocaleString("en-IN")} open ${n === 1 ? "job" : "jobs"}` : "Browse jobs";
+
 // --- Job Roles Grid ---
+// `count` is a precise search (regex) for counting; `keywords` match catalogue skill names
 const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
   const popularTradeConfig = [
-    { title: "Delivery Executive", img: "/asset/trades/delivery.jpg", vacancies: "55,000+ Openings", keywords: ["delivery", "courier", "rider"] },
-    { title: "Commercial Vehicle Driver", img: "/asset/trades/driver.jpg", vacancies: "38,000+ Openings", keywords: ["driver", "commercial", "truck"] },
-    { title: "Warehouse Associate", img: "/asset/trades/warehouse.jpg", vacancies: "42,000+ Openings", keywords: ["warehouse", "logistics", "inventory"] },
-    { title: "Electrician", img: "/asset/trades/electrician.jpg", vacancies: "28,000+ Openings", keywords: ["electrician"] },
-    { title: "Security Guard", img: "/asset/trades/security.jpg", vacancies: "35,000+ Openings", keywords: ["security", "guard"] },
-    { title: "Plumber", img: "/asset/trades/plumber.jpg", vacancies: "22,000+ Openings", keywords: ["plumber"] },
-    { title: "Painter & Decorator", img: "/asset/trades/painter.jpg", vacancies: "18,000+ Openings", keywords: ["painter"] },
-    { title: "AC & HVAC Technician", img: "/asset/trades/ac.jpg", vacancies: "19,000+ Openings", keywords: ["ac", "hvac", "technician"] },
-    { title: "Housekeeping & Helper", img: "/asset/trades/labour.jpg", vacancies: "48,000+ Openings", keywords: ["housekeeping", "helper", "peon", "labour"] },
-    { title: "Office Assistant & DEO", img: "/asset/trades/office-executive.jpg", vacancies: "30,000+ Openings", keywords: ["office", "data entry", "deo", "assistant"] },
+    { title: "Delivery Executive", img: "/asset/trades/delivery.jpg", count: "delivery|courier", keywords: ["delivery", "courier", "rider"] },
+    { title: "Commercial Vehicle Driver", img: "/asset/trades/driver.jpg", count: "driver", keywords: ["driver", "commercial", "truck"] },
+    { title: "Warehouse Associate", img: "/asset/trades/warehouse.jpg", count: "warehouse", keywords: ["warehouse", "logistics", "inventory"] },
+    { title: "Electrician", img: "/asset/trades/electrician.jpg", count: "electrician", keywords: ["electrician"] },
+    { title: "Security Guard", img: "/asset/trades/security.jpg", count: "security guard|security officer", keywords: ["security", "guard"] },
+    { title: "Plumber", img: "/asset/trades/plumber.jpg", count: "plumber", keywords: ["plumber"] },
+    { title: "Painter & Decorator", img: "/asset/trades/painter.jpg", count: "painter", keywords: ["painter"] },
+    { title: "AC & HVAC Technician", img: "/asset/trades/ac.jpg", count: "hvac|air condition", keywords: ["ac", "hvac", "technician"] },
+    { title: "Housekeeping & Helper", img: "/asset/trades/labour.jpg", count: "housekeeping|helper", keywords: ["housekeeping", "helper", "peon", "labour"] },
+    { title: "Office Assistant & DEO", img: "/asset/trades/office-executive.jpg", count: "office assistant|data entry", keywords: ["office", "data entry", "deo", "assistant"] },
   ];
+
+  const counts = useJobCounts(popularTradeConfig.map((t) => `search=${encodeURIComponent(t.count)}`));
 
   // Match each trade with real DB skills where available
   const displayRoles = popularTradeConfig.map((item) => {
@@ -469,7 +501,7 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
     return {
       title: matchedSkill?.name || item.title,
       img: item.img,
-      vacancies: matchedSkill?.count ? `${matchedSkill.count} Openings` : item.vacancies
+      vacancies: openingsLabel(counts[`search=${encodeURIComponent(item.count)}`]),
     };
   });
 
@@ -544,15 +576,18 @@ const FeaturedCompanies = ({ companies }: { companies: HiringCompany[] }) => {
 
 // --- Job Search by Qualification ---
 const QUALIFICATIONS = [
-  { label: "Below 10th", vacancies: "9,30,000+ openings", Art: BelowTenthArt },
-  { label: "10th Pass", vacancies: "4,00,000+ openings", Art: TenthPassArt },
-  { label: "12th Pass", vacancies: "9,00,000+ openings", Art: TwelfthPassArt },
-  { label: "Diploma / ITI", vacancies: "50,000+ openings", Art: DiplomaItiArt },
-  { label: "Graduate", vacancies: "7,30,000+ openings", Art: GraduateArt },
-  { label: "Post Graduate", vacancies: "25,000+ openings", Art: PostGraduateArt },
+  { label: "Below 10th", education: "below 10th", Art: BelowTenthArt },
+  { label: "10th Pass", education: "10th", Art: TenthPassArt },
+  { label: "12th Pass", education: "12th", Art: TwelfthPassArt },
+  { label: "Diploma / ITI", education: "diploma|iti", Art: DiplomaItiArt },
+  { label: "Graduate", education: "^graduation", Art: GraduateArt },
+  { label: "Post Graduate", education: "post graduation", Art: PostGraduateArt },
 ];
 
-const QualificationSearch = () => (
+const QualificationSearch = () => {
+  // `education` is matched against the education a recruiter sets on the job
+  const counts = useJobCounts(QUALIFICATIONS.map((q) => `education=${encodeURIComponent(q.education)}`));
+  return (
   <section className={SECTION} aria-labelledby="qualification-title">
     <div className={CONTAINER}>
       <SectionHeader
@@ -562,7 +597,7 @@ const QualificationSearch = () => (
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        {QUALIFICATIONS.map(({ label, vacancies, Art }) => (
+        {QUALIFICATIONS.map(({ label, education, Art }) => (
           <Link
             key={label}
             href={`/jobs?qualification=${encodeURIComponent(label)}`}
@@ -572,13 +607,16 @@ const QualificationSearch = () => (
             <h3 className="mt-4 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
               {label}
             </h3>
-            <p className="mt-0.5 text-sm text-km-text-secondary">{vacancies}</p>
+            <p className="mt-0.5 text-sm text-km-text-secondary">
+              {openingsLabel(counts[`education=${encodeURIComponent(education)}`])}
+            </p>
           </Link>
         ))}
       </div>
     </div>
   </section>
-);
+  );
+};
 
 // --- Job Type Selection ---
 const JOB_TYPES = [
@@ -796,10 +834,12 @@ const LearnSection = () => {
           // Pick 4 random videos from the resources list
           const shuffled = [...list].sort(() => 0.5 - Math.random());
           const selected: LearnVideo[] = shuffled.slice(0, 4).map((item: any, idx: number) => {
+            // The course's own video only; giving it an unrelated default video would play the
+            // wrong content under this course's title
             const videoId =
               item.youtube_video_id ||
               extractYouTubeVideoId(item.youtube_url || "") ||
-              DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].youtube_video_id;
+              "";
 
             // Prefer a custom thumbnail, then the true 16:9 maxresdefault over the 4:3 letterboxed hqdefault
             const thumb =
@@ -817,12 +857,7 @@ const LearnSection = () => {
             };
           });
 
-          // Ensure exactly 4 cards are always available even if backend has fewer
-          while (selected.length < 4) {
-            const fallbackItem = DEFAULT_LEARN_VIDEOS[selected.length % DEFAULT_LEARN_VIDEOS.length];
-            selected.push({ ...fallbackItem, id: `fallback-${selected.length}` });
-          }
-
+          // Real courses only; not padded with unrelated default videos
           setVideos(selected);
         }
       })
@@ -1264,63 +1299,10 @@ interface TestimonialItem {
   thumbnail_url: string;
 }
 
-const DEFAULT_TESTIMONIALS: TestimonialItem[] = [
-  {
-    id: "story-1",
-    name: "Dharmender Kumar",
-    role: "Warehouse Operations Supervisor",
-    company: "Technova Logistics",
-    city: "Bhiwandi, Thane",
-    trade_tag: "Logistics & Warehousing",
-    rating: 5,
-    review: "Zero brokerage and direct HR call. Joined Technova in 3 days!",
-    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    youtube_video_id: "dQw4w9WgXcQ",
-    thumbnail_url: "/asset/trades/warehouse.jpg",
-  },
-  {
-    id: "story-2",
-    name: "Sachin Singh",
-    role: "Heavy Commercial Driver",
-    company: "City Fleet Transport",
-    city: "Surat, Gujarat",
-    trade_tag: "Commercial Transport",
-    rating: 5,
-    review: "Verified company with punctual salary. Best job platform for drivers.",
-    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    youtube_video_id: "dQw4w9WgXcQ",
-    thumbnail_url: "/asset/trades/driver.jpg",
-  },
-  {
-    id: "story-3",
-    name: "Pooja Verma",
-    role: "Retail Store Executive",
-    company: "Tata Croma",
-    city: "Mumbai, Maharashtra",
-    trade_tag: "Retail & Customer Ops",
-    rating: 5,
-    review: "Instant interview schedule without middlemen. Very smooth onboarding.",
-    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    youtube_video_id: "dQw4w9WgXcQ",
-    thumbnail_url: "/asset/trades/office-executive.jpg",
-  },
-  {
-    id: "story-4",
-    name: "Raju Yadav",
-    role: "Certified Industrial Electrician",
-    company: "InstantMilega™ Partner",
-    city: "Delhi NCR",
-    trade_tag: "Technical Services",
-    rating: 5,
-    review: "Direct corporate booking and verified partner technical trade jobs.",
-    youtube_url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-    youtube_video_id: "dQw4w9WgXcQ",
-    thumbnail_url: "/asset/trades/electrician.jpg",
-  },
-];
 
 const TestimonialsSection = () => {
-  const [stories, setStories] = useState<TestimonialItem[]>(DEFAULT_TESTIMONIALS);
+  // Only testimonials added by admins (GET /testimonials); never invented stories
+  const [stories, setStories] = useState<TestimonialItem[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<TestimonialItem | null>(null);
 
   useEffect(() => {
@@ -1373,6 +1355,8 @@ const TestimonialsSection = () => {
     return { row1: row1Out, row2: row2Out };
   }, [stories]);
 
+  if (stories.length === 0) return null;
+
   return (
     <section className={`${SECTION} overflow-hidden font-sans`} aria-labelledby="stories-title">
       <div className={CONTAINER}>
@@ -1413,7 +1397,7 @@ const TestimonialsSection = () => {
       </div>
 
       {/* In-App YouTube Embedded Streaming Video Modal (Simple & Elegant without glowing dot) */}
-      {selectedVideo && (
+      {selectedVideo?.youtube_video_id && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
           <div className="relative w-full max-w-3xl bg-km-ink rounded-3xl overflow-hidden shadow-2xl border border-[#1E293B] flex flex-col">
             {/* Top Bar with Candidate Info & Close (Clean & Elegant, no glowing dot) */}
@@ -1436,7 +1420,7 @@ const TestimonialsSection = () => {
             {/* Embedded YouTube Player */}
             <div className="aspect-video w-full bg-black">
               <iframe
-                src={`https://www.youtube.com/embed/${selectedVideo.youtube_video_id || "dQw4w9WgXcQ"}?autoplay=1&rel=0`}
+                src={`https://www.youtube.com/embed/${selectedVideo.youtube_video_id}?autoplay=1&rel=0`}
                 title={`${selectedVideo.name} Interview Story`}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -1458,18 +1442,18 @@ function CompactTestimonialCard({
   story: TestimonialItem;
   onOpenVideo: (item: TestimonialItem) => void;
 }) {
+  const hasVideo = Boolean(story.youtube_video_id);
   const thumb =
     story.thumbnail_url ||
-    (story.youtube_video_id
-      ? `https://img.youtube.com/vi/${story.youtube_video_id}/hqdefault.jpg`
-      : "/asset/trades/warehouse.jpg");
+    (hasVideo ? `https://img.youtube.com/vi/${story.youtube_video_id}/hqdefault.jpg` : "");
 
   return (
     <div className="w-[370px] sm:w-[400px] shrink-0 bg-km-surface-card rounded-2xl border border-km-border p-3.5 sm:p-4 flex gap-3.5 sm:gap-4 hover:border-[#0B5ED7]/40 transition-all duration-150 shadow-xs hover:shadow-md shadow-slate-200/50 group">
       {/* Thumbnail Section (Full-height match, eliminates whitespace underneath) */}
+      {thumb && (
       <div
-        onClick={() => onOpenVideo(story)}
-        className="relative w-28 sm:w-32 self-stretch min-h-[140px] rounded-xl overflow-hidden bg-km-ink shrink-0 cursor-pointer group/thumb"
+        onClick={hasVideo ? () => onOpenVideo(story) : undefined}
+        className={`relative w-28 sm:w-32 self-stretch min-h-[140px] rounded-xl overflow-hidden bg-km-ink shrink-0 group/thumb ${hasVideo ? "cursor-pointer" : ""}`}
       >
         <img
           src={thumb}
@@ -1483,13 +1467,16 @@ function CompactTestimonialCard({
           }}
         />
 
-        {/* Minimalist Play Icon in Center */}
-        <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover/thumb:bg-black/30 transition-colors">
-          <div className="w-8 h-8 bg-km-surface-card/95 text-km-heading rounded-full flex items-center justify-center shadow-md group-hover/thumb:scale-110 transition-transform">
-            <PlayIcon weight="fill" size={12} className="ml-0.5" />
+        {/* Play button only when there is a video to play */}
+        {hasVideo && (
+          <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover/thumb:bg-black/30 transition-colors">
+            <div className="w-8 h-8 bg-km-surface-card/95 text-km-heading rounded-full flex items-center justify-center shadow-md group-hover/thumb:scale-110 transition-transform">
+              <PlayIcon weight="fill" size={12} className="ml-0.5" />
+            </div>
           </div>
-        </div>
+        )}
       </div>
+      )}
 
       {/* Info Section: Perfectly balanced, zero extra whitespace */}
       <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
