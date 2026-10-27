@@ -1,0 +1,117 @@
+/* Motion for the InstantMilega illustrations (InstantMilegaArt.tsx). Base styles are a still frame
+   that reads on its own; it is what people with reduced motion see. */
+
+.art {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+/* ── Live tracking (8 s loop): drive 0–85 %, wait at the door, fade, repeat ── */
+.marker {
+    transform: translate(290px, 175px);
+    animation: drive 8s linear infinite;
+}
+@keyframes drive {
+    0% { transform: translate(60px, 230px); opacity: 0; }
+    3% { opacity: 1; }
+    42.5% { transform: translate(290px, 230px); }
+    62.8% { transform: translate(290px, 120px); }
+    85%, 100% { transform: translate(410px, 120px); }
+    95% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.progress {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 38;
+    animation: draw 8s linear infinite;
+}
+@keyframes draw {
+    0% { stroke-dashoffset: 100; }
+    85%, 100% { stroke-dashoffset: 0; }
+    95% { opacity: 1; }
+    100% { opacity: 0; }
+}
+.eta { animation: eta 8s linear infinite; }
+@keyframes eta {
+    0%, 83% { opacity: 1; }
+    86%, 98% { opacity: 0; }
+    100% { opacity: 1; }
+}
+.arrived {
+    opacity: 0;
+    animation: arrived 8s linear infinite;
+}
+@keyframes arrived {
+    0%, 83% { opacity: 0; }
+    86%, 98% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ── Work alert (8 s loop): bell, timer runs, worker accepts at 60 % ── */
+.bell {
+    transform-box: fill-box;
+    transform-origin: 50% 0;
+    animation: ring 8s ease-in-out infinite;
+}
+@keyframes ring {
+    0%, 12%, 100% { transform: rotate(0); }
+    3% { transform: rotate(14deg); }
+    6% { transform: rotate(-12deg); }
+    9% { transform: rotate(6deg); }
+}
+.timer {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 30;
+    animation: timer 8s linear infinite;
+}
+@keyframes timer {
+    0% { stroke-dashoffset: 0; }
+    58%, 100% { stroke-dashoffset: 42; }
+}
+.accept {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: press 8s ease-out infinite;
+}
+@keyframes press {
+    0%, 55%, 61%, 100% { transform: scale(1); }
+    58% { transform: scale(0.96); }
+}
+.accepted {
+    opacity: 0;
+    animation: accepted 8s linear infinite;
+}
+@keyframes accepted {
+    0%, 59% { opacity: 0; }
+    62%, 96% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ── Start and finish codes (10 s loop): digits appear one by one, then a check ── */
+.s1 { animation: s1 10s linear infinite; }
+.s2 { animation: s2 10s linear infinite; }
+.s3 { animation: s3 10s linear infinite; }
+.s4 { animation: s4 10s linear infinite; }
+.sc { animation: sc 10s linear infinite; }
+.f1 { animation: f1 10s linear infinite; }
+.f2 { animation: f2 10s linear infinite; }
+.f3 { animation: f3 10s linear infinite; }
+.f4 { animation: f4 10s linear infinite; }
+.fc { animation: fc 10s linear infinite; }
+@keyframes s1 { 0%, 5% { opacity: 0; } 7%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes s2 { 0%, 10% { opacity: 0; } 12%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes s3 { 0%, 15% { opacity: 0; } 17%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes s4 { 0%, 20% { opacity: 0; } 22%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes sc { 0%, 26% { opacity: 0; } 29%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes f1 { 0%, 45% { opacity: 0; } 47%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes f2 { 0%, 50% { opacity: 0; } 52%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes f3 { 0%, 55% { opacity: 0; } 57%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes f4 { 0%, 60% { opacity: 0; } 62%, 94% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes fc { 0%, 66% { opacity: 0; } 69%, 94% { opacity: 1; } 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .art * {
+        animation: none !important;
+    }
+}

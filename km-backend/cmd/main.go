@@ -7,6 +7,7 @@ import (
 	"km-backend/internal/config"
 	"km-backend/internal/database"
 	"km-backend/internal/features/account"
+	"km-backend/internal/features/app_waitlist"
 	"km-backend/internal/features/application"
 	"km-backend/internal/features/chat"
 	"km-backend/internal/features/city"
@@ -167,6 +168,7 @@ func main() {
 			notification.NewNotificationRepository,
 			notification.NewNotificationHub,
 			testimonial.NewTestimonialRepository,
+			app_waitlist.NewRepository,
 			account.NewRepository,
 			push.NewRepository,
 
@@ -221,6 +223,7 @@ func main() {
 			instant_work.NewInstantWorkController,
 			notification.NewNotificationController,
 			testimonial.NewTestimonialController,
+			app_waitlist.NewController,
 			account.NewController,
 
 			// routes
@@ -246,6 +249,7 @@ func main() {
 			AsRoute(instant_work.NewInstantWorkApi),
 			AsRoute(notification.NewNotificationApi),
 			AsRoute(testimonial.NewTestimonialApi),
+			AsRoute(app_waitlist.NewApi),
 			AsRoute(account.NewApi),
 			AsRoute(push.NewApi),
 		),

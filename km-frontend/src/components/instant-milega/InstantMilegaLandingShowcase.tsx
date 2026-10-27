@@ -2,420 +2,428 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRightIcon, CheckCircleIcon, ClockIcon, DeviceMobileIcon, DownloadSimpleIcon, MapPinAreaIcon, PasswordIcon, PathIcon, ShieldCheckIcon, TimerIcon } from '@phosphor-icons/react';
-import DownloadAppModal from '@/components/km/DownloadAppModal';
+import type { Icon } from '@phosphor-icons/react';
+import {
+    AirplaneTiltIcon,
+    BellRingingIcon,
+    BuildingOfficeIcon,
+    CaretDownIcon,
+    ChatsCircleIcon,
+    CheckIcon,
+    IdentificationCardIcon,
+    MapPinAreaIcon,
+    MapTrifoldIcon,
+    PackageIcon,
+    PasswordIcon,
+    PhoneCallIcon,
+    ReceiptIcon,
+    ShieldCheckIcon,
+    ShoppingBagIcon,
+    StarIcon,
+    StorefrontIcon,
+    TimerIcon,
+    ToggleRightIcon,
+    WalletIcon,
+    WarehouseIcon,
+    WrenchIcon,
+} from '@phosphor-icons/react';
+import { AppNotifyForm, AppQrCode, StoreBadges, type AppInterest } from '@/components/km/AppDownload';
+import { CodesArt, LiveTrackingArt, WorkAlertArt } from './InstantMilegaArt';
 
-// Popular on-demand services available on the mobile app
-const POPULAR_SERVICES = [
+// InstantMilega runs in the KaamMilega mobile app only (it needs live location and tracking). This
+// page introduces it and gets people to the app: "Coming soon" + notify-me until the store links
+// are set (config/appLinks.ts), then store badges and a QR code.
+// Facts on this page come from the client's answers (docs/client_queries_full_qa.md).
+
+type Step = { Icon: Icon; title: string; text: string };
+
+const STEPS: Record<AppInterest, Step[]> = {
+    hire: [
+        { Icon: MapPinAreaIcon, title: 'Choose a service', text: 'Pick what you need and share your location.' },
+        { Icon: StarIcon, title: 'Get matched', text: 'Choose a worker yourself, or let the app send it to the best-rated worker nearby.' },
+        { Icon: PasswordIcon, title: 'Start code on arrival', text: 'Track them on the map. When they arrive, share your start code.' },
+        { Icon: ReceiptIcon, title: 'Finish code and pay', text: 'When the work is done, share your finish code and pay in the app. You get a bill.' },
+    ],
+    work: [
+        { Icon: IdentificationCardIcon, title: 'Get verified', text: 'Add Aadhaar, PAN and bank details. Our team checks them the same day.' },
+        { Icon: ToggleRightIcon, title: 'Go Free now', text: 'Turn on Free now when you are ready, and get alerts for work near you.' },
+        { Icon: TimerIcon, title: 'Accept in 120 seconds', text: 'See the work, the place and the pay. Accept it and head to the customer.' },
+        { Icon: WalletIcon, title: 'Get paid', text: 'The finish code closes the job. Your money lands in your wallet; withdraw it instantly.' },
+    ],
+};
+
+// Launch services chosen by the client (Q24)
+const SERVICES: { Icon: Icon; label: string }[] = [
+    { Icon: WrenchIcon, label: 'Plumber' },
+    { Icon: WarehouseIcon, label: 'Warehouse worker' },
+    { Icon: PackageIcon, label: 'Loader and unloader' },
+    { Icon: BuildingOfficeIcon, label: 'Office boy' },
+    { Icon: StorefrontIcon, label: 'Retail executive' },
+    { Icon: AirplaneTiltIcon, label: 'Airport assistant' },
+    { Icon: ShoppingBagIcon, label: 'Mall assistant' },
+];
+
+const TRUST: Step[] = [
+    { Icon: ShieldCheckIcon, title: 'Verified workers', text: 'Aadhaar, PAN and bank checked by our team, with at least 2 years of experience.' },
+    { Icon: ChatsCircleIcon, title: 'Help when you need it', text: 'Support by in-app chat, phone and WhatsApp.' },
+    { Icon: StarIcon, title: 'Better rated first', text: 'Higher-rated workers get your request first, even if a little farther away.' },
+    { Icon: ReceiptIcon, title: 'Paid in the app', text: 'Online payment only, with a bill for every job.' },
+];
+
+const PASS_POINTS = [
+    '10 bookings or gigs, or 90 days, whichever comes first',
+    'Covers InstantMilega, chats and 10 mentors',
+    'Every booking counts, even a cancelled one; unused ones lapse',
+    'Full refund if you have not used it',
+];
+
+const LANGUAGES = [
+    { label: 'English', lang: 'en' },
+    { label: 'हिन्दी', lang: 'hi' },
+    { label: 'मराठी', lang: 'mr' },
+    { label: 'ગુજરાતી', lang: 'gu' },
+];
+
+// App screenshots go here once the app team shares them ({ src, alt }); the section stays hidden
+// while the list is empty.
+const APP_SCREENS: { src: string; alt: string }[] = [];
+
+const FAQ: { q: string; a: React.ReactNode }[] = [
     {
-        id: 'plumber',
-        title: 'Plumber',
-        subtitle: 'Leaks, fittings & pipe repairs',
-        img: '/asset/trades/plumber.jpg',
+        q: 'Why only in the app?',
+        a: (
+            <>
+                InstantMilega needs your live location for matching, alerts and tracking, which works reliably only in the app. Jobs, skills,
+                experts and events stay on the website as they are.{' '}
+                <Link href="/jobs" className="font-medium text-km-link hover:underline">
+                    Browse jobs
+                </Link>
+            </>
+        ),
     },
     {
-        id: 'electrician',
-        title: 'Electrician',
-        subtitle: 'Wiring, fixtures & power fixes',
-        img: '/asset/trades/electrician.jpg',
+        q: 'When does the app launch?',
+        a: 'Soon, on Android and iOS. Leave your number on this page and we will tell you the day it is live.',
     },
     {
-        id: 'warehouse',
-        title: 'Warehouse Worker',
-        subtitle: 'Inventory, staging & packing',
-        img: '/asset/trades/warehouse.jpg',
+        q: 'What does it cost?',
+        a: 'Creating a profile, looking around and your first 3 chats are free. Booking or taking work needs the ₹99 pass. KaamMilega takes no commission on the service itself; if a small platform fee applies, you see it before you confirm.',
     },
     {
-        id: 'loader',
-        title: 'Loader-Unloader',
-        subtitle: 'Loading, heavy goods & transit',
-        img: '/asset/trades/labour.jpg',
+        q: 'What if no worker accepts?',
+        a: 'Each worker gets 120 seconds, then the request moves on. If nobody is free, you can pick another time or offer a higher rate.',
     },
     {
-        id: 'office-boy',
-        title: 'Office Boy',
-        subtitle: 'Daily errands & pantry support',
-        img: '/asset/trades/office-executive.jpg',
+        q: 'Can I cancel?',
+        a: 'Before a worker accepts, you get a full refund. Once they are on the way, a small fee goes to the worker; after they arrive, a visit fee. Cancelled bookings count towards your pass.',
     },
     {
-        id: 'retail',
-        title: 'Retail Executive',
-        subtitle: 'Counter sales & shelf stocking',
-        img: '/asset/trades/delivery.jpg',
+        q: 'Who pays for extra parts?',
+        a: 'Parts or extra material are paid to the worker directly. The service itself is paid online in the app.',
     },
     {
-        id: 'airport',
-        title: 'Airport Assistant',
-        subtitle: 'Luggage help & terminal support',
-        img: '/asset/trades/driver.jpg',
-    },
-    {
-        id: 'mall',
-        title: 'Mall Assistant',
-        subtitle: 'Floor help & customer guidance',
-        img: '/asset/trades/security.jpg',
+        q: 'Can I hire and work from the same account?',
+        a: 'Yes. One KaamMilega account lets you hire, work and find jobs; switch between Hire and Work at the top of the app.',
     },
 ];
 
-export default function InstantMilegaLandingShowcase() {
-    const [isDownloadModalOpen, setIsDownloadModalOpen] = useState(false);
+function ModeSwitch({ mode, onChange }: { mode: AppInterest; onChange: (m: AppInterest) => void }) {
+    return (
+        <div role="radiogroup" aria-label="I want to" className="inline-flex p-1 rounded-xl bg-white/10 border border-white/15">
+            {(['hire', 'work'] as const).map((value) => (
+                <button
+                    key={value}
+                    type="button"
+                    role="radio"
+                    aria-checked={mode === value}
+                    onClick={() => onChange(value)}
+                    className={`px-5 h-10 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
+                        mode === value ? 'bg-white text-[#071A4D]' : 'text-white/80 hover:text-white'
+                    }`}
+                >
+                    {value === 'hire' ? 'Hire' : 'Work'}
+                </button>
+            ))}
+        </div>
+    );
+}
+
+function SectionHeading({ id, title, text }: { id: string; title: string; text?: string }) {
+    return (
+        <div className="max-w-2xl">
+            <h2 id={id} className="text-2xl sm:text-3xl font-bold text-km-heading tracking-tight">{title}</h2>
+            {text && <p className="mt-2 text-base text-km-text-secondary">{text}</p>}
+        </div>
+    );
+}
+
+interface Props {
+    initialMode: AppInterest;
+    /** Trade from the home page search (?role=Electrician), kept with a "work" sign-up */
+    trade?: string;
+}
+
+export default function InstantMilegaLandingShowcase({ initialMode, trade }: Props) {
+    const [mode, setMode] = useState<AppInterest>(initialMode);
+    const isHire = mode === 'hire';
 
     return (
-        <div className="flex flex-col min-h-screen bg-km-surface font-sans antialiased">
-            {/* ─── Hero Section with Deep Navy, Art & Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-0 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden dark:border-white/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end">
-                        {/* Left Column: Instant Milega Branding, Headline, Human-friendly copy & CTAs */}
-                        <div className="lg:col-span-6 xl:col-span-6 text-left pt-1 sm:pt-2 pb-3 sm:pb-4 lg:pb-5 flex flex-col justify-center">
-                            {/* Brand Lockup: Logo Icon + Logo Text (Optically Aligned) */}
-                            <div className="flex items-end gap-3.5 sm:gap-4 mb-4 sm:mb-5">
-                                <img
-                                    src="/instantMilega-logo-icon.png"
-                                    alt="Instant Milega Icon"
-                                    className="h-14 sm:h-16 lg:h-18 w-auto object-contain select-none shrink-0"
-                                />
-                                <img
-                                    src="/instantMilega-logo-text.png"
-                                    alt="Instant Milega"
-                                    className="h-9 sm:h-10 lg:h-12 w-auto object-contain select-none mb-1 sm:mb-1.5"
-                                />
+        <div className="flex flex-col bg-km-surface font-sans antialiased">
+            {/* Hero */}
+            <section className="bg-[#071A4D] text-white rounded-b-[32px] sm:rounded-b-[48px] overflow-hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 lg:pt-12">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
+                        <div className="lg:col-span-6 pb-2 lg:pb-14">
+                            <div className="flex items-end gap-3 mb-6">
+                                <img src="/instantMilega-logo-icon.png" alt="" className="h-12 sm:h-14 w-auto" />
+                                <img src="/instantMilega-logo-text.png" alt="InstantMilega" className="h-8 sm:h-10 w-auto mb-1" />
                             </div>
 
-                            {/* Clean, Human-Friendly Headline */}
-                            <h1 className="text-3xl sm:text-4xl lg:text-[42px] xl:text-[46px] font-bold text-white tracking-tight leading-[1.18]">
-                                Book local help &amp; spot work in <span className="text-[#FF6B00]">120 seconds</span>
-                            </h1>
+                            <ModeSwitch mode={mode} onChange={setMode} />
 
-                            {/* Simple, Natural Subtitle */}
-                            <p className="mt-3 text-sm sm:text-base text-white/80 max-w-lg font-normal leading-relaxed">
-                                Find verified workers nearby or pick up immediate daily shifts. Direct phone connect, double OTP safety, and zero commission.
+                            <h1 className="mt-6 text-3xl sm:text-4xl lg:text-[44px] font-bold tracking-tight leading-[1.15]">
+                                {isHire ? (
+                                    <>
+                                        Help at your door, <span className="text-[#FF8A33]">in minutes</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        Work near you, <span className="text-[#FF8A33]">in minutes</span>
+                                    </>
+                                )}
+                            </h1>
+                            <p className="mt-4 text-base sm:text-lg text-white/80 max-w-xl">
+                                {isHire
+                                    ? 'Book a verified worker nearby, see them coming on the map, and pay in the app.'
+                                    : 'Turn on Free now, get work alerts from customers nearby, and withdraw your earnings instantly.'}
                             </p>
 
-                            {/* Download App CTA Button */}
-                            <div className="flex flex-wrap items-center gap-3.5 mt-5">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsDownloadModalOpen(true)}
-                                    className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#FF6B00] hover:bg-[#FF8A00] text-white font-semibold text-sm transition-all shadow-md cursor-pointer active:scale-98"
-                                >
-                                    <DownloadSimpleIcon weight="bold" size={16} />
-                                    <span>Download App</span>
-                                </button>
-                                <span className="text-xs text-white/70 font-medium">
-                                    Available for Android &amp; iOS
-                                </span>
+                            <div className="mt-8">
+                                <AppNotifyForm interest={mode} trade={isHire ? undefined : trade} tone="onDark" id="hero-notify-mobile" />
                             </div>
-
-                            {/* Simple Trust Points */}
-                            <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-5 pt-4 border-t border-white/10 text-xs text-white/90 font-medium">
-                                <div className="flex items-center gap-1.5">
-                                    <ClockIcon weight="bold" size={14} className="text-[#10B981] shrink-0" />
-                                    <span>120s Fast Matching</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <ShieldCheckIcon weight="bold" size={14} className="text-[#10B981] shrink-0" />
-                                    <span>Double OTP Security</span>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <CheckCircleIcon weight="bold" size={14} className="text-[#10B981] shrink-0" />
-                                    <span>0% Commission</span>
-                                </div>
+                            <div className="mt-6 flex flex-wrap items-center gap-6">
+                                <StoreBadges tone="onDark" />
+                                <AppQrCode tone="onDark" />
                             </div>
                         </div>
 
-                        {/* Right Column: Hero Artwork Resting Directly on Bottom Edge */}
-                        <div className="lg:col-span-6 xl:col-span-6 flex items-end justify-center lg:justify-end self-end p-0 m-0 leading-none">
-                            <div className="relative flex items-end justify-center lg:justify-end w-full leading-none">
-                                <img
-                                    src="/instantMilega-page-hero-art.png"
-                                    alt="Instant Milega On-Demand Dispatch"
-                                    className="w-full max-w-[500px] sm:max-w-[580px] lg:max-w-[660px] xl:max-w-[700px] h-auto object-contain select-none pointer-events-none drop-shadow-2xl block align-bottom translate-y-[2px]"
-                                />
-                            </div>
+                        <div className="lg:col-span-6 flex justify-center lg:justify-end">
+                            <img
+                                src="/instantMilega-page-hero-art.png"
+                                alt="A customer finding verified workers nearby on the InstantMilega map"
+                                className="w-full max-w-[560px] lg:max-w-[640px] h-auto block rounded-t-3xl"
+                            />
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* ─── Main Application Landing Sections ─── */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-16 sm:space-y-20">
-                {/* 1. Live Radar & Real-Time Tracking Feature (Urban Company style) */}
-                <section className="bg-km-surface-card rounded-3xl border border-km-border p-6 sm:p-10 lg:p-12 shadow-xs">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-                        {/* Map View Showcase */}
-                        <div className="lg:col-span-7 relative">
-                            <div className="relative rounded-2xl overflow-hidden border border-km-border shadow-sm bg-km-surface">
-                                <img
-                                    src="/instantMilega-page-map-view.png"
-                                    alt="Live radar map tracking nearby workers"
-                                    className="w-full h-auto object-cover select-none"
-                                />
-                                {/* Floating Live Status Badge */}
-                                <div className="absolute top-3.5 left-3.5 sm:top-4 sm:left-4 bg-km-surface-card/95 backdrop-blur-xs border border-km-border px-3.5 py-1.5 rounded-full flex items-center gap-2 text-xs font-semibold text-km-heading shadow-xs">
-                                    <span className="w-2.5 h-2.5 rounded-full bg-[#16A34A]" />
-                                    <span>Live Radar • 120s Dispatch</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Feature Highlights with Big Icons */}
-                        <div className="lg:col-span-5 space-y-6">
-                            <div>
-                                <span className="text-xs font-semibold text-[#FF6B00]">
-                                    Live tracking
-                                </span>
-                                <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary mt-1 tracking-tight">
-                                    See nearby help on the radar map
-                                </h2>
-                                <p className="text-sm text-km-text-secondary mt-2 leading-relaxed">
-                                    Open the app to view active verified pros in your neighborhood. When you request help, the closest available pro is dispatched right away.
-                                </p>
-                            </div>
-
-                            <div className="space-y-4 pt-1">
-                                <div className="flex items-start gap-3.5">
-                                    <MapPinAreaIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
-                                    <div>
-                                        <h3 className="text-sm font-bold text-km-text-primary">
-                                            Nearby pro radar
-                                        </h3>
-                                        <p className="text-xs sm:text-sm text-km-text-secondary mt-0.5 leading-relaxed">
-                                            Workers available within 5 km appear live on your local radar.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3.5">
-                                    <TimerIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
-                                    <div>
-                                        <h3 className="text-sm font-bold text-km-text-primary">
-                                            Fast 120-second match
-                                        </h3>
-                                        <p className="text-xs sm:text-sm text-km-text-secondary mt-0.5 leading-relaxed">
-                                            No long calls or bargaining. The system auto-assigns the nearest pro.
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start gap-3.5">
-                                    <PathIcon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
-                                    <div>
-                                        <h3 className="text-sm font-bold text-km-text-primary">
-                                            Doorstep route tracking
-                                        </h3>
-                                        <p className="text-xs sm:text-sm text-km-text-secondary mt-0.5 leading-relaxed">
-                                            Track their arrival directly to your doorstep on the live map.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsDownloadModalOpen(true)}
-                                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs sm:text-sm font-semibold transition-all shadow-xs cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
-                                >
-                                    <DownloadSimpleIcon weight="bold" size={15} />
-                                    <span>Try live radar on the app</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                {/* 2. Popular Services (Urban Company Style Grid - No prices, big icons, clean copy) */}
-                <section>
-                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-8">
-                        <div>
-                            <span className="text-xs font-semibold text-[#FF6B00]">
-                                Instant services
-                            </span>
-                            <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary mt-1 tracking-tight">
-                                Popular services available on demand
+            <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-16 sm:space-y-24">
+                {/* How it works (follows the Hire / Work switch) */}
+                <section aria-labelledby="how-title">
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+                        <div className="max-w-2xl">
+                            <h2 id="how-title" className="text-2xl sm:text-3xl font-bold text-km-heading tracking-tight">
+                                {isHire ? 'How booking works' : 'How you get work'}
                             </h2>
-                            <p className="text-sm text-km-text-secondary mt-1">
-                                Tap any service to book directly on the mobile app.
+                            <p className="mt-2 text-base text-km-text-secondary">
+                                {isHire ? 'Four steps from request to finished job.' : 'Four steps from sign-up to money in your bank.'}
                             </p>
                         </div>
                         <button
                             type="button"
-                            onClick={() => setIsDownloadModalOpen(true)}
-                            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-km-heading hover:text-km-link transition-colors self-start sm:self-auto cursor-pointer"
+                            onClick={() => setMode(isHire ? 'work' : 'hire')}
+                            className="self-start sm:self-auto text-sm font-semibold text-km-link hover:underline cursor-pointer"
                         >
-                            <span>Download app to browse all</span>
-                            <ArrowRightIcon weight="bold" size={14} />
+                            {isHire ? 'Looking for work instead?' : 'Want to hire instead?'}
                         </button>
                     </div>
+                    <ol className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {STEPS[mode].map(({ Icon, title, text }, i) => (
+                            <li key={title} className="bg-km-surface-card rounded-2xl border border-km-border p-6">
+                                <Icon size={36} weight="duotone" className="text-km-instant" aria-hidden="true" />
+                                <p className="mt-4 text-sm font-medium text-km-text-secondary">Step {i + 1}</p>
+                                <h3 className="mt-1 text-lg font-semibold text-km-text-primary">{title}</h3>
+                                <p className="mt-1.5 text-sm text-km-text-secondary leading-relaxed">{text}</p>
+                            </li>
+                        ))}
+                    </ol>
+                </section>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-                        {POPULAR_SERVICES.map((service) => {
-                            return (
-                                <button
-                                    key={service.id}
-                                    type="button"
-                                    onClick={() => setIsDownloadModalOpen(true)}
-                                    className="text-left relative rounded-2xl overflow-hidden min-h-[190px] sm:min-h-[210px] p-4 sm:p-5 flex flex-col justify-between border border-km-border shadow-xs cursor-pointer select-none"
-                                >
-                                    {/* Authentic Trade Background Image (No blue overlay) */}
-                                    <img
-                                        src={service.img}
-                                        alt={service.title}
-                                        className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none z-0"
-                                    />
-                                    {/* Subtle Bottom Contrast Gradient for Legibility */}
-                                    <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-black/85 via-black/45 to-transparent z-1" />
+                {/* The 120-second alert and the two codes */}
+                <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {[
+                        {
+                            Art: WorkAlertArt,
+                            title: '120 seconds to respond',
+                            text: 'Each request goes to one worker at a time. If they do not accept in 120 seconds, it moves to the next.',
+                        },
+                        {
+                            Art: CodesArt,
+                            title: 'Start and finish codes',
+                            text: 'Work starts only with the customer’s start code and closes only with their finish code.',
+                        },
+                    ].map(({ Art, title, text }) => (
+                        <div key={title} className="bg-km-surface-card rounded-3xl border border-km-border p-4 sm:p-6">
+                            <Art />
+                            <h2 className="mt-6 text-xl font-bold text-km-heading tracking-tight">{title}</h2>
+                            <p className="mt-1.5 text-base text-km-text-secondary">{text}</p>
+                        </div>
+                    ))}
+                </section>
 
-                                    <span aria-hidden="true" />
-
-                                    {/* Bottom Content: Main Service Title in Semi-Bold Orange on the Image */}
-                                    <div className="relative z-10">
-                                        <h3 className="text-base sm:text-lg font-semibold text-[#FF6B00] tracking-tight leading-snug">
-                                            {service.title}
-                                        </h3>
-                                        <p className="text-xs text-white/90 mt-0.5 line-clamp-1 font-normal">
-                                            {service.subtitle}
-                                        </p>
+                {/* Live map */}
+                <section className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center" aria-labelledby="map-title">
+                    <div className="lg:col-span-7 order-last lg:order-first">
+                        <LiveTrackingArt />
+                    </div>
+                    <div className="lg:col-span-5">
+                        <h2 id="map-title" className="text-2xl sm:text-3xl font-bold text-km-heading tracking-tight">
+                            Know where they are
+                        </h2>
+                        <ul className="mt-6 space-y-5">
+                            {[
+                                { Icon: MapTrifoldIcon, title: 'Live map', text: 'Follow the worker on the way to you, like a cab ride.' },
+                                { Icon: TimerIcon, title: 'Arrival time', text: 'See when they will reach, for example "Arriving in 10 min".' },
+                                { Icon: PhoneCallIcon, title: 'Chat and call', text: 'Talk in the app, or call their number once the booking is confirmed.' },
+                                { Icon: BellRingingIcon, title: 'Instant alerts', text: 'Workers hear about new work nearby even when the app is closed.' },
+                            ].map(({ Icon, title, text }) => (
+                                <li key={title} className="flex items-start gap-4">
+                                    <Icon size={28} weight="duotone" className="text-km-instant shrink-0" aria-hidden="true" />
+                                    <div>
+                                        <h3 className="text-base font-semibold text-km-text-primary">{title}</h3>
+                                        <p className="mt-0.5 text-sm text-km-text-secondary">{text}</p>
                                     </div>
-                                </button>
-                            );
-                        })}
+                                </li>
+                            ))}
+                        </ul>
                     </div>
                 </section>
 
-                {/* 3. Double OTP Safety & How It Works (Short Simple Human Steps) */}
-                <section>
-                    <div className="text-center max-w-xl mx-auto mb-10">
-                        <span className="text-xs font-semibold text-[#FF6B00]">
-                            Safe and simple
-                        </span>
-                        <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary mt-1 tracking-tight">
-                            How every booking works
+                {/* Launch services */}
+                <section aria-labelledby="services-title">
+                    <SectionHeading id="services-title" title="Launching with" text="More services will follow after launch." />
+                    <ul className="mt-8 grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                        {SERVICES.map(({ Icon, label }) => (
+                            <li
+                                key={label}
+                                className="flex flex-col items-center text-center gap-3 bg-km-surface-card rounded-2xl border border-km-border px-3 py-6"
+                            >
+                                <Icon size={36} weight="duotone" className="text-km-heading" aria-hidden="true" />
+                                <span className="text-sm font-medium text-km-text-primary">{label}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                {/* Trust */}
+                <section aria-labelledby="trust-title">
+                    <h2 id="trust-title" className="text-2xl sm:text-3xl font-bold text-km-heading tracking-tight">
+                        Safe for both sides
+                    </h2>
+                    <ul className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        {TRUST.map(({ Icon, title, text }) => (
+                            <li key={title}>
+                                <Icon size={28} weight="duotone" className="text-km-instant" aria-hidden="true" />
+                                <h3 className="mt-3 text-base font-semibold text-km-text-primary">{title}</h3>
+                                <p className="mt-1 text-sm text-km-text-secondary leading-relaxed">{text}</p>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                {/* ₹99 pass */}
+                <section
+                    aria-labelledby="pass-title"
+                    className="bg-km-surface-card rounded-3xl border border-km-border p-6 sm:p-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center"
+                >
+                    <div className="lg:col-span-5">
+                        <p className="text-5xl font-bold text-km-heading tracking-tight">₹99</p>
+                        <h2 id="pass-title" className="mt-3 text-2xl font-bold text-km-heading tracking-tight">
+                            One pass for all of KaamMilega
                         </h2>
-                        <p className="text-sm text-km-text-secondary mt-1.5 leading-relaxed">
-                            Two simple verification codes guarantee safety for both customers and workers.
+                        <p className="mt-2 text-base text-km-text-secondary">
+                            The same pass for customers and workers. No commission on the service itself.
                         </p>
                     </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Step 1 */}
-                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs flex flex-col justify-between">
-                            <div>
-                                <DeviceMobileIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
-                                <span className="text-xs font-semibold text-km-heading">Step 1</span>
-                                <h3 className="text-base font-bold text-km-text-primary mt-1">
-                                    Pick your service
-                                </h3>
-                                <p className="text-sm text-km-text-secondary mt-1.5 leading-relaxed">
-                                    Choose what you need and confirm your location. The closest verified pro accepts in seconds.
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Step 2 */}
-                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs flex flex-col justify-between">
-                            <div>
-                                <PasswordIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
-                                <span className="text-xs font-semibold text-km-heading">Step 2</span>
-                                <h3 className="text-base font-bold text-km-text-primary mt-1">
-                                    Share the start code
-                                </h3>
-                                <p className="text-sm text-km-text-secondary mt-1.5 leading-relaxed">
-                                    When the worker arrives at your location, share your 4-digit code to start the work.
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Step 3 */}
-                        <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs flex flex-col justify-between">
-                            <div>
-                                <CheckCircleIcon size={36} weight="duotone" className="text-km-instant mb-4" aria-hidden="true" />
-                                <span className="text-xs font-semibold text-km-heading">Step 3</span>
-                                <h3 className="text-base font-bold text-km-text-primary mt-1">
-                                    Finish code &amp; pay
-                                </h3>
-                                <p className="text-sm text-km-text-secondary mt-1.5 leading-relaxed">
-                                    Once the work is done, share the finish code to complete the booking and pay directly.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                    <ul className="lg:col-span-7 space-y-4">
+                        {PASS_POINTS.map((point) => (
+                            <li key={point} className="flex items-start gap-3 text-base text-km-text-primary">
+                                <CheckIcon size={18} weight="bold" className="text-emerald-600 shrink-0 mt-1" aria-hidden="true" />
+                                <span>{point}</span>
+                            </li>
+                        ))}
+                    </ul>
                 </section>
 
-                {/* 4. App Download Showcase Banner (Urban Company Style) */}
-                <section className="bg-[#071A4D] text-white rounded-3xl border border-[#0B1F52] p-8 sm:p-12 relative overflow-hidden dark:border-km-link dark:ring-1 dark:ring-inset dark:ring-white/10">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-                        <div className="lg:col-span-8 space-y-4">
-                            <span className="text-xs font-semibold text-[#FF6B00]">
-                                Ready to get started?
-                            </span>
-                            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight">
-                                Download KaamMilega for Android &amp; iOS
-                            </h2>
-                            <p className="text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
-                                Experience 120-second live radar dispatch, instant direct calls, and safe double OTP verification on your smartphone.
-                            </p>
-
-                            <div className="flex flex-wrap items-center gap-3.5 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsDownloadModalOpen(true)}
-                                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#FF6B00] hover:bg-[#FF8A00] text-white text-sm font-semibold transition-all shadow-md cursor-pointer active:scale-98"
-                                >
-                                    <DownloadSimpleIcon weight="bold" size={16} />
-                                    <span>Download App</span>
-                                </button>
-                                <span className="text-xs text-white/70">
-                                    Free download • Zero commission
-                                </span>
-                            </div>
+                {/* App screens (filled in once the app team shares them) */}
+                {APP_SCREENS.length > 0 && (
+                    <section aria-labelledby="screens-title">
+                        <SectionHeading id="screens-title" title="A look inside the app" />
+                        <div className="mt-8 flex gap-4 overflow-x-auto pb-2 snap-x">
+                            {APP_SCREENS.map((s) => (
+                                <img key={s.src} src={s.src} alt={s.alt} className="h-[480px] w-auto rounded-3xl border border-km-border snap-start" />
+                            ))}
                         </div>
+                    </section>
+                )}
 
-                        {/* Store Buttons Box */}
-                        <div className="lg:col-span-4 bg-[#0B1F52] border border-white/10 rounded-2xl p-6 text-center space-y-3">
-                            <h3 className="text-sm font-bold text-white">
-                                Available on all platforms
-                            </h3>
-                            <p className="text-xs text-white/70">
-                                For both workers seeking shifts and employers hiring help.
-                            </p>
-                            <div className="flex flex-col gap-3 pt-1 items-center justify-center">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsDownloadModalOpen(true)}
-                                    className="hover:opacity-90 transition-opacity cursor-pointer inline-block"
-                                    aria-label="Get it on Google Play"
-                                >
-                                    <img
-                                        src="/asset/google-play-badge-logo.svg"
-                                        alt="Get it on Google Play"
-                                        className="h-10 sm:h-11 w-auto object-contain"
-                                    />
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setIsDownloadModalOpen(true)}
-                                    className="hover:opacity-90 transition-opacity cursor-pointer inline-block"
-                                    aria-label="Download on the App Store"
-                                >
-                                    <img
-                                        src="/asset/download-on-the-app-store-apple-logo.svg"
-                                        alt="Download on the App Store"
-                                        className="h-10 sm:h-11 w-auto object-contain"
-                                    />
-                                </button>
-                            </div>
-                        </div>
+                {/* Languages and coverage */}
+                <section aria-labelledby="lang-title" className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div>
+                        <h2 id="lang-title" className="text-2xl font-bold text-km-heading tracking-tight">
+                            In your language, across India
+                        </h2>
+                        <p className="mt-2 text-base text-km-text-secondary">Use the app in any of these languages.</p>
+                    </div>
+                    <ul className="flex flex-wrap gap-x-8 gap-y-3">
+                        {LANGUAGES.map(({ label, lang }) => (
+                            <li key={lang} lang={lang} className="text-xl font-semibold text-km-text-primary">
+                                {label}
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+
+                {/* FAQ */}
+                <section aria-labelledby="faq-title" className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    <div className="lg:col-span-4">
+                        <h2 id="faq-title" className="text-2xl sm:text-3xl font-bold text-km-heading tracking-tight">
+                            Questions
+                        </h2>
+                    </div>
+                    <div className="lg:col-span-8 divide-y divide-km-border border-y border-km-border">
+                        {FAQ.map(({ q, a }) => (
+                            <details key={q} className="group py-5">
+                                <summary className="flex items-center justify-between gap-4 cursor-pointer list-none text-base font-semibold text-km-text-primary [&::-webkit-details-marker]:hidden">
+                                    {q}
+                                    <CaretDownIcon size={18} className="shrink-0 text-km-text-secondary transition-transform group-open:rotate-180" aria-hidden="true" />
+                                </summary>
+                                <p className="mt-3 text-sm sm:text-base text-km-text-secondary leading-relaxed">{a}</p>
+                            </details>
+                        ))}
                     </div>
                 </section>
             </main>
 
-            {/* Mobile App Download Modal */}
-            <DownloadAppModal
-                isOpen={isDownloadModalOpen}
-                onClose={() => setIsDownloadModalOpen(false)}
-            />
+            {/* Closing download band */}
+            <section className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24">
+                <div className="bg-[#071A4D] text-white rounded-3xl p-6 sm:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                    <div className="lg:col-span-6">
+                        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">Be the first to know</h2>
+                        <p className="mt-2 text-base text-white/80">
+                            The KaamMilega app is coming to Android and iOS. Hire, work and find jobs from one account.
+                        </p>
+                        <div className="mt-6 flex flex-wrap items-center gap-6">
+                            <StoreBadges tone="onDark" />
+                            <AppQrCode tone="onDark" />
+                        </div>
+                    </div>
+                    <div className="lg:col-span-6">
+                        <AppNotifyForm interest={mode} trade={isHire ? undefined : trade} tone="onDark" id="footer-notify-mobile" />
+                    </div>
+                </div>
+            </section>
         </div>
     );
 }

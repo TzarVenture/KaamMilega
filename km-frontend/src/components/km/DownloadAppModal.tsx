@@ -1,145 +1,93 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { CheckCircleIcon, DeviceMobileIcon, XIcon } from '@phosphor-icons/react';
+import React, { useEffect, useState } from 'react';
+import { XIcon } from '@phosphor-icons/react';
+import { APP_AVAILABLE } from '@/config/appLinks';
+import { AppNotifyForm, AppQrCode, StoreBadges, type AppInterest } from './AppDownload';
 
 interface DownloadAppModalProps {
     isOpen: boolean;
     onClose: () => void;
+    /** Preselects Hire or Work for the notify-me sign-up */
+    interest?: AppInterest;
+    trade?: string;
 }
 
-export default function DownloadAppModal({ isOpen, onClose }: DownloadAppModalProps) {
-    const [phone, setPhone] = useState('');
-    const [isSent, setIsSent] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
+export default function DownloadAppModal({ isOpen, ...rest }: DownloadAppModalProps) {
+    // Mounted only while open, so each opening starts from the given Hire / Work choice
+    return isOpen ? <DownloadAppDialog {...rest} /> : null;
+}
+
+function DownloadAppDialog({ onClose, interest: initialInterest = 'hire', trade }: Omit<DownloadAppModalProps, 'isOpen'>) {
+    const [interest, setInterest] = useState<AppInterest>(initialInterest);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
         };
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-            window.addEventListener('keydown', handleKeyDown);
-        }
+        document.body.style.overflow = 'hidden';
+        window.addEventListener('keydown', handleKeyDown);
         return () => {
             document.body.style.overflow = 'unset';
             window.removeEventListener('keydown', handleKeyDown);
         };
-    }, [isOpen, onClose]);
-
-    if (!isOpen) return null;
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (phone.length < 10) return;
-        setIsSubmitting(true);
-        setTimeout(() => {
-            setIsSubmitting(false);
-            setIsSent(true);
-        }, 500);
-    };
+    }, [onClose]);
 
     return (
-        <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs font-sans antialiased"
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 font-sans antialiased"
             onClick={onClose}
         >
             <div
-                className="relative w-full max-w-md bg-km-surface-card rounded-3xl shadow-2xl border border-km-border overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="download-app-title"
+                className="relative w-full max-w-md bg-km-surface-card rounded-2xl shadow-xl border border-km-border animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Header */}
-                <div className="flex items-center justify-between px-6 pt-6 pb-2">
-                    <div className="flex items-center gap-3">
-                        <DeviceMobileIcon size={24} weight="duotone" className="text-[#FF6B00] shrink-0" aria-hidden="true" />
-                        <div>
-                            <h3 className="text-base sm:text-lg font-semibold text-km-text-primary tracking-tight">
-                                Get the KaamMilega App
-                            </h3>
-                            <p className="text-xs text-km-text-secondary">
-                                Available for Android and iOS
-                            </p>
-                        </div>
+                <div className="flex items-start justify-between gap-4 px-6 pt-6">
+                    <div>
+                        <h3 id="download-app-title" className="text-lg font-semibold text-km-text-primary">
+                            {APP_AVAILABLE ? 'Get the KaamMilega app' : 'The KaamMilega app is coming soon'}
+                        </h3>
+                        <p className="mt-1 text-sm text-km-text-secondary">
+                            InstantMilega, live tracking and work alerts are in the app.
+                        </p>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-km-surface transition-colors cursor-pointer"
-                        aria-label="Close dialog"
+                        className="p-1.5 -mr-1.5 rounded-lg text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface transition-colors cursor-pointer"
+                        aria-label="Close"
                     >
-                        <XIcon weight="bold" size={18} />
+                        <XIcon size={18} aria-hidden="true" />
                     </button>
                 </div>
 
-                {/* Body */}
-                <div className="p-6 pt-4">
-                    {/* Official Store Badges */}
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 p-4 bg-km-surface rounded-2xl border border-km-border">
-                        <a
-                            href="https://play.google.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:opacity-90 transition-opacity inline-block"
-                            aria-label="Get it on Google Play"
-                        >
-                            <img
-                                src="/asset/google-play-badge-logo.svg"
-                                alt="Google Play"
-                                className="h-10 sm:h-11 w-auto object-contain"
-                            />
-                        </a>
-                        <a
-                            href="https://apple.com"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="hover:opacity-90 transition-opacity inline-block"
-                            aria-label="Download on the App Store"
-                        >
-                            <img
-                                src="/asset/download-on-the-app-store-apple-logo.svg"
-                                alt="App Store"
-                                className="h-10 sm:h-11 w-auto object-contain"
-                            />
-                        </a>
-                    </div>
+                <div className="p-6 space-y-5">
+                    <StoreBadges />
+                    <AppQrCode />
 
-                    {/* Direct SMS Install Link */}
-                    <div className="mt-5">
-                        <label className="block text-xs font-medium text-km-text-secondary mb-2 text-center">
-                            Or get direct download link via SMS
-                        </label>
-                        {isSent ? (
-                            <div className="flex items-center justify-center gap-2 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-xs font-medium">
-                                <CheckCircleIcon weight="bold" size={16} className="text-emerald-600 shrink-0 dark:text-emerald-400" />
-                                <span>Download link sent to +91 {phone}</span>
+                    {!APP_AVAILABLE && (
+                        <div className="space-y-3 pt-1">
+                            <div role="radiogroup" aria-label="I want to" className="inline-flex p-1 rounded-xl bg-km-surface border border-km-border">
+                                {(['hire', 'work'] as const).map((value) => (
+                                    <button
+                                        key={value}
+                                        type="button"
+                                        role="radio"
+                                        aria-checked={interest === value}
+                                        onClick={() => setInterest(value)}
+                                        className={`px-4 h-9 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
+                                            interest === value ? 'bg-km-surface-card text-km-text-primary shadow-xs' : 'text-km-text-secondary hover:text-km-text-primary'
+                                        }`}
+                                    >
+                                        {value === 'hire' ? 'I want to hire' : 'I want to work'}
+                                    </button>
+                                ))}
                             </div>
-                        ) : (
-                            <form onSubmit={handleSubmit} className="flex gap-2">
-                                <div className="flex items-center flex-1 bg-km-surface-card border border-km-border rounded-xl px-3.5 focus-within:border-[#FF6B00] focus-within:ring-2 focus-within:ring-[#FF6B00]/15 transition-all">
-                                    <span className="text-xs text-km-text-secondary font-semibold mr-1.5">+91</span>
-                                    <input
-                                        type="tel"
-                                        maxLength={10}
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                                        placeholder="Enter 10-digit mobile number"
-                                        className="w-full py-2.5 bg-transparent text-sm text-km-text-primary placeholder:text-km-text-muted focus:outline-none"
-                                        required
-                                    />
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={phone.length < 10 || isSubmitting}
-                                    className="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#FF8A00] disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-semibold rounded-xl transition-all cursor-pointer shadow-xs active:scale-98 shrink-0"
-                                >
-                                    {isSubmitting ? 'Sending...' : 'Send Link'}
-                                </button>
-                            </form>
-                        )}
-                    </div>
-
-                    <p className="mt-4 text-center text-xs text-km-text-muted">
-                        Free download • 0% platform commission
-                    </p>
+                            <AppNotifyForm interest={interest} trade={trade} id="download-modal-mobile" />
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
