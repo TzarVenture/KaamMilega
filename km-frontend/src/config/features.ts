@@ -12,4 +12,10 @@ export const FEATURES = {
     DARK_MODE: process.env.NEXT_PUBLIC_ENABLE_DARK_MODE
         ? process.env.NEXT_PUBLIC_ENABLE_DARK_MODE === 'true'
         : process.env.NODE_ENV !== 'production',
+    // Languages (English, Hindi, Marathi, Gujarati: client Q71). Defaults: on for `next dev`, off for
+    // production builds until the translations are reviewed; while off, everyone sees English.
+    // Override with NEXT_PUBLIC_ENABLE_I18N=true|false.
+    I18N: process.env.NEXT_PUBLIC_ENABLE_I18N
+        ? process.env.NEXT_PUBLIC_ENABLE_I18N === 'true'
+        : process.env.NODE_ENV !== 'production',
 } as const;

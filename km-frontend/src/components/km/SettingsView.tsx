@@ -8,6 +8,8 @@ import type { Icon } from "@phosphor-icons/react";
 import api from "@/lib/axios";
 import { errorMessage } from "@/lib/account";
 import { FEATURES } from "@/config/features";
+import { LOCALES, LOCALE_NAMES, isLocale, type Locale } from "@/i18n/config";
+import { useChangeLocale } from "@/i18n/useChangeLocale";
 import { FullPageSkeleton } from "@/components/ui/LoadingSkeleton";
 import ThemeToggle from "@/components/km/ThemeToggle";
 import { Badge, SettingRow, SettingsCard, Toggle, inputClass } from "@/components/settings/SettingsPrimitives";
@@ -26,7 +28,8 @@ interface UserSettingsState {
     sms_alerts: boolean;
     push_notifications: boolean;
     profile_visibility: "public" | "connections" | "private";
-    language: "en" | "hi" | "hinglish";
+    // One of LOCALES; older accounts may still hold "hinglish", shown as English
+    language: string;
     enable_ai_recommendations: boolean;
     search_engine_indexing: boolean;
 }
@@ -60,6 +63,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
     const isRecruiter = mode === "recruiter";
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { change: changeLocale } = useChangeLocale();
 
     const tabs: { id: Tab; label: string; Icon: Icon }[] = [
         { id: "notifications", label: "Notifications", Icon: BellIcon },
@@ -278,18 +282,28 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                         <SettingsCard title="Display">
                             <SettingRow
                                 title="Language"
-                                badge={<SoonBadge />}
-                                description="Saved now. Hindi and Hinglish screens are on the way."
+                                badge={FEATURES.I18N ? undefined : <SoonBadge />}
+                                description={
+                                    FEATURES.I18N
+                                        ? "Used across KaamMilega. Pages are being translated one by one."
+                                        : "Saved now. Hindi, Marathi and Gujarati screens are on the way."
+                                }
                                 control={
                                     <select
                                         aria-label="Language"
-                                        value={settings.language}
-                                        onChange={(e) => update("language", e.target.value as UserSettingsState["language"])}
+                                        value={isLocale(settings.language) ? settings.language : "en"}
+                                        onChange={(e) => {
+                                            const locale = e.target.value as Locale;
+                                            update("language", locale);
+                                            if (FEATURES.I18N) changeLocale(locale);
+                                        }}
                                         className={`${inputClass} w-40`}
                                     >
-                                        <option value="en">English</option>
-                                        <option value="hi">हिन्दी</option>
-                                        <option value="hinglish">Hinglish</option>
+                                        {LOCALES.map((locale) => (
+                                            <option key={locale} value={locale} lang={locale}>
+                                                {LOCALE_NAMES[locale]}
+                                            </option>
+                                        ))}
                                     </select>
                                 }
                             />

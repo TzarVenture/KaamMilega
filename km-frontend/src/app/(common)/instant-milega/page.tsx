@@ -1,15 +1,18 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import InstantMilegaLandingShowcase from '@/components/instant-milega/InstantMilegaLandingShowcase';
 import type { AppInterest } from '@/components/km/AppDownload';
 import { FEATURES } from '@/config/features';
 
-export const metadata: Metadata = {
-    title: 'InstantMilega: local help and work in minutes | KaamMilega',
-    description:
-        'Book a verified worker nearby or get work alerts near you, with live tracking and start and finish codes. Coming soon in the KaamMilega app for Android and iOS.',
-    alternates: { canonical: '/instant-milega' },
-};
+export async function generateMetadata(): Promise<Metadata> {
+    const t = await getTranslations('instantMilega.meta');
+    return {
+        title: t('title'),
+        description: t('description'),
+        alternates: { canonical: '/instant-milega' },
+    };
+}
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 

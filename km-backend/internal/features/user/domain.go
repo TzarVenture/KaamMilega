@@ -310,7 +310,7 @@ type UserSettings struct {
 	SMSAlerts               bool   `bson:"sms_alerts" json:"sms_alerts"`
 	PushNotifications       bool   `bson:"push_notifications" json:"push_notifications"`
 	ProfileVisibility       string `bson:"profile_visibility" json:"profile_visibility"` // "public", "connections", "private"
-	Language                string `bson:"language" json:"language"`                     // "en", "hi", "hinglish"
+	Language                string `bson:"language" json:"language"`                     // "hi", "mr", "gu", "bn", "en" (km-frontend/src/i18n/config.ts)
 	EnableAIRecommendations bool   `bson:"enable_ai_recommendations" json:"enable_ai_recommendations"`
 	SearchEngineIndexing    bool   `bson:"search_engine_indexing" json:"search_engine_indexing"`
 }

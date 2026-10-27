@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircleIcon } from '@phosphor-icons/react';
 import QRCode from 'qrcode';
+import { useTranslations } from 'next-intl';
 import api from '@/lib/axios';
 import { getCurrentUser } from '@/lib/auth';
 import { notify } from '@/lib/notify';
@@ -29,6 +30,7 @@ interface NotifyFormProps {
 }
 
 export function AppNotifyForm({ interest, trade, tone = 'onLight', id = 'app-notify-mobile' }: NotifyFormProps) {
+    const t = useTranslations('appDownload');
     const [mobile, setMobile] = useState('');
     const [saving, setSaving] = useState(false);
     const [savedFor, setSavedFor] = useState('');
@@ -50,7 +52,7 @@ export function AppNotifyForm({ interest, trade, tone = 'onLight', id = 'app-not
             await api.post('/app-waitlist', { mobile, interest, trade: trade || undefined });
             setSavedFor(mobile);
         } catch (err) {
-            notify.error(err, 'Could not save your number. Please try again.');
+            notify.error(err, t('saveError'));
         } finally {
             setSaving(false);
         }
@@ -63,9 +65,7 @@ export function AppNotifyForm({ interest, trade, tone = 'onLight', id = 'app-not
                 className={`flex items-start gap-2 text-sm ${onDark ? 'text-white' : 'text-km-text-primary'}`}
             >
                 <CheckCircleIcon size={18} weight="fill" className="text-emerald-500 shrink-0 mt-px" aria-hidden="true" />
-                <span>
-                    You are on the list. We will tell you on +91 {savedFor} as soon as the app is live.
-                </span>
+                <span>{t('saved', { mobile: savedFor })}</span>
             </p>
         );
     }
@@ -73,7 +73,7 @@ export function AppNotifyForm({ interest, trade, tone = 'onLight', id = 'app-not
     return (
         <form onSubmit={submit} className="w-full max-w-md" noValidate>
             <label htmlFor={id} className={`block text-sm font-medium mb-2 ${onDark ? 'text-white/85' : 'text-km-text-secondary'}`}>
-                Get a message when the app launches
+                {t('notifyLabel')}
             </label>
             <div className="flex flex-col sm:flex-row gap-2">
                 <div
@@ -92,7 +92,7 @@ export function AppNotifyForm({ interest, trade, tone = 'onLight', id = 'app-not
                         maxLength={10}
                         value={mobile}
                         onChange={(e) => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                        placeholder="Mobile number"
+                        placeholder={t('mobilePlaceholder')}
                         className={`w-full bg-transparent text-sm focus:outline-none ${
                             onDark ? 'text-white placeholder:text-white/50' : 'text-km-text-primary placeholder:text-km-text-muted'
                         }`}
@@ -103,7 +103,7 @@ export function AppNotifyForm({ interest, trade, tone = 'onLight', id = 'app-not
                     disabled={!valid || saving}
                     className="h-12 px-6 rounded-xl bg-km-accent hover:bg-km-accent-light text-white text-sm font-semibold transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 shrink-0"
                 >
-                    {saving ? 'Saving…' : 'Notify me'}
+                    {saving ? t('saving') : t('notifyMe')}
                 </button>
             </div>
         </form>
@@ -111,25 +111,26 @@ export function AppNotifyForm({ interest, trade, tone = 'onLight', id = 'app-not
 }
 
 const BADGES = [
-    { key: 'android', href: APP_LINKS.PLAY_STORE, src: '/asset/google-play-badge-logo.svg', label: 'Get it on Google Play' },
-    { key: 'ios', href: APP_LINKS.APP_STORE, src: '/asset/download-on-the-app-store-apple-logo.svg', label: 'Download on the App Store' },
-];
+    { key: 'android', href: APP_LINKS.PLAY_STORE, src: '/asset/google-play-badge-logo.svg', label: 'googlePlay' },
+    { key: 'ios', href: APP_LINKS.APP_STORE, src: '/asset/download-on-the-app-store-apple-logo.svg', label: 'appStore' },
+] as const;
 
 /** Store badges: links once published, otherwise dimmed with a "Coming soon" note */
 export function StoreBadges({ tone = 'onLight' }: { tone?: 'onLight' | 'onDark' }) {
+    const t = useTranslations('appDownload');
     return (
         <div className="flex flex-wrap items-center gap-3">
             {BADGES.map((b) =>
                 b.href ? (
-                    <a key={b.key} href={b.href} target="_blank" rel="noopener noreferrer" aria-label={b.label} className="inline-block hover:opacity-90 transition-opacity">
+                    <a key={b.key} href={b.href} target="_blank" rel="noopener noreferrer" aria-label={t(b.label)} className="inline-block hover:opacity-90 transition-opacity">
                         <img src={b.src} alt="" className="h-10 w-auto" />
                     </a>
                 ) : (
-                    <img key={b.key} src={b.src} alt={`${b.label} (coming soon)`} className="h-10 w-auto opacity-50 grayscale" />
+                    <img key={b.key} src={b.src} alt={t('badgeSoon', { store: t(b.label) })} className="h-10 w-auto opacity-50 grayscale" />
                 ),
             )}
             {!APP_AVAILABLE && (
-                <span className={`text-sm font-medium ${tone === 'onDark' ? 'text-white/80' : 'text-km-text-secondary'}`}>Coming soon</span>
+                <span className={`text-sm font-medium ${tone === 'onDark' ? 'text-white/80' : 'text-km-text-secondary'}`}>{t('comingSoon')}</span>
             )}
         </div>
     );
@@ -137,6 +138,7 @@ export function StoreBadges({ tone = 'onLight' }: { tone?: 'onLight' | 'onDark' 
 
 /** QR code to /get-app (opens the right store on a phone). Desktop only, once the app is out. */
 export function AppQrCode({ tone = 'onLight' }: { tone?: 'onLight' | 'onDark' }) {
+    const t = useTranslations('appDownload');
     const [src, setSrc] = useState('');
 
     useEffect(() => {
@@ -153,9 +155,9 @@ export function AppQrCode({ tone = 'onLight' }: { tone?: 'onLight' | 'onDark' })
     if (!src) return null;
     return (
         <div className="hidden lg:flex items-center gap-3">
-            <img src={src} alt="QR code to download the KaamMilega app" width={96} height={96} className="rounded-lg bg-white p-1" />
+            <img src={src} alt={t('qrAlt')} width={96} height={96} className="rounded-lg bg-white p-1" />
             <span className={`text-sm max-w-[9rem] ${tone === 'onDark' ? 'text-white/80' : 'text-km-text-secondary'}`}>
-                Scan with your phone camera to get the app
+                {t('qrText')}
             </span>
         </div>
     );
