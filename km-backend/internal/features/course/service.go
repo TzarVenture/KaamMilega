@@ -261,7 +261,8 @@ func (s *CourseServiceImpl) isUserAdmin(ctx context.Context, userID string) bool
 		return false
 	}
 	for _, r := range u.Roles {
-		if strings.EqualFold(r, "admin") {
+		lower := strings.ToLower(strings.TrimSpace(r))
+		if lower == "admin" || lower == "superadmin" || lower == "administrator" {
 			return true
 		}
 	}

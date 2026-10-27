@@ -6,8 +6,31 @@ import { usePathname, useRouter } from 'next/navigation';
 import BrandLogo from '@/components/km/BrandLogo';
 import { clearSession, isAuthenticated } from '@/lib/auth';
 
-import { BellIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CaretDownIcon, DownloadSimpleIcon, FileXlsIcon, FlagIcon, GraduationCapIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, QuestionIcon, QuotesIcon, ShieldCheckIcon, ShieldIcon, ShieldWarningIcon, SidebarSimpleIcon, SignOutIcon, SquaresFourIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
-import Image from 'next/image';
+import { 
+    BellIcon, 
+    BriefcaseIcon, 
+    BuildingOfficeIcon, 
+    CalendarBlankIcon, 
+    CaretDownIcon, 
+    DownloadSimpleIcon, 
+    FileXlsIcon, 
+    FlagIcon, 
+    GraduationCapIcon, 
+    ListIcon, 
+    MagnifyingGlassIcon, 
+    MapPinIcon, 
+    MapTrifoldIcon, 
+    QuestionIcon, 
+    QuotesIcon, 
+    ShieldCheckIcon, 
+    ShieldWarningIcon, 
+    SidebarSimpleIcon, 
+    SignOutIcon, 
+    SquaresFourIcon, 
+    UsersIcon, 
+    VideoCameraIcon, 
+    XIcon 
+} from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
@@ -30,7 +53,6 @@ const navItems = [
     { name: 'Chat Reports', icon: FlagIcon, href: '/admin/chat-reports' },
 ];
 
-
 export default function AdminLayout({
     children,
 }: {
@@ -38,13 +60,37 @@ export default function AdminLayout({
 }) {
     const pathname = usePathname();
     const router = useRouter();
-    // On desktop: controls collapsed/expanded. On mobile: controls open/hidden overlay.
+    
+    // On desktop: controls collapsed/expanded (default open on large screens/monitors)
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [adminUser, setAdminUser] = useState<any>(null);
 
     const isLoginPage = pathname === '/admin/login';
+
+    // Auto-detect large screen on mount & remember preference
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const savedState = localStorage.getItem('admin_sidebar_open');
+            if (savedState !== null) {
+                setIsSidebarOpen(savedState === 'true');
+            } else {
+                // On large monitors (>= 1280px), always default to open
+                setIsSidebarOpen(window.innerWidth >= 1280);
+            }
+        }
+    }, []);
+
+    const toggleSidebar = () => {
+        setIsSidebarOpen(prev => {
+            const next = !prev;
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('admin_sidebar_open', String(next));
+            }
+            return next;
+        });
+    };
 
     // Close mobile menu on route change
     useEffect(() => {
@@ -102,38 +148,34 @@ export default function AdminLayout({
         );
     }
 
-    // If it's the login page, don't show the sidebar or header
     if (isLoginPage) {
         return <>{children}</>;
     }
 
-    // Shared sidebar content
+    // Shared sidebar content with perfect collapsed/expanded symmetry
     const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
         <>
-            <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-6">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-4 space-y-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                 {/* Admin Profile Mini */}
-                <div className={`p-4 mx-2 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-4 shadow-lg shadow-purple-900/10 transition-all ${collapsed && 'px-2'}`}>
-                    <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20"
-                    >
-                        <span className="text-white text-lg font-bold rotate-45">▲▲</span>
-                    </motion.div>
-                    <AnimatePresence mode="wait">
-                        {!collapsed && (
-                            <motion.div
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -10 }}
-                                className="overflow-hidden"
-                            >
-                                <h3 className="text-sm font-bold text-white truncate">{adminUser?.name || 'Admin'}</h3>
-                                <p className="text-[10px] text-purple-200/70 font-medium tracking-wider truncate uppercase">System Controller</p>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                {!collapsed ? (
+                    <div className="p-3.5 mx-1.5 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-3 shadow-md shadow-purple-900/10 transition-all">
+                        <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20">
+                            <span className="text-white text-base font-bold rotate-45">▲▲</span>
+                        </div>
+                        <div className="overflow-hidden min-w-0 flex-1">
+                            <h3 className="text-sm font-bold text-white truncate">{adminUser?.name || 'Admin'}</h3>
+                            <p className="text-[10px] text-purple-200/80 font-semibold tracking-wider truncate uppercase">System Controller</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex justify-center" title={`${adminUser?.name || 'Admin'} (System Controller)`}>
+                        <div className="w-10 h-10 bg-linear-to-br from-purple-700 to-indigo-900 rounded-2xl flex items-center justify-center text-white border border-purple-500/30 shadow-md">
+                            <span className="text-white text-xs font-bold rotate-45">▲▲</span>
+                        </div>
+                    </div>
+                )}
 
+                {/* Navigation Links */}
                 <nav className="space-y-1">
                     {navItems.map((item) => {
                         const isActive = pathname === item.href;
@@ -141,49 +183,71 @@ export default function AdminLayout({
                             <Link
                                 key={item.href}
                                 href={item.href}
-                                className="block group"
+                                prefetch={true}
+                                className="block group relative"
                             >
-                                <motion.div
-                                    whileHover={{ x: 4 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all relative ${isActive
-                                        ? 'bg-purple-50 text-purple-700 font-bold'
-                                        : 'text-slate-500 hover:text-purple-600 dark:hover:text-purple-400'
-                                        }`}
+                                <div
+                                    className={`flex items-center rounded-2xl transition-all relative ${
+                                        collapsed
+                                            ? 'justify-center w-11 h-11 mx-auto'
+                                            : 'gap-3.5 px-3.5 py-2.5 mx-1'
+                                    } ${
+                                        isActive
+                                            ? 'bg-purple-50 text-purple-700 font-bold shadow-xs'
+                                            : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50/60 dark:hover:text-purple-400'
+                                    }`}
                                 >
-                                    {isActive && (
-                                        <motion.div
-                                            layoutId="activeNav"
-                                            className="absolute left-0 w-1.5 h-6 bg-purple-600 rounded-r-full"
-                                        />
+                                    {isActive && !collapsed && (
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-purple-600 rounded-r-full" />
                                     )}
-                                    <item.icon size={22} className={`${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'} transition-colors`} />
-                                    <AnimatePresence mode="wait">
-                                        {!collapsed && (
-                                            <motion.span
-                                                initial={{ opacity: 0, x: -5 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                exit={{ opacity: 0, x: -5 }}
-                                                className="text-[14px] whitespace-nowrap font-semibold"
-                                            >
-                                                {item.name}
-                                            </motion.span>
-                                        )}
-                                    </AnimatePresence>
-                                </motion.div>
+                                    {isActive && collapsed && (
+                                        <div className="absolute inset-0 rounded-2xl border-2 border-purple-600/30 bg-purple-50" />
+                                    )}
+                                    <item.icon
+                                        size={20}
+                                        weight={isActive ? "bold" : "regular"}
+                                        className={`relative z-10 shrink-0 ${
+                                            isActive
+                                                ? 'text-purple-600 dark:text-purple-400'
+                                                : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
+                                        } transition-colors`}
+                                    />
+                                    {!collapsed && (
+                                        <span className="text-[13.5px] whitespace-nowrap font-semibold truncate relative z-10">
+                                            {item.name}
+                                        </span>
+                                    )}
+
+                                    {/* Hover Tooltip when collapsed */}
+                                    {collapsed && (
+                                        <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#071A4D] text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
+                                            {item.name}
+                                        </div>
+                                    )}
+                                </div>
                             </Link>
                         );
                     })}
                 </nav>
             </div>
 
-            <div className="p-4 border-t border-purple-50">
+            {/* Sign Out Button */}
+            <div className="p-3 border-t border-purple-50">
                 <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all font-semibold dark:hover:text-red-400"
+                    className={`flex items-center rounded-2xl transition-all font-semibold text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 group relative ${
+                        collapsed
+                            ? 'justify-center w-11 h-11 mx-auto'
+                            : 'gap-3.5 px-3.5 py-2.5 w-full'
+                    }`}
                 >
-                    <SignOutIcon size={22} />
-                    {!collapsed && <span className="text-[14px]">Sign Out</span>}
+                    <SignOutIcon size={20} className="shrink-0" />
+                    {!collapsed && <span className="text-[13.5px]">Sign Out</span>}
+                    {collapsed && (
+                        <div className="absolute left-full ml-3 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
+                            Sign Out
+                        </div>
+                    )}
                 </button>
             </div>
         </>
@@ -194,18 +258,39 @@ export default function AdminLayout({
             {/* ── DESKTOP SIDEBAR ── */}
             <motion.aside
                 initial={false}
-                animate={{ width: isSidebarOpen ? 280 : 88 }}
+                animate={{ width: isSidebarOpen ? 280 : 80 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
                 className="bg-km-surface-card border-r border-purple-50 flex-col fixed inset-y-0 z-50 shadow-sm overflow-hidden hidden lg:flex"
             >
-                <div className="p-6 flex items-center justify-between">
-                    <BrandLogo size="md" href="/admin" />
-                    <button
-                        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                        className="p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors"
-                    >
-                        <ListIcon size={20} />
-                    </button>
+                {/* Sidebar Header */}
+                <div className={`h-20 flex items-center border-b border-purple-50 transition-all ${
+                    isSidebarOpen ? 'px-6 justify-between' : 'justify-center flex-col gap-1 px-2'
+                }`}>
+                    {isSidebarOpen ? (
+                        <>
+                            <BrandLogo size="md" href="/admin" />
+                            <button
+                                onClick={toggleSidebar}
+                                className="p-2 hover:bg-purple-50 text-slate-500 hover:text-purple-700 rounded-xl transition-all cursor-pointer"
+                                title="Collapse Sidebar"
+                            >
+                                <ListIcon size={20} />
+                            </button>
+                        </>
+                    ) : (
+                        <div className="flex flex-col items-center gap-1.5">
+                            <BrandLogo size="md" iconOnly={true} href="/admin" />
+                            <button
+                                onClick={toggleSidebar}
+                                className="p-1 hover:bg-purple-50 text-slate-400 hover:text-purple-700 rounded-lg transition-all cursor-pointer"
+                                title="Expand Sidebar"
+                            >
+                                <ListIcon size={16} />
+                            </button>
+                        </div>
+                    )}
                 </div>
+
                 <SidebarContent collapsed={!isSidebarOpen} />
             </motion.aside>
 
@@ -213,7 +298,6 @@ export default function AdminLayout({
             <AnimatePresence>
                 {isMobileMenuOpen && (
                     <>
-                        {/* Backdrop */}
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -221,7 +305,6 @@ export default function AdminLayout({
                             onClick={() => setIsMobileMenuOpen(false)}
                             className="fixed inset-0 bg-black/40 z-40 lg:hidden"
                         />
-                        {/* Slide-in drawer */}
                         <motion.aside
                             initial={{ x: -280 }}
                             animate={{ x: 0 }}
@@ -229,8 +312,7 @@ export default function AdminLayout({
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
                             className="fixed inset-y-0 left-0 w-72 bg-km-surface-card border-r border-purple-50 flex flex-col z-50 shadow-2xl lg:hidden"
                         >
-                            {/* Drawer header */}
-                            <div className="p-6 flex items-center justify-between">
+                            <div className="h-20 px-6 flex items-center justify-between border-b border-purple-50">
                                 <BrandLogo size="md" href="/admin" />
                                 <button
                                     onClick={() => setIsMobileMenuOpen(false)}
@@ -247,17 +329,17 @@ export default function AdminLayout({
 
             {/* ── MAIN CONTENT ── */}
             <div className="flex-1 flex flex-col transition-all duration-300 w-full min-w-0">
-                {/* Apply padding via CSS, not inline style, so it can be zeroed on mobile */}
                 <style>{`
                     @media (min-width: 1024px) {
                         .admin-main-shift {
-                            padding-left: ${isSidebarOpen ? '280px' : '88px'};
+                            padding-left: ${isSidebarOpen ? '280px' : '80px'};
+                            transition: padding-left 0.2s ease-in-out;
                         }
                     }
                 `}</style>
                 <div className="admin-main-shift flex-1 flex flex-col min-w-0">
                     {/* ── TOP HEADER ── */}
-                    <header className="h-16 sm:h-20 bg-km-surface-card/80 backdrop-blur-md border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
+                    <header className="h-16 sm:h-20 bg-km-surface-card/90 backdrop-blur-md border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
                         {/* Mobile hamburger */}
                         <button
                             className="lg:hidden p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors mr-3 shrink-0"
@@ -309,7 +391,7 @@ export default function AdminLayout({
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         key={pathname}
-                        className="p-4 sm:p-6 lg:p-8"
+                        className="p-4 sm:p-6 lg:p-8 max-w-[1920px] w-full"
                     >
                         {children}
                     </motion.main>
