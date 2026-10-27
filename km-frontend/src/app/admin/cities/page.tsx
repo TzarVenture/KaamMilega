@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, Loader2, MoreVertical } from 'lucide-react';
+import { CircleNotchIcon, DotsThreeVerticalIcon, MagnifyingGlassIcon, TrashIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CityModal from '@/components/modals/admin/CityModal';
 import Pagination from '@/components/ui/Pagination';
 import api from '@/lib/axios';
+import { notify } from "@/lib/notify";
 
 interface City {
     id: string;
@@ -84,8 +85,10 @@ export default function CitiesPage() {
             try {
                 await api.delete(`/cities/${id}`);
                 fetchCities();
+                notify.success("City removed");
             } catch (error) {
                 console.error('Failed to delete city:', error);
+                notify.error(error, "Could not delete this city.");
             }
         }
         setActiveActionMenu(null);
@@ -94,12 +97,12 @@ export default function CitiesPage() {
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             {/* Header section as per design */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white px-6 sm:px-8 py-4 rounded-[20px] shadow-sm border border-purple-50">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-km-surface-card px-6 sm:px-8 py-4 rounded-[20px] shadow-sm border border-purple-50">
                 <h1 className="text-xl font-bold text-purple-800">All City</h1>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input
                             type="text"
                             placeholder="Find city"
@@ -119,7 +122,7 @@ export default function CitiesPage() {
                 </div>
             </div>
 
-            <div className="bg-white rounded-[24px] shadow-sm border border-purple-50 overflow-hidden">
+            <div className="bg-km-surface-card rounded-[24px] shadow-sm border border-purple-50 overflow-hidden">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-slate-50">
@@ -135,7 +138,7 @@ export default function CitiesPage() {
                             <tr>
                                 <td colSpan={4} className="px-8 py-20 text-center">
                                     <div className="flex flex-col items-center gap-3">
-                                        <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
+                                        <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin dark:text-purple-400" />
                                         <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Updating inventory</p>
                                     </div>
                                 </td>
@@ -167,9 +170,9 @@ export default function CitiesPage() {
                                     <td className="px-8 py-5 text-right relative">
                                         <button
                                             onClick={() => setActiveActionMenu(activeActionMenu === city.id ? null : city.id)}
-                                            className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                            className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-all dark:hover:text-purple-400"
                                         >
-                                            <MoreVertical size={20} />
+                                            <DotsThreeVerticalIcon size={20} />
                                         </button>
 
                                         <AnimatePresence>
@@ -183,19 +186,19 @@ export default function CitiesPage() {
                                                         initial={{ opacity: 0, scale: 0.95, y: -10 }}
                                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                                        className="absolute right-8 top-14 w-40 bg-white rounded-xl shadow-xl border border-slate-100 z-20 overflow-hidden"
+                                                        className="absolute right-8 top-14 w-40 bg-km-surface-card rounded-xl shadow-xl border border-slate-100 z-20 overflow-hidden"
                                                     >
                                                         <button
                                                             onClick={() => handleEdit(city)}
-                                                            className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition-colors"
+                                                            className="w-full px-4 py-3 text-left text-sm font-bold text-slate-600 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition-colors dark:hover:text-purple-400"
                                                         >
                                                             Edit City
                                                         </button>
                                                         <button
                                                             onClick={() => handleDelete(city.id)}
-                                                            className="w-full px-4 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t border-slate-50"
+                                                            className="w-full px-4 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors border-t border-slate-50 dark:text-red-400"
                                                         >
-                                                            <Trash2 size={16} />
+                                                            <TrashIcon weight="bold" size={16} />
                                                             Remove City
                                                         </button>
                                                     </motion.div>

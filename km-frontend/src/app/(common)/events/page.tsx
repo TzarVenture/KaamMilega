@@ -1,26 +1,9 @@
 'use client'
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { 
-    Calendar, 
-    Users, 
-    MapPin, 
-    Search, 
-    ArrowUpDown, 
-    Clock, 
-    Ticket, 
-    CheckCircle2, 
-    Tag, 
-    ArrowRight,
-    X,
-    RotateCcw,
-    Video,
-    Award,
-    Building2,
-    ShieldCheck
-} from 'lucide-react';
+import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowsDownUpIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, MapPinIcon, TagIcon, TicketIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import Link from 'next/link';
 import AttendeeListModal from '@/components/km/AttendeeListModal';
 
@@ -28,6 +11,7 @@ interface EventData {
     id: string;
     title: string;
     organizer: string;
+    organizer_id?: string;
     date: string;
     time: string;
     location: string;
@@ -43,17 +27,17 @@ interface EventData {
 
 // ─── Design.md Shimmer Skeleton Card ───
 const EventCardSkeleton = () => (
-    <div className="bg-white rounded-2xl overflow-hidden border border-[#D9E0EA] flex flex-col shadow-xs">
-        <div className="h-48 bg-[#F4F7FB] animate-shimmer" />
+    <div className="bg-km-surface-card rounded-2xl overflow-hidden border border-km-border flex flex-col shadow-xs">
+        <div className="h-48 bg-km-surface animate-shimmer" />
         <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
             <div className="space-y-2.5">
-                <div className="h-4 bg-[#F4F7FB] animate-shimmer rounded-md w-1/3" />
-                <div className="h-5 bg-[#F4F7FB] animate-shimmer rounded-md w-4/5" />
-                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/2" />
+                <div className="h-4 bg-km-surface animate-shimmer rounded-md w-1/3" />
+                <div className="h-5 bg-km-surface animate-shimmer rounded-md w-4/5" />
+                <div className="h-3 bg-km-surface animate-shimmer rounded-md w-1/2" />
             </div>
-            <div className="pt-3 border-t border-[#D9E0EA] flex justify-between items-center">
-                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/4" />
-                <div className="h-3 bg-[#F4F7FB] animate-shimmer rounded-md w-1/4" />
+            <div className="pt-3 border-t border-km-border flex justify-between items-center">
+                <div className="h-3 bg-km-surface animate-shimmer rounded-md w-1/4" />
+                <div className="h-3 bg-km-surface animate-shimmer rounded-md w-1/4" />
             </div>
         </div>
     </div>
@@ -62,13 +46,11 @@ const EventCardSkeleton = () => (
 // ─── Professional Empty State ───
 const EmptyState = ({ hasSearch, onReset }: { hasSearch: boolean; onReset: () => void }) => (
     <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center">
-        <div className="w-16 h-16 bg-[#FFFBEB] border border-[#FDE68A] text-[#F59E0B] rounded-2xl flex items-center justify-center mb-4 shadow-2xs">
-            <Calendar className="w-8 h-8" />
-        </div>
-        <h3 className="text-lg font-bold text-[#111827] mb-1.5">
+        <CalendarBlankIcon size={36} weight="duotone" className="text-[#F59E0B] mb-4" aria-hidden="true" />
+        <h3 className="text-lg font-bold text-km-text-primary mb-1.5">
             {hasSearch ? "No Workshops Found" : "No Workshops Scheduled Yet"}
         </h3>
-        <p className="text-sm text-[#5B6472] max-w-md mb-5 leading-relaxed">
+        <p className="text-sm text-km-text-secondary max-w-md mb-5 leading-relaxed">
             {hasSearch
                 ? "No workshops match your current search criteria. Try modifying your search keywords or resetting filters."
                 : "Interactive workshops, masterclasses, and expert-led skill sessions will appear here once announced by our verified experts."}
@@ -79,7 +61,7 @@ const EmptyState = ({ hasSearch, onReset }: { hasSearch: boolean; onReset: () =>
                 onClick={onReset}
                 className="btn-outline text-xs px-4 py-2 cursor-pointer inline-flex items-center gap-1.5"
             >
-                <RotateCcw size={13} />
+                <ArrowCounterClockwiseIcon weight="bold" size={13} />
                 <span>Reset All Filters</span>
             </button>
         )}
@@ -148,7 +130,7 @@ const PublicEventsPage = () => {
             setTotal(res.total || 0);
             setHasMore(newEvents.length === 9);
         } catch (error: any) {
-            toast.error(error?.response?.data?.error || error.message || "Failed to load workshops");
+            notify.error(error, "Failed to load workshops");
         } finally {
             setLoading(false);
         }
@@ -186,17 +168,17 @@ const PublicEventsPage = () => {
     const hasActiveFilters = Boolean(search || locationFilter || pricingFilter !== 'all' || sort !== 'recent');
 
     return (
-        <div className="bg-[#F4F7FB] min-h-screen pb-20 font-sans">
+        <div className="bg-km-surface min-h-screen pb-20 font-sans">
 
             {/* ─── Events & Bootcamps Hero Section with Art & Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans">
+            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
                         {/* Left Column: Headlines, Simple Copy, CTAs & Value Props */}
                         <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
                             {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4">
-                                <Calendar size={14} className="text-[#F59E0B]" />
+                            <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4 dark:bg-amber-500/15 dark:text-orange-400">
+                                <CalendarBlankIcon weight="bold" size={14} className="text-[#F59E0B]" />
                                 <span>Events & Bootcamps</span>
                             </div>
 
@@ -220,25 +202,25 @@ const PublicEventsPage = () => {
                                 </a>
                                 <Link
                                     href="/expert/apply"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs"
+                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card"
                                 >
                                     <span>Host an Event</span>
-                                    <ArrowRight size={13} />
+                                    <ArrowRightIcon weight="bold" size={13} />
                                 </Link>
                             </div>
 
                             {/* Key Benefits / Trust Chips */}
                             <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
                                 <div className="flex items-center gap-2">
-                                    <Video size={15} className="text-[#10B981] shrink-0" />
+                                    <VideoCameraIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>Google Meet & Zoom Access</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <CheckCircle2 size={15} className="text-[#10B981] shrink-0" />
+                                    <CheckCircleIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>Verified Industry Experts</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Ticket size={15} className="text-[#10B981] shrink-0" />
+                                    <TicketIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
                                     <span>Instant Digital Entry Pass</span>
                                 </div>
                             </div>
@@ -263,46 +245,46 @@ const PublicEventsPage = () => {
 
             {/* ─── Search + Filters Bar ─── */}
             <div id="workshops-catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 lg:-mt-10 relative z-20">
-                <div className="bg-white rounded-2xl shadow-sm border border-[#D9E0EA] p-4 sm:p-5">
+                <div className="bg-km-surface-card rounded-2xl shadow-sm border border-km-border p-4 sm:p-5">
                     <div className="flex flex-col md:flex-row gap-3 mb-3.5">
                         {/* Search Input */}
-                        <div className="flex-1 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
-                            <Search size={17} className="text-[#5B6472] shrink-0" />
+                        <div className="flex-1 flex items-center gap-2.5 bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-km-border focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
+                            <MagnifyingGlassIcon weight="bold" size={17} className="text-km-text-secondary shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Search by workshop title, mentor name, or skill..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
+                                className="w-full bg-transparent text-sm text-km-text-primary placeholder:text-km-text-secondary/70 focus:outline-hidden font-medium"
                             />
                             {search && (
                                 <button
                                     type="button"
                                     onClick={() => setSearch('')}
-                                    className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
+                                    className="text-km-text-secondary hover:text-km-text-primary p-0.5 rounded-full"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             )}
                         </div>
 
                         {/* Location Input */}
-                        <div className="w-full md:w-60 flex items-center gap-2.5 bg-white rounded-xl px-3.5 py-2.5 border border-[#D9E0EA] focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
-                            <MapPin size={17} className="text-[#5B6472] shrink-0" />
+                        <div className="w-full md:w-60 flex items-center gap-2.5 bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-km-border focus-within:border-[#0B5ED7] focus-within:ring-2 focus-within:ring-[#0B5ED7]/10 transition-all">
+                            <MapPinIcon weight="bold" size={17} className="text-km-text-secondary shrink-0" />
                             <input
                                 type="text"
                                 placeholder="Filter by city or online..."
                                 value={locationFilter}
                                 onChange={(e) => setLocationFilter(e.target.value)}
-                                className="w-full bg-transparent text-sm text-[#111827] placeholder:text-[#5B6472]/70 focus:outline-hidden font-medium"
+                                className="w-full bg-transparent text-sm text-km-text-primary placeholder:text-km-text-secondary/70 focus:outline-hidden font-medium"
                             />
                             {locationFilter && (
                                 <button
                                     type="button"
                                     onClick={() => setLocationFilter('')}
-                                    className="text-[#5B6472] hover:text-[#111827] p-0.5 rounded-full"
+                                    className="text-km-text-secondary hover:text-km-text-primary p-0.5 rounded-full"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             )}
                         </div>
@@ -311,27 +293,27 @@ const PublicEventsPage = () => {
                         <button
                             type="button"
                             onClick={() => setSort(s => s === 'recent' ? 'upcoming' : 'recent')}
-                            className="flex items-center justify-center gap-2 bg-white hover:bg-[#F4F7FB] text-[#111827] px-4 py-2.5 rounded-xl border border-[#D9E0EA] font-semibold text-xs transition-colors shrink-0 cursor-pointer shadow-2xs"
+                            className="flex items-center justify-center gap-2 bg-km-surface-card hover:bg-km-surface text-km-text-primary px-4 py-2.5 rounded-xl border border-km-border font-semibold text-xs transition-colors shrink-0 cursor-pointer shadow-2xs"
                         >
-                            <Clock size={14} className="text-[#5B6472]" />
+                            <ClockIcon weight="bold" size={14} className="text-km-text-secondary" />
                             <span>{sort === 'upcoming' ? 'Sorted by: Upcoming Date' : 'Sorted by: Recently Added'}</span>
-                            <ArrowUpDown size={13} className="text-[#5B6472]" />
+                            <ArrowsDownUpIcon weight="bold" size={13} className="text-km-text-secondary" />
                         </button>
                     </div>
 
                     {/* Pricing Filter Pills & Meta */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-[#D9E0EA]">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-km-border">
                         <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-semibold text-[#5B6472] mr-1 flex items-center gap-1.5">
-                                <Tag size={13} className="text-[#F59E0B]" /> Format & Pricing:
+                            <span className="text-xs font-semibold text-km-text-secondary mr-1 flex items-center gap-1.5">
+                                <TagIcon weight="bold" size={13} className="text-[#F59E0B]" /> Format & Pricing:
                             </span>
                             <button
                                 type="button"
                                 onClick={() => setPricingFilter('all')}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                                     pricingFilter === 'all'
-                                        ? 'bg-[#071A4D] text-white shadow-2xs'
-                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                        ? 'bg-[#071A4D] text-white shadow-2xs dark:bg-km-primary'
+                                        : 'bg-km-surface text-km-text-secondary hover:text-km-text-primary'
                                 }`}
                             >
                                 All Sessions
@@ -341,8 +323,8 @@ const PublicEventsPage = () => {
                                 onClick={() => setPricingFilter('free')}
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                                     pricingFilter === 'free'
-                                        ? 'bg-[#071A4D] text-white shadow-2xs'
-                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                        ? 'bg-[#071A4D] text-white shadow-2xs dark:bg-km-primary'
+                                        : 'bg-km-surface text-km-text-secondary hover:text-km-text-primary'
                                 }`}
                             >
                                 <span className={`w-1.5 h-1.5 rounded-full ${pricingFilter === 'free' ? 'bg-[#10B981]' : 'bg-[#5B6472]'}`} />
@@ -354,10 +336,10 @@ const PublicEventsPage = () => {
                                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
                                     pricingFilter === 'paid'
                                         ? 'bg-[#FF6B00] text-white shadow-2xs'
-                                        : 'bg-[#F4F7FB] text-[#5B6472] hover:text-[#111827]'
+                                        : 'bg-km-surface text-km-text-secondary hover:text-km-text-primary'
                                 }`}
                             >
-                                <Ticket size={12} />
+                                <TicketIcon weight="bold" size={12} />
                                 Paid Masterclasses
                             </button>
                         </div>
@@ -367,9 +349,9 @@ const PublicEventsPage = () => {
                             <button
                                 type="button"
                                 onClick={handleResetFilters}
-                                className="text-xs font-semibold text-[#0B5ED7] hover:underline flex items-center gap-1 cursor-pointer"
+                                className="text-xs font-semibold text-km-link hover:underline flex items-center gap-1 cursor-pointer"
                             >
-                                <RotateCcw size={12} /> Clear all filters
+                                <ArrowCounterClockwiseIcon weight="bold" size={12} /> Clear all filters
                             </button>
                         )}
                     </div>
@@ -378,9 +360,9 @@ const PublicEventsPage = () => {
                 {/* Results Count Header */}
                 {!loading && (
                     <div className="flex items-center justify-between mt-6 mb-2 px-1">
-                        <p className="text-sm font-semibold text-[#5B6472]">
+                        <p className="text-sm font-semibold text-km-text-secondary">
                             {total > 0 ? (
-                                <>Showing <span className="text-[#111827] font-bold">{total}</span> verified session{total !== 1 ? 's' : ''}</>
+                                <>Showing <span className="text-km-text-primary font-bold">{total}</span> verified session{total !== 1 ? 's' : ''}</>
                             ) : (
                                 <>No workshops match the selected criteria</>
                             )}
@@ -408,7 +390,7 @@ const PublicEventsPage = () => {
                                     className="km-card flex flex-col group overflow-hidden"
                                 >
                                     {/* Card Image Area */}
-                                    <div className="h-48 bg-[#F4F7FB] relative overflow-hidden border-b border-[#D9E0EA]">
+                                    <div className="h-48 bg-km-surface relative overflow-hidden border-b border-km-border">
                                         {event.image_url ? (
                                             <img
                                                 src={event.image_url}
@@ -416,24 +398,22 @@ const PublicEventsPage = () => {
                                                 className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
                                             />
                                         ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-[#5B6472] p-4 bg-[#F4F7FB]">
-                                                <div className="w-12 h-12 rounded-xl bg-white border border-[#D9E0EA] flex items-center justify-center text-[#071A4D] mb-2 shadow-2xs">
-                                                    <Calendar size={22} className="text-[#F59E0B]" />
-                                                </div>
-                                                <span className="text-[11px] font-semibold text-[#5B6472]">Skill Masterclass</span>
+                                            <div className="w-full h-full flex flex-col items-center justify-center text-km-text-secondary p-4 bg-km-surface">
+                                                <CalendarBlankIcon size={28} weight="duotone" className="text-[#F59E0B] mb-2" aria-hidden="true" />
+                                                <span className="text-[11px] font-semibold text-km-text-secondary">Skill Masterclass</span>
                                             </div>
                                         )}
 
                                         {/* Location Badge */}
                                         <span className="absolute top-3 left-3 bg-[#111827]/85 text-white text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
-                                            <MapPin size={11} className="text-[#FF6B00]" /> {event.location || 'Online Meet / Zoom'}
+                                            <MapPinIcon weight="bold" size={11} className="text-[#FF6B00]" /> {event.location || 'Online Meet / Zoom'}
                                         </span>
 
                                         {/* Pricing Badge */}
                                         <span className={`absolute bottom-3 right-3 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1 ${
-                                            isPaid ? 'bg-[#FF6B00]' : 'bg-[#071A4D]'
+                                            isPaid ? 'bg-[#FF6B00]' : 'bg-[#071A4D] dark:bg-km-primary'
                                         }`}>
-                                            {isPaid && <Ticket size={12} />}
+                                            {isPaid && <TicketIcon weight="bold" size={12} />}
                                             {priceText}
                                         </span>
                                     </div>
@@ -442,38 +422,38 @@ const PublicEventsPage = () => {
                                     <div className="p-5 flex flex-col flex-1">
                                         {/* Category Badge */}
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md">
+                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-amber-500/15">
                                                 {event.category || 'Live Workshop'}
                                             </span>
                                         </div>
 
                                         {/* Event Title */}
-                                        <h3 className="font-bold text-[#111827] text-base leading-snug line-clamp-2 group-hover:text-[#0B5ED7] transition-colors mb-1.5">
+                                        <h3 className="font-bold text-km-text-primary text-base leading-snug line-clamp-2 group-hover:text-km-link transition-colors mb-1.5">
                                             {event.title}
                                         </h3>
 
                                         {/* Organizer / Expert */}
-                                        <p className="text-xs text-[#5B6472] font-normal mb-3">
-                                            Hosted by <span className="font-medium text-[#111827]">{event.organizer}</span>
+                                        <p className="text-xs text-km-text-secondary font-normal mb-3">
+                                            Hosted by <span className="font-medium text-km-text-primary">{event.organizer}</span>
                                         </p>
 
                                         {/* Date & Time */}
-                                        <div className="flex items-center gap-2 text-xs text-[#5B6472] mb-3">
-                                            <Calendar size={13} className="text-[#F59E0B] shrink-0" />
+                                        <div className="flex items-center gap-2 text-xs text-km-text-secondary mb-3">
+                                            <CalendarBlankIcon weight="bold" size={13} className="text-[#F59E0B] shrink-0" />
                                             <span>{formatDate(event.date)}</span>
                                             {event.time && <span>• {event.time}</span>}
                                         </div>
 
                                         {/* Available seats if capacity configured */}
                                         {event.capacity && event.capacity > 0 ? (
-                                            <div className="mb-3 text-[11px] text-[#5B6472] flex items-center justify-between">
-                                                <span>Seats left: <strong className="text-[#111827]">{event.available_seats ?? event.capacity}</strong></span>
-                                                <span className="text-[#5B6472]">Capacity: {event.capacity}</span>
+                                            <div className="mb-3 text-[11px] text-km-text-secondary flex items-center justify-between">
+                                                <span>Seats left: <strong className="text-km-text-primary">{event.available_seats ?? event.capacity}</strong></span>
+                                                <span className="text-km-text-secondary">Capacity: {event.capacity}</span>
                                             </div>
                                         ) : null}
 
                                         {/* Card Footer */}
-                                        <div className="mt-auto pt-3.5 border-t border-[#D9E0EA] flex items-center justify-between">
+                                        <div className="mt-auto pt-3.5 border-t border-km-border flex items-center justify-between">
                                             <button
                                                 type="button"
                                                 onClick={(e) => {
@@ -485,15 +465,15 @@ const PublicEventsPage = () => {
                                                         total: event.participants?.length || 0
                                                     });
                                                 }}
-                                                className="flex items-center gap-1.5 text-xs font-semibold text-[#5B6472] hover:text-[#071A4D] hover:bg-[#F4F7FB] px-2 py-1 rounded-lg transition-colors cursor-pointer"
+                                                className="flex items-center gap-1.5 text-xs font-semibold text-km-text-secondary hover:text-km-heading hover:bg-km-surface px-2 py-1 rounded-lg transition-colors cursor-pointer"
                                                 title="View registered participants"
                                             >
-                                                <Users size={13} className="text-[#071A4D]" />
+                                                <UsersIcon weight="bold" size={13} className="text-km-heading" />
                                                 <span>{event.participants?.length || 0} registered</span>
                                             </button>
 
-                                            <span className="text-xs font-semibold text-[#071A4D] group-hover:text-[#0B5ED7] flex items-center gap-1 transition-colors">
-                                                View Session <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                                            <span className="text-xs font-semibold text-km-heading group-hover:text-km-link flex items-center gap-1 transition-colors">
+                                                View Session <ArrowRightIcon weight="bold" size={13} className="group-hover:translate-x-0.5 transition-transform" />
                                             </span>
                                         </div>
                                     </div>
@@ -519,7 +499,7 @@ const PublicEventsPage = () => {
                 {/* Loading Indicator for Subsequent Pages */}
                 {loading && events.length > 0 && (
                     <div className="flex justify-center mt-8">
-                        <div className="w-8 h-8 border-3 border-[#071A4D]/20 border-t-[#071A4D] rounded-full animate-spin" />
+                        <div className="w-8 h-8 border-3 border-[#071A4D]/20 border-t-[#071A4D] rounded-full animate-spin dark:border-km-link" />
                     </div>
                 )}
 

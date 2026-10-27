@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Globe, Link as LinkIcon } from 'lucide-react';
+import { LinkIcon } from '@phosphor-icons/react';
+import { errorText } from "@/lib/notify";
 
 interface PortfolioLinkModalProps {
     isOpen: boolean;
@@ -42,7 +43,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
             onClose();
         } catch (err: any) {
             console.error('Failed to update portfolio link:', err);
-            setError(err.response?.data?.error || err.message || 'Failed to update link. Please check the URL.');
+            setError(errorText(err, 'Failed to update link. Please check the URL.'));
         } finally {
             setLoading(false);
         }
@@ -61,7 +62,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
             onClose();
         } catch (err: any) {
             console.error('Failed to remove portfolio link:', err);
-            setError(err.response?.data?.error || err.message || 'Failed to remove link.');
+            setError(errorText(err, 'Failed to remove link.'));
         } finally {
             setLoading(false);
         }
@@ -71,7 +72,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
         <ModalWrapper isOpen={isOpen} onClose={onClose} title="Custom Portfolio Link">
             <form onSubmit={handleSubmit} className="space-y-4">
                 {error && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold">
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-xs font-semibold dark:text-red-400">
                         {error}
                     </div>
                 )}
@@ -82,10 +83,10 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
 
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        Website / Portfolio URL <span className="text-red-500">*</span>
+                        Website / Portfolio URL <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <div className="relative">
-                        <LinkIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <LinkIcon weight="bold" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                         <input
                             type="url"
                             required
@@ -119,7 +120,7 @@ const PortfolioLinkModal = ({ isOpen, user, onClose, onSuccess }: PortfolioLinkM
                             type="button"
                             onClick={handleRemove}
                             disabled={loading}
-                            className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-bold rounded-full transition-colors"
+                            className="px-4 py-2 text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-bold rounded-full transition-colors dark:text-red-400"
                         >
                             Remove Link
                         </button>

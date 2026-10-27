@@ -406,3 +406,70 @@ func (r *repository) ResolveChatReport(ctx context.Context, id primitive.ObjectI
 	return err
 }
 
+// CanInitiateNewConversation checks if user is allowed to start a conversation with a new person
+// Rules: 3 distinct contacts free. 4th onwards requires active ₹99 Pass or Pro subscription.
+func (r *repository) CanInitiateNewConversation(ctx context.Context, userID primitive.ObjectID) (bool, error) {
+	entitlement, err := r.GetChatEntitlement(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	return entitlement.CanStartNew, nil
+}
+
+// GetChatEntitlement calculates the user's free chat usage and active pass status
+func (r *repository) GetChatEntitlement(ctx context.Context, userID primitive.ObjectID) (*ChatEntitlementResponse, error) {
+	// 1. Count distinct conversations this user participates in
+	distinctCount, err := r.db.DB.Collection("conversations").CountDocuments(ctx, bson.M{
+		"participants": userID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. Check for active ₹99 Universal Pass
+	now := time.Now()
+	var pass struct {
+		HasActivePass  bool `bson:"has_active_pass"`
+		QuotaRemaining int  `bson:"quota_remaining"`
+	}
+	hasActivePass := false
+	quotaRemaining := 0
+
+	passErr := r.db.DB.Collection("instant_passes").FindOne(ctx, bson.M{
+		"user_id":         userID,
+		"has_active_pass": true,
+		"expires_at":      bson.M{"$gte": now},
+	}).Decode(&pass)
+
+	if passErr == nil {
+		hasActivePass = true
+		quotaRemaining = pass.QuotaRemaining
+	} else {
+		// Also check expert subscription
+		subCount, errSub := r.db.DB.Collection("expert_subscriptions").CountDocuments(ctx, bson.M{
+			"user_id":    userID,
+			"status":     "active",
+			"expires_at": bson.M{"$gte": now},
+		})
+		if errSub == nil && subCount > 0 {
+			hasActivePass = true
+			quotaRemaining = 10
+		}
+	}
+
+	freeRemaining := int64(3) - distinctCount
+	if freeRemaining < 0 {
+		freeRemaining = 0
+	}
+
+	canStartNew := freeRemaining > 0 || hasActivePass
+
+	return &ChatEntitlementResponse{
+		DistinctConversations: distinctCount,
+		FreeRemaining:         freeRemaining,
+		HasActivePass:         hasActivePass,
+		CanStartNew:           canStartNew,
+		PassQuotaRemaining:    quotaRemaining,
+	}, nil
+}
+

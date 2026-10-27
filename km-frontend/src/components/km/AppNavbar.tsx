@@ -1,14 +1,17 @@
 "use client";
 import { useEffect, useState, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import Navbar from './Navbar';
 import GuestNavbar from './GuestNavbar';
 import api from '@/lib/axios';
-import { isAuthenticated } from '@/lib/auth';
+import { isAuthenticated, clearSession } from '@/lib/auth';
+import { ACCOUNT_RESTORE_PATH, needsAccountRestore } from '@/lib/account';
 
 function AppNavbarContent() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [loading, setLoading] = useState(true);
     const [user, setUser] = useState<any>(null);
+    const router = useRouter();
 
     useEffect(() => {
         const verifyUser = async () => {
@@ -24,19 +27,34 @@ function AppNavbarContent() {
             setIsLoggedIn(true);
 
             try {
-                // Use fetch to avoid global axios interceptor redirects
-                const userData = await api.get(`/user/profile`);
+                const userData: any = await api.get(`/user/profile`);
                 setUser(userData);
-            } catch (error) {
-                console.error("Auth check failed", error);
-                setIsLoggedIn(false);
+
+                // A deactivated or pending-deletion account has to restore itself first
+                if (needsAccountRestore(userData) && !window.location.pathname.startsWith(ACCOUNT_RESTORE_PATH)) {
+                    router.replace(ACCOUNT_RESTORE_PATH);
+                    return;
+                }
+
+                // A candidate who verified OTP but never finished the name step resumes it
+                const roles: string[] = Array.isArray(userData?.roles) ? userData.roles : [];
+                if (userData && userData.is_registered === false && !roles.includes('recruiter') && !roles.includes('admin')) {
+                    router.replace('/login?complete=1');
+                }
+            } catch (error: any) {
+                // Only a real auth failure ends the session; network or server errors keep it
+                if (error?.status === 401) {
+                    await clearSession();
+                    setIsLoggedIn(false);
+                    setUser(null);
+                }
             } finally {
                 setLoading(false);
             }
         };
 
         verifyUser();
-    }, []);
+    }, [router]);
 
     // Optimistic UI:
     // 1. Initial render: false (matches server) -> GuestNavbar
@@ -48,7 +66,7 @@ function AppNavbarContent() {
 export default function AppNavbar() {
     return (
         <Suspense fallback={
-            <div className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-4 md:px-6">
+            <div className="h-14 bg-km-surface-card border-b border-gray-100 flex items-center justify-between px-4 md:px-6">
                 <div className="h-7 w-20 bg-slate-200 animate-pulse rounded" />
             </div>
         }>

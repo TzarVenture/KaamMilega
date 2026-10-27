@@ -1,6 +1,8 @@
 package user
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -8,7 +10,7 @@ import (
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
+	"km-backend/internal/middleware"
 )
 
 type UserController struct {
@@ -16,18 +18,42 @@ type UserController struct {
 	config  *config.Config
 }
 
+// Fields a user may not set on their own profile via PATCH /api/user/profile
+var selfUpdateBlockedFields = []string{"roles", "verification_status", "is_email_verified"}
+
 func NewUserController(service UserService, cfg *config.Config) *UserController {
 	return &UserController{service: service, config: cfg}
 }
 
+// hasRole reports whether the authenticated request carries the given role claim
+func hasRole(c *fiber.Ctx, role string) bool {
+	switch roles := c.Locals("roles").(type) {
+	case []interface{}:
+		for _, r := range roles {
+			if s, ok := r.(string); ok && s == role {
+				return true
+			}
+		}
+	case []string:
+		for _, r := range roles {
+			if r == role {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // setAuthCookies issues HttpOnly session token and readable role cookie
-func (ctrl *UserController) setAuthCookies(c *fiber.Ctx, token string, user *User) {
+func (ctrl *UserController) setAuthCookies(c *fiber.Ctx, token string, user *User, preferredRole string) {
 	if token == "" || user == nil {
 		return
 	}
 
 	primaryRole := RoleUser
-	if len(user.Roles) > 0 && user.Roles[0] != "" {
+	if preferredRole != "" {
+		primaryRole = preferredRole
+	} else if len(user.Roles) > 0 && user.Roles[0] != "" {
 		primaryRole = user.Roles[0]
 	}
 
@@ -152,7 +178,7 @@ func (ctrl *UserController) VerifyOTP(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ctrl.setAuthCookies(c, res.Token, res.User)
+	ctrl.setAuthCookies(c, res.Token, res.User, role)
 	return c.JSON(res)
 }
 
@@ -197,18 +223,39 @@ func (ctrl *UserController) Register(c *fiber.Ctx) error {
 func (ctrl *UserController) GetProfile(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(string)
 	if userID == "" {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+		ctrl.clearAuthCookies(c)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
 	}
 
 	user, err := ctrl.service.GetProfile(c.Context(), userID)
 	if err != nil {
 		if err.Error() == "user not found" {
-			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+			ctrl.clearAuthCookies(c)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
 		}
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
 	return c.JSON(user)
+}
+
+func (ctrl *UserController) GetProfileCompletion(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(string)
+	if userID == "" {
+		ctrl.clearAuthCookies(c)
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+
+	completion, err := ctrl.service.GetProfileCompletion(c.Context(), userID)
+	if err != nil {
+		if err.Error() == "user not found" {
+			ctrl.clearAuthCookies(c)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(completion)
 }
 
 // GetOtherUserProfile godoc
@@ -237,16 +284,28 @@ func (ctrl *UserController) GetOtherUserProfile(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// Enforce profile_visibility — owners always bypass
+	// Account status and profile_visibility decide who may see this profile; owners always can
 	targetIDHex := user.ID.Hex()
 	if requesterID != targetIDHex {
-		visibility := user.Settings.ProfileVisibility
-		if visibility == "private" {
-			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
-				"error":   "This profile is private",
-				"visible": false,
-			})
+		allowed, err := ctrl.service.CanViewProfile(c.Context(), user, requesterID, hasRole(c, RoleAdmin))
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not load this profile"})
 		}
+		if !allowed {
+			if !IsActiveAccount(user.AccountStatus) {
+				return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "This account is not available", "visible": false})
+			}
+			msg := "This profile is private"
+			if user.Settings.ProfileVisibility == "connections" {
+				msg = "This profile is visible to connections only"
+			}
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": msg, "visible": false})
+		}
+		// Contact details and other owner-only fields never reach other members; admins see everything
+		if !hasRole(c, RoleAdmin) {
+			user = user.PublicView()
+		}
+		user.HasPassword = false
 		// Record view only for authentic other-user visits
 		if requesterID != "" {
 			_ = ctrl.service.RecordProfileView(c.Context(), targetIDHex, requesterID)
@@ -267,7 +326,7 @@ func (ctrl *UserController) GetProfileViewers(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(viewers)
+	return c.JSON(PublicViews(viewers))
 }
 
 func (ctrl *UserController) AddEducation(c *fiber.Ctx) error {
@@ -470,6 +529,9 @@ func (ctrl *UserController) AddSkill(c *fiber.Ctx) error {
 	}
 
 	user, err := ctrl.service.AddSkill(c.Context(), userID, req.SkillName)
+	if errors.Is(err, ErrSkillNotInCatalogue) || errors.Is(err, ErrSkillRequired) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -505,6 +567,12 @@ func (ctrl *UserController) UpdateProfile(c *fiber.Ctx) error {
 	var updates map[string]interface{}
 	if err := c.BodyParser(&updates); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	// Privileged fields can only be changed by admins or verified server-side flows
+	// (email verification happens in VerifyEmailOTP).
+	for _, key := range selfUpdateBlockedFields {
+		delete(updates, key)
 	}
 
 	user, err := ctrl.service.UpdateProfile(c.Context(), userID, updates)
@@ -563,18 +631,15 @@ func (ctrl *UserController) VerifyEmailOTP(c *fiber.Ctx) error {
 
 	userID, _ := c.Locals("user_id").(string)
 	if userID == "" {
-		authHeader := c.Get("Authorization")
-		if authHeader != "" {
-			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-			token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-				return []byte(ctrl.config.JWTSecret), nil
-			})
-			if err == nil && token.Valid {
-				if claims, ok := token.Claims.(jwt.MapClaims); ok {
-					if sub, ok := claims["sub"].(string); ok {
-						userID = sub
-					}
-				}
+		// Public route: identify a signed-in user from the bearer header or the HttpOnly session cookie
+		tokenString := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
+		if tokenString == "" {
+			tokenString = c.Cookies("km_auth_token")
+		}
+		if tokenString != "" {
+			// A revoked or inactive session counts as signed out
+			if sub, err := middleware.VerifyToken(c.Context(), tokenString, ctrl.config.JWTSecret); err == nil {
+				userID = sub
 			}
 		}
 	}
@@ -611,7 +676,8 @@ func (ctrl *UserController) GetExperts(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(users)
+	// Public route: no contact details
+	return c.JSON(PublicViews(users))
 }
 
 func (ctrl *UserController) GetCommunityUsers(c *fiber.Ctx) error {
@@ -619,7 +685,8 @@ func (ctrl *UserController) GetCommunityUsers(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(users)
+	// Public route: no contact details
+	return c.JSON(PublicViews(users))
 }
 
 func (ctrl *UserController) GetPlatformStats(c *fiber.Ctx) error {
@@ -645,7 +712,7 @@ func (ctrl *UserController) SearchUsers(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 	// Return basic info only
-	return c.JSON(users)
+	return c.JSON(PublicViews(users))
 }
 
 func (ctrl *UserController) ApplyForExpert(c *fiber.Ctx) error {
@@ -717,7 +784,11 @@ func (ctrl *UserController) LoginWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ctrl.setAuthCookies(c, res.Token, res.User)
+	if res.RequiresPasswordSetup {
+		return c.Status(fiber.StatusOK).JSON(res)
+	}
+
+	ctrl.setAuthCookies(c, res.Token, res.User, "")
 	return c.JSON(res)
 }
 
@@ -741,7 +812,7 @@ func (ctrl *UserController) RegisterWithPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	ctrl.setAuthCookies(c, res.Token, res.User)
+	ctrl.setAuthCookies(c, res.Token, res.User, "")
 	return c.JSON(res)
 }
 
@@ -769,7 +840,46 @@ func (ctrl *UserController) SetPassword(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(fiber.Map{"message": "Password updated successfully"})
+	// Other devices were signed out; keep this one signed in with a fresh token
+	// The token travels only in the HttpOnly cookie; it is never handed to page scripts
+	if _, err := ctrl.reissueSession(c, userID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Password updated. Please sign in again."})
+	}
+	return c.JSON(fiber.Map{"message": "Password updated. Other devices have been signed out."})
+}
+
+// RevokeOtherSessions godoc
+// @Summary Sign out of all other devices
+// @Tags User
+// @Security BearerAuth
+// @Success 200 {object} map[string]string
+// @Router /user/sessions/revoke-others [post]
+func (ctrl *UserController) RevokeOtherSessions(c *fiber.Ctx) error {
+	userID, ok := c.Locals("user_id").(string)
+	if !ok || userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	if err := ctrl.service.RevokeSessions(c.Context(), userID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Could not sign out other devices"})
+	}
+	if _, err := ctrl.reissueSession(c, userID); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Signed out everywhere. Please sign in again."})
+	}
+	return c.JSON(fiber.Map{"message": "Signed out of all other devices"})
+}
+
+// reissueSession issues a token for the current session version and refreshes the auth cookies
+func (ctrl *UserController) reissueSession(c *fiber.Ctx, userID string) (string, error) {
+	user, err := ctrl.service.GetProfile(c.Context(), userID)
+	if err != nil {
+		return "", err
+	}
+	token, err := ctrl.service.GenerateToken(user)
+	if err != nil {
+		return "", err
+	}
+	ctrl.setAuthCookies(c, token, user, c.Cookies("km_user_role"))
+	return token, nil
 }
 
 func (ctrl *UserController) ForgotPassword(c *fiber.Ctx) error {
@@ -1033,4 +1143,49 @@ func (ctrl *UserController) UpdateProvidingServices(c *fiber.Ctx) error {
 		"providing_services": updated.ProvidingServices,
 		"user":               updated,
 	})
+}
+
+func (ctrl *UserController) ExportUsersCSV(c *fiber.Ctx) error {
+	role := c.Query("role")
+	data, err := ctrl.service.ExportUsersCSV(c.Context(), role)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate users export: " + err.Error(),
+		})
+	}
+
+	filename := fmt.Sprintf("km_users_%s.csv", time.Now().Format("20060102_150405"))
+	c.Set("Content-Type", "text/csv; charset=utf-8")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	return c.Send(data)
+}
+
+func (ctrl *UserController) ExportJobsCSV(c *fiber.Ctx) error {
+	status := c.Query("status")
+	data, err := ctrl.service.ExportJobsCSV(c.Context(), status)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate jobs export: " + err.Error(),
+		})
+	}
+
+	filename := fmt.Sprintf("km_jobs_%s.csv", time.Now().Format("20060102_150405"))
+	c.Set("Content-Type", "text/csv; charset=utf-8")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	return c.Send(data)
+}
+
+func (ctrl *UserController) ExportRevenueCSV(c *fiber.Ctx) error {
+	status := c.Query("status")
+	data, err := ctrl.service.ExportRevenueCSV(c.Context(), status)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate revenue export: " + err.Error(),
+		})
+	}
+
+	filename := fmt.Sprintf("km_revenue_%s.csv", time.Now().Format("20060102_150405"))
+	c.Set("Content-Type", "text/csv; charset=utf-8")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
+	return c.Send(data)
 }

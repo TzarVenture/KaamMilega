@@ -1,30 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import {
-  Flag,
-  ShieldAlert,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  Search,
-  RefreshCw,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  X,
-  AlertCircle,
-  User,
-  MessageSquare,
-  ExternalLink,
-  Loader2,
-  AlertTriangle,
-  Paperclip,
-  Check,
-} from "lucide-react";
+import { ArrowSquareOutIcon, ArrowsClockwiseIcon, CaretLeftIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, CheckIcon, CircleNotchIcon, ClockIcon, FlagIcon, MagnifyingGlassIcon, PaperclipIcon, ShieldIcon, WarningIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from "@/lib/axios";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { notify, errorText } from "@/lib/notify";
 
 interface ReportedMessageSnapshot {
   id: string;
@@ -103,8 +82,8 @@ export default function AdminChatReportsPage() {
         }
       } catch (error: any) {
         console.error("Failed to load chat reports", error);
-        toast.error(
-          error?.response?.data?.error || "Failed to load chat reports",
+        notify.error(
+          errorText(error, "Failed to load chat reports"),
         );
         setReports([]);
         setTotalPages(1);
@@ -144,31 +123,31 @@ export default function AdminChatReportsPage() {
         return {
           label: "Needs Review",
           bg: "bg-amber-100 text-amber-800 border-amber-200",
-          icon: Clock,
+          icon: ClockIcon,
         };
       case "under_review":
         return {
           label: "Under Review",
           bg: "bg-blue-100 text-blue-800 border-blue-200",
-          icon: Shield,
+          icon: ShieldIcon,
         };
       case "resolved":
         return {
           label: "Action Taken",
           bg: "bg-emerald-100 text-emerald-800 border-emerald-200",
-          icon: CheckCircle2,
+          icon: CheckCircleIcon,
         };
       case "dismissed":
         return {
           label: "Dismissed",
           bg: "bg-slate-100 text-slate-700 border-slate-200",
-          icon: XCircle,
+          icon: XCircleIcon,
         };
       default:
         return {
           label: status,
           bg: "bg-slate-100 text-slate-700 border-slate-200",
-          icon: Clock,
+          icon: ClockIcon,
         };
     }
   };
@@ -214,13 +193,13 @@ export default function AdminChatReportsPage() {
         admin_notes: adminNotes,
       });
 
-      toast.success("Chat report updated successfully");
+      notify.success("Chat report updated successfully");
       setSelectedReport(null);
       fetchReports(page, statusFilter);
     } catch (err: any) {
       console.error("Failed to resolve chat report", err);
-      toast.error(
-        err?.response?.data?.error || "Failed to update report decision",
+      notify.error(
+        errorText(err, "Failed to update report decision"),
       );
     } finally {
       setIsSubmitting(false);
@@ -246,13 +225,12 @@ export default function AdminChatReportsPage() {
 
   return (
     <div className="space-y-6">
-      <ToastContainer position="top-right" autoClose={3000} />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-[#071A4D] font-poppins flex items-center gap-2.5">
-            <Flag className="text-[#FF6B00]" size={26} />
+          <h1 className="text-2xl font-bold text-km-heading font-poppins flex items-center gap-2.5">
+            <FlagIcon className="text-[#FF6B00]" size={26} />
             Chat Reports & Safety
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -262,37 +240,37 @@ export default function AdminChatReportsPage() {
 
         <button
           onClick={() => fetchReports(page, statusFilter)}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-[#071A4D] bg-white border border-slate-200 hover:bg-slate-50 rounded-xl shadow-xs transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-km-heading bg-km-surface-card border border-slate-200 hover:bg-slate-50 rounded-xl shadow-xs transition-colors"
         >
-          <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
+          <ArrowsClockwiseIcon weight="bold" size={15} className={loading ? "animate-spin" : ""} />
           Refresh
         </button>
       </div>
 
       {/* Stats Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="bg-km-surface-card p-4 rounded-2xl border border-slate-200/80 shadow-xs">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
             Total In View
           </p>
-          <p className="text-2xl font-bold text-[#071A4D] mt-1">{totalCount}</p>
+          <p className="text-2xl font-bold text-km-heading mt-1">{totalCount}</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-amber-200/80 shadow-xs bg-amber-50/20">
+        <div className="bg-km-surface-card p-4 rounded-2xl border border-amber-200/80 shadow-xs bg-amber-50/20">
           <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">
             Needs Review
           </p>
           <p className="text-2xl font-bold text-amber-800 mt-1">{pendingCount}</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-blue-200/80 shadow-xs bg-blue-50/20">
+        <div className="bg-km-surface-card p-4 rounded-2xl border border-blue-200/80 shadow-xs bg-blue-50/20">
           <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">
             Under Investigation
           </p>
           <p className="text-2xl font-bold text-blue-800 mt-1">{underReviewCount}</p>
         </div>
 
-        <div className="bg-white p-4 rounded-2xl border border-emerald-200/80 shadow-xs bg-emerald-50/20">
+        <div className="bg-km-surface-card p-4 rounded-2xl border border-emerald-200/80 shadow-xs bg-emerald-50/20">
           <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">
             Action Taken
           </p>
@@ -301,7 +279,7 @@ export default function AdminChatReportsPage() {
       </div>
 
       {/* Filter Tabs and Search Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-4">
+      <div className="bg-km-surface-card rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-4">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           {/* Status Tabs */}
           <div className="flex flex-wrap gap-1.5 p-1 bg-slate-100 rounded-xl">
@@ -319,7 +297,7 @@ export default function AdminChatReportsPage() {
                 onClick={() => handleFilterChange(tab.id)}
                 className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                   statusFilter === tab.id
-                    ? "bg-white text-[#071A4D] shadow-xs"
+                    ? "bg-km-surface-card text-km-heading shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -330,7 +308,7 @@ export default function AdminChatReportsPage() {
 
           {/* Search box */}
           <div className="relative min-w-[260px]">
-            <Search
+            <MagnifyingGlassIcon weight="bold"
               size={16}
               className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
@@ -339,7 +317,7 @@ export default function AdminChatReportsPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by name, reason..."
-              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#071A4D] focus:bg-white transition-all text-slate-800"
+              className="w-full pl-9 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all text-slate-800 dark:focus:border-km-link"
             />
           </div>
         </div>
@@ -362,16 +340,14 @@ export default function AdminChatReportsPage() {
               {loading ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <Loader2 size={24} className="animate-spin text-[#071A4D] mx-auto mb-2" />
+                    <CircleNotchIcon size={24} className="animate-spin text-km-heading mx-auto mb-2" />
                     Loading reports...
                   </td>
                 </tr>
               ) : displayedReports.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-500">
-                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400">
-                      <Flag size={20} />
-                    </div>
+                    <FlagIcon size={28} weight="duotone" className="text-slate-400 mx-auto mb-2" aria-hidden="true" />
                     No chat reports found for this filter.
                   </td>
                 </tr>
@@ -435,7 +411,7 @@ export default function AdminChatReportsPage() {
                       {/* Evidence */}
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                          <MessageSquare size={12} />
+                          <ChatIcon weight="bold" size={12} />
                           {evidenceCount} message{evidenceCount === 1 ? "" : "s"}
                         </span>
                       </td>
@@ -459,7 +435,7 @@ export default function AdminChatReportsPage() {
                       <td className="py-3 px-4 text-right">
                         <button
                           onClick={() => openReviewModal(report)}
-                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-[#071A4D] bg-[#F4F7FB] hover:bg-slate-200 border border-[#D9E0EA] transition-colors"
+                          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-km-heading bg-km-surface hover:bg-slate-200 border border-km-border transition-colors"
                         >
                           Review Evidence
                         </button>
@@ -484,14 +460,14 @@ export default function AdminChatReportsPage() {
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 className="p-1.5 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50"
               >
-                <ChevronLeft size={16} />
+                <CaretLeftIcon weight="bold" size={16} />
               </button>
               <button
                 disabled={page >= totalPages}
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 className="p-1.5 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40 hover:bg-slate-50"
               >
-                <ChevronRight size={16} />
+                <CaretRightIcon weight="bold" size={16} />
               </button>
             </div>
           </div>
@@ -506,16 +482,14 @@ export default function AdminChatReportsPage() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
+            className="bg-km-surface-card rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden animate-in zoom-in-95 duration-150"
           >
             {/* Modal Header */}
             <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between shrink-0 bg-slate-50/50">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                  <Flag size={20} />
-                </div>
+                <FlagIcon size={24} weight="duotone" className="text-amber-600 shrink-0 dark:text-amber-400" aria-hidden="true" />
                 <div>
-                  <h3 className="text-base font-bold text-[#111827]">
+                  <h3 className="text-base font-bold text-km-text-primary">
                     Review Chat Report
                   </h3>
                   <p className="text-xs text-slate-500">
@@ -529,7 +503,7 @@ export default function AdminChatReportsPage() {
                 onClick={() => setSelectedReport(null)}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
               >
-                <X size={18} />
+                <XIcon weight="bold" size={18} />
               </button>
             </div>
 
@@ -550,7 +524,7 @@ export default function AdminChatReportsPage() {
                 </div>
 
                 <div className="p-3 bg-red-50/50 rounded-xl border border-red-200">
-                  <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider">
+                  <p className="text-[10px] font-bold text-red-600 uppercase tracking-wider dark:text-red-400">
                     Reported User
                   </p>
                   <p className="text-sm font-bold text-slate-900 mt-0.5">
@@ -565,11 +539,11 @@ export default function AdminChatReportsPage() {
               {/* Reported Reason & Description */}
               <div className="p-3.5 bg-amber-50/40 rounded-xl border border-amber-200">
                 <p className="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                  <AlertTriangle size={14} className="text-amber-600 shrink-0" />
+                  <WarningIcon weight="bold" size={14} className="text-amber-600 shrink-0 dark:text-amber-400" />
                   Reason: {selectedReport.reason}
                 </p>
                 {selectedReport.description ? (
-                  <p className="text-xs text-slate-700 mt-1.5 leading-relaxed bg-white/70 p-2.5 rounded-lg border border-amber-100">
+                  <p className="text-xs text-slate-700 mt-1.5 leading-relaxed bg-km-surface-card/70 p-2.5 rounded-lg border border-amber-100">
                     "{selectedReport.description}"
                   </p>
                 ) : (
@@ -583,7 +557,7 @@ export default function AdminChatReportsPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <MessageSquare size={14} className="text-[#071A4D]" />
+                    <ChatIcon weight="bold" size={14} className="text-km-heading" />
                     Chat Evidence Snapshot ({selectedReport.evidence?.length || 0} messages)
                   </h4>
                   <span className="text-[11px] text-slate-400">
@@ -606,7 +580,7 @@ export default function AdminChatReportsPage() {
                           className={`p-2.5 rounded-xl border leading-relaxed ${
                             isReportedUser
                               ? "bg-red-50/70 border-red-200"
-                              : "bg-white border-slate-200"
+                              : "bg-km-surface-card border-slate-200"
                           }`}
                         >
                           <div className="flex items-center justify-between text-[11px] mb-1">
@@ -635,11 +609,11 @@ export default function AdminChatReportsPage() {
                               href={msg.attachment_url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline mt-1 font-semibold"
+                              className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline mt-1 font-semibold dark:text-blue-400"
                             >
-                              <Paperclip size={12} />
+                              <PaperclipIcon weight="bold" size={12} />
                               View Attachment
-                              <ExternalLink size={10} />
+                              <ArrowSquareOutIcon weight="bold" size={10} />
                             </a>
                           )}
                         </div>
@@ -663,7 +637,7 @@ export default function AdminChatReportsPage() {
                     <select
                       value={resolveStatus}
                       onChange={(e) => setResolveStatus(e.target.value as any)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-white transition-all"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all dark:focus:border-km-link"
                     >
                       <option value="resolved">Resolved (Action completed)</option>
                       <option value="under_review">Keep Under Review</option>
@@ -678,7 +652,7 @@ export default function AdminChatReportsPage() {
                     <select
                       value={actionTaken}
                       onChange={(e) => setActionTaken(e.target.value as any)}
-                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-white transition-all"
+                      className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all dark:focus:border-km-link"
                     >
                       <option value="warning">Issue Warning to User</option>
                       <option value="user_suspended">Suspend Account (Block access)</option>
@@ -697,7 +671,7 @@ export default function AdminChatReportsPage() {
                     value={adminNotes}
                     onChange={(e) => setAdminNotes(e.target.value)}
                     placeholder="Enter reason or notes for other moderators..."
-                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-white resize-none transition-all"
+                    className="w-full text-xs bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card resize-none transition-all dark:focus:border-km-link"
                   />
                 </div>
               </div>
@@ -717,16 +691,16 @@ export default function AdminChatReportsPage() {
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleResolveSubmit}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] transition-colors shadow-xs flex items-center gap-1.5 disabled:opacity-70"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] transition-colors shadow-xs flex items-center gap-1.5 disabled:opacity-70 dark:bg-km-primary dark:hover:bg-km-primary-dark"
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 size={14} className="animate-spin" />
+                    <CircleNotchIcon weight="bold" size={14} className="animate-spin" />
                     <span>Saving...</span>
                   </>
                 ) : (
                   <>
-                    <Check size={14} />
+                    <CheckIcon weight="bold" size={14} />
                     <span>Save Decision</span>
                   </>
                 )}

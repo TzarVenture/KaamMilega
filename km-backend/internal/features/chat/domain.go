@@ -24,6 +24,8 @@ type ParticipantInfo struct {
 	Headline     string   `json:"headline,omitempty"`
 	Roles        []string `json:"roles,omitempty"`
 	IsOnline     bool     `json:"is_online"`
+	// Unavailable: the account is deactivated or deleted; the chat is read-only
+	Unavailable bool `json:"unavailable,omitempty"`
 }
 
 type ConversationResponse struct {
@@ -157,6 +159,18 @@ type ChatRepository interface {
 	GetChatReports(ctx context.Context, status string, page, limit int) ([]ChatReport, int, error)
 	GetChatReportByID(ctx context.Context, id primitive.ObjectID) (*ChatReport, error)
 	ResolveChatReport(ctx context.Context, id primitive.ObjectID, status, actionTaken, adminNotes string, adminID *primitive.ObjectID, adminName string) error
+
+	// Entitlement & ₹99 Pass Gate (3 Free Chats limit)
+	CanInitiateNewConversation(ctx context.Context, userID primitive.ObjectID) (bool, error)
+	GetChatEntitlement(ctx context.Context, userID primitive.ObjectID) (*ChatEntitlementResponse, error)
+}
+
+type ChatEntitlementResponse struct {
+	DistinctConversations int64 `json:"distinct_conversations"`
+	FreeRemaining         int64 `json:"free_remaining"`
+	HasActivePass         bool  `json:"has_active_pass"`
+	CanStartNew           bool  `json:"can_start_new"`
+	PassQuotaRemaining    int   `json:"pass_quota_remaining"`
 }
 
 type ChatService interface {
@@ -168,6 +182,9 @@ type ChatService interface {
 	DeleteMessage(ctx context.Context, messageID, userID primitive.ObjectID) error
 	DeleteConversation(ctx context.Context, conversationID, userID primitive.ObjectID) error
 	ClearMessages(ctx context.Context, conversationID, userID primitive.ObjectID) error
+
+	// Entitlement & ₹99 Pass Gate
+	GetChatEntitlement(ctx context.Context, userID primitive.ObjectID) (*ChatEntitlementResponse, error)
 
 	// Block & Safety
 	BlockUser(ctx context.Context, userID, targetUserID primitive.ObjectID) error

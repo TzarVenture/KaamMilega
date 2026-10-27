@@ -2,26 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { 
-    Video, 
-    ArrowLeft, 
-    Plus, 
-    Pencil, 
-    Trash2, 
-    Eye, 
-    Calendar, 
-    Clock, 
-    ExternalLink, 
-    Sparkles, 
-    Loader2, 
-    X, 
-    Save, 
-    AlertTriangle,
-    GraduationCap,
-    ArrowRight,
-    Play
-} from "lucide-react";
-import { toast } from "react-toastify";
+import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CircleNotchIcon, ClockIcon, EyeIcon, GraduationCapIcon, PencilSimpleIcon, PlayIcon, PlusIcon, TrashIcon, VideoCameraIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
 import { openYouTubeVideo, getYouTubeThumbnail } from "@/lib/youtube";
@@ -80,7 +62,7 @@ export default function ManageCoursesPage() {
             setTotalPages(res.total_pages || Math.ceil((res.total || 0) / 6) || 1);
         } catch (error: any) {
             console.error("Failed to load courses:", error);
-            toast.error(error.message || "Failed to load courses");
+            notify.error(error.message || "Failed to load courses");
         } finally {
             setLoading(false);
         }
@@ -115,23 +97,23 @@ export default function ManageCoursesPage() {
 
         const courseId = editingCourse.id || (editingCourse as any)._id;
         if (!courseId) {
-            toast.error("Course ID not found");
+            notify.error("Course ID not found");
             return;
         }
 
         if (!editTitle.trim()) {
-            toast.error("Course title cannot be empty");
+            notify.error("Course title cannot be empty");
             return;
         }
 
         const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
         if (countWords(editTitle) > 10) {
-            toast.error("Course title cannot exceed 10 words");
+            notify.error("Course title cannot exceed 10 words");
             return;
         }
 
         if (countWords(editDescription) > 50) {
-            toast.error("Course description cannot exceed 50 words");
+            notify.error("Course description cannot exceed 50 words");
             return;
         }
 
@@ -147,7 +129,7 @@ export default function ManageCoursesPage() {
             };
 
             const updated: any = await api.put(`/courses/${courseId}`, payload);
-            toast.success("Course updated successfully!");
+            notify.success("Course updated successfully!");
 
             setCourses((prev) =>
                 prev.map((c) => {
@@ -158,7 +140,7 @@ export default function ManageCoursesPage() {
             setEditingCourse(null);
         } catch (error: any) {
             console.error("Update error:", error);
-            toast.error(error.message || "Failed to update course");
+            notify.error(error.message || "Failed to update course");
         } finally {
             setSaving(false);
         }
@@ -174,7 +156,7 @@ export default function ManageCoursesPage() {
         setDeleting(true);
         try {
             await api.delete(`/courses/${courseId}`);
-            toast.success("Course deleted successfully!");
+            notify.success("Course deleted successfully!");
             setDeletingCourse(null);
             if (courses.length === 1 && page > 1) {
                 setPage((prev) => prev - 1);
@@ -183,7 +165,7 @@ export default function ManageCoursesPage() {
             }
         } catch (error: any) {
             console.error("Delete error:", error);
-            toast.error(error.message || "Failed to delete course");
+            notify.error(error.message || "Failed to delete course");
         } finally {
             setDeleting(false);
         }
@@ -191,16 +173,14 @@ export default function ManageCoursesPage() {
 
     if (!isExpert) {
         return (
-            <div className="min-h-screen bg-[#F4F7FB] py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-                <div className="max-w-md w-full bg-white rounded-3xl p-8 border border-[#D9E0EA] shadow-lg text-center space-y-5">
-                    <div className="w-16 h-16 bg-[#FAF5FF] text-[#7C3AED] rounded-2xl flex items-center justify-center mx-auto border border-[#7C3AED]/20 shadow-xs">
-                        <GraduationCap size={32} />
-                    </div>
+            <div className="min-h-screen bg-km-surface py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+                <div className="max-w-md w-full bg-km-surface-card rounded-3xl p-8 border border-km-border shadow-lg text-center space-y-5">
+                    <GraduationCapIcon size={36} weight="duotone" className="text-[#7C3AED] mx-auto dark:text-violet-400" aria-hidden="true" />
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-black text-[#071A4D]">
+                        <h2 className="text-2xl font-black text-km-heading">
                             Expert Portal Only
                         </h2>
-                        <p className="text-sm text-[#5B6472] leading-relaxed">
+                        <p className="text-sm text-km-text-secondary leading-relaxed">
                             Only verified Kaammilega Experts can manage video training courses.
                         </p>
                     </div>
@@ -208,10 +188,10 @@ export default function ManageCoursesPage() {
                         <button
                             type="button"
                             onClick={() => router.push("/expert/apply")}
-                            className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm"
+                            className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm dark:bg-km-primary dark:hover:bg-km-primary-dark"
                         >
                             <span>Apply to Become an Expert</span>
-                            <ArrowRight size={16} />
+                            <ArrowRightIcon weight="bold" size={16} />
                         </button>
                     </div>
                 </div>
@@ -220,23 +200,23 @@ export default function ManageCoursesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F4F7FB] py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-km-surface py-8 sm:py-10 px-4 sm:px-6 lg:px-8">
             <div className="max-w-6xl mx-auto space-y-8">
 
                 {/* ─── Top Bar ─── */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#D9E0EA] pb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-km-border pb-6">
                     <div className="space-y-1">
                         <button
                             type="button"
                             onClick={() => router.push("/courses")}
-                            className="text-xs font-bold text-[#0B5ED7] hover:underline flex items-center gap-1.5 mb-1"
+                            className="text-xs font-bold text-km-link hover:underline flex items-center gap-1.5 mb-1"
                         >
-                            <ArrowLeft size={14} /> Back to Course Studio
+                            <ArrowLeftIcon weight="bold" size={14} /> Back to Course Studio
                         </button>
-                        <h1 className="text-2xl sm:text-3xl font-medium text-[#071A4D] tracking-tight">
+                        <h1 className="text-2xl sm:text-3xl font-medium text-km-heading tracking-tight">
                             Manage All My Courses
                         </h1>
-                        <p className="text-xs sm:text-sm text-[#5B6472]">
+                        <p className="text-xs sm:text-sm text-km-text-secondary">
                             Edit titles, durations, categories, or remove your uploaded training sessions.
                         </p>
                     </div>
@@ -245,15 +225,15 @@ export default function ManageCoursesPage() {
                         <button
                             type="button"
                             onClick={() => router.push("/courses")}
-                            className="bg-[#071A4D] hover:bg-[#0B1F52] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 active:scale-[0.98]"
+                            className="bg-[#071A4D] hover:bg-[#0B1F52] text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 active:scale-[0.98] dark:bg-km-primary dark:hover:bg-km-primary-dark"
                         >
-                            <Plus size={16} />
+                            <PlusIcon weight="bold" size={16} />
                             <span>Add New Course</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => router.push("/resources")}
-                            className="bg-white border border-[#D9E0EA] hover:border-[#0B5ED7]/50 text-[#071A4D] font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition-all"
+                            className="bg-km-surface-card border border-km-border hover:border-[#0B5ED7]/50 text-km-heading font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition-all"
                         >
                             <span>Public View</span>
                         </button>
@@ -263,28 +243,26 @@ export default function ManageCoursesPage() {
                 {/* ─── Courses List ─── */}
                 {loading ? (
                     <div className="py-20 flex flex-col justify-center items-center space-y-3">
-                        <Loader2 size={32} className="animate-spin text-[#0B5ED7]" />
-                        <p className="text-xs text-[#5B6472] font-medium">Loading your courses...</p>
+                        <CircleNotchIcon size={32} className="animate-spin text-km-link" />
+                        <p className="text-xs text-km-text-secondary font-medium">Loading your courses...</p>
                     </div>
                 ) : courses.length === 0 ? (
-                    <div className="bg-white rounded-3xl border border-dashed border-[#D9E0EA] p-12 text-center space-y-4">
-                        <div className="w-16 h-16 rounded-full bg-[#F4F7FB] text-[#5B6472] flex items-center justify-center mx-auto">
-                            <Video size={28} />
-                        </div>
+                    <div className="bg-km-surface-card rounded-3xl border border-dashed border-km-border p-12 text-center space-y-4">
+                        <VideoCameraIcon size={36} weight="duotone" className="text-km-text-secondary mx-auto" aria-hidden="true" />
                         <div className="space-y-1">
-                            <h3 className="text-lg font-bold text-[#111827]">
+                            <h3 className="text-lg font-bold text-km-text-primary">
                                 No Courses Published Yet
                             </h3>
-                            <p className="text-xs text-[#5B6472] max-w-sm mx-auto">
+                            <p className="text-xs text-km-text-secondary max-w-sm mx-auto">
                                 You haven't added any video courses yet. Click the button below to add your first YouTube video training.
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={() => router.push("/courses")}
-                            className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all"
+                            className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all dark:bg-km-primary dark:hover:bg-km-primary-dark"
                         >
-                            <Plus size={16} /> Add Your First Course
+                            <PlusIcon weight="bold" size={16} /> Add Your First Course
                         </button>
                     </div>
                 ) : (
@@ -297,7 +275,7 @@ export default function ManageCoursesPage() {
                             return (
                                 <div
                                     key={course.id}
-                                    className="bg-white rounded-2xl border border-[#D9E0EA] overflow-hidden shadow-xs hover:border-[#0B5ED7]/40 hover:shadow-md transition-all flex flex-col justify-between"
+                                    className="bg-km-surface-card rounded-2xl border border-km-border overflow-hidden shadow-xs hover:border-[#0B5ED7]/40 hover:shadow-md transition-all flex flex-col justify-between"
                                 >
                                     <div>
                                         {/* Thumbnail Box */}
@@ -310,39 +288,39 @@ export default function ManageCoursesPage() {
 
                                             {/* Category Badge on Top-Left matching reference screenshot */}
                                             {course.category && (
-                                                <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-xs font-semibold px-3.5 py-1.5 rounded-tl-xl rounded-br-2xl shadow-xs z-10">
+                                                <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-xs font-semibold px-3.5 py-1.5 rounded-tl-xl rounded-br-2xl shadow-xs z-10 dark:bg-km-primary">
                                                     {course.category}
                                                 </span>
                                             )}
 
                                             {/* Minimalist Play Icon in Center */}
                                             <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                                                <div className="w-10 h-10 bg-white text-[#071A4D] rounded-full flex items-center justify-center shadow-xs">
-                                                    <Play size={15} fill="currentColor" className="ml-0.5" />
+                                                <div className="w-10 h-10 bg-km-surface-card text-km-heading rounded-full flex items-center justify-center shadow-xs">
+                                                    <PlayIcon weight="fill" size={15} className="ml-0.5" />
                                                 </div>
                                             </div>
 
                                             {/* Duration */}
-                                            <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1">
-                                                <Clock size={11} /> {course.duration || "30 Min"}
+                                            <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 dark:bg-km-primary">
+                                                <ClockIcon weight="bold" size={11} /> {course.duration || "30 Min"}
                                             </span>
                                         </div>
 
                                         {/* Info */}
                                         <div className="p-4 space-y-2">
-                                            <h3 className="text-sm font-bold text-[#111827] line-clamp-2 leading-snug">
+                                            <h3 className="text-sm font-bold text-km-text-primary line-clamp-2 leading-snug">
                                                 {course.title}
                                             </h3>
 
                                             {course.description && (
-                                                <p className="text-xs text-[#5B6472] line-clamp-2 leading-relaxed">
+                                                <p className="text-xs text-km-text-secondary line-clamp-2 leading-relaxed">
                                                     {course.description}
                                                 </p>
                                             )}
 
-                                            <div className="flex items-center justify-between pt-2 border-t border-[#D9E0EA]/60 text-xs text-[#5B6472]">
-                                                <div className="flex items-center gap-1 font-bold text-[#071A4D]">
-                                                    <Eye size={13} className="text-[#0B5ED7]" />
+                                            <div className="flex items-center justify-between pt-2 border-t border-km-border/60 text-xs text-km-text-secondary">
+                                                <div className="flex items-center gap-1 font-bold text-km-heading">
+                                                    <EyeIcon weight="bold" size={13} className="text-km-link" />
                                                     <span>{formattedViews} Viewers</span>
                                                 </div>
 
@@ -352,29 +330,29 @@ export default function ManageCoursesPage() {
                                                     className="text-[#FF6B00] hover:underline flex items-center gap-1 font-semibold"
                                                 >
                                                     <span>Watch</span>
-                                                    <ExternalLink size={11} />
+                                                    <ArrowSquareOutIcon weight="bold" size={11} />
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Action Buttons: Edit and Delete */}
-                                    <div className="p-3 bg-[#F4F7FB]/70 border-t border-[#D9E0EA] flex items-center justify-between gap-2">
+                                    <div className="p-3 bg-km-surface/70 border-t border-km-border flex items-center justify-between gap-2">
                                         <button
                                             type="button"
                                             onClick={() => handleOpenEdit(course)}
-                                            className="flex-1 py-2 px-3 bg-white hover:bg-blue-50 border border-[#D9E0EA] hover:border-[#0B5ED7]/50 text-[#071A4D] hover:text-[#0B5ED7] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs"
+                                            className="flex-1 py-2 px-3 bg-km-surface-card hover:bg-blue-50 border border-km-border hover:border-[#0B5ED7]/50 text-km-heading hover:text-km-link rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs"
                                         >
-                                            <Pencil size={13} />
+                                            <PencilSimpleIcon weight="bold" size={13} />
                                             <span>Edit</span>
                                         </button>
 
                                         <button
                                             type="button"
                                             onClick={() => setDeletingCourse(course)}
-                                            className="flex-1 py-2 px-3 bg-white hover:bg-red-50 border border-[#D9E0EA] hover:border-red-300 text-red-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs"
+                                            className="flex-1 py-2 px-3 bg-km-surface-card hover:bg-red-50 border border-km-border hover:border-red-300 text-red-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs dark:text-red-400"
                                         >
-                                            <Trash2 size={13} />
+                                            <TrashIcon weight="bold" size={13} />
                                             <span>Delete</span>
                                         </button>
                                     </div>
@@ -403,22 +381,20 @@ export default function ManageCoursesPage() {
             {/* ─── Edit Course Modal ─── */}
             {editingCourse && (
                 <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-[#D9E0EA] shadow-2xl space-y-5 animate-in fade-in zoom-in duration-150">
-                        <div className="flex items-center justify-between border-b border-[#D9E0EA] pb-4">
+                    <div className="bg-km-surface-card rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-km-border shadow-2xl space-y-5 animate-in fade-in zoom-in duration-150">
+                        <div className="flex items-center justify-between border-b border-km-border pb-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-[#EFF6FF] text-[#0B5ED7] flex items-center justify-center">
-                                    <Pencil size={16} />
-                                </div>
-                                <h3 className="text-lg font-bold text-[#071A4D]">
+                                <PencilSimpleIcon size={20} className="text-km-link" aria-hidden="true" />
+                                <h3 className="text-lg font-bold text-km-heading">
                                     Update Course Details
                                 </h3>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => setEditingCourse(null)}
-                                className="p-1.5 text-[#5B6472] hover:text-[#111827] hover:bg-[#F4F7FB] rounded-full transition"
+                                className="p-1.5 text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-full transition"
                             >
-                                <X size={18} />
+                                <XIcon weight="bold" size={18} />
                             </button>
                         </div>
 
@@ -426,10 +402,10 @@ export default function ManageCoursesPage() {
                             {/* Course Title with word counter */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between">
-                                    <label className="block text-xs font-semibold text-[#071A4D]">
+                                    <label className="block text-xs font-semibold text-km-heading">
                                         Course Title <span className="text-[#FF6B00]">*</span>
                                     </label>
-                                    <span className={`text-[11px] ${editTitle.trim().split(/\s+/).filter(Boolean).length > 10 ? "text-red-500 font-semibold" : "text-[#5B6472]"}`}>
+                                    <span className={`text-[11px] ${editTitle.trim().split(/\s+/).filter(Boolean).length > 10 ? "text-red-500 font-semibold dark:text-red-400" : "text-km-text-secondary"}`}>
                                         {editTitle.trim().split(/\s+/).filter(Boolean).length} / 10 words
                                     </span>
                                 </div>
@@ -438,14 +414,14 @@ export default function ManageCoursesPage() {
                                     required
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
-                                    className={`w-full px-4 py-2.5 bg-white border rounded-xl text-sm text-[#111827] focus:outline-hidden ${
+                                    className={`w-full px-4 py-2.5 bg-km-surface-card border rounded-xl text-sm text-km-text-primary focus:outline-hidden ${
                                         editTitle.trim().split(/\s+/).filter(Boolean).length > 10
                                             ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                                            : "border-[#D9E0EA] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                            : "border-km-border focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                     }`}
                                 />
                                 {editTitle.trim().split(/\s+/).filter(Boolean).length > 10 && (
-                                    <p className="text-[11px] text-red-500">
+                                    <p className="text-[11px] text-red-500 dark:text-red-400">
                                         Title cannot exceed 10 words.
                                     </p>
                                 )}
@@ -453,7 +429,7 @@ export default function ManageCoursesPage() {
 
                             {/* Video Duration */}
                             <div className="space-y-1">
-                                <label className="block text-xs font-semibold text-[#071A4D]">
+                                <label className="block text-xs font-semibold text-km-heading">
                                     Video Duration <span className="text-[#FF6B00]">*</span>
                                 </label>
                                 <input
@@ -462,19 +438,19 @@ export default function ManageCoursesPage() {
                                     value={editDuration}
                                     onChange={(e) => setEditDuration(e.target.value)}
                                     placeholder="e.g. 45 Min"
-                                    className="w-full px-4 py-2.5 bg-white border border-[#D9E0EA] rounded-xl text-sm text-[#111827] focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                    className="w-full px-4 py-2.5 bg-km-surface-card border border-km-border rounded-xl text-sm text-km-text-primary focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                 />
                             </div>
 
                             {/* Category / Trade */}
                             <div className="space-y-1">
-                                <label className="block text-xs font-semibold text-[#071A4D]">
+                                <label className="block text-xs font-semibold text-km-heading">
                                     Category / Trade <span className="text-[#FF6B00]">*</span>
                                 </label>
                                 <select
                                     value={editCategory}
                                     onChange={(e) => setEditCategory(e.target.value)}
-                                    className="w-full px-4 py-2.5 bg-white border border-[#D9E0EA] rounded-xl text-sm text-[#111827] focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 cursor-pointer"
+                                    className="w-full px-4 py-2.5 bg-km-surface-card border border-km-border rounded-xl text-sm text-km-text-primary focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 cursor-pointer"
                                 >
                                     {CATEGORIES.map((cat) => (
                                         <option key={cat} value={cat}>
@@ -490,7 +466,7 @@ export default function ManageCoursesPage() {
                                             onChange={(e) => setEditCustomCategory(e.target.value)}
                                             placeholder="Write your custom trade / category..."
                                             required
-                                            className="w-full px-4 py-2.5 bg-white border border-[#0B5ED7]/40 rounded-xl text-sm text-[#111827] placeholder:text-gray-400 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                            className="w-full px-4 py-2.5 bg-km-surface-card border border-[#0B5ED7]/40 rounded-xl text-sm text-km-text-primary placeholder:text-gray-400 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                         />
                                     </div>
                                 )}
@@ -499,10 +475,10 @@ export default function ManageCoursesPage() {
                             {/* Description & Highlights with word counter */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between">
-                                    <label className="block text-xs font-semibold text-[#071A4D]">
+                                    <label className="block text-xs font-semibold text-km-heading">
                                         Course Description & Highlights
                                     </label>
-                                    <span className={`text-[11px] ${editDescription.trim().split(/\s+/).filter(Boolean).length > 50 ? "text-red-500 font-semibold" : "text-[#5B6472]"}`}>
+                                    <span className={`text-[11px] ${editDescription.trim().split(/\s+/).filter(Boolean).length > 50 ? "text-red-500 font-semibold dark:text-red-400" : "text-km-text-secondary"}`}>
                                         {editDescription.trim().split(/\s+/).filter(Boolean).length} / 50 words
                                     </span>
                                 </div>
@@ -510,33 +486,33 @@ export default function ManageCoursesPage() {
                                     rows={3}
                                     value={editDescription}
                                     onChange={(e) => setEditDescription(e.target.value)}
-                                    className={`w-full px-4 py-2.5 bg-white border rounded-xl text-sm text-[#111827] focus:outline-hidden resize-none ${
+                                    className={`w-full px-4 py-2.5 bg-km-surface-card border rounded-xl text-sm text-km-text-primary focus:outline-hidden resize-none ${
                                         editDescription.trim().split(/\s+/).filter(Boolean).length > 50
                                             ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                                            : "border-[#D9E0EA] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                            : "border-km-border focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
                                     }`}
                                 />
                                 {editDescription.trim().split(/\s+/).filter(Boolean).length > 50 && (
-                                    <p className="text-[11px] text-red-500">
+                                    <p className="text-[11px] text-red-500 dark:text-red-400">
                                         Description cannot exceed 50 words.
                                     </p>
                                 )}
                             </div>
 
-                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#D9E0EA]">
+                            <div className="flex items-center justify-end gap-3 pt-4 border-t border-km-border">
                                 <button
                                     type="button"
                                     onClick={() => setEditingCourse(null)}
-                                    className="px-4 py-2.5 text-xs font-bold text-[#5B6472] hover:bg-[#F4F7FB] rounded-xl transition"
+                                    className="px-4 py-2.5 text-xs font-bold text-km-text-secondary hover:bg-km-surface rounded-xl transition"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={saving}
-                                    className="px-6 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5"
+                                    className="px-6 py-2.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
-                                    {saving && <Loader2 size={14} className="animate-spin" />}
+                                    {saving && <CircleNotchIcon weight="bold" size={14} className="animate-spin" />}
                                     <span>{saving ? "Saving Changes..." : "Save Updates"}</span>
                                 </button>
                             </div>
@@ -548,23 +524,21 @@ export default function ManageCoursesPage() {
             {/* ─── Delete Confirmation Modal ─── */}
             {deletingCourse && (
                 <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl max-w-sm w-full p-6 border border-[#D9E0EA] shadow-2xl text-center space-y-4">
-                        <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center mx-auto">
-                            <AlertTriangle size={24} />
-                        </div>
+                    <div className="bg-km-surface-card rounded-3xl max-w-sm w-full p-6 border border-km-border shadow-2xl text-center space-y-4">
+                        <WarningIcon size={28} weight="duotone" className="text-red-600 mx-auto dark:text-red-400" aria-hidden="true" />
                         <div className="space-y-1">
-                            <h3 className="text-base font-bold text-[#111827]">
+                            <h3 className="text-base font-bold text-km-text-primary">
                                 Delete This Course?
                             </h3>
-                            <p className="text-xs text-[#5B6472] leading-relaxed">
-                                Are you sure you want to remove <span className="font-semibold text-[#111827]">"{deletingCourse.title}"</span>? This video will no longer appear in the Kaammilega Marketplace.
+                            <p className="text-xs text-km-text-secondary leading-relaxed">
+                                Are you sure you want to remove <span className="font-semibold text-km-text-primary">"{deletingCourse.title}"</span>? This video will no longer appear in the Kaammilega Marketplace.
                             </p>
                         </div>
                         <div className="flex items-center justify-center gap-3 pt-2">
                             <button
                                 type="button"
                                 onClick={() => setDeletingCourse(null)}
-                                className="flex-1 py-2.5 px-4 text-xs font-bold text-[#5B6472] bg-[#F4F7FB] hover:bg-gray-200 rounded-xl transition"
+                                className="flex-1 py-2.5 px-4 text-xs font-bold text-km-text-secondary bg-km-surface hover:bg-gray-200 rounded-xl transition"
                             >
                                 Cancel
                             </button>
@@ -574,7 +548,7 @@ export default function ManageCoursesPage() {
                                 disabled={deleting}
                                 className="flex-1 py-2.5 px-4 text-xs font-bold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-xs transition flex items-center justify-center gap-1.5"
                             >
-                                {deleting && <Loader2 size={13} className="animate-spin" />}
+                                {deleting && <CircleNotchIcon weight="bold" size={13} className="animate-spin" />}
                                 <span>{deleting ? "Deleting..." : "Yes, Delete"}</span>
                             </button>
                         </div>

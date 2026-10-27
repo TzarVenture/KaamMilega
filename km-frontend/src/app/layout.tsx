@@ -1,27 +1,45 @@
 import type { Metadata } from "next";
-import { Poppins, Inter, Noto_Sans_Devanagari } from "next/font/google";
+import localFont from "next/font/local";
 import { NotificationProvider } from "@/lib/notifications";
+import AppToaster from "@/components/km/AppToaster";
+import PushSync from "@/components/km/PushSync";
+import PushInvite from "@/components/km/PushInvite";
+import { FEATURES } from "@/config/features";
+import { THEME_INIT_SCRIPT } from "@/lib/themeScript";
 import "./globals.css";
 
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+// Fonts are self-hosted from ./fonts (SIL OFL, see the OFL-*.txt files there). next/font/google
+// downloads them during the build, and Google sometimes answers build servers with
+// /l/font?kit=...&skey=... URLs that Turbopack can't resolve, which failed the production build.
+const poppins = localFont({
+  src: [
+    { path: "./fonts/poppins-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/poppins-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/poppins-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/poppins-latin-700-normal.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/poppins-latin-800-normal.woff2", weight: "800", style: "normal" },
+  ],
   variable: "--font-poppins",
   display: "swap",
+  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+const inter = localFont({
+  src: "./fonts/inter-latin-wght-normal.woff2",
+  weight: "100 900",
   variable: "--font-inter",
   display: "swap",
+  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
-const notoSansDevanagari = Noto_Sans_Devanagari({
-  subsets: ["devanagari"],
-  weight: ["400", "500", "600", "700"],
+const notoSansDevanagari = localFont({
+  src: "./fonts/noto-sans-devanagari-devanagari-wght-normal.woff2",
+  weight: "100 900",
   variable: "--font-devanagari",
   display: "swap",
+  // Only Hindi text uses this face, so it isn't preloaded on every page
+  preload: false,
+  fallback: ["Nirmala UI", "Mangal", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -63,10 +81,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${inter.variable} ${notoSansDevanagari.variable}`}>
-      <body className="font-poppins antialiased bg-[#F4F7FB] text-[#111827]">
+      {/* Applies the saved theme before first paint so there is no light/dark flash */}
+      {FEATURES.DARK_MODE && (
+        <head>
+          <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        </head>
+      )}
+      <body className="font-poppins antialiased bg-km-surface text-km-text-primary">
         <NotificationProvider>
           {children}
         </NotificationProvider>
+        <AppToaster />
+        <PushSync />
+        <PushInvite />
       </body>
     </html>
   );

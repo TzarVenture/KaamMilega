@@ -2,16 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Calendar, Clock, Video, ExternalLink, ShieldCheck, Star, 
-  AlertCircle, CheckCircle2, X, RefreshCw, ArrowLeft, BookOpen,
-  Users, MessageSquare
-} from 'lucide-react';
+import { ArrowLeftIcon, ArrowSquareOutIcon, ArrowsClockwiseIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, ShieldCheckIcon, StarIcon, VideoCameraIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 
 export default function MyMentorshipSessionsPage() {
   const [myBookings, setMyBookings] = useState<any[]>([]);
@@ -43,7 +38,7 @@ export default function MyMentorshipSessionsPage() {
       setMyBookings(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to fetch my bookings", err);
-      toast.error("Could not load booked sessions");
+      notify.error("Could not load booked sessions");
     } finally {
       setLoading(false);
     }
@@ -65,7 +60,7 @@ export default function MyMentorshipSessionsPage() {
         review: reviewComment,
       });
 
-      toast.success("Thank you! Your review has been submitted.");
+      notify.success("Thank you! Your review has been submitted.");
       setMyBookings(prev => prev.map(b => {
         const bId = b.id || b._id;
         if (bId === bookingId) {
@@ -76,7 +71,7 @@ export default function MyMentorshipSessionsPage() {
       setReviewModalBooking(null);
     } catch (err: any) {
       console.error("Failed to submit review", err);
-      toast.error(err?.response?.data?.error || "Failed to submit review. Make sure session is completed.");
+      notify.error(err, "Failed to submit review. Make sure session is completed.");
     } finally {
       setSubmittingReview(false);
     }
@@ -95,18 +90,17 @@ export default function MyMentorshipSessionsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-24">
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+    <main className="min-h-screen bg-[#fafafa] pb-24 dark:bg-white/5">
 
       {/* Clean Dashboard Header */}
-      <section className="bg-white border-b border-slate-200/80 pt-8 pb-8 px-4 md:px-8">
+      <section className="bg-km-surface-card border-b border-slate-200/80 pt-8 pb-8 px-4 md:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Back Navigation */}
           <Link
             href="/mentorship"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#1a2b8c] transition-colors mb-4 group"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#1a2b8c] transition-colors mb-4 group dark:hover:text-blue-400"
           >
-            <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+            <ArrowLeftIcon weight="bold" size={14} className="group-hover:-translate-x-0.5 transition-transform" />
             <span>Back to Mentorship Marketplace</span>
           </Link>
 
@@ -117,7 +111,7 @@ export default function MyMentorshipSessionsPage() {
                   My Booked Sessions
                 </h1>
                 {myBookings.length > 0 && (
-                  <span className="bg-orange-50 text-orange-600 border border-orange-200/80 text-xs font-black px-2.5 py-0.5 rounded-full">
+                  <span className="bg-orange-50 text-orange-600 border border-orange-200/80 text-xs font-black px-2.5 py-0.5 rounded-full dark:text-orange-400">
                     {myBookings.length} {myBookings.length === 1 ? 'Booking' : 'Bookings'}
                   </span>
                 )}
@@ -134,7 +128,7 @@ export default function MyMentorshipSessionsPage() {
                 disabled={loading}
                 className="inline-flex items-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50"
               >
-                <RefreshCw size={13} className={loading ? "animate-spin" : ""} />
+                <ArrowsClockwiseIcon weight="bold" size={13} className={loading ? "animate-spin" : ""} />
                 <span>Refresh</span>
               </button>
               <Link
@@ -153,7 +147,7 @@ export default function MyMentorshipSessionsPage() {
         {/* Escrow Guarantee Banner */}
         <div className="bg-linear-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-8 flex items-start gap-4 shadow-2xs">
           <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-            <ShieldCheck size={22} />
+            <ShieldCheckIcon size={22} />
           </div>
           <div>
             <h4 className="font-black text-slate-900 text-sm md:text-base">100% Escrow-Protected Guarantee</h4>
@@ -169,8 +163,8 @@ export default function MyMentorshipSessionsPage() {
             onClick={() => setBookingFilter('all')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               bookingFilter === 'all'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                ? 'bg-km-ink text-white shadow-xs'
+                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             All Sessions ({myBookings.length})
@@ -180,7 +174,7 @@ export default function MyMentorshipSessionsPage() {
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               bookingFilter === 'upcoming'
                 ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             Upcoming / Confirmed ({upcomingCount})
@@ -190,7 +184,7 @@ export default function MyMentorshipSessionsPage() {
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               bookingFilter === 'completed'
                 ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             Completed ({completedCount})
@@ -200,7 +194,7 @@ export default function MyMentorshipSessionsPage() {
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               bookingFilter === 'cancelled'
                 ? 'bg-red-600 text-white shadow-xs'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
             }`}
           >
             Cancelled ({cancelledCount})
@@ -209,10 +203,8 @@ export default function MyMentorshipSessionsPage() {
 
         {/* Dynamic States */}
         {!isLoggedIn ? (
-          <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-8 shadow-xs max-w-lg mx-auto">
-            <div className="w-16 h-16 bg-orange-50 rounded-2xl flex items-center justify-center mx-auto mb-4 text-orange-500">
-              <Calendar size={32} />
-            </div>
+          <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-slate-200 p-8 shadow-xs max-w-lg mx-auto">
+            <CalendarBlankIcon size={36} weight="duotone" className="text-orange-500 mx-auto mb-4 dark:text-orange-400" aria-hidden="true" />
             <h3 className="text-lg font-bold text-slate-900 mb-2">Log In to View Your Sessions</h3>
             <p className="text-xs text-slate-500 mb-6 leading-relaxed">
               Please sign in to your KaamMilega candidate account to view scheduled calls, join video meetings, and manage bookings.
@@ -227,7 +219,7 @@ export default function MyMentorshipSessionsPage() {
         ) : loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white rounded-2xl h-52 animate-pulse border border-slate-200" />
+              <div key={i} className="bg-km-surface-card rounded-2xl h-52 animate-pulse border border-slate-200" />
             ))}
           </div>
         ) : filteredBookings.length > 0 ? (
@@ -241,10 +233,8 @@ export default function MyMentorshipSessionsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-slate-200 p-8">
-            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Calendar className="text-slate-400" size={32} />
-            </div>
+          <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-dashed border-slate-200 p-8">
+            <CalendarBlankIcon size={36} weight="duotone" className="text-slate-400 mx-auto mb-4" aria-hidden="true" />
             <h3 className="text-lg font-bold text-slate-800 mb-1">No Bookings Found</h3>
             <p className="text-xs text-slate-500 max-w-xs mx-auto mb-6">
               {bookingFilter === 'all' 
@@ -269,7 +259,7 @@ export default function MyMentorshipSessionsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-2xl md:rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
+              className="bg-km-surface-card rounded-2xl md:rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
             >
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-lg font-black text-slate-900">Leave Mentor Review</h3>
@@ -278,7 +268,7 @@ export default function MyMentorshipSessionsPage() {
                   onClick={() => setReviewModalBooking(null)}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
                 >
-                  <X size={16} />
+                  <XIcon weight="bold" size={16} />
                 </button>
               </div>
 
@@ -297,7 +287,7 @@ export default function MyMentorshipSessionsPage() {
                       onClick={() => setReviewRating(star)}
                       className="p-1.5 rounded-lg hover:bg-amber-50 transition-all cursor-pointer"
                     >
-                      <Star
+                      <StarIcon weight="fill"
                         size={28}
                         className={`transition-colors ${
                           star <= reviewRating
@@ -319,7 +309,7 @@ export default function MyMentorshipSessionsPage() {
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
                   placeholder="Share details about what you learned, resume feedback received, interview tips, etc..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a2b8c] font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a2b8c] font-medium dark:focus:ring-km-link"
                 />
               </div>
 
@@ -393,28 +383,28 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
       case 'confirmed':
         return (
           <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
-            <ShieldCheck size={13} className="text-emerald-600" />
+            <ShieldCheckIcon weight="bold" size={13} className="text-emerald-600 dark:text-emerald-400" />
             <span>Confirmed (Escrow Protected)</span>
           </span>
         );
       case 'completed':
         return (
           <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
-            <CheckCircle2 size={13} className="text-blue-600" />
+            <CheckCircleIcon weight="bold" size={13} className="text-blue-600 dark:text-blue-400" />
             <span>Completed</span>
           </span>
         );
       case 'cancelled':
         return (
           <span className="bg-red-50 text-red-700 border border-red-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
-            <AlertCircle size={13} className="text-red-500" />
+            <WarningCircleIcon weight="bold" size={13} className="text-red-500 dark:text-red-400" />
             <span>Cancelled (Refunded)</span>
           </span>
         );
       default:
         return (
           <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
-            <Clock size={13} className="text-amber-500" />
+            <ClockIcon weight="bold" size={13} className="text-amber-500 dark:text-amber-400" />
             <span>Pending Payment</span>
           </span>
         );
@@ -422,15 +412,15 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
   };
 
   return (
-    <div className="bg-white rounded-2xl md:rounded-3xl border border-slate-200/80 p-5 md:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+    <div className="bg-km-surface-card rounded-2xl md:rounded-3xl border border-slate-200/80 p-5 md:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
       <div>
         {/* Top Header: Date/Time + Status */}
         <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
           <div className="flex items-center gap-2 text-slate-800 text-xs font-bold">
-            <Calendar size={14} className="text-[#1a2b8c]" />
+            <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c] dark:text-blue-400" />
             <span>{formatDate(booking.scheduled_at)}</span>
             <span className="text-slate-300">•</span>
-            <Clock size={14} className="text-orange-500" />
+            <ClockIcon weight="bold" size={14} className="text-orange-500 dark:text-orange-400" />
             <span>{formatTime(booking.scheduled_at)}</span>
           </div>
           {getStatusBadge()}
@@ -438,7 +428,7 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
 
         {/* Mentor & Session Info */}
         <div className="flex items-start gap-3.5 mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 overflow-hidden text-[#1a2b8c] font-black text-lg">
+          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 overflow-hidden text-[#1a2b8c] font-black text-lg dark:text-blue-400">
             {booking.expert_image ? (
               <img src={booking.expert_image} alt={expertNameClean} className="w-full h-full object-cover" />
             ) : (
@@ -472,7 +462,7 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
         {booking.rating ? (
           <div className="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 mb-4">
             <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs mb-1">
-              <Star size={13} className="fill-amber-400 text-amber-400" />
+              <StarIcon weight="fill" size={13} className="fill-amber-400 text-amber-400" />
               <span>You Rated: {booking.rating} / 5</span>
             </div>
             {booking.review && (
@@ -492,13 +482,13 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
             rel="noopener noreferrer"
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 md:px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
           >
-            <Video size={15} />
+            <VideoCameraIcon weight="bold" size={15} />
             <span>Join Meeting</span>
-            <ExternalLink size={13} />
+            <ArrowSquareOutIcon weight="bold" size={13} />
           </a>
         ) : booking.status === 'confirmed' ? (
           <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50/80 px-3 py-2 rounded-xl border border-amber-200/50">
-            <Clock size={13} className="shrink-0 text-amber-600" />
+            <ClockIcon weight="bold" size={13} className="shrink-0 text-amber-600 dark:text-amber-400" />
             <span>Mentor will share meeting link prior to the call</span>
           </div>
         ) : (
@@ -512,7 +502,7 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
             onClick={() => onLeaveReview(booking)}
             className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
           >
-            <Star size={13} />
+            <StarIcon weight="bold" size={13} />
             <span>Leave a Review</span>
           </button>
         )}

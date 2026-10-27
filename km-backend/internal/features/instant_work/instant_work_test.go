@@ -67,7 +67,7 @@ func TestInstantPassQuotaConstraints(t *testing.T) {
 		QuotaRemaining: 10,
 		PriceINR:       99.00,
 		ActivatedAt:    time.Now(),
-		ExpiresAt:      time.Now().Add(30 * 24 * time.Hour),
+		ExpiresAt:      time.Now().Add(90 * 24 * time.Hour),
 	}
 
 	if pass.PriceINR != 99.00 {

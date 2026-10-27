@@ -2,17 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Sparkles, CheckCircle2, ShieldCheck, Star, Calendar, 
-  ArrowRight, Award, Zap, Users, DollarSign, Wallet, 
-  Clock, ArrowUpRight, X, Lock
-} from "lucide-react";
+import { ArrowRightIcon, CheckCircleIcon, CreditCardIcon, LightningIcon, LockIcon, MedalIcon, SealCheckIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { isAuthenticated } from "@/lib/auth";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { notify } from "@/lib/notify";
 
 interface PlanDetails {
   plan_type: string;
@@ -158,7 +153,7 @@ export default function ExpertProSubscriptionPage() {
       setPaymentProcessing(true);
       const scriptLoaded = await loadRazorpayScript();
       if (!scriptLoaded) {
-        toast.error("Failed to load Razorpay checkout gateway. Please check your connection.");
+        notify.error("Failed to load Razorpay checkout gateway. Please check your connection.");
         setPaymentProcessing(false);
         return;
       }
@@ -188,14 +183,14 @@ export default function ExpertProSubscriptionPage() {
               razorpay_signature: response.razorpay_signature,
             });
 
-            toast.success("🎉 Welcome to KaamMilega Pro Expert! Subscription activated.");
+            notify.success("🎉 Welcome to KaamMilega Pro Expert! Subscription activated.");
             setCheckoutModalOpen(false);
             setTimeout(() => {
               router.push("/expert/mentorship");
             }, 1200);
           } catch (err: any) {
             console.error("Verification failed", err);
-            toast.error(err?.response?.data?.error || "Payment verification failed. Please contact support.");
+            notify.error(err, "Payment verification failed. Please contact support.");
           } finally {
             setPaymentProcessing(false);
           }
@@ -214,7 +209,7 @@ export default function ExpertProSubscriptionPage() {
       rzp.open();
     } catch (err: any) {
       console.error("Order creation failed", err);
-      toast.error(err?.response?.data?.error || "Failed to initiate payment. Please try again.");
+      notify.error(err, "Failed to initiate payment. Please try again.");
       setPaymentProcessing(false);
     }
   };
@@ -226,14 +221,14 @@ export default function ExpertProSubscriptionPage() {
         plan_type: selectedPlan.plan_type,
       });
 
-      toast.success("🎉 Subscribed successfully via KaamMilega Wallet!");
+      notify.success("🎉 Subscribed successfully via KaamMilega Wallet!");
       setCheckoutModalOpen(false);
       setTimeout(() => {
         router.push("/expert/mentorship");
       }, 1200);
     } catch (err: any) {
       console.error("Wallet checkout failed", err);
-      toast.error(err?.response?.data?.error || "Wallet checkout failed. Please check your balance.");
+      notify.error(err, "Wallet checkout failed. Please check your balance.");
     } finally {
       setPaymentProcessing(false);
     }
@@ -243,18 +238,16 @@ export default function ExpertProSubscriptionPage() {
   const isWalletSufficient = walletBalance >= selectedPlan.price;
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800">
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-white/5">
 
       {/* Hero Banner */}
-      <section className="bg-linear-to-br from-slate-950 via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
+      <section className="bg-linear-to-br from-[#020617] via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-6 border border-white/10 backdrop-blur-xs">
-              <Sparkles size={14} />
               <span>KaamMilega Pro Expert Program</span>
             </div>
 
@@ -276,11 +269,11 @@ export default function ExpertProSubscriptionPage() {
           <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-8 sm:mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white shrink-0">
-                <Award size={26} />
+                <MedalIcon size={26} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-white text-emerald-800 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[10px] font-black uppercase tracking-wider bg-km-surface-card text-emerald-800 px-2.5 py-0.5 rounded-full">
                     Active Subscription
                   </span>
                   <h3 className="font-extrabold text-base md:text-lg">
@@ -294,10 +287,10 @@ export default function ExpertProSubscriptionPage() {
             </div>
             <Link
               href="/expert/mentorship"
-              className="bg-white text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+              className="bg-km-surface-card text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
             >
               <span>Manage Mentorship Dashboard</span>
-              <ArrowRight size={14} />
+              <ArrowRightIcon weight="bold" size={14} />
             </Link>
           </div>
         )}
@@ -310,7 +303,7 @@ export default function ExpertProSubscriptionPage() {
             return (
               <div
                 key={plan.plan_type}
-                className={`bg-white rounded-3xl p-6 md:p-8 border transition-all flex flex-col justify-between relative ${
+                className={`bg-km-surface-card rounded-3xl p-6 md:p-8 border transition-all flex flex-col justify-between relative ${
                   isYearly
                     ? "border-orange-500 shadow-xl ring-2 ring-orange-500/20 md:-translate-y-2"
                     : "border-slate-200 shadow-sm hover:border-slate-300"
@@ -324,11 +317,11 @@ export default function ExpertProSubscriptionPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1a2b8c]">
-                      {isYearly ? <Award size={26} /> : <Zap size={26} />}
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1a2b8c] dark:text-blue-400">
+                      {isYearly ? <MedalIcon size={26} /> : <LightningIcon size={26} />}
                     </div>
                     {isYearly && (
-                      <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100">
+                      <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 dark:text-emerald-400">
                         Save 25% Annually
                       </span>
                     )}
@@ -353,7 +346,7 @@ export default function ExpertProSubscriptionPage() {
                     </p>
                     {plan.perks.map((perk, i) => (
                       <div key={i} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                        <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+                        <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5 dark:text-emerald-400" />
                         <span>{perk}</span>
                       </div>
                     ))}
@@ -370,7 +363,7 @@ export default function ExpertProSubscriptionPage() {
                   }`}
                 >
                   <span>{activeSub ? "Switch to this Plan" : isYearly ? "Upgrade to Annual" : "Upgrade to Monthly"}</span>
-                  <ArrowRight size={15} />
+                  <ArrowRightIcon weight="bold" size={15} />
                 </button>
               </div>
             );
@@ -386,13 +379,11 @@ export default function ExpertProSubscriptionPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
+              className="bg-km-surface-card rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-[#1a2b8c] flex items-center justify-center">
-                    <Sparkles size={16} />
-                  </div>
+                  <SealCheckIcon size={24} weight="duotone" className="text-km-link" aria-hidden="true" />
                   <h3 className="text-lg font-black text-slate-900">Upgrade to Pro Expert</h3>
                 </div>
                 <button
@@ -401,7 +392,7 @@ export default function ExpertProSubscriptionPage() {
                   disabled={paymentProcessing}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
                 >
-                  <X size={16} />
+                  <XIcon weight="bold" size={16} />
                 </button>
               </div>
 
@@ -432,23 +423,21 @@ export default function ExpertProSubscriptionPage() {
                   onClick={() => !paymentProcessing && setPaymentMethod("razorpay")}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     paymentMethod === "razorpay"
-                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c]"
+                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c] dark:border-km-link dark:ring-km-link"
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-blue-100/70 text-[#1a2b8c] flex items-center justify-center">
-                      <CreditCardIcon />
-                    </div>
+                    <CreditCardIcon size={22} className="text-[#1a2b8c] dark:text-blue-400" aria-hidden="true" />
                     <div>
                       <div className="font-bold text-xs text-slate-900">Razorpay Online Payment</div>
                       <div className="text-[10px] text-slate-500">UPI (GPay/PhonePe), Cards, NetBanking</div>
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
+                    paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c] dark:border-km-link" : "border-slate-300"
                   }`}>
-                    {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                   </div>
                 </div>
 
@@ -457,14 +446,12 @@ export default function ExpertProSubscriptionPage() {
                   onClick={() => !paymentProcessing && setPaymentMethod("wallet")}
                   className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
                     paymentMethod === "wallet"
-                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c]"
+                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c] dark:border-km-link dark:ring-km-link"
                       : "border-slate-200 hover:border-slate-300"
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-100/70 text-emerald-700 flex items-center justify-center">
-                      <Wallet size={18} />
-                    </div>
+                    <WalletIcon size={22} className="text-emerald-700" aria-hidden="true" />
                     <div>
                       <div className="font-bold text-xs text-slate-900">KaamMilega Wallet</div>
                       <div className="text-[10px] text-slate-500">
@@ -473,9 +460,9 @@ export default function ExpertProSubscriptionPage() {
                     </div>
                   </div>
                   <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c]" : "border-slate-300"
+                    paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c] dark:border-km-link" : "border-slate-300"
                   }`}>
-                    {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
                   </div>
                 </div>
 
@@ -512,7 +499,7 @@ export default function ExpertProSubscriptionPage() {
                       </>
                     ) : (
                       <>
-                        <Lock size={13} />
+                        <LockIcon weight="bold" size={13} />
                         <span>Pay ₹{selectedPlan.price} with Razorpay</span>
                       </>
                     )}
@@ -531,7 +518,7 @@ export default function ExpertProSubscriptionPage() {
                       </>
                     ) : (
                       <>
-                        <Wallet size={14} />
+                        <WalletIcon weight="bold" size={14} />
                         <span>Pay ₹{selectedPlan.price} from Wallet</span>
                       </>
                     )}
@@ -546,11 +533,3 @@ export default function ExpertProSubscriptionPage() {
   );
 }
 
-function CreditCardIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="20" height="14" x="2" y="5" rx="2" />
-      <line x1="2" x2="22" y1="10" y2="10" />
-    </svg>
-  );
-}

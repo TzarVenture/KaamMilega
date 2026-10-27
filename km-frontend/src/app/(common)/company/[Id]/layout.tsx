@@ -1,5 +1,5 @@
 'use client'
-import { Briefcase, MapPin, MessageCircle, Plus, Users } from "lucide-react";
+import { BriefcaseIcon, ChatCircleIcon, MapPinIcon, PlusIcon, UsersIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { CompanyProvider, useCompany } from "./CompanyContext";
@@ -18,7 +18,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa]">
+            <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-white/5">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
             </div>
         );
@@ -26,7 +26,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
 
     if (error || !company) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] gap-4">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] gap-4 dark:bg-white/5">
                 <h2 className="text-xl font-bold text-gray-900">Company not found</h2>
                 <p className="text-gray-500">{error || "The company you are looking for does not exist."}</p>
                 <Link href="/" className="px-6 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 transition">
@@ -37,31 +37,31 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <main className="min-h-screen bg-[#f8f9fa] py-8 px-4 md:px-12 lg:px-24">
+        <main className="min-h-screen bg-[#f8f9fa] py-8 px-4 md:px-12 lg:px-24 dark:bg-white/5">
             <div className="max-w-7xl mx-auto grid grid-cols-12 gap-6">
 
                 {/* LEFT COLUMN: Main Content */}
                 <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
 
                     {/* Company Hero Card */}
-                    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="h-44 bg-linear-to-r from-slate-950 via-km-primary-dark to-slate-950 relative">
+                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                        <div className="h-44 bg-linear-to-r from-[#020617] via-km-primary-dark to-[#020617] relative">
                             {/* Banner Placeholder Icon or Image */}
                             {company.cover_image ? (
                                 <img src={company.cover_image} alt="Cover" className="w-full h-full object-cover" />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                    <Briefcase size={64} className="text-white" />
+                                    <BriefcaseIcon size={64} className="text-white" />
                                 </div>
                             )}
 
                             {/* Profile Logo */}
-                            <div className="absolute -bottom-14 left-8 p-1.5 bg-white rounded-full shadow-md">
+                            <div className="absolute -bottom-14 left-8 p-1.5 bg-km-surface-card rounded-full shadow-md">
                                 <div className="w-28 h-28 bg-km-primary-dark rounded-full flex items-center justify-center overflow-hidden">
                                     {company.logo ? (
                                         <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
                                     ) : (
-                                        <Briefcase size={48} className="text-white" />
+                                        <BriefcaseIcon size={48} className="text-white" />
                                     )}
                                 </div>
                             </div>
@@ -82,7 +82,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                 <button className="bg-km-primary text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-km-primary-dark transition-all shadow-md shadow-blue-900/10">
                                     Follow
                                 </button>
-                                <a href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'} target="_blank" rel="noopener noreferrer" className="border-2 border-km-primary text-km-primary px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-50 transition-all text-center">
+                                <a href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'} target="_blank" rel="noopener noreferrer" className="border-2 border-km-primary text-km-heading px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-50 transition-all text-center">
                                     Visit Website
                                 </a>
                             </div>
@@ -97,7 +97,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                                     <Link
                                         href={dynamicPath}
                                         key={tab.id}
-                                        className={`py-4 text-sm font-bold transition-colors whitespace-nowrap ${isActive ? 'text-km-primary border-b-2 border-km-primary' : 'text-gray-500 hover:text-gray-700'
+                                        className={`py-4 text-sm font-bold transition-colors whitespace-nowrap ${isActive ? 'text-km-heading border-b-2 border-km-primary' : 'text-gray-500 hover:text-gray-700'
                                             }`}
                                     >
                                         {tab.label}
@@ -114,52 +114,52 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
 
                     {/* Ad Banner Top */}
-                    <div className="bg-white border border-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 font-bold shadow-sm">
+                    <div className="bg-km-surface-card border border-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 font-bold shadow-sm">
                         Ad Banner
                     </div>
 
                     {/* People Also Follow */}
-                    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm p-6">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">People Also Follow</h3>
 
                         {[1, 2, 3].map((i) => (
                             <div key={i} className="flex items-center gap-3 py-4 border-b border-gray-50 last:border-0">
                                 <div className="w-12 h-12 bg-km-primary-dark rounded-full shrink-0 flex items-center justify-center">
-                                    <Users className="text-white w-6 h-6" />
+                                    <UsersIcon className="text-white w-6 h-6" />
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm font-bold text-gray-900">Person Name</p>
                                     <p className="text-[11px] text-gray-400 font-medium">Person Designation</p>
                                     <div className="flex items-center text-[11px] text-gray-400 mt-0.5 font-medium">
-                                        <MapPin size={10} className="mr-1 text-km-primary" /> Location
+                                        <MapPinIcon weight="bold" size={10} className="mr-1 text-km-heading" /> Location
                                     </div>
                                     <p className="text-[10px] text-gray-300 mt-1">10 Mutual Connects</p>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <button className="p-1.5 rounded-xl border border-gray-200 text-km-primary hover:bg-gray-50">
-                                        <MessageCircle size={16} />
+                                    <button className="p-1.5 rounded-xl border border-gray-200 text-km-heading hover:bg-gray-50">
+                                        <ChatCircleIcon weight="bold" size={16} />
                                     </button>
                                     <button className="p-1.5 rounded-xl bg-km-primary text-white shadow-sm hover:bg-km-primary-dark">
-                                        <Plus size={16} />
+                                        <PlusIcon weight="bold" size={16} />
                                     </button>
                                 </div>
                             </div>
                         ))}
 
-                        <button className="w-full text-center py-3 text-km-primary text-sm font-bold hover:underline">
+                        <button className="w-full text-center py-3 text-km-heading text-sm font-bold hover:underline">
                             Show All
                         </button>
                     </section>
 
                     {/* Similar Companies */}
-                    <section className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm p-6">
                         <h3 className="text-lg font-bold text-gray-900 mb-4">Companies</h3>
 
                         {[1, 2].map((i) => (
                             <div key={i} className="mb-6 last:mb-0">
                                 <div className="flex gap-4">
                                     <div className="w-12 h-12 bg-km-primary-dark rounded-xl flex items-center justify-center shrink-0">
-                                        <Briefcase className="text-white w-6 h-6" />
+                                        <BriefcaseIcon className="text-white w-6 h-6" />
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-gray-900">Company Name</p>
@@ -170,8 +170,8 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
 
                                 <div className="mt-3 flex items-center gap-2">
                                     <div className="flex -space-x-2">
-                                        <div className="w-5 h-5 rounded-full bg-gray-200 border border-white" />
-                                        <div className="w-5 h-5 rounded-full bg-gray-300 border border-white" />
+                                        <div className="w-5 h-5 rounded-full bg-gray-200 border border-white dark:border-km-surface-card" />
+                                        <div className="w-5 h-5 rounded-full bg-gray-300 border border-white dark:border-km-surface-card" />
                                     </div>
                                     <p className="text-[10px] text-gray-500 font-medium">44 Connections Follow This Page</p>
                                 </div>
@@ -182,13 +182,13 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                             </div>
                         ))}
 
-                        <button className="w-full text-center mt-4 text-km-primary text-sm font-bold hover:underline">
+                        <button className="w-full text-center mt-4 text-km-heading text-sm font-bold hover:underline">
                             Show All
                         </button>
                     </section>
 
                     {/* Ad Banner Bottom */}
-                    <div className="bg-white border border-gray-100 rounded-2xl h-80 flex items-center justify-center text-gray-400 font-bold shadow-sm">
+                    <div className="bg-km-surface-card border border-gray-100 rounded-2xl h-80 flex items-center justify-center text-gray-400 font-bold shadow-sm">
                         Ad Banner
                     </div>
 

@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Pencil, Camera, Trash2 } from 'lucide-react';
+import { CameraIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import CustomImage from '@/components/ui/CustomImage';
+import { notify } from "@/lib/notify";
 
 interface ProfilePhotoModalProps {
   isOpen: boolean;
@@ -35,8 +36,10 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
       const userResponse = await api.patch('/user/profile', { profile_image: newImageUrl });
       onSuccess(userResponse);
       onClose();
+      notify.success("Profile photo updated");
     } catch (error) {
       console.error("Failed to upload/update profile photo:", error);
+      notify.error(error, "Could not update your profile photo. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -49,8 +52,10 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
       const response = await api.patch('/user/profile', { profile_image: "" });
       onSuccess(response);
       onClose();
+      notify.success("Profile photo removed");
     } catch (error) {
       console.error("Failed to delete profile photo:", error);
+      notify.error(error, "Could not remove your profile photo. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +65,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
     <ModalWrapper isOpen={isOpen} onClose={onClose} title="Profile Photo">
       <div className="flex flex-col items-center justify-center py-4 relative">
         {loading && (
-          <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center rounded-full">
+          <div className="absolute inset-0 bg-km-surface-card/50 z-10 flex items-center justify-center rounded-full">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-km-primary"></div>
           </div>
         )}
@@ -89,32 +94,32 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
               type="file"
               ref={fileInputRef}
               className="hidden"
-              accept="image/*"
+              accept="image/jpeg,image/png,image/webp"
               onChange={handleFileChange}
             />
             {/* Edit Button - Trigger same file pick for now */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 border border-blue-200 rounded-full text-km-primary hover:bg-blue-50 transition-colors group"
+              className="p-3 border border-blue-200 rounded-full text-km-heading hover:bg-blue-50 transition-colors group"
             >
-              <Pencil size={20} className="group-hover:scale-110 transition-transform" />
+              <PencilSimpleIcon size={20} className="group-hover:scale-110 transition-transform" />
             </button>
 
             {/* Camera Button */}
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="p-3 border border-blue-200 rounded-full text-km-primary hover:bg-blue-50 transition-colors group"
+              className="p-3 border border-blue-200 rounded-full text-km-heading hover:bg-blue-50 transition-colors group"
             >
-              <Camera size={20} className="group-hover:scale-110 transition-transform" />
+              <CameraIcon size={20} className="group-hover:scale-110 transition-transform" />
             </button>
           </div>
 
           {/* Delete Button */}
           <button
             onClick={handleDelete}
-            className="p-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group"
+            className="p-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group dark:hover:text-red-400"
           >
-            <Trash2 size={20} className="group-hover:shake" />
+            <TrashIcon size={20} className="group-hover:shake" />
           </button>
         </div>
       </div>

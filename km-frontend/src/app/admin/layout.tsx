@@ -5,48 +5,31 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import BrandLogo from '@/components/km/BrandLogo';
 import { clearSession, isAuthenticated } from '@/lib/auth';
-import {
-    Users,
-    Building2,
-    ShieldCheck,
-    HelpCircle,
-    Briefcase,
-    MapPin,
-    Map,
-    GraduationCap,
-    Video,
-    MessageSquareQuote,
-    LayoutPanelLeft,
-    Search,
-    Download,
-    ChevronDown,
-    Bell,
-    Menu,
-    LogOut,
-    Shield,
-    X,
-    ShieldAlert,
-    Flag
-} from 'lucide-react';
+
+import { BellIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CaretDownIcon, DownloadSimpleIcon, FileXlsIcon, FlagIcon, GraduationCapIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, QuestionIcon, QuotesIcon, ShieldCheckIcon, ShieldIcon, ShieldWarningIcon, SidebarSimpleIcon, SignOutIcon, SquaresFourIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
-    { name: 'User Module', icon: Users, href: '/admin/users' },
-    { name: 'Recruiter / Company', icon: Building2, href: '/admin/companies' },
-    { name: 'Testimonials', icon: MessageSquareQuote, href: '/admin/testimonials' },
-    { name: 'Policies', icon: ShieldCheck, href: '/admin/policies' },
-    { name: 'Questions', icon: HelpCircle, href: '/admin/questions' },
-    { name: 'Jobs', icon: Briefcase, href: '/admin/jobs' },
-    { name: 'Cities', icon: MapPin, href: '/admin/cities' },
-    { name: 'Job City Wise', icon: Map, href: '/admin/job-city' },
-    { name: 'Professions', icon: GraduationCap, href: '/admin/professions' },
-    { name: 'Learn Videos', icon: Video, href: '/admin/learn-videos' },
-    { name: 'Adds Published', icon: LayoutPanelLeft, href: '/admin/ads' },
-    { name: 'Expert Requests', icon: Briefcase, href: '/admin/expert-requests' },
-    { name: 'Wallet Disputes', icon: ShieldAlert, href: '/admin/disputes' },
-    { name: 'Chat Reports', icon: Flag, href: '/admin/chat-reports' },
+    { name: 'Analytics & Overview', icon: SquaresFourIcon, href: '/admin' },
+    { name: 'Reports & Analytics', icon: FileXlsIcon, href: '/admin/reports' },
+    { name: 'User Module', icon: UsersIcon, href: '/admin/users' },
+    { name: 'Recruiter / Company', icon: BuildingOfficeIcon, href: '/admin/companies' },
+    { name: 'Events & Workshops', icon: CalendarBlankIcon, href: '/admin/events' },
+    { name: 'Testimonials', icon: QuotesIcon, href: '/admin/testimonials' },
+    { name: 'Policies', icon: ShieldCheckIcon, href: '/admin/policies' },
+    { name: 'Questions', icon: QuestionIcon, href: '/admin/questions' },
+    { name: 'Jobs', icon: BriefcaseIcon, href: '/admin/jobs' },
+    { name: 'Cities', icon: MapPinIcon, href: '/admin/cities' },
+    { name: 'Job City Wise', icon: MapTrifoldIcon, href: '/admin/job-city' },
+    { name: 'Professions', icon: GraduationCapIcon, href: '/admin/professions' },
+    { name: 'Learn Videos', icon: VideoCameraIcon, href: '/admin/learn-videos' },
+    { name: 'Adds Published', icon: SidebarSimpleIcon, href: '/admin/ads' },
+    { name: 'Expert Requests', icon: BriefcaseIcon, href: '/admin/expert-requests' },
+    { name: 'Wallet Disputes', icon: ShieldWarningIcon, href: '/admin/disputes' },
+    { name: 'Chat Reports', icon: FlagIcon, href: '/admin/chat-reports' },
 ];
+
 
 export default function AdminLayout({
     children,
@@ -101,7 +84,7 @@ export default function AdminLayout({
 
     if (isAuthChecking) {
         return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="min-h-screen bg-km-surface-card flex items-center justify-center">
                 <motion.div
                     animate={{
                         scale: [1, 1.1, 1],
@@ -165,7 +148,7 @@ export default function AdminLayout({
                                     whileTap={{ scale: 0.98 }}
                                     className={`flex items-center gap-4 px-4 py-3 rounded-2xl transition-all relative ${isActive
                                         ? 'bg-purple-50 text-purple-700 font-bold'
-                                        : 'text-slate-500 hover:text-purple-600'
+                                        : 'text-slate-500 hover:text-purple-600 dark:hover:text-purple-400'
                                         }`}
                                 >
                                     {isActive && (
@@ -174,7 +157,7 @@ export default function AdminLayout({
                                             className="absolute left-0 w-1.5 h-6 bg-purple-600 rounded-r-full"
                                         />
                                     )}
-                                    <item.icon size={22} className={`${isActive ? 'text-purple-600' : 'text-slate-400 group-hover:text-purple-600'} transition-colors`} />
+                                    <item.icon size={22} className={`${isActive ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'} transition-colors`} />
                                     <AnimatePresence mode="wait">
                                         {!collapsed && (
                                             <motion.span
@@ -197,9 +180,9 @@ export default function AdminLayout({
             <div className="p-4 border-t border-purple-50">
                 <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all font-semibold"
+                    className="w-full flex items-center gap-4 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-2xl transition-all font-semibold dark:hover:text-red-400"
                 >
-                    <LogOut size={22} />
+                    <SignOutIcon size={22} />
                     {!collapsed && <span className="text-[14px]">Sign Out</span>}
                 </button>
             </div>
@@ -207,12 +190,12 @@ export default function AdminLayout({
     );
 
     return (
-        <div className="min-h-screen bg-[#FDFCFE] flex font-sans selection:bg-purple-200">
+        <div className="min-h-screen bg-[#FDFCFE] flex font-sans selection:bg-purple-200 dark:bg-white/5">
             {/* ── DESKTOP SIDEBAR ── */}
             <motion.aside
                 initial={false}
                 animate={{ width: isSidebarOpen ? 280 : 88 }}
-                className="bg-white border-r border-purple-50 flex-col fixed inset-y-0 z-50 shadow-sm overflow-hidden hidden lg:flex"
+                className="bg-km-surface-card border-r border-purple-50 flex-col fixed inset-y-0 z-50 shadow-sm overflow-hidden hidden lg:flex"
             >
                 <div className="p-6 flex items-center justify-between">
                     <BrandLogo size="md" href="/admin" />
@@ -220,7 +203,7 @@ export default function AdminLayout({
                         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                         className="p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors"
                     >
-                        <Menu size={20} />
+                        <ListIcon size={20} />
                     </button>
                 </div>
                 <SidebarContent collapsed={!isSidebarOpen} />
@@ -244,7 +227,7 @@ export default function AdminLayout({
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            className="fixed inset-y-0 left-0 w-72 bg-white border-r border-purple-50 flex flex-col z-50 shadow-2xl lg:hidden"
+                            className="fixed inset-y-0 left-0 w-72 bg-km-surface-card border-r border-purple-50 flex flex-col z-50 shadow-2xl lg:hidden"
                         >
                             {/* Drawer header */}
                             <div className="p-6 flex items-center justify-between">
@@ -253,7 +236,7 @@ export default function AdminLayout({
                                     onClick={() => setIsMobileMenuOpen(false)}
                                     className="p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors"
                                 >
-                                    <X size={20} />
+                                    <XIcon size={20} />
                                 </button>
                             </div>
                             <SidebarContent collapsed={false} />
@@ -274,22 +257,22 @@ export default function AdminLayout({
                 `}</style>
                 <div className="admin-main-shift flex-1 flex flex-col min-w-0">
                     {/* ── TOP HEADER ── */}
-                    <header className="h-16 sm:h-20 bg-white/80 backdrop-blur-md border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
+                    <header className="h-16 sm:h-20 bg-km-surface-card/80 backdrop-blur-md border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
                         {/* Mobile hamburger */}
                         <button
                             className="lg:hidden p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors mr-3 shrink-0"
                             onClick={() => setIsMobileMenuOpen(true)}
                         >
-                            <Menu size={22} />
+                            <ListIcon size={22} />
                         </button>
 
                         <div className="flex items-center flex-1 max-w-xl">
                             <div className="relative w-full group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                                <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Search intelligence..."
-                                    className="w-full pl-11 pr-4 py-2.5 bg-purple-50/50 border border-transparent rounded-2xl text-sm focus:outline-none focus:bg-white focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none"
+                                    className="w-full pl-11 pr-4 py-2.5 bg-purple-50/50 border border-transparent rounded-2xl text-sm focus:outline-none focus:bg-km-surface-card focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none"
                                 />
                             </div>
                         </div>
@@ -298,15 +281,15 @@ export default function AdminLayout({
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-white border border-purple-100 text-purple-700 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all"
+                                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-km-surface-card border border-purple-100 text-purple-700 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all"
                             >
-                                <Download size={18} />
+                                <DownloadSimpleIcon weight="bold" size={18} />
                                 <span className="hidden md:inline">Download App</span>
                             </motion.button>
                             <div className="h-8 w-px bg-purple-100 hidden sm:block"></div>
                             <div className="relative cursor-pointer">
-                                <Bell size={22} className="text-slate-400 hover:text-purple-600 transition-colors" />
-                                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                                <BellIcon size={22} className="text-slate-400 hover:text-purple-600 transition-colors dark:hover:text-purple-400" />
+                                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full dark:border-km-surface-card"></span>
                             </div>
                             <div className="flex items-center gap-2 cursor-pointer group">
                                 <div className="w-9 h-9 sm:w-10 sm:h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 text-xs font-bold ring-2 ring-purple-500/10 group-hover:ring-purple-500/20 transition-all shadow-sm">
@@ -316,7 +299,7 @@ export default function AdminLayout({
                                     <p className="text-[13px] font-bold text-slate-800 leading-none">{adminUser?.name || 'Admin'}</p>
                                     <p className="text-[10px] text-slate-400 font-medium mt-1">Administrator</p>
                                 </div>
-                                <ChevronDown size={14} className="text-slate-400 group-hover:text-purple-600 transition-colors hidden md:block" />
+                                <CaretDownIcon weight="bold" size={14} className="text-slate-400 group-hover:text-purple-600 transition-colors hidden md:block dark:group-hover:text-purple-400" />
                             </div>
                         </div>
                     </header>

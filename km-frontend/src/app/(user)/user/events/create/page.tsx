@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 
 export default function CreateEventPage() {
@@ -30,10 +30,10 @@ export default function CreateEventPage() {
 
         try {
             await api.post("/events", formData);
-            toast.success("Event created successfully!");
+            notify.success("Event created successfully!");
             router.push("/events");
         } catch (error: any) {
-            toast.error(error.message || "Failed to create event");
+            notify.error(error.message || "Failed to create event");
         } finally {
             setLoading(false);
         }
@@ -51,7 +51,7 @@ export default function CreateEventPage() {
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-2xl">
-                <div className="bg-white py-8 px-4 shadow sm:rounded-2xl sm:px-10 border border-gray-100">
+                <div className="bg-km-surface-card py-8 px-4 shadow sm:rounded-2xl sm:px-10 border border-gray-100">
                     <form className="space-y-6" onSubmit={handleSubmit}>
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">Event Title</label>

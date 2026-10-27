@@ -32,9 +32,11 @@ func (api *UserApi) Setup(app *fiber.App) {
 	// Protected routes
 	protected := app.Group("/api/user", middleware.AuthMiddleware(api.controller.config.JWTSecret))
 	protected.Get("/profile", api.controller.GetProfile)
+	protected.Get("/profile-completion", api.controller.GetProfileCompletion)
 	protected.Get("/search", api.controller.SearchUsers)
 	protected.Post("/register", api.controller.Register)
 	protected.Put("/password", api.controller.SetPassword)
+	protected.Post("/sessions/revoke-others", api.controller.RevokeOtherSessions)
 	protected.Post("/impressions", api.controller.RecordPostImpressions)
 	protected.Patch("/username", api.controller.UpdateUsername)
 	protected.Get("/username/check", api.controller.CheckUsernameAvailability)
@@ -42,7 +44,6 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Patch("/providing-services", api.controller.UpdateProvidingServices)
 	protected.Get("/viewers", api.controller.GetProfileViewers)
 	protected.Put("/location", api.controller.UpdateLocation)
-	protected.Get("/:id", api.controller.GetOtherUserProfile)
 	protected.Patch("/profile", api.controller.UpdateProfile)
 	protected.Post("/education", api.controller.AddEducation)
 	protected.Put("/education/:id", api.controller.UpdateEducation)
@@ -62,6 +63,9 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Get("/settings", api.controller.GetSettings)
 	protected.Put("/settings", api.controller.UpdateSettings)
 	protected.Post("/settings", api.controller.UpdateSettings)
+	// Catch-all profile lookup must stay last: Fiber matches in registration order, so registered
+	// earlier it swallowed GET /settings and GET /bookmarks ("settings" was read as a user ID)
+	protected.Get("/:id", api.controller.GetOtherUserProfile)
 
 	// Settings alias route group
 	settings := app.Group("/api/settings", middleware.AuthMiddleware(api.controller.config.JWTSecret))
@@ -69,13 +73,16 @@ func (api *UserApi) Setup(app *fiber.App) {
 	settings.Put("/me", api.controller.UpdateSettings)
 	settings.Post("/me", api.controller.UpdateSettings)
 
-	// Admin routes (should add role middleware later)
-	admin := app.Group("/api/admin", middleware.AuthMiddleware(api.controller.config.JWTSecret))
+	// Admin routes
+	admin := app.Group("/api/admin", middleware.AuthMiddleware(api.controller.config.JWTSecret), middleware.RequireRole(RoleAdmin))
 	admin.Get("/users", api.controller.GetAllUsers)
 	admin.Patch("/users/:id/roles", api.controller.UpdateUserRoles)
 	admin.Patch("/users/:id", api.controller.AdminUpdateUserProfile)
 	admin.Put("/experts/:id/approve", api.controller.ApproveExpert)
 	admin.Get("/expert-requests", api.controller.GetExpertRequests)
+	admin.Get("/reports/export/users", api.controller.ExportUsersCSV)
+	admin.Get("/reports/export/jobs", api.controller.ExportJobsCSV)
+	admin.Get("/reports/export/revenue", api.controller.ExportRevenueCSV)
 
 	// Public user discovery & platform activity endpoints
 	app.Get("/api/experts", api.controller.GetExperts)

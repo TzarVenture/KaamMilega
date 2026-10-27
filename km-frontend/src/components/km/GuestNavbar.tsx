@@ -2,11 +2,14 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, ChevronDown, Smartphone, LogIn, ExternalLink, Menu, X, Briefcase, Zap, GraduationCap, Calendar, Users } from 'lucide-react';
+import { ArrowSquareOutIcon, CaretDownIcon, DeviceMobileIcon, ListIcon, MagnifyingGlassIcon, SignInIcon, XIcon } from '@phosphor-icons/react';
+import { EventsNavIcon, InstantNavIcon, JobsNavIcon, MentorsNavIcon, NetworkNavIcon, type NavIcon } from './icons/NavIcons';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import CitySelector from './CitySelector';
 import BrandLogo from './BrandLogo';
+import ThemeToggle, { ThemeIconButton } from './ThemeToggle';
 import DownloadAppModal from './DownloadAppModal';
+import SearchHint from './SearchHint';
 import { FEATURES } from '@/config/features';
 
 const GuestNavbar = () => {
@@ -66,12 +69,12 @@ const GuestNavbar = () => {
         setMobileMenuOpen(false);
     };
 
-    const navLinks = [
-        { label: 'Jobs', href: '/jobs', icon: <Briefcase size={15} /> },
-        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', icon: <Zap size={15} className="text-[#FF6B00] fill-[#FF6B00]" />, isHighlighted: true }] : []),
-        { label: 'Mentors', href: '/mentorship', icon: <GraduationCap size={15} /> },
-        { label: 'Events', href: '/events', icon: <Calendar size={15} /> },
-        { label: 'Network', href: '/network', icon: <Users size={15} /> },
+    const navLinks: { label: string; href: string; Icon: NavIcon; isHighlighted?: boolean }[] = [
+        { label: 'Jobs', href: '/jobs', Icon: JobsNavIcon },
+        ...(FEATURES.INSTANT_MILEGA ? [{ label: 'InstantMilega™', href: '/instant-milega', Icon: InstantNavIcon, isHighlighted: true }] : []),
+        { label: 'Mentors', href: '/mentorship', Icon: MentorsNavIcon },
+        { label: 'Events', href: '/events', Icon: EventsNavIcon },
+        { label: 'Network', href: '/network', Icon: NetworkNavIcon },
     ];
 
     const isLinkActive = (item: { href: string }) => {
@@ -86,7 +89,7 @@ const GuestNavbar = () => {
 
     return (
         <>
-            <header className="sticky top-0 z-50 bg-white border-b border-slate-200 shadow-xs font-sans">
+            <header className="sticky top-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-xs font-sans">
                 {/* Main Nav Bar */}
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
                     {/* Left: Official Brand Logo with proper spacing */}
@@ -95,29 +98,30 @@ const GuestNavbar = () => {
                     </div>
 
                     {/* Center: Search Bar with Integrated City Selector (Desktop) */}
-                    <div className="hidden md:flex items-center flex-1 max-w-xl bg-slate-50 hover:bg-slate-100/80 rounded-full border border-slate-200 focus-within:border-km-primary focus-within:bg-white focus-within:ring-2 focus-within:ring-km-primary/15 transition-all p-1">
+                    <div className="hidden md:flex items-center flex-1 max-w-xl bg-slate-50 hover:bg-slate-100/80 rounded-full border border-slate-200 focus-within:border-km-primary focus-within:bg-km-surface-card focus-within:ring-2 focus-within:ring-km-primary/15 transition-all p-1">
                         <CitySelector
                             selectedCity={selectedCity}
                             onCityChange={handleCityChange}
                             variant="guest"
                         />
                         <div className="h-5 w-px bg-slate-300 mx-1 shrink-0" />
-                        <form onSubmit={handleSearch} className="flex items-center flex-1 min-w-0 pr-2">
-                            <Search size={16} className="text-slate-400 mr-2 shrink-0" />
+                        <form onSubmit={handleSearch} className="relative flex items-center flex-1 min-w-0 pr-2">
+                            <MagnifyingGlassIcon weight="bold" size={16} className="text-slate-400 mr-2 shrink-0" />
                             <input
                                 type="text"
-                                placeholder="Search jobs, skills, or companies..."
+                                aria-label="Search jobs, skills, companies and more"
                                 value={searchValue}
                                 onChange={(e) => setSearchValue(e.target.value)}
-                                className="bg-transparent text-xs sm:text-sm outline-none w-full text-slate-800 placeholder:text-slate-400"
+                                className="bg-transparent text-sm outline-none w-full text-slate-800"
                             />
+                            {!searchValue && <SearchHint className="left-6 right-2" />}
                             {searchValue && (
                                 <button
                                     type="button"
                                     onClick={() => setSearchValue('')}
                                     className="text-slate-400 hover:text-slate-600 p-1"
                                 >
-                                    <X size={14} />
+                                    <XIcon weight="bold" size={14} />
                                 </button>
                             )}
                         </form>
@@ -125,13 +129,15 @@ const GuestNavbar = () => {
 
                     {/* Right: Actions & Conversion (Desktop) */}
                     <div className="hidden lg:flex items-center gap-4 shrink-0">
+                        {FEATURES.DARK_MODE && <ThemeIconButton />}
+
                         {/* Download App Button */}
                         <button
                             type="button"
                             onClick={() => setIsDownloadModalOpen(true)}
-                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-heading transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
                         >
-                            <Smartphone size={16} className="text-slate-500" />
+                            <DeviceMobileIcon weight="bold" size={16} className="text-slate-500" />
                             <span>App</span>
                         </button>
 
@@ -140,24 +146,24 @@ const GuestNavbar = () => {
                             <button
                                 type="button"
                                 onClick={() => setIsLangOpen(!isLangOpen)}
-                                className="flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
+                                className="flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-km-heading transition-colors py-2 px-2.5 rounded-lg hover:bg-slate-50"
                             >
                                 <span>{selectedLang}</span>
-                                <ChevronDown size={14} className={`transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
+                                <CaretDownIcon weight="bold" size={14} className={`transition-transform duration-200 ${isLangOpen ? 'rotate-180' : ''}`} />
                             </button>
                             {isLangOpen && (
-                                <div className="absolute right-0 mt-1 w-28 bg-white border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
+                                <div className="absolute right-0 mt-1 w-28 bg-km-surface-card border border-slate-200 rounded-xl shadow-lg py-1 z-50 animate-in fade-in zoom-in-95 duration-150">
                                     <button
                                         type="button"
                                         onClick={() => { setSelectedLang('English'); setIsLangOpen(false); }}
-                                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${selectedLang === 'English' ? 'font-bold text-km-primary bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${selectedLang === 'English' ? 'font-bold text-km-heading bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
                                     >
                                         English
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => { setSelectedLang('हिन्दी'); setIsLangOpen(false); }}
-                                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${selectedLang === 'हिन्दी' ? 'font-bold text-km-primary bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
+                                        className={`w-full text-left px-3 py-1.5 text-xs transition-colors ${selectedLang === 'हिन्दी' ? 'font-bold text-km-heading bg-blue-50' : 'text-slate-700 hover:bg-slate-50'}`}
                                     >
                                         हिन्दी
                                     </button>
@@ -168,9 +174,9 @@ const GuestNavbar = () => {
                         {/* Login Link */}
                         <Link
                             href="/login"
-                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-primary transition-colors py-2 px-3 rounded-lg hover:bg-slate-50"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 hover:text-km-heading transition-colors py-2 px-3 rounded-lg hover:bg-slate-50"
                         >
-                            <LogIn size={15} />
+                            <SignInIcon weight="bold" size={15} />
                             <span>Sign In</span>
                         </Link>
 
@@ -180,26 +186,31 @@ const GuestNavbar = () => {
                             className="bg-km-primary hover:bg-km-primary-dark text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition-all shadow-xs hover:shadow-sm active:scale-98"
                         >
                             <span>Hire Staff</span>
-                            <ExternalLink size={13} />
+                            <ArrowSquareOutIcon weight="bold" size={13} />
                         </Link>
                     </div>
 
                     {/* Mobile Right: Search + Hamburger */}
-                    <div className="flex lg:hidden items-center gap-1.5 shrink-0">
+                    <div className="flex lg:hidden items-center gap-1 shrink-0">
+                        {FEATURES.DARK_MODE && (
+                            <div className="hidden sm:block">
+                                <ThemeIconButton />
+                            </div>
+                        )}
                         <button
                             onClick={() => {
                                 setMobileSearchOpen(!mobileSearchOpen);
                                 if (mobileMenuOpen) setMobileMenuOpen(false);
                             }}
-                            className={`p-2 rounded-xl transition-colors cursor-pointer ${mobileSearchOpen ? 'bg-blue-50 text-km-primary' : 'text-slate-600 hover:bg-slate-100'
+                            className={`p-2 rounded-xl transition-colors cursor-pointer ${mobileSearchOpen ? 'bg-blue-50 text-km-heading' : 'text-slate-600 hover:bg-slate-100'
                                 }`}
                             aria-label="Open search"
                         >
-                            <Search size={19} />
+                            <MagnifyingGlassIcon size={19} />
                         </button>
                         <Link
                             href="/login"
-                            className="px-3 py-1.5 text-xs font-semibold text-km-primary hover:bg-blue-50 rounded-lg transition-colors border border-blue-100"
+                            className="px-3 py-1.5 text-xs font-semibold text-km-heading hover:bg-blue-50 rounded-lg transition-colors border border-blue-100"
                         >
                             Sign In
                         </Link>
@@ -212,13 +223,13 @@ const GuestNavbar = () => {
                                 }`}
                             aria-label="Toggle navigation menu"
                         >
-                            {mobileMenuOpen ? <X size={21} /> : <Menu size={21} />}
+                            {mobileMenuOpen ? <XIcon size={21} /> : <ListIcon size={21} />}
                         </button>
                     </div>
                 </div>
 
                 {/* Desktop Secondary Navigation Bar (Core Services) - Center Aligned with Active States */}
-                <div className="hidden lg:block border-t border-slate-100 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+                <div className="hidden lg:block border-t border-slate-100 bg-km-surface-card shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
                     <div className="max-w-7xl mx-auto px-6 flex items-center justify-center">
                         <nav className="flex items-center gap-2 py-1.5">
                             {navLinks.map((item) => {
@@ -227,17 +238,17 @@ const GuestNavbar = () => {
                                     <Link
                                         key={item.href}
                                         href={item.href}
-                                        className={`relative flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${active
+                                        className={`group relative flex items-center gap-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 ${active
                                                 ? item.isHighlighted
                                                     ? 'text-amber-900 bg-amber-100/80 font-bold shadow-xs'
-                                                    : 'text-km-primary bg-blue-50/90 font-bold shadow-xs'
+                                                    : 'text-km-heading bg-blue-50/90 font-bold shadow-xs'
                                                 : item.isHighlighted
                                                     ? 'text-amber-700 hover:bg-amber-50/80'
-                                                    : 'text-slate-600 hover:text-km-primary hover:bg-slate-50'
+                                                    : 'text-slate-600 hover:text-km-heading hover:bg-slate-50'
                                             }`}
                                     >
-                                        <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-primary') : (item.isHighlighted ? 'text-amber-600' : 'text-slate-400')}>
-                                            {item.icon}
+                                        <span className={active ? (item.isHighlighted ? 'text-amber-700' : 'text-km-heading') : (item.isHighlighted ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500')}>
+                                            <item.Icon size={17} strokeWidth={2} active={active} />
                                         </span>
                                         <span>{item.label}</span>
                                         {active && (
@@ -256,21 +267,22 @@ const GuestNavbar = () => {
                 <>
                     <div
                         onClick={() => setMobileSearchOpen(false)}
-                        className="lg:hidden fixed inset-0 top-16 z-40 bg-slate-900/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
+                        className="lg:hidden fixed inset-0 top-16 z-40 bg-km-ink/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
                         aria-hidden="true"
                     />
-                    <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 px-4 py-3.5 shadow-xl animate-in slide-in-from-top-2 duration-150">
+                    <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 px-4 py-3.5 shadow-xl animate-in slide-in-from-top-2 duration-150">
                         <form onSubmit={handleSearch} className="flex items-center gap-2">
-                            <div className="flex items-center flex-1 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 focus-within:border-km-primary focus-within:bg-white focus-within:ring-1 focus-within:ring-km-primary transition-all">
-                                <Search size={16} className="text-slate-400 mr-2 shrink-0" />
+                            <div className="relative flex items-center flex-1 bg-slate-50 rounded-xl border border-slate-200 px-3 py-2.5 focus-within:border-km-primary focus-within:bg-km-surface-card focus-within:ring-1 focus-within:ring-km-primary transition-all">
+                                <MagnifyingGlassIcon weight="bold" size={16} className="text-slate-400 mr-2 shrink-0" />
                                 <input
                                     type="text"
-                                    placeholder="Search jobs, skills, roles..."
+                                    aria-label="Search jobs, skills, companies and more"
                                     value={searchValue}
                                     autoFocus
                                     onChange={(e) => setSearchValue(e.target.value)}
-                                    className="bg-transparent text-xs sm:text-sm outline-none w-full text-slate-800 placeholder:text-slate-400"
+                                    className="bg-transparent text-sm outline-none w-full text-slate-800"
                                 />
+                                {!searchValue && <SearchHint className="left-9 right-3" />}
                             </div>
                             <button
                                 type="submit"
@@ -289,16 +301,16 @@ const GuestNavbar = () => {
                     {/* Backdrop */}
                     <div
                         onClick={() => setMobileMenuOpen(false)}
-                        className="lg:hidden fixed inset-0 top-16 z-40 bg-slate-900/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
+                        className="lg:hidden fixed inset-0 top-16 z-40 bg-km-ink/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
                         aria-hidden="true"
                     />
 
                     {/* Drawer Content */}
-                    <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-white border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
+                    <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
                         {/* Core Services Links */}
                         <div className="px-5 py-4 border-b border-slate-100">
-                            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2.5">
-                                Explore Ecosystem
+                            <p className="text-xs font-semibold text-slate-500 mb-2">
+                                Browse
                             </p>
                             <div className="space-y-1">
                                 {navLinks.map((item) => (
@@ -306,13 +318,13 @@ const GuestNavbar = () => {
                                         key={item.href}
                                         href={item.href}
                                         onClick={() => setMobileMenuOpen(false)}
-                                        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm font-semibold transition-colors ${item.isHighlighted
+                                        className={`group flex items-center gap-3 py-2.5 px-3 rounded-xl text-sm font-semibold transition-colors ${item.isHighlighted
                                                 ? 'text-amber-800 bg-amber-50/80 font-bold border border-amber-200/60'
-                                                : 'text-slate-700 hover:bg-slate-50 hover:text-km-primary active:bg-slate-100'
+                                                : 'text-slate-700 hover:bg-slate-50 hover:text-km-heading active:bg-slate-100'
                                             }`}
                                     >
-                                        <span className={item.isHighlighted ? 'text-amber-600' : 'text-slate-500'}>
-                                            {item.icon}
+                                        <span className={item.isHighlighted ? 'text-amber-600 dark:text-amber-400' : 'text-slate-500'}>
+                                            <item.Icon size={19} strokeWidth={1.9} active={isLinkActive(item)} />
                                         </span>
                                         <span>{item.label}</span>
                                     </Link>
@@ -320,14 +332,21 @@ const GuestNavbar = () => {
                             </div>
                         </div>
 
+                        {FEATURES.DARK_MODE && (
+                            <div className="px-5 py-4 border-b border-slate-100 sm:hidden">
+                                <p className="text-xs font-semibold text-slate-500 mb-2">Appearance</p>
+                                <ThemeToggle />
+                            </div>
+                        )}
+
                         {/* Account & Recruitment CTAs */}
                         <div className="p-5 space-y-3 border-b border-slate-100 bg-slate-50/50">
                             <Link
                                 href="/login"
                                 onClick={() => setMobileMenuOpen(false)}
-                                className="w-full flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
+                                className="w-full flex items-center justify-center gap-2 py-3 bg-km-surface-card border border-slate-200 hover:bg-slate-50 text-slate-800 text-sm font-bold rounded-xl transition-all shadow-2xs cursor-pointer"
                             >
-                                <LogIn size={16} />
+                                <SignInIcon weight="bold" size={16} />
                                 <span>Sign In as Candidate</span>
                             </Link>
                             <Link
@@ -336,7 +355,7 @@ const GuestNavbar = () => {
                                 className="w-full flex items-center justify-center gap-2 py-3 bg-km-primary hover:bg-km-primary-dark text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-blue-900/15 cursor-pointer"
                             >
                                 <span>Hire Local Staff (Recruiter Portal)</span>
-                                <ExternalLink size={15} />
+                                <ArrowSquareOutIcon weight="bold" size={15} />
                             </Link>
                         </div>
 
@@ -345,15 +364,15 @@ const GuestNavbar = () => {
                             <button
                                 type="button"
                                 onClick={() => { setMobileMenuOpen(false); setIsDownloadModalOpen(true); }}
-                                className="flex items-center gap-2 font-bold text-slate-700 hover:text-km-primary py-1 cursor-pointer"
+                                className="flex items-center gap-2 font-bold text-slate-700 hover:text-km-heading py-1 cursor-pointer"
                             >
-                                <Smartphone size={16} className="text-slate-500" />
+                                <DeviceMobileIcon weight="bold" size={16} className="text-slate-500" />
                                 <span>Install Mobile App</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setSelectedLang(selectedLang === 'English' ? 'हिन्दी' : 'English')}
-                                className="font-bold text-km-primary hover:underline py-1 cursor-pointer"
+                                className="font-bold text-km-heading hover:underline py-1 cursor-pointer"
                             >
                                 {selectedLang === 'English' ? 'Switch to हिन्दी' : 'Switch to English'}
                             </button>

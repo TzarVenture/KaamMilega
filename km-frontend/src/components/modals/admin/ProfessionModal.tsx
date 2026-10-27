@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Info, Loader2, AlertCircle } from 'lucide-react';
+import { CircleNotchIcon, InfoIcon, WarningCircleIcon } from '@phosphor-icons/react';
+import { errorText } from "@/lib/notify";
 
 interface ProfessionModalProps {
     isOpen: boolean;
@@ -97,7 +98,7 @@ const ProfessionModal = ({
                 onClose();
             }
         } catch (err: any) {
-            setErrorMessage(err?.response?.data?.error || err?.message || 'Failed to save profession/skill');
+            setErrorMessage(errorText(err, 'Failed to save profession/skill'));
         } finally {
             setIsSubmitting(false);
         }
@@ -112,7 +113,7 @@ const ProfessionModal = ({
             <form onSubmit={handleSave} className="space-y-6">
                 {errorMessage && (
                     <div className="flex items-center gap-2.5 p-4 bg-red-50 border border-red-200 text-red-700 rounded-2xl text-xs font-semibold">
-                        <AlertCircle size={18} className="shrink-0 text-red-500" />
+                        <WarningCircleIcon weight="bold" size={18} className="shrink-0 text-red-500 dark:text-red-400" />
                         <span>{errorMessage}</span>
                     </div>
                 )}
@@ -120,7 +121,7 @@ const ProfessionModal = ({
                 {/* Name Input */}
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
-                        Profession / Skill Name <span className="text-red-500">*</span>
+                        Profession / Skill Name <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <div className="relative">
                         <input
@@ -128,7 +129,7 @@ const ProfessionModal = ({
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g. Electrician, Delivery Executive, Accountant..."
-                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:bg-white focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm"
+                            className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:bg-km-surface-card focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm"
                             required
                             autoFocus
                         />
@@ -138,12 +139,12 @@ const ProfessionModal = ({
                 {/* Category Selection */}
                 <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">
-                        Industry Category <span className="text-red-500">*</span>
+                        Industry Category <span className="text-red-500 dark:text-red-400">*</span>
                     </label>
                     <select
                         value={isCustomCategory ? '__custom__' : category}
                         onChange={handleCategoryChange}
-                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:bg-white focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm cursor-pointer"
+                        className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:bg-km-surface-card focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm cursor-pointer"
                     >
                         {availableCategories.map((cat) => (
                             <option key={cat} value={cat}>
@@ -160,7 +161,7 @@ const ProfessionModal = ({
                                 value={customCategory}
                                 onChange={(e) => setCustomCategory(e.target.value)}
                                 placeholder="Enter custom category name..."
-                                className="w-full px-5 py-3 bg-white border border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm"
+                                className="w-full px-5 py-3 bg-km-surface-card border border-purple-300 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-600/5 transition-all text-slate-800 font-medium text-sm"
                                 required
                             />
                         </div>
@@ -169,7 +170,7 @@ const ProfessionModal = ({
 
                 {/* Info Note */}
                 <div className="flex items-start gap-2.5 p-3.5 bg-blue-50/70 border border-blue-100 text-blue-900 rounded-2xl text-xs">
-                    <Info size={16} className="text-km-primary shrink-0 mt-0.5" />
+                    <InfoIcon weight="bold" size={16} className="text-km-heading shrink-0 mt-0.5" />
                     <span>
                         This profession/skill will be instantly available in the candidate profile search, recruiter job creation filters, and InstantMilega gig dispatch categories.
                     </span>
@@ -192,7 +193,7 @@ const ProfessionModal = ({
                     >
                         {isSubmitting ? (
                             <>
-                                <Loader2 size={16} className="animate-spin" />
+                                <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
                                 <span>Saving...</span>
                             </>
                         ) : (

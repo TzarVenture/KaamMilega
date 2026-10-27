@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Settings } from 'lucide-react';
+import { GearSixIcon } from '@phosphor-icons/react';
 import { useCompany } from "../CompanyContext";
 
 const FeedSection: React.FC = () => {
@@ -25,10 +25,8 @@ const FeedSection: React.FC = () => {
 
             {/* Main Post Feed */}
             <section className="flex-1">
-                <div className="bg-white border border-gray-200 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-100">
-                    <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center mb-6">
-                        <Settings className="w-12 h-12 text-km-primary animate-spin-slow" />
-                    </div>
+                <div className="bg-km-surface-card border border-gray-200 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-100">
+                    <GearSixIcon size={56} weight="duotone" className="text-km-heading animate-spin-slow mb-6" aria-hidden="true" />
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Posts Under Maintenance</h3>
                     <p className="text-gray-500 max-w-md">
                         We're currently updating our posts feed to bring you a better experience. Check back soon!

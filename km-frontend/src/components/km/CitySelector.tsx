@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { MapPin, ChevronDown, Search, Loader2 } from 'lucide-react';
+import { CaretDownIcon, CircleNotchIcon, MagnifyingGlassIcon, MapPinIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -87,15 +87,15 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
             <div className="relative w-full sm:w-48" ref={dropdownRef}>
                 <div
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center justify-between bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 hover:bg-white hover:border-km-primary transition-all cursor-pointer shadow-2xs ${isOpen ? 'bg-white border-km-primary ring-1 ring-km-primary' : ''}`}
+                    className={`flex items-center justify-between h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 hover:bg-km-surface-card hover:border-km-primary transition-all cursor-pointer ${isOpen ? 'bg-km-surface-card border-km-primary ring-1 ring-km-primary' : ''}`}
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <MapPin size={17} className="text-slate-400 shrink-0" />
+                        <MapPinIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
                         <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate">
                             {displayLabel}
                         </span>
                     </div>
-                    <ChevronDown size={16} className={`text-slate-500 shrink-0 ml-1.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                    <CaretDownIcon weight="bold" size={16} className={`text-slate-500 shrink-0 ml-1.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
 
                 <AnimatePresence>
@@ -105,17 +105,17 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 8, scale: 0.98 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute top-full left-0 mt-2 w-64 sm:w-72 bg-white border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden"
+                            className="absolute top-full left-0 mt-2 w-64 sm:w-72 bg-km-surface-card border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden"
                         >
                             <div className="p-3 border-b border-slate-100 bg-slate-50/50">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                     <input
                                         type="text"
                                         placeholder="Search city or hub..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-km-primary focus:border-km-primary"
+                                        className="w-full pl-9 pr-3 py-2 bg-km-surface-card border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-km-primary focus:border-km-primary"
                                         autoFocus
                                     />
                                 </div>
@@ -124,27 +124,27 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                             <div className="max-h-64 overflow-y-auto py-1.5 px-1.5">
                                 <div
                                     onClick={() => handleSelect('')}
-                                    className={`px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${!selectedCity || selectedCity === 'All' ? 'bg-blue-50 text-km-primary font-bold' : 'text-slate-700 hover:bg-slate-50'}`}
+                                    className={`px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${!selectedCity || selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-slate-700 hover:bg-slate-50'}`}
                                 >
                                     <span>All India</span>
                                     {(!selectedCity || selectedCity === 'All') && (
-                                        <span className="text-[10px] font-bold text-km-primary bg-blue-100/70 px-2 py-0.5 rounded-md">Selected</span>
+                                        <span className="text-[10px] font-bold text-km-heading bg-blue-100/70 px-2 py-0.5 rounded-md">Selected</span>
                                     )}
                                 </div>
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-4">
-                                        <Loader2 size={18} className="animate-spin text-km-primary" />
+                                        <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-heading" />
                                     </div>
                                 ) : (
                                     displayCities.map(city => (
                                         <div
                                             key={city.id || city.name}
                                             onClick={() => handleSelect(city.name)}
-                                            className={`px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${selectedCity === city.name ? 'bg-blue-50 text-km-primary font-bold' : 'text-slate-700 hover:bg-slate-50'}`}
+                                            className={`px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-slate-700 hover:bg-slate-50'}`}
                                         >
                                             <span>{city.name}</span>
                                             {selectedCity === city.name && (
-                                                <span className="text-[10px] font-bold text-km-primary bg-blue-100/70 px-2 py-0.5 rounded-md">Selected</span>
+                                                <span className="text-[10px] font-bold text-km-heading bg-blue-100/70 px-2 py-0.5 rounded-md">Selected</span>
                                             )}
                                         </div>
                                     ))
@@ -170,10 +170,10 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                     onClick={() => setIsOpen(!isOpen)}
                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors min-w-35"
                 >
-                    <MapPin size={18} className="text-gray-500" />
+                    <MapPinIcon weight="bold" size={18} className="text-gray-500" />
                     <span className="text-sm text-gray-400">City-</span>
                     <span className="text-sm font-semibold text-gray-800">{selectedCity || 'All'}</span>
-                    <ChevronDown size={16} className={`text-gray-500 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                    <CaretDownIcon weight="bold" size={16} className={`text-gray-500 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
 
                 <AnimatePresence>
@@ -182,11 +182,11 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
+                            className="absolute top-full left-0 mt-2 w-64 bg-km-surface-card border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
                         >
                             <div className="p-3 border-b border-gray-50">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                                     <input
                                         type="text"
                                         placeholder="Search city..."
@@ -201,20 +201,20 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                             <div className="max-h-60 overflow-y-auto py-2 px-1">
                                 <div
                                     onClick={() => handleSelect('All')}
-                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-primary font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                                 >
                                     All Cities
                                 </div>
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-4">
-                                        <Loader2 size={18} className="animate-spin text-km-primary" />
+                                        <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-heading" />
                                     </div>
                                 ) : (
                                     displayCities.map(city => (
                                         <div
                                             key={city.id || city.name}
                                             onClick={() => handleSelect(city.name)}
-                                            className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-primary font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                            className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                                         >
                                             {city.name}
                                         </div>
@@ -240,9 +240,9 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full border border-gray-100 min-w-35 cursor-pointer"
             >
-                <MapPin size={16} className="text-gray-500" />
+                <MapPinIcon weight="bold" size={16} className="text-gray-500" />
                 <span className="text-sm font-medium text-gray-700">City- <span className="font-bold">{selectedCity || 'All'}</span></span>
-                <ChevronDown size={16} className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <CaretDownIcon weight="bold" size={16} className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
             <AnimatePresence>
@@ -251,11 +251,11 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
+                        className="absolute top-full left-0 mt-2 w-64 bg-km-surface-card border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
                     >
                         <div className="p-3 border-b border-gray-50">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                                <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                                 <input
                                     type="text"
                                     placeholder="Search city..."
@@ -270,20 +270,20 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                         <div className="max-h-60 overflow-y-auto py-2 px-1">
                             <div
                                 onClick={() => handleSelect('All')}
-                                className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-primary font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                             >
                                 All Cities
                             </div>
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-4">
-                                    <Loader2 size={18} className="animate-spin text-km-primary" />
+                                    <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-heading" />
                                 </div>
                             ) : (
                                 displayCities.map(city => (
                                     <div
                                         key={city.id || city.name}
                                         onClick={() => handleSelect(city.name)}
-                                        className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-primary font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                        className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                                     >
                                         {city.name}
                                     </div>

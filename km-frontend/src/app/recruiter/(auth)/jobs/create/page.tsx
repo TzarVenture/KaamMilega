@@ -3,13 +3,23 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
-import {
-    Briefcase, MapPin, DollarSign, List, Edit2,
-    CheckCircle, ArrowLeft, ArrowRight, Building2,
-    Clock, Info, ShieldCheck, Search
-} from "lucide-react";
+import { 
+    ArrowLeftIcon, 
+    ArrowRightIcon, 
+    BriefcaseIcon, 
+    BuildingOfficeIcon, 
+    CaretDownIcon,
+    CheckCircleIcon, 
+    ClockIcon, 
+    CurrencyInrIcon, 
+    InfoIcon, 
+    MagnifyingGlassIcon, 
+    MapPinIcon, 
+    PencilSimpleIcon, 
+    ShieldCheckIcon 
+} from '@phosphor-icons/react';
 import Link from "next/link";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Step = 1 | 2 | 3;
@@ -108,39 +118,55 @@ export default function CreateJobPage() {
             };
 
             await api.post("/jobs", jobData);
-            toast.success("Job posted successfully!");
+            notify.success("Job posted successfully!");
             router.push("/recruiter");
         } catch (err: any) {
-            toast.error(err.message || "Failed to post job");
+            notify.error(err.message || "Failed to post job");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="max-w-4xl mx-auto pb-20 px-4">
+        <div className="max-w-4xl mx-auto pb-16 px-4 font-sans text-km-text-primary">
             {/* Header */}
             <div className="mb-8 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Link href="/recruiter" className="p-2 bg-white rounded-full shadow-sm border border-gray-100 text-gray-400 hover:text-gray-600 transition-all">
-                        <ArrowLeft className="w-5 h-5" />
+                <div className="flex items-center gap-3.5">
+                    <Link
+                        href="/recruiter"
+                        className="p-2.5 bg-km-surface-card rounded-xl border border-km-border text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface transition-colors shadow-xs"
+                        aria-label="Back to Recruiter Dashboard"
+                    >
+                        <ArrowLeftIcon size={18} weight="bold" aria-hidden="true" />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900">Post a New Job</h1>
-                        <p className="text-sm text-gray-500">Find the perfect candidate for your team</p>
+                        <h1 className="text-xl sm:text-2xl font-bold text-km-text-primary font-poppins">Post a New Job</h1>
+                        <p className="text-xs sm:text-sm text-km-text-secondary mt-0.5">Define your role requirements and publish an opening</p>
                     </div>
                 </div>
 
                 {/* Stepper */}
-                <div className="hidden md:flex items-center gap-3">
+                <div className="hidden sm:flex items-center gap-2.5">
                     {[1, 2, 3].map((s) => (
                         <div key={s} className="flex items-center">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-all ${step === s ? "bg-blue-600 text-white shadow-md scale-110" :
-                                step > s ? "bg-green-500 text-white" : "bg-gray-200 text-gray-500"
-                                }`}>
-                                {step > s ? <CheckCircle className="w-5 h-5" /> : s}
+                            <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center font-semibold text-xs transition-colors ${
+                                    step === s
+                                        ? "bg-km-primary text-white shadow-xs"
+                                        : step > s
+                                        ? "bg-emerald-600 text-white"
+                                        : "bg-km-surface border border-km-border text-km-text-secondary"
+                                }`}
+                            >
+                                {step > s ? <CheckCircleIcon size={18} weight="fill" aria-hidden="true" /> : s}
                             </div>
-                            {s < 3 && <div className={`w-12 h-1 ${step > s ? "bg-green-500" : "bg-gray-200"} transition-all`} />}
+                            {s < 3 && (
+                                <div
+                                    className={`w-10 sm:w-12 h-0.5 mx-1.5 transition-colors ${
+                                        step > s ? "bg-emerald-600" : "bg-km-border"
+                                    }`}
+                                />
+                            )}
                         </div>
                     ))}
                 </div>
@@ -152,101 +178,108 @@ export default function CreateJobPage() {
                     {step === 1 && (
                         <motion.div
                             key="step1"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.15 }}
+                            className="space-y-7 bg-km-surface-card p-6 sm:p-9 rounded-2xl border border-km-border shadow-xs"
                         >
-                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
-                                <Info className="w-5 h-5" />
-                                <span>Basic Information</span>
+                            <div className="flex items-center gap-2.5 text-km-primary dark:text-km-link font-semibold text-base border-b border-km-border/70 pb-4">
+                                <InfoIcon size={20} weight="regular" aria-hidden="true" />
+                                <span className="font-poppins">Basic Information</span>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-7">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700">Job Title</label>
+                                    <label className="text-sm font-semibold text-km-text-primary block">Job Title</label>
                                     <div className="relative">
-                                        <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <BriefcaseIcon size={18} weight="regular" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary" aria-hidden="true" />
                                         <input
                                             type="text"
                                             name="title"
-                                            placeholder="e.g. Senior Product Designer"
+                                            placeholder="e.g. Senior Frontend Engineer"
                                             required
-                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                            className="w-full pl-11 pr-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors"
                                             value={formData.title}
                                             onChange={handleChange}
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700">Company Name</label>
-                                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                                        <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center shadow-sm border border-gray-100">
-                                            <Building2 className="w-5 h-5 text-blue-600" />
+                                    <label className="text-sm font-semibold text-km-text-primary block">Company Name</label>
+                                    <div className="flex items-center gap-3 px-3.5 py-2.5 bg-km-surface rounded-xl border border-km-border min-h-[48px]">
+                                        <div className="w-8 h-8 rounded-lg bg-km-surface-card flex items-center justify-center border border-km-border shrink-0">
+                                            <BuildingOfficeIcon size={18} weight="regular" className="text-km-blue" aria-hidden="true" />
                                         </div>
-                                        <div className="flex-1">
-                                            <p className="text-sm font-bold text-gray-900">{formData.company || "Not Set"}</p>
-                                            <p className="text-[10px] text-gray-500">Automatically fetched from your profile</p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold text-km-text-primary truncate">{formData.company || "Company"}</p>
+                                            <p className="text-xs text-km-text-secondary">Linked to verified company profile</p>
                                         </div>
                                     </div>
                                     <input type="hidden" name="company" value={formData.company} required />
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-7">
                                 <div className="space-y-2" ref={cityRef}>
-                                    <label className="text-sm font-semibold text-gray-700">City / Location</label>
+                                    <label className="text-sm font-semibold text-km-text-primary block">Target City / Location</label>
                                     <div className="relative">
-                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                        <MapPinIcon size={18} weight="regular" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary" aria-hidden="true" />
                                         <button
                                             type="button"
                                             onClick={() => setIsCityOpen(!isCityOpen)}
-                                            className="w-full text-left pl-10 pr-10 py-3 rounded-xl border border-gray-200 hover:border-blue-400 transition-all font-medium"
+                                            className="w-full text-left pl-11 pr-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary font-normal focus:border-km-primary transition-colors flex items-center justify-between"
                                         >
-                                            {formData.city_name || "Select Current City"}
+                                            <span className="truncate">{formData.city_name || "Select City"}</span>
+                                            <CaretDownIcon size={14} className="text-km-text-secondary shrink-0" aria-hidden="true" />
                                         </button>
 
                                         {isCityOpen && (
-                                            <div className="absolute top-full left-0 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
-                                                <div className="p-2 border-b">
+                                            <div className="absolute top-full left-0 w-full mt-2 bg-km-surface-card rounded-xl shadow-lg border border-km-border z-50 overflow-hidden">
+                                                <div className="p-3 border-b border-km-border/70">
                                                     <div className="relative">
-                                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                        <MagnifyingGlassIcon size={16} weight="regular" className="absolute left-3 top-1/2 -translate-y-1/2 text-km-text-secondary" aria-hidden="true" />
                                                         <input
                                                             type="text"
                                                             placeholder="Search city..."
-                                                            className="w-full pl-9 pr-4 py-2 text-sm bg-gray-50 border-none rounded-lg focus:ring-0"
+                                                            className="w-full pl-9 pr-3 py-2 text-sm bg-km-surface border border-km-border rounded-lg text-km-text-primary outline-none"
                                                             value={searchCity}
                                                             onChange={(e) => setSearchCity(e.target.value)}
                                                             onClick={(e) => e.stopPropagation()}
                                                         />
                                                     </div>
                                                 </div>
-                                                <div className="max-h-60 overflow-y-auto">
-                                                    {filteredCities.map(city => (
+                                                <div className="max-h-56 overflow-y-auto divide-y divide-km-border/50">
+                                                    {filteredCities.map((city) => (
                                                         <div
                                                             key={city.id}
                                                             onClick={() => {
                                                                 setFormData({ ...formData, city_id: city.id, city_name: city.name });
                                                                 setIsCityOpen(false);
                                                             }}
-                                                            className="px-4 py-3 hover:bg-blue-50 cursor-pointer flex items-center justify-between text-sm transition-colors"
+                                                            className="px-4 py-2.5 hover:bg-km-surface cursor-pointer flex items-center justify-between text-sm transition-colors"
                                                         >
-                                                            <span className="font-medium text-gray-700">{city.name}</span>
-                                                            <span className="text-xs text-gray-400">{city.state}</span>
+                                                            <span className="font-medium text-km-text-primary">{city.name}</span>
+                                                            <span className="text-xs text-km-text-secondary">{city.state}</span>
                                                         </div>
                                                     ))}
+                                                    {filteredCities.length === 0 && (
+                                                        <div className="px-4 py-3 text-center text-xs text-km-text-secondary">
+                                                            No matching cities found
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700">Employment Type</label>
+                                    <label className="text-sm font-semibold text-km-text-primary block">Employment Type</label>
                                     <div className="relative">
-                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                                        <ClockIcon size={18} weight="regular" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary pointer-events-none" aria-hidden="true" />
                                         <select
                                             name="job_type"
-                                            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all appearance-none bg-white font-medium"
+                                            className="w-full pl-11 pr-8 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary outline-none focus:border-km-primary transition-colors appearance-none cursor-pointer"
                                             value={formData.job_type}
                                             onChange={handleChange}
                                         >
@@ -256,20 +289,26 @@ export default function CreateJobPage() {
                                             <option value="Freelance">Freelance</option>
                                             <option value="Internship">Internship</option>
                                         </select>
+                                        <CaretDownIcon size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary pointer-events-none" aria-hidden="true" />
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700">Specific Address / Landmark <span className="text-gray-400 font-normal">(Optional)</span></label>
-                                <input
-                                    type="text"
-                                    name="location"
-                                    placeholder="e.g. Opposite Central Mall, Okhla Stage III"
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                                    value={formData.location}
-                                    onChange={handleChange}
-                                />
+                                <label className="text-sm font-semibold text-km-text-primary block">
+                                    Specific Address / Landmark <span className="text-xs text-km-text-secondary font-normal">(Optional)</span>
+                                </label>
+                                <div className="relative">
+                                    <MapPinIcon size={18} weight="regular" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary" aria-hidden="true" />
+                                    <input
+                                        type="text"
+                                        name="location"
+                                        placeholder="e.g. Sector 62, Near Metro Station, Noida"
+                                        className="w-full pl-11 pr-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors"
+                                        value={formData.location}
+                                        onChange={handleChange}
+                                    />
+                                </div>
                             </div>
                         </motion.div>
                     )}
@@ -278,30 +317,33 @@ export default function CreateJobPage() {
                     {step === 2 && (
                         <motion.div
                             key="step2"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-8 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.15 }}
+                            className="space-y-7 bg-km-surface-card p-6 sm:p-9 rounded-2xl border border-km-border shadow-xs"
                         >
-                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
-                                <DollarSign className="w-5 h-5" />
-                                <span>Compensation & Experience</span>
+                            <div className="flex items-center gap-2.5 text-km-primary dark:text-km-link font-semibold text-base border-b border-km-border/70 pb-4">
+                                <CurrencyInrIcon size={20} weight="regular" aria-hidden="true" />
+                                <span className="font-poppins">Compensation & Experience</span>
                             </div>
 
-                            <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 flex gap-4">
-                                <ShieldCheck className="w-8 h-8 text-blue-600 shrink-0" />
+                            <div className="bg-km-surface p-4 rounded-xl border border-km-border flex items-start gap-3">
+                                <ShieldCheckIcon size={20} weight="regular" className="text-km-primary dark:text-km-link shrink-0 mt-0.5" aria-hidden="true" />
                                 <div>
-                                    <h4 className="font-bold text-blue-900">Fair Pay Policy</h4>
-                                    <p className="text-sm text-blue-700 mt-1">Providing honest salary ranges helps you attract the right talent and improves your job ranking.</p>
+                                    <h4 className="font-semibold text-xs text-km-text-primary">Fair Pay Transparency</h4>
+                                    <p className="text-xs text-km-text-secondary mt-0.5 leading-relaxed">
+                                        Providing honest monthly salary ranges improves candidate response rates and discovery across the platform.
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-7">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700">Gender Preference</label>
+                                    <label className="text-sm font-semibold text-km-text-primary block">Gender Preference</label>
                                     <select
                                         name="gender"
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                        className="w-full px-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary outline-none focus:border-km-primary transition-colors cursor-pointer"
                                         value={formData.gender}
                                         onChange={handleChange}
                                     >
@@ -311,10 +353,10 @@ export default function CreateJobPage() {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700">Education Qualification</label>
+                                    <label className="text-sm font-semibold text-km-text-primary block">Minimum Education Qualification</label>
                                     <select
                                         name="education"
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all bg-white"
+                                        className="w-full px-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary outline-none focus:border-km-primary transition-colors cursor-pointer"
                                         value={formData.education}
                                         onChange={handleChange}
                                     >
@@ -328,63 +370,63 @@ export default function CreateJobPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                <div className="space-y-4">
-                                    <label className="text-sm font-semibold text-gray-700">Salary Range (Monthly)</label>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-7">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-km-text-primary block">Salary Range (Monthly ₹)</label>
                                     <div className="flex items-center gap-3">
                                         <div className="relative flex-1">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₹</span>
+                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary text-sm font-medium">₹</span>
                                             <input
                                                 type="number"
                                                 name="salary_min"
                                                 placeholder="Min"
-                                                className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                className="w-full pl-9 pr-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors"
                                                 value={formData.salary_min}
                                                 onChange={handleChange}
                                             />
                                         </div>
-                                        <div className="text-gray-400 font-bold">—</div>
+                                        <span className="text-km-text-secondary text-sm">—</span>
                                         <div className="relative flex-1">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₹</span>
+                                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary text-sm font-medium">₹</span>
                                             <input
                                                 type="number"
                                                 name="salary_max"
                                                 placeholder="Max"
-                                                className="w-full pl-8 pr-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                                                className="w-full pl-9 pr-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors"
                                                 value={formData.salary_max}
                                                 onChange={handleChange}
                                             />
                                         </div>
                                     </div>
-                                    <p className="text-xs text-gray-400 italic">Leave empty if you don&apos;t want to disclose yet.</p>
+                                    <p className="text-xs text-km-text-secondary mt-1">Leave blank if salary is negotiable or undisclosed.</p>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <label className="text-sm font-semibold text-gray-700">Required Experience (Years)</label>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-km-text-primary block">Required Experience (Years)</label>
                                     <div className="flex items-center gap-3">
                                         <div className="relative flex-1">
                                             <input
                                                 type="number"
                                                 name="experience_min"
-                                                placeholder="Min"
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-center"
+                                                placeholder="Min yrs"
+                                                className="w-full px-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors text-center"
                                                 value={formData.experience_min}
                                                 onChange={handleChange}
                                             />
                                         </div>
-                                        <div className="text-gray-400 font-bold">—</div>
+                                        <span className="text-km-text-secondary text-sm">—</span>
                                         <div className="relative flex-1">
                                             <input
                                                 type="number"
                                                 name="experience_max"
-                                                placeholder="Max"
-                                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all text-center"
+                                                placeholder="Max yrs"
+                                                className="w-full px-4 py-3 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors text-center"
                                                 value={formData.experience_max}
                                                 onChange={handleChange}
                                             />
                                         </div>
                                     </div>
-                                    <p className="text-xs text-gray-400 italic">Example: 1 — 3 years. Use 0 for freshers.</p>
+                                    <p className="text-xs text-km-text-secondary mt-1">Use 0 for freshers or entry-level roles.</p>
                                 </div>
                             </div>
                         </motion.div>
@@ -394,54 +436,55 @@ export default function CreateJobPage() {
                     {step === 3 && (
                         <motion.div
                             key="step3"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-blue-50"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.15 }}
+                            className="space-y-7 bg-km-surface-card p-6 sm:p-9 rounded-2xl border border-km-border shadow-xs"
                         >
-                            <div className="flex items-center gap-2 text-blue-600 font-bold text-lg mb-4">
-                                <Edit2 className="w-5 h-5" />
-                                <span>Core Details</span>
+                            <div className="flex items-center gap-2.5 text-km-primary dark:text-km-link font-semibold text-base border-b border-km-border/70 pb-4">
+                                <PencilSimpleIcon size={20} weight="regular" aria-hidden="true" />
+                                <span className="font-poppins">Role Specifications & Details</span>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-sm font-semibold text-gray-700">Job Description</label>
+                                <label className="text-sm font-semibold text-km-text-primary block">Job Description</label>
                                 <textarea
                                     name="description"
                                     rows={5}
-                                    placeholder="Briefly explain the role and what to expect..."
+                                    placeholder="Explain the day-to-day responsibilities, expectations, and team culture..."
                                     required
-                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
+                                    className="w-full p-4 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors resize-none leading-relaxed"
                                     value={formData.description}
                                     onChange={handleChange}
                                 />
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-7">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700 flex justify-between">
-                                        Requirements
-                                        <span className="text-[10px] uppercase tracking-wider text-gray-400 px-2 py-0.5 rounded border">One per line</span>
-                                    </label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-semibold text-km-text-primary">Key Requirements</label>
+                                        <span className="text-xs text-km-text-secondary">One item per line</span>
+                                    </div>
                                     <textarea
                                         name="requirements"
-                                        rows={4}
-                                        placeholder="• Must have driving license&#10;• Good communication skills"
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
+                                        rows={5}
+                                        placeholder="• 3+ years experience with React / Next.js&#10;• Experience with REST APIs&#10;• Strong communication skills"
+                                        className="w-full p-4 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors resize-none leading-relaxed"
                                         value={formData.requirements}
                                         onChange={handleChange}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-gray-700 flex justify-between">
-                                        Perks & Benefits
-                                        <span className="text-[10px] uppercase tracking-wider text-gray-400 px-2 py-0.5 rounded border">One per line</span>
-                                    </label>
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-sm font-semibold text-km-text-primary">Perks & Benefits</label>
+                                        <span className="text-xs text-km-text-secondary">One item per line</span>
+                                    </div>
                                     <textarea
                                         name="we_offer"
-                                        rows={4}
-                                        placeholder="• Performance Bonus&#10;• Flexible Hours"
-                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 outline-none transition-all resize-none"
+                                        rows={5}
+                                        placeholder="• Health Insurance Coverage&#10;• Annual Performance Bonus&#10;• Flexible Work Hours"
+                                        className="w-full p-4 text-sm rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 focus:border-km-primary outline-none transition-colors resize-none leading-relaxed"
                                         value={formData.we_offer}
                                         onChange={handleChange}
                                     />
@@ -452,43 +495,43 @@ export default function CreateJobPage() {
                 </AnimatePresence>
 
                 {/* Navigation Buttons */}
-                <div className="mt-10 flex items-center justify-between">
+                <div className="mt-8 flex items-center justify-between">
                     {step > 1 ? (
                         <button
                             type="button"
                             onClick={prevStep}
-                            className="flex items-center gap-2 px-6 py-3 text-gray-500 font-bold hover:text-gray-900 transition-colors"
+                            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-km-text-secondary hover:text-km-text-primary transition-colors"
                         >
-                            <ArrowLeft className="w-5 h-5" />
-                            Back
+                            <ArrowLeftIcon size={16} weight="bold" aria-hidden="true" />
+                            <span>Previous Step</span>
                         </button>
                     ) : (
                         <div />
                     )}
 
-                    <div className="flex gap-4">
+                    <div className="flex items-center gap-3.5">
                         <Link
                             href="/recruiter"
-                            className="px-6 py-3 rounded-xl border border-gray-200 text-gray-500 font-bold hover:bg-gray-50 transition-all"
+                            className="px-5 py-2.5 rounded-xl border border-km-border text-km-text-secondary hover:bg-km-surface text-sm font-medium transition-colors"
                         >
                             Discard
                         </Link>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="min-w-[160px] bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-blue-200 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                            className="min-w-[160px] bg-km-primary hover:bg-km-primary-dark text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-xs flex items-center justify-center gap-2 disabled:opacity-70"
                         >
                             {loading ? (
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : step === 3 ? (
                                 <>
-                                    <CheckCircle className="w-5 h-5" />
-                                    Post Job Now
+                                    <CheckCircleIcon size={18} weight="bold" aria-hidden="true" />
+                                    <span>Publish Job Post</span>
                                 </>
                             ) : (
                                 <>
-                                    Continue
-                                    <ArrowRight className="w-5 h-5" />
+                                    <span>Continue</span>
+                                    <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
                                 </>
                             )}
                         </button>

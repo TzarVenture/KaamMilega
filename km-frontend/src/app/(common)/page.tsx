@@ -1,40 +1,42 @@
 "use client";
-import { useRef, useEffect, useState, useMemo } from 'react';
+import { useRef, useEffect, useState, useMemo, useId } from 'react';
 import { motion } from 'framer-motion';
-import {
-  MessageCircle, Briefcase, CheckCircle, MapPin,
-  PhoneCall, Users, ChevronLeft, ChevronRight, Star,
-  Home, Clock, UserRound, Play, Calendar, Gift, Wallet,
-  ChevronUp, ChevronDown, ShieldCheck, Zap, Building2, X,
-  GraduationCap, Award, BookOpen, Scroll, CheckCircle2,
-  Landmark, ArrowUpRight
-} from 'lucide-react';
+import { ArrowRightIcon, ArrowUpRightIcon, BookOpenIcon, BookOpenTextIcon, BriefcaseIcon, CertificateIcon, ExamIcon, GenderFemaleIcon, HouseLineIcon, NotebookIcon, PlantIcon, StudentIcon, BuildingsIcon, CalendarBlankIcon, CaretDownIcon, CaretRightIcon, CaretUpIcon, ClockIcon, GraduationCapIcon, HouseIcon, LightningIcon, MedalIcon, PhoneCallIcon, PlayIcon, ScrollIcon, SealCheckIcon, ShieldCheckIcon, StarIcon, UserIcon, UsersIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 
 import Link from 'next/link';
 import Image from 'next/image';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated } from '@/lib/auth';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { isAuthenticated, getCurrentPortalRole } from '@/lib/auth';
+import { notify } from "@/lib/notify";
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 import HeroSection from '@/components/home/HeroSection';
 import SevenServicesSection from '@/components/home/SevenServicesSection';
 import SuccessTicker from '@/components/home/SuccessTicker';
 import UserAvatar from '@/components/ui/UserAvatar';
-import { ENTERPRISE_COMPANIES as enterprisePartners } from '@/lib/constants/companies';
+import { companiesFromApi, type HiringCompany } from '@/lib/constants/companies';
 import CompanyCard from '@/components/company/CompanyCard';
 import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
 import { ImpressionWrapper } from '@/lib/telemetry';
-import { getYouTubeThumbnail, getYouTubeMaxResThumbnail, extractYouTubeVideoId } from '@/lib/youtube';
+import CandidateProgressCard from '@/components/dashboard/CandidateProgressCard';
+import { useUniformMarqueeSpeed } from '@/lib/useUniformMarqueeSpeed';
+import SectionHeader from '@/components/home/SectionHeader';
+import ProfileBoostArt from '@/components/home/illustrations/ProfileBoostArt';
+import {
+  BelowTenthArt, TenthPassArt, TwelfthPassArt, DiplomaItiArt, GraduateArt, PostGraduateArt,
+  WorkFromHomeArt, PartTimeArt, FullTimeArt, FresherArt, WomenJobsArt,
+} from '@/components/home/illustrations/CategoryArt';
+import { getYouTubeMaxResThumbnail, extractYouTubeVideoId } from '@/lib/youtube';
 
 export default function LandingPage() {
   const router = useRouter();
+  useUniformMarqueeSpeed();
   const [cities, setCities] = useState<any[]>([]);
   const [questions, setQuestions] = useState<any[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
+  // Registered employers with their live job counts (GET /companies/top)
+  const [topCompanies, setTopCompanies] = useState<HiringCompany[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [experts, setExperts] = useState<any[]>([]);
@@ -45,6 +47,16 @@ export default function LandingPage() {
   const [connectedIds, setConnectedIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    api.get('/companies/top?limit=6')
+      .then((res) => alive && setTopCompanies(companiesFromApi(res)))
+      .catch(() => alive && setTopCompanies([]));
+    return () => {
+      alive = false;
+    };
+  }, []);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
@@ -63,7 +75,7 @@ export default function LandingPage() {
 
   const handleChat = (id: string) => {
     if (!isAuthenticated()) {
-      toast.info("Please sign in to chat with professionals", { position: "top-center" });
+      notify.info("Please sign in to chat with professionals");
       router.push(`/login?redirect=${encodeURIComponent(`/chat?userId=${id}`)}`);
       return;
     }
@@ -72,22 +84,22 @@ export default function LandingPage() {
 
   const handleConnect = async (id: string, name?: string) => {
     if (!isAuthenticated()) {
-      toast.info("Please sign in to connect with professionals", { position: "top-center" });
+      notify.info("Please sign in to connect with professionals");
       router.push('/login?redirect=/');
       return;
     }
 
     try {
       await api.post('/network/connect', { receiver_id: id });
-      toast.success(`Invitation sent to ${name || 'member'}!`);
+      notify.success(`Invitation sent to ${name || 'member'}!`);
       setPendingConnectIds(prev => [...prev, id]);
     } catch (e: any) {
       const msg = e.message || '';
       if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending') || msg.toLowerCase().includes('duplicate')) {
-        toast.info("Invitation already sent.");
+        notify.info("Invitation already sent.");
         setPendingConnectIds(prev => [...prev, id]);
       } else {
-        toast.error(msg || "Could not send invitation. Please try again.");
+        notify.error(msg || "Could not send invitation. Please try again.");
       }
     }
   };
@@ -176,19 +188,6 @@ export default function LandingPage() {
 
         if (jobsRes.status === 'fulfilled') {
           const jobsData = (jobsRes.value as any).jobs || [];
-          // Extract unique companies from jobs
-          const companiesMap = new Map();
-          jobsData.forEach((job: any) => {
-            if (job.company && !companiesMap.has(job.company)) {
-              companiesMap.set(job.company, {
-                name: job.company,
-                rating: "4.5", // Mock
-                reviews: "100+ Reviews",
-                desc: job.description?.substring(0, 100) + "..."
-              });
-            }
-          });
-          setCompanies(Array.from(companiesMap.values()));
           setJobs(jobsData);
         }
 
@@ -203,16 +202,18 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-white font-sans antialiased">
-      <ToastContainer position="top-center" autoClose={3000} hideProgressBar />
+    <main className="min-h-screen font-sans antialiased">
       <HeroSection cities={cities} stats={stats} />
       <SuccessTicker />
+      {isLoggedIn && currentUser && !['recruiter', 'admin'].includes(getCurrentPortalRole()) && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-6 pb-2">
+          <CandidateProgressCard userName={currentUser?.name} />
+        </section>
+      )}
       <SevenServicesSection />
       <LocationSection cities={cities} />
       <TrustCard isLoggedIn={isLoggedIn} user={currentUser} />
-      <FeatureBar />
       <JobRolesGrid skills={skills} />
-      <CompaniesSlider companies={companies} />
       {users.length > 0 && (
         <ConnectJustLikeYou
           users={users}
@@ -222,7 +223,7 @@ export default function LandingPage() {
           onFollow={handleConnect}
         />
       )}
-      <FeaturedCompanies companies={companies} />
+      <FeaturedCompanies companies={topCompanies} />
       <QualificationSearch />
       <JobTypeSection />
       <DiversityBanner />
@@ -247,9 +248,11 @@ export default function LandingPage() {
 
 // --- Components ---
 
-const LocationSection = ({ cities }: { cities: any[] }) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
+// Shared vertical rhythm and container for every home section
+const SECTION = 'py-8 sm:py-10 lg:py-12';
+const CONTAINER = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
 
+const LocationSection = ({ cities }: { cities: any[] }) => {
   const PRIORITY_SLUGS = [
     "mumbai", "delhi", "bengaluru", "hyderabad", "pune",
     "ahmedabad", "chennai", "kolkata", "surat", "jaipur",
@@ -291,258 +294,157 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
   const displayFeatured = featuredHubs.length > 0 ? featuredHubs : resolvedHubs;
   const displayOther = featuredHubs.length > 0 ? otherHubs : [];
 
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const checkScrollability = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 10);
-      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
-    }
-  };
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    checkScrollability();
-    el.addEventListener('scroll', checkScrollability, { passive: true });
-    window.addEventListener('resize', checkScrollability);
-    return () => {
-      el.removeEventListener('scroll', checkScrollability);
-      window.removeEventListener('resize', checkScrollability);
-    };
-  }, [displayFeatured]);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const { scrollLeft, clientWidth } = scrollRef.current;
-      const step = clientWidth > 640 ? Math.min(clientWidth * 0.75, 560) : 260;
-      const scrollTo = direction === 'left' ? scrollLeft - step : scrollLeft + step;
-
-      scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
-    }
-  };
-
   return (
-    <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
-      {/* Section Header */}
-      <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Find Jobs by <span className="text-km-primary">Top Hubs</span>
-        </h2>
-        <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-700 leading-relaxed max-w-2xl mx-auto font-normal">
-          Explore verified openings and on-demand gig clusters across India&apos;s largest employment districts.
-        </p>
-      </div>
+    <section className={SECTION} aria-labelledby="hubs-title">
+      <div className={CONTAINER}>
+        <SectionHeader
+          id="hubs-title"
+          title="Find jobs by top hubs"
+          description="Explore verified openings and on-demand gig clusters across India's largest employment districts."
+        />
 
-      {/* Unified Cohesive Container */}
-      <div className="bg-slate-50/90 rounded-3xl border border-slate-200/90 p-4 sm:p-6 lg:p-8 shadow-xs">
-        {/* Sub-header with Title & Responsive Prev/Next Controls */}
-        <div className="flex items-center justify-between mb-4 sm:mb-5 px-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xs sm:text-sm font-bold text-slate-900 tracking-tight">
-              Major Employment Metros
-            </span>
-            <span className="text-[11px] sm:text-xs font-semibold text-slate-600 bg-white px-2 py-0.5 rounded-full border border-slate-200 shadow-2xs">
-              {displayFeatured.length} Hubs
-            </span>
-          </div>
-
-          {/* Prev / Next Controls - Responsive on All Devices */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!canScrollLeft}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-km-primary hover:border-km-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs cursor-pointer active:scale-95"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!canScrollRight}
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-km-primary hover:border-km-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-2xs cursor-pointer active:scale-95"
-              aria-label="Scroll right"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Scrollable Track */}
-        <div
-          ref={scrollRef}
-          className="flex gap-4 sm:gap-5 overflow-x-auto pb-3 scroll-smooth scrollbar-hide w-full snap-x snap-mandatory"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-        >
-          {displayFeatured.map((hub, idx) => (
-            <Link
-              key={idx}
-              href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
-              className="snap-start shrink-0"
-            >
-              <div className="w-56 sm:w-64 bg-white rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-km-primary/50 transition-all overflow-hidden cursor-pointer group/card flex flex-col h-full">
-
-                {/* Landmark Photo Header */}
-                <div className="relative h-32 sm:h-36 w-full overflow-hidden bg-slate-900 shrink-0">
-                  <img
-                    src={hub.image}
-                    alt={`${hub.name} landmark`}
-                    className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500 ease-out"
-                    loading="lazy"
-                  />
-
-                  {/* Subtle Gradient Scrim */}
-                  <div className="absolute inset-0 bg-linear-to-t from-slate-950/85 via-slate-950/20 to-transparent pointer-events-none" />
-
-                  {/* Clean Landmark Label */}
-                  {hub.landmark && (
-                    <span className="absolute bottom-2.5 left-3 text-[11px] font-medium text-white drop-shadow-xs truncate max-w-[90%]">
-                      {hub.landmark}
-                    </span>
-                  )}
-                </div>
-
-                {/* Card Content Body - High Contrast Readable Text */}
-                <div className="p-4 sm:p-5 text-center flex flex-col items-center justify-between flex-1">
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 group-hover/card:text-km-primary transition-colors tracking-tight">
+        <div className="bg-km-surface-card rounded-3xl border border-km-border p-4 sm:p-6 lg:p-8">
+          {/* Auto-scrolling row of city cards (pauses on hover/touch) */}
+          <div className="overflow-hidden">
+            <div className="animate-km-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused] py-1">
+              {[...displayFeatured, ...displayFeatured].map((hub, idx) => (
+                <Link
+                  key={`${hub.name}-${idx}`}
+                  href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
+                  aria-hidden={idx >= displayFeatured.length || undefined}
+                  tabIndex={idx >= displayFeatured.length ? -1 : undefined}
+                  className="shrink-0 mr-5 w-56 sm:w-64 bg-km-surface-card rounded-2xl border border-km-border overflow-hidden group/card hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+                >
+                  <div className="relative h-32 sm:h-36 overflow-hidden bg-[#0B1F52] dark:bg-km-primary-dark">
+                    <img
+                      src={hub.image}
+                      alt=""
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-linear-to-t from-[#071A4D]/70 via-transparent to-transparent pointer-events-none" />
+                    {hub.landmark && (
+                      <span className="absolute bottom-2.5 left-3 right-3 text-xs font-medium text-white truncate">
+                        {hub.landmark}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-4 text-center">
+                    <h3 className="text-base sm:text-lg font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
                       {hub.name}
                     </h3>
-                    <p className="text-xs sm:text-sm text-slate-800 font-semibold mt-1">
-                      {hub.vacancies}
-                    </p>
+                    <p className="mt-0.5 text-sm text-km-text-secondary">{hub.vacancies}</p>
+                    <p className="mt-3 pt-3 border-t border-km-border-subtle text-xs text-km-text-secondary truncate">{hub.sector}</p>
                   </div>
-
-                  <p className="text-xs text-slate-600 font-medium mt-3">
-                    {hub.sector}
-                  </p>
-                </div>
-
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {/* Connected Lower Shelf: More Regional Hubs */}
-        {displayOther.length > 0 && (
-          <div className="mt-6 sm:mt-7 pt-5 sm:pt-6 border-t border-slate-200/90">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-km-primary shrink-0" />
-                <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-900">
-                  More Employment Hubs & Regional Zones ({displayOther.length})
-                </h3>
-              </div>
-              <Link
-                href="/jobs"
-                className="text-xs sm:text-sm font-bold text-km-primary hover:text-km-primary-dark transition-colors inline-flex items-center gap-1 group"
-              >
-                <span>View all locations</span>
-                <span className="group-hover:translate-x-0.5 transition-transform" aria-hidden="true">&rarr;</span>
-              </Link>
-            </div>
-
-            {/* High-Contrast Connected Directory Links */}
-            <div className="flex flex-wrap items-center gap-x-5 sm:gap-x-6 gap-y-2.5 text-sm">
-              {displayOther.map((hub) => (
-                <Link
-                  key={hub.id || hub.name}
-                  href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
-                  className="text-slate-700 hover:text-km-primary font-medium hover:underline transition-colors"
-                >
-                  {hub.name}
                 </Link>
               ))}
             </div>
           </div>
-        )}
+
+          {/* More employment hubs */}
+          {displayOther.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-km-border-subtle">
+              <div className="flex items-center justify-between gap-4 mb-4">
+                <h3 className="text-sm font-semibold text-km-text-primary">
+                  More employment hubs and regional zones ({displayOther.length})
+                </h3>
+                <Link href="/jobs" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-km-heading hover:text-km-blue transition-colors shrink-0">
+                  View all locations
+                  <ArrowRightIcon size={16} weight="bold" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+                </Link>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {displayOther.map((hub) => (
+                  <Link
+                    key={hub.id || hub.name}
+                    href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
+                    className="px-3.5 py-1.5 rounded-full bg-km-surface border border-km-border-subtle text-sm text-km-text-primary hover:border-[#0B5ED7]/40 hover:text-km-heading transition-colors"
+                  >
+                    {hub.name}
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
 };
 
+const TRUST_FEATURES = [
+  { Icon: PhoneCallIcon, title: "Direct contact", desc: "Call or chat with employers directly" },
+  { Icon: ShieldCheckIcon, title: "Verified profiles", desc: "Identity and credential checks" },
+  { Icon: LightningIcon, title: "Instant Milega™", desc: "On-demand local work in minutes" },
+  { Icon: BriefcaseIcon, title: "Local jobs", desc: "Roles matched to your city and skills" },
+  { Icon: WalletIcon, title: "Digital wallet", desc: "Transparent earnings and payouts" },
+];
+
 const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) => (
-  <section className="py-10 sm:py-14 bg-white border-y border-slate-200/80 font-sans">
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="bg-slate-900 rounded-3xl p-8 sm:p-10 text-white flex flex-col lg:flex-row items-center justify-between gap-8 shadow-xl">
-        <div className="max-w-2xl text-center lg:text-left">
-          <span className="text-xs font-bold uppercase tracking-wider text-amber-400 bg-amber-400/10 px-3 py-1 rounded-full border border-amber-400/20">
-            {isLoggedIn ? "Verified Candidate Hub" : "Platform Verification"}
-          </span>
-          <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mt-3 mb-2 leading-snug">
-            {isLoggedIn
-              ? `Welcome Back, ${user?.name || "Professional"}!`
-              : "Trusted by Over 10 Lakh Candidates & 5,000+ Verified Employers"
-            }
-          </h3>
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            {isLoggedIn
-              ? "Your profile is verified. Connect directly with hiring managers, track your applications, and access high-paying trade gigs with zero brokerage."
-              : "Direct HR calls, zero brokerage fees, and biometric/Aadhaar-verified employment credentials across India."
-            }
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 w-full sm:w-auto">
-          {isLoggedIn ? (
-            <>
-              <Link href="/jobs" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md">
-                  Explore Matched Jobs
-                </button>
+  <section className={SECTION} aria-label="Why KaamMilega">
+    <div className={CONTAINER}>
+      <div className="relative overflow-hidden rounded-3xl bg-[#071A4D] text-white dark:ring-1 dark:ring-inset dark:ring-white/10">
+        {/* Soft grid texture, fading towards the copy */}
+        <svg className="absolute inset-0 h-full w-full text-white/[0.06] [mask-image:linear-gradient(to_left,#000,transparent_70%)]" aria-hidden="true">
+          <defs>
+            <pattern id="km-trust-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+              <path d="M32 0H0v32" fill="none" stroke="currentColor" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#km-trust-grid)" />
+        </svg>
+
+        <div className="relative p-8 sm:p-10 lg:p-12">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="max-w-2xl">
+              <p className="text-sm font-medium text-[#FF8A00]">
+                {isLoggedIn ? "Your candidate hub" : "Verified platform"}
+              </p>
+              <h2 className="mt-2 text-2xl sm:text-[28px] lg:text-[32px] font-bold tracking-[-0.02em] leading-tight">
+                {isLoggedIn
+                  ? `Welcome back, ${user?.name || "there"}`
+                  : "Direct hiring connections for verified employers and candidates"}
+              </h2>
+              <p className="mt-3 text-[15px] sm:text-base text-white/75 leading-relaxed">
+                {isLoggedIn
+                  ? "Connect directly with hiring managers, track your applications, and discover local on-demand work."
+                  : "Discover vacancies, talk to hiring managers directly, and find on-demand work across India."}
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 shrink-0">
+              <Link
+                href={isLoggedIn ? "/jobs" : "/register"}
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-km-accent hover:bg-km-accent-light text-white text-sm font-semibold transition-colors"
+              >
+                {isLoggedIn ? "Explore matched jobs" : "Register free"}
+                <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
               </Link>
-              <Link href="/user/applications" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto border border-slate-700 hover:border-slate-500 hover:bg-slate-800 text-white px-7 py-3.5 rounded-xl font-bold transition-all text-sm">
-                  View My Applications
-                </button>
+              <Link
+                href={isLoggedIn ? "/applications" : "/jobs"}
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/25 hover:bg-white/10 text-white text-sm font-semibold transition-colors"
+              >
+                {isLoggedIn ? "My applications" : "Browse openings"}
               </Link>
-            </>
-          ) : (
-            <>
-              <Link href="/register" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto bg-km-primary hover:bg-km-primary-dark text-white px-8 py-3.5 rounded-xl font-bold transition-all shadow-md">
-                  Register Now
-                </button>
-              </Link>
-              <Link href="/jobs" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto border border-slate-700 hover:border-slate-500 hover:bg-slate-800 text-white px-7 py-3.5 rounded-xl font-bold transition-all text-sm">
-                  Explore Verified Openings
-                </button>
-              </Link>
-            </>
-          )}
+            </div>
+          </div>
+
+          <ul className="mt-10 pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-6">
+            {TRUST_FEATURES.map(({ Icon, title, desc }) => (
+              <li key={title} className="flex items-start gap-3">
+                <Icon size={24} weight="duotone" className="text-[#8DB8F5] shrink-0 -mt-0.5" aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-semibold">{title}</p>
+                  <p className="mt-0.5 text-xs text-white/65 leading-relaxed">{desc}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
   </section>
 );
-
-const FeatureBar = () => {
-  const features = [
-    { icon: <ShieldCheck size={22} className="text-blue-600" />, title: "Zero Brokerage", desc: "100% free direct hiring" },
-    { icon: <PhoneCall size={22} className="text-amber-600" />, title: "Direct HR Calls", desc: "Fast interview scheduling" },
-    { icon: <Zap size={22} className="text-emerald-600" />, title: "15-Min Gig Dispatch", desc: "Hyperlocal on-demand jobs" },
-    { icon: <CheckCircle size={22} className="text-indigo-600" />, title: "Verified Badges", desc: "ID backed credentials" },
-    { icon: <Wallet size={22} className="text-rose-600" />, title: "Daily Escrow Payouts", desc: "Guaranteed wallet transfers" },
-  ];
-
-  return (
-    <div className="bg-slate-50/80 py-10 sm:py-12 border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 sm:gap-8">
-        {features.map((f, i) => (
-          <div key={i} className="flex flex-col items-center text-center p-3">
-            <div className="w-12 h-12 rounded-xl bg-white border border-slate-200/90 flex items-center justify-center shadow-2xs mb-3">
-              {f.icon}
-            </div>
-            <h4 className="text-sm font-bold text-slate-900 leading-snug">{f.title}</h4>
-            <p className="text-xs text-slate-500 mt-1">{f.desc}</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 // --- Job Roles Grid ---
 const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
@@ -572,28 +474,24 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
   });
 
   return (
-    <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
-      <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
-        <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Explore Popular <span className="text-km-primary">Job Categories</span>
-        </h3>
-        <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-          Verified openings across logistics, technical trades, facility management, and retail.
-        </p>
-      </div>
+    <section className={`${SECTION} px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans`}>
+      <SectionHeader
+        title="Explore popular job categories"
+        description="Verified openings across logistics, technical trades, facility management, and retail."
+      />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
         {displayRoles.map((role, i) => (
           <Link key={i} href={`/jobs?role=${encodeURIComponent(role.title)}`}>
-            <div className="relative h-48 sm:h-56 rounded-2xl overflow-hidden group cursor-pointer border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-300">
+            <div className="km-on-dark relative h-48 sm:h-56 rounded-2xl overflow-hidden group cursor-pointer border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-300">
               <Image
                 src={role.img}
                 alt={role.title}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                className="object-cover object-top"
               />
-              <div className="absolute inset-0 bg-linear-to-t from-slate-950/90 via-slate-950/30 to-transparent z-10" />
+              <div className="absolute inset-0 bg-linear-to-t from-[#020617]/90 via-[#020617]/30 to-transparent z-10" />
               <div className="absolute bottom-3.5 left-3.5 right-3.5 z-20 text-white">
                 <h4 className="font-bold text-sm sm:text-base leading-snug group-hover:text-amber-300 transition-colors">
                   {role.title}
@@ -608,84 +506,36 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
       </div>
 
       <div className="text-center mt-8 sm:mt-10">
-        <Link href="/jobs">
-          <button className="px-8 py-3 border-2 border-km-primary text-km-primary hover:bg-km-primary hover:text-white rounded-xl text-sm font-bold transition-all shadow-2xs cursor-pointer">
-            View All Job Categories →
-          </button>
+        <Link
+          href="/jobs"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-km-primary text-km-heading hover:bg-km-primary hover:text-white text-sm font-semibold transition-colors"
+        >
+          View all job categories
+          <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
         </Link>
       </div>
     </section>
   );
 };
 
-// --- Enterprise Hiring Partners Showcase ---
-
-const CompaniesSlider = ({ companies }: { companies: any[] }) => {
-  return (
-    <section className="py-10 sm:py-12 bg-slate-50/70 border-b border-slate-200/80 overflow-hidden font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-6">
-        <p className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-500">
-          Top Employers Hiring Verified Talent on KaamMilega™
-        </p>
-      </div>
-
-      <div className="relative overflow-hidden py-1">
-        <div className="animate-km-marquee flex gap-6 sm:gap-8 items-center">
-          {[...enterprisePartners, ...enterprisePartners].map((partner, idx) => (
-            <Link
-              key={`${partner.name}-${idx}`}
-              href={`/jobs?company=${encodeURIComponent(partner.name)}`}
-              className="flex items-center gap-3.5 bg-white border border-slate-200/90 rounded-2xl px-4 py-2.5 shadow-2xs hover:shadow-md hover:border-slate-300 transition-all shrink-0 group/logo"
-            >
-              <div className={`w-10 h-10 rounded-xl border p-1.5 flex items-center justify-center shrink-0 ${partner.bgClass || 'bg-slate-50 border-slate-200/70'}`}>
-                <img
-                  src={partner.logo}
-                  alt={partner.name}
-                  className={`object-contain ${partner.imgClass || 'max-h-full max-w-full'}`}
-                />
-              </div>
-              <div className="text-left">
-                <p className="text-xs font-bold text-slate-900 leading-tight group-hover/logo:text-km-primary transition-colors">
-                  {partner.name}
-                </p>
-                <p className="text-[11px] font-semibold text-emerald-600 mt-0.5 leading-none">
-                  {partner.openings}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
 // --- Featured Companies Grid ---
-const FeaturedCompanies = ({ companies }: { companies: any[] }) => {
+// Real employers only; the section is hidden until there are some
+const FeaturedCompanies = ({ companies }: { companies: HiringCompany[] }) => {
+  if (companies.length === 0) return null;
   return (
-    <section className="py-12 sm:py-16 bg-white border-b border-slate-200/80 overflow-hidden font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Featured Companies <span className="text-km-primary">Actively Hiring</span>
-          </h2>
-          <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            Direct recruitment partnerships with leading enterprises across India offering verified compensation and zero brokerage fees.
-          </p>
-        </div>
+    <section className={SECTION} aria-labelledby="companies-title">
+      <div className={CONTAINER}>
+        <SectionHeader
+          id="companies-title"
+          title="Featured companies actively hiring"
+          description="Employers hiring on KaamMilega."
+          action={{ href: '/jobs', label: 'View all jobs' }}
+        />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {enterprisePartners.map((co, i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {companies.map((co, i) => (
             <CompanyCard key={co.name || i} company={co} variant="expanded" />
           ))}
-        </div>
-
-        <div className="text-center mt-8 sm:mt-10">
-          <Link href="/jobs">
-            <button className="px-8 py-3 border-2 border-km-primary text-km-primary hover:bg-km-primary hover:text-white rounded-xl text-sm font-bold transition-all shadow-2xs">
-              View All 5,000+ Enterprise Employers →
-            </button>
-          </Link>
         </div>
       </div>
     </section>
@@ -693,128 +543,198 @@ const FeaturedCompanies = ({ companies }: { companies: any[] }) => {
 };
 
 // --- Job Search by Qualification ---
-const QualificationSearch = () => {
-  const qualifications = [
-    { label: "Below 10th", vacancies: "9,30,000+ Openings", icon: <BookOpen size={24} className="text-amber-600" />, bg: "bg-amber-50" },
-    { label: "10th Pass", vacancies: "4,00,000+ Openings", icon: <BookOpen size={24} className="text-blue-600" />, bg: "bg-blue-50" },
-    { label: "12th Pass", vacancies: "9,00,000+ Openings", icon: <Scroll size={24} className="text-emerald-600" />, bg: "bg-emerald-50" },
-    { label: "Diploma / ITI", vacancies: "50,000+ Openings", icon: <Award size={24} className="text-purple-600" />, bg: "bg-purple-50" },
-    { label: "Graduate", vacancies: "7,30,000+ Openings", icon: <GraduationCap size={24} className="text-indigo-600" />, bg: "bg-indigo-50" },
-    { label: "Post Graduate", vacancies: "25,000+ Openings", icon: <GraduationCap size={24} className="text-rose-600" />, bg: "bg-rose-50" },
-  ];
+const QUALIFICATIONS = [
+  { label: "Below 10th", vacancies: "9,30,000+ openings", Art: BelowTenthArt },
+  { label: "10th Pass", vacancies: "4,00,000+ openings", Art: TenthPassArt },
+  { label: "12th Pass", vacancies: "9,00,000+ openings", Art: TwelfthPassArt },
+  { label: "Diploma / ITI", vacancies: "50,000+ openings", Art: DiplomaItiArt },
+  { label: "Graduate", vacancies: "7,30,000+ openings", Art: GraduateArt },
+  { label: "Post Graduate", vacancies: "25,000+ openings", Art: PostGraduateArt },
+];
 
-  return (
-    <section className="py-12 sm:py-16 bg-slate-50/70 border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-7xl mx-auto text-center">
-        <div className="max-w-3xl mx-auto mb-10 sm:mb-12">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
-            Search Jobs Based On Your <span className="text-km-primary">Qualification</span>
-          </h2>
-          <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-            Find verified roles matched specifically to your education background and vocational certifications.
-          </p>
-        </div>
+const QualificationSearch = () => (
+  <section className={SECTION} aria-labelledby="qualification-title">
+    <div className={CONTAINER}>
+      <SectionHeader
+        id="qualification-title"
+        title="Search jobs based on your qualification"
+        description="Find roles matched to your education and vocational background."
+      />
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 sm:gap-5">
-          {qualifications.map((q, i) => (
-            <Link key={i} href={`/jobs?qualification=${encodeURIComponent(q.label)}`}>
-              <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-blue-500/40 transition-all cursor-pointer flex flex-col items-center group/card">
-                <div className={`w-12 h-12 rounded-xl ${q.bg} flex items-center justify-center mb-3 group-hover/card:scale-110 transition-transform`}>
-                  {q.icon}
-                </div>
-                <h4 className="font-bold text-slate-900 group-hover/card:text-km-primary transition-colors text-sm sm:text-base mb-1">
-                  {q.label}
-                </h4>
-                <p className="text-xs text-slate-500 font-medium">
-                  {q.vacancies}
-                </p>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-// --- Job Type Selection ---
-const JobTypeSection = () => {
-  const types = [
-    { label: "Work From Home", vacancies: "9,30,000+", icon: <Home size={20} className="text-green-600" /> },
-    { label: "Part Time", vacancies: "9,30,000+", icon: <Clock size={20} className="text-orange-600" /> },
-    { label: "Full Time", vacancies: "9,30,000+", icon: <Briefcase size={20} className="text-blue-600" /> },
-  ];
-
-  const secondaryTypes = [
-    { label: "Fresher Jobs", vacancies: "9,30,000+", icon: <Users size={20} className="text-blue-500" /> },
-    { label: "Jobs For Women", vacancies: "9,30,000+", icon: <UserRound size={20} className="text-pink-500" /> },
-  ];
-
-  return (
-    <section className="py-12 md:py-20 bg-white px-4 md:px-6">
-      <div className="max-w-5xl mx-auto text-center">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black mb-8 md:mb-12">
-          What <span className="text-km-primary">Type Of Job</span> Do You Want?
-        </h2>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-          {types.map((t, i) => (
-            <Link key={i} href={`/jobs?job_type=${t.label}`}>
-              <div className="flex items-center gap-3 md:gap-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl p-4 md:p-6 hover:border-blue-200 transition-colors cursor-pointer">
-                <div className="p-2 md:p-3 bg-gray-50 rounded-xl md:rounded-2xl shrink-0">{t.icon}</div>
-                <div className="text-left">
-                  <h4 className="font-bold text-gray-800 text-sm">{t.label} <ChevronRight size={14} className="inline ml-1 opacity-40" /></h4>
-                  <p className="text-[10px] text-gray-400">View {t.vacancies} Vacancies</p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl mx-auto">
-          {secondaryTypes.map((t, i) => (
-            <Link key={i} href={`/jobs?job_type=${t.label}`}>
-              <div className="flex items-center gap-3 md:gap-4 bg-white border-2 border-dashed border-gray-200 rounded-2xl md:rounded-3xl p-4 md:p-6 hover:border-blue-200 transition-colors cursor-pointer">
-                <div className="p-2 md:p-3 bg-gray-50 rounded-xl md:rounded-2xl shrink-0">{t.icon}</div>
-                <div className="text-left">
-                  <h4 className="font-bold text-gray-800 text-sm">{t.label}</h4>
-                  <p className="text-[10px] text-gray-400">View {t.vacancies} Vacancies</p>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
-
-
-// --- Diversity & Inclusion Banner ---
-const DiversityBanner = () => (
-  <section className="px-3 md:px-6 py-6 md:py-10 max-w-7xl mx-auto">
-    <div className="relative min-h-70 md:h-75 rounded-3xl md:rounded-[40px] overflow-hidden flex items-center px-6 md:px-12 text-white py-8 md:py-0">
-      <div className="absolute inset-0 bg-linear-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] z-10" />
-
-      <div className="relative z-20 max-w-lg">
-        <div className="flex items-center gap-2 mb-3 md:mb-4">
-          <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center">▲</div>
-          <span className="text-xs font-bold">KaamMilega™ Verified Partner <Star size={10} className="inline fill-yellow-400 border-none" /> 4.8</span>
-        </div>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-black leading-tight mb-4">
-          Diversity And Inclusion At Every Workplace
-        </h2>
-        <button className="text-sm font-bold underline hover:text-km-accent-light transition-colors">Learn More</button>
-      </div>
-
-      <div className="hidden md:flex absolute right-12 z-20 w-72 h-44 bg-white/10 backdrop-blur-md border border-white/20 rounded-3xl items-center justify-center">
-        <div className="w-12 h-12 bg-km-accent hover:bg-km-accent-dark rounded-full flex items-center justify-center cursor-pointer hover:scale-110 transition-transform shadow-lg shadow-orange-950/30">
-          <Play fill="white" size={20} className="ml-1" />
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
+        {QUALIFICATIONS.map(({ label, vacancies, Art }) => (
+          <Link
+            key={label}
+            href={`/jobs?qualification=${encodeURIComponent(label)}`}
+            className="group/card bg-km-surface-card rounded-2xl border border-km-border p-5 hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+          >
+            <Art className="h-16 w-auto -ml-3" />
+            <h3 className="mt-4 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
+              {label}
+            </h3>
+            <p className="mt-0.5 text-sm text-km-text-secondary">{vacancies}</p>
+          </Link>
+        ))}
       </div>
     </div>
   </section>
 );
+
+// --- Job Type Selection ---
+const JOB_TYPES = [
+  { label: "Work From Home", desc: "Remote roles you can do from home", Art: WorkFromHomeArt },
+  { label: "Part Time", desc: "Flexible hours alongside study or work", Art: PartTimeArt },
+  { label: "Full Time", desc: "Stable roles with monthly salary", Art: FullTimeArt },
+  { label: "Fresher Jobs", desc: "No experience needed to apply", Art: FresherArt },
+  { label: "Jobs For Women", desc: "Women-friendly employers and shifts", Art: WomenJobsArt },
+];
+
+const JobTypeSection = () => (
+  <section className={SECTION} aria-labelledby="jobtype-title">
+    <div className={CONTAINER}>
+      <SectionHeader
+        id="jobtype-title"
+        title="What type of job do you want?"
+        description="Pick the way you want to work and see matching openings."
+      />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        {JOB_TYPES.map(({ label, desc, Art }) => (
+          <Link
+            key={label}
+            href={`/jobs?job_type=${encodeURIComponent(label)}`}
+            className="group/card flex lg:flex-col items-start gap-4 lg:gap-0 bg-km-surface-card rounded-2xl border border-km-border p-5 hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+          >
+            <Art className="h-14 lg:h-16 w-auto shrink-0 -ml-3" />
+            <div className="lg:mt-4 min-w-0">
+              <h3 className="flex items-center gap-1 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
+                {label}
+                <CaretRightIcon size={14} weight="bold" className="opacity-0 -translate-x-1 group-hover/card:opacity-100 group-hover/card:translate-x-0 transition-all" aria-hidden="true" />
+              </h3>
+              <p className="mt-0.5 text-sm text-km-text-secondary leading-relaxed">{desc}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+
+// --- About KaamMilega banner (headline + learn more + intro video) ---
+// YouTube video ID of the KaamMilega intro video. Leave empty until the client shares the link.
+const KAAMMILEGA_INTRO_VIDEO_ID = '';
+
+const DiversityBanner = () => {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const hasVideo = KAAMMILEGA_INTRO_VIDEO_ID.length > 0;
+
+  const learnMoreClass =
+    "mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-km-surface-card text-km-heading hover:bg-km-surface text-sm font-semibold transition-colors cursor-pointer";
+
+  return (
+    <section className={SECTION} aria-labelledby="about-km-title">
+      <div className={CONTAINER}>
+        <div className="relative overflow-hidden rounded-3xl bg-[#071A4D] text-white dark:ring-1 dark:ring-inset dark:ring-white/10">
+          {/* Same soft grid texture as the "Direct hiring" card */}
+          <svg className="absolute inset-0 h-full w-full text-white/[0.06] [mask-image:linear-gradient(to_left,#000,transparent_75%)]" aria-hidden="true">
+            <defs>
+              <pattern id="km-about-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <path d="M32 0H0v32" fill="none" stroke="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#km-about-grid)" />
+          </svg>
+
+          <div className="relative grid lg:grid-cols-2 items-center gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
+            <div className="max-w-lg text-center lg:text-left mx-auto lg:mx-0">
+              <p className="text-sm font-medium text-[#FF8A00]">About KaamMilega</p>
+              <h2 id="about-km-title" className="mt-2 text-2xl sm:text-[28px] lg:text-[32px] font-bold tracking-[-0.02em] leading-tight">
+                Diversity and inclusion at every workplace
+              </h2>
+              <p className="mt-3 text-[15px] sm:text-base text-white/75 leading-relaxed">
+                See how KaamMilega connects workers, employers and experts directly and fairly.
+              </p>
+              {hasVideo ? (
+                <button type="button" onClick={() => setIsPlaying(true)} className={learnMoreClass}>
+                  Learn more
+                  <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
+                </button>
+              ) : (
+                <Link href="/about" className={learnMoreClass}>
+                  Learn more
+                  <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
+                </Link>
+              )}
+            </div>
+
+            {/* Intro video card */}
+            <button
+              type="button"
+              onClick={() => hasVideo && setIsPlaying(true)}
+              disabled={!hasVideo}
+              aria-label={hasVideo ? 'Play KaamMilega introduction video' : 'KaamMilega introduction video coming soon'}
+              className="group relative w-full max-w-md mx-auto lg:ml-auto lg:mr-0 aspect-video rounded-2xl overflow-hidden bg-km-surface-card enabled:cursor-pointer"
+            >
+              {hasVideo ? (
+                <>
+                  <img
+                    src={`https://img.youtube.com/vi/${KAAMMILEGA_INTRO_VIDEO_ID}/hqdefault.jpg`}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  <span className="absolute inset-0 bg-[#071A4D]/25 group-hover:bg-[#071A4D]/40 transition-colors dark:bg-km-primary dark:group-hover:bg-km-primary" />
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="w-16 h-16 rounded-full bg-km-surface-card text-km-heading flex items-center justify-center shadow-lg">
+                      <PlayIcon size={26} weight="fill" className="ml-1" aria-hidden="true" />
+                    </span>
+                  </span>
+                </>
+              ) : (
+                /* Branded poster until the real video is added */
+                <span className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(#E3E9F1_1px,transparent_1px)] [background-size:16px_16px]">
+                  <img src="/kaammilega-logo-text.png" alt="" className="h-7 sm:h-8 w-auto dark:hidden" />
+                  <img src="/kaammilega-logo-text-dark.png" alt="" className="h-7 sm:h-8 w-auto hidden dark:block" />
+                  <span className="w-14 h-14 rounded-full bg-[#071A4D] text-white flex items-center justify-center dark:bg-km-primary">
+                    <PlayIcon size={24} weight="fill" className="ml-0.5" aria-hidden="true" />
+                  </span>
+                  <span className="text-sm font-medium text-km-text-secondary">Video coming soon</span>
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {isPlaying && hasVideo && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#071A4D]/80 dark:bg-km-primary"
+          onClick={() => setIsPlaying(false)}
+        >
+          <div className="relative w-full max-w-3xl rounded-2xl overflow-hidden bg-black" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setIsPlaying(false)}
+              aria-label="Close video"
+              className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center cursor-pointer"
+            >
+              <XIcon size={18} weight="bold" aria-hidden="true" />
+            </button>
+            <div className="aspect-video">
+              <iframe
+                src={`https://www.youtube.com/embed/${KAAMMILEGA_INTRO_VIDEO_ID}?autoplay=1&rel=0`}
+                title="KaamMilega introduction"
+                className="w-full h-full border-0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+};
 
 interface LearnVideo {
   id: string;
@@ -832,7 +752,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=VPrT5JpXh0U",
     youtube_video_id: "VPrT5JpXh0U",
-    thumbnail: "https://img.youtube.com/vi/VPrT5JpXh0U/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/VPrT5JpXh0U/maxresdefault.jpg",
   },
   {
     id: "learn-2",
@@ -840,7 +760,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=1mHjMNZZvFo",
     youtube_video_id: "1mHjMNZZvFo",
-    thumbnail: "https://img.youtube.com/vi/1mHjMNZZvFo/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/1mHjMNZZvFo/maxresdefault.jpg",
   },
   {
     id: "learn-3",
@@ -848,7 +768,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "6 mins",
     youtube_url: "https://www.youtube.com/watch?v=KMbeK_6ATxQ",
     youtube_video_id: "KMbeK_6ATxQ",
-    thumbnail: "https://img.youtube.com/vi/KMbeK_6ATxQ/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/KMbeK_6ATxQ/maxresdefault.jpg",
   },
   {
     id: "learn-4",
@@ -856,7 +776,7 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
     time: "5 mins",
     youtube_url: "https://www.youtube.com/watch?v=7_aAfl_2aSA",
     youtube_video_id: "7_aAfl_2aSA",
-    thumbnail: "https://img.youtube.com/vi/7_aAfl_2aSA/hqdefault.jpg",
+    thumbnail: "https://img.youtube.com/vi/7_aAfl_2aSA/maxresdefault.jpg",
   },
 ];
 
@@ -880,9 +800,10 @@ const LearnSection = () => {
               extractYouTubeVideoId(item.youtube_url || "") ||
               DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].youtube_video_id;
 
+            // Prefer a custom thumbnail, then the true 16:9 maxresdefault over the 4:3 letterboxed hqdefault
             const thumb =
-              item.thumbnail_url ||
-              (videoId ? getYouTubeThumbnail(videoId) : "") ||
+              (item.thumbnail_url && !item.thumbnail_url.includes("hqdefault.jpg") ? item.thumbnail_url : "") ||
+              (videoId ? getYouTubeMaxResThumbnail(videoId) : "") ||
               DEFAULT_LEARN_VIDEOS[idx % DEFAULT_LEARN_VIDEOS.length].thumbnail;
 
             return {
@@ -923,18 +844,25 @@ const LearnSection = () => {
   const activeVideo = videos[activeIndex] || videos[0] || DEFAULT_LEARN_VIDEOS[0];
 
   return (
-    <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans">
-      {/* Centered Section Header */}
-      <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight flex items-center justify-center flex-wrap gap-2.5">
-          <span>Learn With</span>
-          <img
-            src="/kaammilega-logo-text.png"
-            alt="KaamMilega"
-            className="h-7 sm:h-8 md:h-9 w-auto inline-block object-contain"
-          />
-        </h2>
-      </div>
+    <section className={`${SECTION} px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans`}>
+      <SectionHeader
+        title={
+          <>
+            Learn with{' '}
+            {/* Logo sized to the heading's cap height; its artwork baseline sits at ~72% of the image, so drop it to the text baseline */}
+            <img
+              src="/kaammilega-logo-text.png"
+              alt="KaamMilega"
+              className="inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em] dark:hidden"
+            />
+            <img
+              src="/kaammilega-logo-text-dark.png"
+              alt="KaamMilega"
+              className="hidden dark:inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em]"
+            />
+          </>
+        }
+      />
 
       <div
         className="flex flex-col md:flex-row gap-6 
@@ -942,11 +870,11 @@ const LearnSection = () => {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {/* Main Video Player (Left Side - Clean thumbnail with Play button in exact center, redirects to /resources) */}
+        {/* Main Video (Left Side): thumbnail with a centred play button, opens Resources */}
         <Link
           href="/resources"
-          className="w-full md:flex-1 aspect-video bg-slate-900 rounded-xl md:rounded-[10px] relative group cursor-pointer overflow-hidden shadow-xl border border-slate-200/80 block"
-          title={`Click to explore courses: ${activeVideo.title}`}
+          className="block w-full md:flex-1 aspect-video bg-km-ink rounded-2xl relative group cursor-pointer overflow-hidden border border-km-border"
+          title={`Explore courses: ${activeVideo.title}`}
         >
           {/* Main Thumbnail synced with active card (absolute background) */}
           <img
@@ -954,10 +882,15 @@ const LearnSection = () => {
             src={activeVideo.thumbnail}
             alt={activeVideo.title}
             referrerPolicy="no-referrer"
-            className="absolute inset-0 w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
+            className="absolute inset-0 w-full h-full object-cover"
             onError={(e) => {
+              const target = e.target as HTMLImageElement;
               if (activeVideo.youtube_video_id) {
-                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/hqdefault.jpg`;
+                if (target.src.includes('maxresdefault.jpg')) {
+                  target.src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/mqdefault.jpg`;
+                } else if (target.src.includes('mqdefault.jpg')) {
+                  target.src = `https://img.youtube.com/vi/${activeVideo.youtube_video_id}/hqdefault.jpg`;
+                }
               }
             }}
           />
@@ -967,8 +900,8 @@ const LearnSection = () => {
 
           {/* Centered Large Play Button Logo - In exact dead center */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white text-[#071A4D] flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-[#071A4D] group-hover:text-white transition-all duration-300">
-              <Play size={28} fill="currentColor" className="ml-1" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-km-surface-card text-km-heading flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:bg-[#071A4D] group-hover:text-white transition-all duration-300 dark:group-hover:bg-km-primary">
+              <PlayIcon weight="fill" size={28} className="ml-1" />
             </div>
           </div>
         </Link>
@@ -982,31 +915,36 @@ const LearnSection = () => {
                 <div
                   key={video.id || i}
                   onClick={() => setActiveIndex(i)}
-                  className={`p-2 sm:p-2 rounded-xl md:rounded-xl border transition-all cursor-pointer relative overflow-hidden group/card ${isActive
+                  className={`p-2 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group/card ${isActive
                     ? 'bg-blue-50/90 border-[#0B5ED7] shadow-sm ring-1 ring-[#0B5ED7]/25'
-                    : 'bg-white border-slate-200/90 hover:bg-slate-50/90 hover:border-slate-300'
+                    : 'bg-km-surface-card border-slate-200/90 hover:bg-slate-50/90 hover:border-slate-300'
                     }`}
                 >
                   <div className="flex items-center gap-3">
                     {/* Thumbnail from resources / YouTube */}
-                    <div className="relative w-28 h-18 rounded-xl overflow-hidden bg-slate-900 shrink-0 border border-slate-200/60 shadow-2xs group-hover/card:scale-102 transition-transform">
+                    <div className="relative w-28 h-18 rounded-xl overflow-hidden bg-km-ink shrink-0 border border-slate-200/60 shadow-2xs">
                       <img
                         src={video.thumbnail}
                         alt={video.title}
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover"
                         onError={(e) => {
+                          const target = e.target as HTMLImageElement;
                           if (video.youtube_video_id) {
-                            (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+                            if (target.src.includes('maxresdefault.jpg')) {
+                              target.src = `https://img.youtube.com/vi/${video.youtube_video_id}/mqdefault.jpg`;
+                            } else if (target.src.includes('mqdefault.jpg')) {
+                              target.src = `https://img.youtube.com/vi/${video.youtube_video_id}/hqdefault.jpg`;
+                            }
                           }
                         }}
                       />
                       <div className="absolute inset-0 bg-black/25 flex items-center justify-center">
                         <div
-                          className={`w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${isActive ? 'bg-[#0B5ED7] text-white' : 'bg-white/95 text-[#071A4D]'
+                          className={`w-5 h-5 rounded-full flex items-center justify-center shadow-xs ${isActive ? 'bg-[#0B5ED7] text-white' : 'bg-km-surface-card/95 text-km-heading'
                             }`}
                         >
-                          <Play size={9} fill="currentColor" className="ml-0.5" />
+                          <PlayIcon weight="fill" size={9} className="ml-0.5" />
                         </div>
                       </div>
                     </div>
@@ -1014,13 +952,13 @@ const LearnSection = () => {
                     {/* Title and Duration */}
                     <div className="flex-1 min-w-0">
                       <h4
-                        className={`text-xs md:text-sm font-bold leading-snug line-clamp-2 transition-colors ${isActive ? 'text-slate-950' : 'text-slate-800 group-hover/card:text-[#0B5ED7]'
+                        className={`text-xs md:text-sm font-bold leading-snug line-clamp-2 transition-colors ${isActive ? 'text-slate-950' : 'text-slate-800 group-hover/card:text-km-link'
                           }`}
                       >
                         {video.title}
                       </h4>
-                      <p className="text-[11px] text-slate-500 font-medium mt-1 flex items-center gap-1">
-                        <Clock size={11} className="text-slate-400" />
+                      <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1">
+                        <ClockIcon weight="bold" size={11} className="text-slate-400" />
                         <span>{video.time}</span>
                       </p>
                     </div>
@@ -1033,14 +971,13 @@ const LearnSection = () => {
           {/* Fixed Green Button as per Project Color Rules */}
           <Link
             href="/resources"
-            className="w-full py-3 px-5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white rounded-2xl md:rounded-3xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer mt-auto"
+            className="w-full py-3 px-5 bg-km-skills hover:bg-[#15803D] active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer mt-auto"
           >
             <span>Explore All Resources</span>
-            <ArrowUpRight size={16} />
+            <ArrowUpRightIcon weight="bold" size={16} />
           </Link>
         </div>
       </div>
-
     </section>
   );
 };
@@ -1059,7 +996,6 @@ const ExpertSlider = ({
   onChat: (id: string) => void;
   onFollow: (id: string, name?: string) => void;
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentUserId, setCurrentUserId] = useState<string>('');
 
   useEffect(() => {
@@ -1077,136 +1013,204 @@ const ExpertSlider = ({
   if (!experts || experts.length === 0) return null;
 
   return (
-    <section className="w-full py-10 px-6 bg-white overflow-hidden font-sans">
-      <div className="max-w-7xl mx-auto">
-        <h2 className="text-2xl sm:text-3xl font-black text-center text-slate-900 mb-8 tracking-tight">
-          Connect With Our <span className="text-km-primary">Experts</span>
-        </h2>
-        <div
-          ref={scrollContainerRef}
-          className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide"
-        >
-          {experts.map((expert, i) => {
+    <section className={SECTION} aria-labelledby="experts-title">
+      <div className={CONTAINER}>
+        <SectionHeader
+          id="experts-title"
+          title="Connect with our experts"
+          description="Get guidance from verified industry professionals and career coaches."
+          action={{ href: '/network/experts', label: 'View all experts' }}
+        />
+
+      {/* Auto-scrolling row of expert cards (pauses on hover/touch) */}
+      <div className="overflow-hidden">
+        <div className="animate-km-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused] py-1">
+          {[...experts, ...experts].map((expert, i) => {
             const expertId = expert.id || expert._id || '';
             const isSelf = Boolean(currentUserId && expertId === currentUserId);
             const isPending = pendingIds.includes(expertId);
             const isConnected = (connectedIds || []).includes(expertId);
 
             return (
-              <ProfileConnectionCard
-                key={expertId || i}
-                user={expert}
-                variant="slider"
-                isSelf={isSelf}
-                isPending={isPending}
-                isConnected={isConnected}
-                entityType="expert"
-                onChat={onChat}
-                onFollow={onFollow}
-              />
+              <div key={`${expertId}-${i}`} className="shrink-0 mr-5" aria-hidden={i >= experts.length || undefined}>
+                <ProfileConnectionCard
+                  user={expert}
+                  variant="slider"
+                  isSelf={isSelf}
+                  isPending={isPending}
+                  isConnected={isConnected}
+                  entityType="expert"
+                  onChat={onChat}
+                  onFollow={onFollow}
+                />
+              </div>
             );
           })}
         </div>
-
-        {/* Custom Interactive Scrollbar */}
-        <InteractiveScrollbar scrollRef={scrollContainerRef} className="max-w-4xl mx-auto mt-4 px-4 sm:px-0" />
+      </div>
       </div>
     </section>
   );
 };
 
 // --- Upcoming Events & Challenges ---
-const EventsSection = ({ events }: { events: any[] }) => {
-  const displayEvents = events.length > 0 ? events : [];
+const formatEventPrice = (price: unknown) => {
+  const value = Number(price);
+  return !price || Number.isNaN(value) || value <= 0 ? 'Free' : `₹${value.toLocaleString('en-IN')}`;
+};
 
-  if (displayEvents.length === 0) return null;
+// "2026-11-01" is read as a local calendar day, not UTC midnight
+const parseEventDate = (date?: string) => {
+  if (!date) return null;
+  const ymd = /^(\d{4})-(\d{2})-(\d{2})/.exec(date);
+  const parsed = ymd ? new Date(Number(ymd[1]), Number(ymd[2]) - 1, Number(ymd[3])) : new Date(date);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
+const formatEventDate = (date?: string) => {
+  const parsed = parseEventDate(date);
+  return parsed
+    ? parsed.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
+    : date || 'Date to be announced';
+};
+
+// Seeded test events carry a trailing timestamp in the title ("Masterclass 1790409017166")
+const cleanEventTitle = (title?: string) => (title || '').trim().replace(/\s+\d{10,}$/, '');
+
+const EventDatePlaceholder = ({ date }: { date?: string }) => {
+  const parsed = parseEventDate(date);
+  const gridId = useId();
+  return (
+    <div className="w-full h-full bg-[#071A4D] relative overflow-hidden flex items-center justify-center dark:bg-km-primary">
+      <svg className="absolute inset-0 w-full h-full opacity-[0.08]" aria-hidden="true">
+        <defs>
+          <pattern id={gridId} width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="#FFFFFF" strokeWidth="1" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill={`url(#${gridId})`} />
+      </svg>
+      {parsed ? (
+        <div className="relative w-20 rounded-xl overflow-hidden bg-km-surface-card text-center shadow-lg" aria-hidden="true">
+          <div className="bg-km-events text-white text-xs font-semibold py-1">
+            {parsed.toLocaleDateString('en-IN', { month: 'short' })}
+          </div>
+          <div className="py-2 text-2xl font-bold text-km-text-primary leading-none">{parsed.getDate()}</div>
+        </div>
+      ) : (
+        <CalendarBlankIcon size={48} weight="duotone" className="relative text-white/80" aria-hidden="true" />
+      )}
+    </div>
+  );
+};
+
+const EventsSection = ({ events: allEvents }: { events: any[] }) => {
+  // Hide events that already happened; undated events stay (shown as "Date to be announced")
+  const events = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return allEvents.filter((event) => {
+      const date = parseEventDate(event.date);
+      return !date || date >= today;
+    });
+  }, [allEvents]);
+
+  if (events.length === 0) return null;
 
   return (
-    <section className="py-12 md:py-20 px-4 md:px-6 max-w-7xl mx-auto">
-      <div className="flex flex-col lg:flex-row gap-8 md:gap-12">
-        {/* Left Side: Content */}
-        <div className="lg:w-1/3 text-left">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 mb-4 md:mb-6 leading-tight">
-            Upcoming <span className="text-km-primary">Events And Challenges</span>
-          </h2>
-          <p className="text-sm text-gray-400 leading-relaxed mb-6 md:mb-8">
-            Connect with peer learners, attend hiring workshops, and gain certified skills in community-driven events.
-          </p>
-          <Link href="/events">
-            <button className="bg-km-primary hover:bg-km-primary-dark text-white px-6 md:px-8 py-3 rounded-2xl font-bold flex items-center gap-2 transition-all shadow-md">
-              View All Events <ChevronRight size={18} />
-            </button>
-          </Link>
-        </div>
+    <section className={SECTION} aria-labelledby="events-title">
+      <div className={CONTAINER}>
+        <SectionHeader
+          id="events-title"
+          title="Upcoming events and challenges"
+          description="Meet peers, attend hiring workshops, and earn certified skills at community events."
+          action={{ href: '/events', label: 'View all events' }}
+        />
 
-        {/* Right Side: Slider (Moving Towards Right) */}
-        <div className="lg:w-2/3 overflow-hidden">
-          <motion.div
-            className="flex gap-4 md:gap-6"
-            animate={{ x: [0, -400] }}
-            transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
-          >
-            {displayEvents.map((event, i) => (
-              <Link href={`/events/${event.id}`} key={i} className="min-w-70 sm:min-w-80 md:min-w-85 bg-white rounded-3xl md:rounded-4xl overflow-hidden shadow-lg border border-gray-50 flex flex-col group transition-all hover:shadow-xl">
-                <div className="h-40 bg-gray-200 relative overflow-hidden">
-                  {event.image_url ? (
-                    <img src={event.image_url} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full bg-[#071A4D] flex items-center justify-center relative overflow-hidden">
-                      <div className="flex items-center justify-center opacity-60">
-                        <div className="w-10 h-10 bg-blue-400 clip-path-triangle transform -rotate-12 -translate-x-2" />
-                        <div className="w-8 h-8 bg-blue-300 clip-path-triangle translate-x-2 translate-y-2" />
-                      </div>
+        {/* Auto-scrolling row of event cards (pauses on hover/touch) */}
+        <div className="overflow-hidden">
+          <div className="animate-km-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused] py-1">
+            {[...events, ...events].map((event, i) => {
+              const price = formatEventPrice(event.price);
+              return (
+                <Link
+                  href={`/events/${event.id}`}
+                  key={`${event.id}-${i}`}
+                  aria-hidden={i >= events.length || undefined}
+                  tabIndex={i >= events.length ? -1 : undefined}
+                  className="shrink-0 mr-5 w-72 sm:w-80 bg-km-surface-card rounded-2xl overflow-hidden border border-km-border flex flex-col group/event hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+                >
+                  <div className="h-40 relative overflow-hidden bg-[#071A4D]">
+                    {event.image_url ? (
+                      <img src={event.image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <EventDatePlaceholder date={event.date} />
+                    )}
+                    <span className="absolute top-3 left-3 max-w-[70%] truncate bg-km-surface-card/95 text-km-text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
+                      {event.location || 'Online'}
+                    </span>
+                    <span
+                      className={`absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full ${
+                        price === 'Free' ? 'bg-[#16A34A] text-white' : 'bg-km-surface-card/95 text-km-text-primary'
+                      }`}
+                    >
+                      {price}
+                    </span>
+                  </div>
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="text-base font-semibold leading-snug text-km-text-primary line-clamp-2 min-h-[2.75rem] group-hover/event:text-km-heading transition-colors">
+                      {cleanEventTitle(event.title)}
+                    </h3>
+                    {event.organizer && (
+                      <p className="mt-1 text-sm text-km-text-secondary truncate">By {event.organizer}</p>
+                    )}
+                    <div className="mt-auto pt-4 border-t border-km-border-subtle flex items-center justify-between text-sm">
+                      <span className="flex items-center gap-1.5 font-medium text-km-text-primary">
+                        <CalendarBlankIcon size={16} weight="bold" className="text-km-events" aria-hidden="true" />
+                        {formatEventDate(event.date)}
+                      </span>
+                      <span className="inline-flex items-center gap-1 font-semibold text-km-heading">
+                        Details
+                        <CaretRightIcon size={14} weight="bold" className="transition-transform group-hover/event:translate-x-0.5" aria-hidden="true" />
+                      </span>
                     </div>
-                  )}
-                  <span className="absolute top-4 left-4 bg-black/60 text-white text-[10px] px-3 py-1 rounded-full backdrop-blur-md">{event.location || 'Online'}</span>
-                </div>
-                <div className="p-6 md:p-8 flex flex-col flex-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center text-lg">{event.title?.[0] || '🎉'}</div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-black text-gray-900 text-sm md:text-base truncate">{event.title}</h4>
-                      <p className="text-[10px] text-gray-400 font-bold uppercase truncate">By {event.organizer}</p>
-                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-gray-400 font-bold mb-6 border-b border-gray-50 pb-4">
-                    <span className="flex items-center gap-1"><Calendar size={12} className="text-km-primary" /> {event.date}</span>
-                    <span className="flex items-center gap-1"><Users size={12} className="text-km-primary" /> 1K+ Joined</span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs font-black mt-auto">
-                    <span className="text-km-accent">🔥 Selling Fast</span>
-                    <span className="text-km-primary bg-blue-50 px-4 py-2 rounded-full hover:bg-blue-100 transition-colors">Register</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </motion.div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
   );
 };
 
-// --- Wallet Recharge Banner ---
+// --- Wallet Banner ---
 const WalletBanner = () => (
-  <section className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 max-w-7xl mx-auto font-sans">
-    <div className="bg-linear-to-r from-orange-500 via-orange-600 to-amber-700 rounded-3xl md:rounded-[40px] p-8 md:p-12 relative overflow-hidden flex flex-col md:flex-row items-center justify-center md:justify-between text-white shadow-lg">
-      {/* Background Graphic situated on the right away from text */}
-      <div className="absolute right-6 md:right-12 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none select-none flex items-center gap-4">
-        <Wallet size={120} className="text-white hidden lg:block" />
-        <span className="text-5xl lg:text-7xl font-black uppercase tracking-widest text-white/30 hidden md:block">
-          WALLET
-        </span>
-      </div>
+  <section className={SECTION} aria-labelledby="wallet-title">
+    <div className={CONTAINER}>
+      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-orange-500 via-orange-600 to-amber-700 text-white px-6 py-8 sm:px-10 sm:py-10 lg:px-12">
+        {/* Background mark, kept away from the copy */}
+        <div className="absolute right-8 lg:right-12 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-4 opacity-15 pointer-events-none select-none" aria-hidden="true">
+          <WalletIcon size={120} className="text-white hidden lg:block" />
+          <span className="text-6xl lg:text-7xl font-bold text-white/60">Wallet</span>
+        </div>
 
-      <div className="relative z-10 text-center md:text-left max-w-xl">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black mb-2 leading-tight">
-          Recharge Your <span className="text-amber-200">Wallet</span> And<br />Get Hired Faster
-        </h2>
-        <p className="text-sm sm:text-base opacity-95 font-medium mb-6">Kaam Bhi. Skill Bhi. Kamaai Bhi.</p>
-        <button className="bg-white text-orange-700 hover:bg-orange-50 px-6 sm:px-8 py-3 rounded-2xl font-bold flex items-center gap-2 mx-auto md:mx-0 shadow-xl transition-colors cursor-pointer">
-          <Wallet size={18} /> Recharge Now
-        </button>
+        <div className="relative max-w-xl text-center md:text-left">
+          <h2 id="wallet-title" className="text-2xl sm:text-[28px] lg:text-[32px] font-bold tracking-[-0.02em] leading-tight">
+            KaamMilega Digital <span className="text-amber-200">Wallet</span>
+          </h2>
+          <p className="mt-2 text-[15px] sm:text-base font-medium text-white/95">
+            Manage service passes, track earnings, and receive fast payouts.
+          </p>
+          <Link
+            href="/wallet"
+            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-km-surface-card text-orange-700 hover:bg-orange-50 text-sm font-semibold shadow-md transition-colors"
+          >
+            <WalletIcon size={18} weight="bold" aria-hidden="true" />
+            Open Wallet
+          </Link>
+        </div>
       </div>
     </div>
   </section>
@@ -1337,21 +1341,20 @@ const TestimonialsSection = () => {
   }, [stories]);
 
   return (
-    <section className="py-12 sm:py-16 bg-slate-50/70 border-b border-slate-200/80 overflow-hidden font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 sm:mb-10 text-center">
-        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
-          Verified Stories from <span className="text-km-primary">Real Candidates</span>
-        </h2>
-        <p className="mt-2.5 sm:mt-3 text-sm sm:text-base text-slate-600 leading-relaxed max-w-2xl mx-auto">
-          Real workers across logistics, transportation, and technical trades hired with zero brokerage and direct HR calls.
-        </p>
+    <section className={`${SECTION} overflow-hidden font-sans`} aria-labelledby="stories-title">
+      <div className={CONTAINER}>
+        <SectionHeader
+          id="stories-title"
+          title="Verified stories from real candidates"
+          description="Real workers across logistics, transportation, and technical trades hired with zero brokerage and direct HR calls."
+        />
       </div>
 
       {/* Two Horizontal Lines of Auto-Scrolled Marquee moving in opposite directions */}
       <div className="space-y-4 sm:space-y-5 py-1">
         {/* Row 1: Moves Left */}
         <div className="relative w-full overflow-hidden group/row1">
-          <div className="animate-km-marquee flex gap-4 w-max group-hover/row1:[animation-play-state:paused]">
+          <div className="animate-km-marquee flex [&>*]:mr-4 w-max group-hover/row1:[animation-play-state:paused]">
             {row1.map((story, i) => (
               <CompactTestimonialCard
                 key={`row1-${story.id}-${i}`}
@@ -1364,7 +1367,7 @@ const TestimonialsSection = () => {
 
         {/* Row 2: Moves Right */}
         <div className="relative w-full overflow-hidden group/row2">
-          <div className="animate-km-marquee-reverse flex gap-4 w-max group-hover/row2:[animation-play-state:paused]">
+          <div className="animate-km-marquee-reverse flex [&>*]:mr-4 w-max group-hover/row2:[animation-play-state:paused]">
             {row2.map((story, i) => (
               <CompactTestimonialCard
                 key={`row2-${story.id}-${i}`}
@@ -1379,9 +1382,9 @@ const TestimonialsSection = () => {
       {/* In-App YouTube Embedded Streaming Video Modal (Simple & Elegant without glowing dot) */}
       {selectedVideo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
-          <div className="relative w-full max-w-3xl bg-slate-950 rounded-3xl overflow-hidden shadow-2xl border border-slate-800 flex flex-col">
+          <div className="relative w-full max-w-3xl bg-km-ink rounded-3xl overflow-hidden shadow-2xl border border-[#1E293B] flex flex-col">
             {/* Top Bar with Candidate Info & Close (Clean & Elegant, no glowing dot) */}
-            <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 border-b border-slate-800 text-white">
+            <div className="flex items-center justify-between px-5 py-3.5 bg-km-ink border-b border-[#1E293B] text-white">
               <div className="flex items-center gap-2 pr-4 overflow-hidden">
                 <span className="text-xs sm:text-sm font-semibold text-white/90 truncate">
                   {selectedVideo.name} | {selectedVideo.role} ({selectedVideo.company})
@@ -1390,10 +1393,10 @@ const TestimonialsSection = () => {
               <button
                 type="button"
                 onClick={() => setSelectedVideo(null)}
-                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+                className="w-8 h-8 rounded-full bg-km-ink-soft hover:bg-slate-700 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
                 aria-label="Close video"
               >
-                <X size={16} />
+                <XIcon weight="bold" size={16} />
               </button>
             </div>
 
@@ -1429,17 +1432,17 @@ function CompactTestimonialCard({
       : "/asset/trades/warehouse.jpg");
 
   return (
-    <div className="w-[370px] sm:w-[400px] shrink-0 bg-white rounded-2xl border border-[#D9E0EA] p-3.5 sm:p-4 flex gap-3.5 sm:gap-4 hover:border-[#0B5ED7]/40 transition-all duration-150 shadow-xs hover:shadow-md shadow-slate-200/50 group">
+    <div className="w-[370px] sm:w-[400px] shrink-0 bg-km-surface-card rounded-2xl border border-km-border p-3.5 sm:p-4 flex gap-3.5 sm:gap-4 hover:border-[#0B5ED7]/40 transition-all duration-150 shadow-xs hover:shadow-md shadow-slate-200/50 group">
       {/* Thumbnail Section (Full-height match, eliminates whitespace underneath) */}
       <div
         onClick={() => onOpenVideo(story)}
-        className="relative w-28 sm:w-32 self-stretch min-h-[140px] rounded-xl overflow-hidden bg-slate-900 shrink-0 cursor-pointer group/thumb"
+        className="relative w-28 sm:w-32 self-stretch min-h-[140px] rounded-xl overflow-hidden bg-km-ink shrink-0 cursor-pointer group/thumb"
       >
         <img
           src={thumb}
           alt={story.name}
           referrerPolicy="no-referrer"
-          className="absolute inset-0 w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300"
+          className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => {
             if (story.youtube_video_id) {
               (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${story.youtube_video_id}/hqdefault.jpg`;
@@ -1449,8 +1452,8 @@ function CompactTestimonialCard({
 
         {/* Minimalist Play Icon in Center */}
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center group-hover/thumb:bg-black/30 transition-colors">
-          <div className="w-8 h-8 bg-white/95 text-[#071A4D] rounded-full flex items-center justify-center shadow-md group-hover/thumb:scale-110 transition-transform">
-            <Play size={12} fill="currentColor" className="ml-0.5" />
+          <div className="w-8 h-8 bg-km-surface-card/95 text-km-heading rounded-full flex items-center justify-center shadow-md group-hover/thumb:scale-110 transition-transform">
+            <PlayIcon weight="fill" size={12} className="ml-0.5" />
           </div>
         </div>
       </div>
@@ -1469,7 +1472,7 @@ function CompactTestimonialCard({
           </p>
 
           {/* Company */}
-          <p className="text-[11px] text-slate-500 font-medium leading-snug mt-0.5 break-words">
+          <p className="text-xs text-slate-500 font-medium leading-snug mt-0.5 break-words">
             {story.company}
           </p>
 
@@ -1488,7 +1491,7 @@ function CompactTestimonialCard({
               const currentRating = typeof story.rating === "number" ? story.rating : 5;
               const isFilled = starVal <= Math.round(currentRating);
               return (
-                <Star
+                <StarIcon weight="fill"
                   key={starVal}
                   size={14}
                   className={isFilled ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}
@@ -1506,38 +1509,44 @@ function CompactTestimonialCard({
 }
 
 // --- Premium Services Banner ---
+const PREMIUM_SERVICES = ['Resume Writing', 'Priority Applicant', 'Resume Display'];
+
 const PremiumServicesBanner = () => {
   return (
-    <section className="px-3 md:px-6 py-6 md:py-10 max-w-7xl mx-auto">
-      <div className="bg-white border-2 border-slate-200 rounded-3xl md:rounded-[40px] p-6 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-12 relative overflow-hidden shadow-sm">
-        {/* Placeholder for Graphic */}
-        <div className="w-full md:w-1/3 aspect-video bg-blue-50 rounded-2xl md:rounded-3xl flex items-center justify-center border-2 border-dashed border-blue-200">
-          <span className="text-km-primary font-black uppercase tracking-widest text-xs md:text-sm">InstantMilega &amp; ATS</span>
-        </div>
+    <section className={SECTION} aria-labelledby="premium-title">
+      <div className={CONTAINER}>
+        <div className="bg-km-surface-card border border-km-border rounded-3xl p-6 sm:p-8 lg:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-10">
+          <ProfileBoostArt className="w-full md:w-1/3 max-w-sm shrink-0" />
 
-        <div className="flex-1 text-center md:text-left">
-          <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-900 mb-3 md:mb-4">
-            Accelerate Your Job Search With Premium Services
-          </h2>
-          <p className="text-sm text-gray-400 leading-relaxed mb-5 md:mb-8 max-w-xl">
-            Services designed to get you hired faster: resume optimization, verified priority applicant status,
-            direct recruiter connection, and instant skill certifications!
-          </p>
-
-          <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-3 mb-5 md:mb-8">
-            {['Resume Writing', 'Priority Applicant', 'Resume Display'].map((service) => (
-              <button key={service} className="px-4 md:px-5 py-2 border border-slate-200 rounded-full text-[10px] md:text-[11px] font-bold text-gray-700 hover:bg-blue-50 hover:border-blue-200 transition-colors flex items-center gap-2">
-                {service} <ChevronRight size={12} className="text-km-primary" />
-              </button>
-            ))}
+          <div className="flex-1 text-center md:text-left">
+            <h2 id="premium-title" className="text-xl sm:text-2xl lg:text-[28px] font-bold tracking-[-0.02em] leading-tight text-km-text-primary">
+              Accelerate your job search with premium services
+            </h2>
+            <p className="mt-3 text-[15px] text-km-text-secondary leading-relaxed max-w-xl">
+              Get hired faster with resume optimization, priority applicant status, direct recruiter connections and skill certifications.
+            </p>
+            <div className="mt-5 flex flex-wrap justify-center md:justify-start gap-2">
+              {PREMIUM_SERVICES.map((service) => (
+                <Link
+                  key={service}
+                  href="/resources/premium"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-km-border text-sm font-medium text-km-text-primary hover:border-[#0B5ED7]/40 hover:text-km-heading transition-colors"
+                >
+                  {service}
+                  <CaretRightIcon size={14} weight="bold" className="text-km-heading" aria-hidden="true" />
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <Link href="/resources/premium">
-          <button className="bg-km-primary hover:bg-km-primary-dark text-white px-6 md:px-8 py-3 rounded-2xl font-bold transition-all shadow-lg shadow-blue-900/15">
-            Learn More
-          </button>
-        </Link>
+          <Link
+            href="/resources/premium"
+            className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-sm font-semibold transition-colors dark:bg-km-primary dark:hover:bg-km-primary-dark"
+          >
+            Learn more
+            <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
+          </Link>
+        </div>
       </div>
     </section>
   );
@@ -1577,11 +1586,9 @@ const PopularQuestions = ({ questions }: { questions: any[] }) => {
   const displayFaqs = questions && questions.length > 0 ? questions : defaultFaqs;
 
   return (
-    <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto font-sans">
-      <div className="bg-white rounded-3xl p-6 sm:p-10 md:p-14 shadow-xs border border-slate-200/90">
-        <h2 className="text-center text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight mb-8 sm:mb-12">
-          Frequently Asked <span className="text-km-primary">Questions</span>
-        </h2>
+    <section id="faq" className={`${SECTION} scroll-mt-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto font-sans`}>
+      <div className="bg-km-surface-card rounded-3xl p-6 sm:p-10 md:p-12 border border-km-border">
+        <SectionHeader title="Frequently asked questions" />
 
         <div className="space-y-4">
           {displayFaqs.map((faq, i) => (
@@ -1591,13 +1598,13 @@ const PopularQuestions = ({ questions }: { questions: any[] }) => {
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                 className="w-full flex justify-between items-center py-4 text-left group cursor-pointer"
               >
-                <span className={`text-base font-bold transition-colors ${openIndex === i ? 'text-km-primary' : 'text-slate-800 group-hover:text-km-primary'}`}>
+                <span className={`text-base font-bold transition-colors ${openIndex === i ? 'text-km-heading' : 'text-slate-800 group-hover:text-km-heading'}`}>
                   {faq.question}
                 </span>
                 {openIndex === i ? (
-                  <ChevronUp className="text-km-primary shrink-0 ml-4" size={20} />
+                  <CaretUpIcon className="text-km-heading shrink-0 ml-4" size={20} />
                 ) : (
-                  <ChevronDown className="text-slate-400 group-hover:text-km-primary shrink-0 ml-4" size={20} />
+                  <CaretDownIcon className="text-slate-400 group-hover:text-km-heading shrink-0 ml-4" size={20} />
                 )}
               </button>
 

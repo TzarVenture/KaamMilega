@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, Briefcase, GraduationCap, Star } from 'lucide-react';
+import { BriefcaseIcon, GraduationCapIcon, SquaresFourIcon, StarIcon } from '@phosphor-icons/react';
 import { FeedCategory } from './feedTypes';
 
 interface FeedHeaderFiltersProps {
@@ -10,10 +10,10 @@ interface FeedHeaderFiltersProps {
 }
 
 const CATEGORIES: { id: FeedCategory; label: string; icon: React.ReactNode; activeColor: string }[] = [
-  { id: 'all', label: 'All Updates', icon: <Sparkles size={14} />, activeColor: 'bg-[#071A4D] text-white' },
-  { id: 'jobs', label: 'Jobs & Hiring', icon: <Briefcase size={14} />, activeColor: 'bg-[#0B5ED7] text-white' },
-  { id: 'skills', label: 'Skills & Learning', icon: <GraduationCap size={14} />, activeColor: 'bg-[#16A34A] text-white' },
-  { id: 'mentors', label: 'Mentorship', icon: <Star size={14} />, activeColor: 'bg-[#7C3AED] text-white' },
+  { id: 'all', label: 'All Updates', icon: <SquaresFourIcon weight="bold" size={14} />, activeColor: 'bg-[#071A4D] text-white dark:bg-km-primary' },
+  { id: 'jobs', label: 'Jobs & Hiring', icon: <BriefcaseIcon weight="bold" size={14} />, activeColor: 'bg-[#0B5ED7] text-white' },
+  { id: 'skills', label: 'Skills & Learning', icon: <GraduationCapIcon weight="bold" size={14} />, activeColor: 'bg-[#16A34A] text-white' },
+  { id: 'mentors', label: 'Mentorship', icon: <StarIcon weight="bold" size={14} />, activeColor: 'bg-[#7C3AED] text-white' },
 ];
 
 export const FeedHeaderFilters: React.FC<FeedHeaderFiltersProps> = ({
@@ -32,7 +32,7 @@ export const FeedHeaderFilters: React.FC<FeedHeaderFiltersProps> = ({
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-poppins font-semibold transition-all shrink-0 border ${
               isSelected
                 ? `${cat.activeColor} border-transparent shadow-xs`
-                : 'bg-white text-[#5B6472] border-[#D9E0EA] hover:border-[#0B5ED7]/40 hover:text-[#071A4D] hover:bg-[#F4F7FB]'
+                : 'bg-km-surface-card text-km-text-secondary border-km-border hover:border-[#0B5ED7]/40 hover:text-km-heading hover:bg-km-surface'
             }`}
           >
             {cat.icon}

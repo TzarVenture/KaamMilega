@@ -1,3 +1,4 @@
+import { unregisterPushOnSignOut } from "@/lib/push/push";
 import api from "./axios";
 
 export interface StoredUser {
@@ -18,7 +19,7 @@ export interface StoredUser {
  * In accordance with industry standards, the secret JWT authentication token is NEVER stored
  * in localStorage; it is securely managed via the HttpOnly km_auth_token cookie set by the backend.
  */
-export function saveSession(user: StoredUser, _optionalToken?: string) {
+export function saveSession(user: StoredUser, activeRole?: string) {
     if (typeof window === "undefined") return;
 
     try {
@@ -28,12 +29,19 @@ export function saveSession(user: StoredUser, _optionalToken?: string) {
         // Save harmless display info for instant UI rendering (avatar, name, etc.)
         localStorage.setItem("user", JSON.stringify(user));
 
-        // Derive primary role
+        // One account can hold several roles (candidate + employer). The role cookie tracks the
+        // portal currently in use: the portal just signed into, else the one already active.
         const roles = Array.isArray(user.roles) ? user.roles : (user.role ? [user.role] : ["user"]);
-        const primaryRole = roles[0] || "user";
+        const currentRole = getCurrentPortalRole();
+        let portalRole = roles[0] || "user";
+        if (activeRole && roles.includes(activeRole)) {
+            portalRole = activeRole;
+        } else if (currentRole && roles.includes(currentRole)) {
+            portalRole = currentRole;
+        }
 
         // Set readable role cookie for Next.js Edge Middleware (72 hours)
-        document.cookie = `km_user_role=${primaryRole}; Path=/; Max-Age=259200; SameSite=Lax`;
+        document.cookie = `km_user_role=${portalRole}; Path=/; Max-Age=259200; SameSite=Lax`;
     } catch (e) {
         console.error("Failed to save auth session:", e);
     }
@@ -51,6 +59,10 @@ export async function clearSession() {
 
         // Expire the client-side role cookie
         document.cookie = "km_user_role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0;";
+
+        // Remove this browser from push while the session is still valid, so the next person
+        // on this device never gets this account’s notifications
+        await unregisterPushOnSignOut().catch(() => {});
 
         // Notify backend to clear HttpOnly km_auth_token cookie
         await api.post("/auth/logout").catch(() => {});
@@ -96,6 +108,14 @@ export function getCurrentRole(): string {
     if (!user) return "";
     const roles = Array.isArray(user.roles) ? user.roles : (user.role ? [user.role] : []);
     return roles[0] || "";
+}
+
+/**
+ * Returns the portal the user is currently signed into (km_user_role cookie), e.g. "user" or "recruiter".
+ */
+export function getCurrentPortalRole(): string {
+    if (typeof window === "undefined") return "";
+    return document.cookie.match(/(?:^|;\s*)km_user_role=([^;]*)/)?.[1] || "";
 }
 
 /**

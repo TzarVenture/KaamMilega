@@ -277,7 +277,7 @@ func (s *InstantWorkServiceImpl) PurchasePassWithWallet(ctx context.Context, use
 		RazorpayOrderID:   fmt.Sprintf("wallet_pass_%d", now.UnixNano()),
 		RazorpayPaymentID: fmt.Sprintf("wallet_pay_%d", now.UnixNano()),
 		ActivatedAt:       now,
-		ExpiresAt:         now.Add(30 * 24 * time.Hour),
+		ExpiresAt:         now.Add(90 * 24 * time.Hour),
 		CreatedAt:         now,
 		UpdatedAt:         now,
 	}

@@ -1,23 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-    Search, 
-    Plus, 
-    Pencil, 
-    Trash2, 
-    Play, 
-    ExternalLink, 
-    CheckCircle2, 
-    XCircle, 
-    Loader2, 
-    Star, 
-    Video, 
-    X,
-    Eye
-} from "lucide-react";
+import { CheckCircleIcon, CircleNotchIcon, EyeIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlayIcon, PlusIcon, StarIcon, TrashIcon, VideoCameraIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { extractYouTubeVideoId, getYouTubeThumbnail } from "@/lib/youtube";
 
@@ -73,7 +59,7 @@ export default function AdminTestimonialsPage() {
             setTestimonials(res.data || []);
         } catch (error: any) {
             console.error("Failed to load testimonials:", error);
-            toast.error(error.message || "Failed to load testimonials");
+            notify.error(error.message || "Failed to load testimonials");
         } finally {
             setLoading(false);
         }
@@ -116,12 +102,12 @@ export default function AdminTestimonialsPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!name.trim()) return toast.error("Candidate name is required");
-        if (!role.trim()) return toast.error("Candidate role is required");
-        if (!company.trim()) return toast.error("Company name is required");
-        if (!review.trim()) return toast.error("Candidate review is required");
-        if (review.trim().length > 100) return toast.error("Review must be within 100 characters");
-        if (!extractedId) return toast.error("Please enter a valid YouTube video URL");
+        if (!name.trim()) return notify.error("Candidate name is required");
+        if (!role.trim()) return notify.error("Candidate role is required");
+        if (!company.trim()) return notify.error("Company name is required");
+        if (!review.trim()) return notify.error("Candidate review is required");
+        if (review.trim().length > 100) return notify.error("Review must be within 100 characters");
+        if (!extractedId) return notify.error("Please enter a valid YouTube video URL");
 
         try {
             setSaving(true);
@@ -141,16 +127,16 @@ export default function AdminTestimonialsPage() {
 
             if (editingItem) {
                 await api.put(`/admin/testimonials/${editingItem.id}`, payload);
-                toast.success("Candidate story updated successfully!");
+                notify.success("Candidate story updated successfully!");
             } else {
                 await api.post("/admin/testimonials", payload);
-                toast.success("Candidate story published successfully!");
+                notify.success("Candidate story published successfully!");
             }
 
             setIsModalOpen(false);
             fetchTestimonials();
         } catch (error: any) {
-            toast.error(error.message || "Failed to save testimonial");
+            notify.error(error.message || "Failed to save testimonial");
         } finally {
             setSaving(false);
         }
@@ -163,10 +149,10 @@ export default function AdminTestimonialsPage() {
 
         try {
             await api.delete(`/admin/testimonials/${id}`);
-            toast.success("Testimonial deleted successfully!");
+            notify.success("Testimonial deleted successfully!");
             setTestimonials((prev) => prev.filter((t) => t.id !== id));
         } catch (error: any) {
-            toast.error(error.message || "Failed to delete testimonial");
+            notify.error(error.message || "Failed to delete testimonial");
         }
     };
 
@@ -179,7 +165,7 @@ export default function AdminTestimonialsPage() {
     return (
         <div className="space-y-6">
             {/* Header & Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-km-surface-card p-6 rounded-3xl border border-slate-200/80 shadow-xs">
                 <div>
                     <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
                         Candidate Verified Stories & Testimonials
@@ -192,16 +178,16 @@ export default function AdminTestimonialsPage() {
                 <button
                     type="button"
                     onClick={handleOpenCreate}
-                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0"
+                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow-xs transition-all active:scale-95 cursor-pointer shrink-0 dark:bg-km-primary dark:hover:bg-km-primary-dark"
                 >
-                    <Plus size={16} />
+                    <PlusIcon weight="bold" size={16} />
                     <span>Add New Story</span>
                 </button>
             </div>
 
             {/* Search Input */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-2.5 flex items-center gap-3 shadow-xs">
-                <Search size={18} className="text-slate-400 ml-2" />
+            <div className="bg-km-surface-card rounded-2xl border border-slate-200 p-2.5 flex items-center gap-3 shadow-xs">
+                <MagnifyingGlassIcon weight="bold" size={18} className="text-slate-400 ml-2" />
                 <input
                     type="text"
                     value={search}
@@ -213,20 +199,20 @@ export default function AdminTestimonialsPage() {
 
             {/* List / Table */}
             {loading ? (
-                <div className="py-20 flex flex-col justify-center items-center space-y-3 bg-white rounded-3xl border border-slate-200">
-                    <Loader2 size={32} className="animate-spin text-[#0B5ED7]" />
+                <div className="py-20 flex flex-col justify-center items-center space-y-3 bg-km-surface-card rounded-3xl border border-slate-200">
+                    <CircleNotchIcon size={32} className="animate-spin text-km-link" />
                     <p className="text-xs text-slate-500 font-medium">Loading candidate stories...</p>
                 </div>
             ) : filtered.length === 0 ? (
-                <div className="bg-white rounded-3xl border border-dashed border-slate-200 p-12 text-center space-y-3">
-                    <Video size={36} className="text-slate-400 mx-auto" />
+                <div className="bg-km-surface-card rounded-3xl border border-dashed border-slate-200 p-12 text-center space-y-3">
+                    <VideoCameraIcon size={36} className="text-slate-400 mx-auto" />
                     <h3 className="text-base font-bold text-slate-800">No Candidate Stories Found</h3>
                     <p className="text-xs text-slate-500 max-w-sm mx-auto">
                         Add candidate video testimonials using the button above to feature them on the homepage.
                     </p>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+                <div className="bg-km-surface-card rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse min-w-[780px]">
                             <thead>
@@ -248,7 +234,7 @@ export default function AdminTestimonialsPage() {
                                             <td className="py-3 px-4">
                                                 <div
                                                     onClick={() => setPreviewVideoId(item.youtube_video_id)}
-                                                    className="relative w-24 sm:w-28 aspect-video rounded-lg overflow-hidden bg-slate-900 cursor-pointer group/thumb shrink-0 border border-slate-200"
+                                                    className="relative w-24 sm:w-28 aspect-video rounded-lg overflow-hidden bg-km-ink cursor-pointer group/thumb shrink-0 border border-slate-200"
                                                     title="Click to preview video"
                                                 >
                                                     <img
@@ -263,8 +249,8 @@ export default function AdminTestimonialsPage() {
                                                         }}
                                                     />
                                                     <div className="absolute inset-0 bg-black/15 flex items-center justify-center group-hover/thumb:bg-black/25 transition-colors">
-                                                        <div className="w-6 h-6 rounded-full bg-white text-[#071A4D] flex items-center justify-center shadow-xs group-hover/thumb:scale-110 transition-transform">
-                                                            <Play size={10} className="fill-[#071A4D] ml-0.5" />
+                                                        <div className="w-6 h-6 rounded-full bg-km-surface-card text-km-heading flex items-center justify-center shadow-xs group-hover/thumb:scale-110 transition-transform">
+                                                            <PlayIcon weight="bold" size={10} className="fill-[#071A4D] ml-0.5 dark:fill-km-heading" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -275,10 +261,10 @@ export default function AdminTestimonialsPage() {
                                                 <div className="font-bold text-sm text-slate-900">
                                                     {item.name}
                                                 </div>
-                                                <div className="flex items-center gap-1.5 text-amber-500 mt-1">
+                                                <div className="flex items-center gap-1.5 text-amber-500 mt-1 dark:text-amber-400">
                                                     <div className="flex items-center gap-0.5">
                                                         {[1, 2, 3, 4, 5].map((s) => (
-                                                            <Star
+                                                            <StarIcon weight="fill"
                                                                 key={s}
                                                                 size={13}
                                                                 className={s <= Math.round(item.rating || 5) ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-200"}
@@ -314,11 +300,11 @@ export default function AdminTestimonialsPage() {
                                             <td className="py-3 px-4">
                                                 {item.is_active ? (
                                                     <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                                        <CheckCircle2 size={11} /> Active
+                                                        <CheckCircleIcon weight="bold" size={11} /> Active
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-600 border border-slate-200 text-[10px] font-bold px-2 py-0.5 rounded-md">
-                                                        <XCircle size={11} /> Inactive
+                                                        <XCircleIcon weight="bold" size={11} /> Inactive
                                                     </span>
                                                 )}
                                             </td>
@@ -329,26 +315,26 @@ export default function AdminTestimonialsPage() {
                                                     <button
                                                         type="button"
                                                         onClick={() => setPreviewVideoId(item.youtube_video_id)}
-                                                        className="p-1.5 text-slate-400 hover:text-[#0B5ED7] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                                        className="p-1.5 text-slate-400 hover:text-km-link hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                                         title="Preview Video"
                                                     >
-                                                        <Eye size={14} />
+                                                        <EyeIcon weight="bold" size={14} />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleOpenEdit(item)}
-                                                        className="p-1.5 text-slate-400 hover:text-[#0B5ED7] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                                        className="p-1.5 text-slate-400 hover:text-km-link hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                                                         title="Edit Story"
                                                     >
-                                                        <Pencil size={14} />
+                                                        <PencilSimpleIcon weight="bold" size={14} />
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => handleDelete(item.id, item.name)}
-                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer dark:hover:text-red-400"
                                                         title="Delete Story"
                                                     >
-                                                        <Trash2 size={14} />
+                                                        <TrashIcon weight="bold" size={14} />
                                                     </button>
                                                 </div>
                                             </td>
@@ -369,7 +355,7 @@ export default function AdminTestimonialsPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 overflow-y-auto max-h-[90vh] space-y-5"
+                            className="bg-km-surface-card rounded-3xl max-w-xl w-full p-6 sm:p-7 shadow-2xl border border-slate-200 overflow-y-auto max-h-[90vh] space-y-5"
                         >
                             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                                 <h2 className="text-base sm:text-lg font-bold text-slate-900">
@@ -380,7 +366,7 @@ export default function AdminTestimonialsPage() {
                                     onClick={() => setIsModalOpen(false)}
                                     className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
                                 >
-                                    <X size={18} />
+                                    <XIcon weight="bold" size={18} />
                                 </button>
                             </div>
 
@@ -389,7 +375,7 @@ export default function AdminTestimonialsPage() {
                                     {/* Candidate Name */}
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-slate-700">
-                                            Candidate Name <span className="text-red-500">*</span>
+                                            Candidate Name <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -397,14 +383,14 @@ export default function AdminTestimonialsPage() {
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
                                             placeholder="e.g. Dharmender Kumar"
-                                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0B5ED7] transition-all font-medium"
+                                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-km-surface-card focus:border-[#0B5ED7] transition-all font-medium"
                                         />
                                     </div>
 
                                     {/* Role */}
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-slate-700">
-                                            Role / Designation <span className="text-red-500">*</span>
+                                            Role / Designation <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -412,14 +398,14 @@ export default function AdminTestimonialsPage() {
                                             value={role}
                                             onChange={(e) => setRole(e.target.value)}
                                             placeholder="e.g. Warehouse Supervisor"
-                                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0B5ED7] transition-all font-medium"
+                                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-km-surface-card focus:border-[#0B5ED7] transition-all font-medium"
                                         />
                                     </div>
 
                                     {/* Company */}
                                     <div className="space-y-1">
                                         <label className="text-xs font-semibold text-slate-700">
-                                            Hiring Company <span className="text-red-500">*</span>
+                                            Hiring Company <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
                                         <input
                                             type="text"
@@ -427,7 +413,7 @@ export default function AdminTestimonialsPage() {
                                             value={company}
                                             onChange={(e) => setCompany(e.target.value)}
                                             placeholder="e.g. Technova Logistics"
-                                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0B5ED7] transition-all font-medium"
+                                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-km-surface-card focus:border-[#0B5ED7] transition-all font-medium"
                                         />
                                     </div>
 
@@ -439,7 +425,7 @@ export default function AdminTestimonialsPage() {
                                         <select
                                             value={rating}
                                             onChange={(e) => setRating(Number(e.target.value))}
-                                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0B5ED7] transition-all font-medium cursor-pointer"
+                                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-km-surface-card focus:border-[#0B5ED7] transition-all font-medium cursor-pointer"
                                         >
                                             <option value={5}>5 Stars ★★★★★</option>
                                             <option value={4}>4 Stars ★★★★☆</option>
@@ -452,9 +438,9 @@ export default function AdminTestimonialsPage() {
                                 <div className="space-y-1">
                                     <div className="flex items-center justify-between">
                                         <label className="text-xs font-semibold text-slate-700">
-                                            Candidate Review / Feedback <span className="text-red-500">*</span>
+                                            Candidate Review / Feedback <span className="text-red-500 dark:text-red-400">*</span>
                                         </label>
-                                        <span className={`text-[11px] font-semibold ${review.length > 100 ? "text-red-500" : "text-slate-400"}`}>
+                                        <span className={`text-[11px] font-semibold ${review.length > 100 ? "text-red-500 dark:text-red-400" : "text-slate-400"}`}>
                                             {review.length}/100
                                         </span>
                                     </div>
@@ -465,7 +451,7 @@ export default function AdminTestimonialsPage() {
                                         value={review}
                                         onChange={(e) => setReview(e.target.value)}
                                         placeholder="e.g. Joined warehouse team within 48 hrs with direct company HR call and zero brokerage."
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0B5ED7] transition-all font-medium resize-none"
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-km-surface-card focus:border-[#0B5ED7] transition-all font-medium resize-none"
                                     />
                                     <p className="text-[11px] text-slate-500">
                                         Short review quote shown untrimmed on the homepage card (max 100 characters).
@@ -475,7 +461,7 @@ export default function AdminTestimonialsPage() {
                                 {/* YouTube URL */}
                                 <div className="space-y-1">
                                     <label className="text-xs font-semibold text-slate-700">
-                                        YouTube Video URL / Embed Link <span className="text-red-500">*</span>
+                                        YouTube Video URL / Embed Link <span className="text-red-500 dark:text-red-400">*</span>
                                     </label>
                                     <input
                                         type="url"
@@ -483,7 +469,7 @@ export default function AdminTestimonialsPage() {
                                         value={youtubeUrl}
                                         onChange={(e) => setYoutubeUrl(e.target.value)}
                                         placeholder="https://www.youtube.com/watch?v=... or https://youtu.be/..."
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0B5ED7] transition-all font-medium"
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-km-surface-card focus:border-[#0B5ED7] transition-all font-medium"
                                     />
                                     <p className="text-[11px] text-slate-500">
                                         Supports standard YouTube watch links, youtu.be, shorts, or embed URLs.
@@ -500,7 +486,7 @@ export default function AdminTestimonialsPage() {
                                         />
                                         <div className="flex-1 min-w-0">
                                             <div className="text-xs font-bold text-emerald-800 flex items-center gap-1">
-                                                <CheckCircle2 size={13} />
+                                                <CheckCircleIcon weight="bold" size={13} />
                                                 <span>Verified YouTube Video ID: {extractedId}</span>
                                             </div>
                                             <p className="text-[11px] text-emerald-700 mt-0.5">
@@ -520,7 +506,7 @@ export default function AdminTestimonialsPage() {
                                         value={thumbnailUrl}
                                         onChange={(e) => setThumbnailUrl(e.target.value)}
                                         placeholder="Leave blank to use default YouTube thumbnail"
-                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-white focus:border-[#0B5ED7] transition-all font-medium"
+                                        className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:bg-km-surface-card focus:border-[#0B5ED7] transition-all font-medium"
                                     />
                                 </div>
 
@@ -531,7 +517,7 @@ export default function AdminTestimonialsPage() {
                                         id="isActiveCheckbox"
                                         checked={isActive}
                                         onChange={(e) => setIsActive(e.target.checked)}
-                                        className="w-4 h-4 rounded text-[#0B5ED7] cursor-pointer"
+                                        className="w-4 h-4 rounded text-km-link cursor-pointer"
                                     />
                                     <label htmlFor="isActiveCheckbox" className="text-xs font-semibold text-slate-700 cursor-pointer">
                                         Feature on Homepage
@@ -550,11 +536,11 @@ export default function AdminTestimonialsPage() {
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="px-6 py-2.5 text-xs font-bold text-white bg-[#071A4D] hover:bg-[#0B1F52] rounded-xl shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer flex items-center gap-1.5"
+                                        className="px-6 py-2.5 text-xs font-bold text-white bg-[#071A4D] hover:bg-[#0B1F52] rounded-xl shadow-xs transition-all active:scale-95 disabled:opacity-60 cursor-pointer flex items-center gap-1.5 dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                     >
                                         {saving ? (
                                             <>
-                                                <Loader2 size={14} className="animate-spin" />
+                                                <CircleNotchIcon weight="bold" size={14} className="animate-spin" />
                                                 <span>Saving...</span>
                                             </>
                                         ) : (
@@ -576,7 +562,7 @@ export default function AdminTestimonialsPage() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="relative w-full max-w-3xl bg-black rounded-3xl overflow-hidden shadow-2xl border border-slate-800"
+                            className="relative w-full max-w-3xl bg-black rounded-3xl overflow-hidden shadow-2xl border border-[#1E293B]"
                         >
                             <button
                                 type="button"
@@ -584,7 +570,7 @@ export default function AdminTestimonialsPage() {
                                 className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/60 hover:bg-black text-white flex items-center justify-center transition-colors cursor-pointer"
                                 aria-label="Close"
                             >
-                                <X size={18} />
+                                <XIcon weight="bold" size={18} />
                             </button>
                             <div className="aspect-video w-full">
                                 <iframe

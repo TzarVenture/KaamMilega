@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Search, ArrowLeft } from 'lucide-react';
+import { ArrowLeftIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import Pagination from '@/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
+import { errorText, notify } from "@/lib/notify";
 
 export interface ExpertUser {
     id: string;
@@ -69,11 +70,11 @@ export default function ExpertsPage() {
                 );
                 setMyExperts(expertConnections);
 
-                // Fetch all users to suggest experts
+                // Fetch approved experts
                 try {
-                    const usersRes = await api.get('/admin/users') as ExpertUser[];
+                    const expertsRes = await api.get('/experts') as ExpertUser[];
                     
-                    const filteredSuggestions = (usersRes || []).filter(u => 
+                    const filteredSuggestions = (expertsRes || []).filter(u => 
                         u.roles?.includes('expert') && 
                         u.id !== currentUserId && 
                         u._id !== currentUserId &&
@@ -100,7 +101,7 @@ export default function ExpertsPage() {
             setMyExperts(prev => prev.filter(c => c.id !== id));
         } catch (err) {
             console.error("Failed to delete connection", err);
-            alert("Could not remove connection");
+            notify.error(err, "Could not remove connection.");
         }
     };
 
@@ -140,12 +141,12 @@ export default function ExpertsPage() {
     if (loading) {
         return (
             <div className="space-y-6 animate-pulse">
-                <div className="bg-white rounded-2xl border border-[#D9E0EA] p-6 shadow-xs">
+                <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs">
                     <div className="h-5 w-44 bg-slate-200 rounded-lg mb-2" />
                     <div className="h-3 w-60 bg-slate-100 rounded-lg mb-6" />
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                         {[1, 2, 3, 4, 5, 6].map((i) => (
-                            <div key={i} className="h-64 bg-[#F4F7FB]/60 border border-[#D9E0EA] rounded-2xl p-5 flex flex-col items-center justify-between">
+                            <div key={i} className="h-64 bg-km-surface/60 border border-km-border rounded-2xl p-5 flex flex-col items-center justify-between">
                                 <div className="w-16 h-16 rounded-full bg-slate-200" />
                                 <div className="h-4 w-28 bg-slate-200 rounded mt-3" />
                                 <div className="h-3 w-36 bg-slate-100 rounded mt-1" />
@@ -163,7 +164,7 @@ export default function ExpertsPage() {
     return (
         <div className="space-y-6">
             {suggestedExperts.length > 0 && (
-                <div className="bg-white rounded-2xl border border-[#D9E0EA] p-4 sm:p-6 shadow-xs overflow-hidden">
+                <div className="bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-6 shadow-xs overflow-hidden">
                     <ConnectJustLikeYou 
                         users={suggestedExperts}
                         pendingIds={pendingExpertIds}
@@ -174,7 +175,7 @@ export default function ExpertsPage() {
                                 setPendingExpertIds(prev => [...prev, id]);
                             } catch (e: any) {
                                 console.error("Failed to connect", e);
-                                const msg = e?.response?.data?.error || e.message || '';
+                                const msg = errorText(e, '');
                                 if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
                                     setPendingExpertIds(prev => [...prev, id]);
                                 }
@@ -185,23 +186,23 @@ export default function ExpertsPage() {
             )}
 
             {/* Main Experts Card */}
-            <div className="bg-white rounded-2xl border border-[#D9E0EA] shadow-xs overflow-hidden">
-                <div className="p-5 sm:p-6 border-b border-[#D9E0EA]/70">
+            <div className="bg-km-surface-card rounded-2xl border border-km-border shadow-xs overflow-hidden">
+                <div className="p-5 sm:p-6 border-b border-km-border/70">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
                         <div className="flex items-center gap-3">
                             <button 
                                 type="button"
-                                className="p-2 hover:bg-[#F4F7FB] rounded-xl text-[#5B6472] hover:text-[#071A4D] transition-colors cursor-pointer active:scale-[0.98]" 
+                                className="p-2 hover:bg-km-surface rounded-xl text-km-text-secondary hover:text-km-heading transition-colors cursor-pointer active:scale-[0.98]" 
                                 onClick={() => router.back()}
                                 aria-label="Back to network"
                             >
-                                <ArrowLeft size={18} />
+                                <ArrowLeftIcon weight="bold" size={18} />
                             </button>
                             <div>
-                                <h1 className="text-lg sm:text-xl font-bold text-[#111827]">
+                                <h1 className="text-lg sm:text-xl font-bold text-km-text-primary">
                                     {totalItems} Connected {totalItems === 1 ? 'Expert' : 'Experts'}
                                 </h1>
-                                <p className="text-xs text-[#5B6472]">Verified mentors and industry advisors</p>
+                                <p className="text-xs text-km-text-secondary">Verified mentors and industry advisors</p>
                             </div>
                         </div>
 
@@ -215,7 +216,7 @@ export default function ExpertsPage() {
                     </div>
 
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 text-xs text-[#5B6472] font-medium">
+                        <div className="flex items-center gap-2 text-xs text-km-text-secondary font-medium">
                             <span>Sort by:</span>
                             <div className="relative">
                                 <select 
@@ -224,7 +225,7 @@ export default function ExpertsPage() {
                                         setSortBy(e.target.value as any);
                                         setCurrentPage(1);
                                     }}
-                                    className="px-3 py-1.5 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl text-xs font-semibold text-[#111827] hover:border-[#071A4D] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none transition-colors cursor-pointer"
+                                    className="px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-text-primary hover:border-[#071A4D] focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none transition-colors cursor-pointer dark:hover:border-km-link"
                                 >
                                     <option value="recent">Recently added</option>
                                     <option value="name_asc">Name (A – Z)</option>
@@ -233,7 +234,7 @@ export default function ExpertsPage() {
                             </div>
                         </div>
                         <div className="relative w-full sm:w-72">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5B6472]" size={16} />
+                            <MagnifyingGlassIcon weight="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary" size={16} />
                             <input
                                 type="text"
                                 placeholder="Search experts..."
@@ -242,7 +243,7 @@ export default function ExpertsPage() {
                                     setSearchQuery(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                className="w-full pl-9 pr-4 py-2 bg-[#F4F7FB] border border-[#D9E0EA] rounded-xl text-xs font-medium focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none text-[#111827] placeholder:text-[#5B6472] transition-all"
+                                className="w-full pl-9 pr-4 py-2 bg-km-surface border border-km-border rounded-xl text-xs font-medium focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/20 outline-none text-km-text-primary placeholder:text-km-text-secondary transition-all"
                             />
                         </div>
                     </div>
@@ -251,19 +252,17 @@ export default function ExpertsPage() {
                 <div className="p-5 sm:p-6 min-h-[300px]">
                     {currentList.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                            <div className="w-12 h-12 rounded-2xl bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center text-[#5B6472] mb-3">
-                                <Search size={20} />
-                            </div>
-                            <p className="text-sm font-semibold text-[#111827]">
+                            <MagnifyingGlassIcon size={28} weight="duotone" className="text-km-text-secondary mb-3" aria-hidden="true" />
+                            <p className="text-sm font-semibold text-km-text-primary">
                                 {searchQuery ? "No experts found matching your search." : "You are not connected to any experts yet."}
                             </p>
-                            <p className="text-xs text-[#5B6472] mt-1 max-w-sm">
+                            <p className="text-xs text-km-text-secondary mt-1 max-w-sm">
                                 {searchQuery ? "Try a different search keyword." : "Explore verified experts to book 1-on-1 mentorship and career advice."}
                             </p>
                             <button
                                 type="button"
                                 onClick={() => router.push('/mentorship')}
-                                className="mt-4 px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer"
+                                className="mt-4 px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-semibold rounded-xl transition-all duration-150 shadow-xs active:scale-[0.98] cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                             >
                                 Browse Mentors
                             </button>
@@ -290,7 +289,7 @@ export default function ExpertsPage() {
                 </div>
 
                 {totalItems > ITEMS_PER_PAGE && (
-                    <div className="p-6 border-t border-[#D9E0EA]/70 flex justify-center">
+                    <div className="p-6 border-t border-km-border/70 flex justify-center">
                         <Pagination
                             total={Math.ceil(totalItems / ITEMS_PER_PAGE)}
                             current={currentPage}

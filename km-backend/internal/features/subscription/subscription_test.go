@@ -180,8 +180,9 @@ func TestSubscribeWithWallet_Success(t *testing.T) {
 		},
 	}
 	testUser := &user.User{
-		ID:    uid,
-		Roles: []string{user.RoleUser},
+		ID:               uid,
+		Roles:            []string{user.RoleUser},
+		ExperienceDetail: "2 Years",
 	}
 	mockUser := &mockUserRepo{
 		users: map[string]*user.User{
@@ -226,6 +227,40 @@ func TestSubscribeWithWallet_Success(t *testing.T) {
 	}
 	if u.ExpertApprovalStatus != "approved" {
 		t.Errorf("expected expert_approval_status 'approved', got %s", u.ExpertApprovalStatus)
+	}
+}
+
+func TestSubscribeWithWallet_RequiresTwoYearsExperience(t *testing.T) {
+	repo := newMockSubscriptionRepo()
+	uid := primitive.NewObjectID()
+	userID := uid.Hex()
+
+	mockWallet := &mockWalletService{
+		wallets: map[string]*wallet.WalletSummaryResponse{
+			userID: {MainBalance: 1000.00, TotalBalance: 1000.00},
+		},
+	}
+	testUser := &user.User{
+		ID:               uid,
+		Roles:            []string{user.RoleUser},
+		ExperienceDetail: "1 Year",
+	}
+	svc := &SubscriptionServiceImpl{
+		repo:          repo,
+		userRepo:      &mockUserRepo{users: map[string]*user.User{userID: testUser}},
+		walletService: mockWallet,
+		cfg:           &config.Config{},
+	}
+
+	_, _, err := svc.SubscribeWithWallet(context.Background(), userID, SubscribeWithWalletRequest{PlanType: PlanMonthly})
+	if err != user.ErrExpertExperienceRequired {
+		t.Fatalf("expected experience error, got %v", err)
+	}
+	if mockWallet.wallets[userID].MainBalance != 1000.00 {
+		t.Errorf("wallet must not be debited, balance is %.2f", mockWallet.wallets[userID].MainBalance)
+	}
+	if testUser.Roles[0] != user.RoleUser || len(testUser.Roles) != 1 {
+		t.Errorf("expert role must not be granted, roles %v", testUser.Roles)
 	}
 }
 

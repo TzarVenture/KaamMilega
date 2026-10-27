@@ -28,6 +28,10 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
                 // Check if user has recruiter role
                 if (roles.includes('recruiter')) {
+                    if (!user.company_name || !user.company_name.trim()) {
+                        router.push('/recruiter/register');
+                        return;
+                    }
                     setIsLoading(false);
                 } else {
                     // Redirect non-recruiters to home page
@@ -44,12 +48,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
 
     if (isLoading) {
         return (
-            <div>
+            <div className="min-h-screen bg-km-surface text-km-text-primary">
                 <Navbar />
                 <div className="flex">
                     <RecruiterSidebar />
                     <div className="flex-1 min-w-0 md:ml-64">
-                        <main className="container mx-auto px-4 py-8">
+                        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                             <FullPageSkeleton />
                         </main>
                     </div>
@@ -59,12 +63,12 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <div>
+        <div className="min-h-screen bg-km-surface text-km-text-primary">
             <Navbar />
             <div className="flex">
                 <RecruiterSidebar />
-                <div className="flex-1 min-w-0 transition-all duration-300 md:ml-64">
-                    <main className="container mx-auto px-4 py-8">
+                <div className="flex-1 min-w-0 md:ml-64">
+                    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20 md:pb-8">
                         {children}
                     </main>
                 </div>

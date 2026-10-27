@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Users, Calendar, Award, UserPlus, ArrowRight } from 'lucide-react';
+import { ArrowRightIcon, CalendarBlankIcon, MedalIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 
 interface SidebarCounts {
@@ -87,7 +87,7 @@ export const NetworkSidebar: React.FC = () => {
     {
       label: 'Grow Network',
       href: '/network',
-      icon: UserPlus,
+      icon: UserPlusIcon,
       isActive: pathname === '/network',
       count: counts.invitations > 0 ? counts.invitations : undefined,
       isNotification: true,
@@ -95,7 +95,7 @@ export const NetworkSidebar: React.FC = () => {
     {
       label: 'Connections',
       href: '/network/connections',
-      icon: Users,
+      icon: UsersIcon,
       isActive: pathname === '/network/connections',
       count: counts.connections,
       isNotification: false,
@@ -103,7 +103,7 @@ export const NetworkSidebar: React.FC = () => {
     {
       label: 'Verified Experts',
       href: '/network/experts',
-      icon: Award,
+      icon: MedalIcon,
       isActive: pathname === '/network/experts',
       count: counts.experts > 0 ? counts.experts : undefined,
       isNotification: false,
@@ -111,7 +111,7 @@ export const NetworkSidebar: React.FC = () => {
     {
       label: 'Networking Events',
       href: '/network/events',
-      icon: Calendar,
+      icon: CalendarBlankIcon,
       isActive: pathname === '/network/events',
       count: counts.events > 0 ? counts.events : undefined,
       isNotification: false,
@@ -121,7 +121,7 @@ export const NetworkSidebar: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Mobile Top Navigation Tabs (Visible on screens < lg) */}
-      <div className="lg:hidden bg-white rounded-2xl border border-[#D9E0EA] p-2 shadow-xs overflow-x-auto scrollbar-hide flex gap-2">
+      <div className="lg:hidden bg-km-surface-card rounded-2xl border border-km-border p-2 shadow-xs overflow-x-auto scrollbar-hide flex gap-2">
         {navItems.map((item) => {
           const Icon = item.icon;
           return (
@@ -130,20 +130,20 @@ export const NetworkSidebar: React.FC = () => {
               href={item.href}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 active:scale-[0.98] ${
                 item.isActive
-                  ? 'bg-[#071A4D] text-white shadow-xs'
-                  : 'text-[#5B6472] hover:bg-[#F4F7FB] hover:text-[#071A4D]'
+                  ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
+                  : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
               }`}
             >
-              <Icon size={14} className={item.isActive ? 'text-white' : 'text-[#5B6472]'} />
+              <Icon size={14} className={item.isActive ? 'text-white' : 'text-km-text-secondary'} />
               <span>{item.label}</span>
               {item.count !== undefined && (
                 <span
                   className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
                     item.isActive
-                      ? 'bg-white/20 text-white'
+                      ? 'bg-km-surface-card/20 text-white'
                       : item.isNotification
                         ? 'bg-[#FF6B00] text-white'
-                        : 'bg-[#F4F7FB] text-[#071A4D] border border-[#D9E0EA]'
+                        : 'bg-km-surface text-km-heading border border-km-border'
                   }`}
                 >
                   {item.count}
@@ -155,8 +155,8 @@ export const NetworkSidebar: React.FC = () => {
       </div>
 
       {/* Desktop Persistent Left Sidebar (Visible on screens >= lg) */}
-      <div className="hidden lg:block bg-white rounded-2xl border border-[#D9E0EA] p-5 shadow-xs">
-        <h2 className="font-bold text-[#111827] text-sm tracking-tight mb-4 flex items-center justify-between">
+      <div className="hidden lg:block bg-km-surface-card rounded-2xl border border-km-border p-5 shadow-xs">
+        <h2 className="font-bold text-km-text-primary text-sm tracking-tight mb-4 flex items-center justify-between">
           <span>Manage My Network</span>
         </h2>
 
@@ -169,15 +169,15 @@ export const NetworkSidebar: React.FC = () => {
                 href={item.href}
                 className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 group active:scale-[0.98] ${
                   item.isActive
-                    ? 'bg-[#071A4D] text-white shadow-xs'
-                    : 'text-[#5B6472] hover:bg-[#F4F7FB] hover:text-[#071A4D]'
+                    ? 'bg-[#071A4D] text-white shadow-xs dark:bg-km-primary'
+                    : 'text-km-text-secondary hover:bg-km-surface hover:text-km-heading'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <Icon
                     size={16}
                     className={`transition-colors ${
-                      item.isActive ? 'text-white' : 'text-[#5B6472] group-hover:text-[#071A4D]'
+                      item.isActive ? 'text-white' : 'text-km-text-secondary group-hover:text-km-heading'
                     }`}
                   />
                   <span>{item.label}</span>
@@ -187,10 +187,10 @@ export const NetworkSidebar: React.FC = () => {
                   <span
                     className={`text-[11px] font-bold px-2 py-0.5 rounded-full transition-colors ${
                       item.isActive
-                        ? 'bg-white/20 text-white'
+                        ? 'bg-km-surface-card/20 text-white'
                         : item.isNotification
                           ? 'bg-[#FF6B00] text-white'
-                          : 'bg-[#F4F7FB] text-[#071A4D] border border-[#D9E0EA]'
+                          : 'bg-km-surface text-km-heading border border-km-border'
                     }`}
                   >
                     {item.count}
@@ -203,11 +203,9 @@ export const NetworkSidebar: React.FC = () => {
       </div>
 
       {/* Desktop Brand Promotion Box: Become an Expert */}
-      <div className="hidden lg:block bg-[#071A4D] border border-slate-700/60 rounded-2xl p-5 text-white shadow-sm">
+      <div className="hidden lg:block bg-[#071A4D] border border-slate-700/60 rounded-2xl p-5 text-white shadow-sm dark:bg-km-primary">
         <div className="flex items-center gap-2 mb-3">
-          <span className="p-1 rounded-lg bg-white/10 text-amber-300">
-            <Award size={15} />
-          </span>
+          <MedalIcon size={16} weight="bold" className="text-amber-300" aria-hidden="true" />
           <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
             Expert Network
           </span>
@@ -225,12 +223,12 @@ export const NetworkSidebar: React.FC = () => {
           className="inline-flex items-center gap-1.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-all duration-150 active:scale-[0.98] cursor-pointer"
         >
           <span>Apply Now</span>
-          <ArrowRight size={13} />
+          <ArrowRightIcon weight="bold" size={13} />
         </Link>
       </div>
 
       {/* Ad Banner Placeholder */}
-      <div className="hidden lg:flex bg-white rounded-xl h-64 items-center justify-center border border-dashed border-gray-300 text-gray-400">
+      <div className="hidden lg:flex bg-km-surface-card rounded-xl h-64 items-center justify-center border border-dashed border-gray-300 text-gray-400">
         Ad Banner
       </div>
     </div>

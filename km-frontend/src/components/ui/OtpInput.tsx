@@ -22,28 +22,39 @@ export default function OtpInput({ length = 4, value, onChange, autoFocus = true
         }
     }, [autoFocus]);
 
+    const focusBox = (index: number) => {
+        const box = inputRefs.current[Math.max(0, Math.min(index, length - 1))];
+        box?.focus();
+        box?.select();
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const raw = e.target.value;
-        const digits = raw.replace(/\D/g, "");
+        const digits = e.target.value.replace(/\D/g, "");
+        const newOtp = Array.from({ length }, (_, i) => value[i] || "");
         if (!digits) {
-            const newOtp = [...value];
             newOtp[index] = "";
             onChange(newOtp);
             return;
         }
 
-        const lastDigit = digits.slice(-1);
-        const newOtp = [...value];
-        newOtp[index] = lastDigit;
-        onChange(newOtp);
-
-        // Auto advance to next box
-        if (index < length - 1) {
-            requestAnimationFrame(() => {
-                inputRefs.current[index + 1]?.focus();
-                inputRefs.current[index + 1]?.select();
+        if (digits.length > 1) {
+            // SMS autofill ("one-time-code") or fast typing delivers several digits at once:
+            // the box keeps its old digit plus the new ones, so spread them from this box on
+            const incoming = value[index] && digits.startsWith(value[index]) ? digits.slice(value[index].length) || digits : digits;
+            const chars = (incoming.length >= length ? incoming.slice(0, length) : incoming).split("");
+            const start = incoming.length >= length ? 0 : index;
+            chars.forEach((char, i) => {
+                if (start + i < length) newOtp[start + i] = char;
             });
+            onChange(newOtp);
+            focusBox(start + chars.length);
+            return;
         }
+
+        newOtp[index] = digits;
+        onChange(newOtp);
+        // Move on right away: deferring focus lets quick keystrokes land in the same box
+        if (index < length - 1) focusBox(index + 1);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
@@ -88,13 +99,15 @@ export default function OtpInput({ length = 4, value, onChange, autoFocus = true
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
-                    maxLength={1}
+                    // Lets iOS/Android offer the code from the SMS; no maxLength, or autofill is cut to 1 digit
+                    autoComplete={index === 0 ? "one-time-code" : "off"}
+                    aria-label={`Digit ${index + 1} of ${length}`}
                     value={value[index] || ""}
                     onChange={(e) => handleChange(e, index)}
                     onKeyDown={(e) => handleKeyDown(e, index)}
                     onPaste={handlePaste}
                     onClick={() => inputRefs.current[index]?.select()}
-                    className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black border-2 border-slate-300 rounded-2xl bg-white text-slate-900 focus:border-km-primary focus:ring-4 focus:ring-km-primary/10 outline-none transition-all shadow-sm"
+                    className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black border-2 border-slate-300 rounded-2xl bg-km-surface-card text-slate-900 focus:border-km-primary focus:ring-4 focus:ring-km-primary/10 outline-none transition-all shadow-sm"
                 />
             ))}
         </div>

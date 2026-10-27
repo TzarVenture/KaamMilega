@@ -530,10 +530,51 @@ func (s *EventServiceImpl) GetEventAttendees(ctx context.Context, eventID string
 	}, nil
 }
 
+// Admin superpower methods
+
+func (s *EventServiceImpl) AdminGetAllEvents(ctx context.Context, search string, page, limit int) ([]AdminEventItem, int64, error) {
+	return s.repo.AdminGetAllEvents(ctx, search, page, limit)
+}
+
+func (s *EventServiceImpl) AdminGetEventDetail(ctx context.Context, eventID string) (*AdminEventDetailResponse, error) {
+	evID, err := primitive.ObjectIDFromHex(eventID)
+	if err != nil {
+		return nil, errors.New("invalid event id")
+	}
+	return s.repo.AdminGetEventDetail(ctx, evID)
+}
+
+func (s *EventServiceImpl) AdminCreateEvent(ctx context.Context, e *Event) (*Event, error) {
+	if e.Title == "" {
+		return nil, errors.New("event title is required")
+	}
+	if e.Organizer == "" {
+		e.Organizer = "KaamMilega Official"
+	}
+	return s.repo.CreateEvent(ctx, e)
+}
+
+func (s *EventServiceImpl) AdminUpdateEvent(ctx context.Context, eventID string, req AdminUpdateEventRequest) (*Event, error) {
+	evID, err := primitive.ObjectIDFromHex(eventID)
+	if err != nil {
+		return nil, errors.New("invalid event id")
+	}
+	return s.repo.AdminUpdateEvent(ctx, evID, req)
+}
+
+func (s *EventServiceImpl) AdminDeleteEvent(ctx context.Context, eventID string) error {
+	evID, err := primitive.ObjectIDFromHex(eventID)
+	if err != nil {
+		return errors.New("invalid event id")
+	}
+	return s.repo.AdminDeleteEvent(ctx, evID)
+}
+
 func min(a, b int) int {
 	if a < b {
 		return a
 	}
 	return b
 }
+
 

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, CheckCircle, AlertCircle, Loader2, Globe, Copy, Check } from 'lucide-react';
+import { CheckCircleIcon, CheckIcon, CircleNotchIcon, CopyIcon, GlobeIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 
 interface Props {
     isOpen: boolean;
@@ -129,12 +129,12 @@ export const EditPublicUrlModal: React.FC<Props> = ({
             const res = (await api.patch('/user/username', { username: trimmed })) as {
                 message?: string;
             };
-            toast.success(res?.message || 'Custom profile URL updated successfully');
+            notify.success(res?.message || 'Custom profile URL updated successfully');
             onUpdated(trimmed);
             onClose();
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : 'Failed to update URL';
-            toast.error(msg);
+            notify.error(msg);
         } finally {
             setSaving(false);
         }
@@ -143,17 +143,15 @@ export const EditPublicUrlModal: React.FC<Props> = ({
     const isSaveDisabled = saving || checking || (!availability?.available && username.trim().toLowerCase() !== currentUsername?.toLowerCase());
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs font-sans">
             <div 
-                className="bg-white rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200"
+                className="bg-km-surface-card rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary flex items-center justify-center border border-blue-100">
-                            <Globe size={18} />
-                        </div>
+                        <GlobeIcon size={22} className="text-km-heading" aria-hidden="true" />
                         <div>
                             <h3 className="text-base font-black text-slate-900">Edit Custom URL</h3>
                             <p className="text-xs text-slate-500 font-medium">Personalize your public profile link</p>
@@ -164,7 +162,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                         className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                         aria-label="Close modal"
                     >
-                        <X size={18} />
+                        <XIcon weight="bold" size={18} />
                     </button>
                 </div>
 
@@ -189,7 +187,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                                 autoFocus
                             />
                             {checking && (
-                                <Loader2 size={16} className="text-slate-400 animate-spin mr-3 shrink-0" />
+                                <CircleNotchIcon weight="bold" size={16} className="text-slate-400 animate-spin mr-3 shrink-0" />
                             )}
                         </div>
 
@@ -198,13 +196,13 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                             <div className="mt-2.5 flex items-center gap-1.5 text-xs font-medium">
                                 {availability.available ? (
                                     <>
-                                        <CheckCircle size={14} className="text-emerald-500 shrink-0" />
-                                        <span className="text-emerald-600 font-semibold">{availability.message}</span>
+                                        <CheckCircleIcon weight="bold" size={14} className="text-emerald-500 shrink-0 dark:text-emerald-400" />
+                                        <span className="text-emerald-600 font-semibold dark:text-emerald-400">{availability.message}</span>
                                     </>
                                 ) : (
                                     <>
-                                        <AlertCircle size={14} className="text-rose-500 shrink-0" />
-                                        <span className="text-rose-500 font-medium">{availability.message}</span>
+                                        <WarningCircleIcon weight="bold" size={14} className="text-rose-500 shrink-0 dark:text-rose-400" />
+                                        <span className="text-rose-500 font-medium dark:text-rose-400">{availability.message}</span>
                                     </>
                                 )}
                             </div>
@@ -215,23 +213,23 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                     <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100/80 flex items-center justify-between">
                         <div className="min-w-0 pr-2">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-blue-900/70">Your Public URL</p>
-                            <p className="text-xs font-bold text-km-primary truncate mt-0.5">
+                            <p className="text-xs font-bold text-km-heading truncate mt-0.5">
                                 kaammilega.com/profile/{username.trim() || 'your-name'}
                             </p>
                         </div>
                         <button
                             type="button"
                             onClick={handleCopy}
-                            className="px-3 py-1.5 rounded-xl bg-white text-slate-700 hover:text-km-primary border border-blue-200 text-xs font-bold flex items-center gap-1 transition-all shadow-2xs hover:shadow-xs cursor-pointer shrink-0"
+                            className="px-3 py-1.5 rounded-xl bg-km-surface-card text-slate-700 hover:text-km-heading border border-blue-200 text-xs font-bold flex items-center gap-1 transition-all shadow-2xs hover:shadow-xs cursor-pointer shrink-0"
                         >
                             {copied ? (
                                 <>
-                                    <Check size={12} className="text-emerald-500" />
+                                    <CheckIcon weight="bold" size={12} className="text-emerald-500 dark:text-emerald-400" />
                                     <span>Copied</span>
                                 </>
                             ) : (
                                 <>
-                                    <Copy size={12} />
+                                    <CopyIcon weight="bold" size={12} />
                                     <span>Copy</span>
                                 </>
                             )}
@@ -260,7 +258,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                             disabled={isSaveDisabled}
                             className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-km-primary hover:bg-km-primary-dark transition-all shadow-xs disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                         >
-                            {saving && <Loader2 size={14} className="animate-spin" />}
+                            {saving && <CircleNotchIcon weight="bold" size={14} className="animate-spin" />}
                             <span>Save URL</span>
                         </button>
                     </div>

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Play, Eye, Calendar, User, Clock, ExternalLink, Trash2, Pencil } from "lucide-react";
+import { CalendarBlankIcon, ClockIcon, EyeIcon, PencilSimpleIcon, PlayIcon, TrashIcon, UserIcon } from '@phosphor-icons/react';
 import { openYouTubeVideo, getYouTubeThumbnail } from "@/lib/youtube";
 
 export interface CourseData {
@@ -82,7 +82,7 @@ export default function CourseCard({
     // ─────────────────────────────────────────────────────────────────────────────
     if (compact) {
         return (
-            <div className="w-84 sm:w-96 shrink-0 snap-start bg-white rounded-2xl border border-[#D9E0EA] p-3 flex gap-3.5 hover:border-[#0B5ED7]/30 transition-all duration-150">
+            <div className="w-84 sm:w-96 shrink-0 snap-start bg-km-surface-card rounded-2xl border border-km-border p-3 flex gap-3.5 hover:border-[#0B5ED7]/30 transition-all duration-150">
                 {/* Thumbnail Section (Clickable) */}
                 <div
                     onClick={handleWatch}
@@ -100,15 +100,15 @@ export default function CourseCard({
 
                     {/* Category Badge on Top-Left matching reference screenshot */}
                     {course.category && (
-                        <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-[10px] font-semibold px-2.5 py-1 rounded-tl-xl rounded-br-xl shadow-xs z-10">
+                        <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-[10px] font-semibold px-2.5 py-1 rounded-tl-xl rounded-br-xl shadow-xs z-10 dark:bg-km-primary">
                             {course.category}
                         </span>
                     )}
 
                     {/* Minimalist Play Icon in Center */}
                     <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                        <div className="w-8 h-8 bg-white text-[#071A4D] rounded-full flex items-center justify-center shadow-xs">
-                            <Play size={12} fill="currentColor" className="ml-0.5" />
+                        <div className="w-8 h-8 bg-km-surface-card text-km-heading rounded-full flex items-center justify-center shadow-xs">
+                            <PlayIcon weight="fill" size={12} className="ml-0.5" />
                         </div>
                     </div>
                 </div>
@@ -118,8 +118,8 @@ export default function CourseCard({
                     <div>
                         {/* Views Count */}
                         <div className="flex items-center justify-end mb-1">
-                            <span className="text-[11px] font-semibold text-[#071A4D] flex items-center gap-1">
-                                <Eye size={11} className="text-[#0B5ED7]" />
+                            <span className="text-[11px] font-semibold text-km-heading flex items-center gap-1">
+                                <EyeIcon weight="bold" size={11} className="text-km-link" />
                                 {formattedViews}
                             </span>
                         </div>
@@ -127,16 +127,16 @@ export default function CourseCard({
                         {/* Title (Clickable) */}
                         <h4
                             onClick={handleWatch}
-                            className="text-xs sm:text-sm font-semibold text-[#111827] line-clamp-2 leading-snug cursor-pointer hover:text-[#0B5ED7] transition-colors"
+                            className="text-xs sm:text-sm font-semibold text-km-text-primary line-clamp-2 leading-snug cursor-pointer hover:text-km-link transition-colors"
                         >
                             {course.title}
                         </h4>
                     </div>
 
                     {/* Bottom Metadata & Duration */}
-                    <div className="flex items-center justify-between pt-1 border-t border-[#D9E0EA]/60 text-[11px] text-[#5B6472]">
-                        <span className="flex items-center gap-1 font-medium text-[#111827]">
-                            <Clock size={11} className="text-[#0B5ED7]" />
+                    <div className="flex items-center justify-between pt-1 border-t border-km-border/60 text-[11px] text-km-text-secondary">
+                        <span className="flex items-center gap-1 font-medium text-km-text-primary">
+                            <ClockIcon weight="bold" size={11} className="text-km-link" />
                             {course.duration || "30 Min"}
                         </span>
                     </div>
@@ -150,7 +150,7 @@ export default function CourseCard({
     // ONLY Thumbnail and Video Title are clickable for redirection.
     // ─────────────────────────────────────────────────────────────────────────────
     return (
-        <div className="bg-white rounded-2xl border border-[#D9E0EA] p-4 sm:p-5 shadow-xs hover:border-[#0B5ED7]/30 transition-all duration-150 flex flex-col md:flex-row gap-5 items-start">
+        <div className="bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 shadow-xs hover:border-[#0B5ED7]/30 transition-all duration-150 flex flex-col md:flex-row gap-5 items-start">
             {/* ─── 1. Thumbnail Section (Clickable) ─── */}
             <div
                 onClick={handleWatch}
@@ -169,20 +169,20 @@ export default function CourseCard({
 
                 {/* Category Badge on Top-Left matching reference screenshot */}
                 {course.category && (
-                    <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-xs font-semibold px-3.5 py-1.5 rounded-tl-xl rounded-br-2xl shadow-xs z-10">
+                    <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-xs font-semibold px-3.5 py-1.5 rounded-tl-xl rounded-br-2xl shadow-xs z-10 dark:bg-km-primary">
                         {course.category}
                     </span>
                 )}
 
                 {/* Duration Badge on bottom-right of thumbnail */}
-                <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1">
-                    <Clock size={11} /> {course.duration || "30 Min"}
+                <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 dark:bg-km-primary">
+                    <ClockIcon weight="bold" size={11} /> {course.duration || "30 Min"}
                 </span>
 
                 {/* Minimalist Play Icon in Center */}
                 <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                    <div className="w-11 h-11 bg-white text-[#071A4D] rounded-full flex items-center justify-center shadow-xs">
-                        <Play size={16} fill="currentColor" className="ml-0.5" />
+                    <div className="w-11 h-11 bg-km-surface-card text-km-heading rounded-full flex items-center justify-center shadow-xs">
+                        <PlayIcon weight="fill" size={16} className="ml-0.5" />
                     </div>
                 </div>
             </div>
@@ -195,7 +195,7 @@ export default function CourseCard({
                         {/* Video Title (Clickable) */}
                         <h2
                             onClick={handleWatch}
-                            className="text-base sm:text-lg font-semibold text-[#111827] leading-snug cursor-pointer hover:text-[#0B5ED7] transition-colors flex-1"
+                            className="text-base sm:text-lg font-semibold text-km-text-primary leading-snug cursor-pointer hover:text-km-link transition-colors flex-1"
                             title="Click to watch video on YouTube"
                         >
                             {course.title}
@@ -211,10 +211,10 @@ export default function CourseCard({
                                             e.stopPropagation();
                                             onEdit(course);
                                         }}
-                                        className="p-1.5 text-[#0B5ED7] hover:bg-blue-50 rounded-lg transition"
+                                        className="p-1.5 text-km-link hover:bg-blue-50 rounded-lg transition"
                                         title="Edit Course"
                                     >
-                                        <Pencil size={15} />
+                                        <PencilSimpleIcon weight="bold" size={15} />
                                     </button>
                                 )}
                                 {onDelete && (
@@ -224,10 +224,10 @@ export default function CourseCard({
                                             e.stopPropagation();
                                             onDelete(course.id);
                                         }}
-                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition"
+                                        className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition dark:text-red-400"
                                         title="Delete Course"
                                     >
-                                        <Trash2 size={15} />
+                                        <TrashIcon weight="bold" size={15} />
                                     </button>
                                 )}
                             </div>
@@ -236,29 +236,29 @@ export default function CourseCard({
 
                     {/* Course Description */}
                     {course.description && (
-                        <p className="text-xs sm:text-sm text-[#5B6472] mt-2 line-clamp-2 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-km-text-secondary mt-2 line-clamp-2 leading-relaxed">
                             {course.description}
                         </p>
                     )}
                 </div>
 
                 {/* ─── 3. Metadata Grid ─── */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-2.5 gap-x-4 pt-3.5 mt-4 border-t border-[#D9E0EA]">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-2.5 gap-x-4 pt-3.5 mt-4 border-t border-km-border">
                     {/* (A) Video Duration (Replaced Watch Video area) */}
-                    <div className="flex items-center gap-1.5 text-xs text-[#5B6472]">
-                        <Clock size={14} className="text-[#0B5ED7] shrink-0" />
-                        <span>Duration: <strong className="text-[#111827]">{course.duration || "30 Min"}</strong></span>
+                    <div className="flex items-center gap-1.5 text-xs text-km-text-secondary">
+                        <ClockIcon weight="bold" size={14} className="text-km-link shrink-0" />
+                        <span>Duration: <strong className="text-km-text-primary">{course.duration || "30 Min"}</strong></span>
                     </div>
 
                     {/* (B) Real Expert Name with Link to Profile */}
-                    <div className="flex items-center gap-1.5 text-xs text-[#5B6472] truncate">
+                    <div className="flex items-center gap-1.5 text-xs text-km-text-secondary truncate">
                         <Link
                             href={expertProfileUrl}
                             onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1.5 hover:text-[#0B5ED7] font-semibold truncate group/profile"
+                            className="inline-flex items-center gap-1.5 hover:text-km-link font-semibold truncate group/profile"
                             title={`View ${course.expert_name || "Expert"}'s Profile`}
                         >
-                            <div className="w-5 h-5 rounded-full bg-[#F4F7FB] border border-[#D9E0EA] flex items-center justify-center shrink-0 overflow-hidden">
+                            <div className="w-5 h-5 rounded-full bg-km-surface border border-km-border flex items-center justify-center shrink-0 overflow-hidden">
                                 {course.expert_avatar ? (
                                     <img
                                         src={course.expert_avatar}
@@ -266,7 +266,7 @@ export default function CourseCard({
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <User size={12} className="text-[#071A4D]" />
+                                    <UserIcon weight="bold" size={12} className="text-km-heading" />
                                 )}
                             </div>
                             <span className="truncate group-hover/profile:underline">
@@ -276,14 +276,14 @@ export default function CourseCard({
                     </div>
 
                     {/* (C) Live Viewers Count */}
-                    <div className="flex items-center gap-1.5 text-xs text-[#071A4D] font-bold">
-                        <Eye size={14} className="text-[#0B5ED7] shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-km-heading font-bold">
+                        <EyeIcon weight="bold" size={14} className="text-km-link shrink-0" />
                         <span>{formattedViews}</span>
                     </div>
 
                     {/* (D) Release Date */}
-                    <div className="flex items-center gap-1.5 text-xs text-[#5B6472]">
-                        <Calendar size={14} className="text-[#5B6472]/70 shrink-0" />
+                    <div className="flex items-center gap-1.5 text-xs text-km-text-secondary">
+                        <CalendarBlankIcon weight="bold" size={14} className="text-km-text-secondary/70 shrink-0" />
                         <span>Released {formattedDate}</span>
                     </div>
                 </div>

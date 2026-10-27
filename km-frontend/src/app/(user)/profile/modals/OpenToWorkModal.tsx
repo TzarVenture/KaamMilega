@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Briefcase, Check, Trash2, Loader2, MapPin } from 'lucide-react';
+import { BriefcaseIcon, CheckIcon, CircleNotchIcon, MapPinIcon, TrashIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 
 interface Props {
     isOpen: boolean;
@@ -88,7 +88,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         if (titles.length === 0) {
-            toast.error('Please add at least one target job title');
+            notify.error('Please add at least one target job title');
             return;
         }
 
@@ -101,14 +101,14 @@ export const OpenToWorkModal: React.FC<Props> = ({
                 locations: locations,
                 visibility: visibility,
             })) as { user?: Record<string, unknown> };
-            toast.success('Open to work preferences saved');
+            notify.success('Open to work preferences saved');
             if (res?.user) {
                 onSuccess(res.user);
             }
             onClose();
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : 'Failed to save preferences';
-            toast.error(msg);
+            notify.error(msg);
         } finally {
             setSaving(false);
         }
@@ -124,31 +124,29 @@ export const OpenToWorkModal: React.FC<Props> = ({
                 locations: locations,
                 visibility: visibility,
             })) as { user?: Record<string, unknown> };
-            toast.success('Removed Open to Work status from profile');
+            notify.success('Removed Open to Work status from profile');
             if (res?.user) {
                 onSuccess(res.user);
             }
             onClose();
         } catch (err: unknown) {
             const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message: unknown }).message) : 'Failed to update preferences';
-            toast.error(msg);
+            notify.error(msg);
         } finally {
             setRemoving(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs font-sans">
             <div 
-                className="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
+                className="bg-km-surface-card rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Header */}
                 <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-slate-50/50 shrink-0">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-blue-50 text-km-primary flex items-center justify-center border border-blue-100">
-                            <Briefcase size={18} />
-                        </div>
+                        <BriefcaseIcon size={22} className="text-km-heading" aria-hidden="true" />
                         <div>
                             <h3 className="text-base font-black text-slate-900">Open To Work</h3>
                             <p className="text-xs text-slate-500 font-medium">Show recruiters the opportunities you are seeking</p>
@@ -159,7 +157,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                         className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
                         aria-label="Close modal"
                     >
-                        <X size={18} />
+                        <XIcon weight="bold" size={18} />
                     </button>
                 </div>
 
@@ -198,7 +196,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                             {titles.map((t) => (
                                 <span
                                     key={t}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-km-primary border border-blue-200 rounded-xl text-xs font-bold"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-km-heading border border-blue-200 rounded-xl text-xs font-bold"
                                 >
                                     <span>{t}</span>
                                     <button
@@ -206,7 +204,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                         onClick={() => handleRemoveTitle(t)}
                                         className="hover:text-rose-500 cursor-pointer"
                                     >
-                                        <X size={12} />
+                                        <XIcon weight="bold" size={12} />
                                     </button>
                                 </span>
                             ))}
@@ -220,7 +218,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                     key={t}
                                     type="button"
                                     onClick={() => handleAddTitle(t)}
-                                    className="text-[11px] px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-km-primary font-semibold transition-colors cursor-pointer"
+                                    className="text-[11px] px-2.5 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 text-slate-600 hover:text-km-heading font-semibold transition-colors cursor-pointer"
                                 >
                                     + {t}
                                 </button>
@@ -244,10 +242,10 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                         className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center gap-1.5 ${
                                             selected
                                                 ? 'bg-km-primary text-white border-km-primary shadow-2xs'
-                                                : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                                                : 'bg-km-surface-card text-slate-700 border-slate-200 hover:border-slate-300'
                                         }`}
                                     >
-                                        {selected && <Check size={12} />}
+                                        {selected && <CheckIcon weight="bold" size={12} />}
                                         <span>{jt}</span>
                                     </button>
                                 );
@@ -288,14 +286,14 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                     key={loc}
                                     className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold"
                                 >
-                                    <MapPin size={11} className="text-km-primary" />
+                                    <MapPinIcon weight="bold" size={11} className="text-km-heading" />
                                     <span>{loc}</span>
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveLocation(loc)}
                                         className="hover:text-rose-500 cursor-pointer ml-1"
                                     >
-                                        <X size={12} />
+                                        <XIcon weight="bold" size={12} />
                                     </button>
                                 </span>
                             ))}
@@ -363,9 +361,9 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                 type="button"
                                 onClick={handleRemove}
                                 disabled={removing || saving}
-                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5"
+                                className="px-4 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition-colors cursor-pointer flex items-center gap-1.5 dark:text-rose-400"
                             >
-                                {removing ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                                {removing ? <CircleNotchIcon weight="bold" size={14} className="animate-spin" /> : <TrashIcon weight="bold" size={14} />}
                                 <span>Remove Status</span>
                             </button>
                         ) : <div />}
@@ -383,7 +381,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                 disabled={saving || titles.length === 0}
                                 className="px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-km-primary hover:bg-km-primary-dark transition-all shadow-xs disabled:opacity-50 cursor-pointer flex items-center gap-2"
                             >
-                                {saving && <Loader2 size={14} className="animate-spin" />}
+                                {saving && <CircleNotchIcon weight="bold" size={14} className="animate-spin" />}
                                 <span>Save Preferences</span>
                             </button>
                         </div>

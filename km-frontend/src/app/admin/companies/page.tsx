@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Plus, MoreVertical, Eye, Building2, ShieldCheck, FileCheck, CheckCircle2, XCircle } from 'lucide-react';
+
+import { BuildingOfficeIcon, CheckCircleIcon, DotsThreeVerticalIcon, EyeIcon, FunnelSimpleIcon, MagnifyingGlassIcon, PlusIcon, SealCheckIcon, ShieldCheckIcon, XCircleIcon } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import DocumentsListModal from '@/components/modals/admin/DocumentsListModal';
 import DocumentViewerModal from '@/components/modals/admin/DocumentViewerModal';
 import api from '@/lib/axios';
@@ -53,19 +54,35 @@ export default function CompaniesPage() {
         return () => clearTimeout(timer);
     }, [search]);
 
+    const [totalCompaniesCount, setTotalCompaniesCount] = useState<number | null>(null);
+
     const fetchCompanies = async () => {
         setLoading(true);
         try {
-            const res: any = await api.get('/admin/companies', {
-                params: {
-                    page,
-                    limit: 10,
-                    search: debouncedSearch
+            const [compRes, statsRes]: any = await Promise.allSettled([
+                api.get('/admin/companies', {
+                    params: {
+                        page,
+                        limit: 10,
+                        search: debouncedSearch
+                    }
+                }),
+                api.get('/platform/stats')
+            ]);
+
+            if (compRes.status === 'fulfilled' && compRes.value?.data) {
+                setCompanies(compRes.value.data);
+                setTotalPages(Math.ceil((compRes.value.total || compRes.value.data.length || 1) / 10));
+                if (compRes.value.total !== undefined) {
+                    setTotalCompaniesCount(compRes.value.total);
                 }
-            });
-            if (res.data) {
-                setCompanies(res.data);
-                setTotalPages(Math.ceil(res.total / 10)); // limit is 10
+            }
+
+            if (statsRes.status === 'fulfilled') {
+                const s = statsRes.value?.data?.stats || statsRes.value?.data || {};
+                if (s.recruiters !== undefined) {
+                    setTotalCompaniesCount(s.recruiters);
+                }
             }
         } catch (error) {
             console.error("Failed to fetch companies", error);
@@ -89,13 +106,13 @@ export default function CompaniesPage() {
                 setSelectedCompany((prev) => (prev ? { ...prev, status: newStatus } : null));
             }
             if (newStatus === 'verified') {
-                toast.success('Company approved & verified successfully!');
+                notify.success('Company approved & verified successfully!');
             } else {
-                toast.info('Company verification status set to rejected.');
+                notify.info('Company verification status set to rejected.');
             }
         } catch (error: any) {
             console.error('Failed to update company verification status:', error);
-            toast.error(error.response?.data?.error || 'Failed to update company status');
+            notify.error(error, 'Failed to update company status');
             throw error;
         }
     };
@@ -142,29 +159,51 @@ export default function CompaniesPage() {
                 documentUrl={selectedDoc?.url || ''}
             />
 
-            {/* Quick Stats - could be fetched from API/stats endpoint later */}
+            {/* Real Operational Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: 'Total Companies', value: '428', icon: Building2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                    { label: 'Pending Verification', value: '12', icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { label: 'Verified Partners', value: '382', icon: FileCheck, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                    { label: 'Rejected Applications', value: '34', icon: MoreVertical, color: 'text-rose-600', bg: 'bg-rose-50' },
+                    {
+                        label: 'Total Companies',
+                        value: totalCompaniesCount !== null ? totalCompaniesCount.toLocaleString() : (loading ? '...' : (companies.length > 0 ? String(companies.length) : '0')),
+                        icon: BuildingOfficeIcon,
+                        color: 'text-indigo-600 dark:text-indigo-400',
+                        bg: 'bg-indigo-50'
+                    },
+                    {
+                        label: 'Pending Verification',
+                        value: loading ? '...' : String(companies.filter(c => c.status === 'pending').length),
+                        icon: ShieldCheckIcon,
+                        color: 'text-amber-600 dark:text-amber-400',
+                        bg: 'bg-amber-50'
+                    },
+                    {
+                        label: 'Verified Partners',
+                        value: loading ? '...' : String(companies.filter(c => c.status === 'verified').length),
+                        icon: SealCheckIcon,
+                        color: 'text-emerald-600 dark:text-emerald-400',
+                        bg: 'bg-emerald-50'
+                    },
+                    {
+                        label: 'Rejected Applications',
+                        value: loading ? '...' : String(companies.filter(c => c.status === 'rejected').length),
+                        icon: DotsThreeVerticalIcon,
+                        color: 'text-rose-600 dark:text-rose-400',
+                        bg: 'bg-rose-50'
+                    },
                 ].map((stat, i) => (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.1 }}
                         key={stat.label}
-                        className="p-6 bg-white rounded-3xl border border-purple-50 shadow-sm hover:shadow-md transition-all group"
+                        className="p-6 bg-km-surface-card rounded-3xl border border-purple-50 shadow-sm hover:shadow-md transition-all group"
                     >
                         <div className="flex items-start justify-between">
                             <div>
                                 <p className="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
                                 <h3 className="text-2xl font-bold text-slate-900">{stat.value}</h3>
                             </div>
-                            <div className={`${stat.bg} ${stat.color} p-3 rounded-2xl group-hover:scale-110 transition-transform`}>
-                                <stat.icon size={22} />
-                            </div>
+                            <stat.icon size={28} weight="duotone" className={`${stat.color} shrink-0`} aria-hidden="true" />
                         </div>
                     </motion.div>
                 ))}
@@ -179,25 +218,21 @@ export default function CompaniesPage() {
 
                 <div className="flex flex-wrap items-center gap-3">
                     <div className="relative group max-sm:w-full">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors" size={18} />
+                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                         <input
                             type="text"
                             placeholder="Search by company name..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full sm:w-80 pl-11 pr-4 py-2.5 bg-white border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all shadow-sm"
+                            className="w-full sm:w-80 pl-11 pr-4 py-2.5 bg-km-surface-card border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all shadow-sm"
                         />
                     </div>
-                    <button className="flex items-center gap-2 px-5 py-2.5 text-slate-600 bg-white border border-purple-100 rounded-2xl text-sm font-bold hover:bg-purple-50 transition-all shadow-sm active:scale-95">
-                        <Filter size={18} />
-                        <span>Filter</span>
-                    </button>
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold hover:bg-purple-700 transition-all"
                     >
-                        <Plus size={18} />
+                        <PlusIcon weight="bold" size={18} />
                         <span>Add Profile</span>
                     </motion.button>
                 </div>
@@ -207,7 +242,7 @@ export default function CompaniesPage() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-[32px] border border-purple-50 shadow-xl shadow-purple-900/5 overflow-hidden"
+                className="bg-km-surface-card rounded-[32px] border border-purple-50 shadow-xl shadow-purple-900/5 overflow-hidden"
             >
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -240,7 +275,7 @@ export default function CompaniesPage() {
                                     >
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-14 h-14 bg-gradient-to-tr from-purple-100 to-indigo-100 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm overflow-hidden text-purple-700 font-bold">
+                                                <div className="w-14 h-14 bg-gradient-to-tr from-purple-100 to-indigo-100 rounded-2xl flex items-center justify-center shrink-0 border-2 border-white shadow-sm overflow-hidden text-purple-700 font-bold dark:border-km-surface-card">
                                                     {(company.name || company.recruiter?.name || '?').substring(0, 1)}
                                                 </div>
                                                 <div>
@@ -256,9 +291,9 @@ export default function CompaniesPage() {
                                         <td className="px-8 py-5">
                                             <button
                                                 onClick={() => handleAccessDocuments(company)}
-                                                className="text-purple-600 text-[13px] font-bold hover:underline underline-offset-4 flex items-center gap-1.5"
+                                                className="text-purple-600 text-[13px] font-bold hover:underline underline-offset-4 flex items-center gap-1.5 dark:text-purple-400"
                                             >
-                                                <Eye size={16} />
+                                                <EyeIcon weight="bold" size={16} />
                                                 Access Profile
                                             </button>
                                         </td>
@@ -274,8 +309,8 @@ export default function CompaniesPage() {
                                                 {company.status === 'pending' && <span className="px-2 py-1 text-xs font-medium text-amber-700 bg-amber-100 rounded-lg">Pending</span>}
                                                 {company.status === 'rejected' && <span className="px-2 py-1 text-xs font-medium text-rose-700 bg-rose-100 rounded-lg">Rejected</span>}
 
-                                                <button className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all shadow-sm bg-white border border-purple-50 ml-2">
-                                                    <MoreVertical size={18} />
+                                                <button className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all shadow-sm bg-km-surface-card border border-purple-50 ml-2 dark:hover:text-purple-400">
+                                                    <DotsThreeVerticalIcon weight="bold" size={18} />
                                                 </button>
                                             </div>
                                         </td>
@@ -297,7 +332,7 @@ export default function CompaniesPage() {
                                     onClick={() => setPage(p)}
                                     className={`w-10 h-10 flex items-center justify-center rounded-xl font-bold transition-colors text-xs border ${p === page
                                             ? 'bg-purple-600 text-white border-purple-600'
-                                            : 'text-slate-600 hover:bg-purple-50 bg-white border-purple-100'
+                                            : 'text-slate-600 hover:bg-purple-50 bg-km-surface-card border-purple-100'
                                         }`}
                                 >
                                     {p}

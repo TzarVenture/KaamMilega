@@ -13,6 +13,7 @@ type Event struct {
 	ID             primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
 	Title          string               `bson:"title" json:"title"`
 	Organizer      string               `bson:"organizer" json:"organizer"`
+	OrganizerID    primitive.ObjectID   `bson:"organizer_id,omitempty" json:"organizer_id,omitempty"`
 	Description    string               `bson:"description" json:"description"`
 	Date           string               `bson:"date" json:"date"`
 	Time           string               `bson:"time" json:"time"`
@@ -116,6 +117,44 @@ type EventAttendeesResponse struct {
 	Attendees   []EventAttendeeItem `json:"attendees"`
 }
 
+// Admin models for comprehensive event oversight and audit
+type AdminEventItem struct {
+	Event
+	TotalParticipants int     `json:"total_participants"`
+	TotalTicketsSold  int     `json:"total_tickets_sold"`
+	TotalRevenue      float64 `json:"total_revenue"`
+	FreeRegistrations int     `json:"free_registrations"`
+	PaidRegistrations int     `json:"paid_registrations"`
+	WalletBookings    int     `json:"wallet_bookings"`
+	RazorpayBookings  int     `json:"razorpay_bookings"`
+}
+
+type AdminEventDetailResponse struct {
+	Event             Event               `json:"event"`
+	TotalParticipants int                 `json:"total_participants"`
+	TotalTicketsSold  int                 `json:"total_tickets_sold"`
+	TotalRevenue      float64             `json:"total_revenue"`
+	FreeRegistrations int                 `json:"free_registrations"`
+	PaidRegistrations int                 `json:"paid_registrations"`
+	Tickets           []EventTicket       `json:"tickets"`
+	Attendees         []EventAttendeeItem `json:"attendees"`
+}
+
+type AdminUpdateEventRequest struct {
+	Title          string  `json:"title"`
+	Organizer      string  `json:"organizer"`
+	Description    string  `json:"description"`
+	Date           string  `json:"date"`
+	Time           string  `json:"time"`
+	Location       string  `json:"location"`
+	ImageURL       string  `json:"image_url"`
+	Category       string  `json:"category"`
+	IsPaid         *bool   `json:"is_paid"`
+	Price          float64 `json:"price"`
+	Capacity       int     `json:"capacity"`
+	AvailableSeats *int    `json:"available_seats"`
+}
+
 type EventRepository interface {
 	CreateEvent(ctx context.Context, e *Event) (*Event, error)
 	GetEvents(ctx context.Context, filter EventFilter) ([]Event, int64, error)
@@ -132,6 +171,12 @@ type EventRepository interface {
 
 	// Attendee operations (F64)
 	GetEventAttendees(ctx context.Context, eventID primitive.ObjectID) ([]EventAttendeeItem, error)
+
+	// Admin Superpower operations
+	AdminGetAllEvents(ctx context.Context, search string, page, limit int) ([]AdminEventItem, int64, error)
+	AdminGetEventDetail(ctx context.Context, eventID primitive.ObjectID) (*AdminEventDetailResponse, error)
+	AdminUpdateEvent(ctx context.Context, eventID primitive.ObjectID, req AdminUpdateEventRequest) (*Event, error)
+	AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) error
 }
 
 type EventService interface {
@@ -149,4 +194,12 @@ type EventService interface {
 
 	// Attendee operations for F64
 	GetEventAttendees(ctx context.Context, eventID string) (*EventAttendeesResponse, error)
+
+	// Admin Superpower operations
+	AdminGetAllEvents(ctx context.Context, search string, page, limit int) ([]AdminEventItem, int64, error)
+	AdminGetEventDetail(ctx context.Context, eventID string) (*AdminEventDetailResponse, error)
+	AdminCreateEvent(ctx context.Context, e *Event) (*Event, error)
+	AdminUpdateEvent(ctx context.Context, eventID string, req AdminUpdateEventRequest) (*Event, error)
+	AdminDeleteEvent(ctx context.Context, eventID string) error
 }
+

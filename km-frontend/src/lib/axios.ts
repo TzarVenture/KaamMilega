@@ -1,7 +1,6 @@
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-console.log("NEXT_PUBLIC_API_URL", apiUrl);
 
 const api = axios.create({
     baseURL: `${apiUrl}/api`,
@@ -34,7 +33,12 @@ api.interceptors.response.use(
     },
     (error: AxiosError) => {
         if (error.response) {
-            // Handle 401 Unauthorized
+            // Return error response data if available, or a generic error
+            const errorData: any = error.response.data;
+            const message = errorData?.error || errorData?.message || "Something went wrong";
+
+            // Handle 401 Unauthorized (expired token, or own account no longer exists:
+            // the backend answers 401 for a deleted user on /user/profile)
             if (error.response.status === 401) {
                 if (typeof window !== "undefined") {
                     localStorage.removeItem("token");
@@ -51,10 +55,15 @@ api.interceptors.response.use(
                 }
             }
 
-            // Return error response data if available, or a generic error
-            const errorData: any = error.response.data;
-            const message = errorData?.error || errorData?.message || "Something went wrong";
-            return Promise.reject(new Error(message));
+            // A deactivated or pending-deletion account can only reach the restore screen
+            if (error.response.status === 403 && errorData?.code === "ACCOUNT_INACTIVE" && typeof window !== "undefined") {
+                if (!window.location.pathname.startsWith("/account/restore")) {
+                    window.location.href = "/account/restore";
+                }
+            }
+
+            // Keep the HTTP status (and API error code) so callers can tell auth failures from other errors
+            return Promise.reject(Object.assign(new Error(message), { status: error.response.status, code: errorData?.code }));
         } else if (error.request) {
             // Network error
             return Promise.reject(new Error("Network Error. Please check your connection."));

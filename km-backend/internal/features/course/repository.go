@@ -217,3 +217,14 @@ func (r *CourseRepositoryImpl) Delete(ctx context.Context, id primitive.ObjectID
 	}
 	return nil
 }
+
+func (r *CourseRepositoryImpl) DeleteAny(ctx context.Context, id primitive.ObjectID) error {
+	res, err := r.collection.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		return err
+	}
+	if res.DeletedCount == 0 {
+		return errors.New("course not found")
+	}
+	return nil
+}

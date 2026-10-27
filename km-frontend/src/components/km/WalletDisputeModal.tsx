@@ -1,18 +1,9 @@
 "use client";
 
 import React, { useState } from 'react';
-import { 
-    AlertCircle, 
-    X, 
-    ShieldAlert, 
-    CheckCircle2, 
-    FileText, 
-    HelpCircle,
-    ReceiptText,
-    RefreshCw
-} from 'lucide-react';
+import { ArrowsClockwiseIcon, FileTextIcon, QuestionIcon, ShieldWarningIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import { TransactionItem } from './WalletTransactionsList';
 
 interface WalletDisputeModalProps {
@@ -65,7 +56,7 @@ export default function WalletDisputeModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!description.trim() || description.trim().length < 10) {
-            toast.error("Please provide at least 10 characters explaining your dispute");
+            notify.error("Please provide at least 10 characters explaining your dispute");
             return;
         }
 
@@ -77,14 +68,14 @@ export default function WalletDisputeModal({
                 description: description.trim(),
             });
 
-            toast.success("Dispute submitted successfully! Our compliance team will review it.");
+            notify.success("Dispute submitted successfully! Our compliance team will review it.");
             setDescription('');
             setReason('service_not_provided');
             onDisputeCreated();
             onClose();
         } catch (error: any) {
             console.error("Dispute filing error", error);
-            toast.error(error?.response?.data?.error || "Failed to submit dispute. Please check your transaction details.");
+            notify.error(error, "Failed to submit dispute. Please check your transaction details.");
         } finally {
             setIsSubmitting(false);
         }
@@ -92,13 +83,11 @@ export default function WalletDisputeModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
-            <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="bg-km-surface-card rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-700 border border-amber-100">
-                            <ShieldAlert className="w-5 h-5" />
-                        </div>
+                        <ShieldWarningIcon size={24} className="text-amber-700" aria-hidden="true" />
                         <div>
                             <h3 className="text-lg font-bold text-slate-900">
                                 Request Refund / Raise Dispute
@@ -114,7 +103,7 @@ export default function WalletDisputeModal({
                         className="text-slate-400 hover:text-slate-600 p-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer disabled:opacity-50"
                         aria-label="Close modal"
                     >
-                        <X size={18} />
+                        <XIcon weight="bold" size={18} />
                     </button>
                 </div>
 
@@ -148,7 +137,7 @@ export default function WalletDisputeModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                            <HelpCircle size={13} className="text-slate-400" />
+                            <QuestionIcon weight="bold" size={13} className="text-slate-400" />
                             <span>Reason for Dispute</span>
                         </label>
                         <select
@@ -169,7 +158,7 @@ export default function WalletDisputeModal({
 
                     <div>
                         <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                            <FileText size={13} className="text-slate-400" />
+                            <FileTextIcon weight="bold" size={13} className="text-slate-400" />
                             <span>Detailed Explanation</span>
                         </label>
                         <textarea
@@ -189,7 +178,7 @@ export default function WalletDisputeModal({
 
                     {/* Policy Disclaimer */}
                     <div className="p-3 bg-amber-50/70 border border-amber-200/70 rounded-2xl flex items-start gap-2.5">
-                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <WarningCircleIcon weight="bold" className="w-4 h-4 text-amber-600 shrink-0 mt-0.5 dark:text-amber-400" />
                         <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
                             Disputes are thoroughly investigated by platform admins within <strong>24 to 48 hours</strong>. Upon approval, funds are immediately credited back to your <strong>Main Balance</strong>.
                         </p>
@@ -212,7 +201,7 @@ export default function WalletDisputeModal({
                         >
                             {isSubmitting ? (
                                 <>
-                                    <RefreshCw size={14} className="animate-spin" />
+                                    <ArrowsClockwiseIcon weight="bold" size={14} className="animate-spin" />
                                     <span>Submitting...</span>
                                 </>
                             ) : (

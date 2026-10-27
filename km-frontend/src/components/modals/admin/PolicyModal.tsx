@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { Plus } from 'lucide-react';
+import { PlusIcon } from '@phosphor-icons/react';
 
 interface PolicyModalProps {
     isOpen: boolean;
@@ -64,7 +64,7 @@ const PolicyModal = ({ isOpen, onClose, mode, policyData, onSave }: PolicyModalP
                         onChange={handleChange}
                         placeholder="Policy Name..."
                         required
-                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm"
+                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm"
                     />
                 </div>
 
@@ -77,16 +77,16 @@ const PolicyModal = ({ isOpen, onClose, mode, policyData, onSave }: PolicyModalP
                         placeholder="Answer..."
                         required
                         rows={6}
-                        className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm resize-none"
+                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all shadow-sm resize-none"
                     />
                 </div>
 
                 <div className="flex items-center justify-between pt-4">
                     <button
                         type="button"
-                        className="flex items-center gap-2 text-purple-600 font-bold text-sm hover:underline"
+                        className="flex items-center gap-2 text-purple-600 font-bold text-sm hover:underline dark:text-purple-400"
                     >
-                        <Plus size={16} />
+                        <PlusIcon weight="bold" size={16} />
                         Policy Page
                     </button>
                     <button

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
+import { notify } from "@/lib/notify";
 
 interface ExperienceModalProps {
     isOpen: boolean;
@@ -61,8 +62,10 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess, experienceToEdit }: Exper
             }
             onSuccess(response);
             onClose();
+            notify.success("Experience saved");
         } catch (error) {
             console.error("Failed to save experience:", error);
+            notify.error(error, "Could not save this experience. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -88,7 +91,7 @@ const ExperienceModal = ({ isOpen, onClose, onSuccess, experienceToEdit }: Exper
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Employment Type</label>
                     <select
-                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none bg-white font-medium"
+                        className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-km-primary/20 focus:border-km-primary outline-none bg-km-surface-card font-medium"
                         value={formData.employment_type}
                         onChange={(e) => setFormData({ ...formData, employment_type: e.target.value })}
                     >

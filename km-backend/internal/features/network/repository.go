@@ -7,18 +7,25 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"km-backend/internal/database"
 )
 
 type MongoDBRepository struct {
-	db         *database.MongodbDB
-	collection *mongo.Collection
+	db            *database.MongodbDB
+	collection    *mongo.Collection
+	usersColl     *mongo.Collection
+	dismissedColl *mongo.Collection
+	blocksColl    *mongo.Collection
 }
 
 func NewNetworkRepository(db *database.MongodbDB) NetworkRepository {
 	return &MongoDBRepository{
-		db:         db,
-		collection: db.DB.Collection("network_connections"),
+		db:            db,
+		collection:    db.DB.Collection("network_connections"),
+		usersColl:     db.DB.Collection("users"),
+		dismissedColl: db.DB.Collection("network_dismissed_suggestions"),
+		blocksColl:    db.DB.Collection("user_blocks"),
 	}
 }
 
@@ -152,3 +159,142 @@ func (r *MongoDBRepository) DeleteConnection(ctx context.Context, userA, userB p
 	_, err := r.collection.DeleteOne(ctx, filter)
 	return err
 }
+
+func (r *MongoDBRepository) GetExclusionIDs(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error) {
+	exclusions := map[primitive.ObjectID]bool{
+		userID: true, // Exclude self
+	}
+
+	// 1. Existing connections and pending invitations (both directions)
+	connFilter := bson.M{
+		"$or": []bson.M{
+			{"sender_id": userID},
+			{"receiver_id": userID},
+		},
+	}
+	cursor, err := r.collection.Find(ctx, connFilter)
+	if err == nil {
+		defer cursor.Close(ctx)
+		var conns []ConnectionRequest
+		if err := cursor.All(ctx, &conns); err == nil {
+			for _, c := range conns {
+				if c.SenderID == userID {
+					exclusions[c.ReceiverID] = true
+				} else {
+					exclusions[c.SenderID] = true
+				}
+			}
+		}
+	}
+
+	// 2. Blocked users (both directions)
+	blockFilter := bson.M{
+		"$or": []bson.M{
+			{"user_id": userID},
+			{"blocked_user_id": userID},
+		},
+	}
+	bCursor, err := r.blocksColl.Find(ctx, blockFilter)
+	if err == nil {
+		defer bCursor.Close(ctx)
+		var blocks []struct {
+			UserID        primitive.ObjectID `bson:"user_id"`
+			BlockedUserID primitive.ObjectID `bson:"blocked_user_id"`
+		}
+		if err := bCursor.All(ctx, &blocks); err == nil {
+			for _, b := range blocks {
+				if b.UserID == userID {
+					exclusions[b.BlockedUserID] = true
+				} else {
+					exclusions[b.UserID] = true
+				}
+			}
+		}
+	}
+
+	// 3. Dismissed suggestions
+	dCursor, err := r.dismissedColl.Find(ctx, bson.M{"user_id": userID})
+	if err == nil {
+		defer dCursor.Close(ctx)
+		var dismissed []DismissedSuggestion
+		if err := dCursor.All(ctx, &dismissed); err == nil {
+			for _, d := range dismissed {
+				exclusions[d.DismissedUserID] = true
+			}
+		}
+	}
+
+	result := make([]primitive.ObjectID, 0, len(exclusions))
+	for id := range exclusions {
+		result = append(result, id)
+	}
+	return result, nil
+}
+
+func (r *MongoDBRepository) GetCandidateUsers(ctx context.Context, exclusionIDs []primitive.ObjectID, limit int) ([]CandidateUser, error) {
+	if limit <= 0 || limit > 200 {
+		limit = 100
+	}
+
+	filter := bson.M{
+		"_id":           bson.M{"$nin": exclusionIDs},
+		"is_registered": true,
+		"roles":         bson.M{"$nin": []string{"admin"}},
+		// Never suggest private profiles, inactive accounts, or people who opted out of matching
+		"settings.profile_visibility":        bson.M{"$ne": "private"},
+		"settings.enable_ai_recommendations": bson.M{"$ne": false},
+		"account_status":                     bson.M{"$nin": []string{"deactivated", "pending_deletion", "deleted"}},
+	}
+
+	opts := options.Find().
+		SetSort(bson.M{"updated_at": -1}).
+		SetLimit(int64(limit))
+
+	cursor, err := r.usersColl.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var candidates []CandidateUser
+	if err := cursor.All(ctx, &candidates); err != nil {
+		return nil, err
+	}
+	return candidates, nil
+}
+
+func (r *MongoDBRepository) DismissSuggestion(ctx context.Context, userID, dismissedUserID primitive.ObjectID) error {
+	item := DismissedSuggestion{
+		ID:              primitive.NewObjectID(),
+		UserID:          userID,
+		DismissedUserID: dismissedUserID,
+		CreatedAt:       time.Now(),
+	}
+	_, err := r.dismissedColl.InsertOne(ctx, item)
+	return err
+}
+
+func (r *MongoDBRepository) GetMutualConnectionsCount(ctx context.Context, myConnections []primitive.ObjectID, candidateID primitive.ObjectID) (int, error) {
+	if len(myConnections) == 0 {
+		return 0, nil
+	}
+	filter := bson.M{
+		"status": StatusAccepted,
+		"$or": []bson.M{
+			{
+				"sender_id":   candidateID,
+				"receiver_id": bson.M{"$in": myConnections},
+			},
+			{
+				"receiver_id": candidateID,
+				"sender_id":   bson.M{"$in": myConnections},
+			},
+		},
+	}
+	count, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+

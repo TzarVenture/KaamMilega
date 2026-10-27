@@ -68,7 +68,7 @@ const QuestionModal = ({ isOpen, onClose, onSuccess, question }: QuestionModalPr
         >
             <form onSubmit={handleSubmit} className="space-y-6">
                 {error && (
-                    <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl">
+                    <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-xl dark:text-red-400">
                         {error}
                     </div>
                 )}

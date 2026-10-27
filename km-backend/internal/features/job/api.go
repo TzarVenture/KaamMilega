@@ -32,7 +32,7 @@ func (api *JobApi) Setup(app *fiber.App) {
 	app.Get("/api/jobs/:id", api.controller.GetJob)
 
 	// Admin Job Moderation Routes
-	adminJobs := app.Group("/api/admin/jobs", jwtAuth)
+	adminJobs := app.Group("/api/admin/jobs", jwtAuth, middleware.RequireRole("admin"))
 	adminJobs.Get("/", api.controller.GetJobs)
 	adminJobs.Patch("/:id/status", api.controller.AdminUpdateJobStatus)
 	adminJobs.Delete("/:id", api.controller.AdminDeleteJob)

@@ -2,15 +2,8 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import {
-    Bell,
-    MessageSquare,
-    Briefcase,
-    Users,
-    Calendar,
-    X,
-    ArrowUpRight,
-} from "lucide-react";
+import { BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, UsersIcon } from '@phosphor-icons/react';
+import { notify } from "@/lib/notify";
 import CustomImage from "@/components/ui/CustomImage";
 import api from "./axios";
 import { isAuthenticated } from "./auth";
@@ -31,12 +24,6 @@ export interface NotificationItem {
     is_read: boolean;
     created_at: string;
     updated_at: string;
-}
-
-export interface ToastAlertItem {
-    id: string;
-    notification: NotificationItem;
-    createdAt: number;
 }
 
 /**
@@ -108,22 +95,11 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const [recentNotifications, setRecentNotifications] = useState<NotificationItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [connected, setConnected] = useState<boolean>(false);
-    const [toasts, setToasts] = useState<ToastAlertItem[]>([]);
+    // Live notification alerts currently on screen (shown through the app toaster)
+    const alertIdsRef = useRef<Set<string>>(new Set());
 
     const wsRef = useRef<WebSocket | null>(null);
     const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    // Auto-dismiss foreground toast alerts after 5 seconds
-    useEffect(() => {
-        if (toasts.length === 0) return;
-
-        const interval = setInterval(() => {
-            const now = Date.now();
-            setToasts((prev) => prev.filter((t) => now - t.createdAt < 5000));
-        }, 500);
-
-        return () => clearInterval(interval);
-    }, [toasts.length]);
 
     // Refresh unread count via REST
     const refreshUnreadCount = useCallback(async () => {
@@ -229,6 +205,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             await api.put("/notifications/read-all");
         } catch (err) {
             console.error("Failed to mark all as read:", err);
+            notify.error(err, "Could not mark all notifications as read.");
             refreshUnreadCount();
         }
     }, [refreshUnreadCount]);
@@ -247,25 +224,52 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 await api.delete(`/notifications/${id}`);
             } catch (err) {
                 console.error("Failed to delete notification:", err);
+                notify.error(err, "Could not delete this notification.");
                 refreshUnreadCount();
             }
         },
         [notifications, refreshUnreadCount]
     );
 
-    // Dismiss a single foreground toast
-    const dismissToast = (id: string) => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
+    const dismissAlert = (id: string) => {
+        notify.dismiss(`alert:${id}`);
+        alertIdsRef.current.delete(id);
     };
 
-    // Handle clicking a toast alert: mark as read, dismiss, and safely route
-    const handleToastClick = (toast: ToastAlertItem) => {
-        dismissToast(toast.id);
-        if (!toast.notification.is_read) {
-            markAsRead(toast.notification.id);
-        }
-        const safeLink = sanitizeNotificationLink(toast.notification.link);
-        router.push(safeLink);
+    // Open a live alert: mark read and route to its (sanitised) link. Kept in a ref so the
+    // WebSocket handler, created once, always calls the latest version.
+    const openAlertRef = useRef<(n: NotificationItem) => void>(() => {});
+    openAlertRef.current = (n: NotificationItem) => {
+        alertIdsRef.current.delete(n.id);
+        if (!n.is_read) markAsRead(n.id);
+        router.push(sanitizeNotificationLink(n.link));
+    };
+
+    const showAlert = (n: NotificationItem) => {
+        const isMessage = n.category === "messages";
+        const icon = n.actor_avatar ? (
+            <CustomImage src={n.actor_avatar} alt="" className="w-full h-full object-cover rounded-full" />
+        ) : n.type === "interview_scheduled" ? (
+            <CalendarBlankIcon size={22} />
+        ) : isMessage ? (
+            <ChatIcon size={22} />
+        ) : n.category === "jobs" ? (
+            <BriefcaseIcon size={22} />
+        ) : n.category === "network" ? (
+            <UsersIcon size={22} />
+        ) : (
+            <BellIcon size={22} />
+        );
+        const id = n.id || String(Date.now());
+        alertIdsRef.current.add(id);
+        notify.alert({
+            id,
+            title: n.actor_name || n.title || "KaamMilega",
+            description: n.message,
+            icon,
+            actionLabel: isMessage ? "Reply" : "View",
+            onAction: () => openAlertRef.current(n),
+        });
     };
 
     // Establish persistent WebSocket connection for real-time alerts
@@ -343,15 +347,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                             // 1. Audio chime on real-time notification (powered by uisfx)
                             playNotificationSound();
 
-                            // 2. Floating toast alert in foreground
-                            setToasts((prev) => [
-                                ...prev.slice(-3), // keep maximum 4 active toasts simultaneously
-                                {
-                                    id: newNotif.id || String(Date.now()),
-                                    notification: newNotif,
-                                    createdAt: Date.now(),
-                                },
-                            ]);
+                            // 2. Alert through the app toaster (stacks with every other toast)
+                            showAlert(newNotif);
                         }
  else if (payload.type === "NOTIFICATION_READ") {
                             if (payload.notification_id) {
@@ -361,7 +358,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                                 setRecentNotifications((prev) =>
                                     prev.map((n) => (n.id === payload.notification_id ? { ...n, is_read: true } : n))
                                 );
-                                setToasts((prev) => prev.filter((t) => t.notification.id !== payload.notification_id));
+                                dismissAlert(payload.notification_id);
                             }
                             if (typeof payload.unread_count === "number") {
                                 setUnreadCount(payload.unread_count);
@@ -370,12 +367,13 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                             setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
                             setRecentNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
                             setUnreadCount(0);
-                            setToasts([]);
+                            alertIdsRef.current.forEach((alertId) => notify.dismiss(`alert:${alertId}`));
+                            alertIdsRef.current.clear();
                         } else if (payload.type === "NOTIFICATION_DELETED") {
                             if (payload.notification_id) {
                                 setNotifications((prev) => prev.filter((n) => n.id !== payload.notification_id));
                                 setRecentNotifications((prev) => prev.filter((n) => n.id !== payload.notification_id));
-                                setToasts((prev) => prev.filter((t) => t.notification.id !== payload.notification_id));
+                                dismissAlert(payload.notification_id);
                             }
                             if (typeof payload.unread_count === "number") {
                                 setUnreadCount(payload.unread_count);
@@ -450,111 +448,6 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
             {children}
 
-            {/* Floating Real-Time Toast Alerts Container */}
-            {toasts.length > 0 && (
-                <div
-                    aria-live="polite"
-                    className="fixed top-20 right-4 sm:right-6 z-[9999] flex flex-col gap-2.5 max-w-sm w-full pointer-events-none"
-                >
-                    {toasts.map((toast) => {
-                        const notif = toast.notification;
-                        const isMessage = notif.category === "messages";
-                        const isJob = notif.category === "jobs";
-                        const isNetwork = notif.category === "network";
-                        const isInterview = notif.type === "interview_scheduled";
-
-                        return (
-                            <div
-                                key={toast.id}
-                                onClick={() => handleToastClick(toast)}
-                                className="pointer-events-auto bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-xl shadow-slate-200/50 rounded-xl p-3 sm:p-3.5 flex items-start gap-3 cursor-pointer transition-all hover:scale-[1.01] hover:border-blue-400 group animate-in slide-in-from-top-4 fade-in duration-200 relative overflow-hidden"
-                            >
-                                {/* Micro Accent Bar */}
-                                <div
-                                    className={`absolute left-0 top-0 bottom-0 w-1 ${
-                                        isInterview
-                                            ? "bg-indigo-600"
-                                            : isMessage
-                                            ? "bg-blue-600"
-                                            : isJob
-                                            ? "bg-amber-600"
-                                            : isNetwork
-                                            ? "bg-emerald-600"
-                                            : "bg-km-primary"
-                                    }`}
-                                />
-
-                                {/* Avatar or Category Icon */}
-                                <div className="shrink-0 mt-0.5 ml-1">
-                                    {notif.actor_avatar ? (
-                                        <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-                                            <CustomImage
-                                                src={notif.actor_avatar}
-                                                alt={notif.actor_name || "User"}
-                                                className="w-full h-full object-cover"
-                                            />
-                                        </div>
-                                    ) : isInterview ? (
-                                        <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700">
-                                            <Calendar size={15} className="fill-indigo-700" />
-                                        </div>
-                                    ) : isMessage ? (
-                                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700">
-                                            <MessageSquare size={15} className="fill-blue-700" />
-                                        </div>
-                                    ) : isJob ? (
-                                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center text-amber-700">
-                                            <Briefcase size={15} className="fill-amber-700" />
-                                        </div>
-                                    ) : isNetwork ? (
-                                        <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700">
-                                            <Users size={15} className="fill-emerald-700" />
-                                        </div>
-                                    ) : (
-                                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-700">
-                                            <Bell size={15} className="fill-slate-700" />
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Content Details */}
-                                <div className="flex-1 min-w-0 pr-1">
-                                    <div className="flex items-center justify-between gap-1 mb-0.5">
-                                        <p className="text-xs font-bold text-slate-900 truncate">
-                                            {notif.actor_name || notif.title || "KaamMilega Notification"}
-                                        </p>
-                                        <span className="text-[10px] text-blue-600 font-semibold bg-blue-50 px-1.5 py-0.5 rounded-full shrink-0">
-                                            New
-                                        </span>
-                                    </div>
-                                    <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
-                                        {notif.message}
-                                    </p>
-                                    <div className="mt-1.5 flex items-center gap-1.5">
-                                        <span className="text-[11px] font-semibold text-km-primary group-hover:underline flex items-center gap-0.5">
-                                            {isMessage ? "Reply" : "View details"}
-                                            <ArrowUpRight size={11} />
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Dismiss Button */}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        dismissToast(toast.id);
-                                    }}
-                                    className="shrink-0 p-1 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
-                                    aria-label="Dismiss alert"
-                                >
-                                    <X size={14} />
-                                </button>
-                            </div>
-                        );
-                    })}
-                </div>
-            )}
         </NotificationContext.Provider>
     );
 };

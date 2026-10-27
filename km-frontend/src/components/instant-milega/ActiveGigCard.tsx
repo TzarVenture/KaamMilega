@@ -2,17 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import {
-    Briefcase,
-    Building2,
-    MapPin,
-    Phone,
-    MessageSquare,
-    CheckCircle2,
-    Clock,
-    ShieldCheck
-} from 'lucide-react';
-import { toast } from 'react-toastify';
+import { BuildingOfficeIcon, ChatIcon, CheckCircleIcon, ClockIcon, MapPinIcon, PhoneIcon, ShieldCheckIcon } from '@phosphor-icons/react';
+import { notify } from "@/lib/notify";
 import api from '@/lib/axios';
 
 export interface ActiveGig {
@@ -47,10 +38,10 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
         setCompleting(true);
         try {
             const updated: any = await api.put(`/instant-work/jobs/${job.id}/complete`);
-            toast.success('Shift marked complete. Awaiting employer approval.');
+            notify.success('Shift marked complete. Awaiting employer approval.');
             onStatusChange(updated);
         } catch (err: any) {
-            toast.error(err.message || 'Failed to update job status');
+            notify.error(err.message || 'Failed to update job status');
         } finally {
             setCompleting(false);
         }
@@ -60,24 +51,24 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
 
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
-            <div className="bg-white rounded-2xl border-2 border-[#071A4D] shadow-xs p-5 sm:p-6">
+            <div className="bg-km-surface-card rounded-2xl border-2 border-[#071A4D] shadow-xs p-5 sm:p-6 dark:border-km-link">
                 {/* Header Strip */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#D9E0EA]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-km-border">
                     <div className="flex items-center gap-2.5">
                         <span className={`w-2.5 h-2.5 rounded-full ${isFinished ? 'bg-[#F59E0B]' : 'bg-[#16A34A]'}`} />
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#5B6472] block">
+                            <span className="text-xs font-bold uppercase tracking-wider text-km-text-secondary block">
                                 {isFinished ? 'Shift Completed · Payment Pending' : 'Active Shift Assigned'}
                             </span>
-                            <h3 className="text-lg font-bold text-[#071A4D] mt-0.5">
+                            <h3 className="text-lg font-bold text-km-heading mt-0.5">
                                 {job.skill} for {job.company_name || 'Employer'}
                             </h3>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <span className="px-3 py-1 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#16A34A]/30 text-xs font-bold flex items-center gap-1.5">
-                            <ShieldCheck size={14} className="text-[#16A34A]" />
+                        <span className="px-3 py-1 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#16A34A]/30 text-xs font-bold flex items-center gap-1.5 dark:bg-white/5">
+                            <ShieldCheckIcon weight="bold" size={14} className="text-[#16A34A]" />
                             <span>Match Confirmed</span>
                         </span>
                     </div>
@@ -86,26 +77,26 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                 {/* Job Details */}
                 <div className="grid grid-cols-1 md:grid-cols-12 gap-6 py-4">
                     <div className="md:col-span-8 space-y-3">
-                        <div className="flex flex-wrap items-center gap-4 text-xs text-[#5B6472] font-medium">
-                            <div className="flex items-center gap-1.5 text-[#111827] font-semibold">
-                                <Building2 size={15} className="text-[#071A4D]" />
+                        <div className="flex flex-wrap items-center gap-4 text-xs text-km-text-secondary font-medium">
+                            <div className="flex items-center gap-1.5 text-km-text-primary font-semibold">
+                                <BuildingOfficeIcon weight="bold" size={15} className="text-km-heading" />
                                 <span>{job.company_name || 'Employer'}</span>
                             </div>
                             <span>•</span>
                             <div className="flex items-center gap-1.5">
-                                <MapPin size={15} className="text-[#FF6B00]" />
+                                <MapPinIcon weight="bold" size={15} className="text-[#FF6B00]" />
                                 <span>{job.address || 'Address provided upon match'}</span>
                             </div>
                             <span>•</span>
                             <div className="flex items-center gap-1.5">
-                                <Clock size={15} className="text-[#5B6472]" />
+                                <ClockIcon weight="bold" size={15} className="text-km-text-secondary" />
                                 <span>Est. {job.duration_hours || 4} Hours</span>
                             </div>
                         </div>
 
                         {job.notes && (
-                            <div className="p-3 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA] text-xs text-[#111827]">
-                                <span className="font-bold block mb-0.5 text-[#071A4D]">Job Notes:</span>
+                            <div className="p-3 rounded-xl bg-km-surface border border-km-border text-xs text-km-text-primary">
+                                <span className="font-bold block mb-0.5 text-km-heading">Job Notes:</span>
                                 {job.notes}
                             </div>
                         )}
@@ -115,39 +106,39 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                             {job.recruiter_mobile ? (
                                 <a
                                     href={`tel:${job.recruiter_mobile}`}
-                                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
-                                    <Phone size={14} className="fill-white" />
+                                    <PhoneIcon weight="fill" size={14} className="fill-white" />
                                     <span>Call Employer: {job.recruiter_mobile}</span>
                                 </a>
                             ) : (
                                 <button
                                     type="button"
-                                    onClick={() => toast.info('Connecting with employer...')}
-                                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                                    onClick={() => notify.info('Connecting with employer...')}
+                                    className="inline-flex items-center gap-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
-                                    <Phone size={14} className="fill-white" />
+                                    <PhoneIcon weight="fill" size={14} className="fill-white" />
                                     <span>Call Employer</span>
                                 </button>
                             )}
 
                             <Link
                                 href={`/chat?user=${job.recruiter_id}`}
-                                className="inline-flex items-center gap-2 bg-white hover:bg-[#F4F7FB] border border-[#071A4D] text-[#071A4D] font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                                className="inline-flex items-center gap-2 bg-km-surface-card hover:bg-km-surface border border-[#071A4D] text-km-heading font-semibold text-xs px-4 py-2.5 rounded-xl transition-colors cursor-pointer dark:border-km-link"
                             >
-                                <MessageSquare size={14} className="text-[#071A4D]" />
+                                <ChatIcon weight="bold" size={14} className="text-km-heading" />
                                 <span>In-App Chat</span>
                             </Link>
                         </div>
                     </div>
 
                     {/* Right: Payment & Completion Action */}
-                    <div className="md:col-span-4 flex flex-col justify-between p-4 rounded-xl bg-[#F4F7FB] border border-[#D9E0EA]">
+                    <div className="md:col-span-4 flex flex-col justify-between p-4 rounded-xl bg-km-surface border border-km-border">
                         <div>
-                            <span className="text-[11px] font-semibold text-[#5B6472] uppercase block">Agreed Pay</span>
+                            <span className="text-[11px] font-semibold text-km-text-secondary uppercase block">Agreed Pay</span>
                             <div className="flex items-baseline gap-1 mt-0.5">
-                                <span className="text-2xl font-bold text-[#071A4D]">₹{job.pay_rate}</span>
-                                <span className="text-xs text-[#5B6472]">
+                                <span className="text-2xl font-bold text-km-heading">₹{job.pay_rate}</span>
+                                <span className="text-xs text-km-text-secondary">
                                     {job.rate_type === 'hourly' ? '/ hr' : 'flat rate'}
                                 </span>
                             </div>
@@ -156,11 +147,11 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                             </p>
                         </div>
 
-                        <div className="mt-4 pt-3 border-t border-[#D9E0EA]">
+                        <div className="mt-4 pt-3 border-t border-km-border">
                             {isFinished ? (
-                                <div className="p-2.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 text-center">
-                                    <p className="text-xs font-semibold text-[#B45309]">Awaiting Employer Approval</p>
-                                    <p className="text-[11px] text-[#5B6472] mt-0.5">
+                                <div className="p-2.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 text-center dark:bg-amber-500/15">
+                                    <p className="text-xs font-semibold text-[#B45309] dark:text-orange-400">Awaiting Employer Approval</p>
+                                    <p className="text-[11px] text-km-text-secondary mt-0.5">
                                         Funds will credit automatically to your wallet upon confirmation.
                                     </p>
                                 </div>
@@ -175,7 +166,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                                         <span>Submitting...</span>
                                     ) : (
                                         <>
-                                            <CheckCircle2 size={15} />
+                                            <CheckCircleIcon weight="bold" size={15} />
                                             <span>Mark Work Complete</span>
                                         </>
                                     )}

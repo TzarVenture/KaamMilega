@@ -2,32 +2,22 @@
 
 import { useEffect, useMemo, useState } from "react";
 import api from "@/lib/axios";
-import {
-    Briefcase,
-    CheckCircle2,
-    ChevronRight,
-    Circle,
-    CircleAlert,
-    Clock,
-    Loader2,
-    MessageSquare,
-    Star,
-    Zap,
-    PhoneCall,
-    ExternalLink
-} from "lucide-react";
+import Link from "next/link";
+import { ArrowSquareOutIcon, BriefcaseIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, CircleNotchIcon, ClockIcon, LightningIcon, PhoneCallIcon, StarIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { cn } from "@/lib/utils";
+import { errorText } from "@/lib/notify";
 
 type JobInfo = {
     id: string;
     title: string;
     company: string;
-    company_id: string;
+    company_id?: string;
     location: string;
     city_name: string;
     salary_min: number;
     salary_max: number;
     job_type: string;
+    status?: string;
     experience_min: number;
     experience_max: number;
     rating: number;
@@ -42,7 +32,7 @@ type ApplicationDetail = {
     status: string;
     created_at: string;
     updated_at: string;
-    job: JobInfo;
+    job?: JobInfo | null;
 };
 
 const STEPS = [
@@ -118,7 +108,7 @@ export default function ApplicationsPage() {
                     setSelectedId(data[0].id);
                 }
             } catch (err: any) {
-                setError(err.response?.data?.error || "Failed to load applications");
+                setError(errorText(err, "Failed to load applications"));
             } finally {
                 setLoading(false);
             }
@@ -134,7 +124,7 @@ export default function ApplicationsPage() {
         return (
             <div className="flex h-[80vh] items-center justify-center">
                 <div className="text-center space-y-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-km-primary mx-auto" />
+                    <CircleNotchIcon className="w-10 h-10 animate-spin text-km-heading mx-auto" />
                     <p className="text-slate-500 font-medium">Crunching your career moves...</p>
                 </div>
             </div>
@@ -144,7 +134,7 @@ export default function ApplicationsPage() {
     if (error) {
         return (
             <div className="max-w-4xl mx-auto mt-20 p-8 bg-red-50 border border-red-100 rounded-3xl text-center">
-                <CircleAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                <WarningCircleIcon className="w-12 h-12 text-red-500 mx-auto mb-4 dark:text-red-400" />
                 <h2 className="text-xl font-bold text-red-900 mb-2">Oops! Something went wrong</h2>
                 <p className="text-red-700">{error}</p>
                 <button
@@ -159,10 +149,8 @@ export default function ApplicationsPage() {
 
     if (applications.length === 0) {
         return (
-            <div className="max-w-4xl mx-auto mt-20 p-12 bg-white border border-slate-100 rounded-3xl text-center shadow-sm">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Briefcase className="w-10 h-10 text-slate-300" />
-                </div>
+            <div className="max-w-4xl mx-auto mt-20 p-12 bg-km-surface-card border border-slate-100 rounded-3xl text-center shadow-sm">
+                <BriefcaseIcon size={48} weight="duotone" className="text-slate-300 mx-auto mb-6" aria-hidden="true" />
                 <h2 className="text-2xl font-bold text-slate-900 mb-2">No Applications Yet</h2>
                 <p className="text-slate-500 max-w-md mx-auto mb-8">
                     Your dream job is waiting! Start applying to see your application journey reflected here.
@@ -172,88 +160,131 @@ export default function ApplicationsPage() {
                     className="inline-flex items-center gap-2 px-8 py-3 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-lg shadow-blue-900/10"
                 >
                     Explore Jobs
-                    <ChevronRight className="w-4 h-4" />
+                    <CaretRightIcon weight="bold" className="w-4 h-4" />
                 </a>
             </div>
         );
     }
 
     return (
-        <div className="bg-[#fcfcff] min-h-screen">
+        <div className="bg-[#fcfcff] min-h-screen dark:bg-white/5">
             <div className="max-w-350 mx-auto p-4 md:p-10">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar: Application List */}
                     <div className="w-full lg:w-100 shrink-0 space-y-6">
                         <div className="flex gap-2">
-                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-primary transition">
+                            <button className="px-4 py-2 bg-km-surface-card border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-heading transition">
                                 Recruiter Action (7)
                             </button>
-                            <button className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-primary transition">
+                            <button className="px-4 py-2 bg-km-surface-card border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-km-primary hover:text-km-heading transition">
                                 Applied On KM (12)
                             </button>
                         </div>
 
                         <div className="space-y-3">
-                            {applications.map((app) => (
-                                <button
-                                    key={app.id}
-                                    onClick={() => setSelectedId(app.id)}
-                                    className={cn(
-                                        "w-full text-left p-5 rounded-2xl transition-all duration-300 border",
-                                        selectedId === app.id
-                                            ? "bg-blue-50/40 border-blue-200 shadow-sm ring-1 ring-km-primary/30"
-                                            : "bg-white border-slate-100 hover:border-blue-100 hover:bg-slate-50/50"
-                                    )}
-                                >
-                                    <h3 className="font-bold text-slate-900 truncate pr-4 text-[17px]">
-                                        {app?.job?.title}
-                                    </h3>
-                                    <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
-                                        <span>{app?.job?.company}</span>
-                                        <div className="flex items-center gap-0.5 text-amber-500 font-medium">
-                                            <Star className="w-3.5 h-3.5 fill-current" />
-                                            <span>{app?.job?.rating}</span>
-                                        </div>
-                                        <span className="text-slate-300">|</span>
-                                        <span>{app?.job?.reviews_count}</span>
-                                    </div>
+                            {applications.map((app) => {
+                                const isJobDeleted = !app.job || app.job.status === "Deleted";
+                                const isJobClosed = app.job?.status === "Closed";
 
-                                    <div className="mt-4 flex items-center justify-between">
-                                        <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border", getStatusBadgeClass(app.status))}>
-                                            <CheckCircle2 className="w-3 h-3" />
-                                            {getStatusDisplay(app.status)} {formatTimeAgo(app.updated_at)}
+                                return (
+                                    <button
+                                        key={app.id}
+                                        onClick={() => setSelectedId(app.id)}
+                                        className={cn(
+                                            "w-full text-left p-5 rounded-2xl transition-all duration-300 border cursor-pointer",
+                                            selectedId === app.id
+                                                ? "bg-blue-50/40 border-blue-200 shadow-sm ring-1 ring-km-primary/30"
+                                                : "bg-km-surface-card border-slate-100 hover:border-blue-100 hover:bg-slate-50/50"
+                                        )}
+                                    >
+                                        <div className="flex items-start justify-between gap-2">
+                                            <h3 className="font-bold text-slate-900 truncate text-[17px]">
+                                                {app?.job?.title || "Position Closed / Removed"}
+                                            </h3>
+                                            {isJobDeleted ? (
+                                                <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-medium">
+                                                    Removed
+                                                </span>
+                                            ) : isJobClosed ? (
+                                                <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200/80 font-medium">
+                                                    Closed
+                                                </span>
+                                            ) : null}
                                         </div>
-                                        <span className="text-[11px] text-slate-400 font-medium">
-                                            {app?.job?.last_active}
-                                        </span>
-                                    </div>
-                                </button>
-                            ))}
+                                        <div className="flex items-center gap-2 mt-1 text-sm text-slate-500">
+                                            <span>{app?.job?.company || "Listing archived"}</span>
+                                            {app?.job?.rating ? (
+                                                <>
+                                                    <div className="flex items-center gap-0.5 text-amber-500 font-medium dark:text-amber-400">
+                                                        <StarIcon weight="fill" className="w-3.5 h-3.5 fill-current" />
+                                                        <span>{app?.job?.rating}</span>
+                                                    </div>
+                                                    <span className="text-slate-300">|</span>
+                                                    <span>{app?.job?.reviews_count}</span>
+                                                </>
+                                            ) : null}
+                                        </div>
+
+                                        <div className="mt-4 flex items-center justify-between">
+                                            <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border", getStatusBadgeClass(app.status))}>
+                                                <CheckCircleIcon weight="bold" className="w-3 h-3" />
+                                                {getStatusDisplay(app.status)} {formatTimeAgo(app.updated_at)}
+                                            </div>
+                                            <span className="text-[11px] text-slate-400 font-medium">
+                                                {app?.job?.last_active || (isJobDeleted ? "Archived" : "")}
+                                            </span>
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
                     {/* Main Content: Application Detail */}
-                    <div className="flex-1 bg-white border border-slate-100 rounded-4xl p-8 md:p-12 shadow-sm min-h-175">
+                    <div className="flex-1 bg-km-surface-card border border-slate-100 rounded-4xl p-8 md:p-12 shadow-sm min-h-175">
                         {selectedApp ? (
                             <div className="space-y-10">
                                 {/* Job Header */}
-                                <div className="space-y-2">
-                                    <h1 className="text-3xl font-black text-slate-900">
-                                        {selectedApp?.job?.title} | {selectedApp?.job?.location}
+                                <div className="space-y-3">
+                                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+                                        {selectedApp?.job?.title || "Position Closed / Removed"}
+                                        {selectedApp?.job?.location ? ` | ${selectedApp.job.location}` : ""}
                                     </h1>
-                                    <div className="flex items-center gap-3 text-slate-500 font-medium">
-                                        <span className="text-slate-900 font-bold">{selectedApp?.job?.company}</span>
-                                        <div className="flex items-center gap-1 text-amber-500">
-                                            <Star className="w-4 h-4 fill-current" />
-                                            <span>{selectedApp?.job?.rating}</span>
+
+                                    {(!selectedApp.job || selectedApp.job.status === "Deleted") && (
+                                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 flex items-center gap-2">
+                                            <WarningCircleIcon size={16} weight="regular" className="text-slate-500 shrink-0" aria-hidden="true" />
+                                            <span>This opening was removed by the employer. Your past application record remains securely preserved below.</span>
                                         </div>
-                                        <span className="text-slate-300">|</span>
-                                        <span>{selectedApp?.job?.reviews_count}</span>
+                                    )}
+
+                                    {selectedApp.job && selectedApp.job.status === "Closed" && (
+                                        <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
+                                            <WarningCircleIcon size={16} weight="regular" className="text-amber-600 shrink-0" aria-hidden="true" />
+                                            <span>This opening is closed to new applicants. Your application is under review.</span>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-3 text-slate-500 font-medium">
+                                        <span className="text-slate-900 font-bold">{selectedApp?.job?.company || "Employer"}</span>
+                                        {selectedApp?.job?.rating ? (
+                                            <>
+                                                <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
+                                                    <StarIcon weight="fill" className="w-4 h-4 fill-current" />
+                                                    <span>{selectedApp?.job?.rating}</span>
+                                                </div>
+                                                <span className="text-slate-300">|</span>
+                                                <span>{selectedApp?.job?.reviews_count}</span>
+                                            </>
+                                        ) : null}
                                     </div>
-                                    <button className="mt-4 text-km-primary font-bold text-sm hover:underline flex items-center gap-1">
-                                        View Similar Jobs
-                                        <ExternalLink className="w-3 h-3" />
-                                    </button>
+                                    <Link 
+                                        href={`/jobs${selectedApp?.job?.title ? `?search=${encodeURIComponent(selectedApp.job.title)}` : ""}`}
+                                        className="mt-2 text-km-heading font-bold text-sm hover:underline inline-flex items-center gap-1"
+                                    >
+                                        <span>View Similar Jobs</span>
+                                        <ArrowSquareOutIcon weight="bold" className="w-3.5 h-3.5" aria-hidden="true" />
+                                    </Link>
                                 </div>
 
                                 <div className="h-px bg-slate-100 w-full" />
@@ -293,12 +324,12 @@ export default function ApplicationsPage() {
                                                                     <div className={cn(
                                                                         "w-4 h-4 rounded-full border-4 z-10 transition-all duration-300 ring-4",
                                                                         isActive
-                                                                            ? "bg-white border-km-primary ring-blue-100"
-                                                                            : "bg-white border-slate-200 ring-transparent"
+                                                                            ? "bg-km-surface-card border-km-primary ring-blue-100"
+                                                                            : "bg-km-surface-card border-slate-200 ring-transparent"
                                                                     )} />
                                                                     <span className={cn(
                                                                         "mt-4 text-[11px] font-black uppercase tracking-wider text-center max-w-25",
-                                                                        isActive ? "text-km-primary font-bold" : "text-slate-400"
+                                                                        isActive ? "text-km-heading font-bold" : "text-slate-400"
                                                                     )}>
                                                                         {step.label}
                                                                     </span>
@@ -334,7 +365,7 @@ export default function ApplicationsPage() {
                                                     "w-5 h-5 rounded-full flex items-center justify-center transition-colors",
                                                     item.match ? "bg-emerald-500" : "bg-slate-200"
                                                 )}>
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                                    <CheckCircleIcon weight="bold" className="w-3.5 h-3.5 text-white" />
                                                 </div>
                                                 <span className={cn(
                                                     "font-bold text-[15px]",
@@ -354,23 +385,23 @@ export default function ApplicationsPage() {
                                     <div className="flex items-center gap-4">
                                         <div className="w-16 h-16 bg-km-primary-dark rounded-full flex items-center justify-center text-white overflow-hidden shadow-sm">
                                             <div className="relative">
-                                                <Zap className="w-8 h-8 fill-km-accent text-km-accent transform rotate-12" />
+                                                <LightningIcon weight="fill" className="w-8 h-8 fill-km-accent text-km-accent transform rotate-12" />
                                             </div>
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-900 text-lg">{selectedApp.job.company}</h3>
-                                            <p className="text-slate-500 text-sm font-medium">About company line, Location</p>
+                                            <h3 className="font-bold text-slate-900 text-lg">{selectedApp?.job?.company || "Employer"}</h3>
+                                            <p className="text-slate-500 text-sm font-medium">{selectedApp?.job?.city_name || selectedApp?.job?.location || "Location not specified"}</p>
                                             <p className="text-[11px] text-slate-400 mt-1 font-bold italic">
                                                 {getStatusDisplay(selectedApp.status)} {formatTimeAgo(selectedApp.updated_at)}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <button className="p-3 bg-blue-50 text-km-primary rounded-xl hover:bg-blue-100 transition">
-                                            <PhoneCall className="w-5 h-5" />
+                                        <button className="p-3 bg-blue-50 text-km-heading rounded-xl hover:bg-blue-100 transition">
+                                            <PhoneCallIcon className="w-5 h-5" />
                                         </button>
-                                        <button className="px-6 py-2.5 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 hover:border-km-primary hover:text-km-primary transition flex items-center gap-2 text-sm">
-                                            <MessageSquare className="w-4 h-4" />
+                                        <button className="px-6 py-2.5 bg-km-surface-card border border-slate-200 rounded-xl font-bold text-slate-700 hover:border-km-primary hover:text-km-heading transition flex items-center gap-2 text-sm">
+                                            <ChatIcon weight="bold" className="w-4 h-4" />
                                             Chat With HR
                                         </button>
                                         <button className="px-8 py-2.5 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-sm text-sm">
@@ -381,9 +412,7 @@ export default function ApplicationsPage() {
                             </div>
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
-                                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center">
-                                    <Clock className="w-10 h-10 text-slate-200" />
-                                </div>
+                                <ClockIcon size={48} weight="duotone" className="text-slate-300" aria-hidden="true" />
                                 <h3 className="text-xl font-bold text-slate-900">Select an application</h3>
                                 <p className="text-slate-500 max-w-62.5">Choose an application from the left to see its detailed status and next steps.</p>
                             </div>

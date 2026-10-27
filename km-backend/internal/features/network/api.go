@@ -28,4 +28,8 @@ func (a *NetworkApi) Setup(app *fiber.App) {
 	network.Get("/connections", a.ctrl.GetConnections)
 	network.Delete("/connections/:id", a.ctrl.DeleteConnection)
 	network.Get("/status/:id", a.ctrl.GetStatus)
+
+	// F55: Suggestions Recommendation Engine
+	network.Get("/suggestions", a.ctrl.GetSuggestions)
+	network.Post("/suggestions/:id/dismiss", a.ctrl.DismissSuggestion)
 }

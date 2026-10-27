@@ -31,6 +31,9 @@ func (api *ChatApi) Setup(app *fiber.App) {
 	// Total unread count for navbar badge
 	group.Get("/unread-count", api.controller.GetTotalUnreadCount)
 
+	// Entitlement & free chat quota status
+	group.Get("/entitlement", api.controller.GetChatEntitlement)
+
 	// Message fetching
 	group.Get("/:id/messages", api.controller.GetMessages)
 
@@ -56,7 +59,7 @@ func (api *ChatApi) Setup(app *fiber.App) {
 	group.Post("/:id/report", api.controller.CreateReport)
 
 	// Admin Chat Moderation & Reports (F59)
-	adminReports := app.Group("/api/admin/chat-reports", middleware.AuthMiddleware(api.controller.config.JWTSecret))
+	adminReports := app.Group("/api/admin/chat-reports", middleware.AuthMiddleware(api.controller.config.JWTSecret), middleware.RequireRole("admin"))
 	adminReports.Get("", api.controller.GetAdminChatReports)
 	adminReports.Get("/", api.controller.GetAdminChatReports)
 	adminReports.Get("/:id", api.controller.GetAdminChatReportByID)

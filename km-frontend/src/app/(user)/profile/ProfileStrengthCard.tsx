@@ -1,287 +1,209 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { CheckCircle2, Plus, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { CaretDownIcon, CaretUpIcon, CheckCircleIcon, CircleDashedIcon, CircleIcon } from '@phosphor-icons/react';
+import {
+    CRITERION_META,
+    fetchProfileCompletion,
+    PROFILE_UPDATED_EVENT,
+    type ProfileCompletion,
+    type ProfileCriterion,
+    type ProfileModalKey,
+} from '@/lib/profileStrength';
 
-export type ProfileModalKey =
-    | 'education'
-    | 'experience'
-    | 'skill'
-    | 'intro'
-    | 'about'
-    | 'photo'
-    | 'background'
-    | 'contact'
-    | 'emailVerify';
-
-interface UserProfileData {
-    experience?: unknown[];
-    profile_image?: string;
-    education?: unknown[];
-    skills?: unknown[];
-    about?: string;
-    headline?: string;
-    designation?: string;
-    city?: string;
-    state?: string;
-    location?: string;
-    is_email_verified?: boolean;
-}
+export type { ProfileModalKey };
 
 interface ProfileStrengthCardProps {
-    user: UserProfileData | null | undefined;
+    // Any change to the profile object triggers a fresh score from the backend
+    user: object | null | undefined;
     onOpenModal: (modalKey: ProfileModalKey) => void;
 }
 
-interface CriteriaItem {
-    id: string;
-    title: string;
-    weight: number;
-    modalKey: ProfileModalKey;
-    isCompleted: boolean;
-    missingHint: string;
-}
+// Levels from docs/client_queries_deep_analysis.md §1.1
+const MILESTONES = [
+    { score: 30, name: 'Basic', unlocks: 'get found for local jobs and chat with up to 3 people' },
+    { score: 70, name: 'Professional', unlocks: '1-click apply and appear in recruiter search' },
+    { score: 100, name: 'Complete', unlocks: 'take Instant Milega gigs and apply as an Expert' },
+];
+
+const remaining = (c: ProfileCriterion) => c.weight - c.earned;
 
 export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStrengthCardProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [showCompleted, setShowCompleted] = useState(false);
+    const [completion, setCompletion] = useState<ProfileCompletion | null>(null);
 
-    // ─── Evaluate Completeness Criteria ─────────────────────────
-    const criteria: CriteriaItem[] = useMemo(() => {
-        if (!user) return [];
+    useEffect(() => {
+        if (!user) return;
+        let isMounted = true;
+        const load = () => {
+            fetchProfileCompletion()
+                .then((res) => {
+                    if (isMounted && typeof res?.score === 'number') setCompletion(res);
+                })
+                .catch(() => {});
+        };
 
-        const hasExperience = Array.isArray(user.experience) && user.experience.length > 0;
-        const hasPhoto = Boolean(user.profile_image && typeof user.profile_image === 'string' && user.profile_image.trim().length > 0);
-        const hasEducation = Array.isArray(user.education) && user.education.length > 0;
-        const hasSkills = Array.isArray(user.skills) && user.skills.length >= 3;
-        const hasAbout = Boolean(user.about && typeof user.about === 'string' && user.about.trim().length >= 15);
-        const hasHeadlineAndLocation = Boolean(
-            (user.headline || user.designation) && (user.city || user.state || user.location)
-        );
-        const hasEmailVerified = Boolean(user.is_email_verified);
-
-        return [
-            {
-                id: 'experience',
-                title: 'Work Experience',
-                weight: 20,
-                modalKey: 'experience',
-                isCompleted: hasExperience,
-                missingHint: 'Add your past or current roles to highlight your career',
-            },
-            {
-                id: 'photo',
-                title: 'Profile Photo',
-                weight: 15,
-                modalKey: 'photo',
-                isCompleted: hasPhoto,
-                missingHint: 'Upload a clear profile picture to be easily recognized',
-            },
-            {
-                id: 'education',
-                title: 'Education',
-                weight: 15,
-                modalKey: 'education',
-                isCompleted: hasEducation,
-                missingHint: 'Add your degree, college or certifications',
-            },
-            {
-                id: 'skills',
-                title: 'Skills (3+)',
-                weight: 15,
-                modalKey: 'skill',
-                isCompleted: hasSkills,
-                missingHint: `Add at least 3 skills (current: ${user.skills?.length || 0})`,
-            },
-            {
-                id: 'about',
-                title: 'About Summary',
-                weight: 15,
-                modalKey: 'about',
-                isCompleted: hasAbout,
-                missingHint: 'Write a brief professional summary of your background',
-            },
-            {
-                id: 'intro',
-                title: 'Headline & Location',
-                weight: 10,
-                modalKey: 'intro',
-                isCompleted: hasHeadlineAndLocation,
-                missingHint: 'Specify your job title/designation and city',
-            },
-            {
-                id: 'emailVerify',
-                title: 'Email Verification',
-                weight: 10,
-                modalKey: 'emailVerify',
-                isCompleted: hasEmailVerified,
-                missingHint: 'Verify your registered email for direct recruiter messages',
-            },
-        ];
+        load();
+        window.addEventListener(PROFILE_UPDATED_EVENT, load);
+        return () => {
+            isMounted = false;
+            window.removeEventListener(PROFILE_UPDATED_EVENT, load);
+        };
     }, [user]);
 
-    // ─── Calculate Total Score ──────────────────────────────────
-    const score = useMemo(() => {
-        return criteria.reduce((acc, item) => (item.isCompleted ? acc + item.weight : acc), 0);
-    }, [criteria]);
+    if (!user || !completion) return null;
 
-    const pendingItems = useMemo(() => {
-        return criteria.filter((item) => !item.isCompleted);
-    }, [criteria]);
+    const { score, criteria = [] } = completion;
+    const known = criteria.filter((c) => CRITERION_META[c.id]);
+    // Biggest gains first, so the top of the list is always the quickest way up
+    const pending = known.filter((c) => !c.completed).sort((a, b) => remaining(b) - remaining(a));
+    const completed = known.filter((c) => c.completed);
+    const nextMilestone = MILESTONES.find((m) => score < m.score);
 
-    const completedItems = useMemo(() => {
-        return criteria.filter((item) => item.isCompleted);
-    }, [criteria]);
-
-    if (!user) return null;
-
-    const isFullyComplete = score === 100;
+    // Fewest items (largest gains first) that reach the next level
+    let stepsToNext = 0;
+    if (nextMilestone) {
+        let projected = score;
+        for (const c of pending) {
+            if (projected >= nextMilestone.score) break;
+            projected += remaining(c);
+            stepsToNext += 1;
+        }
+    }
 
     return (
-        <div className="bg-white rounded-xl p-5 sm:p-6 border border-gray-200 shadow-sm transition-all duration-300">
-            {/* Header: Title, Description & Percentage */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-base sm:text-lg font-black text-gray-900 tracking-tight">
-                            Profile Completeness
-                        </h2>
-                        {isFullyComplete && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
-                                <CheckCircle2 size={12} className="text-emerald-600" />
-                                100% Complete
-                            </span>
+        <section aria-labelledby="profile-strength-title" className="bg-km-surface-card rounded-2xl p-5 sm:p-6 border border-km-border shadow-xs font-sans">
+            {/* Header */}
+            <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                    <h2 id="profile-strength-title" className="text-base sm:text-lg font-semibold text-km-text-primary">
+                        {score >= 100 ? 'Your profile is complete' : 'Complete your profile'}
+                    </h2>
+                    <p className="text-sm text-km-text-secondary mt-1">
+                        {nextMilestone ? (
+                            <>
+                                Add {stepsToNext} more {stepsToNext === 1 ? 'detail' : 'details'} to reach{' '}
+                                <span className="font-semibold text-km-text-primary">
+                                    {nextMilestone.name} ({nextMilestone.score}%)
+                                </span>{' '}
+                                and {nextMilestone.unlocks}.
+                            </>
+                        ) : completion.expert_eligible ? (
+                            <>
+                                You can take Instant Milega gigs and{' '}
+                                <Link href="/expert/apply" className="font-semibold text-km-link hover:underline">
+                                    apply as an Expert
+                                </Link>
+                                .
+                            </>
+                        ) : (
+                            'You can take Instant Milega gigs. Expert status needs at least 2 years of work experience.'
                         )}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                        {isFullyComplete
-                            ? 'All essential details added. Your profile has optimal visibility in recruiter searches.'
-                            : 'Complete the recommended sections below to help recruiters discover and evaluate your profile.'}
                     </p>
                 </div>
-
-                {/* Score Number Display */}
-                <div className="flex items-baseline sm:items-center gap-1.5 shrink-0">
-                    <span className="text-2xl sm:text-3xl font-black text-km-primary tracking-tight">
-                        {score}%
-                    </span>
-                    <span className="text-xs font-semibold text-gray-400">completed</span>
+                <div className="text-right shrink-0">
+                    <p className="text-2xl sm:text-3xl font-bold text-km-heading leading-none">{score}%</p>
+                    <p className="text-xs font-medium text-km-text-secondary mt-1">{completion.tier_name}</p>
                 </div>
             </div>
 
-            {/* Visual Animated Progress Bar Track */}
-            <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden mt-3.5 mb-4 shadow-inner">
+            {/* Progress bar with level markers */}
+            <div className="mt-5">
                 <div
-                    className={`h-full rounded-full transition-all duration-700 ease-out ${
-                        isFullyComplete
-                            ? 'bg-linear-to-r from-emerald-500 to-teal-500'
-                            : 'bg-linear-to-r from-km-primary to-blue-600'
-                    }`}
-                    style={{ width: `${Math.max(score, 4)}%` }}
-                />
+                    className="relative h-2 bg-km-surface border border-km-border rounded-full"
+                    role="progressbar"
+                    aria-valuenow={score}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-label="Profile completeness"
+                >
+                    <div className="h-full rounded-full bg-[#071A4D] dark:bg-km-primary" style={{ width: `${Math.max(score, 3)}%` }} />
+                    {MILESTONES.slice(0, 2).map((m) => (
+                        <span
+                            key={m.score}
+                            className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-km-surface-card ${
+                                score >= m.score ? 'bg-[#071A4D] dark:bg-km-primary' : 'bg-[#D9E0EA] dark:bg-white/10'
+                            }`}
+                            style={{ left: `${m.score}%` }}
+                        />
+                    ))}
+                </div>
+                <div className="relative h-4 mt-1.5 text-xs text-km-text-secondary">
+                    {MILESTONES.map((m) => (
+                        <span
+                            key={m.score}
+                            className={`absolute ${m.score === 100 ? 'right-0' : '-translate-x-1/2'} ${
+                                score >= m.score ? 'font-semibold text-km-heading' : ''
+                            }`}
+                            style={m.score === 100 ? undefined : { left: `${m.score}%` }}
+                        >
+                            {m.name}
+                        </span>
+                    ))}
+                </div>
             </div>
 
-            {/* Action Items (Incomplete Steps) */}
-            {!isFullyComplete && pendingItems.length > 0 && (
-                <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                            Suggested steps to reach 100%:
-                        </span>
-                        <button
-                            type="button"
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-[11px] font-bold text-km-primary hover:text-km-primary-dark transition-colors flex items-center gap-1 cursor-pointer"
-                        >
-                            {isExpanded ? (
-                                <>
-                                    Hide Details <ChevronUp size={13} />
-                                </>
-                            ) : (
-                                <>
-                                    View All Checklist ({completedItems.length}/{criteria.length}) <ChevronDown size={13} />
-                                </>
-                            )}
-                        </button>
-                    </div>
-
-                    {/* Quick Action Chips */}
-                    <div className="flex flex-wrap gap-2 pt-1">
-                        {pendingItems.map((item) => (
-                            <button
-                                key={item.id}
-                                type="button"
-                                onClick={() => onOpenModal(item.modalKey)}
-                                className="group inline-flex items-center gap-1.5 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 border border-blue-200/80 hover:border-blue-300 rounded-xl text-xs font-bold text-km-primary transition-all duration-200 shadow-xs hover:shadow cursor-pointer active:scale-98"
-                            >
-                                <span>Add {item.title}</span>
-                                <Plus size={14} className="text-km-primary group-hover:text-km-primary-dark transition-colors" />
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* 100% Celebration Banner */}
-            {isFullyComplete && (
-                <div className="flex items-center gap-3 p-3.5 bg-emerald-50 border border-emerald-200/80 rounded-xl text-emerald-800 text-xs font-semibold">
-                    <CheckCircle2 size={20} className="text-emerald-600 shrink-0" />
-                    <div>
-                        <p className="font-bold text-emerald-900">Your profile is 100% complete!</p>
-                        <p className="text-[11px] text-emerald-700 mt-0.5">
-                            Recruiters are 3x more likely to view and shortlist candidates with full profiles.
-                        </p>
-                    </div>
-                </div>
-            )}
-
-            {/* Expandable Full Checklist */}
-            {isExpanded && (
-                <div className="mt-4 pt-4 border-t border-gray-100 space-y-2.5">
-                    <p className="text-xs font-extrabold text-gray-700 uppercase tracking-wider">
-                        Completeness Breakdown:
-                    </p>
-                    <div className="grid grid-cols-2 gap-2 sm:gap-2.5">
-                        {criteria.map((item) => (
-                            <div
-                                key={item.id}
-                                onClick={() => !item.isCompleted && onOpenModal(item.modalKey)}
-                                className={`flex items-center sm:items-start gap-1.5 sm:gap-2.5 p-2 sm:p-2.5 rounded-xl border transition-all ${
-                                    item.isCompleted
-                                        ? 'bg-gray-50/70 border-gray-200 text-gray-700'
-                                        : 'bg-blue-50/40 border-blue-100 text-slate-800 hover:bg-blue-50 hover:border-blue-200 cursor-pointer'
-                                }`}
-                            >
-                                {item.isCompleted ? (
-                                    <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+            {/* What is left */}
+            {pending.length > 0 && (
+                <ul className="mt-5 divide-y divide-km-border border border-km-border rounded-xl">
+                    {pending.map((item) => {
+                        const meta = CRITERION_META[item.id];
+                        const partial = item.earned > 0;
+                        return (
+                            <li key={item.id} className="flex items-center gap-3 px-4 py-3">
+                                {partial ? (
+                                    <CircleDashedIcon weight="bold" size={18} className="text-[#FF6B00] shrink-0" aria-label="Partly done" />
                                 ) : (
-                                    <AlertCircle size={15} className="text-amber-500 shrink-0" />
+                                    <CircleIcon weight="bold" size={18} className="text-[#D9E0EA] shrink-0" aria-hidden="true" />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                    <div className="flex items-center justify-between gap-1">
-                                        <p
-                                            title={item.title}
-                                            className="text-[11px] sm:text-xs font-bold leading-none truncate"
-                                        >
-                                            {item.title}
-                                        </p>
-                                        <span className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 leading-tight ${
-                                            item.isCompleted
-                                                ? 'bg-emerald-100 text-emerald-700'
-                                                : 'bg-amber-100 text-amber-700'
-                                        }`}>
-                                            {item.isCompleted ? 'Completed' : 'Pending'}
-                                        </span>
-                                    </div>
-                                    {/* Description: removed from mobile only */}
-                                    <p className="hidden sm:block text-[11px] text-gray-500 mt-1 line-clamp-1">
-                                        {item.isCompleted ? 'Completed' : item.missingHint}
-                                    </p>
+                                    <p className="text-sm font-medium text-km-text-primary">{meta.title}</p>
+                                    <p className="text-xs text-km-text-secondary mt-0.5">{meta.hint}</p>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                                <span className="text-xs font-semibold text-[#16A34A] shrink-0">+{remaining(item)}%</span>
+                                {meta.modalKey && (
+                                    <button
+                                        type="button"
+                                        onClick={() => onOpenModal(meta.modalKey as ProfileModalKey)}
+                                        className="shrink-0 px-3 py-1.5 rounded-lg border border-km-border text-xs font-semibold text-km-heading hover:bg-km-surface cursor-pointer"
+                                    >
+                                        {partial ? 'Finish' : 'Add'}
+                                    </button>
+                                )}
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
+
+            {/* Done items, collapsed */}
+            {completed.length > 0 && (
+                <div className="mt-3">
+                    <button
+                        type="button"
+                        onClick={() => setShowCompleted(!showCompleted)}
+                        aria-expanded={showCompleted}
+                        className="inline-flex items-center gap-1 text-xs font-semibold text-km-text-secondary hover:text-km-heading cursor-pointer"
+                    >
+                        {showCompleted ? 'Hide' : 'Show'} {completed.length} completed
+                        {showCompleted ? <CaretUpIcon weight="bold" size={14} /> : <CaretDownIcon weight="bold" size={14} />}
+                    </button>
+                    {showCompleted && (
+                        <ul className="mt-2 flex flex-wrap gap-2">
+                            {completed.map((item) => (
+                                <li
+                                    key={item.id}
+                                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-km-surface text-xs font-medium text-km-text-primary"
+                                >
+                                    <CheckCircleIcon weight="bold" size={13} className="text-[#16A34A]" />
+                                    {CRITERION_META[item.id].title}
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             )}
-        </div>
+        </section>
     );
 }

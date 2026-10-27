@@ -2,12 +2,7 @@
 
 import FooterLink from "@/components/ui/FooterLink";
 import BrandLogo from "@/components/km/BrandLogo";
-import {
-    Instagram,
-    Facebook,
-    Linkedin,
-    Youtube,
-} from "lucide-react";
+import { FacebookLogoIcon, InstagramLogoIcon, LinkedinLogoIcon, YoutubeLogoIcon } from '@phosphor-icons/react';
 
 import { usePathname } from "next/navigation";
 import { FEATURES } from "@/config/features";
@@ -22,7 +17,7 @@ export default function Footer() {
                 {/* Official KaamMilega Platform Branding Header */}
                 <div className="pb-10 mb-12 border-b border-blue-900/60 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-                        <div className="bg-white px-3.5 py-2 rounded-2xl flex items-center shadow-md shrink-0 w-fit">
+                        <div className="bg-km-surface-card px-3.5 py-2 rounded-2xl flex items-center shadow-md shrink-0 w-fit">
                             <BrandLogo size="md" />
                         </div>
                         <div className="border-l-0 sm:border-l sm:border-white/15 sm:pl-6 space-y-1">
@@ -75,12 +70,12 @@ export default function Footer() {
                     <div>
                         <h3 className="text-base sm:text-lg font-bold text-white mb-5 tracking-wide">Solutions</h3>
                         <div className="space-y-3">
-                            <FooterLink>Connect Like You</FooterLink>
-                            <FooterLink>Premium Job Search</FooterLink>
-                            {FEATURES.INSTANT_MILEGA && <FooterLink>InstantMilega™</FooterLink>}
-                            <FooterLink>Learn With KM</FooterLink>
-                            <FooterLink>Promotion (Ad Network)</FooterLink>
-                            <FooterLink>How We Work</FooterLink>
+                            <FooterLink href="/network">Connect Like You</FooterLink>
+                            <FooterLink href="/jobs">Premium Job Search</FooterLink>
+                            {FEATURES.INSTANT_MILEGA && <FooterLink href="/instant-milega">InstantMilega™</FooterLink>}
+                            <FooterLink href="/resources">Learn With KM</FooterLink>
+                            <FooterLink href="/jobs">Promotion (Ad Network)</FooterLink>
+                            <FooterLink href="/how-we-work">How We Work</FooterLink>
                         </div>
                     </div>
 
@@ -88,10 +83,10 @@ export default function Footer() {
                     <div>
                         <h3 className="text-base sm:text-lg font-bold text-white mb-5 tracking-wide">Connect</h3>
                         <div className="space-y-3">
-                            <FooterLink>About</FooterLink>
-                            <FooterLink>How We Work</FooterLink>
-                            <FooterLink>Support</FooterLink>
-                            <FooterLink>Career</FooterLink>
+                            <FooterLink href="/about">About</FooterLink>
+                            <FooterLink href="/how-we-work">How We Work</FooterLink>
+                            <FooterLink href="/support">Support</FooterLink>
+                            <FooterLink href="/career">Career</FooterLink>
                         </div>
 
                         <div className="mt-8">
@@ -101,19 +96,19 @@ export default function Footer() {
 
                             <div className="space-y-3 text-slate-300 text-sm">
                                 <div className="flex items-center gap-3 hover:text-white transition-colors cursor-pointer">
-                                    <Instagram size={18} />
+                                    <InstagramLogoIcon weight="bold" size={18} />
                                     <span>Instagram</span>
                                 </div>
                                 <div className="flex items-center gap-3 hover:text-white transition-colors cursor-pointer">
-                                    <Facebook size={18} />
+                                    <FacebookLogoIcon weight="bold" size={18} />
                                     <span>Facebook</span>
                                 </div>
                                 <div className="flex items-center gap-3 hover:text-white transition-colors cursor-pointer">
-                                    <Linkedin size={18} />
+                                    <LinkedinLogoIcon weight="bold" size={18} />
                                     <span>LinkedIn</span>
                                 </div>
                                 <div className="flex items-center gap-3 hover:text-white transition-colors cursor-pointer">
-                                    <Youtube size={18} />
+                                    <YoutubeLogoIcon weight="bold" size={18} />
                                     <span>Youtube</span>
                                 </div>
                             </div>
@@ -127,10 +122,10 @@ export default function Footer() {
                         </h3>
 
                         <div className="space-y-3">
-                            <FooterLink>Hire Local Staff</FooterLink>
-                            <FooterLink>Post A Job</FooterLink>
-                            <FooterLink>Build Brand Image</FooterLink>
-                            <FooterLink>Contact Support</FooterLink>
+                            <FooterLink href="/register">Hire Local Staff</FooterLink>
+                            <FooterLink href="/register">Post A Job</FooterLink>
+                            <FooterLink href="/about">Build Brand Image</FooterLink>
+                            <FooterLink href="/support">Contact Support</FooterLink>
                         </div>
 
                         <div className="mt-10">
@@ -142,33 +137,41 @@ export default function Footer() {
                             </p>
 
                             <div className="space-y-3">
-                                <div className="flex items-center gap-3 bg-white/10 border border-white/10 text-white px-4 py-2.5 rounded-xl cursor-pointer hover:bg-white/20 transition backdrop-blur-sm">
-                                    <svg className="w-6 h-6 fill-current text-km-accent" viewBox="0 0 24 24">
-                                        <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z" />
-                                    </svg>
-                                    <div>
-                                        <div className="text-[9px] uppercase font-semibold tracking-wider text-slate-400">GET IT ON</div>
-                                        <div className="text-xs font-bold -mt-0.5">Google Play</div>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 bg-white/10 border border-white/10 text-white px-4 py-2.5 rounded-xl cursor-pointer hover:bg-white/20 transition backdrop-blur-sm">
-                                    <svg className="w-6 h-6 fill-current text-white" viewBox="0 0 24 24">
-                                        <path d="M18.71,19.5C17.88,20.74 17,21.95 15.66,21.97C14.32,22 13.89,21.18 12.37,21.18C10.84,21.18 10.37,21.95 9.09,22C7.79,22.05 6.8,20.68 5.96,19.47C4.25,17 2.94,12.45 4.7,9.39C5.57,7.87 7.13,6.91 8.82,6.88C10.1,6.86 11.32,7.75 12.11,7.75C12.89,7.75 14.37,6.68 15.92,6.84C16.57,6.87 18.39,7.1 19.56,8.82C19.47,8.88 17.39,10.1 17.41,12.63C17.44,15.65 20.06,16.66 20.09,16.67C20.06,16.74 19.67,18.11 18.71,19.5M13,3.5C13.73,2.67 14.94,2.04 15.94,2C16.07,3.17 15.6,4.35 14.9,5.19C14.21,6.04 13.07,6.7 11.95,6.61C11.8,5.46 12.36,4.26 13,3.5Z" />
-                                    </svg>
-                                    <div>
-                                        <div className="text-[9px] uppercase font-semibold tracking-wider text-slate-400">Download on the</div>
-                                        <div className="text-xs font-bold -mt-0.5">App Store</div>
-                                    </div>
-                                </div>
+                                <a
+                                    href="https://play.google.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:opacity-90 transition-opacity inline-block"
+                                    aria-label="Get it on Google Play"
+                                >
+                                    <img
+                                        src="/asset/google-play-badge-logo.svg"
+                                        alt="Get it on Google Play"
+                                        className="h-10 w-auto object-contain"
+                                    />
+                                </a>
+                                <a
+                                    href="https://apple.com"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:opacity-90 transition-opacity inline-block"
+                                    aria-label="Download on the App Store"
+                                >
+                                    <img
+                                        src="/asset/download-on-the-app-store-apple-logo.svg"
+                                        alt="Download on the App Store"
+                                        className="h-10 w-auto object-contain"
+                                    />
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Bottom */}
-                <div className="mt-14 pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-xs">
+                <div className="mt-14 pt-8 border-t border-[#1E293B]/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-xs">
                     <p>All Rights Reserved © {new Date().getFullYear()} KaamMilega™ — India&apos;s Most Trusted Work &amp; Skill Platform</p>
-                    <p className="text-slate-500">Kaam Bhi. Skill Bhi. Kamaai Bhi.</p>
+                    <p className="text-slate-400">Kaam Bhi. Skill Bhi. Kamaai Bhi.</p>
                 </div>
             </div>
         </footer>
