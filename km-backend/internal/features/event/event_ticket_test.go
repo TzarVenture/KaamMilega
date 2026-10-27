@@ -146,6 +146,43 @@ func (m *mockEventRepo) GetEventAttendees(ctx context.Context, eventID primitive
 	return attendees, nil
 }
 
+// Admin operations (added to EventRepository by the admin events feature). In-memory versions
+// so the mock keeps satisfying the interface; the ticket tests above do not call them.
+func (m *mockEventRepo) AdminGetAllEvents(ctx context.Context, search string, page, limit int) ([]AdminEventItem, int64, error) {
+	var items []AdminEventItem
+	for _, e := range m.events {
+		items = append(items, AdminEventItem{Event: *e, TotalParticipants: len(e.Participants)})
+	}
+	return items, int64(len(items)), nil
+}
+
+func (m *mockEventRepo) AdminGetEventDetail(ctx context.Context, eventID primitive.ObjectID) (*AdminEventDetailResponse, error) {
+	e, ok := m.events[eventID.Hex()]
+	if !ok {
+		return nil, errors.New("event not found")
+	}
+	return &AdminEventDetailResponse{Event: *e, TotalParticipants: len(e.Participants)}, nil
+}
+
+func (m *mockEventRepo) AdminUpdateEvent(ctx context.Context, eventID primitive.ObjectID, req AdminUpdateEventRequest) (*Event, error) {
+	e, ok := m.events[eventID.Hex()]
+	if !ok {
+		return nil, errors.New("event not found")
+	}
+	if req.Title != "" {
+		e.Title = req.Title
+	}
+	return e, nil
+}
+
+func (m *mockEventRepo) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) error {
+	if _, ok := m.events[eventID.Hex()]; !ok {
+		return errors.New("event not found")
+	}
+	delete(m.events, eventID.Hex())
+	return nil
+}
+
 // Mock User Repo
 type mockUserRepo struct {
 	user.UserRepository
