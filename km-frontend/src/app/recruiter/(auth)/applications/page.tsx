@@ -32,7 +32,7 @@ const KANBAN_COLUMNS = [
 function ApplicationsContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const jobId = searchParams.get("jobId");
+    const jobId = searchParams.get("jobId") || searchParams.get("job_id");
 
     const [jobs, setJobs] = useState<any[]>([]);
     const [applications, setApplications] = useState<any[]>([]);
@@ -56,7 +56,7 @@ function ApplicationsContent() {
                 setApplications(appsData || []);
             } catch (error) {
                 console.error("Failed to fetch applications:", error);
-                notify.error("Failed to load applicant pipeline");
+                notify.error(error, "Failed to load applicant pipeline");
             } finally {
                 setLoading(false);
             }
@@ -65,7 +65,7 @@ function ApplicationsContent() {
         fetchData();
     }, [jobId]);
 
-    const currentJob = jobs.find(j => j.id === jobId);
+    const currentJob = jobs.find(j => j.id === jobId || j._id === jobId);
 
     const handleStatusUpdate = async (id: string, newStatus: string) => {
         try {
@@ -78,7 +78,7 @@ function ApplicationsContent() {
             notify.success(`Applicant moved to ${newStatus}`);
         } catch (error) {
             console.error("Failed to update status:", error);
-            notify.error("Failed to update applicant status");
+            notify.error(error, "Failed to update applicant status");
             // Revert on error
             const data = await api.get(jobId ? `/applications/job/${jobId}` : "/applications/recruiter/all") as any[];
             setApplications(data || []);
