@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { ArrowRightIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CaretLeftIcon, CheckCircleIcon, CircleNotchIcon, CurrencyInrIcon, DotsThreeVerticalIcon, FileTextIcon, FunnelSimpleIcon, MagnifyingGlassIcon, MapPinIcon, PauseCircleIcon, PlayCircleIcon, PlusIcon, StarIcon, TrashIcon, UserCheckIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import ResumeModal from '@/components/modals/admin/ResumeModal';
 import api from '@/lib/axios';
 
@@ -53,7 +53,7 @@ export default function JobsPage() {
             setJobs(mappedJobs);
         } catch (err) {
             console.error('Failed to fetch jobs:', err);
-            toast.error('Failed to load job listings');
+            notify.error('Failed to load job listings');
         } finally {
             setIsLoadingJobs(false);
         }
@@ -76,13 +76,13 @@ export default function JobsPage() {
                 prev.map((item) => (item.id === job.id ? { ...item, status: nextStatus } : item))
             );
             if (nextStatus === 'Closed') {
-                toast.info(`Vacancy for "${job.title}" has been closed.`);
+                notify.info(`Vacancy for "${job.title}" has been closed.`);
             } else {
-                toast.success(`Vacancy for "${job.title}" is now active.`);
+                notify.success(`Vacancy for "${job.title}" is now active.`);
             }
         } catch (error: any) {
             console.error('Failed to update job status:', error);
-            toast.error(error.response?.data?.error || 'Failed to update job status');
+            notify.error(error, 'Failed to update job status');
         } finally {
             setProcessingJobId(null);
         }
@@ -101,10 +101,10 @@ export default function JobsPage() {
         try {
             await api.delete(`/admin/jobs/${job.id}`);
             setJobs((prev) => prev.filter((item) => item.id !== job.id));
-            toast.success(`Job "${job.title}" deleted successfully.`);
+            notify.success(`Job "${job.title}" deleted successfully.`);
         } catch (error: any) {
             console.error('Failed to delete job:', error);
-            toast.error(error.response?.data?.error || 'Failed to delete job');
+            notify.error(error, 'Failed to delete job');
         } finally {
             setProcessingJobId(null);
         }

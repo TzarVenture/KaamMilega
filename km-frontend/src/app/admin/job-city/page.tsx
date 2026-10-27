@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeftIcon, ArrowsClockwiseIcon, BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, CurrencyInrIcon, GlobeHemisphereEastIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, TrendUpIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
+import { errorText } from "@/lib/notify";
 
 interface City {
     id: string;
@@ -176,7 +177,7 @@ function JobCityWiseContent() {
             console.error('Job removal failed:', error);
             setActionMessage({
                 type: 'error',
-                message: error?.response?.data?.error || 'Failed to update job status.'
+                message: errorText(error, 'Failed to update job status.')
             });
         } finally {
             setProcessingJobId(null);

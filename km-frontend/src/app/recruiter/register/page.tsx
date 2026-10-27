@@ -7,6 +7,7 @@ import api from '@/lib/axios';
 import { isAuthenticated, saveSession } from '@/lib/auth';
 import AuthNavbar from '@/components/auth/AuthNavbar';
 import { ArrowLeftIcon, ArrowRightIcon, BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, CheckIcon, CloudArrowUpIcon, CreditCardIcon, EnvelopeSimpleIcon, FileTextIcon, GlobeIcon, MedalIcon, ShieldCheckIcon, StorefrontIcon, UserIcon, WarningCircleIcon } from '@phosphor-icons/react';
+import { errorText } from "@/lib/notify";
 
 interface DocumentTypeOption {
     id: string;
@@ -191,7 +192,7 @@ export default function RecruiterRegisterPage() {
             setSuccessMsg(`Verification code sent to ${trimmed}`);
             setTimeout(() => otpInputsRef.current[0]?.focus(), 150);
         } catch (err: any) {
-            setError(err.response?.data?.error || err.message || 'Failed to send verification code.');
+            setError(errorText(err, 'Failed to send verification code.'));
         } finally {
             setLoading(false);
         }
@@ -241,7 +242,7 @@ export default function RecruiterRegisterPage() {
                 setCurrentStep(3);
             }, 700);
         } catch (err: any) {
-            setError(err.response?.data?.error || err.message || 'Invalid or expired code.');
+            setError(errorText(err, 'Invalid or expired code.'));
         } finally {
             setLoading(false);
         }

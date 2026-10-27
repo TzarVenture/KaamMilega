@@ -5,7 +5,7 @@ import { BookmarkSimpleIcon, ChatIcon, ConfettiIcon, DotsThreeIcon, GlobeIcon, H
 import UserAvatar from '@/components/ui/UserAvatar';
 import { FeedPost, FeedAuthor, ReactionType } from './feedTypes';
 import { getCurrentUser } from '@/lib/auth';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 
 interface PostCardProps {
   post: FeedPost;
@@ -88,7 +88,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
       navigator.clipboard.writeText(`${window.location.origin}/feed#${post.id}`);
-      toast.success('Post link copied to clipboard!');
+      notify.success('Post link copied to clipboard!');
       setMenuOpen(false);
     }
   };
@@ -190,7 +190,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                 onClick={() => {
                   onSave(post.id);
                   setMenuOpen(false);
-                  toast.info(post.isSaved ? 'Removed from saved items' : 'Post saved to bookmarks');
+                  notify.info(post.isSaved ? 'Removed from saved items' : 'Post saved to bookmarks');
                 }}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-km-text-primary hover:bg-km-surface transition-colors"
               >
@@ -213,7 +213,7 @@ export const PostCard: React.FC<PostCardProps> = ({
                   onClick={() => {
                     onDelete(post.id);
                     setMenuOpen(false);
-                    toast.success('Post deleted');
+                    notify.success('Post deleted');
                   }}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors border-t border-km-border dark:text-red-400"
                 >
@@ -363,7 +363,7 @@ export const PostCard: React.FC<PostCardProps> = ({
           type="button"
           onClick={() => {
             onRepost(post.id);
-            toast.success(post.isReposted ? 'Repost removed' : 'Reposted to your network!');
+            notify.success(post.isReposted ? 'Repost removed' : 'Reposted to your network!');
           }}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
             post.isReposted ? 'text-[#16A34A]' : 'text-km-text-secondary hover:text-km-heading'

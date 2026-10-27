@@ -240,6 +240,10 @@ func (r *MongoDBRepository) GetCandidateUsers(ctx context.Context, exclusionIDs 
 		"_id":           bson.M{"$nin": exclusionIDs},
 		"is_registered": true,
 		"roles":         bson.M{"$nin": []string{"admin"}},
+		// Never suggest private profiles, inactive accounts, or people who opted out of matching
+		"settings.profile_visibility":        bson.M{"$ne": "private"},
+		"settings.enable_ai_recommendations": bson.M{"$ne": false},
+		"account_status":                     bson.M{"$nin": []string{"deactivated", "pending_deletion", "deleted"}},
 	}
 
 	opts := options.Find().

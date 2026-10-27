@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRightIcon, CheckIcon, CreditCardIcon, ShieldCheckIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import api from '@/lib/axios';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -67,11 +67,11 @@ export default function InstantPassModal({
         setWalletLoading(true);
         try {
             const res: any = await api.post('/instant-work/pass/pay-wallet');
-            toast.success('InstantPass activated via KaamMilega Wallet. 10 dispatches added.');
+            notify.success('InstantPass activated via KaamMilega Wallet. 10 dispatches added.');
             onSuccess(res?.pass?.quota_remaining || 10);
             onClose();
         } catch (err: any) {
-            toast.error(err.message || 'Failed to pay with wallet. Please try online payment.');
+            notify.error(err.message || 'Failed to pay with wallet. Please try online payment.');
             setSelectedMethod('razorpay');
         } finally {
             setWalletLoading(false);
@@ -84,7 +84,7 @@ export default function InstantPassModal({
         try {
             const user = getCurrentUser();
             if (!user) {
-                toast.info('Please log in to activate your InstantPass');
+                notify.info('Please log in to activate your InstantPass');
                 window.location.href = `/login?redirect=${encodeURIComponent('/instant-milega')}`;
                 return;
             }
@@ -93,7 +93,7 @@ export default function InstantPassModal({
 
             const sdkLoaded = await loadRazorpayScript();
             if (!sdkLoaded) {
-                toast.error('Could not load payment gateway. Please check your connection.');
+                notify.error('Could not load payment gateway. Please check your connection.');
                 setLoading(false);
                 return;
             }
@@ -105,7 +105,7 @@ export default function InstantPassModal({
                     razorpay_payment_id: `pay_mock_${Date.now()}`,
                     razorpay_signature: 'mock_verified_signature',
                 });
-                toast.success('InstantPass activated. 10 guaranteed dispatches added.');
+                notify.success('InstantPass activated. 10 guaranteed dispatches added.');
                 onSuccess(verifyRes.quota_remaining || 10);
                 onClose();
                 setLoading(false);
@@ -127,11 +127,11 @@ export default function InstantPassModal({
                             razorpay_payment_id: response.razorpay_payment_id,
                             razorpay_signature: response.razorpay_signature,
                         });
-                        toast.success('InstantPass activated. 10 guaranteed dispatches added.');
+                        notify.success('InstantPass activated. 10 guaranteed dispatches added.');
                         onSuccess(verifyRes.quota_remaining || 10);
                         onClose();
                     } catch (err: any) {
-                        toast.error(err.message || 'Payment verification failed');
+                        notify.error(err.message || 'Payment verification failed');
                     } finally {
                         setLoading(false);
                     }
@@ -154,7 +154,7 @@ export default function InstantPassModal({
             const rzp = new (window as any).Razorpay(options);
             rzp.open();
         } catch (err: any) {
-            toast.error(err.message || 'Failed to initiate pass purchase');
+            notify.error(err.message || 'Failed to initiate pass purchase');
             setLoading(false);
         }
     };

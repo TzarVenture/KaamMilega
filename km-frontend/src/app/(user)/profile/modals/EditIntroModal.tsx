@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import api from '@/lib/axios';
+import { notify } from "@/lib/notify";
 
 interface EditIntroModalProps {
     isOpen: boolean;
@@ -38,8 +39,10 @@ const EditIntroModal = ({ isOpen, onClose, user, onSuccess }: EditIntroModalProp
             const response = await api.patch('/user/profile', formData);
             onSuccess(response);
             onClose();
+            notify.success("Profile intro saved");
         } catch (error) {
             console.error('Failed to update intro:', error);
+            notify.error(error, "Could not save your intro. Please try again.");
         } finally {
             setLoading(false);
         }

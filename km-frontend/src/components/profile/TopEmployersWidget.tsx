@@ -3,7 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowSquareOutIcon, BuildingOfficeIcon, CaretRightIcon, CheckCircleIcon } from '@phosphor-icons/react';
-import { HiringCompany, ENTERPRISE_COMPANIES, mergeHiringCompanies } from '@/lib/constants/companies';
+import api from '@/lib/axios';
+import { HiringCompany, companiesFromApi } from '@/lib/constants/companies';
 import CustomImage from '@/components/ui/CustomImage';
 
 interface TopEmployersWidgetProps {
@@ -17,12 +18,23 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
     limit = 3,
     className = '',
 }) => {
-    const list = React.useMemo(() => {
-        if (companies && companies.length > 0) {
-            return mergeHiringCompanies(companies).slice(0, limit);
-        }
-        return ENTERPRISE_COMPANIES.slice(0, limit);
+    // Registered employers only. Without a `companies` prop the widget loads them itself, and it
+    // renders nothing when there are none (no showcase list or invented ratings).
+    const [loaded, setLoaded] = React.useState<HiringCompany[] | null>(null);
+
+    React.useEffect(() => {
+        if (companies) return;
+        let alive = true;
+        api.get(`/companies/top?limit=${limit}`)
+            .then((res) => alive && setLoaded(companiesFromApi(res)))
+            .catch(() => alive && setLoaded([]));
+        return () => {
+            alive = false;
+        };
     }, [companies, limit]);
+
+    const list = (companies ?? loaded ?? []).slice(0, limit);
+    if (list.length === 0) return null;
 
     return (
         <div className={`bg-km-surface-card rounded-2xl p-5 sm:p-6 border border-gray-200 shadow-sm font-sans ${className}`}>
@@ -74,17 +86,17 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                                             {comp.name}
                                         </Link>
                                         {comp.verified && (
-                                            <span title="Verified Enterprise Partner" className="shrink-0 text-blue-500 dark:text-blue-400">
+                                            <span title="Verified employer" className="shrink-0 text-blue-500 dark:text-blue-400">
                                                 <CheckCircleIcon weight="fill" size={13} className="fill-blue-500 text-white" />
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                                        {comp.category}
-                                    </p>
-                                    <p className="text-[11px] font-semibold text-gray-400 mt-0.5">
-                                        {comp.location || 'Pan India'}
-                                    </p>
+                                    {comp.category && (
+                                        <p className="text-[11px] text-gray-500 truncate mt-0.5">{comp.category}</p>
+                                    )}
+                                    {comp.location && (
+                                        <p className="text-[11px] font-semibold text-gray-400 mt-0.5">{comp.location}</p>
+                                    )}
                                 </div>
                             </div>
 

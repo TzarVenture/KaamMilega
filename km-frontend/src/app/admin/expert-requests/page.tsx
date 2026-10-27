@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { CheckIcon, XIcon } from '@phosphor-icons/react';
 
@@ -15,7 +15,7 @@ export default function ExpertRequestsPage() {
             const res = await api.get("/admin/expert-requests");
             setRequests((res as any) || []);
         } catch (error: any) {
-            toast.error(error.message || "Failed to fetch expert requests");
+            notify.error(error.message || "Failed to fetch expert requests");
         } finally {
             setLoading(false);
         }
@@ -28,10 +28,10 @@ export default function ExpertRequestsPage() {
     const handleAction = async (id: string, status: string) => {
         try {
             await api.put(`/admin/experts/${id}/approve`, { status });
-            toast.success(`Request ${status} successfully`);
+            notify.success(`Request ${status} successfully`);
             fetchRequests();
         } catch (error: any) {
-            toast.error(error.message || `Failed to ${status} request`);
+            notify.error(error.message || `Failed to ${status} request`);
         }
     };
 

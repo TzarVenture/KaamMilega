@@ -3,8 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, CheckCircleIcon, MagnifyingGlassIcon, MapPinIcon, TrashIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 import Link from 'next/link';
 
 interface Job {
@@ -37,7 +36,7 @@ export default function SavedJobsPage() {
             setUser(userData);
 
             if (!userData) {
-                toast.info("Please login to view saved jobs");
+                notify.info("Please login to view saved jobs");
                 setLoading(false);
                 return;
             }
@@ -62,7 +61,7 @@ export default function SavedJobsPage() {
             }
         } catch (error) {
             console.error("Failed to load saved jobs", error);
-            toast.error("Failed to load saved jobs");
+            notify.error("Failed to load saved jobs");
         } finally {
             setLoading(false);
         }
@@ -76,25 +75,25 @@ export default function SavedJobsPage() {
         try {
             setSavedJobs(prev => prev.filter(j => j.id !== jobId));
             await api.post(`/user/bookmark/${jobId}`);
-            toast.success("Job removed from saved items");
+            notify.success("Job removed from saved items");
         } catch (error) {
-            toast.error("Failed to remove saved job");
+            notify.error("Failed to remove saved job");
             fetchSavedJobs();
         }
     };
 
     const handleApply = async (jobId: string) => {
         if (appliedJobIds.has(jobId)) {
-            toast.info("Already applied to this job");
+            notify.info("Already applied to this job");
             return;
         }
 
         try {
             await api.post('/applications', { job_id: jobId });
-            toast.success("Applied successfully");
+            notify.success("Applied successfully");
             setAppliedJobIds(prev => new Set(prev).add(jobId));
         } catch (error: any) {
-            toast.error(error.response?.data?.error || "Failed to apply");
+            notify.error(error, "Failed to apply");
         }
     };
 
@@ -106,7 +105,6 @@ export default function SavedJobsPage() {
 
     return (
         <div className="min-h-screen bg-km-surface py-8 sm:py-10 font-sans text-km-text-primary">
-            <ToastContainer />
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
                 
                 {/* Header */}

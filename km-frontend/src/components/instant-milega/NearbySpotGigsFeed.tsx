@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowsClockwiseIcon, BriefcaseIcon, MapPinIcon, XIcon } from '@phosphor-icons/react';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
 import { ActiveGig } from './ActiveGigCard';
@@ -97,13 +97,13 @@ export default function NearbySpotGigsFeed({
 
     const handleClaim = async (job: SpotJob) => {
         if (!isAuthenticated()) {
-            toast.info('Please log in to claim spot gigs');
+            notify.info('Please log in to claim spot gigs');
             window.location.href = `/login?redirect=${encodeURIComponent('/instant-milega')}`;
             return;
         }
 
         if (!hasActivePass || quotaRemaining <= 0) {
-            toast.warn('You need an active InstantPass (₹99) to claim spot gigs.');
+            notify.warning('You need an active InstantPass (₹99) to claim spot gigs.');
             onOpenPassModal();
             return;
         }
@@ -114,12 +114,12 @@ export default function NearbySpotGigsFeed({
                 job_id: job.id,
             });
 
-            toast.success(`Gig locked for ${job.skill}.`);
+            notify.success(`Gig locked for ${job.skill}.`);
             onGigClaimed(claimedJob);
             setJobs((prev) => prev.filter((j) => j.id !== job.id));
         } catch (err: any) {
             const message = err.message || 'Could not claim this gig';
-            toast.error(message);
+            notify.error(message);
             setDismissedIds((prev) => new Set(prev).add(job.id));
         } finally {
             setClaimingId(null);

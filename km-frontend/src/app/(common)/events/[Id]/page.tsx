@@ -6,8 +6,7 @@ import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CalendarBlankIcon, C
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 import Link from 'next/link';
 import AttendeeListModal from '@/components/km/AttendeeListModal';
 
@@ -16,6 +15,7 @@ interface EventDetails {
     title: string;
     description: string;
     organizer: string;
+    organizer_id?: string;
     date: string;
     time: string;
     location: string;
@@ -135,7 +135,7 @@ const EventDetailsPage = () => {
                     fetchWalletBalance();
                 }
             } catch (error: any) {
-                toast.error(error?.response?.data?.error || error.message || "Failed to load workshop details");
+                notify.error(error, "Failed to load workshop details");
             } finally {
                 setLoading(false);
             }
@@ -182,7 +182,7 @@ const EventDetailsPage = () => {
     // Free 1-Click Registration
     const handleFreeRegister = async () => {
         if (!isAuthenticated()) {
-            toast.info("Please login to register for this session");
+            notify.info("Please login to register for this session");
             router.push(`/login?redirect=/events/${Id}`);
             return;
         }
@@ -190,12 +190,12 @@ const EventDetailsPage = () => {
         try {
             setRegistering(true);
             await api.post(`/events/${Id}/register`);
-            toast.success("Successfully registered for the workshop!");
+            notify.success("Successfully registered for the workshop!");
             setIsRegistered(true);
             await fetchUserTicket();
             setTicketModalOpen(true);
         } catch (error: any) {
-            toast.error(error?.response?.data?.error || error.message || "Failed to register");
+            notify.error(error, "Failed to register");
         } finally {
             setRegistering(false);
         }
@@ -204,7 +204,7 @@ const EventDetailsPage = () => {
     // Open Paid Checkout Modal
     const handleOpenCheckout = () => {
         if (!isAuthenticated()) {
-            toast.info("Please login to purchase workshop tickets");
+            notify.info("Please login to purchase workshop tickets");
             router.push(`/login?redirect=/events/${Id}`);
             return;
         }
@@ -214,7 +214,7 @@ const EventDetailsPage = () => {
     // Razorpay Paid Checkout
     const handleRazorpayCheckout = async () => {
         if (!attendeeName.trim() || !attendeeEmail.trim()) {
-            toast.error("Please provide attendee name and email");
+            notify.error("Please provide attendee name and email");
             return;
         }
 
@@ -222,7 +222,7 @@ const EventDetailsPage = () => {
             setPaymentProcessing(true);
             const loaded = await loadRazorpayScript();
             if (!loaded) {
-                toast.error("Failed to load Razorpay payment gateway. Please check connection.");
+                notify.error("Failed to load Razorpay payment gateway. Please check connection.");
                 setPaymentProcessing(false);
                 return;
             }
@@ -258,13 +258,13 @@ const EventDetailsPage = () => {
                             attendee_phone: attendeePhone,
                         });
 
-                        toast.success("Payment successful! Your workshop seat is confirmed.");
+                        notify.success("Payment successful! Your workshop seat is confirmed.");
                         setIsRegistered(true);
                         setTicket(verifyRes.ticket);
                         setCheckoutModalOpen(false);
                         setTicketModalOpen(true);
                     } catch (err: any) {
-                        toast.error(err?.response?.data?.error || "Payment verification failed");
+                        notify.error(err, "Payment verification failed");
                     } finally {
                         setPaymentProcessing(false);
                     }
@@ -276,12 +276,12 @@ const EventDetailsPage = () => {
 
             const rzp = new (window as any).Razorpay(options);
             rzp.on("payment.failed", (resp: any) => {
-                toast.error(`Payment Failed: ${resp.error?.description || "Unknown error"}`);
+                notify.error(`Payment Failed: ${resp.error?.description || "Unknown error"}`);
                 setPaymentProcessing(false);
             });
             rzp.open();
         } catch (error: any) {
-            toast.error(error?.response?.data?.error || "Failed to initialize payment");
+            notify.error(error, "Failed to initialize payment");
             setPaymentProcessing(false);
         }
     };
@@ -289,7 +289,7 @@ const EventDetailsPage = () => {
     // Wallet 1-Click Paid Checkout
     const handleWalletCheckout = async () => {
         if (!attendeeName.trim() || !attendeeEmail.trim()) {
-            toast.error("Please provide attendee name and email");
+            notify.error("Please provide attendee name and email");
             return;
         }
 
@@ -301,14 +301,14 @@ const EventDetailsPage = () => {
                 attendee_phone: attendeePhone,
             });
 
-            toast.success("Workshop pass booked successfully using Wallet balance!");
+            notify.success("Workshop pass booked successfully using Wallet balance!");
             setIsRegistered(true);
             setTicket(res.ticket);
             setCheckoutModalOpen(false);
             setTicketModalOpen(true);
             if (res.wallet) setWallet(res.wallet);
         } catch (error: any) {
-            toast.error(error?.response?.data?.error || "Wallet checkout failed");
+            notify.error(error, "Wallet checkout failed");
         } finally {
             setPaymentProcessing(false);
         }
@@ -347,7 +347,6 @@ const EventDetailsPage = () => {
 
     return (
         <div className="bg-km-surface min-h-screen pb-20 font-sans">
-            <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
             {/* ─── Hero Banner with Master Deep Navy ─── */}
             <div className="relative h-60 sm:h-72 lg:h-80 w-full bg-[#071A4D] overflow-hidden border-b border-[#0B1F52] dark:border-km-link">

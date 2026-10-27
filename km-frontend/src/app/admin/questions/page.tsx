@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import QuestionModal from '@/components/modals/admin/QuestionModal';
 import Pagination from '@/components/ui/Pagination';
 import api from '@/lib/axios';
+import { notify } from "@/lib/notify";
 
 interface Question {
     id: string;
@@ -76,8 +77,10 @@ export default function QuestionsPage() {
             try {
                 await api.delete(`/admin/questions/${id}`);
                 fetchQuestions();
+                notify.success("Question removed");
             } catch (error) {
                 console.error('Failed to delete question:', error);
+                notify.error(error, "Could not delete this question.");
             }
         }
     };

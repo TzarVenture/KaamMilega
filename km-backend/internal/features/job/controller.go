@@ -157,7 +157,7 @@ func (c *JobController) GetJob(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	if job == nil {
+	if job == nil || job.Status == "Deleted" {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Job not found"})
 	}
 	return ctx.JSON(job)
@@ -179,7 +179,7 @@ func (c *JobController) UpdateJob(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	if existingJob == nil {
+	if existingJob == nil || existingJob.Status == "Deleted" {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Job not found"})
 	}
 
@@ -206,7 +206,7 @@ func (c *JobController) DeleteJob(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	if existingJob == nil {
+	if existingJob == nil || existingJob.Status == "Deleted" {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Job not found"})
 	}
 

@@ -3,8 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowsClockwiseIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, ShieldIcon, ShieldWarningIcon, ArrowUUpLeftIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify } from "@/lib/notify";
 
 interface AdminDisputeItem {
     id: string;
@@ -67,7 +66,7 @@ export default function AdminDisputesPage() {
             }
         } catch (error: any) {
             console.error("Failed to load admin disputes", error);
-            toast.error(error?.response?.data?.error || "Failed to load disputes ledger");
+            notify.error(error, "Failed to load disputes ledger");
             setDisputes([]);
             setTotalPages(1);
             setTotalCount(0);
@@ -167,7 +166,7 @@ export default function AdminDisputesPage() {
         e.preventDefault();
         if (!selectedDispute) return;
         if (!adminNotes.trim()) {
-            toast.error("Please provide resolution notes or reasoning");
+            notify.error("Please provide resolution notes or reasoning");
             return;
         }
 
@@ -180,12 +179,12 @@ export default function AdminDisputesPage() {
                 admin_notes: adminNotes.trim(),
             });
 
-            toast.success(res?.message || `Dispute marked as ${resolveStatus}`);
+            notify.success(res?.message || `Dispute marked as ${resolveStatus}`);
             closeResolveModal();
             fetchDisputes(page, statusFilter);
         } catch (error: any) {
             console.error("Dispute resolution error", error);
-            toast.error(error?.response?.data?.error || "Failed to resolve dispute");
+            notify.error(error, "Failed to resolve dispute");
         } finally {
             setIsResolving(false);
         }
@@ -214,7 +213,6 @@ export default function AdminDisputesPage() {
 
     return (
         <div className="space-y-6">
-            <ToastContainer position="top-right" autoClose={3000} />
 
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">

@@ -5,7 +5,7 @@ import { ArrowLeftIcon, MagnifyingGlassIcon } from '@phosphor-icons/react';
 import Pagination from '@/components/ui/Pagination';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify, errorText } from "@/lib/notify";
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 
@@ -77,10 +77,10 @@ const ConnectionsPage = () => {
         try {
             await api.delete(`/network/connections/${id}`);
             setConnections(prev => prev.filter(c => c.id !== id));
-            toast.success("Connection removed");
+            notify.success("Connection removed");
         } catch (err) {
             console.error("Failed to delete connection", err);
-            toast.error("Could not remove connection");
+            notify.error("Could not remove connection");
         }
     };
 
@@ -151,7 +151,7 @@ const ConnectionsPage = () => {
                                 setPendingConnectionIds(prev => [...prev, id]);
                             } catch (e: any) {
                                 console.error("Failed to connect", e);
-                                const msg = e?.response?.data?.error || e.message || '';
+                                const msg = errorText(e, '');
                                 if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
                                     setPendingConnectionIds(prev => [...prev, id]);
                                 }

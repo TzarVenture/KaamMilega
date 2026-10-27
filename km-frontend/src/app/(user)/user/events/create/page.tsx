@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 
 export default function CreateEventPage() {
@@ -30,10 +30,10 @@ export default function CreateEventPage() {
 
         try {
             await api.post("/events", formData);
-            toast.success("Event created successfully!");
+            notify.success("Event created successfully!");
             router.push("/events");
         } catch (error: any) {
-            toast.error(error.message || "Failed to create event");
+            notify.error(error.message || "Failed to create event");
         } finally {
             setLoading(false);
         }

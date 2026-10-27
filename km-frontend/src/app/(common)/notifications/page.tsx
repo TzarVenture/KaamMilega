@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowUpRightIcon, ArrowsClockwiseIcon, BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, CheckIcon, ChecksIcon, MagnifyingGlassIcon, SlidersHorizontalIcon, TrashIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import CustomImage from "@/components/ui/CustomImage";
+import PushPrompt from "@/components/km/PushPrompt";
 import { useNotifications, NotificationItem, sanitizeNotificationLink } from "@/lib/notifications";
 
 const CATEGORIES = [
@@ -444,6 +445,7 @@ export default function NotificationsPage() {
 
                 {/* CENTER FEED: Compact High-Density List */}
                 <main className="lg:col-span-6 space-y-4">
+                    <PushPrompt />
                     {/* Header Bar */}
                     <div className="bg-km-surface-card rounded-2xl px-5 py-3.5 border border-slate-200 shadow-xs flex items-center justify-between">
                         <div className="flex items-center gap-2">

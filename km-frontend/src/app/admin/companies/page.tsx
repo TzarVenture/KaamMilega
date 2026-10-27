@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 import { BuildingOfficeIcon, CheckCircleIcon, DotsThreeVerticalIcon, EyeIcon, FunnelSimpleIcon, MagnifyingGlassIcon, PlusIcon, SealCheckIcon, ShieldCheckIcon, XCircleIcon } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import DocumentsListModal from '@/components/modals/admin/DocumentsListModal';
 import DocumentViewerModal from '@/components/modals/admin/DocumentViewerModal';
 import api from '@/lib/axios';
@@ -106,13 +106,13 @@ export default function CompaniesPage() {
                 setSelectedCompany((prev) => (prev ? { ...prev, status: newStatus } : null));
             }
             if (newStatus === 'verified') {
-                toast.success('Company approved & verified successfully!');
+                notify.success('Company approved & verified successfully!');
             } else {
-                toast.info('Company verification status set to rejected.');
+                notify.info('Company verification status set to rejected.');
             }
         } catch (error: any) {
             console.error('Failed to update company verification status:', error);
-            toast.error(error.response?.data?.error || 'Failed to update company status');
+            notify.error(error, 'Failed to update company status');
             throw error;
         }
     };

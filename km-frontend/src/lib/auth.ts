@@ -1,3 +1,4 @@
+import { unregisterPushOnSignOut } from "@/lib/push/push";
 import api from "./axios";
 
 export interface StoredUser {
@@ -58,6 +59,10 @@ export async function clearSession() {
 
         // Expire the client-side role cookie
         document.cookie = "km_user_role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0;";
+
+        // Remove this browser from push while the session is still valid, so the next person
+        // on this device never gets this account’s notifications
+        await unregisterPushOnSignOut().catch(() => {});
 
         // Notify backend to clear HttpOnly km_auth_token cookie
         await api.post("/auth/logout").catch(() => {});

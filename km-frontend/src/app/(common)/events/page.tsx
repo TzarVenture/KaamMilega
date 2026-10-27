@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowsDownUpIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, MapPinIcon, TagIcon, TicketIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import Link from 'next/link';
 import AttendeeListModal from '@/components/km/AttendeeListModal';
 
@@ -11,6 +11,7 @@ interface EventData {
     id: string;
     title: string;
     organizer: string;
+    organizer_id?: string;
     date: string;
     time: string;
     location: string;
@@ -129,7 +130,7 @@ const PublicEventsPage = () => {
             setTotal(res.total || 0);
             setHasMore(newEvents.length === 9);
         } catch (error: any) {
-            toast.error(error?.response?.data?.error || error.message || "Failed to load workshops");
+            notify.error(error, "Failed to load workshops");
         } finally {
             setLoading(false);
         }

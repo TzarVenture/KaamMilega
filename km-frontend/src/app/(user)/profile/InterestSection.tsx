@@ -7,14 +7,7 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import ProfileConnectionCard, { ProfileCardUser } from '@/components/network/ProfileConnectionCard';
 import CompanyCard from '@/components/company/CompanyCard';
-import { HiringCompany, mergeHiringCompanies } from '@/lib/constants/companies';
-
-interface JobItem {
-    company?: string;
-    company_name?: string;
-    city_name?: string;
-    location?: string;
-}
+import { HiringCompany, companiesFromApi } from '@/lib/constants/companies';
 
 interface InterestsSectionProps {
     initialExperts?: ProfileCardUser[];
@@ -24,30 +17,10 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<'Top Experts' | 'Companies'>('Top Experts');
     const [experts, setExperts] = useState<ProfileCardUser[]>(initialExperts || []);
-    // Eagerly initialize with enterprise partners so the company tab is never empty
-    const [companies, setCompanies] = useState<HiringCompany[]>(() => mergeHiringCompanies([]).slice(0, 6));
+    // Real companies only (registered employers); no showcase list mixed in
+    const [companies, setCompanies] = useState<HiringCompany[]>([]);
     const [loading, setLoading] = useState(false);
-    const [followingCompanies, setFollowingCompanies] = useState<string[]>([]);
     const tabs: Array<'Top Experts' | 'Companies'> = ['Top Experts', 'Companies'];
-
-    useEffect(() => {
-        try {
-            const saved = localStorage.getItem('km_following_companies');
-            if (saved) setFollowingCompanies(JSON.parse(saved));
-        } catch {}
-    }, []);
-
-    const handleToggleFollow = (companyName: string, following: boolean) => {
-        setFollowingCompanies((prev) => {
-            const updated = following
-                ? [...prev, companyName]
-                : prev.filter((name) => name !== companyName);
-            try {
-                localStorage.setItem('km_following_companies', JSON.stringify(updated));
-            } catch {}
-            return updated;
-        });
-    };
 
     const handleChat = (id: string) => {
         if (id) {
@@ -62,10 +35,9 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
         const loadData = async () => {
             setLoading(true);
             try {
-                const [expertsRes, jobsRes, topCompaniesRes] = await Promise.allSettled([
+                const [expertsRes, topCompaniesRes] = await Promise.allSettled([
                     api.get('/experts').catch(() => []),
-                    api.get('/jobs?limit=30').catch(() => ({ jobs: [] })),
-                    api.get('/companies/top').catch(() => [])
+                    api.get('/companies/top?limit=6').catch(() => [])
                 ]);
 
                 if (isMounted && expertsRes.status === 'fulfilled') {
@@ -76,48 +48,8 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                     setExperts(list.slice(0, 6));
                 }
 
-                if (isMounted) {
-                    const extracted: Array<Record<string, unknown>> = [];
-                    const seen = new Set<string>();
-
-                    // 1. Ingest any companies from /companies/top endpoint
-                    if (topCompaniesRes.status === 'fulfilled') {
-                        const topData = topCompaniesRes.value as unknown;
-                        const topList = Array.isArray(topData) ? topData : ((topData as { data?: unknown[] })?.data || []);
-                        if (Array.isArray(topList)) {
-                            topList.forEach((c: any) => {
-                                const name = c.name || c.company_name;
-                                if (name && typeof name === 'string' && name.trim().length > 0 && !seen.has(name.toLowerCase())) {
-                                    seen.add(name.toLowerCase());
-                                    extracted.push({
-                                        name: name.trim(),
-                                        logo: c.logo || c.company_logo,
-                                        location: c.location || c.city || 'India',
-                                        category: c.category || c.industry || 'Enterprise Employer',
-                                        jobCount: c.job_count || c.jobCount || 1,
-                                    });
-                                }
-                            });
-                        }
-                    }
-
-                    // 2. Ingest any companies from live jobs
-                    const jobsVal = jobsRes.status === 'fulfilled' ? (jobsRes.value as unknown) : null;
-                    const jobsData = (jobsVal as { jobs?: JobItem[] })?.jobs || [];
-                    jobsData.forEach((j: JobItem) => {
-                        const name = j.company || j.company_name;
-                        if (name && typeof name === 'string' && name.trim().length > 0 && !seen.has(name.toLowerCase())) {
-                            seen.add(name.toLowerCase());
-                            extracted.push({
-                                name: name.trim(),
-                                location: j.city_name || j.location || 'India',
-                                jobCount: jobsData.filter((x: JobItem) => (x.company || x.company_name) === name).length
-                            });
-                        }
-                    });
-
-                    const merged = mergeHiringCompanies(extracted);
-                    setCompanies(merged.slice(0, 6));
+                if (isMounted && topCompaniesRes.status === 'fulfilled') {
+                    setCompanies(companiesFromApi(topCompaniesRes.value).slice(0, 6));
                 }
             } catch (err) {
                 console.error('Failed to load interests data:', err);
@@ -205,8 +137,6 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                                     key={comp.name || idx}
                                     company={comp}
                                     variant="compact"
-                                    isInitiallyFollowing={followingCompanies.includes(comp.name)}
-                                    onToggleFollow={handleToggleFollow}
                                 />
                             ))}
                         </div>

@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useCompany } from "../CompanyContext";
 import api from '@/lib/axios'; // Adjust path if needed
 import { ChatCircleIcon, CheckCircleIcon, MapPinIcon, PhoneIcon } from '@phosphor-icons/react';
-import { toast } from 'react-toastify';
+
 import Link from 'next/link';
 
 interface Job {

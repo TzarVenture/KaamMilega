@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { CircleNotchIcon, VideoCameraIcon } from '@phosphor-icons/react';
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
 import { openYouTubeVideo } from "@/lib/youtube";
@@ -45,7 +45,7 @@ export default function ResourcePage() {
             setCourses(fetched);
         } catch (error: any) {
             console.error("Failed to load courses:", error);
-            toast.error(error.message || "Failed to load courses");
+            notify.error(error.message || "Failed to load courses");
         } finally {
             setLoading(false);
         }

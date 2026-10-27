@@ -326,3 +326,202 @@ func (r *EventRepositoryImpl) GetEventAttendees(ctx context.Context, eventID pri
 	return attendees, nil
 }
 
+// AdminGetAllEvents lists all events with calculated participants, ticket sales, and revenue
+func (r *EventRepositoryImpl) AdminGetAllEvents(ctx context.Context, search string, page, limit int) ([]AdminEventItem, int64, error) {
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 10
+	}
+	skip := int64((page - 1) * limit)
+
+	filter := bson.M{}
+	if search != "" {
+		regex := bson.M{"$regex": search, "$options": "i"}
+		filter["$or"] = []bson.M{
+			{"title": regex},
+			{"organizer": regex},
+			{"category": regex},
+			{"location": regex},
+		}
+	}
+
+	total, err := r.collection.CountDocuments(ctx, filter)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	findOptions := options.Find().
+		SetSort(bson.M{"created_at": -1}).
+		SetSkip(skip).
+		SetLimit(int64(limit))
+
+	cursor, err := r.collection.Find(ctx, filter, findOptions)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer cursor.Close(ctx)
+
+	var events []Event
+	if err := cursor.All(ctx, &events); err != nil {
+		return nil, 0, err
+	}
+
+	adminItems := make([]AdminEventItem, 0, len(events))
+	for _, ev := range events {
+		item := AdminEventItem{
+			Event:              ev,
+			TotalParticipants: len(ev.Participants),
+		}
+
+		// Aggregate ticket metrics for this event
+		tCursor, tErr := r.ticketColl.Find(ctx, bson.M{
+			"event_id": ev.ID,
+			"status":   "confirmed",
+		})
+		if tErr == nil {
+			var tickets []EventTicket
+			if err := tCursor.All(ctx, &tickets); err == nil {
+				item.TotalTicketsSold = len(tickets)
+				for _, t := range tickets {
+					item.TotalRevenue += t.Amount
+					if t.PaymentStatus == "free" || t.Amount == 0 {
+						item.FreeRegistrations++
+					} else {
+						item.PaidRegistrations++
+					}
+					if t.PaymentMethod == "wallet" {
+						item.WalletBookings++
+					} else if t.PaymentMethod == "razorpay" {
+						item.RazorpayBookings++
+					}
+				}
+			}
+			tCursor.Close(ctx)
+		}
+
+		adminItems = append(adminItems, item)
+	}
+
+	return adminItems, total, nil
+}
+
+// AdminGetEventDetail provides deep inspection into an event including all tickets, payments and attendees
+func (r *EventRepositoryImpl) AdminGetEventDetail(ctx context.Context, eventID primitive.ObjectID) (*AdminEventDetailResponse, error) {
+	ev, err := r.GetEventByID(ctx, eventID)
+	if err != nil {
+		return nil, err
+	}
+	if ev == nil {
+		return nil, errors.New("event not found")
+	}
+
+	tickets, err := r.GetTicketsByEvent(ctx, eventID)
+	if err != nil {
+		tickets = []EventTicket{}
+	}
+
+	attendees, err := r.GetEventAttendees(ctx, eventID)
+	if err != nil {
+		attendees = []EventAttendeeItem{}
+	}
+
+	var revenue float64
+	var freeCount, paidCount int
+	for _, t := range tickets {
+		revenue += t.Amount
+		if t.PaymentStatus == "free" || t.Amount == 0 {
+			freeCount++
+		} else {
+			paidCount++
+		}
+	}
+
+	return &AdminEventDetailResponse{
+		Event:             *ev,
+		TotalParticipants: len(ev.Participants),
+		TotalTicketsSold:  len(tickets),
+		TotalRevenue:      revenue,
+		FreeRegistrations: freeCount,
+		PaidRegistrations: paidCount,
+		Tickets:           tickets,
+		Attendees:         attendees,
+	}, nil
+}
+
+// AdminUpdateEvent allows updating any detail of an event
+func (r *EventRepositoryImpl) AdminUpdateEvent(ctx context.Context, eventID primitive.ObjectID, req AdminUpdateEventRequest) (*Event, error) {
+	update := bson.M{
+		"updated_at": time.Now(),
+	}
+
+	if req.Title != "" {
+		update["title"] = req.Title
+	}
+	if req.Organizer != "" {
+		update["organizer"] = req.Organizer
+	}
+	if req.Description != "" {
+		update["description"] = req.Description
+	}
+	if req.Date != "" {
+		update["date"] = req.Date
+	}
+	if req.Time != "" {
+		update["time"] = req.Time
+	}
+	if req.Location != "" {
+		update["location"] = req.Location
+	}
+	if req.ImageURL != "" {
+		update["image_url"] = req.ImageURL
+	}
+	if req.Category != "" {
+		update["category"] = req.Category
+	}
+	if req.IsPaid != nil {
+		update["is_paid"] = *req.IsPaid
+	}
+	if req.Price >= 0 {
+		update["price"] = req.Price
+	}
+	if req.Capacity >= 0 {
+		update["capacity"] = req.Capacity
+	}
+	if req.AvailableSeats != nil {
+		update["available_seats"] = *req.AvailableSeats
+	}
+
+	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$set": update})
+	if err != nil {
+		return nil, err
+	}
+	if result.MatchedCount == 0 {
+		return nil, errors.New("event not found")
+	}
+
+	return r.GetEventByID(ctx, eventID)
+}
+
+// AdminDeleteEvent deletes an event and cancels its tickets cleanly
+func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) error {
+	res, err := r.collection.DeleteOne(ctx, bson.M{"_id": eventID})
+	if err != nil {
+		return err
+	}
+	if res.DeletedCount == 0 {
+		return errors.New("event not found")
+	}
+
+	// Update tickets for deleted event to cancelled status
+	_, _ = r.ticketColl.UpdateMany(ctx, bson.M{"event_id": eventID}, bson.M{
+		"$set": bson.M{
+			"status":     "cancelled",
+			"updated_at": time.Now(),
+		},
+	})
+
+	return nil
+}
+

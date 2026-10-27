@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CircleNotchIcon, ClockIcon, EyeIcon, GraduationCapIcon, PencilSimpleIcon, PlayIcon, PlusIcon, TrashIcon, VideoCameraIcon, WarningIcon, XIcon } from '@phosphor-icons/react';
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
 import { openYouTubeVideo, getYouTubeThumbnail } from "@/lib/youtube";
@@ -62,7 +62,7 @@ export default function ManageCoursesPage() {
             setTotalPages(res.total_pages || Math.ceil((res.total || 0) / 6) || 1);
         } catch (error: any) {
             console.error("Failed to load courses:", error);
-            toast.error(error.message || "Failed to load courses");
+            notify.error(error.message || "Failed to load courses");
         } finally {
             setLoading(false);
         }
@@ -97,23 +97,23 @@ export default function ManageCoursesPage() {
 
         const courseId = editingCourse.id || (editingCourse as any)._id;
         if (!courseId) {
-            toast.error("Course ID not found");
+            notify.error("Course ID not found");
             return;
         }
 
         if (!editTitle.trim()) {
-            toast.error("Course title cannot be empty");
+            notify.error("Course title cannot be empty");
             return;
         }
 
         const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
         if (countWords(editTitle) > 10) {
-            toast.error("Course title cannot exceed 10 words");
+            notify.error("Course title cannot exceed 10 words");
             return;
         }
 
         if (countWords(editDescription) > 50) {
-            toast.error("Course description cannot exceed 50 words");
+            notify.error("Course description cannot exceed 50 words");
             return;
         }
 
@@ -129,7 +129,7 @@ export default function ManageCoursesPage() {
             };
 
             const updated: any = await api.put(`/courses/${courseId}`, payload);
-            toast.success("Course updated successfully!");
+            notify.success("Course updated successfully!");
 
             setCourses((prev) =>
                 prev.map((c) => {
@@ -140,7 +140,7 @@ export default function ManageCoursesPage() {
             setEditingCourse(null);
         } catch (error: any) {
             console.error("Update error:", error);
-            toast.error(error.message || "Failed to update course");
+            notify.error(error.message || "Failed to update course");
         } finally {
             setSaving(false);
         }
@@ -156,7 +156,7 @@ export default function ManageCoursesPage() {
         setDeleting(true);
         try {
             await api.delete(`/courses/${courseId}`);
-            toast.success("Course deleted successfully!");
+            notify.success("Course deleted successfully!");
             setDeletingCourse(null);
             if (courses.length === 1 && page > 1) {
                 setPage((prev) => prev - 1);
@@ -165,7 +165,7 @@ export default function ManageCoursesPage() {
             }
         } catch (error: any) {
             console.error("Delete error:", error);
-            toast.error(error.message || "Failed to delete course");
+            notify.error(error.message || "Failed to delete course");
         } finally {
             setDeleting(false);
         }

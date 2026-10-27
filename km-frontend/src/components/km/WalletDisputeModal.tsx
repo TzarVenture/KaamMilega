@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { ArrowsClockwiseIcon, FileTextIcon, QuestionIcon, ShieldWarningIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import { TransactionItem } from './WalletTransactionsList';
 
 interface WalletDisputeModalProps {
@@ -56,7 +56,7 @@ export default function WalletDisputeModal({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!description.trim() || description.trim().length < 10) {
-            toast.error("Please provide at least 10 characters explaining your dispute");
+            notify.error("Please provide at least 10 characters explaining your dispute");
             return;
         }
 
@@ -68,14 +68,14 @@ export default function WalletDisputeModal({
                 description: description.trim(),
             });
 
-            toast.success("Dispute submitted successfully! Our compliance team will review it.");
+            notify.success("Dispute submitted successfully! Our compliance team will review it.");
             setDescription('');
             setReason('service_not_provided');
             onDisputeCreated();
             onClose();
         } catch (error: any) {
             console.error("Dispute filing error", error);
-            toast.error(error?.response?.data?.error || "Failed to submit dispute. Please check your transaction details.");
+            notify.error(error, "Failed to submit dispute. Please check your transaction details.");
         } finally {
             setIsSubmitting(false);
         }

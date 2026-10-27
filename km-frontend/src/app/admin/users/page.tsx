@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 import { BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, DotsThreeVerticalIcon, EnvelopeSimpleIcon, LightningIcon, MagnifyingGlassIcon, NotePencilIcon, PlusIcon, ShieldIcon, UserIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import UserProfileModal from '@/components/modals/admin/UserProfileModal';
 import UserRoleModal from '@/components/modals/admin/UserRoleModal';
 import api from '@/lib/axios';
@@ -62,7 +62,7 @@ export default function UsersPage() {
             setUsers(mappedUsers);
         } catch (error) {
             console.error('Failed to fetch users:', error);
-            toast.error('Failed to load platform users');
+            notify.error('Failed to load platform users');
         } finally {
             setIsLoading(false);
         }
@@ -116,10 +116,10 @@ export default function UsersPage() {
         try {
             await api.patch(`/admin/users/${userId}/roles`, { roles: newRoles });
             setUsers(prev => prev.map(u => u.id === userId ? { ...u, roles: newRoles } : u));
-            toast.success('User access permissions updated successfully!');
+            notify.success('User access permissions updated successfully!');
         } catch (error: any) {
             console.error('Failed to update roles:', error);
-            toast.error(error.response?.data?.error || 'Failed to update roles');
+            notify.error(error, 'Failed to update roles');
             throw error;
         }
     };
@@ -127,7 +127,7 @@ export default function UsersPage() {
     // Save profile via API
     const handleSaveUser = async (data: any) => {
         if (!selectedUser) {
-            toast.info('New user invitations are dispatched via phone authentication.');
+            notify.info('New user invitations are dispatched via phone authentication.');
             setIsProfileModalOpen(false);
             return;
         }
@@ -144,10 +144,10 @@ export default function UsersPage() {
 
             await api.patch(`/admin/users/${selectedUser.id}`, updates);
             setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, ...updates } : u));
-            toast.success('User profile updated successfully!');
+            notify.success('User profile updated successfully!');
         } catch (error: any) {
             console.error('Failed to update user profile:', error);
-            toast.error(error.response?.data?.error || 'Failed to update profile');
+            notify.error(error, 'Failed to update profile');
         } finally {
             setIsProfileModalOpen(false);
         }

@@ -36,6 +36,7 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Get("/search", api.controller.SearchUsers)
 	protected.Post("/register", api.controller.Register)
 	protected.Put("/password", api.controller.SetPassword)
+	protected.Post("/sessions/revoke-others", api.controller.RevokeOtherSessions)
 	protected.Post("/impressions", api.controller.RecordPostImpressions)
 	protected.Patch("/username", api.controller.UpdateUsername)
 	protected.Get("/username/check", api.controller.CheckUsernameAvailability)
@@ -43,7 +44,6 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Patch("/providing-services", api.controller.UpdateProvidingServices)
 	protected.Get("/viewers", api.controller.GetProfileViewers)
 	protected.Put("/location", api.controller.UpdateLocation)
-	protected.Get("/:id", api.controller.GetOtherUserProfile)
 	protected.Patch("/profile", api.controller.UpdateProfile)
 	protected.Post("/education", api.controller.AddEducation)
 	protected.Put("/education/:id", api.controller.UpdateEducation)
@@ -63,6 +63,9 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Get("/settings", api.controller.GetSettings)
 	protected.Put("/settings", api.controller.UpdateSettings)
 	protected.Post("/settings", api.controller.UpdateSettings)
+	// Catch-all profile lookup must stay last: Fiber matches in registration order, so registered
+	// earlier it swallowed GET /settings and GET /bookmarks ("settings" was read as a user ID)
+	protected.Get("/:id", api.controller.GetOtherUserProfile)
 
 	// Settings alias route group
 	settings := app.Group("/api/settings", middleware.AuthMiddleware(api.controller.config.JWTSecret))

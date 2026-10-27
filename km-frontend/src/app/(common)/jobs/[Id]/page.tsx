@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CalendarBlankIcon, ChatCircleIcon, CheckCircleIcon, ClockIcon, CloudArrowUpIcon, FileTextIcon, MapPinIcon, MedalIcon, ShareNetworkIcon, ShieldCheckIcon, TrashIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { notify, errorText } from "@/lib/notify";
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -116,7 +115,7 @@ const JobDetailPage = () => {
                 }
             } catch (error) {
                 console.error('Failed to fetch job', error);
-                toast.error('Job details not found');
+                notify.error('Job details not found');
                 router.push('/jobs');
             } finally {
                 setLoading(false);
@@ -127,13 +126,13 @@ const JobDetailPage = () => {
 
     const handleApplyClick = () => {
         if (!user) {
-            toast.info('Please login to apply');
+            notify.info('Please login to apply');
             router.push(`/login?redirect=${encodeURIComponent(`/jobs/${jobId}`)}`);
             return;
         }
 
         if (hasApplied) {
-            toast.info('You have already applied for this job');
+            notify.info('You have already applied for this job');
             return;
         }
 
@@ -141,7 +140,7 @@ const JobDetailPage = () => {
         const isOnlyUser = roles.includes('user') && !roles.includes('recruiter') && !roles.includes('expert');
 
         if (!isOnlyUser) {
-            toast.warning('Only candidates are allowed to apply for jobs.');
+            notify.warning('Only candidates are allowed to apply for jobs.');
             return;
         }
 
@@ -156,16 +155,16 @@ const JobDetailPage = () => {
                 cover_letter: coverLetter,
                 resume_url: resumeFile ? resumeFile.name : ''
             });
-            toast.success('Application submitted successfully! Track your status in My Applications.');
+            notify.success('Application submitted successfully! Track your status in My Applications.');
             setHasApplied(true);
             setIsApplyModalOpen(false);
         } catch (error: any) {
             if (error.response?.status === 409) {
                 setHasApplied(true);
                 setIsApplyModalOpen(false);
-                toast.info(error.response?.data?.error || 'You have already applied for this job');
+                notify.info(errorText(error, 'You have already applied for this job'));
             } else {
-                toast.error(error.response?.data?.error || 'Failed to apply');
+                notify.error(error, 'Failed to apply');
             }
         } finally {
             setIsApplying(false);
@@ -176,7 +175,7 @@ const JobDetailPage = () => {
         const file = e.target.files?.[0];
         if (file) {
             if (file.size > 5 * 1024 * 1024) {
-                toast.error('Resume file must be under 5MB');
+                notify.error('Resume file must be under 5MB');
                 return;
             }
             setResumeFile(file);
@@ -192,17 +191,17 @@ const JobDetailPage = () => {
 
     const handleToggleBookmark = async () => {
         if (!user) {
-            toast.info('Please login to save jobs');
+            notify.info('Please login to save jobs');
             return;
         }
         const nextState = !isBookmarked;
         setIsBookmarked(nextState);
         try {
             await api.post(`/user/bookmark/${jobId}`);
-            toast.success(nextState ? 'Job saved to your bookmarks' : 'Job removed from saved items');
+            notify.success(nextState ? 'Job saved to your bookmarks' : 'Job removed from saved items');
         } catch {
             setIsBookmarked(!nextState);
-            toast.error('Failed to update saved job');
+            notify.error('Failed to update saved job');
         }
     };
 
@@ -210,16 +209,16 @@ const JobDetailPage = () => {
         if (typeof window !== 'undefined') {
             try {
                 await navigator.clipboard.writeText(window.location.href);
-                toast.success('Job link copied to clipboard');
+                notify.success('Job link copied to clipboard');
             } catch {
-                toast.info('Share URL: ' + window.location.href);
+                notify.info('Share URL: ' + window.location.href);
             }
         }
     };
 
     const handleConnectOrChat = async () => {
         if (!user) {
-            toast.info('Please sign in to connect with recruiter');
+            notify.info('Please sign in to connect with recruiter');
             router.push(`/login?redirect=${encodeURIComponent(`/jobs/${jobId}`)}`);
             return;
         }
@@ -230,26 +229,26 @@ const JobDetailPage = () => {
         }
 
         if (connectionStatus === 'pending') {
-            toast.info('Connection request is pending recruiter acceptance.');
+            notify.info('Connection request is pending recruiter acceptance.');
             return;
         }
 
         if (!job?.recruiter_id) {
-            toast.info('Recruiter contact details will be shared once your application is reviewed.');
+            notify.info('Recruiter contact details will be shared once your application is reviewed.');
             return;
         }
 
         try {
             await api.post('/network/connect', { receiver_id: job.recruiter_id });
-            toast.success('Connection request sent to recruiter. You can chat once accepted.');
+            notify.success('Connection request sent to recruiter. You can chat once accepted.');
             setConnectionStatus('pending');
         } catch (error: any) {
-            const msg = error.response?.data?.error || error.message || '';
+            const msg = errorText(error, '');
             if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
                 setConnectionStatus('pending');
-                toast.info('Connection request already sent.');
+                notify.info('Connection request already sent.');
             } else {
-                toast.error(msg || 'Failed to send connection request.');
+                notify.error(msg || 'Failed to send connection request.');
             }
         }
     };
@@ -272,7 +271,6 @@ const JobDetailPage = () => {
 
     return (
         <div className="bg-km-surface min-h-screen pb-20 font-sans text-km-text-primary">
-            <ToastContainer />
 
             {/* ─── Hero Section with Rounded Bottom ─── */}
             <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-8 sm:pb-10 lg:pb-12 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">

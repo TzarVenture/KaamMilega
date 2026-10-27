@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -11,7 +12,7 @@ import (
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v5"
+	"km-backend/internal/middleware"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -77,6 +78,12 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 	}
 
 	msg, err := c.service.SendMessage(ctx.Context(), senderID, req)
+	switch {
+	case errors.Is(err, ErrRecipientUnavailable):
+		return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error(), "code": "RECIPIENT_UNAVAILABLE"})
+	case errors.Is(err, ErrMessageSelf):
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -108,9 +115,9 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 			preview := req.Content
 			if preview == "" && req.AttachmentName != "" {
 				if req.AttachmentType == "image" {
-					preview = "📷 Photo"
+					preview = "Photo"
 				} else {
-					preview = "📎 " + req.AttachmentName
+					preview = "Attachment: " + req.AttachmentName
 				}
 			}
 			if len(preview) > 80 {
@@ -202,23 +209,9 @@ func (c *Controller) WebSocketHandler(ctx *websocket.Conn) {
 		return
 	}
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
-		return []byte(c.config.JWTSecret), nil
-	})
-
-	if err != nil || !token.Valid {
-		ctx.Close()
-		return
-	}
-
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		ctx.Close()
-		return
-	}
-
-	userID, ok := claims["sub"].(string)
-	if !ok {
+	// Same checks as the HTTP middleware: signed-out sessions and inactive accounts can't connect
+	userID, err := middleware.VerifyToken(context.Background(), tokenString, c.config.JWTSecret)
+	if err != nil {
 		ctx.Close()
 		return
 	}

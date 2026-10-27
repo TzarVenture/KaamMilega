@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import { CircleNotchIcon, InfoIcon, WarningCircleIcon } from '@phosphor-icons/react';
+import { errorText } from "@/lib/notify";
 
 interface ProfessionModalProps {
     isOpen: boolean;
@@ -97,7 +98,7 @@ const ProfessionModal = ({
                 onClose();
             }
         } catch (err: any) {
-            setErrorMessage(err?.response?.data?.error || err?.message || 'Failed to save profession/skill');
+            setErrorMessage(errorText(err, 'Failed to save profession/skill'));
         } finally {
             setIsSubmitting(false);
         }

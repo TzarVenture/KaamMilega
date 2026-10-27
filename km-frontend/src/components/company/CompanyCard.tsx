@@ -78,7 +78,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-km-border-subtle flex items-center justify-between text-sm">
-                    <span className="font-medium text-[#16A34A]">{company.openings}</span>
+                    <span className="font-medium text-[#16A34A]">{company.openings || ''}</span>
                     <span className="inline-flex items-center gap-1 font-semibold text-km-heading">
                         View jobs
                         <CaretRightIcon weight="bold" size={14} className="transition-transform group-hover/card:translate-x-0.5" aria-hidden="true" />
@@ -99,7 +99,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                         </Link>
                         {verifiedSeal(14)}
                     </div>
-                    <p className="text-xs text-km-text-secondary truncate mt-0.5">{company.category}</p>
+                    {company.category && <p className="text-xs text-km-text-secondary truncate mt-0.5">{company.category}</p>}
                 </div>
             </div>
 
@@ -111,6 +111,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                     View jobs
                     <CaretRightIcon weight="bold" size={12} aria-hidden="true" />
                 </Link>
+                {onToggleFollow && (
                 <button
                     type="button"
                     onClick={handleFollowClick}
@@ -132,6 +133,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                         </>
                     )}
                 </button>
+                )}
             </div>
         </div>
     );

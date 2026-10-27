@@ -20,7 +20,7 @@ import {
     XIcon 
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'react-toastify';
+import { notify } from "@/lib/notify";
 import api from '@/lib/axios';
 import LearnVideoModal, { CourseVideo } from '@/components/modals/admin/LearnVideoModal';
 import Pagination from '@/components/ui/Pagination';
@@ -63,7 +63,7 @@ export default function LearnVideosPage() {
             setVideos(data);
         } catch (err: any) {
             console.error('Failed to fetch videos:', err);
-            toast.error(err?.message || 'Failed to load learn videos catalog');
+            notify.error(err?.message || 'Failed to load learn videos catalog');
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -154,7 +154,7 @@ export default function LearnVideosPage() {
                 thumbnail_url: formData.thumbnail_url,
                 description: formData.description
             });
-            toast.success('Course updated platform-wide!');
+            notify.success('Course updated platform-wide!');
             setVideos(prev => prev.map(v => v.id === formData.id ? { ...v, ...updated } : v));
         } else {
             // Create across platform
@@ -166,7 +166,7 @@ export default function LearnVideosPage() {
                 thumbnail_url: formData.thumbnail_url,
                 description: formData.description
             });
-            toast.success('New course added platform-wide!');
+            notify.success('New course added platform-wide!');
             setVideos(prev => [created, ...prev]);
         }
         setIsAddEditModalOpen(false);
@@ -179,14 +179,14 @@ export default function LearnVideosPage() {
         setIsDeleting(true);
         try {
             await api.delete(`/courses/${deleteModalVideo.id}`);
-            toast.success('Course permanently deleted platform-wide!');
+            notify.success('Course permanently deleted platform-wide!');
             setVideos(prev => prev.filter(v => v.id !== deleteModalVideo.id));
             if (paginatedVideos.length === 1 && currentPage > 1) {
                 setCurrentPage(prev => prev - 1);
             }
             setDeleteModalVideo(null);
         } catch (err: any) {
-            toast.error(err?.message || 'Failed to delete course');
+            notify.error(err?.message || 'Failed to delete course');
         } finally {
             setIsDeleting(false);
         }

@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowSquareOutIcon, ArrowsClockwiseIcon, CaretDownIcon, CaretLeftIcon, ChatIcon, CheckCircleIcon, CheckIcon, ChecksIcon, CircleNotchIcon, ClockIcon, CopyIcon, DotsThreeVerticalIcon, DownloadSimpleIcon, FileTextIcon, FlagIcon, MagnifyingGlassIcon, PaperPlaneRightIcon, PaperclipIcon, ProhibitIcon, SmileyIcon, TrashIcon, UserIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowsClockwiseIcon, CaretDownIcon, CaretLeftIcon, ChatIcon, CheckCircleIcon, CheckIcon, ChecksIcon, CircleNotchIcon, ClockIcon, CopyIcon, DotsThreeVerticalIcon, DownloadSimpleIcon, FileTextIcon, FlagIcon, MagnifyingGlassIcon, PaperPlaneRightIcon, PaperclipIcon, ProhibitIcon, SmileyIcon, TrashIcon, UserIcon, XIcon } from '@phosphor-icons/react';
 import dynamic from "next/dynamic";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { playMessageReceivedSound } from "@/lib/sound";
 import {
@@ -31,6 +31,8 @@ interface User {
   roles?: string[];
   headline?: string;
   is_online?: boolean;
+  /** Deactivated or deleted account: history stays, new messages are blocked */
+  unavailable?: boolean;
 }
 
 interface Conversation {
@@ -163,6 +165,46 @@ const getFullMediaUrl = (url?: string): string => {
 };
 
 // --- Main Chat View Component ---
+// One avatar for the whole chat: the photo, or the first letter on brand navy, with an
+// optional solid presence dot (design.md: no blinking indicators)
+const AVATAR_SIZES = {
+  sm: "w-7 h-7 text-xs",
+  md: "w-10 h-10 text-sm",
+  lg: "w-11 h-11 text-sm",
+} as const;
+
+function ChatAvatar({
+  name,
+  image,
+  size = "md",
+  online = false,
+  className = "",
+}: {
+  name?: string;
+  image?: string;
+  size?: keyof typeof AVATAR_SIZES;
+  online?: boolean;
+  className?: string;
+}) {
+  return (
+    <div className={`relative ${AVATAR_SIZES[size]} rounded-full bg-km-primary text-white font-semibold flex items-center justify-center shrink-0 ${className}`}>
+      <span className="w-full h-full rounded-full overflow-hidden flex items-center justify-center">
+        {image ? (
+          <img src={getFullMediaUrl(image)} className="w-full h-full object-cover" alt="" />
+        ) : (
+          name?.trim()?.[0]?.toUpperCase() || "U"
+        )}
+      </span>
+      {online && (
+        <span
+          title="Online"
+          className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-km-surface-card"
+        />
+      )}
+    </div>
+  );
+}
+
 function ChatView() {
   const searchParams = useSearchParams();
 
@@ -472,7 +514,7 @@ function ChatView() {
           checkBlockStatus(otherId);
         }
       }
-      toast.success("Updated", { autoClose: 1200 });
+      notify.success("Updated");
     } catch (err) {
       console.error("Refresh failed", err);
     } finally {
@@ -615,7 +657,7 @@ function ChatView() {
             const previewText =
               newMsg.content ||
               (newMsg.attachment_name
-                ? `📎 ${newMsg.attachment_name}`
+                ? `Attachment: ${newMsg.attachment_name}`
                 : "Sent an attachment");
             updateConversationLastMessageLocally(
               newMsg.conversation_id,
@@ -858,6 +900,7 @@ function ChatView() {
           openMobileChat();
         } catch (e) {
           console.error("Failed to resolve target user for chat deep-link", e);
+          notify.error("This member isn't available to message right now.");
         }
       }
     };
@@ -1058,6 +1101,13 @@ function ChatView() {
       // Only smooth scroll down when a message is added to the end
       prevLastMsgId.current = lastMsgId;
       container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    } else if (isOtherTyping) {
+      // Show the typing bubble like WhatsApp, but only if the user is reading the latest
+      // messages; never yank them down while they scroll through older ones
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+      if (distanceFromBottom < 220) {
+        container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      }
     }
   }, [messages, activeChat, isOtherTyping]);
 
@@ -1068,7 +1118,7 @@ function ChatView() {
 
     // Limit file size to 10MB
     if (file.size > 10 * 1024 * 1024) {
-      toast.error("File size exceeds the 10 MB limit");
+      notify.error("File size exceeds the 10 MB limit");
       if (fileInputRef.current) fileInputRef.current.value = "";
       return;
     }
@@ -1112,11 +1162,15 @@ function ChatView() {
     if (!otherId) return;
 
     if (isBlockedByMe) {
-      toast.error("You have blocked this user. Unblock them to send messages.");
+      notify.error("You have blocked this user. Unblock them to send messages.");
       return;
     }
     if (isBlockedByOther) {
-      toast.error("You cannot send messages to this conversation.");
+      notify.error("You cannot send messages to this conversation.");
+      return;
+    }
+    if (other?.unavailable) {
+      notify.error("This member isn't available on KaamMilega right now.");
       return;
     }
 
@@ -1152,7 +1206,7 @@ function ChatView() {
         uploadedSize = uploadRes.size || pendingAttachment.file.size || 0;
       } catch (err: any) {
         console.error("File upload failed", err);
-        toast.error(
+        notify.error(
           err?.message || "Attachment upload failed. Please try again.",
         );
         setIsUploading(false);
@@ -1189,7 +1243,7 @@ function ChatView() {
 
     // Optimistically update conversation last message in the sidebar immediately (no spinner!)
     const displayPreview =
-      text || (uploadedName ? `📎 ${uploadedName}` : "Sent an attachment");
+      text || (uploadedName ? `Attachment: ${uploadedName}` : "Sent an attachment");
     updateConversationLastMessageLocally(
       activeChat.id,
       displayPreview,
@@ -1245,7 +1299,7 @@ function ChatView() {
         setIsPassModalOpen(true);
         loadChatEntitlement();
       }
-      toast.error(errMsg);
+      notify.error(errMsg);
       // Remove optimistic message on failure
       setMessages((prev) => prev.filter((m) => m.id !== tempId));
     } finally {
@@ -1424,7 +1478,7 @@ function ChatView() {
         block_user: reportModal.blockAlso,
       });
 
-      toast.success(
+      notify.success(
         "Thank you for letting us know. Our team will review this report.",
       );
 
@@ -1435,7 +1489,7 @@ function ChatView() {
       setReportModal((prev) => ({ ...prev, isOpen: false }));
     } catch (err: any) {
       console.error("Failed to submit chat report", err);
-      toast.error(err?.response?.data?.error || "Failed to submit report");
+      notify.error(err, "Failed to submit report");
     } finally {
       setReportModal((prev) => ({ ...prev, isSubmitting: false }));
     }
@@ -1466,7 +1520,7 @@ function ChatView() {
         if (currentUser) {
           loadConversations(currentUser.id, false);
         }
-        toast.success("Message deleted");
+        notify.success("Message deleted");
       } else if (confirmModal.type === "conversation") {
         const convId = confirmModal.targetId;
         await api.delete(`/chats/${convId}`);
@@ -1476,21 +1530,21 @@ function ChatView() {
           setMessages([]);
           setMobileChatOpen(false);
         }
-        toast.success("Conversation removed from your inbox");
+        notify.success("Conversation removed from your inbox");
       } else if (confirmModal.type === "block") {
         const targetUserId = confirmModal.targetId;
         await api.post(`/chats/users/${targetUserId}/block`);
         setIsBlockedByMe(true);
-        toast.success("User blocked");
+        notify.success("User blocked");
       } else if (confirmModal.type === "unblock") {
         const targetUserId = confirmModal.targetId;
         await api.post(`/chats/users/${targetUserId}/unblock`);
         setIsBlockedByMe(false);
-        toast.success("User unblocked");
+        notify.success("User unblocked");
       }
     } catch (e: any) {
       console.error("Action failed", e);
-      toast.error(e?.response?.data?.error || "Failed to complete request");
+      notify.error(e, "Failed to complete request");
     } finally {
       setIsDeleting(false);
       setConfirmModal((prev) => ({ ...prev, isOpen: false }));
@@ -1519,7 +1573,7 @@ function ChatView() {
                 (sum, c) => sum + (c.unread_count || 0),
                 0,
               ) > 0 && (
-                <span className="bg-[#FF6B00] text-white text-[11px] font-bold px-2 py-0.5 rounded-full">
+                <span className="bg-[#FF6B00] text-white text-xs font-bold px-2 py-0.5 rounded-full">
                   {conversations.reduce(
                     (sum, c) => sum + (c.unread_count || 0),
                     0,
@@ -1573,21 +1627,22 @@ function ChatView() {
 
           {/* Free Chat Quota / Universal Pass Entitlement Banner */}
           {chatEntitlement && !chatEntitlement.has_active_pass && (
-            <div className="p-2.5 rounded-xl bg-orange-50/90 border border-orange-200/90 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#FF6B00]" />
-                <span className="text-[11px] font-semibold text-slate-700">
-                  {chatEntitlement.free_remaining > 0
-                    ? `${chatEntitlement.free_remaining} of 3 free contacts left`
-                    : "Free contacts limit reached (3/3)"}
-                </span>
-              </div>
+            <div className="px-3 py-2 rounded-xl bg-km-surface border border-km-border flex items-center justify-between gap-2">
+              <span className="text-xs text-km-text-secondary">
+                {chatEntitlement.free_remaining > 0 ? (
+                  <>
+                    <span className="font-semibold text-km-text-primary">{chatEntitlement.free_remaining} of 3</span> free new chats left
+                  </>
+                ) : (
+                  <span className="font-semibold text-km-text-primary">Free new chats used (3 of 3)</span>
+                )}
+              </span>
               <button
                 type="button"
                 onClick={() => setIsPassModalOpen(true)}
-                className="text-[11px] font-bold text-[#FF6B00] hover:text-[#E05D00] underline cursor-pointer"
+                className="text-xs font-semibold text-[#C2410C] hover:text-[#9A3412] dark:text-[#FF9A4D] dark:hover:text-[#FFB27A] shrink-0 cursor-pointer"
               >
-                ₹99 Pass
+                Get ₹99 Pass
               </button>
             </div>
           )}
@@ -1620,8 +1675,8 @@ function ChatView() {
             {/* Search Results Dropdown (Platform Users) */}
             {searchQuery.trim().length >= 2 && (
               <div className="absolute top-full left-0 right-0 mt-1.5 z-30 bg-km-surface-card shadow-xl rounded-xl border border-km-border max-h-64 overflow-y-auto divide-y divide-[#F4F7FB] dark:divide-km-border">
-                <div className="p-2 bg-km-surface text-[11px] font-bold text-km-text-secondary uppercase tracking-wider">
-                  Platform Search Results
+                <div className="px-3 py-2 bg-km-surface text-xs font-semibold text-km-text-secondary">
+                  People on KaamMilega
                 </div>
                 {isSearchingPlatform ? (
                   <div className="p-4 text-center text-xs text-km-text-secondary flex items-center justify-center gap-2">
@@ -1638,20 +1693,7 @@ function ChatView() {
                       onClick={() => startConversationWithUser(u)}
                       className="p-3 hover:bg-km-surface cursor-pointer flex items-center gap-3 transition-colors"
                     >
-                      <div className="relative w-9 h-9 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-xs shrink-0 overflow-hidden dark:bg-km-primary">
-                        {u.profile_image ? (
-                          <img
-                            src={getFullMediaUrl(u.profile_image)}
-                            className="w-full h-full object-cover"
-                            alt={u.name}
-                          />
-                        ) : (
-                          u.name?.[0]?.toUpperCase() || "U"
-                        )}
-                        {u.is_online && (
-                          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-km-surface-card" />
-                        )}
-                      </div>
+                      <ChatAvatar name={u.name} image={u.profile_image} online={u.is_online} />
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-semibold text-km-text-primary truncate">
                           {u.name}
@@ -1659,7 +1701,7 @@ function ChatView() {
                         <p className="text-xs text-km-text-secondary truncate">
                           {u.headline ||
                             u.roles?.join(", ") ||
-                            "KaamMilega Member"}
+                            "KaamMilega member"}
                         </p>
                       </div>
                     </div>
@@ -1699,28 +1741,11 @@ function ChatView() {
                   }}
                   className={`p-3.5 flex items-center gap-3 cursor-pointer transition-all group ${
                     isActive
-                      ? "bg-blue-50/70 border-l-4 border-l-[#071A4D]"
-                      : "hover:bg-km-surface border-l-4 border-l-transparent"
+                      ? "bg-[#EAF1FC] dark:bg-blue-500/15 border-l-[3px] border-l-km-primary dark:border-l-km-link"
+                      : "hover:bg-km-surface border-l-[3px] border-l-transparent"
                   }`}
                 >
-                  {/* Avatar with solid presence dot */}
-                  <div className="relative w-11 h-11 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs dark:bg-km-primary">
-                    {partner?.profile_image ? (
-                      <img
-                        src={getFullMediaUrl(partner.profile_image)}
-                        className="w-full h-full object-cover"
-                        alt={partner.name || "User"}
-                      />
-                    ) : (
-                      partner?.name?.[0]?.toUpperCase() || "U"
-                    )}
-                    {partner?.is_online && (
-                      <span
-                        title="Online"
-                        className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white dark:border-km-surface-card"
-                      />
-                    )}
-                  </div>
+                  <ChatAvatar name={partner?.name} image={partner?.profile_image} size="lg" online={partner?.is_online} />
 
                   {/* Conversation Preview */}
                   <div className="flex-1 min-w-0">
@@ -1735,7 +1760,7 @@ function ChatView() {
                         {partner?.name || "User"}
                       </h4>
                       <div className="flex items-center gap-1 shrink-0 ml-2">
-                        <span className="text-[11px] text-km-text-secondary">
+                        <span className="text-xs text-km-text-secondary">
                           {formatChatListDate(chat.updated_at)}
                         </span>
                         <button
@@ -1744,7 +1769,7 @@ function ChatView() {
                             promptDeleteConversation(chat.id);
                           }}
                           title="Delete conversation"
-                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 transition-all dark:hover:text-red-400"
+                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-500/10 transition-all dark:hover:text-red-400"
                         >
                           <TrashIcon weight="bold" size={13} />
                         </button>
@@ -1752,9 +1777,7 @@ function ChatView() {
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       {isTyping ? (
-                        <span className="text-[#FF6B00] text-xs font-semibold animate-pulse">
-                          Typing...
-                        </span>
+                        <span className="text-[#C2410C] dark:text-[#FF9A4D] text-xs font-medium">typing…</span>
                       ) : (
                         <p
                           className={`text-xs truncate ${
@@ -1767,7 +1790,7 @@ function ChatView() {
                         </p>
                       )}
                       {unread > 0 && (
-                        <span className="shrink-0 bg-[#FF6B00] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">
+                        <span className="shrink-0 bg-[#FF6B00] text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-5 text-center">
                           {unread}
                         </span>
                       )}
@@ -1814,21 +1837,7 @@ function ChatView() {
                   <CaretLeftIcon size={22} />
                 </button>
 
-                {/* Contact Avatar */}
-                <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-sm shrink-0 overflow-hidden shadow-xs dark:bg-km-primary">
-                  {activePartner?.profile_image ? (
-                    <img
-                      src={getFullMediaUrl(activePartner.profile_image)}
-                      className="w-full h-full object-cover"
-                      alt={activePartner.name || "User"}
-                    />
-                  ) : (
-                    activePartner?.name?.[0]?.toUpperCase() || "U"
-                  )}
-                  {activePartner?.is_online && (
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white dark:border-km-surface-card" />
-                  )}
-                </div>
+                <ChatAvatar name={activePartner?.name} image={activePartner?.profile_image} online={activePartner?.is_online} />
 
                 {/* Contact Info */}
                 <div className="min-w-0">
@@ -1837,25 +1846,18 @@ function ChatView() {
                       {activePartner?.name || "Direct Message"}
                     </h3>
                     {activePartner?.is_online && (
-                      <span className="hidden sm:inline-block text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full shrink-0 dark:text-emerald-400">
+                      <span className="hidden sm:inline text-xs font-medium text-emerald-700 shrink-0 dark:text-emerald-400">
                         Active now
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-km-text-secondary truncate">
+                  <div className="text-xs text-km-text-secondary truncate">
                     {isOtherTyping ? (
-                      <span className="text-[#FF6B00] font-semibold flex items-center gap-1.5">
-                        <span>Typing</span>
-                        <span className="inline-flex gap-0.5">
-                          <span className="w-1 h-1 bg-[#FF6B00] rounded-full animate-bounce [animation-delay:-0.3s]" />
-                          <span className="w-1 h-1 bg-[#FF6B00] rounded-full animate-bounce [animation-delay:-0.15s]" />
-                          <span className="w-1 h-1 bg-[#FF6B00] rounded-full animate-bounce" />
-                        </span>
-                      </span>
+                      <span className="text-[#C2410C] dark:text-[#FF9A4D] font-medium">typing…</span>
                     ) : (
                       activePartner?.headline ||
                       activePartner?.roles?.join(" • ") ||
-                      "KaamMilega Verified Member"
+                      "KaamMilega member"
                     )}
                   </div>
                 </div>
@@ -1866,14 +1868,11 @@ function ChatView() {
                 {activePartner?.id && (
                   <Link
                     href={`/profile/${activePartner.id}`}
-                    target="_blank"
-                    className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold text-km-heading bg-km-surface hover:bg-slate-200 active:bg-slate-300 rounded-xl border border-km-border transition-colors shrink-0"
-                    title="View profile"
+                    className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold text-km-heading bg-km-surface hover:bg-slate-200 rounded-xl border border-km-border transition-colors shrink-0"
                     aria-label="View profile"
                   >
-                    <UserIcon weight="bold" size={15} className="sm:hidden" />
-                    <span className="hidden sm:inline">Profile</span>
-                    <ArrowSquareOutIcon weight="bold" size={13} className="hidden sm:inline" />
+                    <UserIcon size={16} className="sm:hidden" aria-hidden="true" />
+                    <span className="hidden sm:inline">View profile</span>
                   </Link>
                 )}
 
@@ -1893,7 +1892,7 @@ function ChatView() {
                       {isBlockedByMe ? (
                         <button
                           onClick={promptUnblockUser}
-                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 transition-colors dark:text-emerald-400"
+                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors dark:text-emerald-400"
                         >
                           <CheckCircleIcon weight="bold" size={14} />
                           <span>Unblock user</span>
@@ -1920,7 +1919,7 @@ function ChatView() {
 
                       <button
                         onClick={() => promptDeleteConversation()}
-                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 transition-colors dark:text-red-400"
+                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors dark:text-red-400"
                       >
                         <TrashIcon weight="bold" size={14} />
                         <span>Delete conversation</span>
@@ -1979,7 +1978,7 @@ function ChatView() {
                     <React.Fragment key={`${msg.id || "msg"}-${index}`}>
                       {showDateDivider && (
                         <div className="flex items-center justify-center my-3 sm:my-4">
-                          <span className="bg-km-surface-card text-km-text-secondary text-[11px] font-semibold px-3 py-1 rounded-full border border-km-border shadow-xs">
+                          <span className="bg-km-surface-card text-km-text-secondary text-xs font-semibold px-3 py-1 rounded-full border border-km-border shadow-xs">
                             {getDateDividerLabel(msg.created_at)}
                           </span>
                         </div>
@@ -1990,19 +1989,7 @@ function ChatView() {
                       >
                         {/* Mini avatar for received messages */}
                         {!isMe && (
-                          <div className="w-7 h-7 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-[10px] shrink-0 overflow-hidden mt-1 dark:bg-km-primary">
-                            {activePartner?.profile_image ? (
-                              <img
-                                src={getFullMediaUrl(
-                                  activePartner.profile_image,
-                                )}
-                                className="w-full h-full object-cover"
-                                alt={activePartner.name || "User"}
-                              />
-                            ) : (
-                              activePartner?.name?.[0]?.toUpperCase() || "U"
-                            )}
-                          </div>
+                          <ChatAvatar name={activePartner?.name} image={activePartner?.profile_image} size="sm" className="mt-1" />
                         )}
 
                         <div
@@ -2061,7 +2048,7 @@ function ChatView() {
                                   }}
                                   title="Delete message"
                                   aria-label="Delete message"
-                                  className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 active:scale-90 transition-all flex items-center justify-center dark:hover:text-red-400"
+                                  className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 active:scale-90 transition-all flex items-center justify-center dark:hover:text-red-400"
                                 >
                                   <TrashIcon weight="bold" size={13} />
                                 </button>
@@ -2152,15 +2139,7 @@ function ChatView() {
                                           : "bg-km-surface hover:bg-slate-200 border-km-border text-km-heading"
                                       }`}
                                     >
-                                      <div
-                                        className={`p-2 rounded-lg ${
-                                          isMe
-                                            ? "bg-white/20"
-                                            : "bg-km-surface-card border border-km-border"
-                                        }`}
-                                      >
-                                        <FileTextIcon weight="bold" size={18} />
-                                      </div>
+                                      <FileTextIcon size={24} weight="duotone" className="shrink-0" aria-hidden="true" />
                                       <div className="min-w-0 flex-1">
                                         <p className="text-xs font-semibold truncate">
                                           {msg.attachment_name ||
@@ -2168,7 +2147,7 @@ function ChatView() {
                                         </p>
                                         {msg.attachment_size ? (
                                           <p
-                                            className={`text-[10px] ${
+                                            className={`text-xs ${
                                               isMe
                                                 ? "text-white/70"
                                                 : "text-km-text-secondary"
@@ -2189,7 +2168,7 @@ function ChatView() {
 
                                 {/* Text Content */}
                                 {msg.content && (
-                                  <p className="whitespace-pre-wrap break-words leading-relaxed text-[13.5px]">
+                                  <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
                                     {msg.content}
                                   </p>
                                 )}
@@ -2198,7 +2177,7 @@ function ChatView() {
 
                             {/* Time & Read Status */}
                             <div
-                              className={`flex items-center gap-1.5 justify-end mt-1 text-[10px] select-none ${
+                              className={`flex items-center gap-1.5 justify-end mt-1 text-xs select-none ${
                                 msg.is_deleted
                                   ? "text-slate-400"
                                   : isMe
@@ -2251,24 +2230,19 @@ function ChatView() {
                 })
               )}
 
-              {/* Typing Indicator Bubble */}
+              {/* Typing indicator: an incoming-style bubble with three dots in a soft wave
+                  (WhatsApp pattern; still dots under reduced motion) */}
               {isOtherTyping && (
-                <div className="flex gap-2.5 items-end">
-                  <div className="w-7 h-7 rounded-full bg-[#071A4D] flex items-center justify-center text-white font-bold text-[10px] shrink-0 overflow-hidden dark:bg-km-primary">
-                    {activePartner?.profile_image ? (
-                      <img
-                        src={getFullMediaUrl(activePartner.profile_image)}
-                        className="w-full h-full object-cover"
-                        alt={activePartner.name || "User"}
-                      />
-                    ) : (
-                      activePartner?.name?.[0]?.toUpperCase() || "U"
-                    )}
-                  </div>
-                  <div className="bg-km-surface-card border border-km-border rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-xs flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce [animation-delay:-0.3s]" />
-                    <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce [animation-delay:-0.15s]" />
-                    <span className="w-1.5 h-1.5 bg-[#5B6472] rounded-full animate-bounce" />
+                <div className="flex gap-2 sm:gap-2.5 items-end">
+                  <ChatAvatar name={activePartner?.name} image={activePartner?.profile_image} size="sm" />
+                  <div
+                    role="status"
+                    className="bg-km-surface-card border border-km-border rounded-2xl rounded-tl-xs px-4 py-3 flex items-center gap-1"
+                  >
+                    <span className="sr-only">{activePartner?.name?.split(" ")[0] || "They"} is typing</span>
+                    <span className="km-typing-dot" aria-hidden="true" />
+                    <span className="km-typing-dot" aria-hidden="true" />
+                    <span className="km-typing-dot" aria-hidden="true" />
                   </div>
                 </div>
               )}
@@ -2307,7 +2281,7 @@ function ChatView() {
                     <p className="text-xs font-semibold text-km-text-primary truncate">
                       {pendingAttachment.name}
                     </p>
-                    <p className="text-[10px] text-km-text-secondary">
+                    <p className="text-xs text-km-text-secondary">
                       {pendingAttachment.sizeFormatted}
                     </p>
                   </div>
@@ -2342,7 +2316,14 @@ function ChatView() {
               )}
 
               {/* Input Bar or Blocked Notice (F59) */}
-              {isBlockedByMe ? (
+              {activePartner?.unavailable ? (
+                <div role="status" className="flex items-center gap-2.5 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-600 shadow-xs">
+                  <ProhibitIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
+                  <span className="font-medium">
+                    This account is no longer active, so you can&apos;t reply. Your earlier messages stay here.
+                  </span>
+                </div>
+              ) : isBlockedByMe ? (
                 <div className="flex items-center justify-between gap-3 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-700 shadow-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <ProhibitIcon weight="bold" size={17} className="text-slate-500 shrink-0" />
@@ -2372,7 +2353,7 @@ function ChatView() {
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/*,.pdf,.doc,.docx,.txt"
+                    accept="image/jpeg,image/png,image/webp,image/gif,.pdf,.doc,.docx,.txt"
                     onChange={handleFileSelect}
                     className="hidden"
                   />
@@ -2395,7 +2376,7 @@ function ChatView() {
                     title="Insert emoji"
                     className={`p-2 rounded-xl transition-colors shrink-0 mb-0.5 ${
                       showEmojiPicker
-                        ? "text-[#FF6B00] bg-orange-50"
+                        ? "text-[#C2410C] bg-km-surface dark:text-[#FF9A4D]"
                         : "text-km-text-secondary hover:text-km-heading hover:bg-slate-200/60 active:bg-slate-200"
                     }`}
                   >
@@ -2490,21 +2471,23 @@ function ChatView() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center gap-3.5">
+              {/* icons.md: no icon containers */}
               <div
-                className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                aria-hidden="true"
+                className={`shrink-0 ${
                   confirmModal.type === "unblock"
-                    ? "bg-emerald-50 text-emerald-600 dark:text-emerald-400"
+                    ? "text-emerald-600 dark:text-emerald-400"
                     : confirmModal.type === "block"
-                      ? "bg-slate-100 text-slate-700"
-                      : "bg-red-50 text-red-600 dark:text-red-400"
+                      ? "text-slate-700"
+                      : "text-red-600 dark:text-red-400"
                 }`}
               >
                 {confirmModal.type === "unblock" ? (
-                  <CheckCircleIcon size={20} />
+                  <CheckCircleIcon size={28} weight="duotone" />
                 ) : confirmModal.type === "block" ? (
-                  <ProhibitIcon size={20} />
+                  <ProhibitIcon size={28} weight="duotone" />
                 ) : (
-                  <TrashIcon size={20} />
+                  <TrashIcon size={28} weight="duotone" />
                 )}
               </div>
               <div className="min-w-0 flex-1">

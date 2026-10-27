@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import { extractYouTubeVideoId, getYouTubeThumbnail } from '@/lib/youtube';
 import { CircleNotchIcon, ImageIcon, PlayIcon, WarningCircleIcon, YoutubeLogoIcon } from '@phosphor-icons/react';
+import { errorText } from "@/lib/notify";
 
 export interface CourseVideo {
     id: string;
@@ -161,7 +162,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
             });
             onClose();
         } catch (err: any) {
-            setError(err?.response?.data?.error || err?.message || 'Failed to save video');
+            setError(errorText(err, 'Failed to save video'));
         } finally {
             setIsSubmitting(false);
         }

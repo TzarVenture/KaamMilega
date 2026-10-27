@@ -7,21 +7,25 @@ import Link from 'next/link';
 interface BrandLogoProps {
     className?: string;
     showTextOnMobile?: boolean;
+    /** Only the K icon (e.g. a collapsed sidebar) */
     iconOnly?: boolean;
     size?: 'sm' | 'md' | 'lg';
     href?: string;
 }
 
 export default function BrandLogo({ className = '', showTextOnMobile = true, iconOnly = false, size = 'md', href = '/' }: BrandLogoProps) {
+    // Proportioned with optical weight: icon is ~1:1 (926x957), text is ~5.7:1 (2080x366).
+    // The wordmark image reserves its bottom quarter for the "g" descender, so its letters sit
+    // above the box centre; translate-y-[11%] moves the cap-height band onto the icon's centre.
     const iconStyles = {
         sm: 'h-7 sm:h-8 w-auto',
-        md: 'h-8 sm:h-9 md:h-10 w-auto',
-        lg: 'h-10 sm:h-12 md:h-12 w-auto',
+        md: 'h-8 sm:h-9.5 md:h-10.5 w-auto',
+        lg: 'h-10 sm:h-12 md:h-13 w-auto',
     };
     const textStyles = {
-        sm: 'h-4 sm:h-5 w-auto',
-        md: 'h-5 sm:h-6 md:h-7 w-auto',
-        lg: 'h-6 sm:h-8 md:h-8 w-auto',
+        sm: 'h-4.5 sm:h-5 w-auto',
+        md: 'h-5 sm:h-6 md:h-7.5 w-auto',
+        lg: 'h-6.5 sm:h-8 md:h-9 w-auto',
     };
 
     return (
@@ -42,7 +46,7 @@ export default function BrandLogo({ className = '', showTextOnMobile = true, ico
                         width={2080}
                         height={366}
                         priority
-                        className={`${textStyles[size]} object-contain shrink-0 dark:hidden ${showTextOnMobile ? 'block' : 'hidden sm:block'}`}
+                        className={`${textStyles[size]} object-contain shrink-0 translate-y-[11%] dark:hidden ${showTextOnMobile ? 'block' : 'hidden sm:block'}`}
                     />
                     <Image
                         src="/kaammilega-logo-text-dark.png"
@@ -50,7 +54,7 @@ export default function BrandLogo({ className = '', showTextOnMobile = true, ico
                         alt="Kaammilega"
                         width={2080}
                         height={366}
-                        className={`${textStyles[size]} object-contain shrink-0 hidden ${showTextOnMobile ? 'dark:block' : 'sm:dark:block'}`}
+                        className={`${textStyles[size]} object-contain shrink-0 translate-y-[11%] hidden ${showTextOnMobile ? 'dark:block' : 'sm:dark:block'}`}
                     />
                 </>
             )}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { CheckCircleIcon, CircleNotchIcon, EyeIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlayIcon, PlusIcon, StarIcon, TrashIcon, VideoCameraIcon, XCircleIcon, XIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "react-toastify";
+import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { extractYouTubeVideoId, getYouTubeThumbnail } from "@/lib/youtube";
 
@@ -59,7 +59,7 @@ export default function AdminTestimonialsPage() {
             setTestimonials(res.data || []);
         } catch (error: any) {
             console.error("Failed to load testimonials:", error);
-            toast.error(error.message || "Failed to load testimonials");
+            notify.error(error.message || "Failed to load testimonials");
         } finally {
             setLoading(false);
         }
@@ -102,12 +102,12 @@ export default function AdminTestimonialsPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!name.trim()) return toast.error("Candidate name is required");
-        if (!role.trim()) return toast.error("Candidate role is required");
-        if (!company.trim()) return toast.error("Company name is required");
-        if (!review.trim()) return toast.error("Candidate review is required");
-        if (review.trim().length > 100) return toast.error("Review must be within 100 characters");
-        if (!extractedId) return toast.error("Please enter a valid YouTube video URL");
+        if (!name.trim()) return notify.error("Candidate name is required");
+        if (!role.trim()) return notify.error("Candidate role is required");
+        if (!company.trim()) return notify.error("Company name is required");
+        if (!review.trim()) return notify.error("Candidate review is required");
+        if (review.trim().length > 100) return notify.error("Review must be within 100 characters");
+        if (!extractedId) return notify.error("Please enter a valid YouTube video URL");
 
         try {
             setSaving(true);
@@ -127,16 +127,16 @@ export default function AdminTestimonialsPage() {
 
             if (editingItem) {
                 await api.put(`/admin/testimonials/${editingItem.id}`, payload);
-                toast.success("Candidate story updated successfully!");
+                notify.success("Candidate story updated successfully!");
             } else {
                 await api.post("/admin/testimonials", payload);
-                toast.success("Candidate story published successfully!");
+                notify.success("Candidate story published successfully!");
             }
 
             setIsModalOpen(false);
             fetchTestimonials();
         } catch (error: any) {
-            toast.error(error.message || "Failed to save testimonial");
+            notify.error(error.message || "Failed to save testimonial");
         } finally {
             setSaving(false);
         }
@@ -149,10 +149,10 @@ export default function AdminTestimonialsPage() {
 
         try {
             await api.delete(`/admin/testimonials/${id}`);
-            toast.success("Testimonial deleted successfully!");
+            notify.success("Testimonial deleted successfully!");
             setTestimonials((prev) => prev.filter((t) => t.id !== id));
         } catch (error: any) {
-            toast.error(error.message || "Failed to delete testimonial");
+            notify.error(error.message || "Failed to delete testimonial");
         }
     };
 

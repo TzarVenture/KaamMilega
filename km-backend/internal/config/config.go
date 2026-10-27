@@ -15,6 +15,9 @@ type Config struct {
 	Host          string
 	Environment   string
 	FSPath        string // Physical directory for file uploads
+	// JobAlertsEnabled turns on the daily job-alert emails (JOB_ALERTS_ENABLED=true). Off by
+	// default so a dev or staging server never emails real users by accident.
+	JobAlertsEnabled bool
 	FSURL         string // URL path prefix for file access
 	SMTPHost      string
 	SMTPPort      string
@@ -24,6 +27,14 @@ type Config struct {
 	SMTPFromName  string
 	RazorpayKeyID     string
 	RazorpayKeySecret string
+	// Push notifications (Firebase Cloud Messaging). The service-account key is a server secret:
+	// give it as a file path (FIREBASE_CREDENTIALS_FILE) or the JSON itself, raw or base64
+	// (FIREBASE_CREDENTIALS_JSON). Without either, push is off and everything else works as before.
+	FirebaseProjectID       string
+	FirebaseCredentialsFile string
+	FirebaseCredentialsJSON string
+	// FrontendURL is the website origin used for links inside push notifications
+	FrontendURL string
 }
 
 // LoadConfig loads configuration from environment variables
@@ -40,6 +51,7 @@ func LoadConfig() (*Config, error) {
 		MongoURI:          getEnv("MONGO_URI", "mongodb://localhost:27017"),
 		DBName:            getEnv("DB_NAME", "km-backend"),
 		Environment:       getEnv("ENVIRONMENT", "development"),
+		JobAlertsEnabled:  getEnv("JOB_ALERTS_ENABLED", "false") == "true",
 		FSPath:            getEnv("FS_PATH", "./static/uploads"),
 		FSURL:             getEnv("FS_URL", "/api/files/uploads"),
 		Host:              getEnv("HOST", ""),
@@ -51,6 +63,10 @@ func LoadConfig() (*Config, error) {
 		SMTPFromName:      getEnv("SMTP_FROM_NAME", "KaamMilega Verification"),
 		RazorpayKeyID:     getEnv("RAZORPAY_KEY_ID", ""),
 		RazorpayKeySecret: getEnv("RAZORPAY_KEY_SECRET", ""),
+		FirebaseProjectID:       getEnv("FIREBASE_PROJECT_ID", "kaammilega-7a667"),
+		FirebaseCredentialsFile: getEnv("FIREBASE_CREDENTIALS_FILE", ""),
+		FirebaseCredentialsJSON: getEnv("FIREBASE_CREDENTIALS_JSON", ""),
+		FrontendURL:             getEnv("FRONTEND_URL", "https://kaammilega.com"),
 	}, nil
 }
 
