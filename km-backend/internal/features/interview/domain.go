@@ -32,6 +32,14 @@ type UpdateInterviewStatusRequest struct {
 	Status string `json:"status" validate:"required"`
 }
 
+type UpdateInterviewRequest struct {
+	ScheduledAt *time.Time `json:"scheduled_at"`
+	Type        string     `json:"type"`     // Video, Phone, In-person
+	Location    string     `json:"location"` // URL or address
+	Notes       string     `json:"notes"`
+	Status      string     `json:"status"`   // Scheduled, Completed, Cancelled
+}
+
 type InterviewDetail struct {
 	ID            string             `json:"id"`
 	ApplicationID string             `json:"application_id"`
@@ -56,7 +64,11 @@ type InterviewJobInfo struct {
 }
 
 type InterviewUserInfo struct {
-	ID    string `json:"id"`
-	Name  string `json:"name"`
-	Email string `json:"email"`
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Email        string `json:"email"`
+	Mobile       string `json:"mobile,omitempty"`
+	Headline     string `json:"headline,omitempty"`
+	ProfileImage string `json:"profile_image,omitempty"`
+	Username     string `json:"username,omitempty"`
 }
