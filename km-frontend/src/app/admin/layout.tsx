@@ -53,6 +53,121 @@ const navItems = [
     { name: 'Chat Reports', icon: FlagIcon, href: '/admin/chat-reports' },
 ];
 
+// Sidebar menu shared by the desktop sidebar (collapsible) and the mobile drawer. Declared at
+// module level: defined inside AdminLayout it was a new component on every render, so React
+// rebuilt the menu each time (the scrolled menu jumped back to the top on every navigation).
+function SidebarContent({
+    collapsed,
+    pathname,
+    adminName,
+    onSignOut,
+}: {
+    collapsed?: boolean;
+    pathname: string;
+    adminName?: string;
+    onSignOut: () => void;
+}) {
+    return (
+    <>
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-4 space-y-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {/* Admin Profile Mini */}
+            {!collapsed ? (
+                <div className="p-3.5 mx-1.5 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-3 shadow-md shadow-purple-900/10 transition-all">
+                    <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20">
+                        <span className="text-white text-base font-bold rotate-45">▲▲</span>
+                    </div>
+                    <div className="overflow-hidden min-w-0 flex-1">
+                        <h3 className="text-sm font-bold text-white truncate">{adminName || 'Admin'}</h3>
+                        <p className="text-[10px] text-purple-200/80 font-semibold tracking-wider truncate uppercase">System Controller</p>
+                    </div>
+                </div>
+            ) : (
+                <div className="flex justify-center" title={`${adminName || 'Admin'} (System Controller)`}>
+                    <div className="w-10 h-10 bg-linear-to-br from-purple-700 to-indigo-900 rounded-2xl flex items-center justify-center text-white border border-purple-500/30 shadow-md">
+                        <span className="text-white text-xs font-bold rotate-45">▲▲</span>
+                    </div>
+                </div>
+            )}
+
+            {/* Navigation Links */}
+            <nav className="space-y-1">
+                {navItems.map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            prefetch={true}
+                            className="block group relative"
+                        >
+                            <div
+                                className={`flex items-center rounded-2xl transition-all relative ${
+                                    collapsed
+                                        ? 'justify-center w-11 h-11 mx-auto'
+                                        : 'gap-3.5 px-3.5 py-2.5 mx-1'
+                                } ${
+                                    isActive
+                                        ? 'bg-purple-50 text-purple-700 font-bold shadow-xs'
+                                        : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50/60 dark:hover:text-purple-400'
+                                }`}
+                            >
+                                {isActive && !collapsed && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-purple-600 rounded-r-full" />
+                                )}
+                                {isActive && collapsed && (
+                                    <div className="absolute inset-0 rounded-2xl border-2 border-purple-600/30 bg-purple-50" />
+                                )}
+                                <item.icon
+                                    size={20}
+                                    weight={isActive ? "bold" : "regular"}
+                                    className={`relative z-10 shrink-0 ${
+                                        isActive
+                                            ? 'text-purple-600 dark:text-purple-400'
+                                            : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
+                                    } transition-colors`}
+                                />
+                                {!collapsed && (
+                                    <span className="text-[13.5px] whitespace-nowrap font-semibold truncate relative z-10">
+                                        {item.name}
+                                    </span>
+                                )}
+
+                                {/* Hover Tooltip when collapsed */}
+                                {collapsed && (
+                                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#071A4D] text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
+                                        {item.name}
+                                    </div>
+                                )}
+                            </div>
+                        </Link>
+                    );
+                })}
+            </nav>
+        </div>
+
+        {/* Sign Out Button */}
+        <div className="p-3 border-t border-purple-50">
+            <button
+                onClick={onSignOut}
+                className={`flex items-center rounded-2xl transition-all font-semibold text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 group relative ${
+                    collapsed
+                        ? 'justify-center w-11 h-11 mx-auto'
+                        : 'gap-3.5 px-3.5 py-2.5 w-full'
+                }`}
+            >
+                <SignOutIcon size={20} className="shrink-0" />
+                {!collapsed && <span className="text-[13.5px]">Sign Out</span>}
+                {collapsed && (
+                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
+                        Sign Out
+                    </div>
+                )}
+            </button>
+        </div>
+    </>
+    );
+}
+
 export default function AdminLayout({
     children,
 }: {
@@ -152,107 +267,6 @@ export default function AdminLayout({
         return <>{children}</>;
     }
 
-    // Shared sidebar content with perfect collapsed/expanded symmetry
-    const SidebarContent = ({ collapsed }: { collapsed?: boolean }) => (
-        <>
-            <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-4 space-y-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                {/* Admin Profile Mini */}
-                {!collapsed ? (
-                    <div className="p-3.5 mx-1.5 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-3 shadow-md shadow-purple-900/10 transition-all">
-                        <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20">
-                            <span className="text-white text-base font-bold rotate-45">▲▲</span>
-                        </div>
-                        <div className="overflow-hidden min-w-0 flex-1">
-                            <h3 className="text-sm font-bold text-white truncate">{adminUser?.name || 'Admin'}</h3>
-                            <p className="text-[10px] text-purple-200/80 font-semibold tracking-wider truncate uppercase">System Controller</p>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="flex justify-center" title={`${adminUser?.name || 'Admin'} (System Controller)`}>
-                        <div className="w-10 h-10 bg-linear-to-br from-purple-700 to-indigo-900 rounded-2xl flex items-center justify-center text-white border border-purple-500/30 shadow-md">
-                            <span className="text-white text-xs font-bold rotate-45">▲▲</span>
-                        </div>
-                    </div>
-                )}
-
-                {/* Navigation Links */}
-                <nav className="space-y-1">
-                    {navItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        return (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                prefetch={true}
-                                className="block group relative"
-                            >
-                                <div
-                                    className={`flex items-center rounded-2xl transition-all relative ${
-                                        collapsed
-                                            ? 'justify-center w-11 h-11 mx-auto'
-                                            : 'gap-3.5 px-3.5 py-2.5 mx-1'
-                                    } ${
-                                        isActive
-                                            ? 'bg-purple-50 text-purple-700 font-bold shadow-xs'
-                                            : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50/60 dark:hover:text-purple-400'
-                                    }`}
-                                >
-                                    {isActive && !collapsed && (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-purple-600 rounded-r-full" />
-                                    )}
-                                    {isActive && collapsed && (
-                                        <div className="absolute inset-0 rounded-2xl border-2 border-purple-600/30 bg-purple-50" />
-                                    )}
-                                    <item.icon
-                                        size={20}
-                                        weight={isActive ? "bold" : "regular"}
-                                        className={`relative z-10 shrink-0 ${
-                                            isActive
-                                                ? 'text-purple-600 dark:text-purple-400'
-                                                : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
-                                        } transition-colors`}
-                                    />
-                                    {!collapsed && (
-                                        <span className="text-[13.5px] whitespace-nowrap font-semibold truncate relative z-10">
-                                            {item.name}
-                                        </span>
-                                    )}
-
-                                    {/* Hover Tooltip when collapsed */}
-                                    {collapsed && (
-                                        <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#071A4D] text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
-                                            {item.name}
-                                        </div>
-                                    )}
-                                </div>
-                            </Link>
-                        );
-                    })}
-                </nav>
-            </div>
-
-            {/* Sign Out Button */}
-            <div className="p-3 border-t border-purple-50">
-                <button
-                    onClick={handleSignOut}
-                    className={`flex items-center rounded-2xl transition-all font-semibold text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 group relative ${
-                        collapsed
-                            ? 'justify-center w-11 h-11 mx-auto'
-                            : 'gap-3.5 px-3.5 py-2.5 w-full'
-                    }`}
-                >
-                    <SignOutIcon size={20} className="shrink-0" />
-                    {!collapsed && <span className="text-[13.5px]">Sign Out</span>}
-                    {collapsed && (
-                        <div className="absolute left-full ml-3 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
-                            Sign Out
-                        </div>
-                    )}
-                </button>
-            </div>
-        </>
-    );
-
     return (
         <div className="min-h-screen bg-[#FDFCFE] flex font-sans selection:bg-purple-200 dark:bg-white/5">
             {/* ── DESKTOP SIDEBAR ── */}
@@ -291,7 +305,7 @@ export default function AdminLayout({
                     )}
                 </div>
 
-                <SidebarContent collapsed={!isSidebarOpen} />
+                <SidebarContent collapsed={!isSidebarOpen} pathname={pathname} adminName={adminUser?.name} onSignOut={handleSignOut} />
             </motion.aside>
 
             {/* ── MOBILE SIDEBAR OVERLAY ── */}
@@ -321,7 +335,7 @@ export default function AdminLayout({
                                     <XIcon size={20} />
                                 </button>
                             </div>
-                            <SidebarContent collapsed={false} />
+                            <SidebarContent collapsed={false} pathname={pathname} adminName={adminUser?.name} onSignOut={handleSignOut} />
                         </motion.aside>
                     </>
                 )}
