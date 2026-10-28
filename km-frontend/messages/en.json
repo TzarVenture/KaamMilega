@@ -1,0 +1,285 @@
+{
+  "language": {
+    "label": "Language"
+  },
+  "nav": {
+    "jobs": "Jobs",
+    "instantMilega": "InstantMilega™",
+    "mentors": "Mentors",
+    "events": "Events",
+    "network": "Network",
+    "searchLabel": "Search jobs, skills, companies and more",
+    "clearSearch": "Clear search",
+    "search": "Search",
+    "openSearch": "Open search",
+    "toggleMenu": "Open or close the menu",
+    "app": "App",
+    "signIn": "Sign in",
+    "hireStaff": "Hire staff",
+    "browse": "Browse",
+    "appearance": "Appearance",
+    "language": "Language",
+    "signInCandidate": "Sign in as candidate",
+    "hireLocalStaff": "Hire local staff (recruiter portal)",
+    "installApp": "Get the mobile app"
+  },
+  "footer": {
+    "tagline": "India's verified employment and skill platform",
+    "highlights": "Direct HR calls • Zero brokerage • Verified profiles",
+    "highlightsInstant": "Direct HR calls • Zero brokerage • Verified profiles • InstantMilega™ shifts",
+    "motto": "Har Kaam, Har Mauka™",
+    "legal": "Legal",
+    "jobseekerFaqs": "Jobseeker FAQs",
+    "employerFaqs": "Employer FAQs",
+    "userTerms": "User terms and conditions",
+    "privacy": "Privacy policy",
+    "employerTerms": "Employer terms of service",
+    "guidelines": "Connect Like You guidelines",
+    "services": "Services",
+    "byCategory": "Job search by category",
+    "byCity": "Job search by city",
+    "browseSearch": "Browse search",
+    "jobAlerts": "Free job alerts",
+    "recommended": "Recommended jobs",
+    "similar": "Similar jobs",
+    "resumeBuilder": "Resume builder",
+    "subscription": "Subscription (wallets)",
+    "solutions": "Solutions",
+    "connectLikeYou": "Connect Like You",
+    "premiumSearch": "Premium job search",
+    "learn": "Learn with KM",
+    "promotion": "Promotion (ad network)",
+    "howWeWork": "How we work",
+    "connect": "Connect",
+    "about": "About",
+    "support": "Support",
+    "career": "Career",
+    "followUs": "Follow us",
+    "employer": "Company / employer",
+    "hireLocalStaff": "Hire local staff",
+    "postJob": "Post a job",
+    "brand": "Build your brand",
+    "contactSupport": "Contact support",
+    "appTitle": "Apply on the go",
+    "appText": "Get real-time updates in our app",
+    "rights": "All rights reserved © {year} KaamMilega™, India's most trusted work and skill platform",
+    "slogan": "Kaam Bhi. Skill Bhi. Kamaai Bhi."
+  },
+  "appDownload": {
+    "notifyLabel": "Get a message when the app launches",
+    "mobilePlaceholder": "Mobile number",
+    "notifyMe": "Notify me",
+    "saving": "Saving…",
+    "saved": "You are on the list. We will tell you on +91 {mobile} as soon as the app is live.",
+    "saveError": "Could not save your number. Please try again.",
+    "comingSoon": "Coming soon",
+    "googlePlay": "Get it on Google Play",
+    "appStore": "Download on the App Store",
+    "badgeSoon": "{store} (coming soon)",
+    "qrAlt": "QR code to download the KaamMilega app",
+    "qrText": "Scan with your phone camera to get the app",
+    "modalTitle": "Get the KaamMilega app",
+    "modalTitleSoon": "The KaamMilega app is coming soon",
+    "modalText": "InstantMilega, live tracking and work alerts are in the app.",
+    "close": "Close",
+    "iWantTo": "I want to",
+    "wantHire": "I want to hire",
+    "wantWork": "I want to work"
+  },
+  "instantMilega": {
+    "meta": {
+      "title": "InstantMilega: local help and work in minutes | KaamMilega",
+      "description": "Book a verified worker nearby or get work alerts near you, with live tracking and start and finish codes. Coming soon in the KaamMilega app for Android and iOS."
+    },
+    "iWantTo": "I want to",
+    "hire": "Hire",
+    "work": "Work",
+    "hero": {
+      "titleHire": "Help at your door, <accent>in minutes</accent>",
+      "titleWork": "Work near you, <accent>in minutes</accent>",
+      "textHire": "Book a verified worker nearby, see them coming on the map, and pay in the app.",
+      "textWork": "Turn on Free now, get work alerts from customers nearby, and withdraw your earnings instantly.",
+      "imageAlt": "A customer finding verified workers nearby on the InstantMilega map"
+    },
+    "how": {
+      "titleHire": "How booking works",
+      "titleWork": "How you get work",
+      "textHire": "Four steps from request to finished job.",
+      "textWork": "Four steps from sign-up to money in your bank.",
+      "toWork": "Looking for work instead?",
+      "toHire": "Want to hire instead?",
+      "step": "Step {n}"
+    },
+    "steps": {
+      "hire": {
+        "choose": {
+          "title": "Choose a service",
+          "text": "Pick what you need and share your location."
+        },
+        "match": {
+          "title": "Get matched",
+          "text": "Choose a worker yourself, or let the app send it to the best-rated worker nearby."
+        },
+        "start": {
+          "title": "Start code on arrival",
+          "text": "Track them on the map. When they arrive, share your start code."
+        },
+        "finish": {
+          "title": "Finish code and pay",
+          "text": "When the work is done, share your finish code and pay in the app. You get a bill."
+        }
+      },
+      "work": {
+        "verify": {
+          "title": "Get verified",
+          "text": "Add Aadhaar, PAN and bank details. Our team checks them the same day."
+        },
+        "free": {
+          "title": "Go Free now",
+          "text": "Turn on Free now when you are ready, and get alerts for work near you."
+        },
+        "accept": {
+          "title": "Accept in 120 seconds",
+          "text": "See the work, the place and the pay. Accept it and head to the customer."
+        },
+        "paid": {
+          "title": "Get paid",
+          "text": "The finish code closes the job. Your money lands in your wallet; withdraw it instantly."
+        }
+      }
+    },
+    "pair": {
+      "alert": {
+        "title": "120 seconds to respond",
+        "text": "Each request goes to one worker at a time. If they do not accept in 120 seconds, it moves to the next."
+      },
+      "codes": {
+        "title": "Start and finish codes",
+        "text": "Work starts only with the customer’s start code and closes only with their finish code."
+      }
+    },
+    "map": {
+      "title": "Know where they are",
+      "live": {
+        "title": "Live map",
+        "text": "Follow the worker on the way to you, like a cab ride."
+      },
+      "eta": {
+        "title": "Arrival time",
+        "text": "See when they will reach, for example \"Arriving in 10 min\"."
+      },
+      "call": {
+        "title": "Chat and call",
+        "text": "Talk in the app, or call their number once the booking is confirmed."
+      },
+      "alerts": {
+        "title": "Instant alerts",
+        "text": "Workers hear about new work nearby even when the app is closed."
+      }
+    },
+    "services": {
+      "title": "Launching with",
+      "text": "More services will follow after launch.",
+      "plumber": "Plumber",
+      "warehouse": "Warehouse worker",
+      "loader": "Loader and unloader",
+      "officeBoy": "Office boy",
+      "retail": "Retail executive",
+      "airport": "Airport assistant",
+      "mall": "Mall assistant"
+    },
+    "trust": {
+      "title": "Safe for both sides",
+      "verified": {
+        "title": "Verified workers",
+        "text": "Aadhaar, PAN and bank checked by our team, with at least 2 years of experience."
+      },
+      "rating": {
+        "title": "Better rated first",
+        "text": "Higher-rated workers get your request first, even if a little farther away."
+      },
+      "paid": {
+        "title": "Paid in the app",
+        "text": "Online payment only, with a bill for every job."
+      },
+      "support": {
+        "title": "Help when you need it",
+        "text": "Support by in-app chat, phone and WhatsApp."
+      }
+    },
+    "pass": {
+      "title": "One pass for all of KaamMilega",
+      "text": "The same pass for customers and workers. No commission on the service itself.",
+      "limit": "10 bookings or gigs, or 90 days, whichever comes first",
+      "covers": "Covers InstantMilega, chats and 10 mentors",
+      "counts": "Every booking counts, even a cancelled one; unused ones lapse",
+      "refund": "Full refund if you have not used it"
+    },
+    "screens": {
+      "title": "A look inside the app"
+    },
+    "languages": {
+      "title": "In your language, across India",
+      "text": "Use the app in any of these languages."
+    },
+    "faq": {
+      "title": "Questions",
+      "whyApp": {
+        "q": "Why only in the app?",
+        "a": "InstantMilega needs your live location for matching, alerts and tracking, which works reliably only in the app. Jobs, skills, experts and events stay on the website as they are. <link>Browse jobs</link>"
+      },
+      "launch": {
+        "q": "When does the app launch?",
+        "a": "Soon, on Android and iOS. Leave your number on this page and we will tell you the day it is live."
+      },
+      "cost": {
+        "q": "What does it cost?",
+        "a": "Creating a profile, looking around and your first 3 chats are free. Booking or taking work needs the ₹99 pass. KaamMilega takes no commission on the service itself; if a small platform fee applies, you see it before you confirm."
+      },
+      "noAccept": {
+        "q": "What if no worker accepts?",
+        "a": "Each worker gets 120 seconds, then the request moves on. If nobody is free, you can pick another time or offer a higher rate."
+      },
+      "cancel": {
+        "q": "Can I cancel?",
+        "a": "Before a worker accepts, you get a full refund. Once they are on the way, a small fee goes to the worker; after they arrive, a visit fee. Cancelled bookings count towards your pass."
+      },
+      "parts": {
+        "q": "Who pays for extra parts?",
+        "a": "Parts or extra material are paid to the worker directly. The service itself is paid online in the app."
+      },
+      "oneAccount": {
+        "q": "Can I hire and work from the same account?",
+        "a": "Yes. One KaamMilega account lets you hire, work and find jobs; switch between Hire and Work at the top of the app."
+      }
+    },
+    "closing": {
+      "title": "Be the first to know",
+      "text": "The KaamMilega app is coming to Android and iOS. Hire, work and find jobs from one account."
+    },
+    "art": {
+      "tracking": {
+        "label": "A worker moving on the map towards the customer's home, arriving in 10 minutes",
+        "eta": "Arriving in 10 min",
+        "arrived": "Arrived"
+      },
+      "alert": {
+        "label": "A new work alert near the worker with a 120 second timer, accepted by the worker",
+        "newWork": "New work nearby",
+        "job": "Loader and unloader",
+        "distance": "1.2 km away",
+        "seconds": "120s",
+        "decline": "Decline",
+        "accept": "Accept",
+        "accepted": "Accepted"
+      },
+      "codes": {
+        "label": "The customer's start code begins the work and the finish code closes it",
+        "start": "Start code",
+        "finish": "Finish code",
+        "started": "Started",
+        "done": "Done"
+      }
+    }
+  }
+}

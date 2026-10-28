@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import { NotificationProvider } from "@/lib/notifications";
 import AppToaster from "@/components/km/AppToaster";
 import PushSync from "@/components/km/PushSync";
@@ -11,6 +13,8 @@ import "./globals.css";
 // Fonts are self-hosted from ./fonts (SIL OFL, see the OFL-*.txt files there). next/font/google
 // downloads them during the build, and Google sometimes answers build servers with
 // /l/font?kit=...&skey=... URLs that Turbopack can't resolve, which failed the production build.
+// Hindi, Marathi, Gujarati and Bengali text: the "KM Noto …" faces (globals.css) follow
+// the Latin face in each stack, so those scripts render in Noto wherever Poppins or Inter is used.
 const poppins = localFont({
   src: [
     { path: "./fonts/poppins-latin-400-normal.woff2", weight: "400", style: "normal" },
@@ -21,7 +25,7 @@ const poppins = localFont({
   ],
   variable: "--font-poppins",
   display: "swap",
-  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+  fallback: ["KM Noto Devanagari", "KM Noto Gujarati", "KM Noto Bengali", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
 const inter = localFont({
@@ -29,7 +33,7 @@ const inter = localFont({
   weight: "100 900",
   variable: "--font-inter",
   display: "swap",
-  fallback: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
+  fallback: ["KM Noto Devanagari", "KM Noto Gujarati", "KM Noto Bengali", "system-ui", "-apple-system", "Segoe UI", "Roboto", "sans-serif"],
 });
 
 const notoSansDevanagari = localFont({
@@ -74,13 +78,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <html lang="en" suppressHydrationWarning className={`${poppins.variable} ${inter.variable} ${notoSansDevanagari.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${poppins.variable} ${inter.variable} ${notoSansDevanagari.variable}`}>
       {/* Applies the saved theme before first paint so there is no light/dark flash */}
       {FEATURES.DARK_MODE && (
         <head>
@@ -88,12 +93,14 @@ export default function RootLayout({
         </head>
       )}
       <body className="font-poppins antialiased bg-km-surface text-km-text-primary">
-        <NotificationProvider>
-          {children}
-        </NotificationProvider>
-        <AppToaster />
-        <PushSync />
-        <PushInvite />
+        <NextIntlClientProvider>
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
+          <AppToaster />
+          <PushSync />
+          <PushInvite />
+        </NextIntlClientProvider>
       </body>
     </html>
   );

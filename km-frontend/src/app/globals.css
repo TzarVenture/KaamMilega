@@ -240,6 +240,31 @@
 
 }
 
+/* Hindi/Marathi, Gujarati and Bengali glyphs. Fixed family names so the Poppins and Inter stacks (layout.tsx)
+   can list them; unicode-range keeps them out of Latin text and downloads them only on pages that
+   show those scripts. */
+@font-face {
+  font-family: "KM Noto Devanagari";
+  src: url("./fonts/noto-sans-devanagari-devanagari-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0900-097F, U+1CD0-1CF9, U+200C-200D, U+25CC, U+A830-A839, U+A8E0-A8FF;
+}
+@font-face {
+  font-family: "KM Noto Gujarati";
+  src: url("./fonts/noto-sans-gujarati-gujarati-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0A80-0AFF, U+200C-200D, U+25CC, U+A830-A839;
+}
+@font-face {
+  font-family: "KM Noto Bengali";
+  src: url("./fonts/noto-sans-bengali-bengali-wght-normal.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  unicode-range: U+0980-09FE, U+1CD0-1CF9, U+200C-200D, U+25CC, U+A8F1;
+}
+
 /* Fonts stay in a regular @theme block (they resolve to the next/font variables on <html>) */
 @theme {
   --font-poppins: var(--font-poppins);

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslations } from 'next-intl';
 import s from './instantMilegaArt.module.css';
 
 // Animated illustrations for the InstantMilega page. Colours come from the km-* tokens so they
@@ -13,8 +14,9 @@ const BLOCKS: [number, number, number, number][] = [
 
 /** Customer view: the worker drives to the door, "Arriving in 10 min" turns into "Arrived" */
 export function LiveTrackingArt() {
+    const t = useTranslations('instantMilega.art.tracking');
     return (
-        <svg viewBox="0 0 480 300" className={s.art} role="img" aria-label="A worker moving on the map towards the customer's home, arriving in 10 minutes">
+        <svg viewBox="0 0 480 300" className={s.art} role="img" aria-label={t('label')}>
             <rect x="0.5" y="0.5" width="479" height="299" rx="24" fill="var(--km-surface)" stroke="var(--km-border)" />
             {BLOCKS.map(([x, y, w, h]) => (
                 <rect key={`${x}-${y}`} x={x} y={y} width={w} height={h} rx="10" fill="var(--km-surface-card)" stroke="var(--km-border-subtle)" />
@@ -45,10 +47,10 @@ export function LiveTrackingArt() {
             <circle cx="46" cy="46" r="8" fill="none" stroke="var(--km-instant)" strokeWidth="2" />
             <path d="M46 41.5 V46 L49.5 48" fill="none" stroke="var(--km-instant)" strokeWidth="2" strokeLinecap="round" />
             <text x="62" y="52" fontSize="16" fontWeight="600" fill="var(--km-text-primary)" className={s.eta}>
-                Arriving in 10 min
+                {t('eta')}
             </text>
             <text x="62" y="52" fontSize="16" fontWeight="600" fill="var(--km-text-primary)" className={s.arrived}>
-                Arrived
+                {t('arrived')}
             </text>
         </svg>
     );
@@ -56,8 +58,9 @@ export function LiveTrackingArt() {
 
 /** Worker view: a work alert with the 120-second timer, then "Accepted" */
 export function WorkAlertArt() {
+    const t = useTranslations('instantMilega.art.alert');
     return (
-        <svg viewBox="0 0 480 300" className={s.art} role="img" aria-label="A new work alert near the worker with a 120 second timer, accepted by the worker">
+        <svg viewBox="0 0 480 300" className={s.art} role="img" aria-label={t('label')}>
             <rect x="0.5" y="0.5" width="479" height="299" rx="24" fill="var(--km-surface)" stroke="var(--km-border)" />
             <rect x="60" y="40" width="360" height="220" rx="20" fill="var(--km-surface-card)" stroke="var(--km-border)" />
 
@@ -67,26 +70,26 @@ export function WorkAlertArt() {
                     <circle cy="20" r="2.5" fill="var(--km-instant)" />
                 </g>
             </g>
-            <text x="114" y="86" fontSize="15" fontWeight="500" fill="var(--km-text-secondary)">New work nearby</text>
-            <text x="84" y="128" fontSize="22" fontWeight="600" fill="var(--km-text-primary)">Loader and unloader</text>
-            <text x="84" y="156" fontSize="15" fill="var(--km-text-secondary)">1.2 km away</text>
+            <text x="114" y="86" fontSize="15" fontWeight="500" fill="var(--km-text-secondary)">{t('newWork')}</text>
+            <text x="84" y="128" fontSize="22" fontWeight="600" fill="var(--km-text-primary)">{t('job')}</text>
+            <text x="84" y="156" fontSize="15" fill="var(--km-text-secondary)">{t('distance')}</text>
 
             {/* 120-second timer */}
             <circle cx="360" cy="112" r="30" fill="none" stroke="var(--km-border)" strokeWidth="6" />
             <circle className={s.timer} cx="360" cy="112" r="30" pathLength={100} fill="none" stroke="var(--km-instant)" strokeWidth="6" strokeLinecap="round" transform="rotate(-90 360 112)" />
-            <text x="360" y="118" fontSize="16" fontWeight="600" textAnchor="middle" fill="var(--km-text-primary)">120s</text>
+            <text x="360" y="118" fontSize="16" fontWeight="600" textAnchor="middle" fill="var(--km-text-primary)">{t('seconds')}</text>
 
             {/* Actions */}
             <rect x="84" y="186" width="150" height="48" rx="12" fill="none" stroke="var(--km-border)" strokeWidth="1.5" />
-            <text x="159" y="216" fontSize="16" fontWeight="600" textAnchor="middle" fill="var(--km-text-primary)">Decline</text>
+            <text x="159" y="216" fontSize="16" fontWeight="600" textAnchor="middle" fill="var(--km-text-primary)">{t('decline')}</text>
             <g className={s.accept}>
                 <rect x="246" y="186" width="150" height="48" rx="12" fill="var(--km-instant)" />
-                <text x="321" y="216" fontSize="16" fontWeight="600" textAnchor="middle" fill="#FFFFFF">Accept</text>
+                <text x="321" y="216" fontSize="16" fontWeight="600" textAnchor="middle" fill="#FFFFFF">{t('accept')}</text>
             </g>
             <g className={s.accepted}>
                 <rect x="246" y="186" width="150" height="48" rx="12" fill="#16A34A" />
                 <path d="M264 210 l5 5 l10 -11" fill="none" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                <text x="335" y="216" fontSize="16" fontWeight="600" textAnchor="middle" fill="#FFFFFF">Accepted</text>
+                <text x="335" y="216" fontSize="16" fontWeight="600" textAnchor="middle" fill="#FFFFFF">{t('accepted')}</text>
             </g>
         </svg>
     );
@@ -120,11 +123,12 @@ function CodeRow({ y, label, digits, classes, checkClass, done }: { y: number; l
 
 /** The two codes that start and close every job */
 export function CodesArt() {
+    const t = useTranslations('instantMilega.art.codes');
     return (
-        <svg viewBox="0 0 480 300" className={s.art} role="img" aria-label="The customer's start code begins the work and the finish code closes it">
+        <svg viewBox="0 0 480 300" className={s.art} role="img" aria-label={t('label')}>
             <rect x="0.5" y="0.5" width="479" height="299" rx="24" fill="var(--km-surface)" stroke="var(--km-border)" />
-            <CodeRow y={40} label="Start code" digits={START} classes={START_CLASSES} checkClass={s.sc} done="Started" />
-            <CodeRow y={168} label="Finish code" digits={FINISH} classes={FINISH_CLASSES} checkClass={s.fc} done="Done" />
+            <CodeRow y={40} label={t('start')} digits={START} classes={START_CLASSES} checkClass={s.sc} done={t('started')} />
+            <CodeRow y={168} label={t('finish')} digits={FINISH} classes={FINISH_CLASSES} checkClass={s.fc} done={t('done')} />
         </svg>
     );
 }

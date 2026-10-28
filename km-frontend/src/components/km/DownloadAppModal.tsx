@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { XIcon } from '@phosphor-icons/react';
+import { useTranslations } from 'next-intl';
 import { APP_AVAILABLE } from '@/config/appLinks';
 import { AppNotifyForm, AppQrCode, StoreBadges, type AppInterest } from './AppDownload';
 
@@ -19,6 +20,7 @@ export default function DownloadAppModal({ isOpen, ...rest }: DownloadAppModalPr
 }
 
 function DownloadAppDialog({ onClose, interest: initialInterest = 'hire', trade }: Omit<DownloadAppModalProps, 'isOpen'>) {
+    const t = useTranslations('appDownload');
     const [interest, setInterest] = useState<AppInterest>(initialInterest);
 
     useEffect(() => {
@@ -48,16 +50,16 @@ function DownloadAppDialog({ onClose, interest: initialInterest = 'hire', trade 
                 <div className="flex items-start justify-between gap-4 px-6 pt-6">
                     <div>
                         <h3 id="download-app-title" className="text-lg font-semibold text-km-text-primary">
-                            {APP_AVAILABLE ? 'Get the KaamMilega app' : 'The KaamMilega app is coming soon'}
+                            {APP_AVAILABLE ? t('modalTitle') : t('modalTitleSoon')}
                         </h3>
                         <p className="mt-1 text-sm text-km-text-secondary">
-                            InstantMilega, live tracking and work alerts are in the app.
+                            {t('modalText')}
                         </p>
                     </div>
                     <button
                         onClick={onClose}
                         className="p-1.5 -mr-1.5 rounded-lg text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface transition-colors cursor-pointer"
-                        aria-label="Close"
+                        aria-label={t('close')}
                     >
                         <XIcon size={18} aria-hidden="true" />
                     </button>
@@ -69,7 +71,7 @@ function DownloadAppDialog({ onClose, interest: initialInterest = 'hire', trade 
 
                     {!APP_AVAILABLE && (
                         <div className="space-y-3 pt-1">
-                            <div role="radiogroup" aria-label="I want to" className="inline-flex p-1 rounded-xl bg-km-surface border border-km-border">
+                            <div role="radiogroup" aria-label={t('iWantTo')} className="inline-flex p-1 rounded-xl bg-km-surface border border-km-border">
                                 {(['hire', 'work'] as const).map((value) => (
                                     <button
                                         key={value}
@@ -81,7 +83,7 @@ function DownloadAppDialog({ onClose, interest: initialInterest = 'hire', trade 
                                             interest === value ? 'bg-km-surface-card text-km-text-primary shadow-xs' : 'text-km-text-secondary hover:text-km-text-primary'
                                         }`}
                                     >
-                                        {value === 'hire' ? 'I want to hire' : 'I want to work'}
+                                        {value === 'hire' ? t('wantHire') : t('wantWork')}
                                     </button>
                                 ))}
                             </div>
