@@ -2,9 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { CalendarBlankIcon, ChatIcon, CheckCircleIcon, MapPinIcon, TrashIcon, UserMinusIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { ImpressionWrapper } from '@/lib/telemetry';
+import { useFormat } from '@/i18n/useFormat';
 
 export interface ProfileCardUser {
     id?: string;
@@ -73,25 +75,30 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
     onDismiss,
     onBook,
 }) => {
+    const t = useTranslations('people');
+    const { number } = useFormat();
     const userId = user.id || user._id || '';
     const rawName = user.name || user.full_name || (user.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : '');
-    const cleanName = rawName ? rawName.replace(/\s*\.+$/, '') : 'Verified Member';
-    const headline = user.headline || user.designation || user.expertise || (user.job_categories?.[0] ? `${user.job_categories[0]} Specialist` : 'Trade & Career Member');
+    const cleanName = rawName ? rawName.replace(/\s*\.+$/, '') : t('member');
+    const headline =
+        user.headline ||
+        user.designation ||
+        user.expertise ||
+        (user.job_categories?.[0] ? t('specialist', { category: user.job_categories[0] }) : t('defaultHeadline'));
     const profileHref = userId ? (actionType === 'expert' || user.roles?.includes('expert') ? `/expert/${userId}` : `/profile/${userId}`) : '#';
 
     const handleConnectAction = onConnect || onFollow;
 
+    const mutualCount = (user.mutual_connections_count || 0) > 0 ? user.mutual_connections_count! : user.mutual_connects || 0;
     const displayBadge = badgeText !== undefined
         ? badgeText
         : user.primary_match_badge
             ? user.primary_match_badge
-            : (user.mutual_connections_count && user.mutual_connections_count > 0)
-                ? `${user.mutual_connections_count} Mutual ${user.mutual_connections_count === 1 ? 'Connect' : 'Connects'}`
-                : (user.mutual_connects && user.mutual_connects > 0)
-                    ? `${user.mutual_connects} Mutual Connects`
-                    : user.rating
-                        ? `${user.rating} ★ Rating`
-                        : null;
+            : mutualCount > 0
+                ? t('mutual', { count: mutualCount, n: number(mutualCount) })
+                : user.rating
+                    ? t('rating', { rating: String(user.rating) })
+                    : null;
 
     const isGrid = variant === 'grid';
 
@@ -109,7 +116,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                     type="button"
                     onClick={() => onDismiss(userId)}
                     className="absolute top-3 right-3 text-slate-300 hover:text-slate-600 transition-colors p-1.5 rounded-lg cursor-pointer"
-                    aria-label="Dismiss recommendation"
+                    aria-label={t('dismiss')}
                 >
                     <XIcon weight="bold" size={15} />
                 </button>
@@ -121,20 +128,19 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                     type="button"
                     onClick={() => onRemove(userId)}
                     className="absolute top-3 right-3 text-slate-300 hover:text-red-600 hover:bg-red-50 transition-colors p-1.5 rounded-lg cursor-pointer dark:hover:text-red-400"
-                    aria-label="Remove connection"
-                    title="Remove connection"
+                    aria-label={t('removeConnection')}
+                    title={t('removeConnection')}
                 >
                     <TrashIcon weight="bold" size={15} />
                 </button>
             )}
 
             <Link href={profileHref} className="w-full flex flex-col items-center cursor-pointer">
-                {/* Avatar with online status */}
+                {/* Avatar */}
                 <div className="relative mb-2.5 shrink-0">
                     <div className="w-16 h-16 rounded-full bg-km-surface border-2 border-km-border group-hover/card:border-[#071A4D] flex items-center justify-center overflow-hidden shadow-2xs transition-colors dark:group-hover/card:border-km-link">
                         <UserAvatar src={user.profile_image} name={cleanName} />
                     </div>
-                    <div className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-km-surface-card" />
                 </div>
 
                 {/* Name */}
@@ -194,7 +200,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                     className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98] dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                 >
                                     <ChatIcon weight="bold" size={14} />
-                                    <span>Message</span>
+                                    <span>{t('message')}</span>
                                 </button>
                                 {onRemove && (
                                     <button
@@ -203,7 +209,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                         className="w-full py-1.5 bg-km-surface-card hover:bg-red-50 text-slate-600 hover:text-red-600 rounded-xl text-xs font-medium border border-slate-200 hover:border-red-200 flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-[0.98] dark:hover:text-red-400"
                                     >
                                         <UserMinusIcon weight="bold" size={13} />
-                                        <span>Remove Connection</span>
+                                        <span>{t('removeConnection')}</span>
                                     </button>
                                 )}
                             </div>
@@ -214,7 +220,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                     className="w-full py-2 bg-[#FF6B00] hover:bg-[#E05E00] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98]"
                                 >
                                     <CalendarBlankIcon weight="bold" size={14} />
-                                    <span>Book Session</span>
+                                    <span>{t('bookSession')}</span>
                                 </Link>
                                 <button
                                     type="button"
@@ -222,7 +228,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                     className="w-full py-1.5 rounded-xl border border-km-border text-km-heading text-xs font-semibold flex items-center justify-center gap-1.5 hover:bg-km-surface hover:border-[#071A4D] transition-all cursor-pointer active:scale-[0.98] dark:hover:border-km-link"
                                 >
                                     <ChatIcon weight="bold" size={14} />
-                                    <span>Chat</span>
+                                    <span>{t('chat')}</span>
                                 </button>
                             </div>
                         ) : (
@@ -235,7 +241,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                         className="w-full py-2 bg-slate-100 text-slate-500 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-default border border-slate-200"
                                     >
                                         <CheckCircleIcon weight="bold" size={13} className="text-emerald-500 dark:text-emerald-400" />
-                                        <span>Pending</span>
+                                        <span>{t('pending')}</span>
                                     </button>
                                 ) : (
                                     <button
@@ -244,7 +250,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                                         className="w-full py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-[0.98] dark:bg-km-primary dark:hover:bg-km-primary-dark"
                                     >
                                         <UserPlusIcon weight="bold" size={14} />
-                                        <span>Connect</span>
+                                        <span>{t('connect')}</span>
                                     </button>
                                 )
                             )

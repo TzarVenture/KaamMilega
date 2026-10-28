@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { ArrowRightIcon, BriefcaseIcon, CheckCircleIcon, LightningIcon, LockIcon, PlusIcon, UserCheckIcon } from '@phosphor-icons/react';
 import { CRITERION_META, fetchProfileCompletion, PROFILE_UPDATED_EVENT, type ProfileCompletion } from '@/lib/profileStrength';
 import { useInViewOnce } from '@/lib/useInViewOnce';
@@ -13,31 +14,16 @@ interface CandidateProgressCardProps {
 
 interface Milestone {
     threshold: number;
-    title: string;
-    description: string;
+    /** profileProgress.<key>.title / .text in the messages */
+    key: 'basic' | 'professional' | 'expert';
     icon: React.ReactNode;
 }
 
 // Milestones from docs/client_queries_deep_analysis.md §1.1
 const MILESTONES: Milestone[] = [
-    {
-        threshold: 30,
-        title: 'Basic',
-        description: 'Browse local jobs, see wage benchmarks and chat with up to 3 people.',
-        icon: <UserCheckIcon weight="bold" size={16} className="text-km-heading" />,
-    },
-    {
-        threshold: 70,
-        title: 'Professional',
-        description: '1-click job applications and visibility in recruiter search.',
-        icon: <BriefcaseIcon weight="bold" size={16} className="text-km-link" />,
-    },
-    {
-        threshold: 100,
-        title: 'Expert & Instant Milega',
-        description: 'Take Instant Milega gigs. Expert status also needs 2+ years of experience.',
-        icon: <LightningIcon weight="bold" size={16} className="text-[#FF6B00]" />,
-    },
+    { threshold: 30, key: 'basic', icon: <UserCheckIcon weight="bold" size={16} className="text-km-heading" /> },
+    { threshold: 70, key: 'professional', icon: <BriefcaseIcon weight="bold" size={16} className="text-km-link" /> },
+    { threshold: 100, key: 'expert', icon: <LightningIcon weight="bold" size={16} className="text-[#FF6B00]" /> },
 ];
 
 // Orange running into white: solid brand orange at the leading edge, no glow
@@ -72,6 +58,8 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
 
 /** Presentational card for a known completion result (kept separate from data loading) */
 export function ProgressCardView({ completion, userName }: { completion: ProfileCompletion; userName?: string }) {
+    const t = useTranslations('profileProgress');
+    const tc = useTranslations('profileCriteria');
     const { ref: artRef, inView: artInView } = useInViewOnce<HTMLDivElement>(0.3);
     const score = Math.max(0, Math.min(100, completion.score));
     const isFull = score >= 100;
@@ -79,27 +67,27 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
 
     const headline = isFull
         ? completion.expert_eligible
-            ? 'Your profile is complete and Expert-ready.'
-            : 'Your profile is complete. Expert status also needs 2+ years of experience.'
+            ? t('completeExpert')
+            : t('completeNeedsExperience')
         : next
-            ? `${next.threshold - score}% more to unlock ${next.title}.`
-            : 'Keep your profile up to date.';
+            ? t('toUnlock', { n: String(next.threshold - score), milestone: t(`${next.key}.title`) })
+            : t('keepUpdated');
 
     // Biggest remaining gains first
     const nextSteps = completion.criteria
         .filter((c) => !c.completed && CRITERION_META[c.id])
-        .map((c) => ({ id: c.id, gain: Math.max(0, c.weight - c.earned), title: CRITERION_META[c.id].hint }))
+        .map((c) => ({ id: c.id, gain: Math.max(0, c.weight - c.earned), title: tc(`${c.id}.hint`) }))
         .sort((a, b) => b.gain - a.gain)
         .slice(0, MAX_NEXT_STEPS);
 
     const statusFor = (m: Milestone) => {
-        if (score < m.threshold) return { unlocked: false, label: `${m.threshold}% needed` };
-        if (m.threshold === 100 && !completion.expert_eligible) return { unlocked: true, label: 'Gigs unlocked' };
-        return { unlocked: true, label: 'Unlocked' };
+        if (score < m.threshold) return { unlocked: false, label: t('needed', { n: String(m.threshold) }) };
+        if (m.threshold === 100 && !completion.expert_eligible) return { unlocked: true, label: t('gigsUnlocked') };
+        return { unlocked: true, label: t('unlocked') };
     };
 
     return (
-        <section aria-label="Profile strength" className="w-full bg-km-surface-card border border-km-border rounded-2xl p-5 sm:p-6 shadow-xs font-sans">
+        <section aria-label={t('label')} className="w-full bg-km-surface-card border border-km-border rounded-2xl p-5 sm:p-6 shadow-xs font-sans">
             {/* Header: illustration, greeting, next milestone, action */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5">
                 <div ref={artRef} data-inview={artInView} className="hidden sm:block shrink-0">
@@ -107,10 +95,13 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-km-text-secondary">
-                        Profile strength <span className="font-semibold text-[#FF6B00]">{score}%</span>
+                        {t.rich('strength', {
+                            score: (chunks) => <span className="font-semibold text-[#FF6B00]">{chunks}</span>,
+                            value: String(score),
+                        })}
                     </p>
                     <h3 className="text-lg sm:text-xl font-semibold text-km-text-primary mt-0.5 truncate">
-                        {userName ? `Welcome, ${userName}` : 'Your profile'}
+                        {userName ? t('welcome', { name: userName }) : t('yourProfile')}
                     </h3>
                     <p className="text-sm text-km-text-secondary mt-1">{headline}</p>
                 </div>
@@ -118,7 +109,7 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
                     href="/profile"
                     className="inline-flex items-center justify-center gap-2 px-5 h-11 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-sm font-semibold shrink-0 dark:bg-km-primary dark:hover:bg-km-primary-dark"
                 >
-                    <span>{isFull ? 'View profile' : 'Complete profile'}</span>
+                    <span>{isFull ? t('viewProfile') : t('completeProfile')}</span>
                     <ArrowRightIcon weight="bold" size={15} />
                 </Link>
             </div>
@@ -128,7 +119,7 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
                 <div
                     className="relative h-2.5 rounded-full bg-[#E3E9F1] dark:bg-white/10 overflow-hidden"
                     role="progressbar"
-                    aria-label="Profile completion"
+                    aria-label={t('completion')}
                     aria-valuenow={score}
                     aria-valuemin={0}
                     aria-valuemax={100}
@@ -157,7 +148,7 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
                                 className={`absolute top-0 whitespace-nowrap font-medium ${reached ? 'text-km-text-primary' : 'text-km-text-secondary'} ${last ? 'right-0' : '-translate-x-1/2'}`}
                                 style={last ? undefined : { left: `${m.threshold}%` }}
                             >
-                                {m.title === 'Expert & Instant Milega' ? 'Expert' : m.title} · {m.threshold}%
+                                {t('marker', { title: m.key === 'expert' ? t('expert.short') : t(`${m.key}.title`), n: String(m.threshold) })}
                             </span>
                         );
                     })}
@@ -167,7 +158,7 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
             {/* Quick wins: the biggest missing items */}
             {nextSteps.length > 0 && (
                 <div className="mt-4 flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-medium text-km-text-secondary mr-1">Next steps</span>
+                    <span className="text-xs font-medium text-km-text-secondary mr-1">{t('nextSteps')}</span>
                     {nextSteps.map((s) => (
                         <Link
                             key={s.id}
@@ -194,7 +185,7 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
                             <div className="flex items-center justify-between gap-2 mb-1.5">
                                 <div className="flex items-center gap-1.5 min-w-0">
                                     {m.icon}
-                                    <span className="text-sm font-semibold text-km-text-primary truncate">{m.title}</span>
+                                    <span className="text-sm font-semibold text-km-text-primary truncate">{t(`${m.key}.title`)}</span>
                                 </div>
                                 <span
                                     className={`inline-flex items-center gap-1 text-xs font-medium shrink-0 ${status.unlocked ? 'text-emerald-700' : 'text-km-text-secondary'}`}
@@ -203,7 +194,7 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
                                     {status.label}
                                 </span>
                             </div>
-                            <p className="text-xs text-km-text-secondary leading-relaxed">{m.description}</p>
+                            <p className="text-xs text-km-text-secondary leading-relaxed">{t(`${m.key}.text`)}</p>
                         </div>
                     );
                 })}

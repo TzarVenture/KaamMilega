@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 
 import ProfileConnectionCard, { ProfileCardUser } from '@/components/network/ProfileConnectionCard';
 import SectionHeader from '@/components/home/SectionHeader';
@@ -13,6 +14,7 @@ interface Props {
 
 // Same section, header and auto-scrolling row as "Connect with our experts" on the home page
 export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], connectedIds = [], onChat, onFollow }) => {
+    const t = useTranslations('home.connect');
     const [currentUserId, setCurrentUserId] = useState<string>('');
 
     useEffect(() => {
@@ -36,9 +38,9 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], co
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <SectionHeader
                     id="connect-title"
-                    title="Connect just like you"
-                    description="People with similar skills and roles who are growing their careers on KaamMilega."
-                    action={{ href: '/network', label: 'View all people' }}
+                    title={t('title')}
+                    description={t('text')}
+                    action={{ href: '/network', label: t('action') }}
                 />
 
                 {/* Auto-scrolling row of profile cards (pauses on hover/touch) */}

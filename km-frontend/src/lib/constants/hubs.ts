@@ -1,93 +1,32 @@
 export interface HubMetadata {
   id: string;
   name: string;
-  landmark: string;
   image: string;
   isProcedural: boolean;
-  sector: string;
-  vacancies: string;
+  /** Live open jobs in the city (GET /cities jobs_count); 0 when unknown */
+  jobsCount: number;
+  /** Curated hub: its landmark and sector are hubs.landmarks.<slug> / hubs.sectors.<slug> in the messages */
+  curatedSlug?: string;
+  /** Landmark and sector saved with the city in the database (shown as entered) */
+  landmark?: string;
+  sector?: string;
   state?: string;
 }
 
-// Curated landmarks and sectors for major Indian employment hubs
-const CURATED_HUBS: Record<string, {
-  landmark: string;
-  image: string;
-  sector: string;
-  defaultVacancies: string;
-}> = {
-  mumbai: {
-    landmark: "Gateway of India",
-    image: "/asset/hubs/mumbai.webp",
-    sector: "BFSI & Logistics",
-    defaultVacancies: "45,000+ Openings"
-  },
-  delhi: {
-    landmark: "India Gate",
-    image: "/asset/hubs/delhi.webp",
-    sector: "Logistics & Tech",
-    defaultVacancies: "52,000+ Openings"
-  },
-  bengaluru: {
-    landmark: "Vidhana Soudha",
-    image: "/asset/hubs/bengaluru.webp",
-    sector: "Quick Commerce & Tech",
-    defaultVacancies: "38,000+ Openings"
-  },
-  hyderabad: {
-    landmark: "Charminar",
-    image: "/asset/hubs/hyderabad.webp",
-    sector: "Pharma & Infra",
-    defaultVacancies: "28,000+ Openings"
-  },
-  pune: {
-    landmark: "Shaniwar Wada",
-    image: "/asset/hubs/pune.webp",
-    sector: "Auto & Manufacturing",
-    defaultVacancies: "24,000+ Openings"
-  },
-  kolkata: {
-    landmark: "Howrah Bridge",
-    image: "/asset/hubs/kolkata.webp",
-    sector: "Commerce & Ports",
-    defaultVacancies: "19,000+ Openings"
-  },
-  ahmedabad: {
-    landmark: "Atal Pedestrian Bridge",
-    image: "/asset/hubs/ahmedabad.webp",
-    sector: "Industrial & Textiles",
-    defaultVacancies: "22,000+ Openings"
-  },
-  chennai: {
-    landmark: "Chennai Central",
-    image: "/asset/hubs/chennai.webp",
-    sector: "Automotive & Hardware",
-    defaultVacancies: "25,000+ Openings"
-  },
-  jaipur: {
-    landmark: "Hawa Mahal",
-    image: "/asset/hubs/jaipur.webp",
-    sector: "Tourism & Handicrafts",
-    defaultVacancies: "16,000+ Openings"
-  },
-  surat: {
-    landmark: "Diamond Bourse",
-    image: "/asset/hubs/surat.webp",
-    sector: "Textiles & Trade",
-    defaultVacancies: "20,000+ Openings"
-  },
-  lucknow: {
-    landmark: "Rumi Darwaza",
-    image: "/asset/hubs/lucknow.webp",
-    sector: "Agro & Aviation",
-    defaultVacancies: "15,000+ Openings"
-  },
-  indore: {
-    landmark: "Rajwada Palace",
-    image: "/asset/hubs/indore.webp",
-    sector: "Pharma & Food Processing",
-    defaultVacancies: "14,000+ Openings"
-  }
+// Photos for major Indian employment hubs (captions and sectors are in the messages, under "hubs")
+const CURATED_HUB_IMAGES: Record<string, string> = {
+  mumbai: "/asset/hubs/mumbai.webp",
+  delhi: "/asset/hubs/delhi.webp",
+  bengaluru: "/asset/hubs/bengaluru.webp",
+  hyderabad: "/asset/hubs/hyderabad.webp",
+  pune: "/asset/hubs/pune.webp",
+  kolkata: "/asset/hubs/kolkata.webp",
+  ahmedabad: "/asset/hubs/ahmedabad.webp",
+  chennai: "/asset/hubs/chennai.webp",
+  jaipur: "/asset/hubs/jaipur.webp",
+  surat: "/asset/hubs/surat.webp",
+  lucknow: "/asset/hubs/lucknow.webp",
+  indore: "/asset/hubs/indore.webp",
 };
 
 // Aliases strictly for spelling variations, never collapsing distinct cities
@@ -127,24 +66,6 @@ export function normalizeCitySlug(cityName: string = ""): string {
   return SLUG_ALIASES[cleaned] || cleaned;
 }
 
-// Regional sector mapping for Tier 3 (procedural fallback)
-const STATE_SECTOR_MAP: Record<string, string> = {
-  "gujarat": "Chemicals & SEZ Corridor",
-  "gujrat": "Chemicals & SEZ Corridor",
-  "tamil nadu": "Textile & Precision Tech",
-  "tamilnadu": "Textile & Precision Tech",
-  "maharashtra": "Industrial & Central Logistics",
-  "jharkhand": "Steel, Minerals & Energy",
-  "bihar": "Agro-Logistics & Heritage Trade",
-  "madhya pradesh": "Heavy Engineering & Solar",
-  "chhattisgarh": "Power, Minerals & Steel",
-  "haryana": "Automotive & Logistics",
-  "rajasthan": "Minerals & Heritage Commerce",
-  "uttar pradesh": "Textiles & Regional Commerce",
-  "uttam pradesh": "Textiles & Regional Commerce",
-  "west bengal": "Commerce, Port & Tea Trade"
-};
-
 /**
  * Procedural skyline SVG pattern for regional satellite hubs
  */
@@ -165,66 +86,28 @@ export function getSkylineSvgDataUri(): string {
 }
 
 /**
- * 3-Tier Dynamic Hub Resolution Engine:
- * Tier 1: Explicit DB image/override
- * Tier 2: Curated Landmark registry
- * Tier 3: Procedural Architectural Fallback
+ * Hub card data for a city: its photo (DB image, then the curated photo, then a generated
+ * skyline), its caption and sector, and its real open-job count (never an invented number).
  */
 export function getCityHubMetadata(city: any): HubMetadata {
-  const cityName = (city?.name || "Verified Hub").trim();
+  const cityName = (city?.name || "").trim();
   const slug = normalizeCitySlug(cityName);
-  const state = (city?.state || "").toLowerCase().trim();
-
-  // Determine vacancies string: prioritize live jobs count if present, else vacancies string or curated fallback
-  let vacancies = city?.vacancies;
-  if (city?.jobs_count !== undefined && city?.jobs_count > 0) {
-    vacancies = `${city.jobs_count} Active Opening${city.jobs_count > 1 ? 's' : ''}`;
-  } else if (!vacancies || vacancies === "0 Vacancies") {
-    vacancies = CURATED_HUBS[slug]?.defaultVacancies || "15,000+ Openings";
-  }
-
-  // Tier 1: DB Image Override
-  if (city?.image_url || city?.image || city?.cover_image) {
-    const rawImg = city.image_url || city.image || city.cover_image;
-    return {
-      id: city.id || cityName,
-      name: cityName,
-      landmark: city.landmark || "Regional Hub",
-      image: rawImg,
-      isProcedural: false,
-      sector: city.sector || STATE_SECTOR_MAP[state] || "Industrial Hub",
-      vacancies,
-      state: city.state
-    };
-  }
-
-  // Tier 2: Curated Landmark Map
-  if (CURATED_HUBS[slug]) {
-    const curated = CURATED_HUBS[slug];
-    return {
-      id: city.id || cityName,
-      name: cityName,
-      landmark: curated.landmark,
-      image: curated.image,
-      isProcedural: false,
-      sector: curated.sector,
-      vacancies,
-      state: city.state
-    };
-  }
-
-  // Tier 3: Procedural Generative Fallback
-  const sector = STATE_SECTOR_MAP[state] || "Industrial & Logistics";
-  const landmark = city.state ? `${city.state} Hub` : "Industrial Corridor";
-
-  return {
-    id: city.id || cityName,
+  const jobsCount = typeof city?.jobs_count === "number" && city.jobs_count > 0 ? city.jobs_count : 0;
+  const curatedSlug = CURATED_HUB_IMAGES[slug] ? slug : undefined;
+  const base = {
+    id: city?.id || cityName,
     name: cityName,
-    landmark,
-    image: getSkylineSvgDataUri(),
-    isProcedural: true,
-    sector,
-    vacancies,
-    state: city.state
+    jobsCount,
+    curatedSlug,
+    landmark: city?.landmark || undefined,
+    sector: city?.sector || undefined,
+    state: city?.state,
   };
+
+  const dbImage = city?.image_url || city?.image || city?.cover_image;
+  if (dbImage) return { ...base, image: dbImage, isProcedural: false };
+
+  if (curatedSlug) return { ...base, image: CURATED_HUB_IMAGES[curatedSlug], isProcedural: false };
+
+  return { ...base, image: getSkylineSvgDataUri(), isProcedural: true };
 }

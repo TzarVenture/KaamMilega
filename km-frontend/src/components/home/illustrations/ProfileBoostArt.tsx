@@ -1,8 +1,11 @@
+import { useTranslations } from 'next-intl';
+
 /**
  * Decorative illustration for the premium services banner: a resume with an ATS match score
  * and a priority applicant badge. Brand palette from design.md.
  */
 export default function ProfileBoostArt({ className = '' }: { className?: string }) {
+    const t = useTranslations('home.premium');
     // ATS ring: r=30 -> circumference ≈ 188.5; 86% filled
     const circumference = 188.5;
     const filled = circumference * 0.86;
@@ -45,15 +48,15 @@ export default function ProfileBoostArt({ className = '' }: { className?: string
                 />
                 <text x="46" y="51" textAnchor="middle" fill="#111827" fontSize="15" fontWeight="700">86%</text>
                 <text x="88" y="40" fill="#111827" fontSize="12" fontWeight="600">ATS</text>
-                <text x="88" y="56" fill="#5B6472" fontSize="11">match</text>
+                <text x="88" y="56" fill="#5B6472" fontSize="11">{t('artMatch')}</text>
             </g>
 
             {/* Priority badge */}
             <g transform="translate(232 150)">
                 <rect width="140" height="44" rx="14" fill="#071A4D" />
                 <path d="M22 13.5 25 19.8l6.9 1-5 4.9 1.2 6.9L22 29.3l-6.1 3.3 1.2-6.9-5-4.9 6.9-1 3-6.3Z" fill="#FF8A00" />
-                <text x="42" y="20" fill="#FFFFFF" fontSize="12" fontWeight="600">Priority</text>
-                <text x="42" y="34" fill="#FFFFFF" fillOpacity="0.7" fontSize="10.5">applicant</text>
+                <text x="42" y="20" fill="#FFFFFF" fontSize="12" fontWeight="600">{t('artPriority')}</text>
+                <text x="42" y="34" fill="#FFFFFF" fillOpacity="0.7" fontSize="10.5">{t('artApplicant')}</text>
             </g>
         </svg>
     );

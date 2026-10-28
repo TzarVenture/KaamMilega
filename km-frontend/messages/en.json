@@ -281,5 +281,451 @@
         "done": "Done"
       }
     }
+  },
+  "common": {
+    "browseJobs": "Browse jobs",
+    "openJobs": "{count, plural, one {{n} open job} other {{n} open jobs}}",
+    "viewAll": "View all",
+    "close": "Close",
+    "learnMore": "Learn more",
+    "details": "Details",
+    "free": "Free",
+    "online": "Online",
+    "dateTba": "Date to be announced",
+    "byName": "By {name}",
+    "minutes": "{n} min"
+  },
+  "city": {
+    "label": "City",
+    "all": "All",
+    "allIndia": "All India",
+    "allCities": "All cities",
+    "search": "Search city",
+    "none": "No cities found"
+  },
+  "searchHint": {
+    "searchFor": "Search for <word></word>",
+    "jobs": "Jobs",
+    "instant": "Instant work",
+    "skills": "Skills",
+    "mentorship": "Mentorship",
+    "companies": "Companies",
+    "events": "Events"
+  },
+  "people": {
+    "member": "Member",
+    "defaultHeadline": "Trade & career member",
+    "mutual": "{count, plural, one {{n} mutual connection} other {{n} mutual connections}}",
+    "rating": "{rating} ★",
+    "message": "Message",
+    "removeConnection": "Remove connection",
+    "bookSession": "Book session",
+    "chat": "Chat",
+    "pending": "Pending",
+    "connect": "Connect",
+    "dismiss": "Dismiss",
+    "specialist": "{category} specialist"
+  },
+  "company": {
+    "viewJobs": "View jobs",
+    "follow": "Follow",
+    "following": "Following",
+    "verified": "Verified employer"
+  },
+  "profileCriteria": {
+    "name": {
+      "title": "Full name",
+      "hint": "Add your full name"
+    },
+    "mobile": {
+      "title": "Mobile number",
+      "hint": "Add your mobile number"
+    },
+    "city": {
+      "title": "City",
+      "hint": "Add the city where you want to work"
+    },
+    "headline": {
+      "title": "Headline",
+      "hint": "Add your job role, e.g. Electrician"
+    },
+    "skills": {
+      "title": "Skills (2+)",
+      "hint": "Add at least 2 skills"
+    },
+    "work_experience": {
+      "title": "Work experience",
+      "hint": "Add your past jobs or years of experience"
+    },
+    "email": {
+      "title": "Verified email",
+      "hint": "Add and verify your email"
+    },
+    "education": {
+      "title": "Education",
+      "hint": "Add your highest qualification"
+    },
+    "profile_image": {
+      "title": "Profile photo",
+      "hint": "Upload a clear photo"
+    },
+    "about": {
+      "title": "About",
+      "hint": "Write a short summary"
+    },
+    "portfolio": {
+      "title": "Projects or portfolio",
+      "hint": "Add a project or work link"
+    }
+  },
+  "profileProgress": {
+    "label": "Profile strength",
+    "strength": "Profile strength <score>{value}%</score>",
+    "welcome": "Welcome, {name}",
+    "yourProfile": "Your profile",
+    "completeExpert": "Your profile is complete and Expert-ready.",
+    "completeNeedsExperience": "Your profile is complete. Expert status also needs 2+ years of experience.",
+    "toUnlock": "{n}% more to unlock {milestone}.",
+    "keepUpdated": "Keep your profile up to date.",
+    "viewProfile": "View profile",
+    "completeProfile": "Complete profile",
+    "completion": "Profile completion",
+    "nextSteps": "Next steps",
+    "needed": "{n}% needed",
+    "gigsUnlocked": "Gigs unlocked",
+    "unlocked": "Unlocked",
+    "marker": "{title} · {n}%",
+    "basic": {
+      "title": "Basic",
+      "text": "Browse local jobs, see wage benchmarks and chat with up to 3 people."
+    },
+    "professional": {
+      "title": "Professional",
+      "text": "1-click job applications and visibility in recruiter search."
+    },
+    "expert": {
+      "title": "Expert & InstantMilega",
+      "short": "Expert",
+      "text": "Take InstantMilega gigs. Expert status also needs 2+ years of experience."
+    }
+  },
+  "home": {
+    "toasts": {
+      "signInChat": "Please sign in to chat with professionals",
+      "signInConnect": "Please sign in to connect with professionals",
+      "inviteSent": "Invitation sent to {name}",
+      "inviteSentGeneric": "Invitation sent",
+      "inviteAlready": "Invitation already sent",
+      "inviteError": "Could not send invitation. Please try again."
+    },
+    "hero": {
+      "catSkills": "Skills",
+      "catJobs": "Jobs",
+      "catOpportunities": "Opportunities",
+      "title": "Kaam Dhoondo. <accent>Milega Yahin!</accent>",
+      "text": "Connect directly with hiring managers, discover local jobs, and book on-demand services in your city.",
+      "tabJobs": "Jobs",
+      "tabInstant": "InstantMilega™",
+      "tabSkills": "Learn Skills",
+      "tabMentors": "Mentors",
+      "jobPlaceholder": "Job title, skill or company",
+      "searchJobs": "Search Jobs",
+      "instantText": "Book local help or get work nearby in minutes. InstantMilega runs in the KaamMilega app.",
+      "instantHire": "Book Staff",
+      "instantWork": "Find Instant Gigs",
+      "skillPlaceholder": "Search skills, trades & certifications (e.g. Electrician, Python, AutoCAD)",
+      "exploreSkills": "Explore Skills",
+      "mentorPlaceholder": "Search mentors by expertise (e.g. Career Guidance, Interview Prep)",
+      "findMentors": "Find Mentors",
+      "popular": "Popular Searches:",
+      "tags": {
+        "fresher": "Fresher Jobs",
+        "wfh": "Work From Home",
+        "delivery": "Delivery Partner",
+        "electrician": "Electrician",
+        "plumber": "Plumber",
+        "warehouse": "Warehouse",
+        "retail": "Retail",
+        "support": "Customer Support"
+      },
+      "sloganBetter": "Better Skills",
+      "sloganBrighter": "Brighter Tomorrows",
+      "cardJobs": "Jobs",
+      "cardSkills": "Skills",
+      "cardOpportunities": "Opportunities",
+      "cardGrowth": "Growth",
+      "cardAllAt": "All at",
+      "imageAlt": "KaamMilega verified candidate",
+      "users": "{n} Users",
+      "usersLabel": "Verified Community",
+      "cities": "{n} Cities",
+      "citiesLabel": "Verified Hubs",
+      "free": "100% Free",
+      "freeLabel": "Direct Applications",
+      "directCalls": "Direct Calls",
+      "directLabel": "With HR Recruiters"
+    },
+    "ticker": {
+      "label": "Recent activity",
+      "region": "Recent activity on KaamMilega",
+      "interview": "Interview scheduled with an employer",
+      "onlineInterview": "Online interview",
+      "application": "New job application sent",
+      "direct": "Direct to the employer",
+      "joined": "{name} joined KaamMilega",
+      "joinedAnonymous": "A new member joined KaamMilega"
+    },
+    "services": {
+      "title": "Explore core services",
+      "titleNoInstant": "Explore platform services",
+      "text": "Everything you need to hire, work, and grow your career in one place.",
+      "jobs": {
+        "title": "Jobs & Recruitment",
+        "text": "Full-time and part-time openings with direct hiring manager contact.",
+        "action": "Explore Jobs",
+        "provider": "Post a Job"
+      },
+      "instant": {
+        "title": "InstantMilega™",
+        "text": "Fast local help and on-demand shifts with verified start and finish codes.",
+        "action": "Find Instant Gigs",
+        "provider": "Book Staff"
+      },
+      "skills": {
+        "title": "Skills Marketplace",
+        "text": "Practical courses and certifications to build skills and boost earnings.",
+        "action": "Browse Courses",
+        "provider": "Accredited Tests"
+      },
+      "experts": {
+        "title": "Experts & Mentors",
+        "text": "One-on-one guidance, interview practice, and advice from industry professionals.",
+        "action": "Book Mentor",
+        "provider": "Become Mentor"
+      },
+      "services": {
+        "title": "Services Marketplace",
+        "text": "Direct project contracts and trade services for businesses and individuals.",
+        "action": "Explore Services",
+        "provider": "List Service"
+      },
+      "p2p": {
+        "title": "Peer-to-Peer",
+        "text": "Network with people in your trade, share opportunities, and stay connected.",
+        "action": "Join Network",
+        "provider": "Create Post"
+      },
+      "events": {
+        "title": "Events & Community",
+        "text": "Hiring drives, industry workshops, and community skill sessions.",
+        "action": "View Events",
+        "provider": "Host Drive"
+      }
+    },
+    "hubs": {
+      "title": "Find jobs by top hubs",
+      "text": "Explore verified openings and on-demand gig clusters across India's largest employment districts.",
+      "more": "More employment hubs and regional zones ({n})",
+      "viewAll": "View all locations"
+    },
+    "trust": {
+      "region": "Why KaamMilega",
+      "kickerUser": "Your candidate hub",
+      "kickerGuest": "Verified platform",
+      "welcome": "Welcome back, {name}",
+      "welcomeNoName": "Welcome back",
+      "titleGuest": "Direct hiring connections for verified employers and candidates",
+      "textUser": "Connect directly with hiring managers, track your applications, and discover local on-demand work.",
+      "textGuest": "Discover vacancies, talk to hiring managers directly, and find on-demand work across India.",
+      "matched": "Explore matched jobs",
+      "register": "Register free",
+      "applications": "My applications",
+      "browse": "Browse openings",
+      "direct": {
+        "title": "Direct contact",
+        "text": "Call or chat with employers directly"
+      },
+      "verified": {
+        "title": "Verified profiles",
+        "text": "Identity and credential checks"
+      },
+      "instant": {
+        "title": "InstantMilega™",
+        "text": "On-demand local work in minutes"
+      },
+      "local": {
+        "title": "Local jobs",
+        "text": "Roles matched to your city and skills"
+      },
+      "wallet": {
+        "title": "Digital wallet",
+        "text": "Transparent earnings and payouts"
+      }
+    },
+    "roles": {
+      "title": "Explore popular job categories",
+      "text": "Verified openings across logistics, technical trades, facility management, and retail.",
+      "viewAll": "View all job categories",
+      "delivery": "Delivery Executive",
+      "driver": "Commercial Vehicle Driver",
+      "warehouse": "Warehouse Associate",
+      "electrician": "Electrician",
+      "security": "Security Guard",
+      "plumber": "Plumber",
+      "painter": "Painter & Decorator",
+      "ac": "AC & HVAC Technician",
+      "housekeeping": "Housekeeping & Helper",
+      "office": "Office Assistant & DEO"
+    },
+    "companies": {
+      "title": "Featured companies actively hiring",
+      "text": "Employers hiring on KaamMilega.",
+      "action": "View all jobs"
+    },
+    "qualification": {
+      "title": "Search jobs based on your qualification",
+      "text": "Find roles matched to your education and vocational background.",
+      "below10": "Below 10th",
+      "tenth": "10th Pass",
+      "twelfth": "12th Pass",
+      "diploma": "Diploma / ITI",
+      "graduate": "Graduate",
+      "postGraduate": "Post Graduate"
+    },
+    "jobTypes": {
+      "title": "What type of job do you want?",
+      "text": "Pick the way you want to work and see matching openings.",
+      "wfh": {
+        "title": "Work From Home",
+        "text": "Remote roles you can do from home"
+      },
+      "partTime": {
+        "title": "Part Time",
+        "text": "Flexible hours alongside study or work"
+      },
+      "fullTime": {
+        "title": "Full Time",
+        "text": "Stable roles with monthly salary"
+      },
+      "fresher": {
+        "title": "Fresher Jobs",
+        "text": "No experience needed to apply"
+      },
+      "women": {
+        "title": "Jobs For Women",
+        "text": "Women-friendly employers and shifts"
+      }
+    },
+    "about": {
+      "kicker": "About KaamMilega",
+      "title": "Diversity and inclusion at every workplace",
+      "text": "See how KaamMilega connects workers, employers and experts directly and fairly.",
+      "videoSoon": "Video coming soon",
+      "play": "Play KaamMilega introduction video",
+      "playSoon": "KaamMilega introduction video coming soon",
+      "closeVideo": "Close video",
+      "videoTitle": "KaamMilega introduction"
+    },
+    "learn": {
+      "title": "Learn with <logo></logo>",
+      "allResources": "Explore All Resources",
+      "exploreCourse": "Explore courses: {title}"
+    },
+    "experts": {
+      "title": "Connect with our experts",
+      "text": "Get guidance from verified industry professionals and career coaches.",
+      "action": "View all experts"
+    },
+    "events": {
+      "title": "Upcoming events and challenges",
+      "text": "Meet peers, attend hiring workshops, and earn certified skills at community events.",
+      "action": "View all events"
+    },
+    "wallet": {
+      "title": "KaamMilega Digital <accent>Wallet</accent>",
+      "text": "Manage service passes, track earnings, and receive fast payouts.",
+      "open": "Open Wallet",
+      "mark": "Wallet"
+    },
+    "stories": {
+      "title": "Verified stories from real candidates",
+      "text": "Real workers across logistics, transportation, and technical trades hired with zero brokerage and direct HR calls.",
+      "closeVideo": "Close video",
+      "videoTitle": "{name}'s story"
+    },
+    "premium": {
+      "title": "Accelerate your job search with premium services",
+      "text": "Get hired faster with resume optimization, priority applicant status, direct recruiter connections and skill certifications.",
+      "resumeWriting": "Resume Writing",
+      "priority": "Priority Applicant",
+      "display": "Resume Display",
+      "artMatch": "match",
+      "artPriority": "Priority",
+      "artApplicant": "applicant"
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "hrCalls": {
+        "q": "How does direct HR calling work on KaamMilega?",
+        "a": "KaamMilega connects you directly with employers. When you apply, the employer can call, message or WhatsApp you to set up an interview, with no middlemen."
+      },
+      "fees": {
+        "q": "Is there any charge or brokerage fee to apply for jobs?",
+        "a": "No. Applying for jobs on KaamMilega is always free, with no brokerage. You are never asked to pay a registration fee, interview charge or placement commission."
+      },
+      "verification": {
+        "q": "How does Aadhaar verification help me?",
+        "a": "A verified profile shows employers that your identity has been checked, which helps you stand out when they shortlist candidates."
+      },
+      "resume": {
+        "q": "Can I apply for jobs without an English resume?",
+        "a": "Yes. Fill in your details, skills and experience in your KaamMilega profile, and employers see it when you apply."
+      },
+      "instant": {
+        "q": "What is InstantMilega™ and how fast can I start working?",
+        "a": "InstantMilega is quick local work in the KaamMilega app, launching soon. Turn on Free now to get alerts for work near you; each alert gives you 120 seconds to accept."
+      },
+      "track": {
+        "q": "How do I track the status of my submitted applications?",
+        "a": "Open My Applications to see where each application stands, from review and shortlisting to interviews and offers."
+      }
+    },
+    "connect": {
+      "title": "Connect just like you",
+      "text": "People with similar skills and roles who are growing their careers on KaamMilega.",
+      "action": "View all people"
+    }
+  },
+  "hubs": {
+    "regionalHub": "Regional Hub",
+    "industrialHub": "Industrial Hub",
+    "landmarks": {
+      "mumbai": "Gateway of India",
+      "delhi": "India Gate",
+      "bengaluru": "Vidhana Soudha",
+      "hyderabad": "Charminar",
+      "pune": "Shaniwar Wada",
+      "kolkata": "Howrah Bridge",
+      "ahmedabad": "Atal Pedestrian Bridge",
+      "chennai": "Chennai Central",
+      "jaipur": "Hawa Mahal",
+      "surat": "Diamond Bourse",
+      "lucknow": "Rumi Darwaza",
+      "indore": "Rajwada Palace"
+    },
+    "sectors": {
+      "mumbai": "BFSI & Logistics",
+      "delhi": "Logistics & Tech",
+      "bengaluru": "Quick Commerce & Tech",
+      "hyderabad": "Pharma & Infra",
+      "pune": "Auto & Manufacturing",
+      "kolkata": "Commerce & Ports",
+      "ahmedabad": "Industrial & Textiles",
+      "chennai": "Automotive & Hardware",
+      "jaipur": "Tourism & Handicrafts",
+      "surat": "Textiles & Trade",
+      "lucknow": "Agro & Aviation",
+      "indore": "Pharma & Food Processing"
+    }
   }
 }
