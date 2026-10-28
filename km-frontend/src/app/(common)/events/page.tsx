@@ -176,13 +176,13 @@ const PublicEventsPage = () => {
                 overlap
                 kicker={{ label: 'Events & Bootcamps', Icon: CalendarBlankIcon, tone: 'events' }}
                 title={<>Skill Bootcamps & <HeroAccent>Live Events</HeroAccent></>}
-                description="Join interactive workshops, skill bootcamps, and live masterclasses led by verified experts. Learn in real time via Google Meet or Zoom and earn certificates."
+                description="Live workshops and bootcamps by verified experts, on Google Meet or Zoom."
                 highlights={[
                     { Icon: VideoCameraIcon, label: 'Google Meet & Zoom Access' },
                     { Icon: CheckCircleIcon, label: 'Verified Industry Experts' },
                     { Icon: TicketIcon, label: 'Instant Digital Entry Pass' },
                 ]}
-                art={{ src: '/events-page-art.png', alt: 'KaamMilega Events and Bootcamps' }}
+                art={{ src: '/events-page-art.png', alt: 'KaamMilega Events and Bootcamps', wide: true }}
             >
                 <div className="flex flex-wrap items-center gap-3">
                     <a href="#workshops-catalog" className="btn-accent text-xs px-5 py-2.5 shadow-sm">

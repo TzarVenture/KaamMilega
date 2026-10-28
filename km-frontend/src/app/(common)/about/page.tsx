@@ -1,4 +1,5 @@
 import React from 'react';
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 import Link from 'next/link';
 import { ArrowRightIcon, BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, CompassIcon, HandHeartIcon, LockIcon, PhoneCallIcon, QuestionIcon, SealCheckIcon, ShieldCheckIcon, TrendUpIcon, UsersIcon } from '@phosphor-icons/react/ssr';
 
@@ -12,45 +13,26 @@ export default function AboutPage() {
   return (
     <main className="min-h-screen bg-km-surface font-sans antialiased text-km-text-primary">
       {/* ── 1. HERO: WHO WE ARE ── */}
-      <section className="bg-gradient-to-b from-[#F0F5FB] via-[#F4F7FB] to-white pt-12 pb-16 sm:pt-16 sm:pb-20 border-b border-km-border dark:from-km-surface dark:via-km-surface dark:to-km-surface-card">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-xs sm:text-sm font-bold uppercase tracking-wider text-km-link mb-3">
-            About Kaammilega™
-          </p>
-
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-km-text-primary tracking-tight leading-[1.15] mb-5">
-            Building India&apos;s Direct,{' '}
-            <span className="text-[#FF6B00]">Zero-Brokerage</span> Employment Network
-          </h1>
-
-          <p className="text-base sm:text-lg text-km-text-secondary max-w-3xl mx-auto leading-relaxed mb-8">
-            Kaammilega was founded on a simple principle: finding honest work should never require
-            paying an agency or middleman. We connect jobseekers, skilled technicians, and employers
-            directly — ensuring transparent wages, verified credentials, and dignity of labor for all.
-          </p>
-
-          {/* Direct, Working Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3.5">
-            <Link
-              href="/jobs"
-              className="px-6 py-3 bg-[#FF6B00] hover:bg-[#FF8A00] text-white font-semibold text-sm rounded-xl transition-all shadow-[0_4px_14px_rgba(255,107,0,0.25)] hover:scale-[1.01] active:scale-95 inline-flex items-center gap-2"
-            >
-              <span>Explore 15,000+ Jobs</span>
-              <ArrowRightIcon weight="bold" size={15} />
-            </Link>
-
-            <Link
-              href="/recruiter/login"
-              className="px-6 py-3 bg-km-surface-card hover:bg-slate-50 border border-km-border text-km-heading font-semibold text-sm rounded-xl transition-all shadow-xs hover:border-[#0B5ED7]/40 active:scale-95"
-            >
-              Recruiter &amp; Employer Portal
-            </Link>
-          </div>
+      <PageHero
+        overlap
+        kicker={{ label: 'About Kaammilega™', Icon: SealCheckIcon, tone: 'jobs' }}
+        title={<>Building India&apos;s Direct, <HeroAccent>Zero‑Brokerage</HeroAccent> Employment Network</>}
+        description="We connect jobseekers, technicians and employers directly, with zero brokerage."
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/jobs" className="btn-accent inline-flex items-center gap-1.5 text-xs px-5 py-2.5 shadow-sm">
+            <span>Explore 15,000+ Jobs</span>
+            <ArrowRightIcon weight="bold" size={13} />
+          </Link>
+          <Link href="/recruiter/login" className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card">
+            <span>Recruiter &amp; Employer Portal</span>
+          </Link>
         </div>
-      </section>
+      </PageHero>
+
 
       {/* ── 2. IMPACT BY THE NUMBERS ── */}
-      <section className="-mt-8 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <section className="-mt-6 sm:-mt-8 lg:-mt-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(7,26,77,0.04)] text-center">
             <p className="text-2xl sm:text-3xl font-black text-km-heading tracking-tight">100%</p>

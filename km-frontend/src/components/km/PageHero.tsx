@@ -3,8 +3,12 @@ import type { Icon } from '@phosphor-icons/react';
 
 /**
  * The one hero frame for KaamMilega pages (design.md): navy band with a rounded bottom, the same
- * padding and type scale everywhere, text on the left and art on the right resting on the bottom
- * edge. Pages pass their content; spacing and alignment live here.
+ * padding, height and type scale everywhere, text on the left and art on the right resting on the
+ * bottom edge. Pages pass their content; spacing and alignment live here.
+ *
+ * On desktop every hero is at least HERO_MIN_HEIGHT tall and the text is centred in it. The art
+ * fills the full height next to the text (scaled, never cropped), so it never leaves an empty band
+ * above it however long the text is. Keep descriptions to one sentence of about 90 characters.
  *
  *   overlap  the next block (a search or filter card) overlaps the hero bottom by 40px, as on
  *            Jobs, Events and Mentors: the hero reserves that space and the art stops above it.
@@ -27,6 +31,9 @@ const KICKER_TONE: Record<HeroTone, { pill: string; icon: string }> = {
 export const HERO_SHELL =
     'bg-[#071A4D] border-b border-[#0B1F52] text-white rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10';
 
+/** Desktop height of the hero content row, the same on every page */
+const HERO_MIN_HEIGHT = 'lg:min-h-[420px]';
+
 /** Headline style shared by every hero; wrap the highlighted words in <HeroAccent> */
 export const HERO_TITLE = 'text-3xl sm:text-4xl xl:text-5xl font-extrabold text-white tracking-tight leading-[1.15] text-balance';
 
@@ -45,7 +52,7 @@ interface PageHeroProps {
     children?: React.ReactNode;
     /** Short proof points under a divider */
     highlights?: { Icon: Icon; label: React.ReactNode }[];
-    /** Right-hand art. `wide` gives it 7 of 12 columns (for wide photo art), otherwise 5. */
+    /** Right-hand art. `wide` gives it 7 of 12 columns (for art about twice as wide as tall), otherwise 6. */
     art?: { src: string; alt: string; wide?: boolean };
     /** Right-hand content instead of art (e.g. buttons on a compact hero) */
     aside?: React.ReactNode;
@@ -67,16 +74,16 @@ export default function PageHero({
     width = 'max-w-7xl',
 }: PageHeroProps) {
     const tone = kicker ? KICKER_TONE[kicker.tone] : null;
-    const textSpan = art ? (art.wide ? 'lg:col-span-5' : 'lg:col-span-7') : aside ? 'lg:col-span-8' : 'lg:col-span-12';
-    const sideSpan = art ? (art.wide ? 'lg:col-span-7' : 'lg:col-span-5') : 'lg:col-span-4';
+    const textSpan = art ? (art.wide ? 'lg:col-span-5' : 'lg:col-span-6') : aside ? 'lg:col-span-8' : 'lg:col-span-12';
+    const sideSpan = art ? (art.wide ? 'lg:col-span-7' : 'lg:col-span-6') : 'lg:col-span-4';
     // Art rests on the bottom edge; with an overlapping card below, that edge sits 40px higher
     const bottom = overlap ? 'pb-6 sm:pb-8 lg:pb-10' : art ? 'pb-0' : 'pb-8 sm:pb-10 lg:pb-12';
 
     return (
         <section className={`${HERO_SHELL} pt-8 sm:pt-10 lg:pt-12 ${bottom}`}>
             <div className={`${width} mx-auto px-4 sm:px-6 lg:px-8`}>
-                <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 ${art ? 'items-end' : 'items-center'}`}>
-                    <div className={`${textSpan} ${art ? 'pb-6 sm:pb-8 lg:pb-10' : ''}`}>
+                <div className={`grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 ${art ? HERO_MIN_HEIGHT : ''} ${art ? 'lg:items-stretch' : 'items-center'}`}>
+                    <div className={`${textSpan} ${art ? 'lg:self-center pb-0 lg:pb-10' : ''}`}>
                         {brand && <div className="mb-5">{brand}</div>}
                         {!brand && kicker && tone && (
                             <div className={`inline-flex items-center gap-2 border text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4 ${tone.pill}`}>
@@ -88,7 +95,7 @@ export default function PageHero({
                         <h1 className={HERO_TITLE}>{title}</h1>
 
                         {description && (
-                            <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl leading-relaxed">{description}</p>
+                            <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-2xl leading-relaxed">{description}</p>
                         )}
 
                         {children && <div className="mt-6">{children}</div>}
@@ -106,13 +113,14 @@ export default function PageHero({
                     </div>
 
                     {art && (
-                        <div className={`${sideSpan} flex items-end justify-center lg:justify-end self-end`}>
+                        // Mobile: the art sits under the text. Desktop: it fills the row height, anchored bottom-right,
+                        // and its box runs out to the right edge of the screen so wide art can be as tall as the text
+                        // (the band clips it at the rounded corner).
+                        <div className={`${sideSpan} relative flex justify-center lg:-mr-8 xl:mr-[calc(-2rem-(100vw-80rem)/2)]`}>
                             <img
                                 src={art.src}
                                 alt={art.alt}
-                                className={`w-full h-auto object-contain select-none pointer-events-none drop-shadow-xl block translate-y-px ${
-                                    art.wide ? 'max-w-[560px] lg:max-w-none' : 'max-w-[440px] lg:max-w-[560px]'
-                                }`}
+                                className="w-full max-w-[480px] h-auto lg:absolute lg:inset-0 lg:max-w-none lg:h-full object-contain object-bottom lg:object-right-bottom select-none pointer-events-none drop-shadow-xl block translate-y-px"
                             />
                         </div>
                     )}

@@ -210,7 +210,7 @@ export default function CoursesExpertStudioPage() {
             <PageHero
                 width="max-w-6xl"
                 title={<>Create & Manage <HeroAccent>Courses</HeroAccent></>}
-                description="Publish training video sessions from YouTube directly to the Kaammilega Learning Marketplace."
+                description="Publish YouTube training videos to the KaamMilega learning marketplace."
                 aside={
                     <div className="flex items-center gap-2.5 shrink-0">
                         <Link

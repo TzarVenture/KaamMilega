@@ -246,7 +246,7 @@ export default function ExpertProSubscriptionPage() {
         width="max-w-5xl"
         kicker={{ label: 'KaamMilega Pro Expert Program', Icon: MedalIcon, tone: 'experts' }}
         title={<>Turn Your Industry Expertise Into <HeroAccent>Sustainable Income</HeroAccent></>}
-        description="Join vetted tech leaders, managers, and career coaches hosting 1-on-1 mentorship calls. Set your own session prices, keep 100% of your earnings, and rank at the top of India's expert directory."
+        description="Host paid 1-on-1 sessions, set your own price and keep 100% of your earnings."
       />
 
       {/* Main Content Container */}

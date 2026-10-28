@@ -730,7 +730,7 @@ const JobsPageContent = () => {
                 overlap
                 kicker={{ label: 'Verified Direct Employment', Icon: BriefcaseIcon, tone: 'jobs' }}
                 title={<>Find Verified Jobs & <HeroAccent>Hire Direct</HeroAccent></>}
-                description="Connect directly with verified corporate employers and trade recruiters across India. 1-click apply, zero brokerage fees, and transparent application status tracking."
+                description="Apply directly to verified employers across India. Zero brokerage, 1-click apply."
                 highlights={[
                     { Icon: ShieldCheckIcon, label: '100% Verified Employers' },
                     { Icon: CheckCircleIcon, label: 'Zero Candidate Brokerage' },

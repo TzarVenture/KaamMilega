@@ -99,7 +99,7 @@ export default function MentorshipPage() {
         overlap
         kicker={{ label: '1-on-1 Expert Mentorship', Icon: GraduationCapIcon, tone: 'experts' }}
         title={<>Learn Practical Skills with <HeroAccent>Live Expert Mentors</HeroAccent></>}
-        description="Connect 1-on-1 with vetted industry practitioners for personalized career advisory, mock interview coaching, and trade guidance via Google Meet or Zoom."
+        description="Book 1-on-1 sessions with verified experts for career advice and interview prep."
         highlights={[
           { Icon: VideoCameraIcon, label: 'Live Google Meet & Zoom Access' },
           { Icon: CheckCircleIcon, label: 'Verified Industry Practitioners' },
