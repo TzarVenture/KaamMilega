@@ -25,12 +25,14 @@ func (a *CourseApi) Setup(app *fiber.App) {
 	app.Post("/api/courses/:id/view", a.ctrl.RecordView)
 
 	// Protected Routes (Registered before /:id)
-	protected := app.Group("/api/courses", jwtAuth)
-	protected.Get("/my", a.ctrl.GetMyCourses)
-	protected.Post("", a.ctrl.CreateCourse)
-	protected.Post("/", a.ctrl.CreateCourse)
-	protected.Put("/:id", a.ctrl.UpdateCourse)
-	protected.Delete("/:id", a.ctrl.DeleteCourse)
+	// Login is checked per route, not on the group: Fiber runs group middleware for every
+	// request under the prefix, which made the public detail route below require a login too.
+	protected := app.Group("/api/courses")
+	protected.Get("/my", jwtAuth, a.ctrl.GetMyCourses)
+	protected.Post("", jwtAuth, a.ctrl.CreateCourse)
+	protected.Post("/", jwtAuth, a.ctrl.CreateCourse)
+	protected.Put("/:id", jwtAuth, a.ctrl.UpdateCourse)
+	protected.Delete("/:id", jwtAuth, a.ctrl.DeleteCourse)
 
 	// Public Detail Route
 	app.Get("/api/courses/:id", a.ctrl.GetCourse)

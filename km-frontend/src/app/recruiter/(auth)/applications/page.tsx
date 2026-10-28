@@ -274,7 +274,7 @@ function ApplicationsContent() {
                                 onDragLeave={handleDragLeave}
                                 onDrop={(e) => handleDrop(e, col.id)}
                                 className={`rounded-2xl border p-3 min-h-[520px] min-w-[280px] sm:min-w-[300px] flex-1 transition-colors flex flex-col bg-km-surface/50 border-km-border ${
-                                    isOver ? "border-km-primary bg-blue-50/40 dark:bg-blue-950/20" : ""
+                                    isOver ? "border-km-primary bg-blue-50/40 dark:bg-[#121C3A]" : ""
                                 }`}
                             >
                                 {/* Column Header */}
@@ -461,11 +461,11 @@ function ApplicationsContent() {
                                             </td>
                                             <td className="py-3.5 px-5">
                                                 <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium border ${
-                                                    app.status === "Applied" ? "bg-blue-50 text-km-blue border-blue-200 dark:bg-blue-950/30 dark:border-blue-900/40 dark:text-km-link" :
-                                                    app.status === "Shortlisted" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900/40 dark:text-amber-400" :
-                                                    app.status === "Interviewing" || app.status === "Interview" ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/30 dark:border-purple-900/40 dark:text-purple-400" :
-                                                    app.status === "Hired" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/40 dark:text-emerald-400" :
-                                                    "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/30 dark:border-red-900/40 dark:text-red-400"
+                                                    app.status === "Applied" ? "bg-blue-50 text-km-blue border-blue-200 dark:bg-[#131D3D] dark:border-blue-900/40 dark:text-km-link" :
+                                                    app.status === "Shortlisted" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-[#211A25] dark:border-amber-900/40 dark:text-amber-400" :
+                                                    app.status === "Interviewing" || app.status === "Interview" ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-[#1E1442] dark:border-purple-900/40 dark:text-purple-400" :
+                                                    app.status === "Hired" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-[#0C1F2E] dark:border-emerald-900/40 dark:text-emerald-400" :
+                                                    "bg-red-50 text-red-700 border-red-200 dark:bg-[#211527] dark:border-red-900/40 dark:text-red-400"
                                                 }`}>
                                                     {app.status}
                                                 </span>

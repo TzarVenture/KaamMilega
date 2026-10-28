@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
-import { CircleNotchIcon, VideoCameraIcon } from '@phosphor-icons/react';
+import { CircleNotchIcon, GraduationCapIcon, VideoCameraIcon } from '@phosphor-icons/react';
 import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
@@ -9,6 +9,7 @@ import { openYouTubeVideo } from "@/lib/youtube";
 import CourseCard, { CourseData } from "@/components/km/CourseCard";
 import CourseSearchBar from "@/components/km/CourseSearchBar";
 import Pagination from "@/components/ui/Pagination";
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 
 export default function ResourcePage() {
     const user = getCurrentUser();
@@ -99,33 +100,13 @@ export default function ResourcePage() {
 
     return (
         <main className="min-h-screen bg-km-surface pb-20 font-sans">
-            {/* ─── Hero Section with Resources Art & Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden dark:border-white/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 md:gap-8 lg:gap-10 items-center">
-                        {/* Left Column: Headlines & Description */}
-                        <div className="md:col-span-7 xl:col-span-7 text-left py-2 sm:py-4">
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-                                Learn With <span className="text-[#FF6B00]">Kaammilega</span>
-                            </h1>
-                            <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
-                                Explore verified trade courses, technical modules, and skill certifications taught by industry experts.
-                            </p>
-                        </div>
-
-                        {/* Right Column: Hero Artwork */}
-                        <div className="md:col-span-5 xl:col-span-5 flex items-center justify-center md:justify-end">
-                            <div className="relative flex items-center justify-center md:justify-end w-full max-w-[360px] md:max-w-[440px] lg:max-w-[500px]">
-                                <img
-                                    src="/resources-page.png"
-                                    alt="Learn With Kaammilega"
-                                    className="w-full h-auto max-h-[260px] md:max-h-[300px] lg:max-h-[340px] object-contain select-none pointer-events-none drop-shadow-xl block"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            {/* ─── Hero ─── */}
+            <PageHero
+                kicker={{ label: 'Skills Marketplace', Icon: GraduationCapIcon, tone: 'skills' }}
+                title={<>Learn With <HeroAccent>Kaammilega</HeroAccent></>}
+                description="Verified courses and skill certifications from industry experts."
+                art={{ src: '/resources-page.png', alt: 'Learn With Kaammilega' }}
+            />
 
             {/* ─── Main Content Area: Video Feed + Sidebar ─── */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 flex flex-col lg:flex-row gap-8">

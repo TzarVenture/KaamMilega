@@ -57,7 +57,7 @@ interface WalletSummary {
 // ─── Design.md Shimmer Skeleton ───
 const DetailSkeleton = () => (
     <div className="bg-km-surface min-h-screen">
-        <div className="relative h-64 md:h-80 bg-[#E5ECF5] animate-shimmer w-full dark:bg-white/5" />
+        <div className="relative h-64 md:h-80 bg-[#E5ECF5] animate-shimmer w-full dark:bg-[#1D253D]" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col lg:flex-row gap-8 -mt-16 relative z-20">
             <div className="flex-1 space-y-6">
                 <div className="bg-km-surface-card rounded-2xl p-8 border border-km-border space-y-4">
@@ -358,7 +358,7 @@ const EventDetailsPage = () => {
                     />
                 ) : (
                     <div className="w-full h-full bg-[#071A4D] flex items-center justify-center dark:bg-km-primary">
-                        <div className="w-20 h-20 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[#F59E0B]">
+                        <div className="w-20 h-20 rounded-2xl bg-[#0B1F52] flex items-center justify-center text-[#F59E0B]">
                             <CalendarBlankIcon size={40} />
                         </div>
                     </div>
@@ -368,7 +368,7 @@ const EventDetailsPage = () => {
                 <div className="absolute top-6 left-4 sm:left-8 z-20">
                     <Link
                         href="/events"
-                        className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all border border-white/20 shadow-xs"
+                        className="inline-flex items-center gap-2 border border-white/30 text-white hover:bg-white/10 hover:border-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all"
                     >
                         <ArrowLeftIcon weight="bold" size={15} /> Back to Workshops
                     </Link>
@@ -383,7 +383,7 @@ const EventDetailsPage = () => {
                     <div className="bg-km-surface-card rounded-2xl p-6 sm:p-8 border border-km-border shadow-xs">
                         {/* Event Tags */}
                         <div className="flex flex-wrap items-center gap-2.5 mb-3.5">
-                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-amber-500/15">
+                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-[#332E2D]">
                                 {event.category || 'Skill Workshop'}
                             </span>
                             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md ${
@@ -466,7 +466,7 @@ const EventDetailsPage = () => {
                             </p>
                         </div>
                     ) : (
-                        <div className="bg-[#FFFBEB] rounded-2xl p-5 sm:p-6 border border-[#FDE68A] shadow-xs dark:bg-amber-500/15">
+                        <div className="bg-[#FFFBEB] rounded-2xl p-5 sm:p-6 border border-[#FDE68A] shadow-xs dark:bg-[#332E2D]">
                             <div className="flex items-start gap-3.5">
                                 <LockIcon size={22} className="text-[#B45309] shrink-0 mt-0.5 dark:text-orange-400" aria-hidden="true" />
                                 <div className="flex-1">
@@ -631,7 +631,7 @@ const EventDetailsPage = () => {
                                 </div>
                             ) : isPaid ? (
                                 isSoldOut ? (
-                                    <button disabled className="w-full py-3.5 bg-[#E5ECF5] text-km-text-secondary rounded-xl font-bold text-sm cursor-not-allowed dark:bg-white/5">
+                                    <button disabled className="w-full py-3.5 bg-[#E5ECF5] text-km-text-secondary rounded-xl font-bold text-sm cursor-not-allowed dark:bg-[#1D253D]">
                                         Workshop Full
                                     </button>
                                 ) : (
@@ -662,7 +662,7 @@ const EventDetailsPage = () => {
             {/* ─── Dual Payment Checkout Modal (F63) ─── */}
             <AnimatePresence>
                 {checkoutModalOpen && (
-                    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                    <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -679,7 +679,7 @@ const EventDetailsPage = () => {
                                     type="button"
                                     onClick={() => !paymentProcessing && setCheckoutModalOpen(false)}
                                     disabled={paymentProcessing}
-                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-white/10"
+                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-[#293147]"
                                 >
                                     <XIcon weight="bold" size={16} />
                                 </button>
@@ -853,7 +853,7 @@ const EventDetailsPage = () => {
             {/* ─── Digital Pass & QR Code Modal (F63) ─── */}
             <AnimatePresence>
                 {ticketModalOpen && ticket && (
-                    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+                    <div className="fixed inset-0 z-50 bg-black/75 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 15 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -868,7 +868,7 @@ const EventDetailsPage = () => {
                                 <button
                                     type="button"
                                     onClick={() => setTicketModalOpen(false)}
-                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-white/10"
+                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-[#293147]"
                                 >
                                     <XIcon weight="bold" size={16} />
                                 </button>

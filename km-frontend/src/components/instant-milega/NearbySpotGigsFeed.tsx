@@ -143,7 +143,7 @@ export default function NearbySpotGigsFeed({
                             Nearby Spot Gigs
                         </h2>
                         {isFiltered && (
-                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/30 dark:bg-orange-500/15">
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/30 dark:bg-[#34272F]">
                                 {activeSkill}
                             </span>
                         )}
@@ -203,7 +203,7 @@ export default function NearbySpotGigsFeed({
                         <button
                             type="button"
                             onClick={() => fetchGigs()}
-                            className="bg-km-surface hover:bg-[#D9E0EA] text-km-heading font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer border border-km-border dark:hover:bg-white/10"
+                            className="bg-km-surface hover:bg-[#D9E0EA] text-km-heading font-semibold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer border border-km-border dark:hover:bg-[#293147]"
                         >
                             Scan Perimeter Again
                         </button>
@@ -225,7 +225,7 @@ export default function NearbySpotGigsFeed({
                             >
                                 <div>
                                     <div className="flex items-center justify-between gap-2 mb-3">
-                                        <span className="px-2.5 py-1 rounded-md bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/20 text-xs font-bold dark:bg-orange-500/15">
+                                        <span className="px-2.5 py-1 rounded-md bg-[#FFF7ED] text-[#FF6B00] border border-[#FF6B00]/20 text-xs font-bold dark:bg-[#34272F]">
                                             {job.skill}
                                         </span>
 

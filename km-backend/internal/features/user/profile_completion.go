@@ -1,7 +1,7 @@
 package user
 
 import (
-	"errors"
+	"km-backend/internal/common/apperr"
 	"math"
 	"regexp"
 	"sort"
@@ -13,7 +13,7 @@ import (
 // MinExpertExperienceYears is the client rule: an Expert needs at least 2 years of experience.
 const MinExpertExperienceYears = 2.0
 
-var ErrExpertExperienceRequired = errors.New("at least 2 years of work experience is required to become an Expert. Add your experience on your profile first")
+var ErrExpertExperienceRequired = apperr.New("EXPERT_EXPERIENCE_REQUIRED", "at least 2 years of work experience is required to become an Expert. Add your experience on your profile first")
 
 // ProfileCriterion is one scored item of the profile checklist.
 // The frontend renders titles/actions from the ID, so this is the single scoring source.

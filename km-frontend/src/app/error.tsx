@@ -38,7 +38,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
           {/* Status Icon */}
           <WarningIcon size={36} weight="duotone" className="text-amber-600 mx-auto mb-6 dark:text-amber-400" aria-hidden="true" />
 
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50/80 border border-amber-200 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-2 text-[13px] font-semibold text-amber-800 dark:text-amber-400 mb-3">
             Temporary System Exception
           </div>
 

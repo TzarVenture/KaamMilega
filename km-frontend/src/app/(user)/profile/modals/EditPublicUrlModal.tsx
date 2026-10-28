@@ -143,7 +143,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
     const isSaveDisabled = saving || checking || (!availability?.available && username.trim().toLowerCase() !== currentUsername?.toLowerCase());
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 font-sans">
             <div 
                 className="bg-km-surface-card rounded-3xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}

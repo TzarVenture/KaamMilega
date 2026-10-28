@@ -1,4 +1,5 @@
 import React from 'react';
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRightIcon, BriefcaseIcon, CoffeeIcon, EnvelopeSimpleIcon, GraduationCapIcon, HeartIcon, LightningIcon, MapPinIcon, ShieldCheckIcon, TrendUpIcon } from '@phosphor-icons/react/ssr';
@@ -88,42 +89,22 @@ export default function CareerPage() {
   return (
     <main className="min-h-screen bg-km-surface font-sans antialiased text-slate-800">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
-            <BriefcaseIcon weight="bold" size={16} className="text-amber-400" />
-            <span className="text-xs sm:text-sm font-semibold tracking-wide text-white">
-              We&apos;re Hiring Across Engineering, Product &amp; Growth
-            </span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-tight mb-5">
-            Build the Future of <span className="text-[#FF6B00]">Work in India</span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed">
-            Join a mission-driven team solving real employment challenges for millions of workers, technicians, and businesses across Bharat with cutting-edge technology.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <a
-              href="#openings"
-              className="px-6 py-3 bg-[#FF6B00] hover:bg-[#FF8A00] text-white font-bold rounded-full text-xs sm:text-sm transition-all shadow-md active:scale-95 flex items-center gap-2"
-            >
-              <span>View Open Positions</span>
-              <ArrowRightIcon weight="bold" size={16} />
-            </a>
-            <Link
-              href="/about"
-              className="px-6 py-3 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
-            >
-              Our Mission
-            </Link>
-          </div>
+      <PageHero
+        kicker={{ label: <>We&apos;re Hiring Across Engineering, Product &amp; Growth</>, Icon: BriefcaseIcon, tone: 'events' }}
+        title={<>Build the Future of <HeroAccent>Work in India</HeroAccent></>}
+        description="Join our team solving real employment challenges for millions across Bharat."
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          <a href="#openings" className="btn-accent inline-flex items-center gap-1.5 text-xs px-5 py-2.5 shadow-sm">
+            <span>View Open Positions</span>
+            <ArrowRightIcon weight="bold" size={13} />
+          </a>
+          <Link href="/about" className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card">
+            <span>Our Mission</span>
+          </Link>
         </div>
-      </section>
+      </PageHero>
+
 
       {/* Metrics Banner */}
       <section className="py-10 bg-km-surface-card border-b border-slate-200 px-4 sm:px-6 lg:px-8">
@@ -150,14 +131,14 @@ export default function CareerPage() {
       {/* Perks & Benefits */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-km-link bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <span className="block text-[13px] font-semibold text-km-link">
             Why KaamMilega™
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
             Life at KaamMilega™
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-2">
-            We take care of our people so they can do their life&apos;s most meaningful and impactful work.
+            We take care of our people so they can do their most meaningful work.
           </p>
         </div>
 
@@ -188,7 +169,7 @@ export default function CareerPage() {
       <section id="openings" className="py-16 sm:py-20 bg-km-surface-card border-t border-slate-200 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+            <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
               Current Openings
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -250,14 +231,14 @@ export default function CareerPage() {
       {/* Direct Contact Banner */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
         <div className="bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] rounded-3xl p-8 sm:p-12 text-white shadow-xl">
-          <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mx-auto mb-4 text-white">
+          <div className="w-14 h-14 rounded-full bg-[#0B1F52] flex items-center justify-center mx-auto mb-4 text-white">
             <EnvelopeSimpleIcon size={24} />
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">
             Don&apos;t See Your Role Listed?
           </h2>
           <p className="text-sm sm:text-base text-slate-200 max-w-xl mx-auto mb-6">
-            We are always on the lookout for exceptional engineers, product designers, growth marketers, and operations champions.
+            We&apos;re always looking for great engineers, designers, marketers and operators.
           </p>
           <a
             href="mailto:careers@kaammilega.com?subject=General Career Application - KaamMilega"

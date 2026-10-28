@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"time"
 
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 	"km-backend/internal/features/user"
 
@@ -53,14 +54,14 @@ func currentUser(c *fiber.Ctx) (string, error) {
 func fail(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, ErrNotFound):
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
 	case errors.Is(err, ErrCodeCooldown), errors.Is(err, ErrCodeLimit), errors.Is(err, ErrTooManyAttempts):
-		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusTooManyRequests).JSON(apperr.Body(err))
 	case errors.Is(err, ErrInvalidState):
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusConflict).JSON(apperr.Body(err))
 	case errors.Is(err, ErrReauthRequired), errors.Is(err, ErrInvalidCode), errors.Is(err, ErrIncorrectPassword),
 		errors.Is(err, ErrNoChannel), errors.Is(err, ErrConfirmPhrase), errors.Is(err, ErrAcknowledge):
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	default:
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Something went wrong. Please try again."})
 	}

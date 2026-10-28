@@ -1,6 +1,6 @@
 import React from 'react';
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRightIcon, BuildingOfficeIcon, CheckCircleIcon, CoinsIcon, HeadsetIcon, LightningIcon, MagnifyingGlassIcon, PhoneCallIcon, SealCheckIcon, ShieldCheckIcon, UserCheckIcon, UsersThreeIcon } from '@phosphor-icons/react/ssr';
 
 export const metadata = {
@@ -97,53 +97,27 @@ export default function HowWeWorkPage() {
   return (
     <main className="min-h-screen bg-km-surface font-sans antialiased text-slate-800">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />
-
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
-            <Image
-              src="/kaammilega-logo-icon.png"
-              alt="KaamMilega Icon"
-              width={22}
-              height={22}
-              className="object-contain"
-            />
-            <span className="text-xs sm:text-sm font-semibold tracking-wide text-white">
-              Platform Workflow &amp; Guarantees
-            </span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight mb-5">
-            How <span className="text-[#FF6B00]">KaamMilega™</span> Works
-          </h1>
-
-          <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed">
-            A transparent, tech-powered bridge connecting millions of jobseekers with genuine verified employers across India — with zero brokerage and total peace of mind.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-            <Link
-              href="/jobs"
-              className="px-6 py-3 bg-[#FF6B00] hover:bg-[#FF8A00] text-white font-bold rounded-full text-xs sm:text-sm transition-all shadow-md active:scale-95 flex items-center gap-2"
-            >
-              <span>Explore Jobs</span>
-              <ArrowRightIcon weight="bold" size={16} />
-            </Link>
-            <Link
-              href="/register"
-              className="px-6 py-3 bg-white/15 hover:bg-white/25 border border-white/30 text-white font-bold rounded-full text-xs sm:text-sm transition-all backdrop-blur-md"
-            >
-              Hire Candidates
-            </Link>
-          </div>
+      <PageHero
+        kicker={{ label: 'Platform Workflow & Guarantees', Icon: SealCheckIcon, tone: 'jobs' }}
+        title={<>How <HeroAccent>KaamMilega™</HeroAccent> Works</>}
+        description="A transparent bridge between jobseekers and verified employers, with zero brokerage."
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/jobs" className="btn-accent inline-flex items-center gap-1.5 text-xs px-5 py-2.5 shadow-sm">
+            <span>Explore Jobs</span>
+            <ArrowRightIcon weight="bold" size={13} />
+          </Link>
+          <Link href="/register" className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card">
+            <span>Hire Candidates</span>
+          </Link>
         </div>
-      </section>
+      </PageHero>
+
 
       {/* For Jobseekers Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-km-link bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <span className="block text-[13px] font-semibold text-km-link">
             For Jobseekers
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -187,14 +161,14 @@ export default function HowWeWorkPage() {
       {/* For Employers Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-200">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+          <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
             For Employers &amp; HRs
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
             Hiring Built for Speed, Scale &amp; Integrity
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-2">
-            Recruit pre-screened talent across India with instant verified outreach and zero recruitment fees.
+            Hire pre-screened talent across India with zero recruitment fees.
           </p>
         </div>
 
@@ -232,7 +206,7 @@ export default function HowWeWorkPage() {
       <section className="py-16 sm:py-20 bg-km-surface-card px-4 sm:px-6 lg:px-8 border-y border-slate-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 dark:text-emerald-400">
+            <span className="block text-[13px] font-semibold text-emerald-700 dark:text-emerald-400">
               Platform Integrity
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -267,7 +241,7 @@ export default function HowWeWorkPage() {
             Ready to Experience the Direct Hiring Revolution?
           </h2>
           <p className="text-sm sm:text-base text-slate-200 max-w-xl mx-auto mb-8">
-            Join over 500,000+ candidates and 5,000+ verified companies building India&apos;s most reliable employment network.
+            Join 500,000+ candidates and 5,000+ verified companies on KaamMilega™.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -278,7 +252,7 @@ export default function HowWeWorkPage() {
             </Link>
             <Link
               href="/about"
-              className="px-8 py-3.5 bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold rounded-full text-sm transition-all"
+              className="px-8 py-3.5 border border-white/30 text-white hover:bg-white/10 hover:border-white font-bold rounded-full text-sm transition-all"
             >
               Learn More About Us
             </Link>

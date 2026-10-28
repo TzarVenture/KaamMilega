@@ -7,6 +7,7 @@ import api from '@/lib/axios';
 import { notify, errorText } from "@/lib/notify";
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { HERO_SHELL } from '@/components/km/PageHero';
 
 interface Job {
     id: string;
@@ -34,7 +35,7 @@ interface Job {
 // ─── Design.md Shimmer Skeleton Loader ───
 const JobDetailSkeleton = () => (
     <div className="bg-km-surface min-h-screen font-sans pb-20">
-        <div className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 pb-12 rounded-b-[32px] sm:rounded-b-[44px] dark:border-white/10">
+        <div className={`${HERO_SHELL} pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 lg:pb-12`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
                 <div className="h-4 bg-white/10 rounded-md w-32 animate-shimmer" />
                 <div className="h-8 bg-white/10 rounded-lg w-2/3 animate-shimmer" />
@@ -273,7 +274,7 @@ const JobDetailPage = () => {
         <div className="bg-km-surface min-h-screen pb-20 font-sans text-km-text-primary">
 
             {/* ─── Hero Section with Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-8 sm:pb-10 lg:pb-12 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">
+            <section className={`${HERO_SHELL} pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 lg:pb-12`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Back Link */}
                     <div className="mb-4">
@@ -290,7 +291,7 @@ const JobDetailPage = () => {
                         {/* Left Header Content */}
                         <div className="flex-1 min-w-0">
                             {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3 py-1 rounded-full mb-3 dark:bg-blue-500/15 dark:border-blue-500/30">
+                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3 py-1 rounded-full mb-3 dark:bg-[#172A50] dark:border-blue-500/30">
                                 <BriefcaseIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
                                 <span>Verified Direct Job Opening</span>
                             </div>
@@ -411,7 +412,7 @@ const JobDetailPage = () => {
                                 title={isBookmarked ? 'Remove from saved' : 'Save this job'}
                                 className={`w-11 h-11 rounded-xl border flex items-center justify-center transition-colors cursor-pointer shadow-xs ${
                                     isBookmarked
-                                        ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-blue-500/15 dark:border-blue-500/30'
+                                        ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-[#172A50] dark:border-blue-500/30'
                                         : 'bg-[#0B1F52] text-white/90 hover:text-white hover:bg-white/10 border-white/20 dark:bg-km-primary-dark'
                                 }`}
                             >
@@ -650,7 +651,7 @@ const JobDetailPage = () => {
                             </h3>
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-blue-500/15">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-[#172A50]">
                                         1
                                     </div>
                                     <div>
@@ -659,7 +660,7 @@ const JobDetailPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-blue-500/15">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-[#172A50]">
                                         2
                                     </div>
                                     <div>
@@ -668,7 +669,7 @@ const JobDetailPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-blue-500/15">
+                                    <div className="w-7 h-7 rounded-lg bg-[#EBF3FE] text-km-link font-bold text-xs flex items-center justify-center shrink-0 dark:bg-[#172A50]">
                                         3
                                     </div>
                                     <div>
@@ -691,7 +692,7 @@ const JobDetailPage = () => {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsApplyModalOpen(false)}
-                            className="fixed inset-0 bg-[#071A4D]/60 backdrop-blur-xs dark:bg-km-primary"
+                            className="fixed inset-0 bg-[#071A4D]/60 dark:bg-km-primary"
                         />
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -768,7 +769,7 @@ const JobDetailPage = () => {
                                     {!resumeFile ? (
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="border-2 border-dashed border-km-border hover:border-[#0B5ED7] hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group dark:hover:bg-blue-500/15"
+                                            className="border-2 border-dashed border-km-border hover:border-[#0B5ED7] hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group dark:hover:bg-[#172A50]"
                                         >
                                             <CloudArrowUpIcon size={20} className="text-km-link mx-auto mb-1.5" aria-hidden="true" />
                                             <p className="text-xs font-semibold text-km-text-primary">

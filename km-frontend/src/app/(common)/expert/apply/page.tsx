@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import api from "@/lib/axios";
 import { isAuthenticated } from "@/lib/auth";
 import { notify } from "@/lib/notify";
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 
 interface PlanDetails {
   plan_type: string;
@@ -238,29 +239,15 @@ export default function ExpertProSubscriptionPage() {
   const isWalletSufficient = walletBalance >= selectedPlan.price;
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-white/5">
+    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-[#1D253D]">
 
-      {/* Hero Banner */}
-      <section className="bg-linear-to-br from-[#020617] via-[#0a1128] to-[#1a2b8c] text-white pt-14 pb-14 sm:pt-18 sm:pb-18 md:pt-20 md:pb-22 px-4 sm:px-6 md:px-12 rounded-b-4xl sm:rounded-b-[44px] md:rounded-b-[56px] relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
-
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 text-xs font-bold uppercase tracking-wider text-orange-400 mb-6 border border-white/10 backdrop-blur-xs">
-              <span>KaamMilega Pro Expert Program</span>
-            </div>
-
-            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black mb-6 leading-tight tracking-tight">
-              Turn Your Industry Expertise <br className="hidden sm:block" /> Into <span className="text-orange-400">Sustainable Income</span>
-            </h1>
-
-            <p className="text-sm md:text-lg text-slate-300 max-w-3xl mx-auto leading-relaxed">
-              Join vetted tech leaders, managers, and career coaches hosting 1-on-1 mentorship calls. Set your own session prices, keep 100% of your earnings, and rank at the top of India's expert directory.
-            </p>
-          </motion.div>
-        </div>
-      </section>
+      {/* Hero */}
+      <PageHero
+        width="max-w-5xl"
+        kicker={{ label: 'KaamMilega Pro Expert Program', Icon: MedalIcon, tone: 'experts' }}
+        title={<>Turn Your Industry Expertise Into <HeroAccent>Sustainable Income</HeroAccent></>}
+        description="Host paid 1-on-1 sessions, set your own price and keep 100% of your earnings."
+      />
 
       {/* Main Content Container */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-8 sm:pt-12 md:pt-16 pb-4 sm:pb-6 relative z-10">
@@ -268,12 +255,12 @@ export default function ExpertProSubscriptionPage() {
         {activeSub && (
           <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-8 sm:mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-[#047857] flex items-center justify-center text-white shrink-0">
                 <MedalIcon size={26} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-km-surface-card text-emerald-800 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[11px] font-semibold bg-km-surface-card text-emerald-800 px-2.5 py-0.5 rounded-full">
                     Active Subscription
                   </span>
                   <h3 className="font-extrabold text-base md:text-lg">
@@ -310,7 +297,7 @@ export default function ExpertProSubscriptionPage() {
                 }`}
               >
                 {isYearly && (
-                  <div className="absolute -top-3.5 right-6 bg-linear-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                  <div className="absolute -top-3.5 right-6 bg-linear-to-r from-orange-500 to-amber-500 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-md">
                     Most Popular • Best Value
                   </div>
                 )}
@@ -374,7 +361,7 @@ export default function ExpertProSubscriptionPage() {
       {/* Dual-Payment Checkout Modal */}
       <AnimatePresence>
         {checkoutModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

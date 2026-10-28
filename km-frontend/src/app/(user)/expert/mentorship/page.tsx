@@ -58,14 +58,14 @@ export default function ExpertMentorshipManagement() {
   };
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-20 dark:bg-white/5">
+    <main className="min-h-screen bg-[#fafafa] pb-20 dark:bg-[#1D253D]">
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-8">
         
         {/* Header with Quick Wallet & Payout Stats */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 md:mb-8">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="bg-purple-100 text-purple-700 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
+              <span className="bg-purple-100 text-purple-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">
                 Expert Monetisation Portal
               </span>
             </div>
@@ -166,7 +166,7 @@ function SessionsList({ mentorships }: { mentorships: any[] }) {
       {mentorships.map((m, i) => (
         <div key={m.id || i} className="bg-km-surface-card p-5 md:p-6 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all group">
           <div className="flex justify-between items-start mb-4">
-            <div className="bg-purple-50 text-purple-600 text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full dark:text-purple-400">{m.category}</div>
+            <div className="bg-purple-50 text-purple-600 text-[11px] font-semibold px-2.5 py-1 rounded-full dark:text-purple-400">{m.category}</div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-500 transition-colors dark:hover:text-blue-400"><NotePencilIcon weight="bold" size={14} /></button>
               <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500 transition-colors dark:hover:text-red-400"><TrashIcon weight="bold" size={14} /></button>
@@ -258,7 +258,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
               </div>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
                     {b.mentorship_title || '1-on-1 Mentorship'}
                   </span>
                   
@@ -390,7 +390,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
 
       {/* Meeting Link Modal */}
       {meetingModalBooking && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -536,7 +536,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-lg md:text-xl font-black text-gray-900">Weekly Availability</h3>
-            <span className="bg-purple-50 text-purple-700 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full border border-purple-100">
+            <span className="bg-purple-50 text-purple-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-purple-100">
               {activeCount} {activeCount === 1 ? 'Day' : 'Days'} Active
             </span>
           </div>

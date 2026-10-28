@@ -14,6 +14,7 @@ package account
 
 import (
 	"errors"
+	"km-backend/internal/common/apperr"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,18 +34,18 @@ const (
 )
 
 var (
-	ErrNotFound          = errors.New("account not found")
-	ErrInvalidState      = errors.New("this action isn't available for your account right now")
-	ErrReauthRequired    = errors.New("enter the verification code we sent you, or your password")
-	ErrInvalidCode       = errors.New("that code is incorrect or has expired")
-	ErrTooManyAttempts   = errors.New("too many incorrect attempts. Request a new code")
-	ErrIncorrectPassword = errors.New("incorrect password")
-	ErrCodeCooldown      = errors.New("please wait a few seconds before requesting another code")
-	ErrCodeLimit         = errors.New("too many codes requested. Try again in an hour")
-	ErrNoChannel         = errors.New("add a verified email or mobile number to receive a code")
+	ErrNotFound          = apperr.New("ACCOUNT_NOT_FOUND", "account not found")
+	ErrInvalidState      = apperr.New("ACTION_UNAVAILABLE", "this action isn't available for your account right now")
+	ErrReauthRequired    = apperr.New("REAUTH_REQUIRED", "enter the verification code we sent you, or your password")
+	ErrInvalidCode       = apperr.New("CODE_INVALID", "that code is incorrect or has expired")
+	ErrTooManyAttempts   = apperr.New("CODE_TOO_MANY_ATTEMPTS", "too many incorrect attempts. Request a new code")
+	ErrIncorrectPassword = apperr.New("PASSWORD_INCORRECT", "incorrect password")
+	ErrCodeCooldown      = apperr.New("CODE_COOLDOWN", "please wait a few seconds before requesting another code")
+	ErrCodeLimit         = apperr.New("CODE_LIMIT", "too many codes requested. Try again in an hour")
+	ErrNoChannel         = apperr.New("NO_VERIFIED_CHANNEL", "add a verified email or mobile number to receive a code")
 	ErrConfirmPhrase     = errors.New(`type DELETE to confirm`)
-	ErrAcknowledge       = errors.New("please confirm you understand what happens to your subscription and job posts")
-	ErrBlocked           = errors.New("resolve the items listed before deleting your account")
+	ErrAcknowledge       = apperr.New("ACKNOWLEDGE_REQUIRED", "please confirm you understand what happens to your subscription and job posts")
+	ErrBlocked           = apperr.New("DELETE_BLOCKED", "resolve the items listed before deleting your account")
 )
 
 // ActionCode is a short-lived verification code for a destructive account action. Only a hash of

@@ -286,7 +286,7 @@ export default function AdminEventsPage() {
             <div className="bg-white dark:bg-km-surface-card p-5 sm:p-6 rounded-2xl border border-purple-50 dark:border-white/5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 dark:text-purple-400">
+                        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-[#555870] flex items-center justify-center text-purple-600 dark:text-purple-400">
                             <CalendarBlankIcon size={24} weight="duotone" />
                         </div>
                         <div>
@@ -341,7 +341,7 @@ export default function AdminEventsPage() {
                         placeholder="Search by title, organizer, category, location..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 dark:text-white"
+                        className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 dark:text-white"
                     />
                 </div>
                 <div className="flex items-center justify-between sm:justify-end gap-3">
@@ -359,7 +359,7 @@ export default function AdminEventsPage() {
             <div className="bg-white dark:bg-km-surface-card rounded-2xl border border-purple-50 dark:border-white/5 overflow-hidden shadow-xs">
                 <div className="overflow-x-auto min-h-[300px]">
                     <table className="w-full text-left text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                        <thead className="bg-slate-50/80 dark:bg-white/5 text-[11px] uppercase font-bold text-slate-400 border-b border-purple-50 dark:border-white/5 tracking-wider">
+                        <thead className="bg-slate-50/80 dark:bg-[#1D253D] text-[11px] uppercase font-bold text-slate-400 border-b border-purple-50 dark:border-white/5 tracking-wider">
                             <tr>
                                 <th className="px-5 py-4">Event Details</th>
                                 <th className="px-4 py-4">Organizer</th>
@@ -385,14 +385,14 @@ export default function AdminEventsPage() {
                                 </tr>
                             ) : (
                                 events.map((ev) => (
-                                    <tr key={ev.id} className="hover:bg-purple-50/20 dark:hover:bg-white/2 transition-colors">
+                                    <tr key={ev.id} className="hover:bg-purple-50/20 dark:hover:bg-[#161F37] transition-colors">
                                         {/* Title & Category - Full readable space without trimming */}
                                         <td className="px-5 py-4 min-w-[240px] max-w-md">
                                             <div className="font-bold text-slate-900 dark:text-white text-sm leading-snug break-words">
                                                 {ev.title}
                                             </div>
                                             <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-100 dark:border-purple-800/40">
+                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-[#555870] dark:text-purple-300 border border-purple-100 dark:border-purple-800/40">
                                                     {ev.category || 'General'}
                                                 </span>
                                                 <span className="text-[10px] text-slate-400 font-mono">ID: {ev.id.slice(-6)}</span>
@@ -421,11 +421,11 @@ export default function AdminEventsPage() {
                                         {/* Pricing */}
                                         <td className="px-4 py-4 whitespace-nowrap">
                                             {ev.is_paid && (ev.price || 0) > 0 ? (
-                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-md border border-orange-200 dark:border-orange-900/40">
+                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-[#251821] px-2 py-0.5 rounded-md border border-orange-200 dark:border-orange-900/40">
                                                     ₹{ev.price}
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-900/40">
+                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-[#0B212C] px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-900/40">
                                                     Free Entry
                                                 </span>
                                             )}
@@ -459,21 +459,21 @@ export default function AdminEventsPage() {
                                             <div className="inline-flex items-center gap-1.5">
                                                 <button
                                                     onClick={() => handleInspectEvent(ev.id)}
-                                                    className="p-2 rounded-xl text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors"
+                                                    className="p-2 rounded-xl text-purple-600 hover:bg-purple-50 dark:hover:bg-[#555870] transition-colors"
                                                     title="Inspect all booked attendees & transactions"
                                                 >
                                                     <EyeIcon size={16} weight="bold" />
                                                 </button>
                                                 <button
                                                     onClick={() => handleOpenEdit(ev)}
-                                                    className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                                                    className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-[#293147] transition-colors"
                                                     title="Edit Event Information"
                                                 >
                                                     <PencilSimpleIcon size={16} weight="bold" />
                                                 </button>
                                                 <button
                                                     onClick={() => setDeleteConfirmId(ev.id)}
-                                                    className="p-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                                                    className="p-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-[#585668] transition-colors"
                                                     title="Delete Event"
                                                 >
                                                     <TrashIcon size={16} weight="bold" />
@@ -490,7 +490,7 @@ export default function AdminEventsPage() {
                 {/* ───────────────────────────────────────────────────────────── */}
                 {/* Standard Consistent Pagination: 1 2 3 4 ...                   */}
                 {/* ───────────────────────────────────────────────────────────── */}
-                <div className="px-5 py-4 bg-slate-50/60 dark:bg-white/2 border-t border-purple-50 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                <div className="px-5 py-4 bg-slate-50/60 dark:bg-[#161F37] border-t border-purple-50 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                     <p className="text-slate-500 font-medium">
                         Showing <span className="font-bold text-slate-900 dark:text-white">{events.length > 0 ? (page - 1) * ITEMS_PER_PAGE + 1 : 0}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(page * ITEMS_PER_PAGE, total)}</span> of <span className="font-bold text-slate-900 dark:text-white">{total}</span> events
                     </p>
@@ -501,7 +501,7 @@ export default function AdminEventsPage() {
                             type="button"
                             disabled={page <= 1}
                             onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed font-medium inline-flex items-center gap-1 transition-colors"
+                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-[#1D253D] disabled:opacity-40 disabled:cursor-not-allowed font-medium inline-flex items-center gap-1 transition-colors"
                         >
                             <CaretLeftIcon size={14} weight="bold" />
                             <span>Prev</span>
@@ -528,7 +528,7 @@ export default function AdminEventsPage() {
                                     className={`w-9 h-9 rounded-xl font-bold transition-all text-xs border ${
                                         isActive
                                             ? 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-600/30'
-                                            : 'text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-white/5 bg-white dark:bg-km-surface-card border-slate-200 dark:border-white/10'
+                                            : 'text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-[#1D253D] bg-white dark:bg-km-surface-card border-slate-200 dark:border-white/10'
                                     }`}
                                 >
                                     {pageNum}
@@ -541,7 +541,7 @@ export default function AdminEventsPage() {
                             type="button"
                             disabled={page >= totalPages}
                             onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-white/5 disabled:opacity-40 disabled:cursor-not-allowed font-medium inline-flex items-center gap-1 transition-colors"
+                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-[#1D253D] disabled:opacity-40 disabled:cursor-not-allowed font-medium inline-flex items-center gap-1 transition-colors"
                         >
                             <span>Next</span>
                             <CaretRightIcon size={14} weight="bold" />
@@ -555,7 +555,7 @@ export default function AdminEventsPage() {
             {/* ───────────────────────────────────────────────────────────── */}
             <AnimatePresence>
                 {auditModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -563,7 +563,7 @@ export default function AdminEventsPage() {
                             className="bg-white dark:bg-[#111827] rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-purple-50 dark:border-white/10"
                         >
                             {/* Modal Header */}
-                            <div className="p-5 sm:p-6 border-b border-purple-50 dark:border-white/10 flex items-center justify-between bg-purple-50/50 dark:bg-purple-950/20">
+                            <div className="p-5 sm:p-6 border-b border-purple-50 dark:border-white/10 flex items-center justify-between bg-purple-50/50 dark:bg-[#19163D]">
                                 <div>
                                     <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">
                                         Event Audit & Ledger Inspector
@@ -577,7 +577,7 @@ export default function AdminEventsPage() {
                                 </div>
                                 <button
                                     onClick={() => setAuditModalOpen(false)}
-                                    className="p-2 rounded-xl text-slate-400 hover:bg-white dark:hover:bg-white/10 transition-colors"
+                                    className="p-2 rounded-xl text-slate-400 hover:bg-white dark:hover:bg-[#293147] transition-colors"
                                 >
                                     <XIcon size={18} weight="bold" />
                                 </button>
@@ -593,19 +593,19 @@ export default function AdminEventsPage() {
                                     <>
                                         {/* Financial Summary Cards */}
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                                            <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-purple-50 dark:border-white/5">
+                                            <div className="p-3.5 bg-slate-50 dark:bg-[#1D253D] rounded-2xl border border-purple-50 dark:border-white/5">
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Gross Revenue</p>
                                                 <p className="text-lg sm:text-xl font-black text-emerald-600 mt-1">₹{selectedEventDetail?.total_revenue?.toLocaleString('en-IN')}</p>
                                             </div>
-                                            <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-purple-50 dark:border-white/5">
+                                            <div className="p-3.5 bg-slate-50 dark:bg-[#1D253D] rounded-2xl border border-purple-50 dark:border-white/5">
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Tickets Issued</p>
                                                 <p className="text-lg sm:text-xl font-black text-purple-600 mt-1">{selectedEventDetail?.total_tickets_sold}</p>
                                             </div>
-                                            <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-purple-50 dark:border-white/5">
+                                            <div className="p-3.5 bg-slate-50 dark:bg-[#1D253D] rounded-2xl border border-purple-50 dark:border-white/5">
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Paid Seats</p>
                                                 <p className="text-lg sm:text-xl font-black text-blue-600 mt-1">{selectedEventDetail?.paid_registrations}</p>
                                             </div>
-                                            <div className="p-3.5 bg-slate-50 dark:bg-white/5 rounded-2xl border border-purple-50 dark:border-white/5">
+                                            <div className="p-3.5 bg-slate-50 dark:bg-[#1D253D] rounded-2xl border border-purple-50 dark:border-white/5">
                                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Free Passes</p>
                                                 <p className="text-lg sm:text-xl font-black text-slate-700 dark:text-slate-300 mt-1">{selectedEventDetail?.free_registrations}</p>
                                             </div>
@@ -619,13 +619,13 @@ export default function AdminEventsPage() {
                                             </h4>
 
                                             {(!selectedEventDetail?.tickets || selectedEventDetail.tickets.length === 0) ? (
-                                                <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-white/5 rounded-2xl text-xs">
+                                                <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-[#1D253D] rounded-2xl text-xs">
                                                     No tickets have been booked for this event yet.
                                                 </div>
                                             ) : (
                                                 <div className="rounded-2xl border border-purple-50 dark:border-white/5 overflow-hidden">
                                                     <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                                                        <thead className="bg-slate-50 dark:bg-white/5 uppercase text-[10px] text-slate-400 font-bold border-b border-purple-50 dark:border-white/5">
+                                                        <thead className="bg-slate-50 dark:bg-[#1D253D] uppercase text-[10px] text-slate-400 font-bold border-b border-purple-50 dark:border-white/5">
                                                             <tr>
                                                                 <th className="px-4 py-3">Ticket #</th>
                                                                 <th className="px-4 py-3">Attendee Name</th>
@@ -637,7 +637,7 @@ export default function AdminEventsPage() {
                                                         </thead>
                                                         <tbody className="divide-y divide-purple-50 dark:divide-white/5">
                                                             {selectedEventDetail.tickets.map((t) => (
-                                                                <tr key={t.id} className="hover:bg-purple-50/30 dark:hover:bg-white/2">
+                                                                <tr key={t.id} className="hover:bg-purple-50/30 dark:hover:bg-[#161F37]">
                                                                     <td className="px-4 py-3 font-mono font-bold text-purple-600 dark:text-purple-400">
                                                                         {t.ticket_number}
                                                                     </td>
@@ -667,7 +667,7 @@ export default function AdminEventsPage() {
                                                                         ₹{t.amount}
                                                                     </td>
                                                                     <td className="px-4 py-3">
-                                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-[#0B212C] px-2 py-0.5 rounded-md">
                                                                             <CheckCircleIcon size={12} weight="bold" /> {t.status}
                                                                         </span>
                                                                     </td>
@@ -691,7 +691,7 @@ export default function AdminEventsPage() {
             {/* ───────────────────────────────────────────────────────────── */}
             <AnimatePresence>
                 {formModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -704,7 +704,7 @@ export default function AdminEventsPage() {
                                 </h3>
                                 <button
                                     onClick={() => setFormModalOpen(false)}
-                                    className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
+                                    className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-[#293147] transition-colors"
                                 >
                                     <XIcon size={18} weight="bold" />
                                 </button>
@@ -721,7 +721,7 @@ export default function AdminEventsPage() {
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="e.g. Masterclass in Scalable Backend Architecture"
-                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                     />
                                 </div>
 
@@ -734,7 +734,7 @@ export default function AdminEventsPage() {
                                             type="text"
                                             value={formData.organizer}
                                             onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                         />
                                     </div>
                                     <div>
@@ -744,7 +744,7 @@ export default function AdminEventsPage() {
                                         <select
                                             value={formData.category}
                                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                         >
                                             <option value="Skill Workshop">Skill Workshop</option>
                                             <option value="Hiring Drive">Hiring Drive</option>
@@ -765,7 +765,7 @@ export default function AdminEventsPage() {
                                             placeholder="e.g. 2026-11-15 or Nov 15, 2026"
                                             value={formData.date}
                                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                         />
                                     </div>
                                     <div>
@@ -777,7 +777,7 @@ export default function AdminEventsPage() {
                                             placeholder="e.g. 10:00 AM - 12:00 PM"
                                             value={formData.time}
                                             onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                         />
                                     </div>
                                 </div>
@@ -791,7 +791,7 @@ export default function AdminEventsPage() {
                                         placeholder="e.g. Online (Zoom Link provided on ticket) or Mumbai Center"
                                         value={formData.location}
                                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                     />
                                 </div>
 
@@ -803,7 +803,7 @@ export default function AdminEventsPage() {
                                         <select
                                             value={formData.is_paid ? 'paid' : 'free'}
                                             onChange={(e) => setFormData({ ...formData, is_paid: e.target.value === 'paid' })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                         >
                                             <option value="free">Free Registration</option>
                                             <option value="paid">Paid Ticket</option>
@@ -819,7 +819,7 @@ export default function AdminEventsPage() {
                                             disabled={!formData.is_paid}
                                             value={formData.price}
                                             onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white disabled:opacity-40"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white disabled:opacity-40"
                                         />
                                     </div>
                                     <div>
@@ -831,7 +831,7 @@ export default function AdminEventsPage() {
                                             min="0"
                                             value={formData.capacity}
                                             onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 0, available_seats: parseInt(e.target.value) || 0 })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                         />
                                     </div>
                                 </div>
@@ -845,7 +845,7 @@ export default function AdminEventsPage() {
                                         placeholder="https://..."
                                         value={formData.image_url}
                                         onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
                                     />
                                 </div>
 
@@ -858,7 +858,7 @@ export default function AdminEventsPage() {
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         placeholder="Describe key learnings, speaker bio, and target audience..."
-                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white resize-none"
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white resize-none"
                                     />
                                 </div>
 
@@ -866,7 +866,7 @@ export default function AdminEventsPage() {
                                     <button
                                         type="button"
                                         onClick={() => setFormModalOpen(false)}
-                                        className="px-4 py-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
+                                        className="px-4 py-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#293147] rounded-xl transition-colors cursor-pointer"
                                     >
                                         Cancel
                                     </button>
@@ -887,14 +887,14 @@ export default function AdminEventsPage() {
             {/* Delete Confirmation Alert Modal */}
             <AnimatePresence>
                 {deleteConfirmId && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
                             className="bg-white dark:bg-[#111827] rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-purple-50 dark:border-white/10"
                         >
-                            <div className="w-12 h-12 bg-red-50 dark:bg-red-950/40 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                            <div className="w-12 h-12 bg-red-50 dark:bg-[#261423] text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                                 <TrashIcon size={24} weight="bold" />
                             </div>
                             <h4 className="text-base font-bold text-slate-800 dark:text-white">Delete This Event?</h4>
@@ -904,7 +904,7 @@ export default function AdminEventsPage() {
                             <div className="mt-6 flex items-center gap-2 justify-center">
                                 <button
                                     onClick={() => setDeleteConfirmId(null)}
-                                    className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 rounded-xl"
+                                    className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#293147] rounded-xl"
                                 >
                                     Cancel
                                 </button>

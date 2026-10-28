@@ -1,6 +1,7 @@
 package question
 
 import (
+	"km-backend/internal/common/apperr"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,7 +23,7 @@ func (c *QuestionController) CreateQuestion(ctx *fiber.Ctx) error {
 
 	question, err := c.service.CreateQuestion(ctx.Context(), req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.Status(fiber.StatusCreated).JSON(question)
 }
@@ -38,7 +39,7 @@ func (c *QuestionController) GetQuestions(ctx *fiber.Ctx) error {
 
 	questions, total, err := c.service.GetQuestions(ctx.Context(), filter)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	totalPages := 0
@@ -59,7 +60,7 @@ func (c *QuestionController) GetQuestion(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	question, err := c.service.GetQuestion(ctx.Context(), id)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if question == nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Question not found"})
@@ -76,7 +77,7 @@ func (c *QuestionController) UpdateQuestion(ctx *fiber.Ctx) error {
 
 	question, err := c.service.UpdateQuestion(ctx.Context(), id, req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if question == nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Question not found"})
@@ -87,7 +88,7 @@ func (c *QuestionController) UpdateQuestion(ctx *fiber.Ctx) error {
 func (c *QuestionController) DeleteQuestion(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if err := c.service.DeleteQuestion(ctx.Context(), id); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }

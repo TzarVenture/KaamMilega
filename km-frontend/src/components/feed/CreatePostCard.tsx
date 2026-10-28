@@ -26,7 +26,7 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) =
         <button
           type="button"
           onClick={() => onOpenModal('all')}
-          className="flex-1 text-left px-4 py-3 bg-km-surface hover:bg-[#EBF1FA] border border-km-border rounded-full text-xs sm:text-sm font-poppins text-km-text-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-[#0B5ED7]/20 dark:hover:bg-white/5"
+          className="flex-1 text-left px-4 py-3 bg-km-surface hover:bg-[#EBF1FA] border border-km-border rounded-full text-xs sm:text-sm font-poppins text-km-text-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-[#0B5ED7]/20 dark:hover:bg-[#1D253D]"
         >
           Start a post, share an opportunity or milestone...
         </button>
@@ -37,7 +37,7 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) =
         <button
           type="button"
           onClick={() => onOpenModal('all')}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#EFF6FF] hover:text-km-link transition-all dark:hover:bg-white/5"
+          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#EFF6FF] hover:text-km-link transition-all dark:hover:bg-[#1D253D]"
         >
           <ImageIcon weight="bold" size={18} className="text-km-link" />
           <span className="hidden sm:inline">Photo / Media</span>
@@ -47,7 +47,7 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) =
         <button
           type="button"
           onClick={() => onOpenModal('jobs')}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#FFF7ED] hover:text-[#FF6B00] transition-all dark:hover:bg-orange-500/15"
+          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#FFF7ED] hover:text-[#FF6B00] transition-all dark:hover:bg-[#34272F]"
         >
           <BriefcaseIcon weight="bold" size={18} className="text-[#FF6B00]" />
           <span className="hidden sm:inline">Hiring / Job</span>
@@ -57,7 +57,7 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) =
         <button
           type="button"
           onClick={() => onOpenModal('skills')}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#F0FDF4] hover:text-[#16A34A] transition-all dark:hover:bg-white/5"
+          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#F0FDF4] hover:text-[#16A34A] transition-all dark:hover:bg-[#1D253D]"
         >
           <MedalIcon weight="bold" size={18} className="text-[#16A34A]" />
           <span className="hidden sm:inline">Celebration</span>

@@ -2,6 +2,7 @@ package skill
 
 import (
 	"context"
+	"km-backend/internal/common/apperr"
 	"net/http"
 	"strconv"
 	"strings"
@@ -20,7 +21,7 @@ func NewSkillController(service SkillService) *SkillController {
 func (c *SkillController) CreateSkill(ctx *fiber.Ctx) error {
 	var req CreateSkillRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	req.Name = strings.TrimSpace(req.Name)
@@ -35,7 +36,7 @@ func (c *SkillController) CreateSkill(ctx *fiber.Ctx) error {
 		if strings.Contains(strings.ToLower(err.Error()), "already exists") {
 			return ctx.Status(http.StatusConflict).JSON(fiber.Map{"error": "Skill already exists in catalog"})
 		}
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.Status(http.StatusCreated).JSON(skill)
@@ -58,7 +59,7 @@ func (c *SkillController) GetSkills(ctx *fiber.Ctx) error {
 
 	skills, err := c.service.GetSkills(context.Background(), query, category, limit)
 	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.Status(http.StatusOK).JSON(skills)
@@ -67,7 +68,7 @@ func (c *SkillController) GetSkills(ctx *fiber.Ctx) error {
 func (c *SkillController) GetCategories(ctx *fiber.Ctx) error {
 	categories, err := c.service.GetCategories(context.Background())
 	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.Status(http.StatusOK).JSON(categories)
@@ -77,7 +78,7 @@ func (c *SkillController) GetSkill(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	skill, err := c.service.GetSkillByID(context.Background(), id)
 	if err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusBadRequest).JSON(apperr.Body(err))
 	}
 	if skill == nil {
 		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Skill not found"})
@@ -90,7 +91,7 @@ func (c *SkillController) UpdateSkill(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	var req UpdateSkillRequest
 	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	req.Name = strings.TrimSpace(req.Name)
@@ -98,7 +99,7 @@ func (c *SkillController) UpdateSkill(ctx *fiber.Ctx) error {
 
 	skill, err := c.service.UpdateSkill(context.Background(), id, &req)
 	if err != nil {
-		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusBadRequest).JSON(apperr.Body(err))
 	}
 	if skill == nil {
 		return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Skill not found"})
@@ -111,12 +112,12 @@ func (c *SkillController) DeleteSkill(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if err := c.service.DeleteSkill(context.Background(), id); err != nil {
 		if strings.Contains(strings.ToLower(err.Error()), "invalid") {
-			return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(http.StatusBadRequest).JSON(apperr.Body(err))
 		}
 		if strings.Contains(strings.ToLower(err.Error()), "no documents") {
 			return ctx.Status(http.StatusNotFound).JSON(fiber.Map{"error": "Skill not found"})
 		}
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.SendStatus(http.StatusNoContent)
@@ -125,7 +126,7 @@ func (c *SkillController) DeleteSkill(ctx *fiber.Ctx) error {
 func (c *SkillController) SeedSkills(ctx *fiber.Ctx) error {
 	count, err := c.service.SeedDefaultSkills(context.Background())
 	if err != nil {
-		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{

@@ -323,7 +323,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                                     <span>Thumbnail Preview</span>
                                 </div>
                             )}
-                            <div className="absolute bottom-1.5 right-1.5 bg-black/75 backdrop-blur-sm text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                            <div className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
                                 {duration || '15 Min'}
                             </div>
                         </div>

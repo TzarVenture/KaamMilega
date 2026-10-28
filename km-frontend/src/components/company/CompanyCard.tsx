@@ -124,7 +124,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                     onClick={handleFollowClick}
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
                         isFollowing
-                            ? 'bg-km-surface text-km-text-primary border border-km-border hover:bg-[#E3E9F1] dark:hover:bg-white/5'
+                            ? 'bg-km-surface text-km-text-primary border border-km-border hover:bg-[#E3E9F1] dark:hover:bg-[#1D253D]'
                             : 'border border-km-primary text-km-heading hover:bg-km-surface'
                     }`}
                 >

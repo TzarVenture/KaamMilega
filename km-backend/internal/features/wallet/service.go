@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"km-backend/internal/common/apperr"
 	"math"
 	"net/http"
 	"strings"
@@ -434,7 +435,7 @@ func (s *WalletServiceImpl) RequestWithdrawal(ctx context.Context, userID string
 	}
 
 	if walletDoc.EarningsBalance < req.Amount {
-		return nil, fmt.Errorf("insufficient withdrawable earnings (available: ₹%.2f, requested: ₹%.2f)", walletDoc.EarningsBalance, req.Amount)
+		return nil, apperr.New("EARNINGS_INSUFFICIENT", fmt.Sprintf("insufficient withdrawable earnings (available: ₹%.2f, requested: ₹%.2f)", walletDoc.EarningsBalance, req.Amount))
 	}
 
 	refID := fmt.Sprintf("WTH_%s_%d", userID[:min(6, len(userID))], time.Now().UnixNano())

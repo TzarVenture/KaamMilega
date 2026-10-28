@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -63,11 +64,11 @@ func (ctrl *FileController) UploadFile(c *fiber.Ctx) error {
 	switch err {
 	case nil:
 	case errFileTooLarge:
-		return c.Status(fiber.StatusRequestEntityTooLarge).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusRequestEntityTooLarge).JSON(apperr.Body(err))
 	case errFileType, errFileMismatch:
-		return c.Status(fiber.StatusUnsupportedMediaType).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnsupportedMediaType).JSON(apperr.Body(err))
 	default:
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	originalName := filepath.Base(fh.Filename)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/contrib/websocket"
@@ -52,7 +53,7 @@ func (c *NotificationController) GetNotifications(ctx *fiber.Ctx) error {
 
 	notifications, total, err := c.service.GetNotifications(ctx.Context(), userID, filter)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{
@@ -77,7 +78,7 @@ func (c *NotificationController) GetUnreadCount(ctx *fiber.Ctx) error {
 
 	count, err := c.service.GetUnreadCount(ctx.Context(), userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{
@@ -104,7 +105,7 @@ func (c *NotificationController) MarkAsRead(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.MarkAsRead(ctx.Context(), notifID, userID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"message": "Notification marked as read"})
@@ -123,7 +124,7 @@ func (c *NotificationController) MarkAllAsRead(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.MarkAllAsRead(ctx.Context(), userID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"message": "All notifications marked as read"})
@@ -148,7 +149,7 @@ func (c *NotificationController) DeleteNotification(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.DeleteNotification(ctx.Context(), notifID, userID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"message": "Notification deleted"})

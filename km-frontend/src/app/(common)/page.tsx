@@ -1412,7 +1412,7 @@ const TestimonialsSection = () => {
 
       {/* In-App YouTube Embedded Streaming Video Modal (Simple & Elegant without glowing dot) */}
       {selectedVideo?.youtube_video_id && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 font-sans">
           <div className="relative w-full max-w-3xl bg-km-ink rounded-3xl overflow-hidden shadow-2xl border border-[#1E293B] flex flex-col">
             {/* Top Bar with Candidate Info & Close (Clean & Elegant, no glowing dot) */}
             <div className="flex items-center justify-between px-5 py-3.5 bg-km-ink border-b border-[#1E293B] text-white">

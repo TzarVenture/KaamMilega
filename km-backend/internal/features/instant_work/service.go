@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"km-backend/internal/common/apperr"
 	"math"
 	"math/big"
 	"net/http"
@@ -26,10 +27,10 @@ import (
 )
 
 var (
-	ErrPassRequired      = errors.New("an active InstantPass (₹99) is required to go Free Now and receive dispatches")
-	ErrPassQuotaExhausted = errors.New("your InstantPass quota has been exhausted. Please recharge your pass")
-	ErrJobNotFound        = errors.New("instant job not found")
-	ErrUnauthorizedJob    = errors.New("unauthorized access to this instant job")
+	ErrPassRequired      = apperr.New("PASS_REQUIRED", "an active InstantPass (₹99) is required to go Free Now and receive dispatches")
+	ErrPassQuotaExhausted = apperr.New("PASS_QUOTA_EXHAUSTED", "your InstantPass quota has been exhausted. Please recharge your pass")
+	ErrJobNotFound        = apperr.New("INSTANT_JOB_NOT_FOUND", "instant job not found")
+	ErrUnauthorizedJob    = apperr.New("INSTANT_JOB_FORBIDDEN", "unauthorized access to this instant job")
 )
 
 type InstantWorkService interface {
@@ -263,7 +264,7 @@ func (s *InstantWorkServiceImpl) PurchasePassWithWallet(ctx context.Context, use
 
 	const passPrice = 99.00
 	if walletSummary.MainBalance < passPrice {
-		return nil, nil, fmt.Errorf("insufficient wallet balance: required ₹%.2f, available ₹%.2f. Please top up your wallet", passPrice, walletSummary.MainBalance)
+		return nil, nil, apperr.New("WALLET_INSUFFICIENT", fmt.Sprintf("insufficient wallet balance: required ₹%.2f, available ₹%.2f. Please top up your wallet", passPrice, walletSummary.MainBalance))
 	}
 
 	// 2. Create and activate the InstantPass

@@ -1741,7 +1741,7 @@ function ChatView() {
                   }}
                   className={`p-3.5 flex items-center gap-3 cursor-pointer transition-all group ${
                     isActive
-                      ? "bg-[#EAF1FC] dark:bg-blue-500/15 border-l-[3px] border-l-km-primary dark:border-l-km-link"
+                      ? "bg-[#EAF1FC] dark:bg-[#172A50] border-l-[3px] border-l-km-primary dark:border-l-km-link"
                       : "hover:bg-km-surface border-l-[3px] border-l-transparent"
                   }`}
                 >
@@ -1769,7 +1769,7 @@ function ChatView() {
                             promptDeleteConversation(chat.id);
                           }}
                           title="Delete conversation"
-                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 dark:hover:bg-red-500/10 transition-all dark:hover:text-red-400"
+                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 dark:hover:bg-[#271E35] transition-all dark:hover:text-red-400"
                         >
                           <TrashIcon weight="bold" size={13} />
                         </button>
@@ -1892,7 +1892,7 @@ function ChatView() {
                       {isBlockedByMe ? (
                         <button
                           onClick={promptUnblockUser}
-                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 transition-colors dark:text-emerald-400"
+                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-[#112A3B] transition-colors dark:text-emerald-400"
                         >
                           <CheckCircleIcon weight="bold" size={14} />
                           <span>Unblock user</span>
@@ -1919,7 +1919,7 @@ function ChatView() {
 
                       <button
                         onClick={() => promptDeleteConversation()}
-                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors dark:text-red-400"
+                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-red-600 hover:bg-red-50 dark:hover:bg-[#271E35] transition-colors dark:text-red-400"
                       >
                         <TrashIcon weight="bold" size={14} />
                         <span>Delete conversation</span>
@@ -2048,7 +2048,7 @@ function ChatView() {
                                   }}
                                   title="Delete message"
                                   aria-label="Delete message"
-                                  className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 active:scale-90 transition-all flex items-center justify-center dark:hover:text-red-400"
+                                  className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-[#271E35] active:scale-90 transition-all flex items-center justify-center dark:hover:text-red-400"
                                 >
                                   <TrashIcon weight="bold" size={13} />
                                 </button>
@@ -2442,11 +2442,11 @@ function ChatView() {
       {lightboxImage && (
         <div
           onClick={() => setLightboxImage(null)}
-          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 backdrop-blur-xs cursor-zoom-out"
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-zoom-out"
         >
           <button
             onClick={() => setLightboxImage(null)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/20 text-white hover:bg-white/40 transition-colors"
+            className="absolute top-4 right-4 p-2 rounded-full bg-[#111827] text-white hover:bg-black transition-colors"
           >
             <XIcon size={20} />
           </button>
@@ -2464,7 +2464,7 @@ function ChatView() {
             !isDeleting &&
             setConfirmModal((prev) => ({ ...prev, isOpen: false }))
           }
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 animate-in fade-in duration-150"
         >
           <div
             className="bg-km-surface-card rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-km-border space-y-4 animate-in zoom-in-95 duration-150"
@@ -2545,7 +2545,7 @@ function ChatView() {
             !reportModal.isSubmitting &&
             setReportModal((prev) => ({ ...prev, isOpen: false }))
           }
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 backdrop-blur-xs animate-in fade-in duration-150"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/45 animate-in fade-in duration-150"
         >
           <div
             className="bg-km-surface-card rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-km-border space-y-4 animate-in zoom-in-95 duration-150"

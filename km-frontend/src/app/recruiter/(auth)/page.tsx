@@ -114,18 +114,18 @@ export default function RecruiterDashboard() {
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div>
                         <div className="flex items-center gap-2.5 mb-2.5">
-                            <span className="px-2.5 py-1 rounded-md bg-white/15 border border-white/20 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+                            <span className="px-2.5 py-1 rounded-md bg-[#0B1F52] border border-[#1E3A8A] text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
                                 <BuildingOfficeIcon weight="bold" size={13} className="text-white" aria-hidden="true" />
                                 <span className="text-white">{companyName}</span>
                             </span>
 
                             {isVerified ? (
-                                <span className="px-2.5 py-1 rounded-md bg-emerald-500/25 border border-emerald-300/40 text-emerald-100 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+                                <span className="px-2.5 py-1 rounded-md bg-[#064E3B] border border-[#047857] text-[#D1FAE5] text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
                                     <ShieldCheckIcon weight="bold" size={13} className="text-emerald-300" aria-hidden="true" />
                                     <span className="text-emerald-100">Verified Employer</span>
                                 </span>
                             ) : (
-                                <span className="px-2.5 py-1 rounded-md bg-amber-500/25 border border-amber-300/40 text-amber-100 text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
+                                <span className="px-2.5 py-1 rounded-md bg-[#78350F] border border-[#B45309] text-[#FEF3C7] text-xs font-semibold flex items-center gap-1.5 shadow-2xs">
                                     <WarningCircleIcon weight="bold" size={13} className="text-amber-300" aria-hidden="true" />
                                     <span className="text-amber-100">Verification Pending</span>
                                 </span>
@@ -151,7 +151,7 @@ export default function RecruiterDashboard() {
                         </Link>
                         <Link
                             href="/recruiter/applications"
-                            className="px-4 py-2.5 bg-white/15 hover:bg-white/25 border border-white/25 text-white font-semibold text-xs rounded-xl transition-colors flex items-center gap-2 shrink-0"
+                            className="px-4 py-2.5 border border-white/30 text-white hover:bg-white/10 hover:border-white font-semibold text-xs rounded-xl transition-colors flex items-center gap-2 shrink-0"
                         >
                             <KanbanIcon weight="bold" size={16} aria-hidden="true" />
                             <span>Applicant Pipeline</span>
@@ -250,19 +250,19 @@ export default function RecruiterDashboard() {
                                     const rawStatus = String(job.status || "Open").trim();
                                     const norm = rawStatus.toLowerCase();
                                     let statusBadge = (
-                                        <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/50 dark:text-emerald-400">
+                                        <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-[#0C1F2E] dark:border-emerald-900/50 dark:text-emerald-400">
                                             Open
                                         </span>
                                     );
                                     if (norm === "closed") {
                                         statusBadge = (
-                                            <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:border-rose-900/50 dark:text-rose-400">
+                                            <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-rose-50 text-rose-700 border-rose-200 dark:bg-[#23142B] dark:border-rose-900/50 dark:text-rose-400">
                                                 Closed
                                             </span>
                                         );
                                     } else if (norm === "on hold" || norm === "on_hold" || norm === "paused") {
                                         statusBadge = (
-                                            <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900/50 dark:text-amber-400">
+                                            <span className="px-2 py-0.5 rounded-md text-[11px] font-medium border bg-amber-50 text-amber-700 border-amber-200 dark:bg-[#211A25] dark:border-amber-900/50 dark:text-amber-400">
                                                 On Hold
                                             </span>
                                         );
@@ -291,7 +291,7 @@ export default function RecruiterDashboard() {
                                             <td className="py-3.5 px-5 text-center">
                                                 <Link
                                                     href={`/recruiter/applications?jobId=${jobId}`}
-                                                    className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-blue-50 text-km-blue border border-blue-200 text-xs font-semibold hover:bg-blue-100 transition-colors dark:bg-blue-950/30 dark:border-blue-900/40 dark:text-km-link"
+                                                    className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full bg-blue-50 text-km-blue border border-blue-200 text-xs font-semibold hover:bg-blue-100 transition-colors dark:bg-[#131D3D] dark:border-blue-900/40 dark:text-km-link"
                                                 >
                                                     {applicantCount} {applicantCount === 1 ? "Applicant" : "Applicants"}
                                                 </Link>

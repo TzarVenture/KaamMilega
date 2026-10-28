@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"km-backend/internal/common/apperr"
 	"math/big"
 	"net/smtp"
 	"regexp"
@@ -133,10 +134,10 @@ func (s *UserServiceImpl) checkOTPCode(ctx context.Context, otp *OTP, code strin
 	}
 	if otp.Attempts+1 >= otpMaxAttempts {
 		_ = s.repo.MarkOTPUsed(ctx, otp.ID)
-		return errors.New("too many incorrect attempts. Please request a new code")
+		return apperr.New("OTP_TOO_MANY_ATTEMPTS", "too many incorrect attempts. Please request a new code")
 	}
 	_ = s.repo.IncrementOTPAttempts(ctx, otp.ID)
-	return errors.New("Invalid OTP")
+	return apperr.New("OTP_INVALID", "Invalid OTP")
 }
 
 // ensureEmailAvailable returns an error if another account already uses this email
@@ -146,7 +147,7 @@ func (s *UserServiceImpl) ensureEmailAvailable(ctx context.Context, userID primi
 		return err
 	}
 	if existing != nil && existing.ID != userID {
-		return errors.New("this email address is already linked to another account")
+		return apperr.New("EMAIL_TAKEN", "this email address is already linked to another account")
 	}
 	return nil
 }
@@ -194,7 +195,7 @@ func (s *UserServiceImpl) SendOTP(ctx context.Context, mobile string, role strin
 		return err
 	}
 	if sentLastHour >= otpMaxSendsPerHour {
-		return errors.New("too many code requests. Please try again after some time")
+		return apperr.New("OTP_TOO_MANY_REQUESTS", "too many code requests. Please try again after some time")
 	}
 
 	code, err := generateOTPCode()
@@ -241,7 +242,7 @@ func (s *UserServiceImpl) VerifyOTP(ctx context.Context, mobile, code string, ro
 		otp, _ = s.repo.GetLatestOTP(ctx, mobile)
 	}
 	if otp == nil {
-		return nil, errors.New("OTP not found or expired")
+		return nil, apperr.New("OTP_EXPIRED", "OTP not found or expired")
 	}
 
 	// 2. Verify Code (invalidates the code after too many wrong attempts)
@@ -379,7 +380,7 @@ func (s *UserServiceImpl) Register(ctx context.Context, userID string, req Regis
 	if strings.TrimSpace(req.Email) != "" {
 		email := strings.ToLower(strings.TrimSpace(req.Email))
 		if !emailRegex.MatchString(email) {
-			return nil, errors.New("please enter a valid email address")
+			return nil, apperr.New("EMAIL_INVALID", "please enter a valid email address")
 		}
 		if err := s.ensureEmailAvailable(ctx, user.ID, email); err != nil {
 			return nil, err
@@ -488,7 +489,7 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 	if v, ok := updates["email"].(string); ok && strings.TrimSpace(v) != "" {
 		email := strings.ToLower(strings.TrimSpace(v))
 		if !emailRegex.MatchString(email) {
-			return nil, errors.New("please enter a valid email address")
+			return nil, apperr.New("EMAIL_INVALID", "please enter a valid email address")
 		}
 		if err := s.ensureEmailAvailable(ctx, user.ID, email); err != nil {
 			return nil, err
@@ -829,10 +830,10 @@ func (s *UserServiceImpl) DeleteProject(ctx context.Context, userID string, proj
 }
 
 // ErrSkillNotInCatalogue: profile skills must come from the admin-managed skills catalogue
-var ErrSkillNotInCatalogue = errors.New("This skill isn't in the KaamMilega skills list. Pick one from the suggestions.")
+var ErrSkillNotInCatalogue = apperr.New("SKILL_NOT_IN_CATALOGUE", "This skill isn't in the KaamMilega skills list. Pick one from the suggestions.")
 
 // ErrSkillRequired: an empty skill name
-var ErrSkillRequired = errors.New("Enter a skill to add.")
+var ErrSkillRequired = apperr.New("SKILL_REQUIRED", "Enter a skill to add.")
 
 func (s *UserServiceImpl) AddSkill(ctx context.Context, userID string, skillName string) (*User, error) {
 	skillName = strings.TrimSpace(skillName)
@@ -891,7 +892,7 @@ func (s *UserServiceImpl) DeleteSkill(ctx context.Context, userID string, skillN
 func (s *UserServiceImpl) SendEmailOTP(ctx context.Context, email string) error {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if !emailRegex.MatchString(email) {
-		return errors.New("please enter a valid email address")
+		return apperr.New("EMAIL_INVALID", "please enter a valid email address")
 	}
 
 	code, err := generateOTPCode()
@@ -1093,7 +1094,7 @@ func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string
 		return err
 	}
 	if otp == nil {
-		return errors.New("OTP not found or expired")
+		return apperr.New("OTP_EXPIRED", "OTP not found or expired")
 	}
 
 	if err := s.checkOTPCode(ctx, otp, code); err != nil {
@@ -1317,7 +1318,7 @@ func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req Password
 		return nil, errors.New("email address is required")
 	}
 	if !emailRegex.MatchString(req.Email) {
-		return nil, errors.New("please enter a valid email address")
+		return nil, apperr.New("EMAIL_INVALID", "please enter a valid email address")
 	}
 	if req.Password == "" {
 		return nil, errors.New("password is required")
@@ -1328,7 +1329,7 @@ func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req Password
 
 	existing, err := s.repo.FindUserByEmail(ctx, req.Email)
 	if err == nil && existing != nil {
-		return nil, errors.New("an account with this email already exists")
+		return nil, apperr.New("EMAIL_TAKEN", "an account with this email already exists")
 	}
 
 	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
@@ -1455,7 +1456,7 @@ func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPassword
 		return errors.New("email address is required")
 	}
 	if !emailRegex.MatchString(email) {
-		return errors.New("please enter a valid email address")
+		return apperr.New("EMAIL_INVALID", "please enter a valid email address")
 	}
 
 	user, err := s.repo.FindUserByEmail(ctx, email)
@@ -1463,7 +1464,7 @@ func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPassword
 		return err
 	}
 	if user == nil {
-		return errors.New("no account found with this email address")
+		return apperr.New("EMAIL_NOT_FOUND", "no account found with this email address")
 	}
 
 	// Check if this is an OTP-only account with no password set
@@ -1625,7 +1626,7 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, req ResetPasswordRe
 		return err
 	}
 	if user == nil {
-		return errors.New("no account found with this email address")
+		return apperr.New("EMAIL_NOT_FOUND", "no account found with this email address")
 	}
 
 	// Role enforcement if role provided
@@ -1644,7 +1645,7 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, req ResetPasswordRe
 		return err
 	}
 	if otp == nil {
-		return errors.New("verification code has expired or is invalid. Please request a new code.")
+		return apperr.New("OTP_EXPIRED", "verification code has expired or is invalid. Please request a new code.")
 	}
 
 	if err := s.checkOTPCode(ctx, otp, code); err != nil {

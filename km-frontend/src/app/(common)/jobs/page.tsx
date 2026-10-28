@@ -7,6 +7,7 @@ import { notify, errorText } from "@/lib/notify";
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 
 // ─── Types ───
 
@@ -143,7 +144,7 @@ const FilterPanelContent = ({
                 <h2 className="text-xs font-bold text-km-text-primary">Refine Filters</h2>
             </div>
             {activeFilterCount > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full bg-[#EBF3FE] text-km-link text-[11px] font-bold border border-[#BFDBFE] dark:bg-blue-500/15 dark:border-blue-500/30">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#EBF3FE] text-km-link text-[11px] font-bold border border-[#BFDBFE] dark:bg-[#172A50] dark:border-blue-500/30">
                     {activeFilterCount} Active
                 </span>
             )}
@@ -158,7 +159,7 @@ const FilterPanelContent = ({
                             key={type}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -184,7 +185,7 @@ const FilterPanelContent = ({
                             key={range.value}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -211,7 +212,7 @@ const FilterPanelContent = ({
                             key={exp.value}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -238,7 +239,7 @@ const FilterPanelContent = ({
                             key={g}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -264,7 +265,7 @@ const FilterPanelContent = ({
                             key={q}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -335,7 +336,7 @@ const JobCard = ({
                             </Link>
                             <p className="text-km-text-secondary font-medium text-xs mt-1 flex items-center gap-2">
                                 <span>{job.company}</span>
-                                <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-white/10" />
+                                <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-[#293147]" />
                                 <span className="text-km-link font-semibold">Active Opening</span>
                             </p>
                         </div>
@@ -379,7 +380,7 @@ const JobCard = ({
                             <ClockIcon weight="bold" size={12} className="text-km-text-secondary" />
                             <span>{job.experience_min === 0 ? 'Fresher Friendly' : `${job.experience_min}+ yrs exp`}</span>
                         </span>
-                        <span className="px-2.5 py-1 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold rounded-lg flex items-center gap-1 dark:bg-blue-500/15 dark:border-blue-500/30">
+                        <span className="px-2.5 py-1 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold rounded-lg flex items-center gap-1 dark:bg-[#172A50] dark:border-blue-500/30">
                             <CheckCircleIcon weight="bold" size={12} className="text-km-link" />
                             <span>KM Verified Employer</span>
                         </span>
@@ -395,7 +396,7 @@ const JobCard = ({
                             title={isBookmarked ? 'Remove Bookmark' : 'Save / Bookmark Job'}
                             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer border ${
                                 isBookmarked
-                                    ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'bg-km-surface-card text-km-text-secondary hover:bg-km-surface hover:text-km-heading border-km-border'
                             }`}
                         >
@@ -724,79 +725,36 @@ const JobsPageContent = () => {
                 )}
             </AnimatePresence>
 
-            {/* ─── Jobs Hero Section with Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end">
-                        {/* Left Column: Category, Heading, Subhead & Key Value Props */}
-                        <div className="lg:col-span-5 xl:col-span-5 text-left pb-2 sm:pb-4 lg:pb-6">
-                            {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-3.5 sm:mb-4 dark:bg-blue-500/15 dark:border-blue-500/30">
-                                <BriefcaseIcon weight="bold" size={14} className="text-km-link" />
-                                <span>Verified Direct Employment</span>
-                            </div>
-
-                            {/* Headline */}
-                            <h1 className="text-3xl sm:text-4xl lg:text-4xl xl:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-                                Find Verified Jobs & <span className="text-[#FF6B00]">Hire Direct</span>
-                            </h1>
-
-                            {/* Subheading */}
-                            <p className="mt-3 text-sm sm:text-base text-white/80 max-w-lg font-normal leading-relaxed">
-                                Connect directly with verified corporate employers and trade recruiters across India. 1-click apply, zero brokerage fees, and transparent application status tracking.
-                            </p>
-
-                            {/* CTA Row */}
-                            <div className="flex flex-wrap items-center gap-3 mt-5 sm:mt-6">
-                                <Link
-                                    href="/jobs/saved"
-                                    className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card"
-                                >
-                                    <BookmarkSimpleIcon weight="fill" size={15} className="text-[#FF6B00]" />
-                                    <span>Saved Jobs ({bookmarkedJobIds.size})</span>
-                                </Link>
-                                <Link
-                                    href="/recruiter"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/20 text-white/90 hover:bg-white/10 hover:text-white transition-all shadow-xs"
-                                >
-                                    <span>Post a Job as Employer</span>
-                                    <ArrowRightIcon weight="bold" size={13} />
-                                </Link>
-                            </div>
-
-                            {/* Trust Chips */}
-                            <div className="flex flex-wrap items-center gap-3 sm:gap-4 lg:gap-5 mt-5 sm:mt-6 pt-4 sm:pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
-                                <div className="flex items-center gap-2">
-                                    <ShieldCheckIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                                    <span>100% Verified Employers</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircleIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                                    <span>Zero Candidate Brokerage</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <BuildingOfficeIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                                    <span>Direct Recruiter Contacts</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column: Jobs Hero Artwork Resting Directly on Top Edge of Search Bar */}
-                        <div className="lg:col-span-7 xl:col-span-7 flex items-end justify-center lg:justify-end self-end">
-                            <div 
-                                className="relative flex items-end justify-center lg:justify-end w-full"
-                                style={{ width: 'clamp(380px, 56vw, 760px)', maxWidth: '100%' }}
-                            >
-                                <img
-                                    src="/jobs-page-hero-art.png"
-                                    alt="KaamMilega Verified Jobs"
-                                    className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-xl block translate-y-[1px]"
-                                />
-                            </div>
-                        </div>
-                    </div>
+            {/* ─── Hero ─── */}
+            <PageHero
+                overlap
+                kicker={{ label: 'Verified Direct Employment', Icon: BriefcaseIcon, tone: 'jobs' }}
+                title={<>Find Verified Jobs & <HeroAccent>Hire Direct</HeroAccent></>}
+                description="Apply directly to verified employers across India. Zero brokerage, 1-click apply."
+                highlights={[
+                    { Icon: ShieldCheckIcon, label: '100% Verified Employers' },
+                    { Icon: CheckCircleIcon, label: 'Zero Candidate Brokerage' },
+                    { Icon: BuildingOfficeIcon, label: 'Direct Recruiter Contacts' },
+                ]}
+                art={{ src: '/jobs-page-hero-art.png', alt: 'KaamMilega Verified Jobs', wide: true }}
+            >
+                <div className="flex flex-wrap items-center gap-3">
+                    <Link
+                        href="/jobs/saved"
+                        className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card"
+                    >
+                        <BookmarkSimpleIcon weight="fill" size={15} className="text-[#FF6B00]" />
+                        <span>Saved Jobs ({bookmarkedJobIds.size})</span>
+                    </Link>
+                    <Link
+                        href="/recruiter"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/20 text-white/90 hover:bg-white/10 hover:text-white transition-all shadow-xs"
+                    >
+                        <span>Post a Job as Employer</span>
+                        <ArrowRightIcon weight="bold" size={13} />
+                    </Link>
                 </div>
-            </section>
+            </PageHero>
 
             {/* ─── Integrated Top Search & Filter Bar (Overlapping Hero) ─── */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 lg:-mt-10 relative z-20">
@@ -862,7 +820,7 @@ const JobsPageContent = () => {
                                 key={term}
                                 type="button"
                                 onClick={() => handleSuggestionClick(term)}
-                                className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-blue-500/15"
+                                className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-[#172A50]"
                             >
                                 {term}
                             </button>
@@ -925,7 +883,7 @@ const JobsPageContent = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsMobileFilterOpen(true)}
-                                    className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 bg-[#EBF3FE] border border-[#BFDBFE] text-km-link rounded-xl text-xs font-semibold hover:bg-blue-100 transition-colors shrink-0 cursor-pointer dark:bg-blue-500/15 dark:border-blue-500/30"
+                                    className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 bg-[#EBF3FE] border border-[#BFDBFE] text-km-link rounded-xl text-xs font-semibold hover:bg-blue-100 transition-colors shrink-0 cursor-pointer dark:bg-[#172A50] dark:border-blue-500/30"
                                 >
                                     <SlidersHorizontalIcon weight="bold" size={13} />
                                     <span>Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</span>
@@ -969,7 +927,7 @@ const JobsPageContent = () => {
                                                     key={term}
                                                     type="button"
                                                     onClick={() => handleSuggestionClick(term)}
-                                                    className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-blue-500/15"
+                                                    className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-[#172A50]"
                                                 >
                                                     {term}
                                                 </button>
