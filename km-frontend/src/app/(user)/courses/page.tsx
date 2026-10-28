@@ -13,6 +13,7 @@ import {
     openYouTubeVideo 
 } from "@/lib/youtube";
 import CourseCard, { CourseData } from "@/components/km/CourseCard";
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 
 const CATEGORIES = [
     "Vocational Skills",
@@ -205,37 +206,29 @@ export default function CoursesExpertStudioPage() {
 
     return (
         <main className="min-h-screen bg-km-surface pb-20 font-sans">
-            {/* ─── Hero Header with Mentorship Theme Design Philosophy ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden dark:border-white/10">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                        <div>
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-                                Create & Manage <span className="text-[#FF6B00]">Courses</span>
-                            </h1>
-                            <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
-                                Publish training video sessions from YouTube directly to the Kaammilega Learning Marketplace.
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-2.5 shrink-0">
-                            <Link
-                                href="/courses/manage"
-                                className="text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
-                            >
-                                <span>Manage My Courses</span>
-                            </Link>
-                            <Link
-                                href="/resources"
-                                className="text-xs sm:text-sm font-semibold text-km-heading bg-km-surface-card hover:bg-km-surface-card/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 dark:border-km-surface-card"
-                            >
-                                <span>Public Marketplace</span>
-                                <ArrowSquareOutIcon weight="bold" size={13} />
-                            </Link>
-                        </div>
+            {/* ─── Hero ─── */}
+            <PageHero
+                width="max-w-6xl"
+                title={<>Create & Manage <HeroAccent>Courses</HeroAccent></>}
+                description="Publish training video sessions from YouTube directly to the Kaammilega Learning Marketplace."
+                aside={
+                    <div className="flex items-center gap-2.5 shrink-0">
+                        <Link
+                            href="/courses/manage"
+                            className="text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                        >
+                            <span>Manage My Courses</span>
+                        </Link>
+                        <Link
+                            href="/resources"
+                            className="text-xs sm:text-sm font-semibold text-km-heading bg-km-surface-card hover:bg-km-surface-card/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 dark:border-km-surface-card"
+                        >
+                            <span>Public Marketplace</span>
+                            <ArrowSquareOutIcon weight="bold" size={13} />
+                        </Link>
                     </div>
-                </div>
-            </section>
+                }
+            />
 
             {/* ─── Content Body: Form & My Uploaded Courses ─── */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-8">

@@ -31,6 +31,7 @@ import {
 import { AppNotifyForm, AppQrCode, StoreBadges, type AppInterest } from '@/components/km/AppDownload';
 import { LOCALES, LOCALE_NAMES } from '@/i18n/config';
 import { CodesArt, LiveTrackingArt, WorkAlertArt } from './InstantMilegaArt';
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 
 // InstantMilega runs in the KaamMilega mobile app only (it needs live location and tracking). This
 // page introduces it and gets people to the app: "Coming soon" + notify-me until the store links
@@ -128,51 +129,31 @@ export default function InstantMilegaLandingShowcase({ initialMode, trade }: Pro
     const t = useTranslations('instantMilega');
     const [mode, setMode] = useState<AppInterest>(initialMode);
     const isHire = mode === 'hire';
-    const accent = (chunks: React.ReactNode) => <span className="text-[#FF8A33]">{chunks}</span>;
 
     return (
         <div className="flex flex-col bg-km-surface font-sans antialiased">
             {/* Hero */}
-            {/* Same frame as the other page heroes (jobs, events, mentors): navy, rounded bottom, 5/7 split,
-                art resting on the bottom edge */}
-            <section className="bg-[#071A4D] text-white pt-8 sm:pt-10 lg:pt-12 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] overflow-hidden">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-end">
-                        <div className="lg:col-span-5 pb-2 lg:pb-12">
-                            <div className="flex items-end gap-2.5">
-                                <img src="/instantMilega-logo-icon.png" alt="" className="h-10 sm:h-11 w-auto" />
-                                <img src="/instantMilega-logo-text.png" alt="InstantMilega" className="h-7 sm:h-8 w-auto mb-0.5" />
-                            </div>
-
-                            <h1 className="mt-5 text-3xl sm:text-4xl xl:text-5xl font-extrabold tracking-tight leading-[1.15] text-balance">
-                                {t.rich(isHire ? 'hero.titleHire' : 'hero.titleWork', { accent })}
-                            </h1>
-                            <p className="mt-3 text-base sm:text-lg text-white/80 max-w-lg">
-                                {t(isHire ? 'hero.textHire' : 'hero.textWork')}
-                            </p>
-
-                            <div className="mt-6">
-                                <ModeSwitch mode={mode} onChange={setMode} />
-                            </div>
-                            <div className="mt-5">
-                                <AppNotifyForm interest={mode} trade={isHire ? undefined : trade} tone="onDark" id="hero-notify-mobile" />
-                            </div>
-                            <div className="mt-5 flex flex-wrap items-center gap-5">
-                                <StoreBadges tone="onDark" />
-                                <AppQrCode tone="onDark" />
-                            </div>
-                        </div>
-
-                        <div className="lg:col-span-7 flex justify-center lg:justify-end">
-                            <img
-                                src="/instantMilega-page-hero-art.png"
-                                alt={t('hero.imageAlt')}
-                                className="w-full max-w-[560px] lg:max-w-none h-auto block rounded-t-3xl"
-                            />
-                        </div>
+            {/* ─── Hero ─── */}
+            <PageHero
+                brand={
+                    <div className="flex items-end gap-2.5">
+                        <img src="/instantMilega-logo-icon.png" alt="" className="h-10 sm:h-11 w-auto" />
+                        <img src="/instantMilega-logo-text.png" alt="InstantMilega" className="h-7 sm:h-8 w-auto mb-0.5" />
                     </div>
+                }
+                title={t.rich(isHire ? 'hero.titleHire' : 'hero.titleWork', { accent: (chunks) => <HeroAccent>{chunks}</HeroAccent> })}
+                description={t(isHire ? 'hero.textHire' : 'hero.textWork')}
+                art={{ src: '/instantMilega-page-hero-art.png', alt: t('hero.imageAlt'), wide: true }}
+            >
+                <ModeSwitch mode={mode} onChange={setMode} />
+                <div className="mt-5">
+                    <AppNotifyForm interest={mode} trade={isHire ? undefined : trade} tone="onDark" id="hero-notify-mobile" />
                 </div>
-            </section>
+                <div className="mt-5 flex flex-wrap items-center gap-5">
+                    <StoreBadges tone="onDark" />
+                    <AppQrCode tone="onDark" />
+                </div>
+            </PageHero>
 
             <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-16 sm:space-y-24">
                 {/* How it works (follows the Hire / Work switch) */}
