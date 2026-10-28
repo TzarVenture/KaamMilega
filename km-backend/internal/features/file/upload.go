@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"km-backend/internal/common/apperr"
 	"mime/multipart"
 	"net/http"
 	"path/filepath"
@@ -14,11 +15,11 @@ import (
 const MaxUploadSize = 10 << 20
 
 var (
-	errFileTooLarge   = errors.New("File is too large. The limit is 10 MB.")
-	errFileType       = errors.New("This file type isn't supported. Use JPG, PNG, WebP, GIF, SVG, PDF, DOC, DOCX or TXT.")
-	errFileMismatch   = errors.New("The file's contents don't match its extension.")
-	errFileEmpty      = errors.New("The file is empty.")
-	errUnreadableFile = errors.New("Error reading the uploaded file.")
+	errFileTooLarge   = apperr.New("FILE_TOO_LARGE", "File is too large. The limit is 10 MB.")
+	errFileType       = apperr.New("FILE_TYPE_NOT_ALLOWED", "This file type isn't supported. Use JPG, PNG, WebP, GIF, SVG, PDF, DOC, DOCX or TXT.")
+	errFileMismatch   = apperr.New("FILE_CONTENT_MISMATCH", "The file's contents don't match its extension.")
+	errFileEmpty      = apperr.New("FILE_EMPTY", "The file is empty.")
+	errUnreadableFile = apperr.New("FILE_UNREADABLE", "Error reading the uploaded file.")
 )
 
 // allowedTypes maps each accepted extension to the MIME type stored and served for it. The

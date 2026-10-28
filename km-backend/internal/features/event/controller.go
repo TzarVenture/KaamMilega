@@ -1,6 +1,7 @@
 package event
 
 import (
+	"km-backend/internal/common/apperr"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -29,7 +30,7 @@ func (ctrl *EventController) CreateEvent(c *fiber.Ctx) error {
 
 	created, err := ctrl.service.CreateEvent(c.Context(), &e)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(created)
@@ -60,7 +61,7 @@ func (ctrl *EventController) GetEvents(c *fiber.Ctx) error {
 
 	events, total, err := ctrl.service.GetEvents(c.Context(), filter)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -89,7 +90,7 @@ func (ctrl *EventController) RegisterUser(c *fiber.Ctx) error {
 
 	err := ctrl.service.RegisterUser(c.Context(), eventID, userID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Successfully registered for event"})
@@ -115,7 +116,7 @@ func (ctrl *EventController) CreateEventOrder(c *fiber.Ctx) error {
 
 	orderRes, err := ctrl.service.CreateEventOrder(c.Context(), userID, eventID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(orderRes)
@@ -141,7 +142,7 @@ func (ctrl *EventController) VerifyEventPayment(c *fiber.Ctx) error {
 
 	ticket, err := ctrl.service.VerifyEventPayment(c.Context(), userID, eventID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -170,7 +171,7 @@ func (ctrl *EventController) BookWithWallet(c *fiber.Ctx) error {
 
 	ticket, walletSummary, err := ctrl.service.BookTicketWithWallet(c.Context(), userID, eventID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -193,7 +194,7 @@ func (ctrl *EventController) GetMyTickets(c *fiber.Ctx) error {
 
 	tickets, err := ctrl.service.GetMyTickets(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(tickets)
@@ -213,7 +214,7 @@ func (ctrl *EventController) GetEventTicket(c *fiber.Ctx) error {
 
 	ticket, err := ctrl.service.GetEventTicket(c.Context(), userID, eventID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if ticket == nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "No ticket found for this event"})
@@ -234,7 +235,7 @@ func (ctrl *EventController) GetEventAttendees(c *fiber.Ctx) error {
 		if err.Error() == "event not found" {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(attendees)
@@ -251,7 +252,7 @@ func (ctrl *EventController) AdminGetAllEvents(c *fiber.Ctx) error {
 
 	items, total, err := ctrl.service.AdminGetAllEvents(c.Context(), search, page, limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -273,7 +274,7 @@ func (ctrl *EventController) AdminGetEventDetail(c *fiber.Ctx) error {
 		if err.Error() == "event not found" {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(detail)
@@ -287,7 +288,7 @@ func (ctrl *EventController) AdminCreateEvent(c *fiber.Ctx) error {
 
 	created, err := ctrl.service.AdminCreateEvent(c.Context(), &e)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(created)
@@ -309,7 +310,7 @@ func (ctrl *EventController) AdminUpdateEvent(c *fiber.Ctx) error {
 		if err.Error() == "event not found" {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(updated)
@@ -325,7 +326,7 @@ func (ctrl *EventController) AdminDeleteEvent(c *fiber.Ctx) error {
 		if err.Error() == "event not found" {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{

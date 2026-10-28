@@ -5,6 +5,7 @@ package push
 
 import (
 	"errors"
+	"km-backend/internal/common/apperr"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -27,11 +28,11 @@ const (
 )
 
 var (
-	ErrInvalidToken    = errors.New("invalid push token")
-	ErrInvalidPlatform = errors.New("platform must be web, android or ios")
+	ErrInvalidToken    = apperr.New("PUSH_TOKEN_INVALID", "invalid push token")
+	ErrInvalidPlatform = apperr.New("PUSH_PLATFORM_INVALID", "platform must be web, android or ios")
 	ErrUnknownUser     = errors.New("user not found")
-	ErrPushDisabled    = errors.New("push notifications are not configured on the server yet")
-	ErrTestTooSoon     = errors.New("please wait a few seconds before sending another test")
+	ErrPushDisabled    = apperr.New("PUSH_DISABLED", "push notifications are not configured on the server yet")
+	ErrTestTooSoon     = apperr.New("PUSH_TEST_TOO_SOON", "please wait a few seconds before sending another test")
 )
 
 // Token is one browser or phone that can receive pushes for a user.

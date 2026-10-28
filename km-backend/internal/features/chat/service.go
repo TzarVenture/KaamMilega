@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"km-backend/internal/common/apperr"
 	"math"
 	"strings"
 	"time"
@@ -113,10 +114,10 @@ func (s *service) GetConversations(ctx context.Context, userID primitive.ObjectI
 }
 
 // ErrRecipientUnavailable: the receiver does not exist or is deactivated, pending deletion or deleted
-var ErrRecipientUnavailable = errors.New("This member isn't available on KaamMilega right now, so you can't message them.")
+var ErrRecipientUnavailable = apperr.New("RECIPIENT_UNAVAILABLE", "This member isn't available on KaamMilega right now, so you can't message them.")
 
 // ErrMessageSelf: a conversation needs two different people
-var ErrMessageSelf = errors.New("You can't send a message to yourself.")
+var ErrMessageSelf = apperr.New("MESSAGE_SELF", "You can't send a message to yourself.")
 
 func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, req CreateMessageRequest) (*Message, error) {
 	if req.ReceiverID == senderID {
@@ -153,7 +154,7 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 			return nil, err
 		}
 		if !canStart {
-			return nil, errors.New("free chat quota reached: you have connected with 3 people for free. Unlock unlimited networking and 10 work credits with the ₹99 Universal Pass")
+			return nil, apperr.New("CHAT_QUOTA_REACHED", "free chat quota reached: you have connected with 3 people for free. Unlock unlimited networking and 10 work credits with the ₹99 Universal Pass")
 		}
 
 		conv, err = s.repo.CreateConversation(ctx, participants)

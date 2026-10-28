@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"km-backend/internal/common/apperr"
 	"sort"
 	"strings"
 	"time"
@@ -48,7 +49,7 @@ func (s *NetworkServiceImpl) SendInvitation(ctx context.Context, senderID primit
 		return err
 	}
 	if status == StatusPending || status == StatusAccepted {
-		return errors.New("invitation already exists or already connected")
+		return apperr.New("INVITATION_EXISTS", "invitation already exists or already connected")
 	}
 	if status == StatusIgnored {
 		_ = s.repo.DeleteInvitation(ctx, senderID, rOID)

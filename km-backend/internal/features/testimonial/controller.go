@@ -2,6 +2,7 @@ package testimonial
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 )
 
@@ -50,7 +51,7 @@ func (ctrl *TestimonialController) CreateTestimonial(c *fiber.Ctx) error {
 
 	created, err := ctrl.service.CreateTestimonial(c.Context(), req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(created)
@@ -70,7 +71,7 @@ func (ctrl *TestimonialController) UpdateTestimonial(c *fiber.Ctx) error {
 
 	updated, err := ctrl.service.UpdateTestimonial(c.Context(), id, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(updated)
@@ -84,7 +85,7 @@ func (ctrl *TestimonialController) DeleteTestimonial(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.DeleteTestimonial(c.Context(), id); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Testimonial deleted successfully"})

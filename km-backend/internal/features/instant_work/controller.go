@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strconv"
 
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -38,12 +39,12 @@ func parseUserID(c *fiber.Ctx) (primitive.ObjectID, error) {
 func (ctrl *InstantWorkController) GetCandidateStatus(c *fiber.Ctx) error {
 	userID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	status, err := ctrl.service.GetCandidateStatus(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(status)
@@ -53,7 +54,7 @@ func (ctrl *InstantWorkController) GetCandidateStatus(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) ToggleAvailability(c *fiber.Ctx) error {
 	userID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	var req ToggleAvailabilityRequest
@@ -71,7 +72,7 @@ func (ctrl *InstantWorkController) ToggleAvailability(c *fiber.Ctx) error {
 				"quota_total":    10,
 			})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(worker)
@@ -81,7 +82,7 @@ func (ctrl *InstantWorkController) ToggleAvailability(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) UpdateLocation(c *fiber.Ctx) error {
 	userID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	var req LocationPingRequest
@@ -90,7 +91,7 @@ func (ctrl *InstantWorkController) UpdateLocation(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.UpdateLocation(c.Context(), userID, req); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"success": true})
@@ -105,7 +106,7 @@ func (ctrl *InstantWorkController) GetNearbyCandidates(c *fiber.Ctx) error {
 
 	candidates, err := ctrl.service.GetNearbyCandidatesForRecruiter(c.Context(), lng, lat, radiusKm, skill)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(candidates)
@@ -115,12 +116,12 @@ func (ctrl *InstantWorkController) GetNearbyCandidates(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) PurchasePassWithWallet(c *fiber.Ctx) error {
 	userID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	pass, summary, err := ctrl.service.PurchasePassWithWallet(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -134,12 +135,12 @@ func (ctrl *InstantWorkController) PurchasePassWithWallet(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) CreatePassOrder(c *fiber.Ctx) error {
 	userID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	resp, err := ctrl.service.CreatePassOrder(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(resp)
@@ -149,7 +150,7 @@ func (ctrl *InstantWorkController) CreatePassOrder(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) VerifyPassPayment(c *fiber.Ctx) error {
 	userID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	var req VerifyPassPaymentRequest
@@ -159,7 +160,7 @@ func (ctrl *InstantWorkController) VerifyPassPayment(c *fiber.Ctx) error {
 
 	pass, err := ctrl.service.VerifyPassPayment(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(pass)
@@ -169,7 +170,7 @@ func (ctrl *InstantWorkController) VerifyPassPayment(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) CreateSpotJob(c *fiber.Ctx) error {
 	recruiterID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	var req CreateInstantJobRequest
@@ -179,7 +180,7 @@ func (ctrl *InstantWorkController) CreateSpotJob(c *fiber.Ctx) error {
 
 	job, err := ctrl.service.CreateSpotJob(c.Context(), recruiterID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(job)
@@ -189,7 +190,7 @@ func (ctrl *InstantWorkController) CreateSpotJob(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) GetCandidateJobsFeed(c *fiber.Ctx) error {
 	candidateID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	lng, _ := strconv.ParseFloat(c.Query("lng", "72.8777"), 64)
@@ -199,7 +200,7 @@ func (ctrl *InstantWorkController) GetCandidateJobsFeed(c *fiber.Ctx) error {
 
 	jobs, err := ctrl.service.GetNearbyJobsForCandidate(c.Context(), candidateID, lng, lat, radiusKm, skill)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(jobs)
@@ -209,7 +210,7 @@ func (ctrl *InstantWorkController) GetCandidateJobsFeed(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) ClaimGig(c *fiber.Ctx) error {
 	candidateID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	var req ClaimGigRequest
@@ -231,7 +232,7 @@ func (ctrl *InstantWorkController) ClaimGig(c *fiber.Ctx) error {
 				"price_inr":     99.00,
 			})
 		}
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusConflict).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)
@@ -241,12 +242,12 @@ func (ctrl *InstantWorkController) ClaimGig(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) GetCandidateActiveJob(c *fiber.Ctx) error {
 	candidateID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	job, err := ctrl.service.GetActiveJobForCandidate(c.Context(), candidateID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)
@@ -256,12 +257,12 @@ func (ctrl *InstantWorkController) GetCandidateActiveJob(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) GetRecruiterActiveJob(c *fiber.Ctx) error {
 	recruiterID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	job, err := ctrl.service.GetActiveJobForRecruiter(c.Context(), recruiterID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)
@@ -271,7 +272,7 @@ func (ctrl *InstantWorkController) GetRecruiterActiveJob(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) CompleteJob(c *fiber.Ctx) error {
 	candidateID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	jobIDStr := c.Params("id")
@@ -282,7 +283,7 @@ func (ctrl *InstantWorkController) CompleteJob(c *fiber.Ctx) error {
 
 	job, err := ctrl.service.CompleteSpotJob(c.Context(), candidateID, jobID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)
@@ -292,7 +293,7 @@ func (ctrl *InstantWorkController) CompleteJob(c *fiber.Ctx) error {
 func (ctrl *InstantWorkController) CloseJob(c *fiber.Ctx) error {
 	recruiterID, err := parseUserID(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	jobIDStr := c.Params("id")
@@ -303,7 +304,7 @@ func (ctrl *InstantWorkController) CloseJob(c *fiber.Ctx) error {
 
 	job, err := ctrl.service.CloseSpotJob(c.Context(), recruiterID, jobID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)

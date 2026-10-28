@@ -3,6 +3,7 @@ package instant_work
 import (
 	"context"
 	"errors"
+	"km-backend/internal/common/apperr"
 	"log"
 	"regexp"
 	"time"
@@ -544,7 +545,7 @@ func (r *InstantWorkRepositoryImpl) ClaimJobAtomic(ctx context.Context, jobID pr
 	err := r.jobsColl.FindOneAndUpdate(ctx, filter, update, opts).Decode(&claimedJob)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, errors.New("this gig has already been claimed by another candidate or has expired")
+			return nil, apperr.New("GIG_UNAVAILABLE", "this gig has already been claimed by another candidate or has expired")
 		}
 		return nil, err
 	}

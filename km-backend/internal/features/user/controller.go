@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -147,7 +148,7 @@ func (ctrl *UserController) SendOTP(c *fiber.Ctx) error {
 
 	if err := ctrl.service.SendOTP(c.Context(), req.Mobile, role); err != nil {
 		log.Printf("SendOTP Error: %v", err)
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "OTP sent successfully"})
@@ -175,7 +176,7 @@ func (ctrl *UserController) VerifyOTP(c *fiber.Ctx) error {
 
 	res, err := ctrl.service.VerifyOTP(c.Context(), req.Mobile, req.Code, role)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	ctrl.setAuthCookies(c, res.Token, res.User, role)
@@ -205,7 +206,7 @@ func (ctrl *UserController) Register(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.Register(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -233,7 +234,7 @@ func (ctrl *UserController) GetProfile(c *fiber.Ctx) error {
 			ctrl.clearAuthCookies(c)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -252,7 +253,7 @@ func (ctrl *UserController) GetProfileCompletion(c *fiber.Ctx) error {
 			ctrl.clearAuthCookies(c)
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "User not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(completion)
@@ -281,7 +282,7 @@ func (ctrl *UserController) GetOtherUserProfile(c *fiber.Ctx) error {
 		if err.Error() == "user not found" {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	// Account status and profile_visibility decide who may see this profile; owners always can
@@ -323,7 +324,7 @@ func (ctrl *UserController) GetProfileViewers(c *fiber.Ctx) error {
 
 	viewers, err := ctrl.service.GetProfileViewers(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(PublicViews(viewers))
@@ -342,7 +343,7 @@ func (ctrl *UserController) AddEducation(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.AddEducation(c.Context(), userID, edu)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -366,7 +367,7 @@ func (ctrl *UserController) UpdateEducation(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.UpdateEducation(c.Context(), userID, eduID, edu)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -385,7 +386,7 @@ func (ctrl *UserController) DeleteEducation(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.DeleteEducation(c.Context(), userID, eduID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -404,7 +405,7 @@ func (ctrl *UserController) AddExperience(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.AddExperience(c.Context(), userID, exp)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -428,7 +429,7 @@ func (ctrl *UserController) UpdateExperience(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.UpdateExperience(c.Context(), userID, expID, exp)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -447,7 +448,7 @@ func (ctrl *UserController) DeleteExperience(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.DeleteExperience(c.Context(), userID, expID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -466,7 +467,7 @@ func (ctrl *UserController) AddProject(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.AddProject(c.Context(), userID, project)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -490,7 +491,7 @@ func (ctrl *UserController) UpdateProject(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.UpdateProject(c.Context(), userID, projectID, project)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -509,7 +510,7 @@ func (ctrl *UserController) DeleteProject(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.DeleteProject(c.Context(), userID, projectID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -530,10 +531,10 @@ func (ctrl *UserController) AddSkill(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.AddSkill(c.Context(), userID, req.SkillName)
 	if errors.Is(err, ErrSkillNotInCatalogue) || errors.Is(err, ErrSkillRequired) {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -552,7 +553,7 @@ func (ctrl *UserController) DeleteSkill(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.DeleteSkill(c.Context(), userID, skillName)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -577,7 +578,7 @@ func (ctrl *UserController) UpdateProfile(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.UpdateProfile(c.Context(), userID, updates)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -604,7 +605,7 @@ func (ctrl *UserController) UpdateLocation(c *fiber.Ctx) error {
 
 	_, err := ctrl.service.UpdateProfile(c.Context(), userID, updates)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Location updated successfully"})
@@ -617,7 +618,7 @@ func (ctrl *UserController) SendEmailOTP(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.SendEmailOTP(c.Context(), req.Email); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "OTP sent to email successfully"})
@@ -645,7 +646,7 @@ func (ctrl *UserController) VerifyEmailOTP(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.VerifyEmailOTP(c.Context(), req.Email, req.Code, userID); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Email verified successfully"})
@@ -665,7 +666,7 @@ func (ctrl *UserController) GetAllUsers(c *fiber.Ctx) error {
 
 	users, err := ctrl.service.GetAllUsers(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(users)
@@ -674,7 +675,7 @@ func (ctrl *UserController) GetAllUsers(c *fiber.Ctx) error {
 func (ctrl *UserController) GetExperts(c *fiber.Ctx) error {
 	users, err := ctrl.service.GetExperts(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	// Public route: no contact details
 	return c.JSON(PublicViews(users))
@@ -683,7 +684,7 @@ func (ctrl *UserController) GetExperts(c *fiber.Ctx) error {
 func (ctrl *UserController) GetCommunityUsers(c *fiber.Ctx) error {
 	users, err := ctrl.service.GetCommunityUsers(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	// Public route: no contact details
 	return c.JSON(PublicViews(users))
@@ -692,7 +693,7 @@ func (ctrl *UserController) GetCommunityUsers(c *fiber.Ctx) error {
 func (ctrl *UserController) GetPlatformStats(c *fiber.Ctx) error {
 	stats, err := ctrl.service.GetPlatformStats(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return c.JSON(fiber.Map{"success": true, "stats": stats})
 }
@@ -700,7 +701,7 @@ func (ctrl *UserController) GetPlatformStats(c *fiber.Ctx) error {
 func (ctrl *UserController) GetPlatformLiveActivity(c *fiber.Ctx) error {
 	activity, err := ctrl.service.GetLiveActivity(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return c.JSON(fiber.Map{"success": true, "events": activity})
 }
@@ -709,7 +710,7 @@ func (ctrl *UserController) SearchUsers(c *fiber.Ctx) error {
 	query := c.Query("q")
 	users, err := ctrl.service.SearchUsers(c.Context(), query)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	// Return basic info only
 	return c.JSON(PublicViews(users))
@@ -728,7 +729,7 @@ func (ctrl *UserController) ApplyForExpert(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.ApplyForExpert(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -750,7 +751,7 @@ func (ctrl *UserController) ApproveExpert(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.ApproveExpert(c.Context(), adminID, targetUserID, req.Status)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
@@ -759,7 +760,7 @@ func (ctrl *UserController) ApproveExpert(c *fiber.Ctx) error {
 func (ctrl *UserController) GetExpertRequests(c *fiber.Ctx) error {
 	users, err := ctrl.service.GetExpertRequests(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return c.JSON(users)
 }
@@ -781,7 +782,7 @@ func (ctrl *UserController) LoginWithPassword(c *fiber.Ctx) error {
 
 	res, err := ctrl.service.LoginWithPassword(c.Context(), req)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
 	if res.RequiresPasswordSetup {
@@ -809,7 +810,7 @@ func (ctrl *UserController) RegisterWithPassword(c *fiber.Ctx) error {
 
 	res, err := ctrl.service.RegisterWithPassword(c.Context(), req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	ctrl.setAuthCookies(c, res.Token, res.User, "")
@@ -837,7 +838,7 @@ func (ctrl *UserController) SetPassword(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.SetPassword(c.Context(), userID, req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	// Other devices were signed out; keep this one signed in with a fresh token
@@ -889,7 +890,7 @@ func (ctrl *UserController) ForgotPassword(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.ForgotPassword(c.Context(), req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Password reset code sent to your email"})
@@ -902,7 +903,7 @@ func (ctrl *UserController) ResetPassword(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.ResetPassword(c.Context(), req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Password reset successfully. You can now sign in with your new password."})
@@ -927,7 +928,7 @@ func (ctrl *UserController) UpdateUserRoles(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.UpdateProfile(c.Context(), targetUserID, updates)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if user == nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
@@ -949,7 +950,7 @@ func (ctrl *UserController) AdminUpdateUserProfile(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.UpdateProfile(c.Context(), targetUserID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if user == nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
@@ -971,7 +972,7 @@ func (ctrl *UserController) ToggleBookmark(c *fiber.Ctx) error {
 
 	bookmarks, err := ctrl.service.ToggleBookmark(c.Context(), userID, jobID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -1004,7 +1005,7 @@ func (ctrl *UserController) GetSettings(c *fiber.Ctx) error {
 
 	settings, err := ctrl.service.GetUserSettings(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(settings)
@@ -1023,7 +1024,7 @@ func (ctrl *UserController) UpdateSettings(c *fiber.Ctx) error {
 
 	updated, err := ctrl.service.UpdateUserSettings(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -1073,7 +1074,7 @@ func (ctrl *UserController) UpdateUsername(c *fiber.Ctx) error {
 
 	updated, err := ctrl.service.UpdateUsername(c.Context(), userID, req.Username)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -1089,7 +1090,7 @@ func (ctrl *UserController) CheckUsernameAvailability(c *fiber.Ctx) error {
 
 	available, message, err := ctrl.service.CheckUsernameAvailability(c.Context(), currentUserID, username)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -1112,7 +1113,7 @@ func (ctrl *UserController) UpdateOpenToWork(c *fiber.Ctx) error {
 
 	updated, err := ctrl.service.UpdateOpenToWork(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -1135,7 +1136,7 @@ func (ctrl *UserController) UpdateProvidingServices(c *fiber.Ctx) error {
 
 	updated, err := ctrl.service.UpdateProvidingServices(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{

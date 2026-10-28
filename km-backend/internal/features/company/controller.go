@@ -1,6 +1,7 @@
 package company
 
 import (
+	"km-backend/internal/common/apperr"
 	"strconv"
 	"strings"
 
@@ -24,7 +25,7 @@ func (c *CompanyController) CreateCompany(ctx *fiber.Ctx) error {
 
 	company, err := c.service.CreateCompany(ctx.Context(), req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(company)
@@ -38,7 +39,7 @@ func (c *CompanyController) GetCompany(ctx *fiber.Ctx) error {
 
 	company, err := c.service.GetCompany(ctx.Context(), id)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if company == nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Company not found"})
@@ -62,7 +63,7 @@ func (c *CompanyController) GetCompanies(ctx *fiber.Ctx) error {
 
 	companies, total, err := c.service.GetCompanies(ctx.Context(), filter)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{
@@ -82,7 +83,7 @@ func (c *CompanyController) UpdateCompany(ctx *fiber.Ctx) error {
 
 	company, err := c.service.UpdateCompany(ctx.Context(), id, req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if company == nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Company not found"})
@@ -94,7 +95,7 @@ func (c *CompanyController) UpdateCompany(ctx *fiber.Ctx) error {
 func (c *CompanyController) DeleteCompany(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if err := c.service.DeleteCompany(ctx.Context(), id); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
@@ -103,7 +104,7 @@ func (c *CompanyController) GetTopCompanies(ctx *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(ctx.Query("limit", "10"))
 	companies, err := c.service.GetTopCompanies(ctx.Context(), limit)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(fiber.Map{
 		"data": companies,

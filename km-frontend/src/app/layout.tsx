@@ -7,6 +7,7 @@ import AppToaster from "@/components/km/AppToaster";
 import PushSync from "@/components/km/PushSync";
 import PushInvite from "@/components/km/PushInvite";
 import AccountLocaleSync from "@/i18n/AccountLocaleSync";
+import ErrorTranslator from "@/i18n/ErrorTranslator";
 import { FEATURES } from "@/config/features";
 import { THEME_INIT_SCRIPT } from "@/lib/themeScript";
 import "./globals.css";
@@ -102,6 +103,7 @@ export default async function RootLayout({
           <PushSync />
           <PushInvite />
           {FEATURES.I18N && <AccountLocaleSync />}
+          {FEATURES.I18N && <ErrorTranslator />}
         </NextIntlClientProvider>
       </body>
     </html>

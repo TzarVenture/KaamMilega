@@ -1,19 +1,19 @@
 package application
 
 import (
-	"errors"
+	"km-backend/internal/common/apperr"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var (
-	ErrJobNotFound      = errors.New("job not found")
-	ErrAlreadyApplied   = errors.New("already applied for this job")
-	ErrInvalidJobID     = errors.New("invalid job ID format")
-	ErrInvalidCandidate = errors.New("invalid candidate ID format")
-	ErrJobClosed        = errors.New("job is closed and no longer accepting applications")
-	ErrCannotApplyOwn   = errors.New("recruiters cannot apply to their own job postings")
+	ErrJobNotFound      = apperr.New("JOB_NOT_FOUND", "job not found")
+	ErrAlreadyApplied   = apperr.New("ALREADY_APPLIED", "already applied for this job")
+	ErrInvalidJobID     = apperr.New("INVALID_JOB_ID", "invalid job ID format")
+	ErrInvalidCandidate = apperr.New("INVALID_CANDIDATE_ID", "invalid candidate ID format")
+	ErrJobClosed        = apperr.New("JOB_CLOSED", "job is closed and no longer accepting applications")
+	ErrCannotApplyOwn   = apperr.New("CANNOT_APPLY_OWN_JOB", "recruiters cannot apply to their own job postings")
 )
 
 type Application struct {

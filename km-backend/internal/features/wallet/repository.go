@@ -3,6 +3,7 @@ package wallet
 import (
 	"context"
 	"errors"
+	"km-backend/internal/common/apperr"
 	"strings"
 	"time"
 
@@ -307,7 +308,7 @@ func (r *WalletRepositoryImpl) RecordAtomicTransaction(ctx context.Context, inpu
 	err = r.collection.FindOneAndUpdate(ctx, filter, update, opts).Decode(&updatedWallet)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, nil, errors.New("insufficient balance for transaction")
+			return nil, nil, apperr.New("WALLET_INSUFFICIENT", "insufficient balance for transaction")
 		}
 		return nil, nil, err
 	}

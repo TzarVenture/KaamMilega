@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"km-backend/internal/common/apperr"
 	"net/http"
 	"time"
 
@@ -79,7 +80,7 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 	}
 
 	if ev.IsPaid && ev.Price > 0 {
-		return errors.New("this is a paid event; please purchase a ticket via Razorpay or Wallet checkout")
+		return apperr.New("EVENT_IS_PAID", "this is a paid event; please purchase a ticket via Razorpay or Wallet checkout")
 	}
 
 	if ev.Capacity > 0 && (ev.AvailableSeats <= 0 || len(ev.Participants) >= ev.Capacity) {
@@ -89,7 +90,7 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 	// Check if already registered
 	for _, p := range ev.Participants {
 		if p == uID {
-			return errors.New("you are already registered for this event")
+			return apperr.New("EVENT_ALREADY_REGISTERED", "you are already registered for this event")
 		}
 	}
 
@@ -169,17 +170,17 @@ func (s *EventServiceImpl) CreateEventOrder(ctx context.Context, userID string, 
 	}
 
 	if !ev.IsPaid || ev.Price <= 0 {
-		return nil, errors.New("this is a free event; please use free registration")
+		return nil, apperr.New("EVENT_IS_FREE", "this is a free event; please use free registration")
 	}
 
 	if ev.Capacity > 0 && (ev.AvailableSeats <= 0 || len(ev.Participants) >= ev.Capacity) {
-		return nil, errors.New("sold out: event has reached maximum capacity")
+		return nil, apperr.New("EVENT_SOLD_OUT", "sold out: event has reached maximum capacity")
 	}
 
 	uID, _ := primitive.ObjectIDFromHex(userID)
 	existingTicket, _ := s.repo.GetTicketByEventAndUser(ctx, evID, uID)
 	if existingTicket != nil {
-		return nil, errors.New("you already have a confirmed ticket for this event")
+		return nil, apperr.New("EVENT_TICKET_EXISTS", "you already have a confirmed ticket for this event")
 	}
 
 	keyID := s.cfg.RazorpayKeyID
@@ -371,17 +372,17 @@ func (s *EventServiceImpl) BookTicketWithWallet(ctx context.Context, userID stri
 	}
 
 	if !ev.IsPaid || ev.Price <= 0 {
-		return nil, nil, errors.New("this is a free event; please use free registration")
+		return nil, nil, apperr.New("EVENT_IS_FREE", "this is a free event; please use free registration")
 	}
 
 	if ev.Capacity > 0 && (ev.AvailableSeats <= 0 || len(ev.Participants) >= ev.Capacity) {
-		return nil, nil, errors.New("sold out: event has reached maximum capacity")
+		return nil, nil, apperr.New("EVENT_SOLD_OUT", "sold out: event has reached maximum capacity")
 	}
 
 	uID, _ := primitive.ObjectIDFromHex(userID)
 	existingTicket, _ := s.repo.GetTicketByEventAndUser(ctx, evID, uID)
 	if existingTicket != nil {
-		return nil, nil, errors.New("you already have a confirmed ticket for this event")
+		return nil, nil, apperr.New("EVENT_TICKET_EXISTS", "you already have a confirmed ticket for this event")
 	}
 
 	// 1. Verify user wallet balance
@@ -391,7 +392,7 @@ func (s *EventServiceImpl) BookTicketWithWallet(ctx context.Context, userID stri
 	}
 
 	if walletSummary.MainBalance < ev.Price {
-		return nil, nil, fmt.Errorf("insufficient wallet balance: ticket costs ₹%.2f, available balance is ₹%.2f", ev.Price, walletSummary.MainBalance)
+		return nil, nil, apperr.New("WALLET_INSUFFICIENT", fmt.Sprintf("insufficient wallet balance: ticket costs ₹%.2f, available balance is ₹%.2f", ev.Price, walletSummary.MainBalance))
 	}
 
 	// 2. Prepare Attendee info

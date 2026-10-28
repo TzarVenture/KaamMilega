@@ -5,8 +5,9 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"km-backend/internal/middleware"
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
+	"km-backend/internal/middleware"
 )
 
 type CourseController struct {
@@ -34,7 +35,7 @@ func (ctrl *CourseController) CreateCourse(c *fiber.Ctx) error {
 
 	created, err := ctrl.service.CreateCourse(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(created)
@@ -57,7 +58,7 @@ func (ctrl *CourseController) GetCourses(c *fiber.Ctx) error {
 
 	resp, err := ctrl.service.GetCourses(c.Context(), filter)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(resp)
@@ -74,7 +75,7 @@ func (ctrl *CourseController) GetMyCourses(c *fiber.Ctx) error {
 
 	resp, err := ctrl.service.GetMyCourses(c.Context(), userID, page, limit)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(resp)
@@ -84,7 +85,7 @@ func (ctrl *CourseController) GetCourse(c *fiber.Ctx) error {
 	id := c.Params("id")
 	course, err := ctrl.service.GetCourse(c.Context(), id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(course)
@@ -117,7 +118,7 @@ func (ctrl *CourseController) RecordView(c *fiber.Ctx) error {
 
 	views, err := ctrl.service.RecordView(c.Context(), id, viewerID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{
@@ -140,7 +141,7 @@ func (ctrl *CourseController) UpdateCourse(c *fiber.Ctx) error {
 
 	updated, err := ctrl.service.UpdateCourse(c.Context(), id, userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(updated)
@@ -154,7 +155,7 @@ func (ctrl *CourseController) DeleteCourse(c *fiber.Ctx) error {
 
 	id := c.Params("id")
 	if err := ctrl.service.DeleteCourse(c.Context(), id, userID); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Course deleted successfully"})

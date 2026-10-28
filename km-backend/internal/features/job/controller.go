@@ -1,6 +1,7 @@
 package job
 
 import (
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 	"strconv"
 	"strings"
@@ -36,7 +37,7 @@ func (c *JobController) CreateJob(ctx *fiber.Ctx) error {
 
 	job, err := c.service.CreateJob(ctx.Context(), &req, recruiterID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(job)
@@ -51,7 +52,7 @@ func (c *JobController) GetJobs(ctx *fiber.Ctx) error {
 		}
 		jobs, err := c.service.GetJobsByRecruiter(ctx.Context(), recruiterID)
 		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 		}
 		return ctx.JSON(jobs)
 	}
@@ -124,7 +125,7 @@ func (c *JobController) GetJobs(ctx *fiber.Ctx) error {
 
 	jobs, total, err := c.service.GetAllJobs(ctx.Context(), filter)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(fiber.Map{
 		"jobs":  jobs,
@@ -146,7 +147,7 @@ func (c *JobController) GetMyJobs(ctx *fiber.Ctx) error {
 
 	jobs, err := c.service.GetJobsByRecruiter(ctx.Context(), userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(jobs)
 }
@@ -155,7 +156,7 @@ func (c *JobController) GetJob(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	job, err := c.service.GetJob(ctx.Context(), id)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if job == nil || job.Status == "Deleted" {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Job not found"})
@@ -177,7 +178,7 @@ func (c *JobController) UpdateJob(ctx *fiber.Ctx) error {
 
 	existingJob, err := c.service.GetJob(ctx.Context(), id)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if existingJob == nil || existingJob.Status == "Deleted" {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Job not found"})
@@ -189,7 +190,7 @@ func (c *JobController) UpdateJob(ctx *fiber.Ctx) error {
 
 	job, err := c.service.UpdateJob(ctx.Context(), id, &req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(job)
 }
@@ -204,7 +205,7 @@ func (c *JobController) DeleteJob(ctx *fiber.Ctx) error {
 
 	existingJob, err := c.service.GetJob(ctx.Context(), id)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if existingJob == nil || existingJob.Status == "Deleted" {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Job not found"})
@@ -215,7 +216,7 @@ func (c *JobController) DeleteJob(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.DeleteJob(ctx.Context(), id); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
@@ -239,7 +240,7 @@ func (c *JobController) AdminUpdateJobStatus(ctx *fiber.Ctx) error {
 
 	job, err := c.service.UpdateJob(ctx.Context(), id, &updateReq)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if job == nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Job not found"})
@@ -251,7 +252,7 @@ func (c *JobController) AdminUpdateJobStatus(ctx *fiber.Ctx) error {
 func (c *JobController) AdminDeleteJob(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	if err := c.service.DeleteJob(ctx.Context(), id); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
