@@ -157,7 +157,7 @@ export const FullTimeArt = ({ className }: ArtProps) => (
     </Frame>
 );
 
-/** Sprout in a pot with a "new" tag */
+/** Sprout in a pot */
 export const FresherArt = ({ className }: ArtProps) => (
     <Frame className={className}>
         <path d="M48 42V22" stroke={GREEN} strokeWidth="3" strokeLinecap="round" />
@@ -165,8 +165,6 @@ export const FresherArt = ({ className }: ArtProps) => (
         <path d="M48 27C56 27 63 21 63 12C55 12 48 18 48 27Z" fill="#7CCB97" />
         <rect x="31" y="41" width="34" height="7" rx="2.5" fill="#FF8A00" />
         <path d="M34 48H62L58.5 63H37.5Z" fill={ORANGE} />
-        <rect x="64" y="8" width="26" height="13" rx="6.5" fill={BLUE} />
-        <text x="77" y="17.5" textAnchor="middle" fill="#FFFFFF" fontSize="7.5" fontWeight="700">NEW</text>
     </Frame>
 );
 

@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { BuildingOfficeIcon, CaretRightIcon, CheckIcon, PlusIcon, SealCheckIcon } from '@phosphor-icons/react';
 import CustomImage from '@/components/ui/CustomImage';
 import { HiringCompany } from '@/lib/constants/companies';
+import { useFormat } from '@/i18n/useFormat';
 
 interface CompanyCardProps {
     company: HiringCompany;
@@ -23,6 +25,9 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
     isInitiallyFollowing = false,
     onToggleFollow,
 }) => {
+    const t = useTranslations('company');
+    const tc = useTranslations('common');
+    const { number } = useFormat();
     const [isFollowing, setIsFollowing] = useState(isInitiallyFollowing);
     const searchHref = `/jobs?company=${encodeURIComponent(company.name)}`;
 
@@ -53,7 +58,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
 
     const verifiedSeal = (size: number) =>
         company.verified ? (
-            <SealCheckIcon weight="fill" size={size} className="text-km-link shrink-0" aria-label="Verified employer" role="img" />
+            <SealCheckIcon weight="fill" size={size} className="text-km-link shrink-0" aria-label={t('verified')} role="img" />
         ) : null;
 
     if (variant === 'expanded') {
@@ -78,9 +83,11 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-km-border-subtle flex items-center justify-between text-sm">
-                    <span className="font-medium text-[#16A34A]">{company.openings || ''}</span>
+                    <span className="font-medium text-[#16A34A]">
+                        {company.jobCount > 0 ? tc('openJobs', { count: company.jobCount, n: number(company.jobCount) }) : ''}
+                    </span>
                     <span className="inline-flex items-center gap-1 font-semibold text-km-heading">
-                        View jobs
+                        {t('viewJobs')}
                         <CaretRightIcon weight="bold" size={14} className="transition-transform group-hover/card:translate-x-0.5" aria-hidden="true" />
                     </span>
                 </div>
@@ -108,7 +115,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                     href={searchHref}
                     className="inline-flex items-center gap-0.5 font-semibold text-km-heading hover:text-km-blue transition-colors"
                 >
-                    View jobs
+                    {t('viewJobs')}
                     <CaretRightIcon weight="bold" size={12} aria-hidden="true" />
                 </Link>
                 {onToggleFollow && (
@@ -124,12 +131,12 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                     {isFollowing ? (
                         <>
                             <CheckIcon weight="bold" size={12} className="text-[#16A34A]" aria-hidden="true" />
-                            Following
+                            {t('following')}
                         </>
                     ) : (
                         <>
                             <PlusIcon weight="bold" size={12} aria-hidden="true" />
-                            Follow
+                            {t('follow')}
                         </>
                     )}
                 </button>

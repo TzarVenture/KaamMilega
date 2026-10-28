@@ -9,6 +9,8 @@ import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getCurrentPortalRole } from '@/lib/auth';
 import { notify } from "@/lib/notify";
+import { useTranslations } from 'next-intl';
+import { useFormat } from '@/i18n/useFormat';
 import { ConnectJustLikeYou } from '@/components/network/ConnectJustLikeYou';
 import HeroSection from '@/components/home/HeroSection';
 import SevenServicesSection from '@/components/home/SevenServicesSection';
@@ -31,6 +33,7 @@ import {
 import { getYouTubeMaxResThumbnail, extractYouTubeVideoId } from '@/lib/youtube';
 
 export default function LandingPage() {
+  const t = useTranslations('home');
   const router = useRouter();
   useUniformMarqueeSpeed();
   const [cities, setCities] = useState<any[]>([]);
@@ -75,7 +78,7 @@ export default function LandingPage() {
 
   const handleChat = (id: string) => {
     if (!isAuthenticated()) {
-      notify.info("Please sign in to chat with professionals");
+      notify.info(t('toasts.signInChat'));
       router.push(`/login?redirect=${encodeURIComponent(`/chat?userId=${id}`)}`);
       return;
     }
@@ -84,22 +87,22 @@ export default function LandingPage() {
 
   const handleConnect = async (id: string, name?: string) => {
     if (!isAuthenticated()) {
-      notify.info("Please sign in to connect with professionals");
+      notify.info(t('toasts.signInConnect'));
       router.push('/login?redirect=/');
       return;
     }
 
     try {
       await api.post('/network/connect', { receiver_id: id });
-      notify.success(`Invitation sent to ${name || 'member'}!`);
+      notify.success(name ? t('toasts.inviteSent', { name }) : t('toasts.inviteSentGeneric'));
       setPendingConnectIds(prev => [...prev, id]);
     } catch (e: any) {
       const msg = e.message || '';
       if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending') || msg.toLowerCase().includes('duplicate')) {
-        notify.info("Invitation already sent.");
+        notify.info(t('toasts.inviteAlready'));
         setPendingConnectIds(prev => [...prev, id]);
       } else {
-        notify.error(msg || "Could not send invitation. Please try again.");
+        notify.error(msg || t('toasts.inviteError'));
       }
     }
   };
@@ -253,6 +256,10 @@ const SECTION = 'py-8 sm:py-10 lg:py-12';
 const CONTAINER = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
 
 const LocationSection = ({ cities }: { cities: any[] }) => {
+  const t = useTranslations('home.hubs');
+  const th = useTranslations('hubs');
+  const openingsLabel = useOpeningsLabel();
+  const { number } = useFormat();
   const PRIORITY_SLUGS = [
     "mumbai", "delhi", "bengaluru", "hyderabad", "pune",
     "ahmedabad", "chennai", "kolkata", "surat", "jaipur",
@@ -299,15 +306,19 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
       <div className={CONTAINER}>
         <SectionHeader
           id="hubs-title"
-          title="Find jobs by top hubs"
-          description="Explore verified openings and on-demand gig clusters across India's largest employment districts."
+          title={t('title')}
+          description={t('text')}
         />
 
         <div className="bg-km-surface-card rounded-3xl border border-km-border p-4 sm:p-6 lg:p-8">
           {/* Auto-scrolling row of city cards (pauses on hover/touch) */}
           <div className="overflow-hidden">
             <div className="animate-km-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused] py-1">
-              {[...displayFeatured, ...displayFeatured].map((hub, idx) => (
+              {[...displayFeatured, ...displayFeatured].map((hub, idx) => {
+                // Curated hubs have translated captions; a landmark or sector saved with the city wins
+                const landmark = hub.landmark || (hub.curatedSlug ? th(`landmarks.${hub.curatedSlug}`) : th('regionalHub'));
+                const sector = hub.sector || (hub.curatedSlug ? th(`sectors.${hub.curatedSlug}`) : th('industrialHub'));
+                return (
                 <Link
                   key={`${hub.name}-${idx}`}
                   href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
@@ -323,21 +334,20 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
                       loading="lazy"
                     />
                     <div className="absolute inset-0 bg-linear-to-t from-[#071A4D]/70 via-transparent to-transparent pointer-events-none" />
-                    {hub.landmark && (
-                      <span className="absolute bottom-2.5 left-3 right-3 text-xs font-medium text-white truncate">
-                        {hub.landmark}
-                      </span>
-                    )}
+                    <span className="absolute bottom-2.5 left-3 right-3 text-xs font-medium text-white truncate">
+                      {landmark}
+                    </span>
                   </div>
                   <div className="p-4 text-center">
                     <h3 className="text-base sm:text-lg font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
                       {hub.name}
                     </h3>
-                    <p className="mt-0.5 text-sm text-km-text-secondary">{hub.vacancies}</p>
-                    <p className="mt-3 pt-3 border-t border-km-border-subtle text-xs text-km-text-secondary truncate">{hub.sector}</p>
+                    <p className="mt-0.5 text-sm text-km-text-secondary">{openingsLabel(hub.jobsCount)}</p>
+                    <p className="mt-3 pt-3 border-t border-km-border-subtle text-xs text-km-text-secondary truncate">{sector}</p>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -346,10 +356,10 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
             <div className="mt-6 pt-6 border-t border-km-border-subtle">
               <div className="flex items-center justify-between gap-4 mb-4">
                 <h3 className="text-sm font-semibold text-km-text-primary">
-                  More employment hubs and regional zones ({displayOther.length})
+                  {t('more', { n: number(displayOther.length) })}
                 </h3>
                 <Link href="/jobs" className="group inline-flex items-center gap-1.5 text-sm font-semibold text-km-heading hover:text-km-blue transition-colors shrink-0">
-                  View all locations
+                  {t('viewAll')}
                   <ArrowRightIcon size={16} weight="bold" className="transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
                 </Link>
               </div>
@@ -372,16 +382,19 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
   );
 };
 
+// home.trust.<key>.title / .text in the messages
 const TRUST_FEATURES = [
-  { Icon: PhoneCallIcon, title: "Direct contact", desc: "Call or chat with employers directly" },
-  { Icon: ShieldCheckIcon, title: "Verified profiles", desc: "Identity and credential checks" },
-  { Icon: LightningIcon, title: "Instant Milega™", desc: "On-demand local work in minutes" },
-  { Icon: BriefcaseIcon, title: "Local jobs", desc: "Roles matched to your city and skills" },
-  { Icon: WalletIcon, title: "Digital wallet", desc: "Transparent earnings and payouts" },
+  { Icon: PhoneCallIcon, key: "direct" },
+  { Icon: ShieldCheckIcon, key: "verified" },
+  { Icon: LightningIcon, key: "instant" },
+  { Icon: BriefcaseIcon, key: "local" },
+  { Icon: WalletIcon, key: "wallet" },
 ];
 
-const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) => (
-  <section className={SECTION} aria-label="Why KaamMilega">
+const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) => {
+  const t = useTranslations('home.trust');
+  return (
+  <section className={SECTION} aria-label={t('region')}>
     <div className={CONTAINER}>
       <div className="relative overflow-hidden rounded-3xl bg-[#071A4D] text-white dark:ring-1 dark:ring-inset dark:ring-white/10">
         {/* Soft grid texture, fading towards the copy */}
@@ -398,17 +411,15 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="max-w-2xl">
               <p className="text-sm font-medium text-[#FF8A00]">
-                {isLoggedIn ? "Your candidate hub" : "Verified platform"}
+                {isLoggedIn ? t('kickerUser') : t('kickerGuest')}
               </p>
               <h2 className="mt-2 text-2xl sm:text-[28px] lg:text-[32px] font-bold tracking-[-0.02em] leading-tight">
                 {isLoggedIn
-                  ? `Welcome back, ${user?.name || "there"}`
-                  : "Direct hiring connections for verified employers and candidates"}
+                  ? (user?.name ? t('welcome', { name: user.name }) : t('welcomeNoName'))
+                  : t('titleGuest')}
               </h2>
               <p className="mt-3 text-[15px] sm:text-base text-white/75 leading-relaxed">
-                {isLoggedIn
-                  ? "Connect directly with hiring managers, track your applications, and discover local on-demand work."
-                  : "Discover vacancies, talk to hiring managers directly, and find on-demand work across India."}
+                {isLoggedIn ? t('textUser') : t('textGuest')}
               </p>
             </div>
 
@@ -417,25 +428,25 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
                 href={isLoggedIn ? "/jobs" : "/register"}
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-km-accent hover:bg-km-accent-light text-white text-sm font-semibold transition-colors"
               >
-                {isLoggedIn ? "Explore matched jobs" : "Register free"}
+                {isLoggedIn ? t('matched') : t('register')}
                 <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
               </Link>
               <Link
                 href={isLoggedIn ? "/applications" : "/jobs"}
                 className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/25 hover:bg-white/10 text-white text-sm font-semibold transition-colors"
               >
-                {isLoggedIn ? "My applications" : "Browse openings"}
+                {isLoggedIn ? t('applications') : t('browse')}
               </Link>
             </div>
           </div>
 
           <ul className="mt-10 pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-6">
-            {TRUST_FEATURES.map(({ Icon, title, desc }) => (
-              <li key={title} className="flex items-start gap-3">
+            {TRUST_FEATURES.map(({ Icon, key }) => (
+              <li key={key} className="flex items-start gap-3">
                 <Icon size={24} weight="duotone" className="text-[#8DB8F5] shrink-0 -mt-0.5" aria-hidden="true" />
                 <div>
-                  <p className="text-sm font-semibold">{title}</p>
-                  <p className="mt-0.5 text-xs text-white/65 leading-relaxed">{desc}</p>
+                  <p className="text-sm font-semibold">{t(`${key}.title`)}</p>
+                  <p className="mt-0.5 text-xs text-white/65 leading-relaxed">{t(`${key}.text`)}</p>
                 </div>
               </li>
             ))}
@@ -444,7 +455,8 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
       </div>
     </div>
   </section>
-);
+  );
+};
 
 // --- Real open-job counts (GET /jobs?…&limit=1 returns the matching `total`) ---
 // Category cards show these instead of invented totals; while loading, or with no matches,
@@ -472,23 +484,30 @@ function useJobCounts(queries: string[]): Record<string, number> {
   return counts;
 }
 
-const openingsLabel = (n?: number) =>
-  n && n > 0 ? `${n.toLocaleString("en-IN")} open ${n === 1 ? "job" : "jobs"}` : "Browse jobs";
+/** "12 open jobs" in the visitor's language, or "Browse jobs" when there are none */
+function useOpeningsLabel() {
+  const tc = useTranslations("common");
+  const { number } = useFormat();
+  return (n?: number) => (n && n > 0 ? tc("openJobs", { count: n, n: number(n) }) : tc("browseJobs"));
+}
 
 // --- Job Roles Grid ---
 // `count` is a precise search (regex) for counting; `keywords` match catalogue skill names
 const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
+  const t = useTranslations('home.roles');
+  const openingsLabel = useOpeningsLabel();
+  // `key`: label in home.roles; `title`: the English role searched for
   const popularTradeConfig = [
-    { title: "Delivery Executive", img: "/asset/trades/delivery.jpg", count: "delivery|courier", keywords: ["delivery", "courier", "rider"] },
-    { title: "Commercial Vehicle Driver", img: "/asset/trades/driver.jpg", count: "driver", keywords: ["driver", "commercial", "truck"] },
-    { title: "Warehouse Associate", img: "/asset/trades/warehouse.jpg", count: "warehouse", keywords: ["warehouse", "logistics", "inventory"] },
-    { title: "Electrician", img: "/asset/trades/electrician.jpg", count: "electrician", keywords: ["electrician"] },
-    { title: "Security Guard", img: "/asset/trades/security.jpg", count: "security guard|security officer", keywords: ["security", "guard"] },
-    { title: "Plumber", img: "/asset/trades/plumber.jpg", count: "plumber", keywords: ["plumber"] },
-    { title: "Painter & Decorator", img: "/asset/trades/painter.jpg", count: "painter", keywords: ["painter"] },
-    { title: "AC & HVAC Technician", img: "/asset/trades/ac.jpg", count: "hvac|air condition", keywords: ["ac", "hvac", "technician"] },
-    { title: "Housekeeping & Helper", img: "/asset/trades/labour.jpg", count: "housekeeping|helper", keywords: ["housekeeping", "helper", "peon", "labour"] },
-    { title: "Office Assistant & DEO", img: "/asset/trades/office-executive.jpg", count: "office assistant|data entry", keywords: ["office", "data entry", "deo", "assistant"] },
+    { key: "delivery", title: "Delivery Executive", img: "/asset/trades/delivery.jpg", count: "delivery|courier", keywords: ["delivery", "courier", "rider"] },
+    { key: "driver", title: "Commercial Vehicle Driver", img: "/asset/trades/driver.jpg", count: "driver", keywords: ["driver", "commercial", "truck"] },
+    { key: "warehouse", title: "Warehouse Associate", img: "/asset/trades/warehouse.jpg", count: "warehouse", keywords: ["warehouse", "logistics", "inventory"] },
+    { key: "electrician", title: "Electrician", img: "/asset/trades/electrician.jpg", count: "electrician", keywords: ["electrician"] },
+    { key: "security", title: "Security Guard", img: "/asset/trades/security.jpg", count: "security guard|security officer", keywords: ["security", "guard"] },
+    { key: "plumber", title: "Plumber", img: "/asset/trades/plumber.jpg", count: "plumber", keywords: ["plumber"] },
+    { key: "painter", title: "Painter & Decorator", img: "/asset/trades/painter.jpg", count: "painter", keywords: ["painter"] },
+    { key: "ac", title: "AC & HVAC Technician", img: "/asset/trades/ac.jpg", count: "hvac|air condition", keywords: ["ac", "hvac", "technician"] },
+    { key: "housekeeping", title: "Housekeeping & Helper", img: "/asset/trades/labour.jpg", count: "housekeeping|helper", keywords: ["housekeeping", "helper", "peon", "labour"] },
+    { key: "office", title: "Office Assistant & DEO", img: "/asset/trades/office-executive.jpg", count: "office assistant|data entry", keywords: ["office", "data entry", "deo", "assistant"] },
   ];
 
   const counts = useJobCounts(popularTradeConfig.map((t) => `search=${encodeURIComponent(t.count)}`));
@@ -499,7 +518,9 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
       item.keywords.some(kw => (s.name || '').toLowerCase().includes(kw))
     );
     return {
-      title: matchedSkill?.name || item.title,
+      label: t(item.key),
+      // Search with the catalogue skill when there is one, otherwise the English role
+      query: matchedSkill?.name || item.title,
       img: item.img,
       vacancies: openingsLabel(counts[`search=${encodeURIComponent(item.count)}`]),
     };
@@ -508,17 +529,17 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
   return (
     <section className={`${SECTION} px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans`}>
       <SectionHeader
-        title="Explore popular job categories"
-        description="Verified openings across logistics, technical trades, facility management, and retail."
+        title={t('title')}
+        description={t('text')}
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
         {displayRoles.map((role, i) => (
-          <Link key={i} href={`/jobs?role=${encodeURIComponent(role.title)}`}>
+          <Link key={i} href={`/jobs?role=${encodeURIComponent(role.query)}`}>
             <div className="km-on-dark relative h-48 sm:h-56 rounded-2xl overflow-hidden group cursor-pointer border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-300">
               <Image
                 src={role.img}
-                alt={role.title}
+                alt={role.label}
                 fill
                 sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
                 className="object-cover object-top"
@@ -526,7 +547,7 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
               <div className="absolute inset-0 bg-linear-to-t from-[#020617]/90 via-[#020617]/30 to-transparent z-10" />
               <div className="absolute bottom-3.5 left-3.5 right-3.5 z-20 text-white">
                 <h4 className="font-bold text-sm sm:text-base leading-snug group-hover:text-amber-300 transition-colors">
-                  {role.title}
+                  {role.label}
                 </h4>
                 <p className="text-xs text-slate-300 font-semibold mt-0.5">
                   {role.vacancies}
@@ -542,7 +563,7 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
           href="/jobs"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-km-primary text-km-heading hover:bg-km-primary hover:text-white text-sm font-semibold transition-colors"
         >
-          View all job categories
+          {t('viewAll')}
           <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
         </Link>
       </div>
@@ -553,15 +574,16 @@ const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
 // --- Featured Companies Grid ---
 // Real employers only; the section is hidden until there are some
 const FeaturedCompanies = ({ companies }: { companies: HiringCompany[] }) => {
+  const t = useTranslations('home.companies');
   if (companies.length === 0) return null;
   return (
     <section className={SECTION} aria-labelledby="companies-title">
       <div className={CONTAINER}>
         <SectionHeader
           id="companies-title"
-          title="Featured companies actively hiring"
-          description="Employers hiring on KaamMilega."
-          action={{ href: '/jobs', label: 'View all jobs' }}
+          title={t('title')}
+          description={t('text')}
+          action={{ href: '/jobs', label: t('action') }}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
@@ -575,16 +597,19 @@ const FeaturedCompanies = ({ companies }: { companies: HiringCompany[] }) => {
 };
 
 // --- Job Search by Qualification ---
+// `key`: label in home.qualification; `label`: the English value searched for
 const QUALIFICATIONS = [
-  { label: "Below 10th", education: "below 10th", Art: BelowTenthArt },
-  { label: "10th Pass", education: "10th", Art: TenthPassArt },
-  { label: "12th Pass", education: "12th", Art: TwelfthPassArt },
-  { label: "Diploma / ITI", education: "diploma|iti", Art: DiplomaItiArt },
-  { label: "Graduate", education: "^graduation", Art: GraduateArt },
-  { label: "Post Graduate", education: "post graduation", Art: PostGraduateArt },
+  { key: "below10", label: "Below 10th", education: "below 10th", Art: BelowTenthArt },
+  { key: "tenth", label: "10th Pass", education: "10th", Art: TenthPassArt },
+  { key: "twelfth", label: "12th Pass", education: "12th", Art: TwelfthPassArt },
+  { key: "diploma", label: "Diploma / ITI", education: "diploma|iti", Art: DiplomaItiArt },
+  { key: "graduate", label: "Graduate", education: "^graduation", Art: GraduateArt },
+  { key: "postGraduate", label: "Post Graduate", education: "post graduation", Art: PostGraduateArt },
 ];
 
 const QualificationSearch = () => {
+  const t = useTranslations('home.qualification');
+  const openingsLabel = useOpeningsLabel();
   // `education` is matched against the education a recruiter sets on the job
   const counts = useJobCounts(QUALIFICATIONS.map((q) => `education=${encodeURIComponent(q.education)}`));
   return (
@@ -592,12 +617,12 @@ const QualificationSearch = () => {
     <div className={CONTAINER}>
       <SectionHeader
         id="qualification-title"
-        title="Search jobs based on your qualification"
-        description="Find roles matched to your education and vocational background."
+        title={t('title')}
+        description={t('text')}
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-        {QUALIFICATIONS.map(({ label, education, Art }) => (
+        {QUALIFICATIONS.map(({ key, label, education, Art }) => (
           <Link
             key={label}
             href={`/jobs?qualification=${encodeURIComponent(label)}`}
@@ -605,7 +630,7 @@ const QualificationSearch = () => {
           >
             <Art className="h-16 w-auto -ml-3" />
             <h3 className="mt-4 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
-              {label}
+              {t(key)}
             </h3>
             <p className="mt-0.5 text-sm text-km-text-secondary">
               {openingsLabel(counts[`education=${encodeURIComponent(education)}`])}
@@ -619,25 +644,28 @@ const QualificationSearch = () => {
 };
 
 // --- Job Type Selection ---
+// `key`: text in home.jobTypes; `label`: the English job type searched for
 const JOB_TYPES = [
-  { label: "Work From Home", desc: "Remote roles you can do from home", Art: WorkFromHomeArt },
-  { label: "Part Time", desc: "Flexible hours alongside study or work", Art: PartTimeArt },
-  { label: "Full Time", desc: "Stable roles with monthly salary", Art: FullTimeArt },
-  { label: "Fresher Jobs", desc: "No experience needed to apply", Art: FresherArt },
-  { label: "Jobs For Women", desc: "Women-friendly employers and shifts", Art: WomenJobsArt },
+  { key: "wfh", label: "Work From Home", Art: WorkFromHomeArt },
+  { key: "partTime", label: "Part Time", Art: PartTimeArt },
+  { key: "fullTime", label: "Full Time", Art: FullTimeArt },
+  { key: "fresher", label: "Fresher Jobs", Art: FresherArt },
+  { key: "women", label: "Jobs For Women", Art: WomenJobsArt },
 ];
 
-const JobTypeSection = () => (
+const JobTypeSection = () => {
+  const t = useTranslations('home.jobTypes');
+  return (
   <section className={SECTION} aria-labelledby="jobtype-title">
     <div className={CONTAINER}>
       <SectionHeader
         id="jobtype-title"
-        title="What type of job do you want?"
-        description="Pick the way you want to work and see matching openings."
+        title={t('title')}
+        description={t('text')}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
-        {JOB_TYPES.map(({ label, desc, Art }) => (
+        {JOB_TYPES.map(({ key, label, Art }) => (
           <Link
             key={label}
             href={`/jobs?job_type=${encodeURIComponent(label)}`}
@@ -646,17 +674,18 @@ const JobTypeSection = () => (
             <Art className="h-14 lg:h-16 w-auto shrink-0 -ml-3" />
             <div className="lg:mt-4 min-w-0">
               <h3 className="flex items-center gap-1 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
-                {label}
+                {t(`${key}.title`)}
                 <CaretRightIcon size={14} weight="bold" className="opacity-0 -translate-x-1 group-hover/card:opacity-100 group-hover/card:translate-x-0 transition-all" aria-hidden="true" />
               </h3>
-              <p className="mt-0.5 text-sm text-km-text-secondary leading-relaxed">{desc}</p>
+              <p className="mt-0.5 text-sm text-km-text-secondary leading-relaxed">{t(`${key}.text`)}</p>
             </div>
           </Link>
         ))}
       </div>
     </div>
   </section>
-);
+  );
+};
 
 
 // --- About KaamMilega banner (headline + learn more + intro video) ---
@@ -664,6 +693,8 @@ const JobTypeSection = () => (
 const KAAMMILEGA_INTRO_VIDEO_ID = '';
 
 const DiversityBanner = () => {
+  const t = useTranslations('home.about');
+  const tc = useTranslations('common');
   const [isPlaying, setIsPlaying] = useState(false);
   const hasVideo = KAAMMILEGA_INTRO_VIDEO_ID.length > 0;
 
@@ -686,21 +717,21 @@ const DiversityBanner = () => {
 
           <div className="relative grid lg:grid-cols-2 items-center gap-8 lg:gap-12 p-6 sm:p-8 lg:p-10">
             <div className="max-w-lg text-center lg:text-left mx-auto lg:mx-0">
-              <p className="text-sm font-medium text-[#FF8A00]">About KaamMilega</p>
+              <p className="text-sm font-medium text-[#FF8A00]">{t('kicker')}</p>
               <h2 id="about-km-title" className="mt-2 text-2xl sm:text-[28px] lg:text-[32px] font-bold tracking-[-0.02em] leading-tight">
-                Diversity and inclusion at every workplace
+                {t('title')}
               </h2>
               <p className="mt-3 text-[15px] sm:text-base text-white/75 leading-relaxed">
-                See how KaamMilega connects workers, employers and experts directly and fairly.
+                {t('text')}
               </p>
               {hasVideo ? (
                 <button type="button" onClick={() => setIsPlaying(true)} className={learnMoreClass}>
-                  Learn more
+                  {tc('learnMore')}
                   <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
                 </button>
               ) : (
                 <Link href="/about" className={learnMoreClass}>
-                  Learn more
+                  {tc('learnMore')}
                   <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
                 </Link>
               )}
@@ -711,7 +742,7 @@ const DiversityBanner = () => {
               type="button"
               onClick={() => hasVideo && setIsPlaying(true)}
               disabled={!hasVideo}
-              aria-label={hasVideo ? 'Play KaamMilega introduction video' : 'KaamMilega introduction video coming soon'}
+              aria-label={hasVideo ? t('play') : t('playSoon')}
               className="group relative w-full max-w-md mx-auto lg:ml-auto lg:mr-0 aspect-video rounded-2xl overflow-hidden bg-km-surface-card enabled:cursor-pointer"
             >
               {hasVideo ? (
@@ -736,7 +767,7 @@ const DiversityBanner = () => {
                   <span className="w-14 h-14 rounded-full bg-[#071A4D] text-white flex items-center justify-center dark:bg-km-primary">
                     <PlayIcon size={24} weight="fill" className="ml-0.5" aria-hidden="true" />
                   </span>
-                  <span className="text-sm font-medium text-km-text-secondary">Video coming soon</span>
+                  <span className="text-sm font-medium text-km-text-secondary">{t('videoSoon')}</span>
                 </span>
               )}
             </button>
@@ -753,7 +784,7 @@ const DiversityBanner = () => {
             <button
               type="button"
               onClick={() => setIsPlaying(false)}
-              aria-label="Close video"
+              aria-label={t('closeVideo')}
               className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center cursor-pointer"
             >
               <XIcon size={18} weight="bold" aria-hidden="true" />
@@ -761,7 +792,7 @@ const DiversityBanner = () => {
             <div className="aspect-video">
               <iframe
                 src={`https://www.youtube.com/embed/${KAAMMILEGA_INTRO_VIDEO_ID}?autoplay=1&rel=0`}
-                title="KaamMilega introduction"
+                title={t('videoTitle')}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -820,6 +851,8 @@ const DEFAULT_LEARN_VIDEOS: LearnVideo[] = [
 
 // --- Video Learning Section ---
 const LearnSection = () => {
+  const t = useTranslations('home.learn');
+  const tc = useTranslations('common');
   const [videos, setVideos] = useState<LearnVideo[]>(DEFAULT_LEARN_VIDEOS);
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
@@ -877,26 +910,32 @@ const LearnSection = () => {
   }, [videos.length, isPaused]);
 
   const activeVideo = videos[activeIndex] || videos[0] || DEFAULT_LEARN_VIDEOS[0];
+  // "5", "5 min" or "5 mins" read in the visitor's language; other values shown as given
+  const durationLabel = (time: string) => {
+    const minutes = /^(\d+)\s*(m|mins?|minutes?)?$/i.exec(time.trim());
+    return minutes ? tc('minutes', { n: minutes[1] }) : time;
+  };
 
   return (
     <section className={`${SECTION} px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans`}>
       <SectionHeader
-        title={
-          <>
-            Learn with{' '}
-            {/* Logo sized to the heading's cap height; its artwork baseline sits at ~72% of the image, so drop it to the text baseline */}
-            <img
-              src="/kaammilega-logo-text.png"
-              alt="KaamMilega"
-              className="inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em] dark:hidden"
-            />
-            <img
-              src="/kaammilega-logo-text-dark.png"
-              alt="KaamMilega"
-              className="hidden dark:inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em]"
-            />
-          </>
-        }
+        title={t.rich('title', {
+          // Logo sized to the heading's cap height; its artwork baseline sits at ~72% of the image, so drop it to the text baseline
+          logo: () => (
+            <>
+              <img
+                src="/kaammilega-logo-text.png"
+                alt="KaamMilega"
+                className="inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em] dark:hidden"
+              />
+              <img
+                src="/kaammilega-logo-text-dark.png"
+                alt="KaamMilega"
+                className="hidden dark:inline-block h-[1.05em] w-auto align-baseline relative top-[0.29em]"
+              />
+            </>
+          ),
+        })}
       />
 
       <div
@@ -909,7 +948,7 @@ const LearnSection = () => {
         <Link
           href="/resources"
           className="block w-full md:flex-1 aspect-video bg-km-ink rounded-2xl relative group cursor-pointer overflow-hidden border border-km-border"
-          title={`Explore courses: ${activeVideo.title}`}
+          title={t('exploreCourse', { title: activeVideo.title })}
         >
           {/* Main Thumbnail synced with active card (absolute background) */}
           <img
@@ -994,7 +1033,7 @@ const LearnSection = () => {
                       </h4>
                       <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1">
                         <ClockIcon weight="bold" size={11} className="text-slate-400" />
-                        <span>{video.time}</span>
+                        <span>{durationLabel(video.time)}</span>
                       </p>
                     </div>
                   </div>
@@ -1008,7 +1047,7 @@ const LearnSection = () => {
             href="/resources"
             className="w-full py-3 px-5 bg-km-skills hover:bg-[#15803D] active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer mt-auto"
           >
-            <span>Explore All Resources</span>
+            <span>{t('allResources')}</span>
             <ArrowUpRightIcon weight="bold" size={16} />
           </Link>
         </div>
@@ -1031,6 +1070,7 @@ const ExpertSlider = ({
   onChat: (id: string) => void;
   onFollow: (id: string, name?: string) => void;
 }) => {
+  const t = useTranslations('home.experts');
   const [currentUserId, setCurrentUserId] = useState<string>('');
 
   useEffect(() => {
@@ -1052,9 +1092,9 @@ const ExpertSlider = ({
       <div className={CONTAINER}>
         <SectionHeader
           id="experts-title"
-          title="Connect with our experts"
-          description="Get guidance from verified industry professionals and career coaches."
-          action={{ href: '/network/experts', label: 'View all experts' }}
+          title={t('title')}
+          description={t('text')}
+          action={{ href: '/network/experts', label: t('action') }}
         />
 
       {/* Auto-scrolling row of expert cards (pauses on hover/touch) */}
@@ -1089,9 +1129,10 @@ const ExpertSlider = ({
 };
 
 // --- Upcoming Events & Challenges ---
-const formatEventPrice = (price: unknown) => {
+/** Paid ticket price in rupees, or 0 for a free event */
+const eventPrice = (price: unknown) => {
   const value = Number(price);
-  return !price || Number.isNaN(value) || value <= 0 ? 'Free' : `₹${value.toLocaleString('en-IN')}`;
+  return !price || Number.isNaN(value) || value <= 0 ? 0 : value;
 };
 
 // "2026-11-01" is read as a local calendar day, not UTC midnight
@@ -1102,17 +1143,12 @@ const parseEventDate = (date?: string) => {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };
 
-const formatEventDate = (date?: string) => {
-  const parsed = parseEventDate(date);
-  return parsed
-    ? parsed.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })
-    : date || 'Date to be announced';
-};
 
 // Seeded test events carry a trailing timestamp in the title ("Masterclass 1790409017166")
 const cleanEventTitle = (title?: string) => (title || '').trim().replace(/\s+\d{10,}$/, '');
 
 const EventDatePlaceholder = ({ date }: { date?: string }) => {
+  const { date: formatDate } = useFormat();
   const parsed = parseEventDate(date);
   const gridId = useId();
   return (
@@ -1128,7 +1164,7 @@ const EventDatePlaceholder = ({ date }: { date?: string }) => {
       {parsed ? (
         <div className="relative w-20 rounded-xl overflow-hidden bg-km-surface-card text-center shadow-lg" aria-hidden="true">
           <div className="bg-km-events text-white text-xs font-semibold py-1">
-            {parsed.toLocaleDateString('en-IN', { month: 'short' })}
+            {formatDate(parsed, { month: 'short' })}
           </div>
           <div className="py-2 text-2xl font-bold text-km-text-primary leading-none">{parsed.getDate()}</div>
         </div>
@@ -1140,6 +1176,13 @@ const EventDatePlaceholder = ({ date }: { date?: string }) => {
 };
 
 const EventsSection = ({ events: allEvents }: { events: any[] }) => {
+  const t = useTranslations('home.events');
+  const tc = useTranslations('common');
+  const { number, date: formatDate } = useFormat();
+  const formatEventDate = (date?: string) => {
+    const parsed = parseEventDate(date);
+    return parsed ? formatDate(parsed, { weekday: 'short', day: 'numeric', month: 'short' }) : date || tc('dateTba');
+  };
   // Hide events that already happened; undated events stay (shown as "Date to be announced")
   const events = useMemo(() => {
     const today = new Date();
@@ -1157,16 +1200,16 @@ const EventsSection = ({ events: allEvents }: { events: any[] }) => {
       <div className={CONTAINER}>
         <SectionHeader
           id="events-title"
-          title="Upcoming events and challenges"
-          description="Meet peers, attend hiring workshops, and earn certified skills at community events."
-          action={{ href: '/events', label: 'View all events' }}
+          title={t('title')}
+          description={t('text')}
+          action={{ href: '/events', label: t('action') }}
         />
 
         {/* Auto-scrolling row of event cards (pauses on hover/touch) */}
         <div className="overflow-hidden">
           <div className="animate-km-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused] py-1">
             {[...events, ...events].map((event, i) => {
-              const price = formatEventPrice(event.price);
+              const price = eventPrice(event.price);
               return (
                 <Link
                   href={`/events/${event.id}`}
@@ -1182,14 +1225,14 @@ const EventsSection = ({ events: allEvents }: { events: any[] }) => {
                       <EventDatePlaceholder date={event.date} />
                     )}
                     <span className="absolute top-3 left-3 max-w-[70%] truncate bg-km-surface-card/95 text-km-text-primary text-xs font-semibold px-2.5 py-1 rounded-full">
-                      {event.location || 'Online'}
+                      {event.location || tc('online')}
                     </span>
                     <span
                       className={`absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full ${
-                        price === 'Free' ? 'bg-[#16A34A] text-white' : 'bg-km-surface-card/95 text-km-text-primary'
+                        price === 0 ? 'bg-[#16A34A] text-white' : 'bg-km-surface-card/95 text-km-text-primary'
                       }`}
                     >
-                      {price}
+                      {price === 0 ? tc('free') : `₹${number(price)}`}
                     </span>
                   </div>
                   <div className="p-5 flex flex-col flex-1">
@@ -1197,7 +1240,7 @@ const EventsSection = ({ events: allEvents }: { events: any[] }) => {
                       {cleanEventTitle(event.title)}
                     </h3>
                     {event.organizer && (
-                      <p className="mt-1 text-sm text-km-text-secondary truncate">By {event.organizer}</p>
+                      <p className="mt-1 text-sm text-km-text-secondary truncate">{tc('byName', { name: event.organizer })}</p>
                     )}
                     <div className="mt-auto pt-4 border-t border-km-border-subtle flex items-center justify-between text-sm">
                       <span className="flex items-center gap-1.5 font-medium text-km-text-primary">
@@ -1205,7 +1248,7 @@ const EventsSection = ({ events: allEvents }: { events: any[] }) => {
                         {formatEventDate(event.date)}
                       </span>
                       <span className="inline-flex items-center gap-1 font-semibold text-km-heading">
-                        Details
+                        {tc('details')}
                         <CaretRightIcon size={14} weight="bold" className="transition-transform group-hover/event:translate-x-0.5" aria-hidden="true" />
                       </span>
                     </div>
@@ -1221,35 +1264,38 @@ const EventsSection = ({ events: allEvents }: { events: any[] }) => {
 };
 
 // --- Wallet Banner ---
-const WalletBanner = () => (
+const WalletBanner = () => {
+  const t = useTranslations('home.wallet');
+  return (
   <section className={SECTION} aria-labelledby="wallet-title">
     <div className={CONTAINER}>
       <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-orange-500 via-orange-600 to-amber-700 text-white px-6 py-8 sm:px-10 sm:py-10 lg:px-12">
         {/* Background mark, kept away from the copy */}
         <div className="absolute right-8 lg:right-12 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-4 opacity-15 pointer-events-none select-none" aria-hidden="true">
           <WalletIcon size={120} className="text-white hidden lg:block" />
-          <span className="text-6xl lg:text-7xl font-bold text-white/60">Wallet</span>
+          <span className="text-6xl lg:text-7xl font-bold text-white/60">{t('mark')}</span>
         </div>
 
         <div className="relative max-w-xl text-center md:text-left">
           <h2 id="wallet-title" className="text-2xl sm:text-[28px] lg:text-[32px] font-bold tracking-[-0.02em] leading-tight">
-            KaamMilega Digital <span className="text-amber-200">Wallet</span>
+            {t.rich('title', { accent: (chunks) => <span className="text-amber-200">{chunks}</span> })}
           </h2>
           <p className="mt-2 text-[15px] sm:text-base font-medium text-white/95">
-            Manage service passes, track earnings, and receive fast payouts.
+            {t('text')}
           </p>
           <Link
             href="/wallet"
             className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-km-surface-card text-orange-700 hover:bg-orange-50 text-sm font-semibold shadow-md transition-colors"
           >
             <WalletIcon size={18} weight="bold" aria-hidden="true" />
-            Open Wallet
+            {t('open')}
           </Link>
         </div>
       </div>
     </div>
   </section>
-);
+  );
+};
 
 // --- Verified Stories from Real Candidates (Horizontal Auto-Scroll Marquee) ---
 interface TestimonialItem {
@@ -1268,6 +1314,7 @@ interface TestimonialItem {
 
 
 const TestimonialsSection = () => {
+  const t = useTranslations('home.stories');
   // Only testimonials added by admins (GET /testimonials); never invented stories
   const [stories, setStories] = useState<TestimonialItem[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<TestimonialItem | null>(null);
@@ -1329,8 +1376,8 @@ const TestimonialsSection = () => {
       <div className={CONTAINER}>
         <SectionHeader
           id="stories-title"
-          title="Verified stories from real candidates"
-          description="Real workers across logistics, transportation, and technical trades hired with zero brokerage and direct HR calls."
+          title={t('title')}
+          description={t('text')}
         />
       </div>
 
@@ -1378,7 +1425,7 @@ const TestimonialsSection = () => {
                 type="button"
                 onClick={() => setSelectedVideo(null)}
                 className="w-8 h-8 rounded-full bg-km-ink-soft hover:bg-slate-700 text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
-                aria-label="Close video"
+                aria-label={t('closeVideo')}
               >
                 <XIcon weight="bold" size={16} />
               </button>
@@ -1388,7 +1435,7 @@ const TestimonialsSection = () => {
             <div className="aspect-video w-full bg-black">
               <iframe
                 src={`https://www.youtube.com/embed/${selectedVideo.youtube_video_id}?autoplay=1&rel=0`}
-                title={`${selectedVideo.name} Interview Story`}
+                title={t('videoTitle', { name: selectedVideo.name })}
                 className="w-full h-full border-0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
@@ -1496,9 +1543,12 @@ function CompactTestimonialCard({
 }
 
 // --- Premium Services Banner ---
-const PREMIUM_SERVICES = ['Resume Writing', 'Priority Applicant', 'Resume Display'];
+// Labels in home.premium
+const PREMIUM_SERVICES = ['resumeWriting', 'priority', 'display'];
 
 const PremiumServicesBanner = () => {
+  const t = useTranslations('home.premium');
+  const tc = useTranslations('common');
   return (
     <section className={SECTION} aria-labelledby="premium-title">
       <div className={CONTAINER}>
@@ -1507,10 +1557,10 @@ const PremiumServicesBanner = () => {
 
           <div className="flex-1 text-center md:text-left">
             <h2 id="premium-title" className="text-xl sm:text-2xl lg:text-[28px] font-bold tracking-[-0.02em] leading-tight text-km-text-primary">
-              Accelerate your job search with premium services
+              {t('title')}
             </h2>
             <p className="mt-3 text-[15px] text-km-text-secondary leading-relaxed max-w-xl">
-              Get hired faster with resume optimization, priority applicant status, direct recruiter connections and skill certifications.
+              {t('text')}
             </p>
             <div className="mt-5 flex flex-wrap justify-center md:justify-start gap-2">
               {PREMIUM_SERVICES.map((service) => (
@@ -1519,7 +1569,7 @@ const PremiumServicesBanner = () => {
                   href="/resources/premium"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-km-border text-sm font-medium text-km-text-primary hover:border-[#0B5ED7]/40 hover:text-km-heading transition-colors"
                 >
-                  {service}
+                  {t(service)}
                   <CaretRightIcon size={14} weight="bold" className="text-km-heading" aria-hidden="true" />
                 </Link>
               ))}
@@ -1530,7 +1580,7 @@ const PremiumServicesBanner = () => {
             href="/resources/premium"
             className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-sm font-semibold transition-colors dark:bg-km-primary dark:hover:bg-km-primary-dark"
           >
-            Learn more
+            {tc('learnMore')}
             <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
           </Link>
         </div>
@@ -1540,42 +1590,23 @@ const PremiumServicesBanner = () => {
 };
 
 // --- Popular Questions (Accordion) ---
-const defaultFaqs = [
-  {
-    question: "How does direct HR calling work on KaamMilega?",
-    answer: "Unlike traditional job boards where applications get lost, KaamMilega connects you directly with verified employers. Once you submit an application or claim an InstantMilega™ gig, verified HR managers call or WhatsApp you directly to schedule interviews with zero intermediaries."
-  },
-  {
-    question: "Is there any charge or brokerage fee to apply for jobs?",
-    answer: "100% Free! KaamMilega strictly enforces a zero-brokerage policy for all jobseekers. You will never be asked to pay any registration fee, interview charge, or placement commission."
-  },
-  {
-    question: "How does Aadhaar and biometric verification help me?",
-    answer: "Biometric and Aadhaar verification marks your candidate profile with the official 'Verified Candidate' badge. Employers trust verified applicants 4x more, resulting in priority shortlisting and faster job offers."
-  },
-  {
-    question: "Can I apply for jobs without an English resume?",
-    answer: "Yes! KaamMilega is designed for every candidate in India. Simply enter your contact details, language preferences, and trade skills, and our platform automatically generates an ATS-ready digital profile for employers to review."
-  },
-  {
-    question: "What is InstantMilega™ and how fast can I start working?",
-    answer: "InstantMilega™ offers on-demand shifts and gig openings across delivery, retail, warehousing, and logistics. Candidates can get onboarded and allocated to local shifts within 15 minutes to 2 hours of application."
-  },
-  {
-    question: "How do I track the status of my submitted applications?",
-    answer: "Log into your dashboard and visit 'My Applications' to track your progress in real time—from initial HR review and shortlisting to interview scheduling and offer rollouts."
-  }
-];
+// Shown when no FAQs are managed in admin (GET /questions); text in home.faq
+const DEFAULT_FAQ_KEYS = ['hrCalls', 'fees', 'verification', 'resume', 'instant', 'track'];
 
 const PopularQuestions = ({ questions }: { questions: any[] }) => {
+  const t = useTranslations('home.faq');
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
-  const displayFaqs = questions && questions.length > 0 ? questions : defaultFaqs;
+  // FAQs managed in admin are shown as entered (not translated yet); otherwise the built-in ones
+  const displayFaqs: { question: string; answer: string }[] =
+    questions && questions.length > 0
+      ? questions
+      : DEFAULT_FAQ_KEYS.map((key) => ({ question: t(`${key}.q`), answer: t(`${key}.a`) }));
 
   return (
     <section id="faq" className={`${SECTION} scroll-mt-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto font-sans`}>
       <div className="bg-km-surface-card rounded-3xl p-6 sm:p-10 md:p-12 border border-km-border">
-        <SectionHeader title="Frequently asked questions" />
+        <SectionHeader title={t('title')} />
 
         <div className="space-y-4">
           {displayFaqs.map((faq, i) => (

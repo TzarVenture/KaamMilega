@@ -2,7 +2,6 @@ export interface HiringCompany {
     id?: string;
     name: string;
     logo: string;
-    openings: string;
     jobCount: number;
     category: string;
     location: string;
@@ -28,7 +27,7 @@ export interface ApiCompany {
 }
 
 /**
- * Real companies only: maps /companies/top items without inventing ratings, openings or
+ * Real companies only: maps /companies/top items without inventing ratings, job counts or
  * verification.
  */
 export function companiesFromApi(list: unknown): HiringCompany[] {
@@ -47,7 +46,6 @@ export function companiesFromApi(list: unknown): HiringCompany[] {
             // The API fills an empty category with this placeholder; show nothing instead
             category: c.category && c.category !== 'Enterprise Employer' ? c.category : '',
             location: c.location || '',
-            openings: jobs > 0 ? `${jobs} open ${jobs === 1 ? 'job' : 'jobs'}` : '',
             jobCount: jobs,
             verified: c.verified === true,
             website: c.website,

@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { CaretDownIcon, CircleNotchIcon, MagnifyingGlassIcon, MapPinIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 interface City {
     id?: string;
@@ -18,6 +19,7 @@ interface CitySelectorProps {
 }
 
 const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: propCities }: CitySelectorProps) => {
+    const t = useTranslations('city');
     const [isOpen, setIsOpen] = useState(false);
     const [fetchedCities, setFetchedCities] = useState<City[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -82,7 +84,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
 
     // --- Hero Variant ---
     if (variant === 'hero') {
-        const displayLabel = !selectedCity || selectedCity === 'All' ? 'All India' : selectedCity;
+        const displayLabel = !selectedCity || selectedCity === 'All' ? t('allIndia') : selectedCity;
         return (
             <div className="relative w-full sm:w-48" ref={dropdownRef}>
                 <div
@@ -112,7 +114,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                     <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                                     <input
                                         type="text"
-                                        placeholder="Search city or hub..."
+                                        placeholder={t('search')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full pl-9 pr-3 py-2 bg-km-surface-card border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-km-primary focus:border-km-primary"
@@ -126,7 +128,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                     onClick={() => handleSelect('')}
                                     className={`px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${!selectedCity || selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-slate-700 hover:bg-slate-50'}`}
                                 >
-                                    <span>All India</span>
+                                    <span>{t('allIndia')}</span>
                                     {(!selectedCity || selectedCity === 'All') && (
                                         <span className="text-[10px] font-bold text-km-heading bg-blue-100/70 px-2 py-0.5 rounded-md">Selected</span>
                                     )}
@@ -151,7 +153,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                 )}
                                 {!isLoading && displayCities.length === 0 && (
                                     <div className="px-3 py-4 text-center text-xs text-slate-400">
-                                        No cities found
+                                        {t('none')}
                                     </div>
                                 )}
                             </div>
@@ -171,8 +173,8 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                     className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors min-w-35"
                 >
                     <MapPinIcon weight="bold" size={18} className="text-gray-500" />
-                    <span className="text-sm text-gray-400">City-</span>
-                    <span className="text-sm font-semibold text-gray-800">{selectedCity || 'All'}</span>
+                    <span className="text-sm text-gray-400">{t('label')}:</span>
+                    <span className="text-sm font-semibold text-gray-800">{!selectedCity || selectedCity === 'All' ? t('all') : selectedCity}</span>
                     <CaretDownIcon weight="bold" size={16} className={`text-gray-500 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                 </div>
 
@@ -189,7 +191,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                     <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                                     <input
                                         type="text"
-                                        placeholder="Search city..."
+                                        placeholder={t('search')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
                                         className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-km-primary"
@@ -203,7 +205,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                     onClick={() => handleSelect('All')}
                                     className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                                 >
-                                    All Cities
+                                    {t('allCities')}
                                 </div>
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-4">
@@ -222,7 +224,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                 )}
                                 {!isLoading && displayCities.length === 0 && (
                                     <div className="px-3 py-4 text-center text-xs text-gray-400">
-                                        No cities found
+                                        {t('none')}
                                     </div>
                                 )}
                             </div>
@@ -241,7 +243,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                 className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full border border-gray-100 min-w-35 cursor-pointer"
             >
                 <MapPinIcon weight="bold" size={16} className="text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">City- <span className="font-bold">{selectedCity || 'All'}</span></span>
+                <span className="text-sm font-medium text-gray-700">{t('label')}: <span className="font-bold">{!selectedCity || selectedCity === 'All' ? t('all') : selectedCity}</span></span>
                 <CaretDownIcon weight="bold" size={16} className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
@@ -258,7 +260,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                 <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                                 <input
                                     type="text"
-                                    placeholder="Search city..."
+                                    placeholder={t('search')}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-km-primary"
@@ -272,7 +274,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                                 onClick={() => handleSelect('All')}
                                 className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
                             >
-                                All Cities
+                                {t('allCities')}
                             </div>
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-4">
@@ -291,7 +293,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                             )}
                             {!isLoading && displayCities.length === 0 && (
                                 <div className="px-3 py-4 text-center text-xs text-gray-400">
-                                    No cities found
+                                    {t('none')}
                                 </div>
                             )}
                         </div>
