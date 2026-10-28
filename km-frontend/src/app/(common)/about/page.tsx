@@ -125,7 +125,7 @@ export default function AboutPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-white/5">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-[#1D253D]">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#FF6B00] flex items-center justify-center mb-3.5">
                   <SealCheckIcon size={20} />
@@ -138,7 +138,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-white/5">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-[#1D253D]">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-blue-50 text-km-link flex items-center justify-center mb-3.5">
                   <PhoneCallIcon size={20} />
@@ -151,7 +151,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-white/5">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-[#1D253D]">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 text-[#16A34A] flex items-center justify-center mb-3.5">
                   <HandHeartIcon size={20} />
@@ -164,7 +164,7 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-white/5">
+            <div className="p-5 rounded-2xl bg-[#F8FAFC] border border-km-border flex flex-col justify-between dark:bg-[#1D253D]">
               <div>
                 <div className="w-10 h-10 rounded-xl bg-purple-50 text-[#7C3AED] flex items-center justify-center mb-3.5 dark:text-violet-400">
                   <ShieldCheckIcon size={20} />

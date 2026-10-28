@@ -42,7 +42,7 @@ interface NavLink {
 // Desktop nav item: duotone icon in a rounded hit area; the active item sits on a soft blue tile
 const navItemClass = (isActive: boolean) =>
   `relative w-11 h-11 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
-    isActive ? "bg-[#EAF1FC] text-km-heading dark:bg-blue-500/15" : "text-slate-600 hover:bg-km-surface hover:text-km-heading"
+    isActive ? "bg-[#EAF1FC] text-km-heading dark:bg-[#172A50]" : "text-slate-600 hover:bg-km-surface hover:text-km-heading"
   }`;
 
 // Dark hover tooltip under a nav item (the item's wrapper needs the `group` class)
@@ -474,7 +474,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           <div className="relative group" ref={menuRef}>
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className={`flex items-center gap-1 p-1.5 rounded-xl transition-colors cursor-pointer ${isMenuOpen ? "bg-[#EAF1FC] dark:bg-blue-500/15" : "hover:bg-km-surface"}`}
+              className={`flex items-center gap-1 p-1.5 rounded-xl transition-colors cursor-pointer ${isMenuOpen ? "bg-[#EAF1FC] dark:bg-[#172A50]" : "hover:bg-km-surface"}`}
               aria-label="Account and settings"
               aria-expanded={isMenuOpen}
             >
@@ -698,7 +698,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
         <>
           <div
             onClick={() => setMobileSearchOpen(false)}
-            className="md:hidden fixed inset-0 top-16 z-40 bg-km-ink/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
+            className="md:hidden fixed inset-0 top-16 z-40 bg-km-ink/40 transition-opacity duration-150 animate-in fade-in"
             aria-hidden="true"
           />
           <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 px-4 py-3 shadow-xl animate-in slide-in-from-top-2 duration-150">
@@ -732,7 +732,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
         <>
           <div
             onClick={() => setMobileNavOpen(false)}
-            className="md:hidden fixed inset-0 top-16 z-40 bg-km-ink/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
+            className="md:hidden fixed inset-0 top-16 z-40 bg-km-ink/50 transition-opacity duration-200 animate-in fade-in"
             aria-hidden="true"
           />
           <div className="md:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 shadow-2xl max-h-[calc(100dvh-4rem)] overflow-y-auto overscroll-contain animate-in slide-in-from-top duration-200">
@@ -836,7 +836,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   await clearSession();
                   window.location.href = "/login";
                 }}
-                className="w-full min-h-11 flex items-center gap-3.5 px-4 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer dark:text-red-400 dark:hover:bg-red-500/10"
+                className="w-full min-h-11 flex items-center gap-3.5 px-4 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer dark:text-red-400 dark:hover:bg-[#271E35]"
               >
                 <SignOutIcon size={20} weight="bold" aria-hidden="true" />
                 Sign out

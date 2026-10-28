@@ -33,7 +33,7 @@ export default function Footer() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 text-xs font-semibold text-amber-300 shrink-0">
+                    <div className="flex items-center gap-2 bg-[#0B1F52] px-4 py-2 rounded-xl text-xs font-semibold text-amber-300 shrink-0">
                         <span className="font-medium tracking-wide">{t("motto")}</span>
                     </div>
                 </div>

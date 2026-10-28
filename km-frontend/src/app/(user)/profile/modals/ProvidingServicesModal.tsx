@@ -115,7 +115,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs font-sans">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 font-sans">
             <div 
                 className="bg-km-surface-card rounded-3xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] flex flex-col"
                 onClick={(e) => e.stopPropagation()}

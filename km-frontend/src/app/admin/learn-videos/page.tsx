@@ -216,7 +216,7 @@ export default function LearnVideosPage() {
             <div className="bg-km-surface-card rounded-2xl p-4 sm:p-5 border border-km-border shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                        <div className="p-2 bg-[#071A4D]/10 text-[#071A4D] rounded-xl dark:bg-km-primary/10 dark:text-km-primary">
+                        <div className="p-2 bg-km-surface text-[#071A4D] rounded-xl dark:bg-km-primary dark:text-km-primary">
                             <VideoCameraIcon size={20} weight="bold" />
                         </div>
                         <h1 className="text-xl sm:text-2xl font-bold text-km-heading">
@@ -535,7 +535,7 @@ export default function LearnVideosPage() {
             {/* ─── Delete Confirmation Modal (Admin Power Across Platform) ─── */}
             <AnimatePresence>
                 {deleteModalVideo && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -582,7 +582,7 @@ export default function LearnVideosPage() {
             {/* ─── Embedded Video Player Modal ─── */}
             <AnimatePresence>
                 {previewVideo && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}

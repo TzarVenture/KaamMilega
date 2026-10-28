@@ -123,7 +123,7 @@ export default function ProfileStrengthCard({ user, onOpenModal }: ProfileStreng
                         <span
                             key={m.score}
                             className={`absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2.5 h-2.5 rounded-full border-2 border-white dark:border-km-surface-card ${
-                                score >= m.score ? 'bg-[#071A4D] dark:bg-km-primary' : 'bg-[#D9E0EA] dark:bg-white/10'
+                                score >= m.score ? 'bg-[#071A4D] dark:bg-km-primary' : 'bg-[#D9E0EA] dark:bg-[#293147]'
                             }`}
                             style={{ left: `${m.score}%` }}
                         />

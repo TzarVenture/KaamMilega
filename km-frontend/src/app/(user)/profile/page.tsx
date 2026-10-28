@@ -684,7 +684,7 @@ const ProfilePage = () => {
                                                         <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
                                                         <p className="font-bold text-sm text-slate-900">Open to work</p>
                                                     </div>
-                                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-km-heading uppercase">
+                                                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-km-heading">
                                                         {user.open_to_work.visibility === 'recruiters' ? 'Recruiters only' : 'All members'}
                                                     </span>
                                                 </div>

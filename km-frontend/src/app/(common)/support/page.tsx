@@ -131,7 +131,7 @@ export default function SupportPage() {
           {/* Left Form: Submit Support Ticket */}
           <div className="lg:col-span-5 bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm">
             <div className="mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-km-link bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+              <span className="block text-[13px] font-semibold text-km-link">
                 Direct Helpdesk
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-km-heading mt-2">
@@ -254,7 +254,7 @@ export default function SupportPage() {
           {/* Right Column: FAQ Accordion */}
           <div className="lg:col-span-7 space-y-4">
             <div className="mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200">
+              <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
                 Self-Service Knowledgebase
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-km-heading mt-2">

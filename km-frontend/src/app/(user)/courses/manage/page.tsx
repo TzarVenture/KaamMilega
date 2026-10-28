@@ -380,7 +380,7 @@ export default function ManageCoursesPage() {
 
             {/* ─── Edit Course Modal ─── */}
             {editingCourse && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
                     <div className="bg-km-surface-card rounded-3xl max-w-lg w-full p-6 sm:p-8 border border-km-border shadow-2xl space-y-5 animate-in fade-in zoom-in duration-150">
                         <div className="flex items-center justify-between border-b border-km-border pb-4">
                             <div className="flex items-center gap-2">
@@ -523,7 +523,7 @@ export default function ManageCoursesPage() {
 
             {/* ─── Delete Confirmation Modal ─── */}
             {deletingCourse && (
-                <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
                     <div className="bg-km-surface-card rounded-3xl max-w-sm w-full p-6 border border-km-border shadow-2xl text-center space-y-4">
                         <WarningIcon size={28} weight="duotone" className="text-red-600 mx-auto dark:text-red-400" aria-hidden="true" />
                         <div className="space-y-1">

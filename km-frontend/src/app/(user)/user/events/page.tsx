@@ -48,7 +48,7 @@ const EventsPage = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen dark:bg-white/5">
+        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen dark:bg-[#1D253D]">
 
             {/* Left Content: Events List */}
             <div className="flex-1">

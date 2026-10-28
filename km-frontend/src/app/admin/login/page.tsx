@@ -53,7 +53,7 @@ export default function AdminLoginPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#FDFCFE] flex items-center justify-center p-6 selection:bg-purple-200 dark:bg-white/5">
+        <div className="min-h-screen bg-[#FDFCFE] flex items-center justify-center p-6 selection:bg-purple-200 dark:bg-[#1D253D]">
             <div className="absolute top-8 left-8">
                 <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-purple-700 transition-colors font-semibold text-sm">
                     <ArrowLeftIcon weight="bold" size={18} />

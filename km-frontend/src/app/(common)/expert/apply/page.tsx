@@ -239,7 +239,7 @@ export default function ExpertProSubscriptionPage() {
   const isWalletSufficient = walletBalance >= selectedPlan.price;
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-white/5">
+    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-[#1D253D]">
 
       {/* Hero */}
       <PageHero
@@ -255,12 +255,12 @@ export default function ExpertProSubscriptionPage() {
         {activeSub && (
           <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-8 sm:mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-[#047857] flex items-center justify-center text-white shrink-0">
                 <MedalIcon size={26} />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase tracking-wider bg-km-surface-card text-emerald-800 px-2.5 py-0.5 rounded-full">
+                  <span className="text-[11px] font-semibold bg-km-surface-card text-emerald-800 px-2.5 py-0.5 rounded-full">
                     Active Subscription
                   </span>
                   <h3 className="font-extrabold text-base md:text-lg">
@@ -297,7 +297,7 @@ export default function ExpertProSubscriptionPage() {
                 }`}
               >
                 {isYearly && (
-                  <div className="absolute -top-3.5 right-6 bg-linear-to-r from-orange-500 to-amber-500 text-white text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
+                  <div className="absolute -top-3.5 right-6 bg-linear-to-r from-orange-500 to-amber-500 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-md">
                     Most Popular • Best Value
                   </div>
                 )}
@@ -361,7 +361,7 @@ export default function ExpertProSubscriptionPage() {
       {/* Dual-Payment Checkout Modal */}
       <AnimatePresence>
         {checkoutModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

@@ -109,7 +109,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
             {savedCount > 0 && (
               <span
                 className={`px-1.5 py-0.5 rounded-full text-[10px] font-inter ${
-                  activeFilter === 'saved' ? 'bg-km-surface-card/20 text-white' : 'bg-[#D9E0EA] text-km-text-primary dark:bg-white/10'
+                  activeFilter === 'saved' ? 'bg-km-surface-card/20 text-white' : 'bg-[#D9E0EA] text-km-text-primary dark:bg-[#293147]'
                 }`}
               >
                 {savedCount}

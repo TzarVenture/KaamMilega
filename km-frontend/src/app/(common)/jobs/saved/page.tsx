@@ -173,7 +173,7 @@ export default function SavedJobsPage() {
                                     </Link>
                                     <p className="text-km-text-secondary font-medium text-xs mb-3 flex items-center gap-2">
                                         <span>{job.company}</span>
-                                        <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-white/10" />
+                                        <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-[#293147]" />
                                         <span className="text-km-link font-semibold">Saved Item</span>
                                     </p>
 

@@ -150,7 +150,7 @@ export default function RecruiterPostsPage() {
                         <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-1.5 mb-1.5">
                                 <span className="text-xs font-semibold text-km-text-primary">{companyName}</span>
-                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/60">
+                                <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 bg-emerald-50 dark:bg-[#0B212C] px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800/60">
                                     <ShieldCheckIcon size={12} weight="bold" aria-hidden="true" /> Verified Employer
                                 </span>
                             </div>
@@ -234,7 +234,7 @@ export default function RecruiterPostsPage() {
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-xs font-bold text-km-text-primary leading-tight font-poppins">{post.company}</h3>
-                                        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60">
+                                        <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-[#0B212C] px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60">
                                             <ShieldCheckIcon size={11} weight="bold" aria-hidden="true" />
                                             Verified
                                         </span>
@@ -262,7 +262,7 @@ export default function RecruiterPostsPage() {
                             {post.tags.length > 0 && (
                                 <div className="flex flex-wrap gap-1.5 pt-1">
                                     {post.tags.map((tag, idx) => (
-                                        <span key={idx} className="text-[11px] font-medium text-km-link bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/50">
+                                        <span key={idx} className="text-[11px] font-medium text-km-link bg-blue-50 dark:bg-[#131E40] px-2 py-0.5 rounded-md border border-blue-100 dark:border-blue-900/50">
                                             {tag}
                                         </span>
                                     ))}
@@ -287,7 +287,7 @@ export default function RecruiterPostsPage() {
                                 onClick={() => handleLike(post.id)}
                                 className={`flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-colors ${
                                     post.hasLiked
-                                        ? "text-km-primary bg-blue-50 dark:bg-blue-950/40"
+                                        ? "text-km-primary bg-blue-50 dark:bg-[#131E40]"
                                         : "text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface"
                                 }`}
                             >

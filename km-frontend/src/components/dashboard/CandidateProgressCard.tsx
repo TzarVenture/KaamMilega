@@ -117,7 +117,7 @@ export function ProgressCardView({ completion, userName }: { completion: Profile
             {/* Progress bar with milestone markers */}
             <div className="mt-5">
                 <div
-                    className="relative h-2.5 rounded-full bg-[#E3E9F1] dark:bg-white/10 overflow-hidden"
+                    className="relative h-2.5 rounded-full bg-[#E3E9F1] dark:bg-[#293147] overflow-hidden"
                     role="progressbar"
                     aria-label={t('completion')}
                     aria-valuenow={score}

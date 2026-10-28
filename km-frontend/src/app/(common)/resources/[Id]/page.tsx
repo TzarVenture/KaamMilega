@@ -29,7 +29,7 @@ const ResourceDetailsPage = () => {
                                 <PlayIcon weight="fill" className="text-slate-400 fill-slate-400 ml-1" size={32} />
                             </div>
                         </div>
-                        <button className="absolute top-6 right-6 p-3 bg-white/20 backdrop-blur-md rounded-xl text-white hover:bg-white/40">
+                        <button className="absolute top-6 right-6 p-3 bg-km-surface-card rounded-xl text-km-text-primary shadow-sm hover:bg-km-surface">
                             <BookmarkSimpleIcon size={20} />
                         </button>
                     </div>

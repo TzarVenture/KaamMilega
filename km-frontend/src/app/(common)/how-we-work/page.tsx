@@ -117,7 +117,7 @@ export default function HowWeWorkPage() {
       {/* For Jobseekers Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-km-link bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <span className="block text-[13px] font-semibold text-km-link">
             For Jobseekers
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -161,7 +161,7 @@ export default function HowWeWorkPage() {
       {/* For Employers Section */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-200">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+          <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
             For Employers &amp; HRs
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -206,7 +206,7 @@ export default function HowWeWorkPage() {
       <section className="py-16 sm:py-20 bg-km-surface-card px-4 sm:px-6 lg:px-8 border-y border-slate-200">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 dark:text-emerald-400">
+            <span className="block text-[13px] font-semibold text-emerald-700 dark:text-emerald-400">
               Platform Integrity
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -252,7 +252,7 @@ export default function HowWeWorkPage() {
             </Link>
             <Link
               href="/about"
-              className="px-8 py-3.5 bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold rounded-full text-sm transition-all"
+              className="px-8 py-3.5 border border-white/30 text-white hover:bg-white/10 hover:border-white font-bold rounded-full text-sm transition-all"
             >
               Learn More About Us
             </Link>

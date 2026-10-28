@@ -131,7 +131,7 @@ export default function CareerPage() {
       {/* Perks & Benefits */}
       <section className="py-16 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-12">
-          <span className="text-xs font-bold uppercase tracking-wider text-km-link bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+          <span className="block text-[13px] font-semibold text-km-link">
             Why KaamMilega™
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -169,7 +169,7 @@ export default function CareerPage() {
       <section id="openings" className="py-16 sm:py-20 bg-km-surface-card border-t border-slate-200 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <span className="text-xs font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-3 py-1 rounded-full border border-orange-200">
+            <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
               Current Openings
             </span>
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
@@ -231,7 +231,7 @@ export default function CareerPage() {
       {/* Direct Contact Banner */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
         <div className="bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] rounded-3xl p-8 sm:p-12 text-white shadow-xl">
-          <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center mx-auto mb-4 text-white">
+          <div className="w-14 h-14 rounded-full bg-[#0B1F52] flex items-center justify-center mx-auto mb-4 text-white">
             <EnvelopeSimpleIcon size={24} />
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">

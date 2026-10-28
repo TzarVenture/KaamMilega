@@ -246,7 +246,7 @@ const NetworkPage = () => {
                                 People who requested to connect with you
                             </p>
                         </div>
-                        <span className="bg-[#FF6B00]/10 text-[#FF6B00] font-bold text-xs px-3 py-1 rounded-full border border-[#FF6B00]/20 self-start sm:self-auto">
+                        <span className="bg-[#FFF7ED] text-[#C2410C] font-bold text-xs px-3 py-1 rounded-full border border-[#FED7AA] dark:bg-orange-950 dark:border-orange-900 dark:text-orange-300 self-start sm:self-auto">
                             {invitations.length} {invitations.length === 1 ? 'Request' : 'Requests'}
                         </span>
                     </div>
@@ -272,7 +272,7 @@ const NetworkPage = () => {
                             <h2 className="text-base sm:text-lg font-bold text-km-text-primary">
                                 People You May Know
                             </h2>
-                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-km-link bg-[#0B5ED7]/10 px-2 py-0.5 rounded-full border border-[#0B5ED7]/20">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-km-link bg-[#EBF3FE] px-2 py-0.5 rounded-full border border-[#BFDBFE] dark:bg-blue-950 dark:border-blue-900">
                                 Matched for you
                             </span>
                         </div>

@@ -357,7 +357,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   const hasSufficientWallet = mainBal >= sessionPrice;
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-10 md:pb-20 dark:bg-white/5">
+    <main className="min-h-screen bg-[#fafafa] pb-10 md:pb-20 dark:bg-[#1D253D]">
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-10">
         <Link 
@@ -374,7 +374,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             {/* Header Card */}
             <div className="bg-km-surface-card rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xs border border-slate-200/80 relative overflow-hidden">
                 <div className="flex flex-wrap items-center gap-3 md:gap-4 mb-4 md:mb-6">
-                   <span className="bg-blue-50 text-km-heading text-[10px] md:text-xs font-extrabold uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-blue-100">
+                   <span className="bg-blue-50 text-km-heading text-[11px] md:text-xs font-semibold px-3.5 py-1.5 rounded-full border border-blue-100">
                      {mentorship.category || "Mentorship"}
                    </span>
                    <div className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 dark:text-amber-400">
@@ -430,14 +430,13 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
             {/* Meet Your Mentor Card */}
             <div className="bg-linear-to-br from-[#020617] via-[#071A4D] to-[#0B5ED7] text-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xl shadow-blue-950/20 relative overflow-hidden">
-                <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
                 
                 <h2 className="text-lg md:text-xl font-bold mb-6 text-white flex items-center gap-2">
                    <MedalIcon weight="bold" size={18} className="text-orange-400" />
                    <span>Meet Your Mentor</span>
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-5 md:gap-6 items-start relative z-10">
-                    <div className="w-18 h-18 md:w-22 md:h-22 rounded-2xl bg-white/10 border-2 border-white/20 flex items-center justify-center overflow-hidden shrink-0 shadow-md">
+                    <div className="w-18 h-18 md:w-22 md:h-22 rounded-2xl bg-[#0B1F52] border-2 border-[#1E3A8A] flex items-center justify-center overflow-hidden shrink-0 shadow-md">
                        {expert?.profile_image ? (
                            <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
                        ) : (
@@ -460,11 +459,11 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                           {expert?.bio || "An experienced professional committed to guiding candidates, sharing practical insights, and helping you achieve your career aspirations."}
                         </p>
                         <div className="flex flex-wrap gap-2 pt-2">
-                            <span className="inline-flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full text-[11px] font-semibold border border-white/10 text-emerald-300">
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300">
                                 <ShieldCheckIcon weight="bold" size={13} />
                                 <span>Verified Expert</span>
                             </span>
-                            <span className="inline-flex items-center gap-1 bg-white/10 px-3 py-1 rounded-full text-[11px] font-semibold border border-white/10 text-amber-300">
+                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-300">
                                 <StarIcon weight="fill" size={13} className="fill-amber-300" />
                                 <span>Top Rated Mentor</span>
                             </span>
@@ -751,7 +750,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                                       <ClockIcon weight="bold" size={14} className="text-km-heading" />
                                       <span>Session Window: {currentDayAvail.start_time} – {currentDayAvail.end_time}</span>
                                     </span>
-                                    <span className="text-[10px] font-black uppercase bg-km-primary text-white px-2 py-0.5 rounded-md">
+                                    <span className="text-[11px] font-semibold bg-km-primary text-white px-2 py-0.5 rounded-md">
                                       Active Slot
                                     </span>
                                 </button>
@@ -812,7 +811,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
       {/* CHECKOUT MODAL (Feature F76) */}
       <AnimatePresence>
         {isCheckoutModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -832,7 +831,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                 <button 
                   onClick={() => !paymentProcessing && setIsCheckoutModalOpen(false)}
                   disabled={paymentProcessing}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white/80 hover:text-white transition cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-[#0B1F52] hover:bg-[#13296B] flex items-center justify-center text-white/80 hover:text-white transition cursor-pointer"
                 >
                   <XIcon weight="bold" size={16} />
                 </button>
@@ -844,7 +843,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                 <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-km-heading bg-blue-100/60 px-2 py-0.5 rounded-md">
+                      <span className="text-[11px] font-semibold text-km-heading bg-blue-100/60 px-2 py-0.5 rounded-md">
                         {mentorship.category || "Mentorship"}
                       </span>
                       <h4 className="font-bold text-slate-900 text-sm mt-1 leading-snug">
@@ -1052,7 +1051,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
       {/* BOOKING SUCCESS RECEIPT MODAL */}
       <AnimatePresence>
         {isSuccessModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60 backdrop-blur-xs">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/60">
             <motion.div 
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -1062,7 +1061,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
               {/* Success Badge */}
               <CheckCircleIcon size={36} weight="duotone" className="text-emerald-600 mx-auto mb-4 dark:text-emerald-400" aria-hidden="true" />
 
-              <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200">
+              <span className="text-[11px] font-semibold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full border border-emerald-200">
                 Booking Confirmed
               </span>
 

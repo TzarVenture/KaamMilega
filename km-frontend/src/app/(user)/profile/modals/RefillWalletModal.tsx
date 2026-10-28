@@ -133,7 +133,7 @@ export default function RefillWalletModal({
                         <p className="text-xs text-blue-200">Current Available Balance</p>
                         <p className="text-2xl font-black mt-0.5">₹{currentBalance.toFixed(2)}</p>
                     </div>
-                    <div className="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-[#1E3A8A] rounded-full flex items-center justify-center">
                         <WalletIcon size={20} className="text-white" />
                     </div>
                 </div>

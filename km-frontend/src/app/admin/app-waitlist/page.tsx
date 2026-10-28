@@ -171,8 +171,8 @@ export default function AppWaitlistPage() {
                                         <span
                                             className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
                                                 entry.interest === "hire"
-                                                    ? "bg-[#EBF3FE] text-km-link dark:bg-blue-500/15"
-                                                    : "bg-[#FFF7ED] text-[#C2410C] dark:bg-orange-500/15 dark:text-orange-300"
+                                                    ? "bg-[#EBF3FE] text-km-link dark:bg-[#172A50]"
+                                                    : "bg-[#FFF7ED] text-[#C2410C] dark:bg-[#34272F] dark:text-orange-300"
                                             }`}
                                         >
                                             {entry.interest === "hire" ? "Hire" : "Work"}

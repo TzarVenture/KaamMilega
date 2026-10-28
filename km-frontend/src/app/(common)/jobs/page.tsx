@@ -144,7 +144,7 @@ const FilterPanelContent = ({
                 <h2 className="text-xs font-bold text-km-text-primary">Refine Filters</h2>
             </div>
             {activeFilterCount > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full bg-[#EBF3FE] text-km-link text-[11px] font-bold border border-[#BFDBFE] dark:bg-blue-500/15 dark:border-blue-500/30">
+                <span className="px-2.5 py-0.5 rounded-full bg-[#EBF3FE] text-km-link text-[11px] font-bold border border-[#BFDBFE] dark:bg-[#172A50] dark:border-blue-500/30">
                     {activeFilterCount} Active
                 </span>
             )}
@@ -159,7 +159,7 @@ const FilterPanelContent = ({
                             key={type}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -185,7 +185,7 @@ const FilterPanelContent = ({
                             key={range.value}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -212,7 +212,7 @@ const FilterPanelContent = ({
                             key={exp.value}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -239,7 +239,7 @@ const FilterPanelContent = ({
                             key={g}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -265,7 +265,7 @@ const FilterPanelContent = ({
                             key={q}
                             className={`flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-all border text-xs ${
                                 isSelected
-                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] border-[#BFDBFE] text-km-link font-semibold dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'border-transparent hover:bg-km-surface text-km-text-secondary'
                             }`}
                         >
@@ -336,7 +336,7 @@ const JobCard = ({
                             </Link>
                             <p className="text-km-text-secondary font-medium text-xs mt-1 flex items-center gap-2">
                                 <span>{job.company}</span>
-                                <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-white/10" />
+                                <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-[#293147]" />
                                 <span className="text-km-link font-semibold">Active Opening</span>
                             </p>
                         </div>
@@ -380,7 +380,7 @@ const JobCard = ({
                             <ClockIcon weight="bold" size={12} className="text-km-text-secondary" />
                             <span>{job.experience_min === 0 ? 'Fresher Friendly' : `${job.experience_min}+ yrs exp`}</span>
                         </span>
-                        <span className="px-2.5 py-1 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold rounded-lg flex items-center gap-1 dark:bg-blue-500/15 dark:border-blue-500/30">
+                        <span className="px-2.5 py-1 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold rounded-lg flex items-center gap-1 dark:bg-[#172A50] dark:border-blue-500/30">
                             <CheckCircleIcon weight="bold" size={12} className="text-km-link" />
                             <span>KM Verified Employer</span>
                         </span>
@@ -396,7 +396,7 @@ const JobCard = ({
                             title={isBookmarked ? 'Remove Bookmark' : 'Save / Bookmark Job'}
                             className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer border ${
                                 isBookmarked
-                                    ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-blue-500/15 dark:border-blue-500/30'
+                                    ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-[#172A50] dark:border-blue-500/30'
                                     : 'bg-km-surface-card text-km-text-secondary hover:bg-km-surface hover:text-km-heading border-km-border'
                             }`}
                         >
@@ -820,7 +820,7 @@ const JobsPageContent = () => {
                                 key={term}
                                 type="button"
                                 onClick={() => handleSuggestionClick(term)}
-                                className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-blue-500/15"
+                                className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-[#172A50]"
                             >
                                 {term}
                             </button>
@@ -883,7 +883,7 @@ const JobsPageContent = () => {
                                 <button
                                     type="button"
                                     onClick={() => setIsMobileFilterOpen(true)}
-                                    className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 bg-[#EBF3FE] border border-[#BFDBFE] text-km-link rounded-xl text-xs font-semibold hover:bg-blue-100 transition-colors shrink-0 cursor-pointer dark:bg-blue-500/15 dark:border-blue-500/30"
+                                    className="lg:hidden flex items-center gap-1.5 px-3 py-1.5 bg-[#EBF3FE] border border-[#BFDBFE] text-km-link rounded-xl text-xs font-semibold hover:bg-blue-100 transition-colors shrink-0 cursor-pointer dark:bg-[#172A50] dark:border-blue-500/30"
                                 >
                                     <SlidersHorizontalIcon weight="bold" size={13} />
                                     <span>Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}</span>
@@ -927,7 +927,7 @@ const JobsPageContent = () => {
                                                     key={term}
                                                     type="button"
                                                     onClick={() => handleSuggestionClick(term)}
-                                                    className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-blue-500/15"
+                                                    className="px-2.5 py-1 bg-km-surface hover:bg-[#EBF3FE] hover:text-km-link text-km-text-secondary rounded-lg text-xs font-medium transition-colors border border-km-border cursor-pointer dark:hover:bg-[#172A50]"
                                                 >
                                                     {term}
                                                 </button>

@@ -377,7 +377,7 @@ const PublicEventsPage = () => {
                                     <div className="p-5 flex flex-col flex-1">
                                         {/* Category Badge */}
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-amber-500/15">
+                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-[#332E2D]">
                                                 {event.category || 'Live Workshop'}
                                             </span>
                                         </div>

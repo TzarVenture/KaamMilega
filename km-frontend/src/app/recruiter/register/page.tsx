@@ -390,7 +390,7 @@ export default function RecruiterRegisterPage() {
                                     </span>
                                 </div>
 
-                                <div className="h-[1px] flex-1 mx-2 bg-[#D9E0EA] dark:bg-white/10" />
+                                <div className="h-[1px] flex-1 mx-2 bg-[#D9E0EA] dark:bg-[#293147]" />
 
                                 <div className="flex items-center gap-1.5">
                                     <span
@@ -413,7 +413,7 @@ export default function RecruiterRegisterPage() {
                                     </span>
                                 </div>
 
-                                <div className="h-[1px] flex-1 mx-2 bg-[#D9E0EA] dark:bg-white/10" />
+                                <div className="h-[1px] flex-1 mx-2 bg-[#D9E0EA] dark:bg-[#293147]" />
 
                                 <div className="flex items-center gap-1.5">
                                     <span
