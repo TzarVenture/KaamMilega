@@ -22,11 +22,13 @@ func (api *JobApi) Setup(app *fiber.App) {
 	app.Get("/api/jobs", api.controller.GetJobs)
 
 	// Protected recruiter routes (/api/jobs/my must be defined before /api/jobs/:id)
-	protected := app.Group("/api/jobs", jwtAuth)
-	protected.Post("/", api.controller.CreateJob)
-	protected.Get("/my", api.controller.GetMyJobs)
-	protected.Patch("/:id", api.controller.UpdateJob)
-	protected.Delete("/:id", api.controller.DeleteJob)
+	// Login is checked per route, not on the group: Fiber runs group middleware for every
+	// request under the prefix, which made the public detail route below require a login too.
+	protected := app.Group("/api/jobs")
+	protected.Post("/", jwtAuth, api.controller.CreateJob)
+	protected.Get("/my", jwtAuth, api.controller.GetMyJobs)
+	protected.Patch("/:id", jwtAuth, api.controller.UpdateJob)
+	protected.Delete("/:id", jwtAuth, api.controller.DeleteJob)
 
 	// Public job detail view
 	app.Get("/api/jobs/:id", api.controller.GetJob)

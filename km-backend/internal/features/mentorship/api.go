@@ -25,29 +25,31 @@ func (api *MentorshipApi) Setup(app *fiber.App) {
 	app.Get("/api/mentorships/:id/reviews", api.controller.GetMentorshipReviews)
 
 	// Protected routes (Must register specific sub-paths before dynamic /:id)
-	protected := app.Group("/api/mentorships", jwtAuth)
+	// Login is checked per route, not on the group: Fiber runs group middleware for every
+	// request under the prefix, which made the public detail route below require a login too.
+	protected := app.Group("/api/mentorships")
 	
 	// Availability routes
-	protected.Put("/availability", api.controller.UpdateAvailability)
-	protected.Get("/availability", api.controller.GetAvailability)
+	protected.Put("/availability", jwtAuth, api.controller.UpdateAvailability)
+	protected.Get("/availability", jwtAuth, api.controller.GetAvailability)
 
 	// Expert only routes
-	protected.Post("/", api.controller.CreateMentorship)
-	protected.Get("/expert/my", api.controller.GetMyMentorships)
+	protected.Post("/", jwtAuth, api.controller.CreateMentorship)
+	protected.Get("/expert/my", jwtAuth, api.controller.GetMyMentorships)
 	
 	// Booking & Payment routes (F76)
-	protected.Post("/book", api.controller.BookSession)
-	protected.Post("/book-wallet", api.controller.BookWithWallet)
-	protected.Post("/create-order", api.controller.CreateBookingOrder)
-	protected.Post("/verify-payment", api.controller.VerifyBookingPayment)
-	protected.Get("/bookings/my", api.controller.GetMyBookings)
-	protected.Get("/bookings/expert", api.controller.GetExpertBookings)
-	protected.Patch("/bookings/:id/status", api.controller.UpdateBookingStatus)
-	protected.Patch("/bookings/:id/meeting-link", api.controller.UpdateMeetingLink)
-	protected.Post("/bookings/:id/review", api.controller.SubmitBookingReview)
+	protected.Post("/book", jwtAuth, api.controller.BookSession)
+	protected.Post("/book-wallet", jwtAuth, api.controller.BookWithWallet)
+	protected.Post("/create-order", jwtAuth, api.controller.CreateBookingOrder)
+	protected.Post("/verify-payment", jwtAuth, api.controller.VerifyBookingPayment)
+	protected.Get("/bookings/my", jwtAuth, api.controller.GetMyBookings)
+	protected.Get("/bookings/expert", jwtAuth, api.controller.GetExpertBookings)
+	protected.Patch("/bookings/:id/status", jwtAuth, api.controller.UpdateBookingStatus)
+	protected.Patch("/bookings/:id/meeting-link", jwtAuth, api.controller.UpdateMeetingLink)
+	protected.Post("/bookings/:id/review", jwtAuth, api.controller.SubmitBookingReview)
 	
 	// Dynamic ID routes must be defined last
 	app.Get("/api/mentorships/:id", api.controller.GetMentorship)
-	protected.Patch("/:id", api.controller.UpdateMentorship)
-	protected.Delete("/:id", api.controller.DeleteMentorship)
+	protected.Patch("/:id", jwtAuth, api.controller.UpdateMentorship)
+	protected.Delete("/:id", jwtAuth, api.controller.DeleteMentorship)
 }
