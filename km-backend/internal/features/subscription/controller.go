@@ -1,6 +1,7 @@
 package subscription
 
 import (
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -44,7 +45,7 @@ func (c *SubscriptionController) GetMySubscription(ctx *fiber.Ctx) error {
 
 	res, err := c.service.GetMySubscription(ctx.Context(), userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(res)
 }
@@ -71,7 +72,7 @@ func (c *SubscriptionController) CreateOrder(ctx *fiber.Ctx) error {
 
 	order, err := c.service.CreateOrder(ctx.Context(), userID, req)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(order)
@@ -99,7 +100,7 @@ func (c *SubscriptionController) VerifyPayment(ctx *fiber.Ctx) error {
 
 	sub, err := c.service.VerifyPayment(ctx.Context(), userID, req)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{
@@ -130,7 +131,7 @@ func (c *SubscriptionController) SubscribeWithWallet(ctx *fiber.Ctx) error {
 
 	sub, updatedWallet, err := c.service.SubscribeWithWallet(ctx.Context(), userID, req)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{

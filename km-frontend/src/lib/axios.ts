@@ -66,7 +66,7 @@ api.interceptors.response.use(
             return Promise.reject(Object.assign(new Error(message), { status: error.response.status, code: errorData?.code }));
         } else if (error.request) {
             // Network error
-            return Promise.reject(new Error("Network Error. Please check your connection."));
+            return Promise.reject(Object.assign(new Error("Network Error. Please check your connection."), { code: "NETWORK_ERROR" }));
         } else {
             return Promise.reject(new Error(error.message));
         }

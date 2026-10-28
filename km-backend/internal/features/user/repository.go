@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"km-backend/internal/common/apperr"
 	"regexp"
 	"strconv"
 	"strings"
@@ -218,7 +219,7 @@ func sessionVersionFilter(version int) bson.M {
 
 // ErrStaleUser is returned when the user changed account state (deactivated, deletion requested,
 // signed out everywhere) after this copy was read. Replacing it would silently undo that change.
-var ErrStaleUser = errors.New("your account changed in another session; please reload and try again")
+var ErrStaleUser = apperr.New("ACCOUNT_CHANGED", "your account changed in another session; please reload and try again")
 
 func (r *UserRepositoryImpl) UpdateUser(ctx context.Context, user *User) (*User, error) {
 	user.UpdatedAt = time.Now()

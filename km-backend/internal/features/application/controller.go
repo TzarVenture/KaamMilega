@@ -2,6 +2,7 @@ package application
 
 import (
 	"errors"
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -35,15 +36,15 @@ func (c *ApplicationController) CreateApplication(ctx *fiber.Ctx) error {
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrJobNotFound):
-			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
 		case errors.Is(err, ErrAlreadyApplied):
-			return ctx.Status(fiber.StatusConflict).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusConflict).JSON(apperr.Body(err))
 		case errors.Is(err, ErrInvalidJobID), errors.Is(err, ErrInvalidCandidate):
-			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 		case errors.Is(err, ErrJobClosed), errors.Is(err, ErrCannotApplyOwn):
-			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 		default:
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 		}
 	}
 	return ctx.Status(fiber.StatusCreated).JSON(app)
@@ -63,9 +64,9 @@ func (c *ApplicationController) CheckApplicationStatus(ctx *fiber.Ctx) error {
 	applied, err := c.service.HasCandidateApplied(ctx.Context(), userID, jobID)
 	if err != nil {
 		if errors.Is(err, ErrInvalidCandidate) || errors.Is(err, ErrInvalidJobID) {
-			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 		}
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"applied": applied})
@@ -84,7 +85,7 @@ func (c *ApplicationController) GetMyApplications(ctx *fiber.Ctx) error {
 
 	apps, err := c.service.GetApplicationsByCandidateDetailed(ctx.Context(), userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(apps)
 }
@@ -100,7 +101,7 @@ func (c *ApplicationController) GetJobApplications(ctx *fiber.Ctx) error {
 
 	apps, err := c.service.GetRecruiterApplicationsDetailed(ctx.Context(), ApplicationFilter{JobID: jobID})
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(apps)
@@ -121,7 +122,7 @@ func (c *ApplicationController) UpdateApplicationStatus(ctx *fiber.Ctx) error {
 
 	app, err := c.service.UpdateApplicationStatus(ctx.Context(), id, req.Status)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(app)
 }
@@ -134,7 +135,7 @@ func (c *ApplicationController) GetRecruiterApplications(ctx *fiber.Ctx) error {
 
 	apps, err := c.service.GetRecruiterApplicationsDetailed(ctx.Context(), ApplicationFilter{RecruiterID: userID})
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(apps)
 }

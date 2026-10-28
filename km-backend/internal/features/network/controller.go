@@ -3,6 +3,7 @@ package network
 import (
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"km-backend/internal/common/apperr"
 )
 
 type NetworkController struct {
@@ -26,7 +27,7 @@ func (ctrl *NetworkController) SendInvitation(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.SendInvitation(c.Context(), userID, req.ReceiverID); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Invitation sent"})
@@ -45,7 +46,7 @@ func (ctrl *NetworkController) AcceptInvitation(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.AcceptInvitation(c.Context(), userID, req.SenderID); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Invitation accepted"})
@@ -64,7 +65,7 @@ func (ctrl *NetworkController) IgnoreInvitation(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.IgnoreInvitation(c.Context(), userID, req.SenderID); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Invitation ignored"})
@@ -79,7 +80,7 @@ func (ctrl *NetworkController) GetPendingInvitations(c *fiber.Ctx) error {
 
 	invitations, err := ctrl.service.GetPendingInvitations(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(invitations)
@@ -94,7 +95,7 @@ func (ctrl *NetworkController) GetSentInvitations(c *fiber.Ctx) error {
 
 	sent, err := ctrl.service.GetSentPendingInvitations(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	res := make([]string, 0, len(sent))
@@ -114,7 +115,7 @@ func (ctrl *NetworkController) GetConnections(c *fiber.Ctx) error {
 
 	connections, err := ctrl.service.GetConnections(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(connections)
@@ -126,7 +127,7 @@ func (ctrl *NetworkController) GetStatus(c *fiber.Ctx) error {
 
 	status, err := ctrl.service.GetConnectionStatus(c.Context(), userIDStr, otherUserID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"status": status})
@@ -145,7 +146,7 @@ func (ctrl *NetworkController) DeleteConnection(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.DeleteConnection(c.Context(), userID, otherID); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Connection deleted"})
@@ -166,7 +167,7 @@ func (ctrl *NetworkController) GetSuggestions(c *fiber.Ctx) error {
 
 	suggestions, err := ctrl.service.GetSuggestions(c.Context(), userID, filter)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(suggestions)
@@ -185,7 +186,7 @@ func (ctrl *NetworkController) DismissSuggestion(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.DismissSuggestion(c.Context(), userID, targetID); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(fiber.Map{"message": "Suggestion dismissed"})

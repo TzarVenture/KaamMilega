@@ -1,6 +1,7 @@
 package interview
 
 import (
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/fiber/v2"
@@ -28,7 +29,7 @@ func (c *InterviewController) ScheduleInterview(ctx *fiber.Ctx) error {
 
 	interview, err := c.service.ScheduleInterview(ctx.Context(), &req, userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.Status(fiber.StatusCreated).JSON(interview)
 }
@@ -41,7 +42,7 @@ func (c *InterviewController) GetMyInterviews(ctx *fiber.Ctx) error {
 
 	interviews, err := c.service.GetMyInterviews(ctx.Context(), userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(interviews)
 }
@@ -62,7 +63,7 @@ func (c *InterviewController) UpdateInterviewStatus(ctx *fiber.Ctx) error {
 
 	interview, err := c.service.UpdateInterviewStatus(ctx.Context(), id, req.Status)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(interview)
 }
@@ -82,12 +83,12 @@ func (c *InterviewController) UpdateInterview(ctx *fiber.Ctx) error {
 	interview, err := c.service.UpdateInterview(ctx.Context(), id, &req, userID)
 	if err != nil {
 		if err.Error() == "interview not found" {
-			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
 		}
 		if err.Error() == "unauthorized to update this interview" {
-			return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusForbidden).JSON(apperr.Body(err))
 		}
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(interview)
 }
@@ -102,12 +103,12 @@ func (c *InterviewController) DeleteInterview(ctx *fiber.Ctx) error {
 	err := c.service.DeleteInterview(ctx.Context(), id, userID)
 	if err != nil {
 		if err.Error() == "interview not found" {
-			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
 		}
 		if err.Error() == "unauthorized to delete this interview" {
-			return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+			return ctx.Status(fiber.StatusForbidden).JSON(apperr.Body(err))
 		}
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(fiber.Map{"message": "Interview deleted successfully"})
 }

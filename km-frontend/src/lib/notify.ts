@@ -35,11 +35,48 @@ function isHandledElsewhere(err: unknown): boolean {
     return code === 'ACCOUNT_INACTIVE';
 }
 
+/** Codes the API adds from the HTTP status alone (km-backend/internal/common/apperr) */
+const GENERIC_CODES = new Set([
+    'BAD_REQUEST', 'UNAUTHORIZED', 'PAYMENT_REQUIRED', 'FORBIDDEN', 'NOT_FOUND', 'CONFLICT',
+    'TOO_LARGE', 'TOO_MANY_REQUESTS', 'UNAVAILABLE', 'SERVER_ERROR', 'REQUEST_FAILED',
+]);
+
+/** Translates an API error code ("errors" in messages/<locale>.json); set by ErrorTranslator */
+interface ErrorTranslator {
+    locale: string;
+    translate: (code: string) => string | undefined;
+}
+
+let translator: ErrorTranslator | null = null;
+
+export function setErrorTranslator(next: ErrorTranslator | null) {
+    translator = next;
+}
+
+/**
+ * The message in the user's language for an API error. English keeps the server's own message
+ * (it can carry details such as amounts). Other languages get the translation of a specific code,
+ * else the caller's fallback (written for that screen), else the translation of the generic code.
+ */
+function translatedText(err: unknown, fallback: string | undefined): string | undefined {
+    const code = (err as { code?: unknown } | null)?.code;
+    if (typeof code !== 'string' || !translator || translator.locale === 'en') return undefined;
+    if (!GENERIC_CODES.has(code)) {
+        const specific = translator.translate(code);
+        if (specific) return specific;
+    }
+    return fallback || translator.translate(code) || translator.translate('REQUEST_FAILED');
+}
+
 /**
  * Best user-facing message from anything a catch block receives. Our axios interceptor rejects
- * with Error(message from the API), so err.message already holds the server's reason.
+ * with Error(message from the API) plus the API's error code, so err.message already holds the
+ * server's reason and err.code lets it be shown in the user's language.
  */
-export function errorText(err: unknown, fallback = 'Please try again.'): string {
+export function errorText(err: unknown, fallback?: string): string {
+    const translated = translatedText(err, fallback);
+    if (translated) return translated;
+    fallback = fallback || 'Please try again.';
     if (typeof err === 'string') return err || fallback;
     if (err && typeof err === 'object') {
         const e = err as { message?: unknown; error?: unknown; response?: { data?: { error?: unknown; message?: unknown } } };

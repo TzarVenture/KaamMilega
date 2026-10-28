@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	common_api "km-backend/internal/common/api"
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 	"km-backend/internal/database"
 	"km-backend/internal/features/account"
@@ -57,14 +58,18 @@ func NewFiberServer() *fiber.App {
 			if e, ok := err.(*fiber.Error); ok {
 				code = e.Code
 			}
-			return c.Status(code).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+			body := apperr.Body(err)
+			if _, ok := body["code"]; !ok {
+				body["code"] = apperr.StatusCode(code)
+			}
+			return c.Status(code).JSON(body)
 		},
 	})
 
 	// Use custom CORS middleware
 	app.Use(middleware.CORSMiddleware())
+	// Every JSON error response carries a "code" the website translates (internal/common/apperr)
+	app.Use(apperr.Codes())
 
 	return app
 }

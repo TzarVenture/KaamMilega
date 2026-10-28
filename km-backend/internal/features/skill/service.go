@@ -3,6 +3,7 @@ package skill
 import (
 	"context"
 	"errors"
+	"km-backend/internal/common/apperr"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -35,7 +36,7 @@ func (s *SkillServiceImpl) CreateSkill(ctx context.Context, req *CreateSkillRequ
 		return nil, err
 	}
 	if existing != nil {
-		return nil, errors.New("skill already exists")
+		return nil, apperr.New("SKILL_EXISTS", "skill already exists")
 	}
 
 	skill := &Skill{

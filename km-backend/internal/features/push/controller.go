@@ -2,6 +2,7 @@ package push
 
 import (
 	"errors"
+	"km-backend/internal/common/apperr"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -91,11 +92,11 @@ func (ctrl *Controller) SendTest(c *fiber.Ctx) error {
 func fail(c *fiber.Ctx, err error) error {
 	switch {
 	case errors.Is(err, ErrPushDisabled):
-		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusServiceUnavailable).JSON(apperr.Body(err))
 	case errors.Is(err, ErrTestTooSoon):
-		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusTooManyRequests).JSON(apperr.Body(err))
 	case errors.Is(err, ErrInvalidToken), errors.Is(err, ErrInvalidPlatform):
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	case errors.Is(err, ErrUnknownUser):
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	default:

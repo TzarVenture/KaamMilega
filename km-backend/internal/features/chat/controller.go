@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
@@ -49,7 +50,7 @@ func (c *Controller) GetConversations(ctx *fiber.Ctx) error {
 
 	conversations, err := c.service.GetConversations(ctx.Context(), userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if conversations == nil {
 		conversations = []ConversationResponse{}
@@ -80,12 +81,12 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 	msg, err := c.service.SendMessage(ctx.Context(), senderID, req)
 	switch {
 	case errors.Is(err, ErrRecipientUnavailable):
-		return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error(), "code": "RECIPIENT_UNAVAILABLE"})
+		return ctx.Status(fiber.StatusForbidden).JSON(apperr.Body(err))
 	case errors.Is(err, ErrMessageSelf):
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	wsPayload := fiber.Map{
@@ -184,7 +185,7 @@ func (c *Controller) MarkAsRead(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.MarkConversationAsRead(ctx.Context(), conversationID, userID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	otherIDStr := ctx.Query("other_id")
@@ -277,7 +278,7 @@ func (c *Controller) GetMessages(ctx *fiber.Ctx) error {
 
 	messages, err := c.service.GetMessages(ctx.Context(), conversationID, userID, limit, beforeID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if messages == nil {
 		messages = []Message{}
@@ -298,7 +299,7 @@ func (c *Controller) GetTotalUnreadCount(ctx *fiber.Ctx) error {
 
 	count, err := c.service.GetTotalUnreadCount(ctx.Context(), userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"unread_count": count})
@@ -319,7 +320,7 @@ func (c *Controller) DeleteMessage(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.DeleteMessage(ctx.Context(), messageID, userID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"message": "Message deleted successfully"})
@@ -339,7 +340,7 @@ func (c *Controller) DeleteConversation(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.DeleteConversation(ctx.Context(), conversationID, userID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"message": "Conversation deleted successfully"})
@@ -359,7 +360,7 @@ func (c *Controller) ClearMessages(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.ClearMessages(ctx.Context(), conversationID, userID); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"message": "Chat cleared successfully"})
@@ -395,7 +396,7 @@ func (c *Controller) BlockUser(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.BlockUser(ctx.Context(), userID, targetUserID); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{
@@ -432,7 +433,7 @@ func (c *Controller) UnblockUser(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.UnblockUser(ctx.Context(), userID, targetUserID); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{
@@ -466,7 +467,7 @@ func (c *Controller) GetBlockStatus(ctx *fiber.Ctx) error {
 
 	status, err := c.service.GetBlockStatus(ctx.Context(), userID, targetUserID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(status)
@@ -502,7 +503,7 @@ func (c *Controller) CreateReport(ctx *fiber.Ctx) error {
 
 	report, err := c.service.CreateChatReport(ctx.Context(), reporterID, conversationID, req)
 	if err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(report)
@@ -517,7 +518,7 @@ func (c *Controller) GetAdminChatReports(ctx *fiber.Ctx) error {
 
 	res, err := c.service.GetAdminChatReports(ctx.Context(), status, page, limit)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(res)
@@ -532,7 +533,7 @@ func (c *Controller) GetAdminChatReportByID(ctx *fiber.Ctx) error {
 
 	report, err := c.service.GetAdminChatReportByID(ctx.Context(), id)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 	if report == nil {
 		return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Report not found"})
@@ -569,7 +570,7 @@ func (c *Controller) ResolveAdminChatReport(ctx *fiber.Ctx) error {
 	}
 
 	if err := c.service.ResolveAdminChatReport(ctx.Context(), id, adminID, adminName, req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(fiber.Map{"success": true, "message": "Report resolved successfully"})
@@ -587,7 +588,7 @@ func (c *Controller) GetChatEntitlement(ctx *fiber.Ctx) error {
 
 	entitlement, err := c.service.GetChatEntitlement(ctx.Context(), userID)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
 	return ctx.JSON(entitlement)

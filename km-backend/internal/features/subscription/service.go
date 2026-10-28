@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"km-backend/internal/common/apperr"
 	"net/http"
 	"time"
 
@@ -312,7 +313,7 @@ func (s *SubscriptionServiceImpl) SubscribeWithWallet(ctx context.Context, userI
 	}
 
 	if walletSummary.MainBalance < price {
-		return nil, nil, fmt.Errorf("insufficient wallet balance: required ₹%.2f, available ₹%.2f", price, walletSummary.MainBalance)
+		return nil, nil, apperr.New("WALLET_INSUFFICIENT", fmt.Sprintf("insufficient wallet balance: required ₹%.2f, available ₹%.2f", price, walletSummary.MainBalance))
 	}
 
 	// 2. Create subscription record

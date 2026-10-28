@@ -1,6 +1,7 @@
 package app_waitlist
 
 import (
+	"km-backend/internal/common/apperr"
 	"log"
 
 	"github.com/gofiber/fiber/v2"
@@ -23,7 +24,7 @@ func (ctrl *Controller) Join(c *fiber.Ctx) error {
 	}
 	entry, err := req.Normalize()
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 	if err := ctrl.repo.Upsert(c.Context(), entry); err != nil {
 		log.Printf("[app_waitlist] upsert failed: %v", err)

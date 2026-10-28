@@ -2,7 +2,7 @@ package app_waitlist
 
 import (
 	"context"
-	"errors"
+	"km-backend/internal/common/apperr"
 	"regexp"
 	"strings"
 	"time"
@@ -28,8 +28,8 @@ type JoinRequest struct {
 }
 
 var (
-	ErrInvalidMobile   = errors.New("Enter a valid 10-digit mobile number")
-	ErrInvalidInterest = errors.New("Choose whether you want to hire or work")
+	ErrInvalidMobile   = apperr.New("MOBILE_INVALID", "Enter a valid 10-digit mobile number")
+	ErrInvalidInterest = apperr.New("INTEREST_INVALID", "Choose whether you want to hire or work")
 )
 
 var indianMobile = regexp.MustCompile(`^[6-9][0-9]{9}$`)
