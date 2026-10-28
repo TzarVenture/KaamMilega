@@ -6,6 +6,7 @@ import api from '@/lib/axios';
 import { notify } from "@/lib/notify";
 import Link from 'next/link';
 import AttendeeListModal from '@/components/km/AttendeeListModal';
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 
 interface EventData {
     id: string;
@@ -170,78 +171,32 @@ const PublicEventsPage = () => {
     return (
         <div className="bg-km-surface min-h-screen pb-20 font-sans">
 
-            {/* ─── Events & Bootcamps Hero Section with Art & Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
-                        {/* Left Column: Headlines, Simple Copy, CTAs & Value Props */}
-                        <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
-                            {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4 dark:bg-amber-500/15 dark:text-orange-400">
-                                <CalendarBlankIcon weight="bold" size={14} className="text-[#F59E0B]" />
-                                <span>Events & Bootcamps</span>
-                            </div>
-
-                            {/* Simple, Punchy Headline */}
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-                                Skill Bootcamps & <span className="text-[#FF6B00]">Live Events</span>
-                            </h1>
-
-                            {/* Reduced, Simple Subheading */}
-                            <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
-                                Join interactive workshops, skill bootcamps, and live masterclasses led by verified experts. Learn in real time via Google Meet or Zoom and earn certificates.
-                            </p>
-
-                            {/* CTA Row */}
-                            <div className="flex flex-wrap items-center gap-3 mt-6">
-                                <a
-                                    href="#workshops-catalog"
-                                    className="btn-accent text-xs px-5 py-2.5 shadow-sm"
-                                >
-                                    Browse Events
-                                </a>
-                                <Link
-                                    href="/expert/apply"
-                                    className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card"
-                                >
-                                    <span>Host an Event</span>
-                                    <ArrowRightIcon weight="bold" size={13} />
-                                </Link>
-                            </div>
-
-                            {/* Key Benefits / Trust Chips */}
-                            <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
-                                <div className="flex items-center gap-2">
-                                    <VideoCameraIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                                    <span>Google Meet & Zoom Access</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <CheckCircleIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                                    <span>Verified Industry Experts</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <TicketIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                                    <span>Instant Digital Entry Pass</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column: Events Hero Artwork Resting Directly on Top Edge of Search Card */}
-                        <div className="lg:col-span-5 xl:col-span-5 flex items-end justify-center lg:justify-end self-end">
-                            <div 
-                                className="relative flex items-end justify-center lg:justify-end"
-                                style={{ width: 'clamp(320px, 44vw, 560px)', maxWidth: '100%' }}
-                            >
-                                <img
-                                    src="/events-page-art.png"
-                                    alt="KaamMilega Events and Bootcamps"
-                                    className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-xl block translate-y-[1px]"
-                                />
-                            </div>
-                        </div>
-                    </div>
+            {/* ─── Hero ─── */}
+            <PageHero
+                overlap
+                kicker={{ label: 'Events & Bootcamps', Icon: CalendarBlankIcon, tone: 'events' }}
+                title={<>Skill Bootcamps & <HeroAccent>Live Events</HeroAccent></>}
+                description="Join interactive workshops, skill bootcamps, and live masterclasses led by verified experts. Learn in real time via Google Meet or Zoom and earn certificates."
+                highlights={[
+                    { Icon: VideoCameraIcon, label: 'Google Meet & Zoom Access' },
+                    { Icon: CheckCircleIcon, label: 'Verified Industry Experts' },
+                    { Icon: TicketIcon, label: 'Instant Digital Entry Pass' },
+                ]}
+                art={{ src: '/events-page-art.png', alt: 'KaamMilega Events and Bootcamps' }}
+            >
+                <div className="flex flex-wrap items-center gap-3">
+                    <a href="#workshops-catalog" className="btn-accent text-xs px-5 py-2.5 shadow-sm">
+                        Browse Events
+                    </a>
+                    <Link
+                        href="/expert/apply"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all shadow-xs dark:hover:border-km-surface-card"
+                    >
+                        <span>Host an Event</span>
+                        <ArrowRightIcon weight="bold" size={13} />
+                    </Link>
                 </div>
-            </section>
+            </PageHero>
 
             {/* ─── Search + Filters Bar ─── */}
             <div id="workshops-catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 sm:-mt-8 lg:-mt-10 relative z-20">

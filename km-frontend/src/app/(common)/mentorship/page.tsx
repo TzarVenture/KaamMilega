@@ -6,6 +6,7 @@ import { ArrowRightIcon, BookOpenIcon, CalendarBlankIcon, CaretRightIcon, ChatIc
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 
 const categories = [
   "All",
@@ -93,91 +94,50 @@ export default function MentorshipPage() {
 
   return (
     <main className="min-h-screen bg-km-surface pb-20 font-sans">
-      {/* ─── Mentorship Hero Section with Expert Art & Rounded Bottom ─── */}
-      <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 sm:pt-10 lg:pt-12 pb-6 sm:pb-8 lg:pb-10 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden dark:border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-end">
-            {/* Left Column: Headlines, Search & Value Props */}
-            <div className="lg:col-span-7 xl:col-span-7 text-left pb-6 sm:pb-8 lg:pb-10">
-              {/* Category Indicator */}
-              <div className="inline-flex items-center gap-2 bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] text-xs font-semibold px-3.5 py-1.5 rounded-full mb-4 dark:bg-amber-500/15 dark:text-orange-400">
-                <GraduationCapIcon weight="bold" size={14} className="text-[#F59E0B]" />
-                <span>1-on-1 Expert Mentorship</span>
-              </div>
-
-              {/* Master Brand Headline for Mentorship */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-[1.15]">
-                Learn Practical Skills with <span className="text-[#FF6B00]">Live Expert Mentors</span>
-              </h1>
-
-              {/* Authentic Subheading */}
-              <p className="mt-3.5 text-sm sm:text-base text-white/80 max-w-xl font-normal leading-relaxed">
-                Connect 1-on-1 with vetted industry practitioners for personalized career advisory, mock interview coaching, and trade guidance via Google Meet or Zoom.
-              </p>
-
-              {/* Search Bar + Become a Mentor CTA */}
-              <div className="flex flex-col sm:flex-row gap-3 max-w-xl mt-6">
-                <div className="flex-1 flex items-center bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-[#0B5ED7]/20 transition-all shadow-xs">
-                  <MagnifyingGlassIcon weight="bold" size={17} className="text-slate-400 mr-2.5 shrink-0" />
-                  <input 
-                    type="text" 
-                    placeholder="Search by mentor name, trade, or skill..." 
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none font-medium"
-                  />
-                  {searchQuery && (
-                    <button 
-                      type="button" 
-                      onClick={() => setSearchQuery('')}
-                      className="text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
-                    >
-                      <XIcon weight="bold" size={14} />
-                    </button>
-                  )}
-                </div>
-                <Link
-                  href="/expert/apply"
-                  className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all whitespace-nowrap shadow-xs dark:hover:border-km-surface-card"
-                >
-                  <span>Become an Expert & Host</span>
-                  <ArrowRightIcon weight="bold" size={13} />
-                </Link>
-              </div>
-
-              {/* Key Benefits / Trust Chips */}
-              <div className="flex flex-wrap items-center gap-4 sm:gap-6 mt-6 pt-5 border-t border-white/10 text-xs text-white/90 font-medium">
-                <div className="flex items-center gap-2">
-                  <VideoCameraIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                  <span>Live Google Meet & Zoom Access</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircleIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                  <span>Verified Industry Practitioners</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <MedalIcon weight="bold" size={15} className="text-[#10B981] shrink-0" />
-                  <span>Personalized Career Roadmap</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Hero Artwork Resting Directly on Top Edge of Category Tabs */}
-            <div className="lg:col-span-5 xl:col-span-5 flex items-end justify-center lg:justify-end self-end">
-              <div 
-                className="relative flex items-end justify-center lg:justify-end"
-                style={{ width: 'clamp(320px, 44vw, 560px)', maxWidth: '100%' }}
+      {/* ─── Hero ─── */}
+      <PageHero
+        overlap
+        kicker={{ label: '1-on-1 Expert Mentorship', Icon: GraduationCapIcon, tone: 'experts' }}
+        title={<>Learn Practical Skills with <HeroAccent>Live Expert Mentors</HeroAccent></>}
+        description="Connect 1-on-1 with vetted industry practitioners for personalized career advisory, mock interview coaching, and trade guidance via Google Meet or Zoom."
+        highlights={[
+          { Icon: VideoCameraIcon, label: 'Live Google Meet & Zoom Access' },
+          { Icon: CheckCircleIcon, label: 'Verified Industry Practitioners' },
+          { Icon: MedalIcon, label: 'Personalized Career Roadmap' },
+        ]}
+        art={{ src: '/expert-page-art.png', alt: 'KaamMilega 1-on-1 Expert Mentorship' }}
+      >
+        {/* Search Bar + Become a Mentor CTA */}
+        <div className="flex flex-col sm:flex-row gap-3 max-w-xl">
+          <div className="flex-1 flex items-center bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-[#0B5ED7]/20 transition-all shadow-xs">
+            <MagnifyingGlassIcon weight="bold" size={17} className="text-slate-400 mr-2.5 shrink-0" />
+            <input
+              type="text"
+              placeholder="Search by mentor name, trade, or skill..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none font-medium"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                className="text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
               >
-                <img
-                  src="/expert-page-art.png"
-                  alt="KaamMilega 1-on-1 Expert Mentorship"
-                  className="w-full h-auto object-contain select-none pointer-events-none drop-shadow-xl block translate-y-[1px]"
-                />
-              </div>
-            </div>
+                <XIcon weight="bold" size={14} />
+              </button>
+            )}
           </div>
+          <Link
+            href="/expert/apply"
+            className="inline-flex items-center justify-center gap-1.5 text-xs font-semibold px-4 py-2.5 rounded-xl border border-white/30 text-white hover:bg-white/10 hover:border-white transition-all whitespace-nowrap shadow-xs dark:hover:border-km-surface-card"
+          >
+            <span>Become an Expert & Host</span>
+            <ArrowRightIcon weight="bold" size={13} />
+          </Link>
         </div>
-      </section>
+      </PageHero>
 
       {/* Category Tabs */}
       <section className="max-w-7xl mx-auto px-6 -mt-7 relative z-20">

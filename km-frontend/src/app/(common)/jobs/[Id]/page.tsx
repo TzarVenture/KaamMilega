@@ -7,6 +7,7 @@ import api from '@/lib/axios';
 import { notify, errorText } from "@/lib/notify";
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { HERO_SHELL } from '@/components/km/PageHero';
 
 interface Job {
     id: string;
@@ -34,7 +35,7 @@ interface Job {
 // ─── Design.md Shimmer Skeleton Loader ───
 const JobDetailSkeleton = () => (
     <div className="bg-km-surface min-h-screen font-sans pb-20">
-        <div className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-8 pb-12 rounded-b-[32px] sm:rounded-b-[44px] dark:border-white/10">
+        <div className={`${HERO_SHELL} pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 lg:pb-12`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
                 <div className="h-4 bg-white/10 rounded-md w-32 animate-shimmer" />
                 <div className="h-8 bg-white/10 rounded-lg w-2/3 animate-shimmer" />
@@ -273,7 +274,7 @@ const JobDetailPage = () => {
         <div className="bg-km-surface min-h-screen pb-20 font-sans text-km-text-primary">
 
             {/* ─── Hero Section with Rounded Bottom ─── */}
-            <section className="bg-[#071A4D] border-b border-[#0B1F52] text-white pt-6 sm:pt-8 lg:pt-10 pb-8 sm:pb-10 lg:pb-12 rounded-b-[32px] sm:rounded-b-[44px] lg:rounded-b-[52px] relative overflow-hidden font-sans dark:border-white/10">
+            <section className={`${HERO_SHELL} pt-8 sm:pt-10 lg:pt-12 pb-8 sm:pb-10 lg:pb-12`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     {/* Back Link */}
                     <div className="mb-4">
