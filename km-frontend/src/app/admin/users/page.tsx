@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 import { BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, DotsThreeVerticalIcon, EnvelopeSimpleIcon, LightningIcon, MagnifyingGlassIcon, NotePencilIcon, PlusIcon, ShieldIcon, UserIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,12 +24,20 @@ interface PlatformUser {
     status: string;
 }
 
-export default function UsersPage() {
+function UsersContent() {
+    const searchParams = useSearchParams();
     const [users, setUsers] = useState<PlatformUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
     const [page, setPage] = useState(1);
     const pageSize = 10;
+
+    useEffect(() => {
+        const q = searchParams.get('search');
+        if (q !== null) {
+            setSearchQuery(q);
+        }
+    }, [searchParams]);
 
     // Modals
     const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -154,7 +163,7 @@ export default function UsersPage() {
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
             {/* Modals */}
             <UserProfileModal
                 isOpen={isProfileModalOpen}
@@ -176,26 +185,50 @@ export default function UsersPage() {
             />
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {[
-                    { label: 'Total Registered', value: totalUsersCount.toString(), icon: UsersIcon, color: 'text-purple-600 dark:text-purple-400', bg: 'bg-purple-50' },
-                    { label: 'Platform Admins', value: adminCount.toString(), icon: ShieldIcon, color: 'text-indigo-600 dark:text-indigo-400', bg: 'bg-indigo-50' },
-                    { label: 'Verified Employers', value: recruiterCount.toString(), icon: BuildingOfficeIcon, color: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50' },
-                    { label: 'Active Candidates', value: candidateCount.toString(), icon: UserIcon, color: 'text-blue-600 dark:text-blue-400', bg: 'bg-blue-50' },
+                    {
+                        label: 'Total Registered',
+                        value: isLoading ? '...' : totalUsersCount.toLocaleString(),
+                        icon: UsersIcon,
+                        color: 'text-purple-600 dark:text-purple-400',
+                        bg: 'bg-purple-50/70 border-purple-100/60 dark:bg-purple-950/30 dark:border-purple-900/50'
+                    },
+                    {
+                        label: 'Platform Admins',
+                        value: isLoading ? '...' : adminCount.toLocaleString(),
+                        icon: ShieldIcon,
+                        color: 'text-indigo-600 dark:text-indigo-400',
+                        bg: 'bg-indigo-50/70 border-indigo-100/60 dark:bg-indigo-950/30 dark:border-indigo-900/50'
+                    },
+                    {
+                        label: 'Verified Employers',
+                        value: isLoading ? '...' : recruiterCount.toLocaleString(),
+                        icon: BuildingOfficeIcon,
+                        color: 'text-emerald-600 dark:text-emerald-400',
+                        bg: 'bg-emerald-50/70 border-emerald-100/60 dark:bg-emerald-950/30 dark:border-emerald-900/50'
+                    },
+                    {
+                        label: 'Active Candidates',
+                        value: isLoading ? '...' : candidateCount.toLocaleString(),
+                        icon: UserIcon,
+                        color: 'text-blue-600 dark:text-blue-400',
+                        bg: 'bg-blue-50/70 border-blue-100/60 dark:bg-blue-950/30 dark:border-blue-900/50'
+                    },
                 ].map((stat, i) => (
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.05 }}
+                        transition={{ delay: i * 0.03 }}
                         key={stat.label}
-                        className="p-6 bg-km-surface-card rounded-3xl border border-purple-50 shadow-sm hover:border-purple-200 transition-all group"
+                        className={`p-3 sm:p-3.5 bg-km-surface-card rounded-2xl border ${stat.bg} shadow-xs flex items-center justify-between gap-2.5`}
                     >
-                        <div className="flex items-start justify-between">
-                            <div>
-                                <p className="text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">{stat.label}</p>
-                                <h3 className="text-2xl font-bold text-slate-900">{stat.value}</h3>
-                            </div>
-                            <stat.icon size={28} weight="duotone" className={`${stat.color} shrink-0`} aria-hidden="true" />
+                        <div className="min-w-0">
+                            <p className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">{stat.label}</p>
+                            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5">{stat.value}</h3>
+                        </div>
+                        <div className="w-9 h-9 rounded-xl bg-white/80 dark:bg-black/20 flex items-center justify-center shrink-0 shadow-2xs">
+                            <stat.icon size={20} weight="duotone" className={stat.color} aria-hidden="true" />
                         </div>
                     </motion.div>
                 ))}
@@ -387,3 +420,17 @@ export default function UsersPage() {
         </div>
     );
 }
+
+export default function UsersPage() {
+    return (
+        <Suspense fallback={
+            <div className="bg-km-surface-card rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
+                <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin dark:text-purple-400" />
+                <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Loading user directory...</p>
+            </div>
+        }>
+            <UsersContent />
+        </Suspense>
+    );
+}
+
