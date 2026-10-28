@@ -83,6 +83,7 @@ func (api *UserApi) Setup(app *fiber.App) {
 	admin.Get("/reports/export/users", api.controller.ExportUsersCSV)
 	admin.Get("/reports/export/jobs", api.controller.ExportJobsCSV)
 	admin.Get("/reports/export/revenue", api.controller.ExportRevenueCSV)
+	admin.Get("/global-search", api.controller.GlobalSearch)
 
 	// Public user discovery & platform activity endpoints
 	app.Get("/api/experts", api.controller.GetExperts)

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import BrandLogo from '@/components/km/BrandLogo';
@@ -33,9 +33,12 @@ import {
     XIcon 
 } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNotifications } from '@/lib/notifications';
+import AdminGlobalSearch from '@/components/admin/AdminGlobalSearch';
 
 const navItems = [
     { name: 'Analytics & Overview', icon: SquaresFourIcon, href: '/admin' },
+    { name: 'Notifications', icon: BellIcon, href: '/admin/notifications' },
     { name: 'Reports & Analytics', icon: FileXlsIcon, href: '/admin/reports' },
     { name: 'User Module', icon: UsersIcon, href: '/admin/users' },
     { name: 'Recruiter / Company', icon: BuildingOfficeIcon, href: '/admin/companies' },
@@ -63,11 +66,13 @@ function SidebarContent({
     pathname,
     adminName,
     onSignOut,
+    unreadCount = 0,
 }: {
     collapsed?: boolean;
     pathname: string;
     adminName?: string;
     onSignOut: () => void;
+    unreadCount?: number;
 }) {
     return (
     <>
@@ -95,6 +100,9 @@ function SidebarContent({
             <nav className="space-y-1">
                 {navItems.map((item) => {
                     const isActive = pathname === item.href;
+                    const isNotification = item.href === '/admin/notifications';
+                    const hasUnread = isNotification && (unreadCount ?? 0) > 0;
+
                     return (
                         <Link
                             key={item.href}
@@ -119,25 +127,42 @@ function SidebarContent({
                                 {isActive && collapsed && (
                                     <div className="absolute inset-0 rounded-2xl border-2 border-purple-600/30 bg-purple-50" />
                                 )}
-                                <item.icon
-                                    size={20}
-                                    weight={isActive ? "bold" : "regular"}
-                                    className={`relative z-10 shrink-0 ${
-                                        isActive
-                                            ? 'text-purple-600 dark:text-purple-400'
-                                            : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
-                                    } transition-colors`}
-                                />
+                                <div className="relative shrink-0 flex items-center justify-center">
+                                    <item.icon
+                                        size={20}
+                                        weight={isActive ? "bold" : "regular"}
+                                        className={`relative z-10 shrink-0 ${
+                                            isActive
+                                                ? 'text-purple-600 dark:text-purple-400'
+                                                : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
+                                        } transition-colors`}
+                                    />
+                                    {collapsed && hasUnread && (
+                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse z-20" />
+                                    )}
+                                </div>
                                 {!collapsed && (
-                                    <span className="text-[13.5px] whitespace-nowrap font-semibold truncate relative z-10">
-                                        {item.name}
-                                    </span>
+                                    <div className="flex items-center justify-between flex-1 min-w-0 z-10">
+                                        <span className="text-[13.5px] whitespace-nowrap font-semibold truncate">
+                                            {item.name}
+                                        </span>
+                                        {hasUnread && (
+                                            <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full animate-pulse shadow-xs">
+                                                {unreadCount > 99 ? '99+' : unreadCount}
+                                            </span>
+                                        )}
+                                    </div>
                                 )}
 
                                 {/* Hover Tooltip when collapsed */}
                                 {collapsed && (
-                                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#071A4D] text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
-                                        {item.name}
+                                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#071A4D] text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50 flex items-center gap-1.5">
+                                        <span>{item.name}</span>
+                                        {hasUnread && (
+                                            <span className="px-1.5 py-0.5 bg-red-500 text-[10px] font-bold rounded-full text-white">
+                                                {unreadCount}
+                                            </span>
+                                        )}
                                     </div>
                                 )}
                             </div>
@@ -177,12 +202,15 @@ export default function AdminLayout({
 }) {
     const pathname = usePathname();
     const router = useRouter();
+    const { unreadCount } = useNotifications();
     
     // On desktop: controls collapsed/expanded (default open on large screens/monitors)
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const [isAuthChecking, setIsAuthChecking] = useState(true);
     const [adminUser, setAdminUser] = useState<any>(null);
+    const profileMenuRef = useRef<HTMLDivElement>(null);
 
     const isLoginPage = pathname === '/admin/login';
 
@@ -209,10 +237,26 @@ export default function AdminLayout({
         });
     };
 
-    // Close mobile menu on route change
+    // Close menus on route change
     useEffect(() => {
         setIsMobileMenuOpen(false);
+        setIsProfileMenuOpen(false);
     }, [pathname]);
+
+    // Close profile dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+        if (isProfileMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isProfileMenuOpen]);
 
     useEffect(() => {
         if (isLoginPage) {
@@ -307,7 +351,7 @@ export default function AdminLayout({
                     )}
                 </div>
 
-                <SidebarContent collapsed={!isSidebarOpen} pathname={pathname} adminName={adminUser?.name} onSignOut={handleSignOut} />
+                <SidebarContent collapsed={!isSidebarOpen} pathname={pathname} adminName={adminUser?.name} onSignOut={handleSignOut} unreadCount={unreadCount} />
             </motion.aside>
 
             {/* ── MOBILE SIDEBAR OVERLAY ── */}
@@ -337,7 +381,7 @@ export default function AdminLayout({
                                     <XIcon size={20} />
                                 </button>
                             </div>
-                            <SidebarContent collapsed={false} pathname={pathname} adminName={adminUser?.name} onSignOut={handleSignOut} />
+                            <SidebarContent collapsed={false} pathname={pathname} adminName={adminUser?.name} onSignOut={handleSignOut} unreadCount={unreadCount} />
                         </motion.aside>
                     </>
                 )}
@@ -364,16 +408,7 @@ export default function AdminLayout({
                             <ListIcon size={22} />
                         </button>
 
-                        <div className="flex items-center flex-1 max-w-xl">
-                            <div className="relative w-full group">
-                                <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
-                                <input
-                                    type="text"
-                                    placeholder="Search intelligence..."
-                                    className="w-full pl-11 pr-4 py-2.5 bg-purple-50/50 border border-transparent rounded-2xl text-sm focus:outline-none focus:bg-km-surface-card focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none"
-                                />
-                            </div>
-                        </div>
+                        <AdminGlobalSearch />
 
                         <div className="flex items-center gap-3 sm:gap-6 ml-3">
                             <motion.button
@@ -385,19 +420,68 @@ export default function AdminLayout({
                                 <span className="hidden md:inline">Download App</span>
                             </motion.button>
                             <div className="h-8 w-px bg-purple-100 hidden sm:block"></div>
-                            <div className="relative cursor-pointer">
-                                <BellIcon size={22} className="text-slate-400 hover:text-purple-600 transition-colors dark:hover:text-purple-400" />
-                                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full dark:border-km-surface-card"></span>
-                            </div>
-                            <div className="flex items-center gap-2 cursor-pointer group">
-                                <div className="w-9 h-9 sm:w-10 sm:h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 text-xs font-bold ring-2 ring-purple-500/10 group-hover:ring-purple-500/20 transition-all shadow-sm">
-                                    <span className="rotate-45">▲▲</span>
-                                </div>
-                                <div className="hidden md:block">
-                                    <p className="text-[13px] font-bold text-slate-800 leading-none">{adminUser?.name || 'Admin'}</p>
-                                    <p className="text-[10px] text-slate-400 font-medium mt-1">Administrator</p>
-                                </div>
-                                <CaretDownIcon weight="bold" size={14} className="text-slate-400 group-hover:text-purple-600 transition-colors hidden md:block dark:group-hover:text-purple-400" />
+                            <Link 
+                                href="/admin/notifications"
+                                className="relative p-2 rounded-xl hover:bg-purple-50 text-slate-400 hover:text-purple-600 transition-all cursor-pointer flex items-center justify-center dark:hover:text-purple-400"
+                                title={unreadCount > 0 ? `${unreadCount} unread notification${unreadCount > 1 ? 's' : ''}` : 'Notifications'}
+                            >
+                                <BellIcon size={22} className="transition-colors" />
+                                {unreadCount > 0 && (
+                                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full dark:border-km-surface-card animate-pulse"></span>
+                                )}
+                            </Link>
+                            {/* Profile Dropdown */}
+                            <div ref={profileMenuRef} className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsProfileMenuOpen(prev => !prev)}
+                                    className="flex items-center gap-2 cursor-pointer group focus:outline-none select-none text-left"
+                                    aria-haspopup="true"
+                                    aria-expanded={isProfileMenuOpen}
+                                >
+                                    <div className="w-9 h-9 sm:w-10 sm:h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 text-xs font-bold ring-2 ring-purple-500/10 group-hover:ring-purple-500/20 transition-all shadow-sm">
+                                        <span className="rotate-45">▲▲</span>
+                                    </div>
+                                    <div className="hidden md:block">
+                                        <p className="text-[13px] font-bold text-slate-800 leading-none">{adminUser?.name || 'Admin'}</p>
+                                        <p className="text-[10px] text-slate-400 font-medium mt-1">Administrator</p>
+                                    </div>
+                                    <CaretDownIcon 
+                                        weight="bold" 
+                                        size={14} 
+                                        className={`text-slate-400 group-hover:text-purple-600 transition-transform duration-200 hidden md:block dark:group-hover:text-purple-400 ${
+                                            isProfileMenuOpen ? 'rotate-180 text-purple-600' : ''
+                                        }`} 
+                                    />
+                                </button>
+
+                                <AnimatePresence>
+                                    {isProfileMenuOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 6, scale: 0.95 }}
+                                            transition={{ duration: 0.15, ease: 'easeOut' }}
+                                            className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-purple-100 dark:border-slate-800 p-1.5 z-50 overflow-hidden"
+                                        >
+                                            <div className="px-3 py-2 border-b border-purple-50 dark:border-slate-800 md:hidden">
+                                                <p className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{adminUser?.name || 'Admin'}</p>
+                                                <p className="text-[10px] text-slate-400 font-medium">Administrator</p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsProfileMenuOpen(false);
+                                                    handleSignOut();
+                                                }}
+                                                className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700 transition-colors cursor-pointer group text-left"
+                                            >
+                                                <SignOutIcon size={18} weight="bold" className="shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                                                <span>Sign Out</span>
+                                            </button>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
                     </header>

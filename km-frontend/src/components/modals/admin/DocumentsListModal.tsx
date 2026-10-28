@@ -13,7 +13,7 @@ interface DocumentsListModalProps {
     status?: string;
     documents: { id: string; name: string; url: string }[];
     onViewDocument: (doc: { name: string; url: string }) => void;
-    onUpdateStatus?: (companyId: string, status: 'verified' | 'rejected') => Promise<void>;
+    onUpdateStatus?: (companyId: string, status: 'verified' | 'rejected' | 'pending' | 'no_appeal') => Promise<void>;
 }
 
 const DocumentsListModal = ({
@@ -29,7 +29,7 @@ const DocumentsListModal = ({
 }: DocumentsListModalProps) => {
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const handleAction = async (newStatus: 'verified' | 'rejected') => {
+    const handleAction = async (newStatus: 'verified' | 'rejected' | 'pending' | 'no_appeal') => {
         if (!companyId || !onUpdateStatus) return;
         setIsUpdating(true);
         try {
@@ -66,18 +66,23 @@ const DocumentsListModal = ({
 
                 <div className="self-end sm:self-center">
                     {status === 'verified' && (
-                        <span className="px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded-full flex items-center gap-1">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded-full whitespace-nowrap shrink-0">
                             <CheckCircleIcon weight="bold" size={13} /> Verified
                         </span>
                     )}
                     {status === 'pending' && (
-                        <span className="px-3 py-1 text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-full flex items-center gap-1">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded-full whitespace-nowrap shrink-0">
                             <ShieldCheckIcon weight="bold" size={13} /> Pending Review
                         </span>
                     )}
                     {status === 'rejected' && (
-                        <span className="px-3 py-1 text-xs font-bold text-rose-700 bg-rose-100 border border-rose-200 rounded-full flex items-center gap-1">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-rose-700 bg-rose-100 border border-rose-200 rounded-full whitespace-nowrap shrink-0">
                             <XCircleIcon weight="bold" size={13} /> Rejected
+                        </span>
+                    )}
+                    {(status === 'no_appeal' || !status) && (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-full whitespace-nowrap shrink-0">
+                            No Appeal
                         </span>
                     )}
                 </div>
@@ -90,6 +95,7 @@ const DocumentsListModal = ({
                     <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                         <FileTextIcon size={28} className="mx-auto text-slate-400 mb-2" />
                         <p className="text-sm font-medium text-slate-500">No documents uploaded by recruiter.</p>
+                        <p className="text-xs text-slate-400 mt-1">This recruiter registered without submitting business verification files.</p>
                     </div>
                 ) : (
                     documents.map((doc) => (
@@ -114,34 +120,48 @@ const DocumentsListModal = ({
 
             {/* Verification Actions Footer */}
             {onUpdateStatus && companyId && (
-                <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-3">
-                    <button
-                        type="button"
-                        disabled={isUpdating}
-                        onClick={() => handleAction('rejected')}
-                        className="w-full sm:w-auto px-6 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 dark:text-rose-400"
-                    >
-                        <XCircleIcon weight="bold" size={16} />
-                        <span>Reject Application</span>
-                    </button>
-                    <button
-                        type="button"
-                        disabled={isUpdating}
-                        onClick={() => handleAction('verified')}
-                        className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                        {isUpdating ? (
-                            <>
-                                <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
-                                <span>Updating...</span>
-                            </>
-                        ) : (
-                            <>
-                                <CheckCircleIcon weight="bold" size={16} />
-                                <span>Approve & Verify Company</span>
-                            </>
-                        )}
-                    </button>
+                <div className="mt-8 pt-6 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3">
+                    {(status === 'verified' || status === 'rejected') && (
+                        <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleAction(documents.length > 0 ? 'pending' : 'no_appeal')}
+                            className="w-full sm:w-auto px-5 py-2.5 border border-purple-200 text-purple-700 hover:bg-purple-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                        >
+                            Undo to {documents.length > 0 ? 'Pending' : 'No Appeal'}
+                        </button>
+                    )}
+                    {status !== 'rejected' && (
+                        <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleAction('rejected')}
+                            className="w-full sm:w-auto px-6 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 dark:text-rose-400"
+                        >
+                            <XCircleIcon weight="bold" size={16} />
+                            <span>Reject Application</span>
+                        </button>
+                    )}
+                    {status !== 'verified' && (
+                        <button
+                            type="button"
+                            disabled={isUpdating}
+                            onClick={() => handleAction('verified')}
+                            className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                        >
+                            {isUpdating ? (
+                                <>
+                                    <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
+                                    <span>Updating...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircleIcon weight="bold" size={16} />
+                                    <span>Approve & Verify Company</span>
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
             )}
         </ModalWrapper>
