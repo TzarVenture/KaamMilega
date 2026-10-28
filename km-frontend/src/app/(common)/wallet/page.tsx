@@ -300,12 +300,10 @@ export default function WalletPage() {
 
                 {/* Hero Total Balance Card */}
                 <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#020617] via-purple-950 to-indigo-950 p-6 sm:p-8 lg:p-10 text-white shadow-xl shadow-purple-950/20">
-                    <div className="absolute top-0 right-0 -mt-10 -mr-10 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
-                    <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-72 h-72 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
                     <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 sm:gap-8">
                         <div className="space-y-2 sm:space-y-3">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-semibold text-purple-200 border border-white/10">
+                            <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#E9D5FF]">
                                 <ShieldCheckIcon weight="bold" size={13} className="text-emerald-400" />
                                 <span>Total Balance</span>
                             </div>
@@ -337,7 +335,7 @@ export default function WalletPage() {
 
                             <button
                                 onClick={() => setIsWithdrawModalOpen(true)}
-                                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold backdrop-blur-md border border-white/15 transition active:scale-95 cursor-pointer"
+                                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-[#1E1B4B] hover:bg-[#312E81] text-white text-sm font-bold border border-[#3730A3] transition active:scale-95 cursor-pointer"
                             >
                                 <ArrowUpRightIcon weight="bold" size={18} />
                                 <span>Withdraw</span>
@@ -442,7 +440,7 @@ export default function WalletPage() {
                             <LightningIcon size={140} />
                         </div>
                         <div className="relative z-10">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
+                            <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-3">
                                 <LightningIcon weight="bold" size={13} />
                                 <span>Platform Pass</span>
                             </div>
@@ -468,7 +466,7 @@ export default function WalletPage() {
                             <UsersIcon size={140} />
                         </div>
                         <div className="relative z-10">
-                            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-xs font-bold tracking-wide uppercase mb-3 backdrop-blur-xs">
+                            <div className="inline-flex items-center gap-1.5 text-[13px] font-semibold mb-3">
                                 <UsersIcon weight="bold" size={13} />
                                 <span>Career Growth</span>
                             </div>
@@ -534,7 +532,7 @@ export default function WalletPage() {
 
             {/* Add Money Modal */}
             {isTopupModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-fade-in">
                     <div className="bg-km-surface-card rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl space-y-6">
                         <div className="flex justify-between items-center">
                             <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -628,7 +626,7 @@ export default function WalletPage() {
 
             {/* Withdraw Modal (F71 Bank / UPI Payout) */}
             {isWithdrawModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 animate-fade-in overflow-y-auto">
                     <div className="bg-km-surface-card rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 my-8">
                         {/* Modal Header */}
                         <div className="flex justify-between items-start">

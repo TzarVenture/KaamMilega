@@ -176,13 +176,13 @@ const PublicEventsPage = () => {
                 overlap
                 kicker={{ label: 'Events & Bootcamps', Icon: CalendarBlankIcon, tone: 'events' }}
                 title={<>Skill Bootcamps & <HeroAccent>Live Events</HeroAccent></>}
-                description="Join interactive workshops, skill bootcamps, and live masterclasses led by verified experts. Learn in real time via Google Meet or Zoom and earn certificates."
+                description="Live workshops and bootcamps by verified experts, on Google Meet or Zoom."
                 highlights={[
                     { Icon: VideoCameraIcon, label: 'Google Meet & Zoom Access' },
                     { Icon: CheckCircleIcon, label: 'Verified Industry Experts' },
                     { Icon: TicketIcon, label: 'Instant Digital Entry Pass' },
                 ]}
-                art={{ src: '/events-page-art.png', alt: 'KaamMilega Events and Bootcamps' }}
+                art={{ src: '/events-page-art.png', alt: 'KaamMilega Events and Bootcamps', wide: true }}
             >
                 <div className="flex flex-wrap items-center gap-3">
                     <a href="#workshops-catalog" className="btn-accent text-xs px-5 py-2.5 shadow-sm">
@@ -377,7 +377,7 @@ const PublicEventsPage = () => {
                                     <div className="p-5 flex flex-col flex-1">
                                         {/* Category Badge */}
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-amber-500/15">
+                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-[#332E2D]">
                                                 {event.category || 'Live Workshop'}
                                             </span>
                                         </div>

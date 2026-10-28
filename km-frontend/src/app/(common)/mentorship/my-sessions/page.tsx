@@ -90,7 +90,7 @@ export default function MyMentorshipSessionsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-24 dark:bg-white/5">
+    <main className="min-h-screen bg-[#fafafa] pb-24 dark:bg-[#1D253D]">
 
       {/* Clean Dashboard Header */}
       <section className="bg-km-surface-card border-b border-slate-200/80 pt-8 pb-8 px-4 md:px-8">
@@ -254,7 +254,7 @@ export default function MyMentorshipSessionsPage() {
       {/* Leave Review Modal (F45) */}
       <AnimatePresence>
         {reviewModalBooking && (
-          <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -382,28 +382,28 @@ function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: 
     switch (booking.status) {
       case 'confirmed':
         return (
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
+          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
             <ShieldCheckIcon weight="bold" size={13} className="text-emerald-600 dark:text-emerald-400" />
             <span>Confirmed (Escrow Protected)</span>
           </span>
         );
       case 'completed':
         return (
-          <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
+          <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
             <CheckCircleIcon weight="bold" size={13} className="text-blue-600 dark:text-blue-400" />
             <span>Completed</span>
           </span>
         );
       case 'cancelled':
         return (
-          <span className="bg-red-50 text-red-700 border border-red-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
+          <span className="bg-red-50 text-red-700 border border-red-200 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
             <WarningCircleIcon weight="bold" size={13} className="text-red-500 dark:text-red-400" />
             <span>Cancelled (Refunded)</span>
           </span>
         );
       default:
         return (
-          <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full flex items-center gap-1">
+          <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
             <ClockIcon weight="bold" size={13} className="text-amber-500 dark:text-amber-400" />
             <span>Pending Payment</span>
           </span>

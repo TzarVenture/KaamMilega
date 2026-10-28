@@ -524,7 +524,7 @@
     },
     "hubs": {
       "title": "Find jobs by top hubs",
-      "text": "Explore verified openings and on-demand gig clusters across India's largest employment districts.",
+      "text": "Verified jobs and on-demand work in India's biggest employment hubs.",
       "more": "More employment hubs and regional zones ({n})",
       "viewAll": "View all locations"
     },
@@ -649,13 +649,13 @@
     },
     "stories": {
       "title": "Verified stories from real candidates",
-      "text": "Real workers across logistics, transportation, and technical trades hired with zero brokerage and direct HR calls.",
+      "text": "Real workers in logistics, transport and trades, hired with zero brokerage.",
       "closeVideo": "Close video",
       "videoTitle": "{name}'s story"
     },
     "premium": {
       "title": "Accelerate your job search with premium services",
-      "text": "Get hired faster with resume optimization, priority applicant status, direct recruiter connections and skill certifications.",
+      "text": "Get hired faster with a stronger resume, priority status and direct recruiter access.",
       "resumeWriting": "Resume Writing",
       "priority": "Priority Applicant",
       "display": "Resume Display",

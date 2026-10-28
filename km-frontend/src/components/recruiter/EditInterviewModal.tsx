@@ -166,7 +166,7 @@ export default function EditInterviewModal({ isOpen, onClose, interview, onSucce
                                     onClick={() => setFormData({ ...formData, type: item.value })}
                                     className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs transition-colors ${
                                         isSelected
-                                            ? "bg-blue-50/70 border-km-blue text-km-blue font-semibold dark:bg-blue-950/30 dark:border-blue-800 dark:text-km-link ring-1 ring-km-blue"
+                                            ? "bg-blue-50/70 border-km-blue text-km-blue font-semibold dark:bg-[#131D3D] dark:border-blue-800 dark:text-km-link ring-1 ring-km-blue"
                                             : "bg-km-surface-card border-km-border text-km-text-secondary hover:bg-km-surface"
                                     }`}
                                 >
@@ -211,9 +211,9 @@ export default function EditInterviewModal({ isOpen, onClose, interview, onSucce
                     <label className="block text-xs font-semibold text-km-text-primary mb-1.5">Interview Status</label>
                     <div className="grid grid-cols-3 gap-2.5">
                         {[
-                            { value: "Scheduled", label: "Scheduled", color: "text-km-blue bg-blue-50/80 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900/40 dark:text-km-link" },
-                            { value: "Completed", label: "Completed", color: "text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/40 dark:text-emerald-400" },
-                            { value: "Cancelled", label: "Cancelled", color: "text-rose-700 bg-rose-50 border-rose-200 dark:bg-rose-950/30 dark:border-rose-900/40 dark:text-rose-400" }
+                            { value: "Scheduled", label: "Scheduled", color: "text-km-blue bg-blue-50/80 border-blue-200 dark:bg-[#131D3D] dark:border-blue-900/40 dark:text-km-link" },
+                            { value: "Completed", label: "Completed", color: "text-emerald-700 bg-emerald-50 border-emerald-200 dark:bg-[#0C1F2E] dark:border-emerald-900/40 dark:text-emerald-400" },
+                            { value: "Cancelled", label: "Cancelled", color: "text-rose-700 bg-rose-50 border-rose-200 dark:bg-[#23142B] dark:border-rose-900/40 dark:text-rose-400" }
                         ].map((s) => {
                             const isSelected = formData.status === s.value;
                             return (

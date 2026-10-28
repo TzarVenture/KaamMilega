@@ -18,7 +18,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-white/5">
+            <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-[#1D253D]">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
             </div>
         );
@@ -26,7 +26,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
 
     if (error || !company) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] gap-4 dark:bg-white/5">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] gap-4 dark:bg-[#1D253D]">
                 <h2 className="text-xl font-bold text-gray-900">Company not found</h2>
                 <p className="text-gray-500">{error || "The company you are looking for does not exist."}</p>
                 <Link href="/" className="px-6 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 transition">
@@ -37,7 +37,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <main className="min-h-screen bg-[#f8f9fa] py-8 px-4 md:px-12 lg:px-24 dark:bg-white/5">
+        <main className="min-h-screen bg-[#f8f9fa] py-8 px-4 md:px-12 lg:px-24 dark:bg-[#1D253D]">
             <div className="max-w-7xl mx-auto grid grid-cols-12 gap-6">
 
                 {/* LEFT COLUMN: Main Content */}

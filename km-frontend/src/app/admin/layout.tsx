@@ -75,7 +75,7 @@ function SidebarContent({
             {/* Admin Profile Mini */}
             {!collapsed ? (
                 <div className="p-3.5 mx-1.5 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-3 shadow-md shadow-purple-900/10 transition-all">
-                    <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/20">
+                    <div className="w-10 h-10 bg-purple-950 rounded-xl flex items-center justify-center shrink-0">
                         <span className="text-white text-base font-bold rotate-45">▲▲</span>
                     </div>
                     <div className="overflow-hidden min-w-0 flex-1">
@@ -270,7 +270,7 @@ export default function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-[#FDFCFE] flex font-sans selection:bg-purple-200 dark:bg-white/5">
+        <div className="min-h-screen bg-[#FDFCFE] flex font-sans selection:bg-purple-200 dark:bg-[#1D253D]">
             {/* ── DESKTOP SIDEBAR ── */}
             <motion.aside
                 initial={false}
@@ -355,7 +355,7 @@ export default function AdminLayout({
                 `}</style>
                 <div className="admin-main-shift flex-1 flex flex-col min-w-0">
                     {/* ── TOP HEADER ── */}
-                    <header className="h-16 sm:h-20 bg-km-surface-card/90 backdrop-blur-md border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
+                    <header className="h-16 sm:h-20 bg-km-surface-card border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
                         {/* Mobile hamburger */}
                         <button
                             className="lg:hidden p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors mr-3 shrink-0"

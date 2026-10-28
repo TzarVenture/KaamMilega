@@ -67,7 +67,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                     </div>
 
                     <div className="flex items-center gap-2 self-start sm:self-auto">
-                        <span className="px-3 py-1 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#16A34A]/30 text-xs font-bold flex items-center gap-1.5 dark:bg-white/5">
+                        <span className="px-3 py-1 rounded-md bg-[#F0FDF4] text-[#16A34A] border border-[#16A34A]/30 text-xs font-bold flex items-center gap-1.5 dark:bg-[#1D253D]">
                             <ShieldCheckIcon weight="bold" size={14} className="text-[#16A34A]" />
                             <span>Match Confirmed</span>
                         </span>
@@ -149,7 +149,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
 
                         <div className="mt-4 pt-3 border-t border-km-border">
                             {isFinished ? (
-                                <div className="p-2.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 text-center dark:bg-amber-500/15">
+                                <div className="p-2.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B]/30 text-center dark:bg-[#332E2D]">
                                     <p className="text-xs font-semibold text-[#B45309] dark:text-orange-400">Awaiting Employer Approval</p>
                                     <p className="text-[11px] text-km-text-secondary mt-0.5">
                                         Funds will credit automatically to your wallet upon confirmation.

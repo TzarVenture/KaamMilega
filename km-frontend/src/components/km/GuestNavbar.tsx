@@ -229,7 +229,7 @@ const GuestNavbar = () => {
                 <>
                     <div
                         onClick={() => setMobileSearchOpen(false)}
-                        className="lg:hidden fixed inset-0 top-16 z-40 bg-km-ink/40 backdrop-blur-xs transition-opacity duration-150 animate-in fade-in"
+                        className="lg:hidden fixed inset-0 top-16 z-40 bg-km-ink/40 transition-opacity duration-150 animate-in fade-in"
                         aria-hidden="true"
                     />
                     <div className="lg:hidden fixed top-16 inset-x-0 z-50 bg-km-surface-card border-b border-slate-200 px-4 py-3.5 shadow-xl animate-in slide-in-from-top-2 duration-150">
@@ -263,7 +263,7 @@ const GuestNavbar = () => {
                     {/* Backdrop */}
                     <div
                         onClick={() => setMobileMenuOpen(false)}
-                        className="lg:hidden fixed inset-0 top-16 z-40 bg-km-ink/50 backdrop-blur-xs transition-opacity duration-200 animate-in fade-in"
+                        className="lg:hidden fixed inset-0 top-16 z-40 bg-km-ink/50 transition-opacity duration-200 animate-in fade-in"
                         aria-hidden="true"
                     />
 

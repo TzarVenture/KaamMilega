@@ -119,7 +119,7 @@ export default function SuccessTicker() {
                                                 {item.context && <span className="text-xs text-km-text-secondary leading-4">{item.context}</span>}
                                             </span>
                                         </span>
-                                        <span className="ml-6 h-8 w-px bg-[#D9E0EA] dark:bg-white/10" aria-hidden="true" />
+                                        <span className="ml-6 h-8 w-px bg-[#D9E0EA] dark:bg-[#293147]" aria-hidden="true" />
                                     </li>
                                 );
                             })

@@ -162,7 +162,7 @@ export default function InstantPassModal({
     const hasEnoughWalletBalance = walletBalance !== null && walletBalance >= 99;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
             <div className="relative w-full max-w-lg bg-km-surface-card rounded-2xl border border-km-border shadow-xl overflow-hidden text-km-text-primary">
                 {/* Header Strip */}
                 <div className="bg-[#071A4D] px-6 py-5 text-white flex items-center justify-between">
@@ -178,7 +178,7 @@ export default function InstantPassModal({
                     <button
                         onClick={onClose}
                         disabled={loading || walletLoading}
-                        className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors text-white cursor-pointer"
+                        className="w-8 h-8 rounded-lg bg-[#0B1F52] hover:bg-[#13296B] flex items-center justify-center transition-colors text-white cursor-pointer"
                         aria-label="Close"
                     >
                         <XIcon weight="bold" size={16} />

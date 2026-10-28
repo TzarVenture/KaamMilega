@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import PageHero, { HeroAccent } from '@/components/km/PageHero';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BuildingOfficeIcon, CaretDownIcon, CaretUpIcon, CheckCircleIcon, EnvelopeSimpleIcon, PaperPlaneRightIcon, PhoneIcon, QuestionIcon, ShieldWarningIcon, WarningIcon } from '@phosphor-icons/react';
@@ -52,26 +53,12 @@ export default function SupportPage() {
   return (
     <main className="min-h-screen bg-km-surface font-sans antialiased text-slate-800">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] text-white py-16 sm:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-500/20 via-transparent to-transparent pointer-events-none" />
+      <PageHero
+        kicker={{ label: 'Customer Happiness & Trust Helpdesk', Icon: QuestionIcon, tone: 'skills' }}
+        title={<>We&apos;re Here to <HeroAccent>Help You</HeroAccent></>}
+        description="Questions about your profile, jobs or InstantMilega™? Our team is here to help."
+      />
 
-        <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 mb-6 shadow-xs">
-            <QuestionIcon weight="bold" size={16} className="text-emerald-400" />
-            <span className="text-xs sm:text-sm font-semibold tracking-wide text-white">
-              Customer Happiness &amp; Trust Helpdesk
-            </span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight mb-5">
-            We&apos;re Here to <span className="text-[#FF6B00]">Help You</span>
-          </h1>
-
-          <p className="text-base sm:text-lg text-slate-200 max-w-2xl mx-auto leading-relaxed">
-            Have questions about your profile, applications, employer verification, or InstantMilega™ shifts? Reach our verified support team anytime.
-          </p>
-        </div>
-      </section>
 
       {/* Quick Channels Cards */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto -mt-8 relative z-20">
@@ -144,7 +131,7 @@ export default function SupportPage() {
           {/* Left Form: Submit Support Ticket */}
           <div className="lg:col-span-5 bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-slate-200/90 shadow-sm">
             <div className="mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-km-link bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
+              <span className="block text-[13px] font-semibold text-km-link">
                 Direct Helpdesk
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-km-heading mt-2">
@@ -267,7 +254,7 @@ export default function SupportPage() {
           {/* Right Column: FAQ Accordion */}
           <div className="lg:col-span-7 space-y-4">
             <div className="mb-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#FF6B00] bg-orange-50 px-2.5 py-1 rounded-full border border-orange-200">
+              <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
                 Self-Service Knowledgebase
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-km-heading mt-2">

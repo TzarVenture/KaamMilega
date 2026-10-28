@@ -34,7 +34,7 @@ export default function UserInterviewsPage() {
     }
 
     return (
-        <div className="bg-[#F8FAFC] min-h-screen pb-20 font-sans dark:bg-white/5">
+        <div className="bg-[#F8FAFC] min-h-screen pb-20 font-sans dark:bg-[#1D253D]">
             <div className="max-w-5xl mx-auto p-6 md:p-12">
                 <header className="mb-10">
                     <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">My Interviews</h1>

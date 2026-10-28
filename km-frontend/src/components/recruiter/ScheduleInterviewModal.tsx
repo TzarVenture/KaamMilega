@@ -97,7 +97,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                                     onClick={() => setFormData({ ...formData, type: item.value })}
                                     className={`flex flex-col items-center gap-1.5 p-2.5 rounded-xl border text-xs transition-colors ${
                                         isSelected
-                                            ? "bg-blue-50/80 border-blue-200 text-km-blue font-semibold dark:bg-blue-950/30 dark:border-blue-900/50 dark:text-km-link"
+                                            ? "bg-blue-50/80 border-blue-200 text-km-blue font-semibold dark:bg-[#131D3D] dark:border-blue-900/50 dark:text-km-link"
                                             : "bg-km-surface-card border-km-border text-km-text-secondary hover:bg-km-surface"
                                     }`}
                                 >

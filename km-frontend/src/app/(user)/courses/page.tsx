@@ -210,12 +210,12 @@ export default function CoursesExpertStudioPage() {
             <PageHero
                 width="max-w-6xl"
                 title={<>Create & Manage <HeroAccent>Courses</HeroAccent></>}
-                description="Publish training video sessions from YouTube directly to the Kaammilega Learning Marketplace."
+                description="Publish YouTube training videos to the KaamMilega learning marketplace."
                 aside={
                     <div className="flex items-center gap-2.5 shrink-0">
                         <Link
                             href="/courses/manage"
-                            className="text-xs sm:text-sm font-semibold text-white bg-white/10 hover:bg-white/20 border border-white/20 px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
+                            className="text-xs sm:text-sm font-semibold border border-white/30 text-white hover:bg-white/10 hover:border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
                         >
                             <span>Manage My Courses</span>
                         </Link>
@@ -377,7 +377,7 @@ export default function CoursesExpertStudioPage() {
 
                         {/* Real-Time Thumbnail Preview Box */}
                         {extractedVideoId ? (
-                            <div className="p-4 bg-[#F0FDF4] border border-[#16A34A]/30 rounded-2xl flex flex-col sm:flex-row items-center gap-4 dark:bg-white/5">
+                            <div className="p-4 bg-[#F0FDF4] border border-[#16A34A]/30 rounded-2xl flex flex-col sm:flex-row items-center gap-4 dark:bg-[#1D253D]">
                                 <div className="relative w-full sm:w-44 h-26 rounded-xl overflow-hidden bg-slate-200 shrink-0 shadow-xs">
                                     <img
                                         src={getYouTubeThumbnail(extractedVideoId)}

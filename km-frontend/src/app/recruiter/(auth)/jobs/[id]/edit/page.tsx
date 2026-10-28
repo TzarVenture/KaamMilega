@@ -249,10 +249,10 @@ export default function EditJobPage() {
                                             onClick={() => setIsStatusOpen(!isStatusOpen)}
                                             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer select-none ${
                                                 formData.status === 'Closed' 
-                                                    ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70 dark:bg-rose-950/40 dark:text-rose-400 dark:border-rose-800/60' 
+                                                    ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70 dark:bg-[#291229] dark:text-rose-400 dark:border-rose-800/60' 
                                                     : formData.status === 'On Hold'
-                                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100/70 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-800/60'
-                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/70 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800/60'
+                                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100/70 dark:bg-[#261A20] dark:text-amber-400 dark:border-amber-800/60'
+                                                    : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/70 dark:bg-[#0B212C] dark:text-emerald-400 dark:border-emerald-800/60'
                                             }`}
                                             aria-haspopup="listbox"
                                             aria-expanded={isStatusOpen}

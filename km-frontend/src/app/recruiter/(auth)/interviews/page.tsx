@@ -284,10 +284,10 @@ export default function InterviewsPage() {
                                         <div>
                                             <span className={`inline-block px-2.5 py-0.5 rounded-md text-xs font-medium border ${
                                                 inview.status === "Scheduled"
-                                                    ? "bg-blue-50 text-km-blue border-blue-200 dark:bg-blue-950/30 dark:border-blue-900/40 dark:text-km-link"
+                                                    ? "bg-blue-50 text-km-blue border-blue-200 dark:bg-[#131D3D] dark:border-blue-900/40 dark:text-km-link"
                                                     : inview.status === "Completed"
-                                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/40 dark:text-emerald-400"
-                                                    : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/30 dark:border-rose-900/40 dark:text-rose-400"
+                                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-[#0C1F2E] dark:border-emerald-900/40 dark:text-emerald-400"
+                                                    : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-[#23142B] dark:border-rose-900/40 dark:text-rose-400"
                                             }`}>
                                                 {inview.status}
                                             </span>
@@ -372,7 +372,7 @@ export default function InterviewsPage() {
                                                     </Link>
                                                     <Link
                                                         href={`/chat?user=${candidateId}`}
-                                                        className="px-3 py-1.5 text-xs font-medium text-km-blue hover:text-km-blue/90 bg-blue-50 hover:bg-blue-100/70 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/50 rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
+                                                        className="px-3 py-1.5 text-xs font-medium text-km-blue hover:text-km-blue/90 bg-blue-50 hover:bg-blue-100/70 dark:bg-[#131E40] border border-blue-200 dark:border-blue-900/50 rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
                                                         title="Open chat with candidate"
                                                     >
                                                         <ChatCircleIcon size={14} weight="regular" aria-hidden="true" />
@@ -453,7 +453,7 @@ export default function InterviewsPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleUpdateStatus(inview.id, "Cancelled")}
-                                                    className="w-full py-1.5 px-3 bg-km-surface hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-600 border border-km-border rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+                                                    className="w-full py-1.5 px-3 bg-km-surface hover:bg-rose-50 dark:hover:bg-[#23142B] text-rose-600 border border-km-border rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
                                                 >
                                                     <XCircleIcon weight="regular" size={14} aria-hidden="true" />
                                                     <span>Cancel</span>
@@ -475,7 +475,7 @@ export default function InterviewsPage() {
                                         <button
                                             type="button"
                                             onClick={() => setDeleteTarget(inview)}
-                                            className="w-full py-1.5 px-3 bg-km-surface hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-950/30 text-km-text-secondary border border-km-border rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
+                                            className="w-full py-1.5 px-3 bg-km-surface hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-[#211527] text-km-text-secondary border border-km-border rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
                                             title="Delete Interview Record"
                                         >
                                             <TrashIcon weight="regular" size={14} aria-hidden="true" />
@@ -505,7 +505,7 @@ export default function InterviewsPage() {
                     title="Delete Interview Record"
                 >
                     <div className="space-y-4 font-sans text-km-text-primary">
-                        <div className="flex items-start gap-3 p-3 bg-red-50/70 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 rounded-xl text-red-800 dark:text-red-300 text-xs leading-relaxed">
+                        <div className="flex items-start gap-3 p-3 bg-red-50/70 dark:bg-[#1B172B] border border-red-200 dark:border-red-900/40 rounded-xl text-red-800 dark:text-red-300 text-xs leading-relaxed">
                             <WarningCircleIcon size={20} weight="fill" className="text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
                             <div>
                                 <p className="font-semibold">Are you sure you want to delete this interview record?</p>

@@ -4,7 +4,7 @@ import { BookmarkSimpleIcon, CalendarBlankIcon, ChatCircleIcon, ShareNetworkIcon
 
 const EventDetailsPage = () => {
     return (
-        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen dark:bg-white/5">
+        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-[#F4F2F7] min-h-screen dark:bg-[#1D253D]">
 
             {/* Main Content Area */}
             <div className="flex-1 space-y-6">
@@ -19,10 +19,10 @@ const EventDetailsPage = () => {
                         </div>
                         {/* Action Buttons on Cover */}
                         <div className="absolute bottom-6 right-6 flex gap-3">
-                            <button className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white hover:bg-white/20 transition-all">
+                            <button className="p-3 bg-km-surface-card rounded-xl text-km-text-primary shadow-sm hover:bg-km-surface transition-all">
                                 <BookmarkSimpleIcon size={20} />
                             </button>
-                            <button className="p-3 bg-white/10 backdrop-blur-md rounded-xl text-white hover:bg-white/20 transition-all">
+                            <button className="p-3 bg-km-surface-card rounded-xl text-km-text-primary shadow-sm hover:bg-km-surface transition-all">
                                 <ShareNetworkIcon size={20} />
                             </button>
                         </div>
@@ -66,7 +66,7 @@ const EventDetailsPage = () => {
                         </div>
 
                         {/* Attendance Call to Action */}
-                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-[#FDFBFF] p-6 rounded-2xl border border-purple-50 dark:bg-white/5">
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6 bg-[#FDFBFF] p-6 rounded-2xl border border-purple-50 dark:bg-[#1D253D]">
                             <div className="flex items-center gap-4">
                                 <div className="flex -space-x-3">
                                     {[1, 2, 3, 4].map(i => (

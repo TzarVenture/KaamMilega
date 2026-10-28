@@ -180,7 +180,7 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 {/* Badge text */}
                 {displayBadge && (
                     <div className="mb-2">
-                        <span className="text-xs font-bold tracking-wide text-km-link bg-[#0B5ED7]/10 px-2.5 py-0.5 rounded-full inline-block border border-[#0B5ED7]/15">
+                        <span className="text-xs font-bold tracking-wide text-km-link bg-[#EBF3FE] px-2.5 py-0.5 rounded-full inline-block border border-[#BFDBFE] dark:bg-blue-950 dark:border-blue-900">
                             {displayBadge}
                         </span>
                     </div>

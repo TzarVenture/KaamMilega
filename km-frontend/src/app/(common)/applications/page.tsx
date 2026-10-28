@@ -167,7 +167,7 @@ export default function ApplicationsPage() {
     }
 
     return (
-        <div className="bg-[#fcfcff] min-h-screen dark:bg-white/5">
+        <div className="bg-[#fcfcff] min-h-screen dark:bg-[#1D253D]">
             <div className="max-w-350 mx-auto p-4 md:p-10">
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Sidebar: Application List */}

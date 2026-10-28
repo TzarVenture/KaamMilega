@@ -24,7 +24,7 @@ export default function NotFound() {
       <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
         <div className="max-w-xl w-full text-center">
           {/* Subtle Decorative Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-km-heading text-xs font-bold uppercase tracking-wider mb-6">
+          <div className="inline-flex items-center gap-2 text-[13px] font-semibold text-km-heading mb-6">
             Error 404 &bull; Page Not Found
           </div>
 

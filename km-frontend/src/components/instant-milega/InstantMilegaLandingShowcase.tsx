@@ -91,7 +91,7 @@ const APP_SCREENS: { src: string; alt: string }[] = [];
 function ModeSwitch({ mode, onChange }: { mode: AppInterest; onChange: (m: AppInterest) => void }) {
     const t = useTranslations('instantMilega');
     return (
-        <div role="radiogroup" aria-label={t('iWantTo')} className="inline-flex p-1 rounded-xl bg-white/10 border border-white/15">
+        <div role="radiogroup" aria-label={t('iWantTo')} className="inline-flex p-1 rounded-xl bg-[#0B1F52] border border-[#1E3A8A]">
             {(['hire', 'work'] as const).map((value) => (
                 <button
                     key={value}

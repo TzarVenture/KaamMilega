@@ -286,7 +286,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                             ref={featureCardRef}
                             data-inview={featureCardInView}
                             aria-hidden="true"
-                            className="absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-km-surface-card/95 backdrop-blur-md rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none"
+                            className="absolute bottom-2 -right-1 sm:bottom-6 sm:-right-2 lg:-right-4 z-20 bg-km-surface-card rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-lg sm:shadow-xl border border-slate-200/90 space-y-1.5 sm:space-y-2.5 min-w-32.5 sm:min-w-40 select-none"
                         >
                             {([
                                 [BriefcaseIcon, t('cardJobs')],

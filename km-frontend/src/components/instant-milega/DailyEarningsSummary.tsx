@@ -11,7 +11,7 @@ export default function DailyEarningsSummary() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                     {/* Left: Heading and Guarantees */}
                     <div className="lg:col-span-8 space-y-3">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white/10 text-white text-xs font-semibold">
+                        <div className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#FDBA74]">
                             <ShieldCheckIcon weight="bold" size={14} className="text-[#FF6B00]" />
                             <span>KaamMilega Payout Guarantee</span>
                         </div>
@@ -42,7 +42,7 @@ export default function DailyEarningsSummary() {
 
                     {/* Right: Wallet Access Card */}
                     <div className="lg:col-span-4 flex flex-col justify-center">
-                        <div className="p-5 rounded-xl bg-white/10 border border-white/10 text-center">
+                        <div className="p-5 rounded-xl bg-[#0B1F52] text-center">
                             <div className="w-10 h-10 rounded-xl bg-[#FF6B00] mx-auto flex items-center justify-center text-white mb-2.5">
                                 <WalletIcon size={20} />
                             </div>

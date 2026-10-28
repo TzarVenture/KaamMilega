@@ -107,7 +107,7 @@ export default function AttendeeListModal({
 
     return (
         <div 
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/70 backdrop-blur-sm animate-fade-in"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-km-ink/70 animate-fade-in"
             onClick={onClose}
         >
             <div 
@@ -126,7 +126,7 @@ export default function AttendeeListModal({
                     </button>
 
                     <div className="flex items-center gap-2 mb-1.5">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#071A4D]/10 text-km-heading dark:bg-km-primary">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-km-surface text-km-heading dark:bg-km-primary">
                             <UsersIcon weight="bold" size={12} />
                             <span>Confirmed Attendees</span>
                         </span>

@@ -105,7 +105,7 @@ export default function RecruiterSidebar() {
                                 href={item.href}
                                 className={`group flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors duration-150 text-xs font-medium border ${
                                     isActive
-                                        ? "bg-blue-50/80 text-km-blue border-blue-200/80 dark:bg-blue-950/30 dark:border-blue-900/50 dark:text-km-link"
+                                        ? "bg-blue-50/80 text-km-blue border-blue-200/80 dark:bg-[#131D3D] dark:border-blue-900/50 dark:text-km-link"
                                         : "text-km-text-secondary border-transparent hover:bg-km-surface hover:text-km-text-primary"
                                 }`}
                             >
@@ -144,7 +144,7 @@ export default function RecruiterSidebar() {
                             await clearSession();
                             window.location.href = "/recruiter/login";
                         }}
-                        className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50/80 dark:hover:bg-red-950/20 rounded-xl transition-colors"
+                        className="flex items-center gap-2.5 w-full px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50/80 dark:hover:bg-[#1B172B] rounded-xl transition-colors"
                     >
                         <SignOutIcon weight="regular" size={18} aria-hidden="true" />
                         <span>Sign Out</span>

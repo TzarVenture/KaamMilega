@@ -104,7 +104,7 @@ export default function ResourcePage() {
             <PageHero
                 kicker={{ label: 'Skills Marketplace', Icon: GraduationCapIcon, tone: 'skills' }}
                 title={<>Learn With <HeroAccent>Kaammilega</HeroAccent></>}
-                description="Explore verified trade courses, technical modules, and skill certifications taught by industry experts."
+                description="Verified courses and skill certifications from industry experts."
                 art={{ src: '/resources-page.png', alt: 'Learn With Kaammilega' }}
             />
 

@@ -99,7 +99,7 @@ export default function MentorshipPage() {
         overlap
         kicker={{ label: '1-on-1 Expert Mentorship', Icon: GraduationCapIcon, tone: 'experts' }}
         title={<>Learn Practical Skills with <HeroAccent>Live Expert Mentors</HeroAccent></>}
-        description="Connect 1-on-1 with vetted industry practitioners for personalized career advisory, mock interview coaching, and trade guidance via Google Meet or Zoom."
+        description="Book 1-on-1 sessions with verified experts for career advice and interview prep."
         highlights={[
           { Icon: VideoCameraIcon, label: 'Live Google Meet & Zoom Access' },
           { Icon: CheckCircleIcon, label: 'Verified Industry Practitioners' },
@@ -169,7 +169,7 @@ export default function MentorshipPage() {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black uppercase text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200/50">
+                  <span className="text-[11px] font-semibold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200/50">
                     Upcoming Call
                   </span>
                   <span className="text-xs md:text-sm font-bold text-slate-900 line-clamp-1">
@@ -305,7 +305,7 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
              )}
           </div>
           <div className="flex flex-col items-end gap-1.5">
-            <span className="bg-blue-50 text-km-heading text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border border-blue-100">
+            <span className="bg-blue-50 text-km-heading text-[11px] font-semibold px-2.5 py-1 rounded-full border border-blue-100">
               {mentorship?.category || "Mentorship"}
             </span>
             <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-800">
