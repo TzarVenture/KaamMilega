@@ -349,3 +349,23 @@ type ProvidingServicesPreferences struct {
 	Currency    string   `bson:"currency,omitempty" json:"currency,omitempty"`
 	Description string   `bson:"description,omitempty" json:"description,omitempty"`
 }
+
+type GlobalSearchResultItem struct {
+	ID       string `json:"id"`
+	Type     string `json:"type"`     // "user", "company", "job", "event"
+	Title    string `json:"title"`    // Name or Title
+	Subtitle string `json:"subtitle"` // Headline, Industry, or Location
+	Badge    string `json:"badge"`    // "Candidate", "Recruiter", "Admin", "Active", etc.
+	Avatar   string `json:"avatar,omitempty"`
+	URL      string `json:"url"`      // Deep link into admin portal page
+}
+
+type GlobalSearchResponse struct {
+	Query     string                   `json:"query"`
+	Total     int                      `json:"total"`
+	Users     []GlobalSearchResultItem `json:"users"`
+	Companies []GlobalSearchResultItem `json:"companies"`
+	Jobs      []GlobalSearchResultItem `json:"jobs"`
+	Events    []GlobalSearchResultItem `json:"events"`
+}
+

@@ -1189,3 +1189,15 @@ func (ctrl *UserController) ExportRevenueCSV(c *fiber.Ctx) error {
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s\"", filename))
 	return c.Send(data)
 }
+
+func (ctrl *UserController) GlobalSearch(c *fiber.Ctx) error {
+	query := c.Query("q")
+	res, err := ctrl.service.GlobalSearch(c.Context(), query)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to perform global search: " + err.Error(),
+		})
+	}
+	return c.JSON(res)
+}
+

@@ -74,6 +74,7 @@ type UserService interface {
 	ExportUsersCSV(ctx context.Context, role string) ([]byte, error)
 	ExportJobsCSV(ctx context.Context, status string) ([]byte, error)
 	ExportRevenueCSV(ctx context.Context, status string) ([]byte, error)
+	GlobalSearch(ctx context.Context, query string) (*GlobalSearchResponse, error)
 }
 
 type UserServiceImpl struct {
@@ -1938,3 +1939,8 @@ func (s *UserServiceImpl) ExportJobsCSV(ctx context.Context, status string) ([]b
 func (s *UserServiceImpl) ExportRevenueCSV(ctx context.Context, status string) ([]byte, error) {
 	return s.repo.ExportRevenueCSV(ctx, status)
 }
+
+func (s *UserServiceImpl) GlobalSearch(ctx context.Context, query string) (*GlobalSearchResponse, error) {
+	return s.repo.GlobalSearch(ctx, query)
+}
+

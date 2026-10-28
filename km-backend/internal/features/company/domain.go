@@ -32,12 +32,18 @@ type CompanyFilter struct {
 }
 
 type CreateCompanyRequest struct {
-	RecruiterID string     `json:"recruiter_id"`
-	Name        string     `json:"name"`
-	Logo        string     `json:"logo"`
-	Website     string     `json:"website"`
-	GST         string     `json:"gst"`
-	Documents   []Document `json:"documents"`
+	RecruiterID   string     `json:"recruiter_id"`
+	RecruiterName string     `json:"recruiter_name"`
+	Email         string     `json:"email"`
+	Mobile        string     `json:"mobile"`
+	Designation   string     `json:"designation"`
+	Name          string     `json:"name"`
+	Logo          string     `json:"logo"`
+	Website       string     `json:"website"`
+	Industry      string     `json:"industry"`
+	GST           string     `json:"gst"`
+	Status        string     `json:"status"`
+	Documents     []Document `json:"documents"`
 }
 
 type UpdateCompanyRequest struct {

@@ -66,23 +66,59 @@ func ToUserDocuments(docs []Document) []user.Document {
 }
 
 func (s *CompanyService) CreateCompany(ctx context.Context, req CreateCompanyRequest) (*CompanyResponse, error) {
-	// In the new model, creation is likely handled by User Registration.
-	// But if we want to "Add Profile" as per UI, maybe we are creating a Recruiter User?
+	if strings.TrimSpace(req.Name) == "" {
+		return nil, errors.New("company name is required")
+	}
 
-	// Assuming this creates a new Recruiter User
 	if req.RecruiterID != "" {
-		// If recruiter ID is provided, maybe we are just updating their company info?
 		return s.UpdateCompany(ctx, req.RecruiterID, UpdateCompanyRequest{
 			Name:      req.Name,
 			Logo:      req.Logo,
 			Website:   req.Website,
 			GST:       req.GST,
 			Documents: req.Documents,
-			Status:    "pending",
+			Status:    req.Status,
 		})
 	}
 
-	return nil, errors.New("creating a new company requires creating a user first")
+	status := strings.TrimSpace(req.Status)
+	if status == "" {
+		if len(req.Documents) > 0 {
+			status = "pending"
+		} else {
+			status = "no_appeal"
+		}
+	}
+
+	recruiterName := strings.TrimSpace(req.RecruiterName)
+	if recruiterName == "" {
+		recruiterName = strings.TrimSpace(req.Name) + " Recruiter"
+	}
+
+	u := &user.User{
+		Name:               recruiterName,
+		Headline:           strings.TrimSpace(req.Designation),
+		Email:              strings.ToLower(strings.TrimSpace(req.Email)),
+		Mobile:             strings.TrimSpace(req.Mobile),
+		Roles:              []string{user.RoleRecruiter},
+		IsRegistered:       true,
+		CompanyName:        strings.TrimSpace(req.Name),
+		CompanyLogo:        strings.TrimSpace(req.Logo),
+		CompanyWebsite:     strings.TrimSpace(req.Website),
+		Industry:           strings.TrimSpace(req.Industry),
+		GST:                strings.TrimSpace(req.GST),
+		CompanyDocuments:   ToUserDocuments(req.Documents),
+		VerificationStatus: status,
+		CreatedAt:          time.Now(),
+		UpdatedAt:          time.Now(),
+	}
+
+	createdUser, err := s.userRepo.CreateUser(ctx, u)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.GetCompany(ctx, createdUser.ID.Hex())
 }
 
 func (s *CompanyService) GetCompany(ctx context.Context, id string) (*CompanyResponse, error) {
@@ -219,12 +255,7 @@ func (s *CompanyService) UpdateCompany(ctx context.Context, id string, req Updat
 }
 
 func (s *CompanyService) DeleteCompany(ctx context.Context, id string) error {
-	// Deleting a company means deleting the User? Or just removing Recruiter role?
-	// Usually delete user?
-	// Since "Company IS User", we delete the User? Or maybe soft delete?
-	// No delete method exposed in UserRepository for now?
-	// Let's assume we don't delete via this API for now or add DeleteUser
-	return errors.New("delete company not implemented safely")
+	return s.userRepo.DeleteUser(ctx, id)
 }
 
 func (s *CompanyService) GetTopCompanies(ctx context.Context, limit int) ([]TopCompanyResponse, error) {

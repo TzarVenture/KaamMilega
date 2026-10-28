@@ -6,6 +6,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,6 +28,7 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user *User) (*User, error)
 	UpdatePassword(ctx context.Context, userID string, passwordHash string) error
 	FindUserByID(ctx context.Context, id string) (*User, error)
+	DeleteUser(ctx context.Context, id string) error
 
 	SaveOTP(ctx context.Context, otp *OTP) error
 	GetLatestOTP(ctx context.Context, mobile string) (*OTP, error)
@@ -52,6 +54,8 @@ type UserRepository interface {
 	ExportUsersCSV(ctx context.Context, role string) ([]byte, error)
 	ExportJobsCSV(ctx context.Context, status string) ([]byte, error)
 	ExportRevenueCSV(ctx context.Context, status string) ([]byte, error)
+
+	GlobalSearch(ctx context.Context, query string) (*GlobalSearchResponse, error)
 }
 
 type UserRepositoryImpl struct {
@@ -233,6 +237,15 @@ func (r *UserRepositoryImpl) UpdateUser(ctx context.Context, user *User) (*User,
 		return nil, ErrStaleUser
 	}
 	return user, nil
+}
+
+func (r *UserRepositoryImpl) DeleteUser(ctx context.Context, id string) error {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return err
+	}
+	_, err = r.userColl.DeleteOne(ctx, bson.M{"_id": oid})
+	return err
 }
 
 // HasRestrictedProfileAccess reports whether viewer may see owner's private or connections-only
@@ -1154,3 +1167,234 @@ func (r *UserRepositoryImpl) ExportRevenueCSV(ctx context.Context, status string
 
 	return buf.Bytes(), nil
 }
+
+func (r *UserRepositoryImpl) GlobalSearch(ctx context.Context, q string) (*GlobalSearchResponse, error) {
+	q = strings.TrimSpace(q)
+	res := &GlobalSearchResponse{
+		Query:     q,
+		Total:     0,
+		Users:     []GlobalSearchResultItem{},
+		Companies: []GlobalSearchResultItem{},
+		Jobs:      []GlobalSearchResultItem{},
+		Events:    []GlobalSearchResultItem{},
+	}
+
+	if q == "" {
+		return res, nil
+	}
+
+	regexPattern := primitive.Regex{Pattern: regexp.QuoteMeta(q), Options: "i"}
+
+	// 1. Search Users (limit 5)
+	userFilter := bson.M{
+		"$or": []bson.M{
+			{"name": regexPattern},
+			{"first_name": regexPattern},
+			{"last_name": regexPattern},
+			{"email": regexPattern},
+			{"mobile": regexPattern},
+			{"headline": regexPattern},
+		},
+	}
+	userOpts := options.Find().SetLimit(5).SetProjection(bson.M{
+		"_id": 1, "name": 1, "first_name": 1, "last_name": 1, "email": 1, "mobile": 1, "roles": 1, "headline": 1, "profile_image": 1,
+	})
+	if userCursor, err := r.userColl.Find(ctx, userFilter, userOpts); err == nil {
+		var rawUsers []bson.M
+		if err := userCursor.All(ctx, &rawUsers); err == nil {
+			for _, u := range rawUsers {
+				idStr := ""
+				if id, ok := u["_id"].(primitive.ObjectID); ok {
+					idStr = id.Hex()
+				}
+				name, _ := u["name"].(string)
+				if name == "" {
+					fn, _ := u["first_name"].(string)
+					ln, _ := u["last_name"].(string)
+					name = strings.TrimSpace(fn + " " + ln)
+				}
+				if name == "" {
+					name = "Platform User"
+				}
+
+				subtitle, _ := u["headline"].(string)
+				if subtitle == "" {
+					if em, ok := u["email"].(string); ok && em != "" {
+						subtitle = em
+					} else if mob, ok := u["mobile"].(string); ok && mob != "" {
+						subtitle = mob
+					}
+				}
+
+				badge := "Candidate"
+				if roles, ok := u["roles"].(primitive.A); ok {
+					for _, rItem := range roles {
+						if rs, ok := rItem.(string); ok {
+							if rs == "admin" {
+								badge = "Admin"
+								break
+							} else if rs == "recruiter" {
+								badge = "Recruiter"
+							} else if rs == "expert" && badge != "Recruiter" {
+								badge = "Expert"
+							}
+						}
+					}
+				}
+
+				avatar, _ := u["profile_image"].(string)
+				res.Users = append(res.Users, GlobalSearchResultItem{
+					ID:       idStr,
+					Type:     "user",
+					Title:    name,
+					Subtitle: subtitle,
+					Badge:    badge,
+					Avatar:   avatar,
+					URL:      fmt.Sprintf("/admin/users?search=%s", url.QueryEscape(name)),
+				})
+			}
+		}
+	}
+
+	// 2. Search Companies (limit 5)
+	compFilter := bson.M{
+		"$or": []bson.M{
+			{"name": regexPattern},
+			{"email": regexPattern},
+			{"industry": regexPattern},
+			{"website": regexPattern},
+		},
+	}
+	compOpts := options.Find().SetLimit(5).SetProjection(bson.M{
+		"_id": 1, "name": 1, "logo": 1, "industry": 1, "website": 1, "status": 1,
+	})
+	if compCursor, err := r.db.DB.Collection("companies").Find(ctx, compFilter, compOpts); err == nil {
+		var rawComps []bson.M
+		if err := compCursor.All(ctx, &rawComps); err == nil {
+			for _, c := range rawComps {
+				idStr := ""
+				if id, ok := c["_id"].(primitive.ObjectID); ok {
+					idStr = id.Hex()
+				}
+				cname, _ := c["name"].(string)
+				if cname == "" {
+					cname = "Company"
+				}
+				industry, _ := c["industry"].(string)
+				if industry == "" {
+					industry, _ = c["website"].(string)
+				}
+				logo, _ := c["logo"].(string)
+				status, _ := c["status"].(string)
+				if status == "" {
+					status = "Verified"
+				}
+				res.Companies = append(res.Companies, GlobalSearchResultItem{
+					ID:       idStr,
+					Type:     "company",
+					Title:    cname,
+					Subtitle: industry,
+					Badge:    strings.Title(status),
+					Avatar:   logo,
+					URL:      fmt.Sprintf("/admin/companies?search=%s", url.QueryEscape(cname)),
+				})
+			}
+		}
+	}
+
+	// 3. Search Jobs (limit 5)
+	jobFilter := bson.M{
+		"$or": []bson.M{
+			{"title": regexPattern},
+			{"company": regexPattern},
+			{"city_name": regexPattern},
+			{"location": regexPattern},
+			{"job_type": regexPattern},
+		},
+	}
+	jobOpts := options.Find().SetLimit(5).SetProjection(bson.M{
+		"_id": 1, "title": 1, "company": 1, "city_name": 1, "location": 1, "job_type": 1, "status": 1,
+	})
+	if jobCursor, err := r.db.DB.Collection("jobs").Find(ctx, jobFilter, jobOpts); err == nil {
+		var rawJobs []bson.M
+		if err := jobCursor.All(ctx, &rawJobs); err == nil {
+			for _, j := range rawJobs {
+				idStr := ""
+				if id, ok := j["_id"].(primitive.ObjectID); ok {
+					idStr = id.Hex()
+				}
+				title, _ := j["title"].(string)
+				if title == "" {
+					title = "Untitled Job"
+				}
+				company, _ := j["company"].(string)
+				loc, _ := j["city_name"].(string)
+				if loc == "" {
+					loc, _ = j["location"].(string)
+				}
+				sub := company
+				if loc != "" {
+					if sub != "" {
+						sub += " • " + loc
+					} else {
+						sub = loc
+					}
+				}
+				status, _ := j["status"].(string)
+				if status == "" {
+					status = "Active"
+				}
+				res.Jobs = append(res.Jobs, GlobalSearchResultItem{
+					ID:       idStr,
+					Type:     "job",
+					Title:    title,
+					Subtitle: sub,
+					Badge:    strings.Title(status),
+					URL:      fmt.Sprintf("/admin/jobs?search=%s", url.QueryEscape(title)),
+				})
+			}
+		}
+	}
+
+	// 4. Search Events (limit 3)
+	eventFilter := bson.M{
+		"$or": []bson.M{
+			{"title": regexPattern},
+			{"organizer": regexPattern},
+			{"location": regexPattern},
+			{"category": regexPattern},
+		},
+	}
+	eventOpts := options.Find().SetLimit(3).SetProjection(bson.M{
+		"_id": 1, "title": 1, "organizer": 1, "location": 1, "category": 1,
+	})
+	if eventCursor, err := r.db.DB.Collection("events").Find(ctx, eventFilter, eventOpts); err == nil {
+		var rawEvents []bson.M
+		if err := eventCursor.All(ctx, &rawEvents); err == nil {
+			for _, e := range rawEvents {
+				idStr := ""
+				if id, ok := e["_id"].(primitive.ObjectID); ok {
+					idStr = id.Hex()
+				}
+				title, _ := e["title"].(string)
+				organizer, _ := e["organizer"].(string)
+				category, _ := e["category"].(string)
+				if category == "" {
+					category = "Event"
+				}
+				res.Events = append(res.Events, GlobalSearchResultItem{
+					ID:       idStr,
+					Type:     "event",
+					Title:    title,
+					Subtitle: organizer,
+					Badge:    category,
+					URL:      fmt.Sprintf("/admin/events?search=%s", url.QueryEscape(title)),
+				})
+			}
+		}
+	}
+
+	res.Total = len(res.Users) + len(res.Companies) + len(res.Jobs) + len(res.Events)
+	return res, nil
+}
+
