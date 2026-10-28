@@ -6,6 +6,7 @@ import { NotificationProvider } from "@/lib/notifications";
 import AppToaster from "@/components/km/AppToaster";
 import PushSync from "@/components/km/PushSync";
 import PushInvite from "@/components/km/PushInvite";
+import AccountLocaleSync from "@/i18n/AccountLocaleSync";
 import { FEATURES } from "@/config/features";
 import { THEME_INIT_SCRIPT } from "@/lib/themeScript";
 import "./globals.css";
@@ -100,6 +101,7 @@ export default async function RootLayout({
           <AppToaster />
           <PushSync />
           <PushInvite />
+          {FEATURES.I18N && <AccountLocaleSync />}
         </NextIntlClientProvider>
       </body>
     </html>
