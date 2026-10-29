@@ -4,6 +4,7 @@ import { CameraIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import CustomImage from '@/components/ui/CustomImage';
 import { notify } from "@/lib/notify";
+import { uploadFile, UPLOAD_LIMITS } from '@/lib/upload';
 
 interface ProfilePhotoModalProps {
   isOpen: boolean;
@@ -20,17 +21,16 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setLoading(true);
-    const formData = new FormData();
-    formData.append('file', file);
+    if (file.size > UPLOAD_LIMITS.avatar) {
+      notify.error("This photo is over 5 MB. Please choose a smaller one.");
+      e.target.value = '';
+      return;
+    }
 
+    setLoading(true);
     try {
       // 1. Upload the file
-      const uploadResponse: any = await api.post('/files/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      const newImageUrl = uploadResponse.url;
+      const { url: newImageUrl } = await uploadFile(file, 'avatar');
 
       // 2. Update user profile
       const userResponse = await api.patch('/user/profile', { profile_image: newImageUrl });

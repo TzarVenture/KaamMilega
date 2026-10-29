@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import api from "@/lib/axios";
 import Link from "next/link";
 import { notify } from "@/lib/notify";
+import FileLink from '@/components/ui/FileLink';
 import { ArrowUpRightIcon, BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CaretRightIcon, ClockIcon, FileTextIcon, KanbanIcon, PlusCircleIcon, ShieldCheckIcon, TrendUpIcon, UserCheckIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
 
 // --- Shimmer Loading Skeleton ---
@@ -369,15 +370,13 @@ export default function RecruiterDashboard() {
 
                                 <div className="flex items-center gap-2.5 shrink-0">
                                     {app.resume_url && (
-                                        <a
+                                        <FileLink
                                             href={app.resume_url}
-                                            target="_blank"
-                                            rel="noreferrer"
                                             className="px-2.5 py-1 bg-km-surface hover:bg-km-border/50 text-km-text-primary border border-km-border rounded-lg text-xs font-medium flex items-center gap-1 transition-colors"
                                         >
                                             <FileTextIcon weight="regular" size={14} aria-hidden="true" />
                                             <span>Resume</span>
-                                        </a>
+                                        </FileLink>
                                     )}
 
                                     <select

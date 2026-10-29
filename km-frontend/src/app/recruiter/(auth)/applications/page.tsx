@@ -19,6 +19,7 @@ import {
     XIcon 
 } from '@phosphor-icons/react';
 import ScheduleInterviewModal from "@/components/recruiter/ScheduleInterviewModal";
+import FileLink from '@/components/ui/FileLink';
 import CandidateDetailDrawer from "@/components/recruiter/CandidateDetailDrawer";
 
 const KANBAN_COLUMNS = [
@@ -356,16 +357,14 @@ function ApplicationsContent() {
 
                                                     <div className="flex items-center gap-2">
                                                         {app.resume_url && (
-                                                            <a
+                                                            <FileLink
                                                                 href={app.resume_url}
-                                                                target="_blank"
-                                                                rel="noreferrer"
                                                                 className="text-[11px] font-medium text-km-text-secondary hover:text-km-blue flex items-center gap-1 transition-colors"
                                                                 title="Open candidate resume"
                                                             >
                                                                 <FileTextIcon weight="regular" size={13} aria-hidden="true" />
                                                                 <span>Resume</span>
-                                                            </a>
+                                                            </FileLink>
                                                         )}
 
                                                         <button
@@ -472,15 +471,13 @@ function ApplicationsContent() {
                                             </td>
                                             <td className="py-3.5 px-5">
                                                 {app.resume_url ? (
-                                                    <a
+                                                    <FileLink
                                                         href={app.resume_url}
-                                                        target="_blank"
-                                                        rel="noreferrer"
                                                         className="text-km-blue dark:text-km-link hover:underline font-semibold text-xs flex items-center gap-1"
                                                     >
                                                         <FileTextIcon weight="regular" size={13} aria-hidden="true" />
                                                         <span>Resume</span>
-                                                    </a>
+                                                    </FileLink>
                                                 ) : (
                                                     <span className="text-xs text-km-text-secondary">None</span>
                                                 )}

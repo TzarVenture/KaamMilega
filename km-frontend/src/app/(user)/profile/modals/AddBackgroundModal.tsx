@@ -3,6 +3,7 @@ import ModalWrapper from '@/components/ui/ModalWrapper';
 import { ImageIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { notify } from "@/lib/notify";
+import { uploadFile, UPLOAD_LIMITS } from '@/lib/upload';
 
 interface AddBackgroundModalProps {
   isOpen: boolean;
@@ -18,16 +19,15 @@ const AddBackgroundModal = ({ isOpen, onClose, onSuccess }: AddBackgroundModalPr
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > UPLOAD_LIMITS.cover) {
+      notify.error("This photo is over 5 MB. Please choose a smaller one.");
+      e.target.value = '';
+      return;
+    }
+
     setLoading(true);
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      const uploadResponse: any = await api.post('/files/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      const newImageUrl = uploadResponse.url;
+      const { url: newImageUrl } = await uploadFile(file, 'cover');
 
       const userResponse = await api.patch('/user/profile', { cover_image: newImageUrl });
       onSuccess(userResponse);

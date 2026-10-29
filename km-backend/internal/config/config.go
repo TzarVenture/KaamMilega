@@ -19,6 +19,14 @@ type Config struct {
 	// default so a dev or staging server never emails real users by accident.
 	JobAlertsEnabled bool
 	FSURL         string // URL path prefix for file access
+	// Media storage: STORAGE_DRIVER=r2 keeps uploads on Cloudflare R2, anything else on local disk
+	StorageDriver     string
+	R2AccountID       string
+	R2AccessKeyID     string
+	R2SecretAccessKey string
+	R2PublicBucket    string
+	R2PrivateBucket   string
+	R2PublicBaseURL   string
 	SMTPHost      string
 	SMTPPort      string
 	SMTPUsername  string
@@ -55,6 +63,13 @@ func LoadConfig() (*Config, error) {
 		FSPath:            getEnv("FS_PATH", "./static/uploads"),
 		FSURL:             getEnv("FS_URL", "/api/files/uploads"),
 		Host:              getEnv("HOST", ""),
+		StorageDriver:     getEnv("STORAGE_DRIVER", "local"),
+		R2AccountID:       getEnv("R2_ACCOUNT_ID", ""),
+		R2AccessKeyID:     getEnv("R2_ACCESS_KEY_ID", ""),
+		R2SecretAccessKey: getEnv("R2_SECRET_ACCESS_KEY", ""),
+		R2PublicBucket:    getEnv("R2_PUBLIC_BUCKET", ""),
+		R2PrivateBucket:   getEnv("R2_PRIVATE_BUCKET", ""),
+		R2PublicBaseURL:   getEnv("R2_PUBLIC_BASE_URL", ""),
 		SMTPHost:          getEnv("SMTP_HOST", "smtp-relay.brevo.com"),
 		SMTPPort:          getEnv("SMTP_PORT", "587"),
 		SMTPUsername:      getEnv("SMTP_USERNAME", getEnv("SMTP_USER", "")),

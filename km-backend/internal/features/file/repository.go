@@ -14,6 +14,8 @@ type FileRepository interface {
 	Save(ctx context.Context, file *File) error
 	Get(ctx context.Context, id string) (*File, error)
 	CountByRecord(ctx context.Context, moduleName, recordID string) (int64, error)
+	IsConversationParticipant(ctx context.Context, conversationID string, userID primitive.ObjectID) (bool, error)
+	IsResumeRecipient(ctx context.Context, fileURL string, recruiterID primitive.ObjectID) (bool, error)
 }
 
 type FileRepositoryImpl struct {
@@ -71,4 +73,20 @@ func (r *FileRepositoryImpl) CountByRecord(ctx context.Context, moduleName, reco
 		"record_id":   recordID,
 	}
 	return coll.CountDocuments(ctx, filter)
+}
+
+// IsConversationParticipant reports whether the user is in the chat a file was sent to
+func (r *FileRepositoryImpl) IsConversationParticipant(ctx context.Context, conversationID string, userID primitive.ObjectID) (bool, error) {
+	oid, err := primitive.ObjectIDFromHex(conversationID)
+	if err != nil {
+		return false, nil
+	}
+	n, err := r.db.DB.Collection("conversations").CountDocuments(ctx, bson.M{"_id": oid, "participants": userID})
+	return n > 0, err
+}
+
+// IsResumeRecipient reports whether the recruiter received this resume with an application
+func (r *FileRepositoryImpl) IsResumeRecipient(ctx context.Context, fileURL string, recruiterID primitive.ObjectID) (bool, error) {
+	n, err := r.db.DB.Collection("applications").CountDocuments(ctx, bson.M{"resume_url": fileURL, "recruiter_id": recruiterID})
+	return n > 0, err
 }

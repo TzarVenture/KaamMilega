@@ -7,6 +7,7 @@ import { ArrowsClockwiseIcon, CaretDownIcon, CaretLeftIcon, ChatIcon, CheckCircl
 import dynamic from "next/dynamic";
 import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
+import { isPrivateFileRef, openFile, uploadFile, useFileUrl } from "@/lib/upload";
 import { playMessageReceivedSound } from "@/lib/sound";
 import {
   setActiveChatState,
@@ -150,6 +151,25 @@ const getDateDividerLabel = (dateStr: string): string => {
 };
 
 // --- Resolve asset URL ---
+/** A chat image; private attachments load through a short-lived signed link */
+function ChatImage({ url, alt, onOpen }: { url: string; alt: string; onOpen: (src: string) => void }) {
+  const src = useFileUrl(isPrivateFileRef(url) ? url : getFullMediaUrl(url));
+  if (!src) {
+    return <div className="h-40 w-56 max-w-full rounded-xl bg-km-surface animate-pulse" aria-label={alt} />;
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onClick={(e) => {
+        e.stopPropagation();
+        onOpen(src);
+      }}
+      className="max-h-60 w-auto rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
+    />
+  );
+}
+
 const getFullMediaUrl = (url?: string): string => {
   if (!url) return "";
   if (
@@ -1190,16 +1210,13 @@ function ChatView() {
     if (pendingAttachment) {
       setIsUploading(true);
       try {
-        const formData = new FormData();
-        formData.append("file", pendingAttachment.file);
-        formData.append("module_name", "chat");
-        formData.append("record_id", activeChat.id);
+        // Chat files are private: only the people in this conversation can open them
+        const uploadRes = await uploadFile(pendingAttachment.file, "chat", {
+          moduleName: "chat",
+          recordId: activeChat.id,
+        });
 
-        const uploadRes = (await api.post("/files/upload", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        })) as any;
-
-        uploadedUrl = uploadRes.url || uploadRes.URL || "";
+        uploadedUrl = uploadRes.url;
         uploadedType = uploadRes.mime_type || pendingAttachment.file.type || "";
         uploadedName =
           uploadRes.original_filename || pendingAttachment.name || "";
@@ -2100,21 +2117,13 @@ function ChatView() {
                                       /\.(jpg|jpeg|png|webp|gif)$/i,
                                     )) && (
                                     <div className="mb-2 overflow-hidden rounded-xl">
-                                      <img
-                                        src={getFullMediaUrl(
-                                          msg.attachment_url,
-                                        )}
+                                      <ChatImage
+                                        url={msg.attachment_url}
                                         alt={
                                           msg.attachment_name ||
                                           "Attached image"
                                         }
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setLightboxImage(
-                                            getFullMediaUrl(msg.attachment_url),
-                                          );
-                                        }}
-                                        className="max-h-60 w-auto rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
+                                        onOpen={setLightboxImage}
                                       />
                                     </div>
                                   )}
@@ -2126,13 +2135,23 @@ function ChatView() {
                                     /\.(jpg|jpeg|png|webp|gif)$/i,
                                   ) && (
                                     <a
-                                      href={getFullMediaUrl(msg.attachment_url)}
+                                      href={isPrivateFileRef(msg.attachment_url) ? undefined : getFullMediaUrl(msg.attachment_url)}
                                       target="_blank"
                                       rel="noopener noreferrer"
                                       download={
                                         msg.attachment_name || "document"
                                       }
-                                      onClick={(e) => e.stopPropagation()}
+                                      role="link"
+                                      tabIndex={0}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (isPrivateFileRef(msg.attachment_url)) {
+                                          e.preventDefault();
+                                          openFile(msg.attachment_url!).catch((err) =>
+                                            notify.error(err, "Could not open this file."),
+                                          );
+                                        }
+                                      }}
                                       className={`flex items-center gap-2.5 p-2 mb-2 rounded-xl border transition-colors ${
                                         isMe
                                           ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"

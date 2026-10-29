@@ -12,6 +12,11 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     remotePatterns: [
       {
+        // Uploaded media (Cloudflare R2 public bucket)
+        protocol: "https",
+        hostname: "cdn.kaammilega.com",
+      },
+      {
         protocol: "https",
         hostname: "cdn.jsdelivr.net",
       },
