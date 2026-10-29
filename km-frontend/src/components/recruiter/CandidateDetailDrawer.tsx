@@ -17,6 +17,7 @@ import {
     XIcon 
 } from '@phosphor-icons/react';
 import { notify } from "@/lib/notify";
+import FileLink from '@/components/ui/FileLink';
 
 interface CandidateDetailDrawerProps {
     isOpen: boolean;
@@ -284,15 +285,13 @@ export default function CandidateDetailDrawer({
                                         </p>
                                     </div>
                                 </div>
-                                <a
+                                <FileLink
                                     href={application.resume_url}
-                                    target="_blank"
-                                    rel="noreferrer"
                                     className="px-3.5 py-2 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 shrink-0 shadow-2xs"
                                 >
                                     <span>View Resume</span>
                                     <ArrowSquareOutIcon size={14} weight="bold" aria-hidden="true" />
-                                </a>
+                                </FileLink>
                             </div>
                         ) : (
                             <div className="p-4 rounded-2xl border border-dashed border-km-border text-center text-xs text-km-text-secondary">

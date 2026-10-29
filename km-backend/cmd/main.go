@@ -23,6 +23,7 @@ import (
 	"km-backend/internal/features/course"
 	"km-backend/internal/features/event"
 	"km-backend/internal/features/file"
+	"km-backend/internal/storage"
 	"km-backend/internal/features/job"
 	"km-backend/internal/features/jobalert"
 	"km-backend/internal/features/question"
@@ -147,6 +148,9 @@ func main() {
 
 			// Initialize Database
 			database.NewDatabase,
+
+			// Media storage (Cloudflare R2, or local disk in development)
+			storage.New,
 
 			// repositories
 			setting.NewSettingRepository,

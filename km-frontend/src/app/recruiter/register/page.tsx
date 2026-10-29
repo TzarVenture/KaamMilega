@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/axios';
+import { uploadFile } from '@/lib/upload';
 import { isAuthenticated, saveSession } from '@/lib/auth';
 import AuthNavbar from '@/components/auth/AuthNavbar';
 import { ArrowLeftIcon, ArrowRightIcon, BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, CheckIcon, CloudArrowUpIcon, CreditCardIcon, EnvelopeSimpleIcon, FileTextIcon, GlobeIcon, MedalIcon, ShieldCheckIcon, StorefrontIcon, UserIcon, WarningCircleIcon } from '@phosphor-icons/react';
@@ -277,16 +278,6 @@ export default function RecruiterRegisterPage() {
         }
     };
 
-    const uploadFile = async (file: File): Promise<string> => {
-        const formData = new FormData();
-        formData.append('file', file);
-        const res: any = await api.post('/files/upload', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        if (!res?.url) throw new Error('File upload failed. Please try again.');
-        return res.url;
-    };
-
     // skipDocuments: save the company now and add verification documents later
     const handleFinalSubmit = async (skipDocuments: boolean = false) => {
         // The recruiter portal needs a company name, so it is required even when skipping documents
@@ -299,11 +290,11 @@ export default function RecruiterRegisterPage() {
         setLoading(true);
 
         try {
-            const companyLogo = logoFile ? await uploadFile(logoFile) : undefined;
+            const companyLogo = logoFile ? (await uploadFile(logoFile, 'company_logo')).url : undefined;
 
             let companyDocuments: { name: string; url: string }[] | undefined;
             if (!skipDocuments && docFile) {
-                const docUrl = await uploadFile(docFile);
+                const docUrl = (await uploadFile(docFile, 'company_document')).url;
                 const docType = DOCUMENT_TYPES.find((d) => d.id === selectedDocType)?.name || 'Company document';
                 companyDocuments = [{ name: docNumber.trim() ? `${docType} (${docNumber.trim()})` : docType, url: docUrl }];
             }

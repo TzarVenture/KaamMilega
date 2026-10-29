@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CalendarBlankIcon, ChatCircleIcon, CheckCircleIcon, ClockIcon, CloudArrowUpIcon, FileTextIcon, MapPinIcon, MedalIcon, ShareNetworkIcon, ShieldCheckIcon, TrashIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
+import { uploadFile } from '@/lib/upload';
 import { notify, errorText } from "@/lib/notify";
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -151,10 +152,12 @@ const JobDetailPage = () => {
     const submitApplication = async () => {
         setIsApplying(true);
         try {
+            // The resume is private: only the candidate and this job's recruiter can open it
+            const resumeUrl = resumeFile ? (await uploadFile(resumeFile, 'resume')).url : '';
             await api.post('/applications', {
                 job_id: job?.id,
                 cover_letter: coverLetter,
-                resume_url: resumeFile ? resumeFile.name : ''
+                resume_url: resumeUrl
             });
             notify.success('Application submitted successfully! Track your status in My Applications.');
             setHasApplied(true);
