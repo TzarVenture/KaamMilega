@@ -3,7 +3,21 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, DotsThreeVerticalIcon, EnvelopeSimpleIcon, LightningIcon, MagnifyingGlassIcon, NotePencilIcon, PlusIcon, ShieldIcon, UserIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
+import { 
+    BuildingOfficeIcon, 
+    CheckCircleIcon, 
+    CircleNotchIcon, 
+    DotsThreeVerticalIcon, 
+    EnvelopeSimpleIcon, 
+    LightningIcon, 
+    MagnifyingGlassIcon, 
+    NotePencilIcon, 
+    PlusIcon, 
+    ShieldIcon, 
+    UserIcon, 
+    UserPlusIcon, 
+    UsersIcon 
+} from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { notify } from "@/lib/notify";
 import UserProfileModal from '@/components/modals/admin/UserProfileModal';
@@ -17,6 +31,10 @@ interface PlatformUser {
     lastName?: string;
     mobile?: string;
     email?: string;
+    city?: string;
+    about?: string;
+    additionalName?: string;
+    pronouns?: string;
     designation: string;
     roles: string[];
     lastActive: string;
@@ -61,6 +79,10 @@ function UsersContent() {
                     lastName: u.last_name || name.split(' ').slice(1).join(' ') || '',
                     mobile: u.mobile || '',
                     email: u.email || '',
+                    city: u.city || '',
+                    about: u.about || '',
+                    additionalName: u.additional_name || '',
+                    pronouns: u.pronouns || '',
                     designation: u.headline || (roles.includes('recruiter') ? 'Recruiter' : roles.includes('admin') ? 'System Admin' : 'Job Seeker'),
                     roles,
                     lastActive: u.otp_verified_at ? new Date(u.otp_verified_at).toLocaleDateString() : 'Never',
@@ -89,6 +111,7 @@ function UsersContent() {
             u.name.toLowerCase().includes(q) ||
             (u.mobile && u.mobile.includes(q)) ||
             (u.email && u.email.toLowerCase().includes(q)) ||
+            (u.city && u.city.toLowerCase().includes(q)) ||
             u.designation.toLowerCase().includes(q) ||
             u.roles.some(r => r.toLowerCase().includes(q))
         );
@@ -142,7 +165,11 @@ function UsersContent() {
         }
 
         try {
-            const updates = {
+            const updates: Record<string, any> = {
+                city: data.city?.trim() || '',
+                about: data.about?.trim() || '',
+                ...(data.email !== undefined && { email: data.email.trim() }),
+                ...(data.mobile !== undefined && { mobile: data.mobile.trim() }),
                 name: `${data.firstName} ${data.lastName}`.trim(),
                 first_name: data.firstName,
                 last_name: data.lastName,
@@ -152,8 +179,18 @@ function UsersContent() {
             };
 
             await api.patch(`/admin/users/${selectedUser.id}`, updates);
-            setUsers(prev => prev.map(u => u.id === selectedUser.id ? { ...u, ...updates } : u));
-            notify.success('User profile updated successfully!');
+            setUsers(prev => prev.map(u => u.id === selectedUser.id ? { 
+                ...u, 
+                ...updates,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                designation: data.headline,
+                email: updates.email !== undefined ? updates.email : u.email,
+                mobile: updates.mobile !== undefined ? updates.mobile : u.mobile,
+                city: updates.city,
+                about: updates.about
+            } : u));
+            notify.success('User profile & personal details updated successfully!');
         } catch (error: any) {
             console.error('Failed to update user profile:', error);
             notify.error(error, 'Failed to update profile');
@@ -172,7 +209,13 @@ function UsersContent() {
                 userData={selectedUser ? {
                     firstName: selectedUser.firstName || '',
                     lastName: selectedUser.lastName || '',
-                    headline: selectedUser.designation || ''
+                    headline: selectedUser.designation || '',
+                    additionalName: selectedUser.additionalName || '',
+                    pronouns: selectedUser.pronouns || '',
+                    email: selectedUser.email || '',
+                    mobile: selectedUser.mobile || '',
+                    city: selectedUser.city || '',
+                    about: selectedUser.about || '',
                 } : undefined}
                 onSave={handleSaveUser}
             />
@@ -238,7 +281,7 @@ function UsersContent() {
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-900 to-indigo-700 bg-clip-text text-transparent">User Directory & Governance</h1>
-                    <p className="text-sm text-slate-500 mt-1 font-medium">Manage user identities, access roles, and permissions</p>
+                    <p className="text-sm text-slate-500 mt-1 font-medium">Manage user identities, personal details, contact info, and access roles</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -246,7 +289,7 @@ function UsersContent() {
                         <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
                         <input
                             type="text"
-                            placeholder="Search by name, mobile, role..."
+                            placeholder="Search by name, email, mobile, city, role..."
                             value={searchQuery}
                             onChange={(e) => {
                                 setSearchQuery(e.target.value);
@@ -279,7 +322,7 @@ function UsersContent() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-purple-50 bg-slate-50/50">
-                                <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">User Identity</th>
+                                <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">User Identity & Contact</th>
                                 <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Active Roles</th>
                                 <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Access Control</th>
                                 <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Registered</th>
@@ -316,21 +359,32 @@ function UsersContent() {
                                                 <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center shrink-0 border border-purple-100 text-purple-700 font-bold text-sm">
                                                     {user.name.substring(0, 1).toUpperCase()}
                                                 </div>
-                                                <div>
+                                                <div className="min-w-0">
                                                     <h4 className="text-sm font-bold text-slate-900 leading-tight group-hover:text-purple-700 transition-colors">
                                                         {user.name}
                                                     </h4>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        {user.mobile && (
-                                                            <p className="text-xs font-mono text-slate-500 font-semibold">{user.mobile}</p>
+                                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
+                                                        {user.email && (
+                                                            <span className="text-xs text-purple-700 dark:text-purple-400 font-medium truncate max-w-[200px]" title={user.email}>
+                                                                {user.email}
+                                                            </span>
                                                         )}
-                                                        {user.designation && (
-                                                            <>
-                                                                <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                                                <p className="text-xs text-slate-400 font-medium truncate max-w-[180px]">{user.designation}</p>
-                                                            </>
+                                                        {user.email && user.mobile && (
+                                                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                                        )}
+                                                        {user.mobile && (
+                                                            <p className="text-xs font-mono text-slate-600 dark:text-slate-300 font-semibold">{user.mobile}</p>
+                                                        )}
+                                                        {(user.email || user.mobile) && user.city && (
+                                                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                                                        )}
+                                                        {user.city && (
+                                                            <p className="text-xs text-slate-400 font-medium truncate max-w-[120px]">{user.city}</p>
                                                         )}
                                                     </div>
+                                                    {user.designation && (
+                                                        <p className="text-[11px] text-slate-400 font-medium truncate max-w-[260px] mt-0.5">{user.designation}</p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </td>
@@ -368,7 +422,7 @@ function UsersContent() {
                                             <button
                                                 onClick={() => handleEditUser(user)}
                                                 className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all border border-transparent hover:border-purple-100 dark:hover:text-purple-400"
-                                                title="Edit Profile"
+                                                title="Edit Profile & Personal Details"
                                             >
                                                 <NotePencilIcon weight="bold" size={16} />
                                             </button>
@@ -433,4 +487,3 @@ export default function UsersPage() {
         </Suspense>
     );
 }
-

@@ -3,12 +3,13 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { ArrowCounterClockwiseIcon, BuildingOfficeIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, CheckIcon, DotsThreeVerticalIcon, EyeIcon, FunnelSimpleIcon, InfoIcon, MagnifyingGlassIcon, PlusIcon, ProhibitIcon, SealCheckIcon, ShieldCheckIcon, TrashIcon, XCircleIcon, CircleNotchIcon } from '@phosphor-icons/react';
+import { ArrowCounterClockwiseIcon, BuildingOfficeIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, CheckIcon, DotsThreeVerticalIcon, EyeIcon, FunnelSimpleIcon, InfoIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlusIcon, ProhibitIcon, SealCheckIcon, ShieldCheckIcon, TrashIcon, XCircleIcon, CircleNotchIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { notify } from "@/lib/notify";
 import DocumentsListModal from '@/components/modals/admin/DocumentsListModal';
 import DocumentViewerModal from '@/components/modals/admin/DocumentViewerModal';
 import AddCompanyModal from '@/components/modals/admin/AddCompanyModal';
+import EditCompanyModal from '@/components/modals/admin/EditCompanyModal';
 import api from '@/lib/axios';
 
 interface Document {
@@ -19,12 +20,15 @@ interface Document {
 interface RecruiterInfo {
     name: string;
     designation: string;
+    email?: string;
+    mobile?: string;
     last_active: string;
 }
 
 interface Company {
     id: string;
     name: string; // Company Name
+    industry?: string;
     gst?: string;
     logo?: string;
     website?: string;
@@ -54,6 +58,8 @@ function CompaniesContent() {
     const [isDocsListOpen, setIsDocsListOpen] = useState(false);
     const [isDocViewerOpen, setIsDocViewerOpen] = useState(false);
     const [isAddCompanyOpen, setIsAddCompanyOpen] = useState(false);
+    const [isEditCompanyOpen, setIsEditCompanyOpen] = useState(false);
+    const [editingCompany, setEditingCompany] = useState<Company | null>(null);
     const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
     const [selectedDoc, setSelectedDoc] = useState<any>(null);
 
@@ -248,6 +254,18 @@ function CompaniesContent() {
             <AddCompanyModal
                 isOpen={isAddCompanyOpen}
                 onClose={() => setIsAddCompanyOpen(false)}
+                onSuccess={() => {
+                    fetchCompanies();
+                }}
+            />
+
+            <EditCompanyModal
+                isOpen={isEditCompanyOpen}
+                onClose={() => {
+                    setIsEditCompanyOpen(false);
+                    setEditingCompany(null);
+                }}
+                company={editingCompany}
                 onSuccess={() => {
                     fetchCompanies();
                 }}
@@ -531,8 +549,23 @@ function CompaniesContent() {
                                                             transition={{ duration: 0.12 }}
                                                             className="absolute right-0 top-12 z-30 w-52 bg-white dark:bg-km-surface-card rounded-2xl shadow-xl border border-purple-100/80 dark:border-white/10 p-1.5 text-left text-xs font-medium space-y-0.5"
                                                         >
-                                                            <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-purple-50 dark:border-white/5 mb-1">
+                                                            <div className="contents"><div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-purple-50 dark:border-white/5 mb-1">
                                                                 Manage Company
+                                                            </div>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setEditingCompany(company);
+                                                                    setIsEditCompanyOpen(true);
+                                                                    setActiveMenuId(null);
+                                                                }}
+                                                                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:bg-purple-50 hover:text-purple-700 dark:text-slate-200 transition-colors"
+                                                            >
+                                                                <PencilSimpleIcon size={16} weight="bold" className="text-purple-600 shrink-0" />
+                                                                <span>Edit Details</span>
+                                                            </button>
+                                                            
                                                             </div>
 
                                                             <button

@@ -47,7 +47,12 @@ type CreateCompanyRequest struct {
 }
 
 type UpdateCompanyRequest struct {
-	Name      string     `json:"name"`
+	Name          string     `json:"name"`
+	RecruiterName string     `json:"recruiter_name"`
+	Designation   string     `json:"designation"`
+	Email         string     `json:"email"`
+	Mobile        string     `json:"mobile"`
+	Industry      string     `json:"industry"`
 	Logo      string     `json:"logo"`
 	Website   string     `json:"website"`
 	GST       string     `json:"gst"`
@@ -61,6 +66,7 @@ type CompanyResponse struct {
 	Name        string        `json:"name"`
 	Logo        string        `json:"logo"`
 	Website     string        `json:"website"`
+	Industry    string        `json:"industry"`
 	GST         string        `json:"gst"`
 	Documents   []Document    `json:"documents"`
 	Status      string        `json:"status"`
@@ -72,6 +78,8 @@ type CompanyResponse struct {
 type RecruiterInfo struct {
 	Name        string `json:"name"`
 	Designation string `json:"designation"`
+	Email       string `json:"email"`
+	Mobile      string `json:"mobile"`
 	LastActive  string `json:"last_active"` // For simplified display
 }
 
