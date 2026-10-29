@@ -57,6 +57,7 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Post("/skill", api.controller.AddSkill)
 	protected.Delete("/skill/:skillName", api.controller.DeleteSkill)
 	protected.Post("/apply-expert", api.controller.ApplyForExpert)
+	protected.Get("/expert-application", api.controller.GetExpertApplication)
 	protected.Post("/bookmark/:jobId", api.controller.ToggleBookmark)
 	protected.Post("/bookmarks/:jobId", api.controller.ToggleBookmark)
 	protected.Get("/bookmarks", api.controller.GetBookmarkedJobs)

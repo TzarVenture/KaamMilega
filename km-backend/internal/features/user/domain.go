@@ -102,7 +102,9 @@ type User struct {
 	ExpertBio            string     `bson:"expert_bio,omitempty" json:"expert_bio,omitempty"`
 	ExpertPricing        float64    `bson:"expert_pricing,omitempty" json:"expert_pricing,omitempty"`
 	ExpertDocuments      []Document `bson:"expert_documents,omitempty" json:"expert_documents,omitempty"`
-	ExpertApprovalStatus string     `bson:"expert_approval_status,omitempty" json:"expert_approval_status,omitempty"` // "pending", "approved", "rejected"
+	ExpertApprovalStatus string     `bson:"expert_approval_status,omitempty" json:"expert_approval_status,omitempty"`
+	// Identity and payout details of the Expert application (masked; see ExpertKYC)
+	ExpertKYC *ExpertKYC `bson:"expert_kyc,omitempty" json:"expert_kyc,omitempty"` // "pending", "approved", "rejected"
 
 	// Analytics & Views
 	ProfileViews      int      `bson:"profile_views,omitempty" json:"profile_views"`
@@ -251,17 +253,6 @@ type UserFilter struct {
 	// AdminView (admin endpoints only) also returns deactivated/deleted accounts and private
 	// profiles, and lets Search match mobile and email. Public views never search contact details.
 	AdminView bool
-}
-
-type ApplyExpertRequest struct {
-	ExpertCategory    string     `json:"expert_category"`
-	ExpertBio         string     `json:"expert_bio"`
-	ExpertPricing     float64    `json:"expert_pricing"`
-	ExpertDocuments   []Document `json:"expert_documents"`
-}
-
-type ApproveExpertRequest struct {
-	Status string `json:"status"` // "approved" or "rejected"
 }
 
 type PasswordLoginRequest struct {

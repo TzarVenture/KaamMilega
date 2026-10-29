@@ -48,6 +48,7 @@ type UserRepository interface {
 	FindUserByUsername(ctx context.Context, username string) (*User, error)
 	BackfillUsernames(ctx context.Context) error
 	HasActivePassOrSubscription(ctx context.Context, userID string) (bool, error)
+	OwnsPrivateFile(ctx context.Context, userID, ref, kind string) (bool, error)
 	BumpSessionVersion(ctx context.Context, userID string) (int, error)
 	HasRestrictedProfileAccess(ctx context.Context, ownerID, viewerID string, allowConnections bool) (bool, error)
 	GetSessionState(ctx context.Context, userID string) (found bool, status string, version int, err error)
@@ -1399,3 +1400,17 @@ func (r *UserRepositoryImpl) GlobalSearch(ctx context.Context, q string) (*Globa
 	return res, nil
 }
 
+
+// OwnsPrivateFile reports whether ref (/api/files/{id}) is a private upload of this kind by the user
+func (r *UserRepositoryImpl) OwnsPrivateFile(ctx context.Context, userID, ref, kind string) (bool, error) {
+	uid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil || !strings.HasPrefix(ref, "/api/files/") {
+		return false, nil
+	}
+	fid, err := primitive.ObjectIDFromHex(strings.TrimPrefix(ref, "/api/files/"))
+	if err != nil {
+		return false, nil
+	}
+	n, err := r.db.DB.Collection("files").CountDocuments(ctx, bson.M{"_id": fid, "uploaded_by": uid, "kind": kind, "visibility": "private"})
+	return n > 0, err
+}
