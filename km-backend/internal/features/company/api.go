@@ -38,5 +38,6 @@ func (api *CompanyApi) Setup(app *fiber.App) {
 	adminRoutes.Post("/", api.controller.CreateCompany) // Create new profile
 	adminRoutes.Get("/:id", api.controller.GetCompany)
 	adminRoutes.Patch("/:id", api.controller.UpdateCompany)
+	adminRoutes.Put("/:id", api.controller.UpdateCompany)
 	adminRoutes.Delete("/:id", api.controller.DeleteCompany)
 }
