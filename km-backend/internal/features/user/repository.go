@@ -29,6 +29,7 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user *User) (*User, error)
 	UpdatePassword(ctx context.Context, userID string, passwordHash string) error
 	FindUserByID(ctx context.Context, id string) (*User, error)
+	FindUsersByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*User, error)
 	DeleteUser(ctx context.Context, id string) error
 
 	SaveOTP(ctx context.Context, otp *OTP) error
@@ -197,6 +198,42 @@ func (r *UserRepositoryImpl) FindUserByID(ctx context.Context, id string) (*User
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepositoryImpl) FindUsersByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*User, error) {
+	result := make(map[primitive.ObjectID]*User)
+	if len(ids) == 0 {
+		return result, nil
+	}
+	filter := bson.M{"_id": bson.M{"$in": ids}}
+	opts := options.Find().SetProjection(bson.M{
+		"_id":                 1,
+		"name":                1,
+		"first_name":          1,
+		"last_name":           1,
+		"headline":            1,
+		"profile_image":       1,
+		"avatar":              1,
+		"roles":               1,
+		"role":                1,
+		"is_email_verified":   1,
+		"verification_status": 1,
+		"company_name":        1,
+	})
+	cursor, err := r.userColl.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var u User
+		if err := cursor.Decode(&u); err != nil {
+			continue
+		}
+		result[u.ID] = &u
+	}
+	return result, nil
 }
 
 func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *User) (*User, error) {

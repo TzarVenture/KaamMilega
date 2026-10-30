@@ -804,6 +804,13 @@
     "PUSH_DISABLED": "Notifications aren't set up on the server yet.",
     "PUSH_TOKEN_INVALID": "Notifications couldn't be turned on for this device.",
     "PUSH_PLATFORM_INVALID": "Notifications aren't supported on this device.",
-    "PUSH_TEST_TOO_SOON": "Please wait a few seconds before sending another test."
+    "PUSH_TEST_TOO_SOON": "Please wait a few seconds before sending another test.",
+    "FEED_CONTENT_EMPTY": "Please write something before posting.",
+    "FEED_POST_NOT_FOUND": "Post not found or has been removed.",
+    "FEED_UNAUTHORIZED": "You are not authorized to perform this action.",
+    "FEED_INVALID_MEDIA": "The uploaded media is invalid.",
+    "FEED_INVALID_REACTION": "Invalid reaction type.",
+    "FEED_COMMENT_EMPTY": "Comment cannot be empty.",
+    "FEED_REPORT_REASON_EMPTY": "Please provide a reason for reporting this post."
   }
 }

@@ -27,7 +27,7 @@ export const FeedLeftSidebar: React.FC<FeedLeftSidebarProps> = ({
   return (
     <aside className="w-full space-y-4">
       {/* 1. Universal Profile Card */}
-      <div className="bg-km-surface-card border border-km-border rounded-2xl shadow-xs overflow-hidden transition-all duration-200 hover:border-[#0B5ED7]/40 hover:shadow-md">
+      <div className="bg-km-surface-card border border-km-border rounded-2xl shadow-xs overflow-hidden">
         {/* Banner with Digital Primary Gradient */}
         <div className="h-18 w-full bg-gradient-to-r from-[#071A4D] to-[#0B5ED7] relative">
           <div className="absolute inset-0 opacity-15 bg-[radial-gradient(#FFFFFF_1px,transparent_1px)] [background-size:12px_12px]" />

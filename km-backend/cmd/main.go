@@ -22,6 +22,7 @@ import (
 	"km-backend/internal/features/company"
 	"km-backend/internal/features/course"
 	"km-backend/internal/features/event"
+	"km-backend/internal/features/feed"
 	"km-backend/internal/features/file"
 	"km-backend/internal/storage"
 	"km-backend/internal/features/job"
@@ -180,6 +181,7 @@ func main() {
 			app_waitlist.NewRepository,
 			account.NewRepository,
 			push.NewRepository,
+			feed.NewFeedRepository,
 
 			// Services
 			notification.NewMailer,
@@ -209,6 +211,7 @@ func main() {
 			testimonial.NewTestimonialService,
 			account.NewService,
 			jobalert.NewService,
+			feed.NewFeedService,
 
 			// controllers
 			file.NewFileController,
@@ -234,6 +237,7 @@ func main() {
 			testimonial.NewTestimonialController,
 			app_waitlist.NewController,
 			account.NewController,
+			feed.NewFeedController,
 
 			// routes
 			AsRoute(file.NewFileApi),
@@ -261,6 +265,7 @@ func main() {
 			AsRoute(app_waitlist.NewApi),
 			AsRoute(account.NewApi),
 			AsRoute(push.NewApi),
+			AsRoute(feed.NewFeedApi),
 		),
 		fx.WithLogger(func(log *zap.Logger) fxevent.Logger {
 			return &fxevent.ZapLogger{Logger: log}

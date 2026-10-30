@@ -13,6 +13,7 @@ export type UploadKind =
     | "cover"
     | "company_logo"
     | "event_image"
+    | "feed_image"
     | "resume"
     | "company_document"
     | "expert_document"
@@ -34,6 +35,7 @@ export const UPLOAD_LIMITS: Record<UploadKind, number> = {
     cover: 5 << 20,
     company_logo: 2 << 20,
     event_image: 5 << 20,
+    feed_image: 5 << 20,
     resume: 5 << 20,
     company_document: 10 << 20,
     expert_document: 10 << 20,

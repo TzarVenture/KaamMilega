@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GlobeIcon, HashIcon, ImageIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
+import { GlobeIcon, HashIcon, ImageIcon, UsersIcon, XIcon, SpinnerGapIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { getCurrentUser } from '@/lib/auth';
 import { FeedCategory } from './feedTypes';
+import { uploadFile, UPLOAD_LIMITS } from '@/lib/upload';
+import { notify } from '@/lib/notify';
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -16,7 +18,7 @@ interface CreatePostModalProps {
     category: FeedCategory;
     mediaUrl?: string;
     tags: string[];
-  }) => void;
+  }) => Promise<void> | void;
 }
 
 const POPULAR_HASHTAGS = [
@@ -42,7 +44,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
   const [content, setContent] = useState('');
   const [category, setCategory] = useState<FeedCategory>(initialCategory);
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<'public' | 'connections'>('public');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -50,23 +52,47 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Sync category when initialCategory changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialCategory) setCategory(initialCategory);
   }, [initialCategory]);
+
+  // Clean up any blob preview when closing
+  const cleanupPreview = () => {
+    if (imagePreview && imagePreview.startsWith('blob:')) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImagePreview(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleClose = () => {
+    cleanupPreview();
+    setContent('');
+    onClose();
+  };
 
   if (!isOpen) return null;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setImagePreview(result);
-        setMediaUrl(result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > UPLOAD_LIMITS.feed_image) {
+      notify.error('Photo is too large. Feed images can be up to 5 MB.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
     }
+
+    if (!file.type.startsWith('image/')) {
+      notify.error('Please upload an image (JPG, PNG, WebP, GIF).');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    cleanupPreview();
+    setSelectedFile(file);
+    setImagePreview(URL.createObjectURL(file));
   };
 
   const handleAddHashtag = (tag: string) => {
@@ -76,40 +102,49 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() && !mediaUrl) return;
+    if (!content.trim() && !selectedFile) return;
 
     setIsSubmitting(true);
+    try {
+      let uploadedMediaUrl: string | undefined = undefined;
 
-    // Extract tags from text or default
-    const extractedTags = (content.match(/#[a-zA-Z0-9_]+/g) || []) as string[];
+      if (selectedFile) {
+        const uploadResult = await uploadFile(selectedFile, 'feed_image', { moduleName: 'feed' });
+        uploadedMediaUrl = uploadResult.url;
+      }
 
-    onSubmit({
-      content: content.trim(),
-      category,
-      mediaUrl: mediaUrl || undefined,
-      tags: extractedTags,
-    });
+      // Extract hashtags
+      const extractedTags = (content.match(/#[a-zA-Z0-9_]+/g) || []) as string[];
 
-    // Reset and close
-    setContent('');
-    setMediaUrl(null);
-    setImagePreview(null);
-    setIsSubmitting(false);
-    onClose();
+      await onSubmit({
+        content: content.trim(),
+        category,
+        mediaUrl: uploadedMediaUrl,
+        tags: extractedTags,
+      });
+
+      cleanupPreview();
+      setContent('');
+      onClose();
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to post update. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-        {/* Backdrop */}
+        {/* Backdrop (Solid Dim Overlay - No Glassmorphism per design.md) */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-[#071A4D]/50 transition-opacity dark:bg-km-primary"
+          onClick={handleClose}
+          className="fixed inset-0 bg-black/50 transition-opacity"
         />
 
         {/* Modal Card */}
@@ -125,7 +160,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <h2 className="text-base font-poppins font-bold text-km-text-primary">Create a Post</h2>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               className="p-1.5 text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-full transition-colors"
             >
               <XIcon size={20} />
@@ -140,7 +175,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <div>
               <h3 className="font-poppins font-bold text-sm text-km-text-primary leading-tight">{userName}</h3>
               <p className="text-xs text-km-text-secondary truncate max-w-xs">{userHeadline}</p>
-              
+
               <div className="flex items-center gap-2 mt-1">
                 {/* Visibility Selector */}
                 <button
@@ -181,7 +216,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="What would you like to share with the KaamMilega community? Mention jobs, learnings, or spot work updates..."
-              className="w-full min-h-[140px] text-sm font-poppins text-km-text-primary placeholder:text-km-text-secondary/60 border-none outline-none resize-none leading-relaxed"
+              className="w-full min-h-[140px] text-sm font-poppins text-km-text-primary placeholder:text-km-text-secondary/60 border-none outline-none resize-none leading-relaxed bg-transparent"
               autoFocus
             />
 
@@ -192,12 +227,9 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 <img src={imagePreview} alt="Upload preview" className="w-full h-full object-cover max-h-60" />
                 <button
                   type="button"
-                  onClick={() => {
-                    setImagePreview(null);
-                    setMediaUrl(null);
-                    if (fileInputRef.current) fileInputRef.current.value = '';
-                  }}
-                  className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 text-white rounded-full transition-colors"
+                  onClick={cleanupPreview}
+                  className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black/90 text-white rounded-full transition-colors"
+                  aria-label="Remove image"
                 >
                   <XIcon weight="bold" size={16} />
                 </button>
@@ -229,7 +261,7 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             type="file"
             ref={fileInputRef}
             onChange={handleFileChange}
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp,image/gif"
             className="hidden"
           />
 
@@ -257,22 +289,24 @@ export const CreatePostModal: React.FC<CreatePostModalProps> = ({
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-km-surface-card hover:text-km-text-primary transition-all"
+                onClick={handleClose}
+                disabled={isSubmitting}
+                className="px-4 py-2 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-km-surface-card hover:text-km-text-primary transition-all disabled:opacity-50"
               >
                 Cancel
               </button>
 
               <button
                 type="button"
-                disabled={(!content.trim() && !mediaUrl) || isSubmitting}
+                disabled={(!content.trim() && !selectedFile) || isSubmitting}
                 onClick={handleSubmit}
-                className={`px-5 py-2 rounded-xl text-xs font-poppins font-semibold transition-all ${
-                  (!content.trim() && !mediaUrl) || isSubmitting
+                className={`px-5 py-2 rounded-xl text-xs font-poppins font-semibold transition-all inline-flex items-center gap-2 ${
+                  (!content.trim() && !selectedFile) || isSubmitting
                     ? 'bg-[#D9E0EA] text-km-text-secondary cursor-not-allowed opacity-60 dark:bg-[#293147]'
                     : 'bg-[#071A4D] hover:bg-[#0B1F52] text-white shadow-xs hover:shadow-md dark:bg-km-primary dark:hover:bg-km-primary-dark'
                 }`}
               >
+                {isSubmitting && <SpinnerGapIcon size={14} className="animate-spin" />}
                 {isSubmitting ? 'Posting...' : 'Post'}
               </button>
             </div>

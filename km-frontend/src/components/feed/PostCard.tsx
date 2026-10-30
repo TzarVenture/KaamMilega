@@ -1,11 +1,26 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { BookmarkSimpleIcon, ChatIcon, ConfettiIcon, DotsThreeIcon, GlobeIcon, HeartIcon, LightbulbIcon, PaperPlaneRightIcon, RepeatIcon, ShareNetworkIcon, ShieldCheckIcon, ThumbsUpIcon, TrashIcon } from '@phosphor-icons/react';
+import {
+  BookmarkSimpleIcon,
+  ChatIcon,
+  ConfettiIcon,
+  DotsThreeIcon,
+  FlagIcon,
+  GlobeIcon,
+  HeartIcon,
+  LightbulbIcon,
+  PaperPlaneRightIcon,
+  RepeatIcon,
+  ShareNetworkIcon,
+  ShieldCheckIcon,
+  ThumbsUpIcon,
+  TrashIcon,
+} from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
-import { FeedPost, FeedAuthor, ReactionType } from './feedTypes';
+import { FeedPost, ReactionType } from './feedTypes';
 import { getCurrentUser } from '@/lib/auth';
-import { notify } from "@/lib/notify";
+import { notify } from '@/lib/notify';
 
 interface PostCardProps {
   post: FeedPost;
@@ -14,6 +29,8 @@ interface PostCardProps {
   onRepost: (postId: string) => void;
   onComment: (postId: string, content: string) => void;
   onDelete?: (postId: string) => void;
+  onDeleteComment?: (postId: string, commentId: string) => void;
+  onReport?: (postId: string, reason: string) => void;
 }
 
 const REACTION_CONFIG: Record<
@@ -59,6 +76,8 @@ export const PostCard: React.FC<PostCardProps> = ({
   onRepost,
   onComment,
   onDelete,
+  onDeleteComment,
+  onReport,
 }) => {
   const currentUser = getCurrentUser();
   const currentUserId = currentUser?.id || currentUser?._id;
@@ -68,6 +87,8 @@ export const PostCard: React.FC<PostCardProps> = ({
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportReason, setReportReason] = useState('');
 
   const menuRef = useRef<HTMLDivElement>(null);
   const reactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -83,7 +104,7 @@ export const PostCard: React.FC<PostCardProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);
 
-  const isOwner = currentUserId && post.author.id === currentUserId;
+  const isOwner = Boolean(currentUserId && post.author.id === currentUserId);
 
   const handleCopyLink = () => {
     if (typeof window !== 'undefined') {
@@ -98,6 +119,20 @@ export const PostCard: React.FC<PostCardProps> = ({
     if (!commentText.trim()) return;
     onComment(post.id, commentText.trim());
     setCommentText('');
+  };
+
+  const handleReportSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reportReason.trim()) {
+      notify.error('Please enter a reason for reporting.');
+      return;
+    }
+    if (onReport) {
+      onReport(post.id, reportReason.trim());
+    }
+    setIsReporting(false);
+    setReportReason('');
+    setMenuOpen(false);
   };
 
   // Format content text with highlighted hashtags
@@ -139,7 +174,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   return (
     <article
       id={post.id}
-      className="bg-km-surface-card border border-km-border rounded-2xl shadow-xs transition-all duration-200 hover:border-[#0B5ED7]/40 hover:shadow-md overflow-hidden"
+      className="bg-km-surface-card border border-km-border rounded-2xl shadow-xs overflow-hidden"
     >
       {/* 1. Header: Author Identity & 3-Dots Menu */}
       <div className="p-4 sm:p-5 pb-3 flex items-start justify-between gap-3">
@@ -184,17 +219,20 @@ export const PostCard: React.FC<PostCardProps> = ({
           </button>
 
           {menuOpen && (
-            <div className="absolute right-0 top-8 w-48 bg-km-surface-card border border-km-border rounded-2xl shadow-lg py-1.5 z-20 text-xs font-poppins font-medium animate-in fade-in zoom-in-95 duration-100">
+            <div className="absolute right-0 top-8 w-48 bg-km-surface-card border border-km-border rounded-2xl shadow-lg py-1.5 z-20 text-xs font-poppins font-medium">
               <button
                 type="button"
                 onClick={() => {
                   onSave(post.id);
                   setMenuOpen(false);
-                  notify.info(post.isSaved ? 'Removed from saved items' : 'Post saved to bookmarks');
                 }}
                 className="w-full flex items-center gap-2.5 px-4 py-2.5 text-km-text-primary hover:bg-km-surface transition-colors"
               >
-                <BookmarkSimpleIcon weight="bold" size={15} className={post.isSaved ? 'text-[#FF6B00] fill-[#FF6B00]' : 'text-km-text-secondary'} />
+                <BookmarkSimpleIcon
+                  weight="bold"
+                  size={15}
+                  className={post.isSaved ? 'text-[#FF6B00] fill-[#FF6B00]' : 'text-km-text-secondary'}
+                />
                 <span>{post.isSaved ? 'Unsave Post' : 'Save Post'}</span>
               </button>
 
@@ -207,13 +245,23 @@ export const PostCard: React.FC<PostCardProps> = ({
                 <span>Copy Link to Post</span>
               </button>
 
+              {!isOwner && onReport && (
+                <button
+                  type="button"
+                  onClick={() => setIsReporting(true)}
+                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface transition-colors border-t border-km-border"
+                >
+                  <FlagIcon weight="bold" size={15} />
+                  <span>Report Post</span>
+                </button>
+              )}
+
               {isOwner && onDelete && (
                 <button
                   type="button"
                   onClick={() => {
                     onDelete(post.id);
                     setMenuOpen(false);
-                    notify.success('Post deleted');
                   }}
                   className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors border-t border-km-border dark:text-red-400"
                 >
@@ -225,6 +273,39 @@ export const PostCard: React.FC<PostCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Report Form Dialog */}
+      {isReporting && (
+        <div className="p-4 bg-km-surface border-y border-km-border space-y-2">
+          <p className="text-xs font-semibold text-km-text-primary">Reason for reporting this post:</p>
+          <input
+            type="text"
+            value={reportReason}
+            onChange={(e) => setReportReason(e.target.value)}
+            placeholder="e.g. Spam, harassment, inappropriate content..."
+            className="w-full px-3 py-1.5 text-xs rounded-lg border border-km-border bg-km-surface-card text-km-text-primary focus:outline-none focus:border-[#0B5ED7]"
+          />
+          <div className="flex justify-end gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setIsReporting(false);
+                setReportReason('');
+              }}
+              className="px-3 py-1 text-xs text-km-text-secondary hover:text-km-text-primary"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleReportSubmit}
+              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-semibold"
+            >
+              Submit Report
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 2. Post Content Body */}
       <div className="px-4 sm:px-5 pb-3">
@@ -244,20 +325,20 @@ export const PostCard: React.FC<PostCardProps> = ({
         </div>
       )}
 
-      {/* 4. Engagement Counters Summary */}
+      {/* 4. Engagement Counters Summary (Phosphor icons only - no emojis per design.md) */}
       <div className="px-4 sm:px-5 py-2.5 flex items-center justify-between text-xs font-inter text-km-text-secondary border-b border-km-border/60">
         <div className="flex items-center gap-1.5">
           {post.likesCount > 0 ? (
             <>
               <div className="flex -space-x-1 items-center">
-                <span className="w-4 h-4 rounded-full bg-[#0B5ED7] flex items-center justify-center text-white text-[9px] shadow-xs">
-                  👍
+                <span className="w-4 h-4 rounded-full bg-[#0B5ED7] flex items-center justify-center text-white shadow-xs">
+                  <ThumbsUpIcon weight="fill" size={10} className="text-white" />
                 </span>
-                <span className="w-4 h-4 rounded-full bg-[#16A34A] flex items-center justify-center text-white text-[9px] shadow-xs">
-                  👏
+                <span className="w-4 h-4 rounded-full bg-[#16A34A] flex items-center justify-center text-white shadow-xs">
+                  <ConfettiIcon weight="fill" size={10} className="text-white" />
                 </span>
-                <span className="w-4 h-4 rounded-full bg-[#EF4444] flex items-center justify-center text-white text-[9px] shadow-xs">
-                  ❤️
+                <span className="w-4 h-4 rounded-full bg-[#EF4444] flex items-center justify-center text-white shadow-xs">
+                  <HeartIcon weight="fill" size={10} className="text-white" />
                 </span>
               </div>
               <span className="font-medium text-km-text-primary">{post.likesCount}</span>
@@ -268,7 +349,7 @@ export const PostCard: React.FC<PostCardProps> = ({
         </div>
 
         <div className="flex items-center gap-3 text-[11px]">
-          {post.comments.length > 0 && (
+          {post.comments && post.comments.length > 0 && (
             <button
               type="button"
               onClick={() => setShowComments(!showComments)}
@@ -298,7 +379,7 @@ export const PostCard: React.FC<PostCardProps> = ({
               setShowReactionPicker(true);
             }}
             onMouseLeave={() => setShowReactionPicker(false)}
-            className="absolute left-4 -top-11 bg-km-surface-card border border-km-border shadow-xl rounded-full px-3 py-1.5 flex items-center gap-3 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150"
+            className="absolute left-4 -top-11 bg-km-surface-card border border-km-border shadow-xl rounded-full px-3 py-1.5 flex items-center gap-2 z-30"
           >
             {(['like', 'celebrate', 'support', 'insightful'] as ReactionType[]).map((r) => (
               <button
@@ -308,13 +389,13 @@ export const PostCard: React.FC<PostCardProps> = ({
                   onLike(post.id, r);
                   setShowReactionPicker(false);
                 }}
-                className="transform hover:scale-130 transition-transform duration-150 p-1 text-lg"
+                className="transform hover:scale-125 transition-transform duration-150 p-1.5 rounded-full hover:bg-km-surface flex items-center justify-center"
                 title={REACTION_CONFIG[r].label}
               >
-                {r === 'like' && '👍'}
-                {r === 'celebrate' && '👏'}
-                {r === 'support' && '❤️'}
-                {r === 'insightful' && '💡'}
+                {r === 'like' && <ThumbsUpIcon weight="fill" size={18} className="text-km-link" />}
+                {r === 'celebrate' && <ConfettiIcon weight="fill" size={18} className="text-[#16A34A]" />}
+                {r === 'support' && <HeartIcon weight="fill" size={18} className="text-[#EF4444]" />}
+                {r === 'insightful' && <LightbulbIcon weight="fill" size={18} className="text-[#F59E0B]" />}
               </button>
             ))}
           </div>
@@ -331,7 +412,7 @@ export const PostCard: React.FC<PostCardProps> = ({
             if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
             reactionTimeoutRef.current = setTimeout(() => setShowReactionPicker(false), 400);
           }}
-          onClick={() => onLike(post.id, 'like')}
+          onClick={() => onLike(post.id, post.isLiked ? undefined : 'like')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
             post.isLiked
               ? currentReaction?.color || 'text-km-link'
@@ -361,10 +442,7 @@ export const PostCard: React.FC<PostCardProps> = ({
         {/* 3. Repost Button */}
         <button
           type="button"
-          onClick={() => {
-            onRepost(post.id);
-            notify.success(post.isReposted ? 'Repost removed' : 'Reposted to your network!');
-          }}
+          onClick={() => onRepost(post.id)}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
             post.isReposted ? 'text-[#16A34A]' : 'text-km-text-secondary hover:text-km-heading'
           }`}
@@ -386,7 +464,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 
       {/* 6. Inline Expandable Comments Section */}
       {showComments && (
-        <div className="border-t border-km-border bg-km-surface/40 p-4 sm:p-5 space-y-4 animate-in fade-in duration-200">
+        <div className="border-t border-km-border bg-km-surface/40 p-4 sm:p-5 space-y-4">
           {/* New Comment Input Box */}
           <form onSubmit={handleCommentSubmit} className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-full border border-km-border overflow-hidden bg-km-surface-card shrink-0 mt-0.5">
@@ -420,26 +498,42 @@ export const PostCard: React.FC<PostCardProps> = ({
           </form>
 
           {/* List of Comments */}
-          {post.comments.length > 0 && (
+          {post.comments && post.comments.length > 0 && (
             <div className="space-y-3 pt-2">
-              {post.comments.map((comm) => (
-                <div key={comm.id} className="flex items-start gap-2.5 text-xs font-poppins">
-                  <div className="w-8 h-8 rounded-full border border-km-border overflow-hidden bg-km-surface-card shrink-0 mt-0.5">
-                    <UserAvatar src={comm.author.avatar} name={comm.author.name} className="w-full h-full object-cover" />
-                  </div>
-
-                  <div className="flex-1 bg-km-surface-card border border-km-border rounded-2xl p-3 shadow-xs">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-km-text-primary">{comm.author.name}</h4>
-                      <span className="text-[10px] text-km-text-secondary">{comm.createdAt}</span>
+              {post.comments.map((comm) => {
+                const canDeleteComment =
+                  currentUserId && (comm.author.id === currentUserId || post.author.id === currentUserId);
+                return (
+                  <div key={comm.id} className="flex items-start gap-2.5 text-xs font-poppins group">
+                    <div className="w-8 h-8 rounded-full border border-km-border overflow-hidden bg-km-surface-card shrink-0 mt-0.5">
+                      <UserAvatar src={comm.author.avatar} name={comm.author.name} className="w-full h-full object-cover" />
                     </div>
-                    {comm.author.headline && (
-                      <p className="text-[11px] text-km-text-secondary truncate">{comm.author.headline}</p>
-                    )}
-                    <p className="text-xs text-km-text-primary mt-1.5 leading-relaxed">{comm.content}</p>
+
+                    <div className="flex-1 bg-km-surface-card border border-km-border rounded-2xl p-3 shadow-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <h4 className="font-bold text-km-text-primary">{comm.author.name}</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-km-text-secondary">{comm.createdAt}</span>
+                          {canDeleteComment && onDeleteComment && (
+                            <button
+                              type="button"
+                              onClick={() => onDeleteComment(post.id, comm.id)}
+                              className="text-km-text-secondary hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                              title="Delete comment"
+                            >
+                              <TrashIcon size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                      {comm.author.headline && (
+                        <p className="text-[11px] text-km-text-secondary truncate">{comm.author.headline}</p>
+                      )}
+                      <p className="text-xs text-km-text-primary mt-1.5 leading-relaxed">{comm.content}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

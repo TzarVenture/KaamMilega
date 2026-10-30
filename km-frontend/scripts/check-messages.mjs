@@ -6,7 +6,9 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-const dir = new URL('../messages/', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1');
+import { fileURLToPath } from 'node:url';
+
+const dir = fileURLToPath(new URL('../messages/', import.meta.url));
 const load = (file) => JSON.parse(readFileSync(join(dir, file), 'utf8'));
 
 function flatten(obj, prefix = '', out = {}) {

@@ -1,28 +1,17 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import FeedLeftSidebar from '@/components/feed/FeedLeftSidebar';
+import FeedRightSidebar from '@/components/feed/FeedRightSidebar';
 import CreatePostCard from '@/components/feed/CreatePostCard';
 import CreatePostModal from '@/components/feed/CreatePostModal';
 import PostCard from '@/components/feed/PostCard';
 import FeedHeaderFilters from '@/components/feed/FeedHeaderFilters';
-import {
-  FeedPost,
-  FeedCategory,
-  ReactionType,
-} from '@/components/feed/feedTypes';
-import {
-  getFeedPosts,
-  createPost,
-  toggleLikePost,
-  toggleSavePost,
-  toggleRepostPost,
-  addCommentToPost,
-  deletePost,
-} from '@/components/feed/feedStorage';
+import { FeedPost, FeedCategory, ReactionType } from '@/components/feed/feedTypes';
+import { feedApi } from '@/lib/api/feed';
 import { getCurrentUser } from '@/lib/auth';
-import { BookmarkSimpleIcon, TrayIcon } from '@phosphor-icons/react';
-import { notify } from "@/lib/notify";
+import { BookmarkSimpleIcon, TrayIcon, SpinnerGapIcon } from '@phosphor-icons/react';
+import { notify } from '@/lib/notify';
 
 export default function FeedPage() {
   const [posts, setPosts] = useState<FeedPost[]>([]);
@@ -30,124 +19,216 @@ export default function FeedPage() {
   const [sidebarFilter, setSidebarFilter] = useState<'all' | 'saved' | 'my-posts'>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalCategory, setModalCategory] = useState<FeedCategory>('all');
-  const [mounted, setMounted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
+  const [hasMore, setHasMore] = useState(false);
 
   const currentUser = getCurrentUser();
   const currentUserId = currentUser?.id || currentUser?._id;
 
-  // Hydrate feed from storage
-  useEffect(() => {
-    setPosts(getFeedPosts());
-    setMounted(true);
-  }, []);
+  // Fetch feed posts from the API
+  const fetchPosts = useCallback(
+    async (category: FeedCategory, filter: 'all' | 'saved' | 'my-posts', cursor?: string) => {
+      try {
+        if (!cursor) {
+          setIsLoading(true);
+        } else {
+          setIsLoadingMore(true);
+        }
 
+        const res = await feedApi.getFeed({
+          category,
+          saved: filter === 'saved',
+          authorId: filter === 'my-posts' ? currentUserId : undefined,
+          before: cursor,
+          limit: 15,
+        });
+
+        if (cursor) {
+          setPosts((prev) => [...prev, ...res.posts]);
+        } else {
+          setPosts(res.posts);
+        }
+        setNextCursor(res.nextCursor);
+        setHasMore(res.hasMore);
+      } catch (err: any) {
+        notify.error(err?.message || 'Failed to load feed. Please check your connection.');
+      } finally {
+        setIsLoading(false);
+        setIsLoadingMore(false);
+      }
+    },
+    [currentUserId]
+  );
+
+  // Trigger fetch when category or sidebarFilter changes
+  useEffect(() => {
+    fetchPosts(selectedCategory, sidebarFilter);
+  }, [selectedCategory, sidebarFilter, fetchPosts]);
+
+  // Count saved posts present in current memory
   const savedCount = useMemo(() => {
     return posts.filter((p) => p.isSaved).length;
   }, [posts]);
 
-  // Filter posts based on sidebar filter & category pill
-  const filteredPosts = useMemo(() => {
-    return posts.filter((post) => {
-      // 1. Sidebar filter check
-      if (sidebarFilter === 'saved' && !post.isSaved) return false;
-      if (sidebarFilter === 'my-posts' && post.author.id !== currentUserId) return false;
+  // Load next page
+  const handleLoadMore = () => {
+    if (!isLoadingMore && hasMore && nextCursor) {
+      fetchPosts(selectedCategory, sidebarFilter, nextCursor);
+    }
+  };
 
-      // 2. Category pill check
-      if (selectedCategory !== 'all' && post.category !== selectedCategory) return false;
-
-      return true;
-    });
-  }, [posts, sidebarFilter, selectedCategory, currentUserId]);
-
-  // Handlers
+  // Modal Handlers
   const handleOpenModal = (category: FeedCategory = 'all') => {
+    if (!currentUserId) {
+      notify.error('Please sign in to share a post on the feed.');
+      return;
+    }
     setModalCategory(category);
     setIsModalOpen(true);
   };
 
-  const handleCreatePost = (newPostData: {
+  const handleCreatePost = async (newPostData: {
     content: string;
     category: FeedCategory;
     mediaUrl?: string;
     tags: string[];
   }) => {
-    const authorName =
-      currentUser?.name ||
-      (currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : 'Guest Member');
-
-    const created = createPost({
-      author: {
-        id: currentUserId || `user-${Date.now()}`,
-        name: authorName,
-        headline: currentUser?.headline || 'Member on KaamMilega™',
-        avatar: currentUser?.profile_image || currentUser?.avatar || undefined,
-        isVerified: currentUser?.is_email_verified || true,
-        role: currentUser?.role || 'user',
-        badge: currentUser?.role === 'recruiter' ? 'Recruiter' : 'Member',
-      },
-      content: newPostData.content,
-      category: newPostData.category,
-      mediaUrl: newPostData.mediaUrl,
-      tags: newPostData.tags,
-    });
-
-    setPosts(getFeedPosts());
-    notify.success('Your post has been published to the feed!');
+    try {
+      const created = await feedApi.createPost(newPostData);
+      setPosts((prev) => [created, ...prev]);
+      notify.success('Your post has been published to the feed!');
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to create post.');
+      throw err;
+    }
   };
 
-  const handleLikePost = (postId: string, reaction: ReactionType = 'like') => {
-    const updated = toggleLikePost(postId, reaction);
-    setPosts(updated);
+  const handleLikePost = async (postId: string, reaction?: ReactionType) => {
+    if (!currentUserId) {
+      notify.error('Please sign in to react to posts.');
+      return;
+    }
+
+    try {
+      const updated = await feedApi.reactToPost(postId, reaction || '');
+      setPosts((prev) => prev.map((p) => (p.id === postId ? updated : p)));
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to react to post.');
+    }
   };
 
-  const handleSavePost = (postId: string) => {
-    const updated = toggleSavePost(postId);
-    setPosts(updated);
+  const handleSavePost = async (postId: string) => {
+    if (!currentUserId) {
+      notify.error('Please sign in to save posts.');
+      return;
+    }
+
+    try {
+      const res = await feedApi.toggleSavePost(postId);
+      setPosts((prev) =>
+        prev.map((p) => (p.id === postId ? { ...p, isSaved: res.saved } : p))
+      );
+      notify.info(res.saved ? 'Post saved to bookmarks' : 'Post removed from saved items');
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to save post.');
+    }
   };
 
-  const handleRepostPost = (postId: string) => {
-    const updated = toggleRepostPost(postId);
-    setPosts(updated);
+  const handleRepostPost = async (postId: string) => {
+    if (!currentUserId) {
+      notify.error('Please sign in to repost updates.');
+      return;
+    }
+
+    try {
+      const res = await feedApi.toggleRepostPost(postId);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? { ...p, isReposted: res.reposted, repostsCount: res.reposts_count }
+            : p
+        )
+      );
+      notify.success(res.reposted ? 'Reposted to your network!' : 'Repost removed');
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to repost.');
+    }
   };
 
-  const handleCommentPost = (postId: string, content: string) => {
-    const authorName =
-      currentUser?.name ||
-      (currentUser?.first_name ? `${currentUser.first_name} ${currentUser.last_name || ''}`.trim() : 'Guest Member');
+  const handleCommentPost = async (postId: string, content: string) => {
+    if (!currentUserId) {
+      notify.error('Please sign in to comment.');
+      return;
+    }
 
-    const updated = addCommentToPost(postId, {
-      author: {
-        id: currentUserId || `user-${Date.now()}`,
-        name: authorName,
-        headline: currentUser?.headline || 'KaamMilega Member',
-        avatar: currentUser?.profile_image || currentUser?.avatar || undefined,
-      },
-      content,
-    });
-
-    setPosts(updated);
-    notify.success('Comment added!');
+    try {
+      const newComment = await feedApi.addComment(postId, content);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                comments: [...(p.comments || []), newComment],
+              }
+            : p
+        )
+      );
+      notify.success('Comment added!');
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to add comment.');
+    }
   };
 
-  const handleDeletePost = (postId: string) => {
-    const updated = deletePost(postId);
-    setPosts(updated);
+  const handleDeleteComment = async (postId: string, commentId: string) => {
+    try {
+      await feedApi.deleteComment(postId, commentId);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? {
+                ...p,
+                comments: (p.comments || []).filter((c) => c.id !== commentId),
+              }
+            : p
+        )
+      );
+      notify.success('Comment deleted');
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to delete comment.');
+    }
   };
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-km-surface py-8 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#071A4D] dark:border-km-link" />
-      </div>
-    );
-  }
+  const handleDeletePost = async (postId: string) => {
+    try {
+      await feedApi.deletePost(postId);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      notify.success('Post deleted successfully');
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to delete post.');
+    }
+  };
+
+  const handleReportPost = async (postId: string, reason: string) => {
+    if (!currentUserId) {
+      notify.error('Please sign in to report posts.');
+      return;
+    }
+
+    try {
+      await feedApi.reportPost(postId, reason);
+      notify.success('Post reported. Our moderation team will review it.');
+    } catch (err: any) {
+      notify.error(err?.message || 'Failed to report post.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-km-surface py-5 sm:py-7 px-4 sm:px-6 lg:px-8 font-poppins">
-
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* 1. Left Sidebar (4 cols on lg, sticky) */}
-        <div className="lg:col-span-4 xl:col-span-4 space-y-4 lg:sticky lg:top-20">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* 1. Left Sidebar (3 cols on lg, sticky) */}
+        <div className="lg:col-span-3 space-y-4 lg:sticky lg:top-20">
           <FeedLeftSidebar
             activeFilter={sidebarFilter}
             onFilterChange={(f) => {
@@ -158,8 +239,8 @@ export default function FeedPage() {
           />
         </div>
 
-        {/* 2. Main Feed Stream (8 cols on lg, focused & clean) */}
-        <main className="lg:col-span-8 xl:col-span-8 space-y-4 min-w-0">
+        {/* 2. Main Feed Stream (6 cols on lg) */}
+        <main className="lg:col-span-6 space-y-4 min-w-0">
           {/* Post Creation Card */}
           <CreatePostCard onOpenModal={handleOpenModal} />
 
@@ -188,9 +269,14 @@ export default function FeedPage() {
           </div>
 
           {/* Feed Post List */}
-          {filteredPosts.length > 0 ? (
+          {isLoading ? (
+            <div className="bg-km-surface-card border border-km-border rounded-2xl p-12 text-center shadow-xs flex flex-col items-center justify-center space-y-3">
+              <SpinnerGapIcon size={32} className="animate-spin text-km-link" />
+              <p className="text-xs text-km-text-secondary">Loading latest updates...</p>
+            </div>
+          ) : posts.length > 0 ? (
             <div className="space-y-4">
-              {filteredPosts.map((post) => (
+              {posts.map((post) => (
                 <PostCard
                   key={post.id}
                   post={post}
@@ -199,8 +285,25 @@ export default function FeedPage() {
                   onRepost={handleRepostPost}
                   onComment={handleCommentPost}
                   onDelete={handleDeletePost}
+                  onDeleteComment={handleDeleteComment}
+                  onReport={handleReportPost}
                 />
               ))}
+
+              {/* Load More Button */}
+              {hasMore && (
+                <div className="pt-2 text-center">
+                  <button
+                    type="button"
+                    onClick={handleLoadMore}
+                    disabled={isLoadingMore}
+                    className="px-6 py-2.5 bg-km-surface-card border border-km-border hover:border-km-link text-km-text-primary rounded-xl text-xs font-semibold shadow-xs transition-all inline-flex items-center gap-2 disabled:opacity-60"
+                  >
+                    {isLoadingMore && <SpinnerGapIcon size={14} className="animate-spin text-km-link" />}
+                    {isLoadingMore ? 'Loading older posts...' : 'Load more updates'}
+                  </button>
+                </div>
+              )}
             </div>
           ) : (
             /* Empty State */
@@ -225,6 +328,11 @@ export default function FeedPage() {
             </div>
           )}
         </main>
+
+        {/* 3. Right Sidebar / Rectangular Banner Section (3 cols on lg, sticky) */}
+        <div className="hidden lg:block lg:col-span-3 space-y-4 lg:sticky lg:top-20">
+          <FeedRightSidebar />
+        </div>
       </div>
 
       {/* Post Creation Modal */}

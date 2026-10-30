@@ -16,7 +16,7 @@ export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) =
   const userAvatar = user?.profile_image || user?.avatar || null;
 
   return (
-    <div className="bg-km-surface-card border border-km-border rounded-2xl p-4 sm:p-5 shadow-xs transition-all duration-200 hover:border-[#0B5ED7]/40 hover:shadow-md">
+    <div className="bg-km-surface-card border border-km-border rounded-2xl p-4 sm:p-5 shadow-xs">
       {/* Top Input Trigger */}
       <div className="flex items-center gap-3">
         <div className="w-11 h-11 rounded-full border border-km-border overflow-hidden bg-km-surface shrink-0">
