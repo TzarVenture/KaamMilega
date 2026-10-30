@@ -2,8 +2,11 @@ package user
 
 import (
 	"context"
+	"crypto/hmac"
 	crand "crypto/rand"
+	"crypto/sha256"
 	"crypto/tls"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"km-backend/internal/common/apperr"
@@ -29,7 +32,6 @@ type UserService interface {
 	SendOTP(ctx context.Context, mobile string, role string) error
 	VerifyOTP(ctx context.Context, mobile, code string, role string) (*VerifyOTPResponse, error)
 	LoginWithPassword(ctx context.Context, req PasswordLoginRequest) (*PasswordLoginResponse, error)
-	RegisterWithPassword(ctx context.Context, req PasswordRegisterRequest) (*PasswordLoginResponse, error)
 	SetPassword(ctx context.Context, userID string, req SetPasswordRequest) error
 	RevokeSessions(ctx context.Context, userID string) error
 	CanViewProfile(ctx context.Context, owner *User, viewerID string, viewerIsAdmin bool) (bool, error)
@@ -130,17 +132,59 @@ func generateOTPCode() (string, error) {
 	return fmt.Sprintf("%04d", n.Int64()), nil
 }
 
+// hashOTP is what the database stores instead of the code itself, so a leaked otps
+// collection gives away no live codes. It is keyed with the server secret: a 4-digit code
+// hashed without a key could be reversed by trying all 10,000.
+func (s *UserServiceImpl) hashOTP(code string) string {
+	mac := hmac.New(sha256.New, []byte(s.config.JWTSecret))
+	mac.Write([]byte(strings.TrimSpace(code)))
+	return hex.EncodeToString(mac.Sum(nil))
+}
+
 // checkOTPCode compares a submitted code and burns the OTP after too many wrong attempts
 func (s *UserServiceImpl) checkOTPCode(ctx context.Context, otp *OTP, code string) error {
-	if otp.Code == strings.TrimSpace(code) {
+	if hmac.Equal([]byte(otp.Code), []byte(s.hashOTP(code))) {
 		return nil
 	}
 	if otp.Attempts+1 >= otpMaxAttempts {
 		_ = s.repo.MarkOTPUsed(ctx, otp.ID)
-		return apperr.New("OTP_TOO_MANY_ATTEMPTS", "too many incorrect attempts. Please request a new code")
+		return apperr.New("OTP_TOO_MANY_ATTEMPTS", "Too many wrong tries. Request a new code.")
 	}
 	_ = s.repo.IncrementOTPAttempts(ctx, otp.ID)
-	return apperr.New("OTP_INVALID", "Invalid OTP")
+	return apperr.New("OTP_INVALID", "That code didn't work. Try again.")
+}
+
+// consumeOTP uses up a code that just matched. When two requests carry the same code
+// (a double submit, SMS autofill plus typing) only the first wins; the other gets OTP_EXPIRED.
+func (s *UserServiceImpl) consumeOTP(ctx context.Context, otp *OTP) error {
+	ok, err := s.repo.ConsumeOTP(ctx, otp.ID)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return apperr.New("OTP_EXPIRED", "This code has expired or was already used. Request a new code.")
+	}
+	return nil
+}
+
+// checkEmailOTPLimits applies the same throttle to email codes as to SMS codes: one per
+// cooldown window and a capped number per hour, so nobody can flood an inbox through us
+func (s *UserServiceImpl) checkEmailOTPLimits(ctx context.Context, email string) error {
+	latest, err := s.repo.GetLatestEmailOTP(ctx, email)
+	if err != nil {
+		return err
+	}
+	if latest != nil && time.Since(latest.CreatedAt) < otpResendCooldown {
+		return apperr.New("CODE_COOLDOWN", "Please wait a few seconds before requesting a new code.")
+	}
+	sentLastHour, err := s.repo.CountEmailOTPsSince(ctx, email, time.Now().Add(-time.Hour))
+	if err != nil {
+		return err
+	}
+	if sentLastHour >= otpMaxSendsPerHour {
+		return apperr.New("OTP_TOO_MANY_REQUESTS", "Too many code requests. Try again in an hour.")
+	}
+	return nil
 }
 
 // ensureEmailAvailable returns an error if another account already uses this email
@@ -177,11 +221,15 @@ func (s *UserServiceImpl) SendOTP(ctx context.Context, mobile string, role strin
 		return errors.New("invalid sign-in portal")
 	}
 
-	// For admin portal login, verify that user actually exists and has admin privileges
+	// Admin portal: only admin numbers get a code. Others get the same answer as a real
+	// send, so the portal never reveals which numbers belong to admins.
 	if role == RoleAdmin {
 		user, err := s.repo.FindUserByMobile(ctx, cleaned)
-		if err != nil || user == nil || !slices.Contains(user.Roles, RoleAdmin) {
-			return errors.New("access denied: no admin account found with this mobile number")
+		if err != nil {
+			return err
+		}
+		if user == nil || !slices.Contains(user.Roles, RoleAdmin) {
+			return nil
 		}
 	}
 
@@ -191,14 +239,14 @@ func (s *UserServiceImpl) SendOTP(ctx context.Context, mobile string, role strin
 		return err
 	}
 	if latest != nil && time.Since(latest.CreatedAt) < otpResendCooldown {
-		return errors.New("please wait a few seconds before requesting a new code")
+		return apperr.New("CODE_COOLDOWN", "Please wait a few seconds before requesting a new code.")
 	}
 	sentLastHour, err := s.repo.CountMobileOTPsSince(ctx, cleaned, time.Now().Add(-time.Hour))
 	if err != nil {
 		return err
 	}
 	if sentLastHour >= otpMaxSendsPerHour {
-		return apperr.New("OTP_TOO_MANY_REQUESTS", "too many code requests. Please try again after some time")
+		return apperr.New("OTP_TOO_MANY_REQUESTS", "Too many code requests. Try again in an hour.")
 	}
 
 	code, err := generateOTPCode()
@@ -209,7 +257,7 @@ func (s *UserServiceImpl) SendOTP(ctx context.Context, mobile string, role strin
 	// Create OTP record (stored with cleaned 10-digit mobile for consistent lookup)
 	otp := &OTP{
 		Mobile: cleaned,
-		Code:   code,
+		Code:   s.hashOTP(code),
 	}
 
 	err = s.repo.SaveOTP(ctx, otp)
@@ -245,7 +293,7 @@ func (s *UserServiceImpl) VerifyOTP(ctx context.Context, mobile, code string, ro
 		otp, _ = s.repo.GetLatestOTP(ctx, mobile)
 	}
 	if otp == nil {
-		return nil, apperr.New("OTP_EXPIRED", "OTP not found or expired")
+		return nil, apperr.New("OTP_EXPIRED", "This code has expired or was already used. Request a new code.")
 	}
 
 	// 2. Verify Code (invalidates the code after too many wrong attempts)
@@ -253,8 +301,8 @@ func (s *UserServiceImpl) VerifyOTP(ctx context.Context, mobile, code string, ro
 		return nil, err
 	}
 
-	// 3. Mark OTP used
-	if err := s.repo.MarkOTPUsed(ctx, otp.ID); err != nil {
+	// 3. Use it up (a second request with the same code fails here)
+	if err := s.consumeOTP(ctx, otp); err != nil {
 		return nil, err
 	}
 
@@ -271,12 +319,13 @@ func (s *UserServiceImpl) VerifyOTP(ctx context.Context, mobile, code string, ro
 			return nil, errors.New("admin account not found")
 		}
 
-		// Create new user (unregistered)
+		// Create new user (sign-up not finished yet). Everyone starts as a candidate; the
+		// recruiter role comes with the company form (see Register).
 		user = &User{
 			Mobile:        cleaned,
 			IsRegistered:  false,
 			OTPVerifiedAt: &now,
-			Roles:         []string{role}, // Use requested role
+			Roles:         []string{RoleUser},
 		}
 		user, err = s.repo.CreateUser(ctx, user)
 		if err != nil {
@@ -289,11 +338,10 @@ func (s *UserServiceImpl) VerifyOTP(ctx context.Context, mobile, code string, ro
 				return nil, errors.New("access denied: user does not have admin privileges")
 			}
 		} else {
-			// Industry standard (LinkedIn/Uber/Urban Company style):
-			// If an existing candidate logs into employer portal or vice-versa,
-			// expand their role profile so they can operate freely in both portals.
-			if !slices.Contains(user.Roles, role) {
-				user.Roles = append(user.Roles, role)
+			// One account works in every portal. Signing in as a candidate adds the candidate
+			// role; the recruiter role only comes once a company is saved (see Register).
+			if role == RoleUser && !slices.Contains(user.Roles, RoleUser) {
+				user.Roles = append(user.Roles, RoleUser)
 			}
 		}
 
@@ -333,6 +381,15 @@ func (s *UserServiceImpl) Register(ctx context.Context, userID string, req Regis
 		return nil, errors.New("please enter your full name")
 	}
 
+	companyName := strings.TrimSpace(req.CompanyName)
+	if companyName == "" {
+		companyName = strings.TrimSpace(user.CompanyName)
+	}
+	city := strings.TrimSpace(req.City)
+	if city == "" {
+		city = strings.TrimSpace(user.City)
+	}
+
 	// Update fields
 	user.Name = name
 	registeringRecruiter := false
@@ -342,6 +399,10 @@ func (s *UserServiceImpl) Register(ctx context.Context, userID string, req Regis
 			continue
 		}
 		if r == RoleRecruiter {
+			// A recruiter is someone with a company: the role comes with the company form
+			if companyName == "" {
+				return nil, apperr.New("COMPANY_NAME_REQUIRED", "please enter your company or organization name")
+			}
 			registeringRecruiter = true
 		}
 		if !slices.Contains(user.Roles, r) {
@@ -350,6 +411,10 @@ func (s *UserServiceImpl) Register(ctx context.Context, userID string, req Regis
 	}
 	if len(user.Roles) == 0 {
 		user.Roles = []string{RoleUser}
+	}
+	// Candidates sign up with name and city (the city drives local jobs)
+	if !registeringRecruiter && city == "" {
+		return nil, apperr.New("CITY_REQUIRED", "please enter the city where you want to work")
 	}
 	user.IsRegistered = true
 	user.UpdatedAt = time.Now()
@@ -471,7 +536,8 @@ func (s *UserServiceImpl) GenerateToken(user *User) (string, error) {
 		"email":  user.Email,
 		"roles":  user.Roles,
 		"sv":     user.SessionVersion, // must match the stored version (see middleware.AuthMiddleware)
-		"exp":    time.Now().Add(time.Hour * 72).Unix(), // 3 days
+		"iat":    time.Now().Unix(),
+		"exp":    time.Now().Add(middleware.SessionTTL).Unix(), // renewed while in use
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -905,6 +971,9 @@ func (s *UserServiceImpl) SendEmailOTP(ctx context.Context, email string) error 
 	if !emailRegex.MatchString(email) {
 		return apperr.New("EMAIL_INVALID", "please enter a valid email address")
 	}
+	if err := s.checkEmailOTPLimits(ctx, email); err != nil {
+		return err
+	}
 
 	code, err := generateOTPCode()
 	if err != nil {
@@ -914,7 +983,7 @@ func (s *UserServiceImpl) SendEmailOTP(ctx context.Context, email string) error 
 	// Create OTP record
 	otp := &OTP{
 		Email: email,
-		Code:  code,
+		Code:  s.hashOTP(code),
 	}
 
 	err = s.repo.SaveOTP(ctx, otp)
@@ -1105,7 +1174,7 @@ func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string
 		return err
 	}
 	if otp == nil {
-		return apperr.New("OTP_EXPIRED", "OTP not found or expired")
+		return apperr.New("OTP_EXPIRED", "This code has expired or was already used. Request a new code.")
 	}
 
 	if err := s.checkOTPCode(ctx, otp, code); err != nil {
@@ -1121,7 +1190,7 @@ func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string
 			if err := s.ensureEmailAvailable(ctx, user.ID, email); err != nil {
 				return err
 			}
-			if err := s.repo.MarkOTPUsed(ctx, otp.ID); err != nil {
+			if err := s.consumeOTP(ctx, otp); err != nil {
 				return err
 			}
 			user.Email = email
@@ -1132,7 +1201,7 @@ func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string
 		}
 	}
 
-	if err := s.repo.MarkOTPUsed(ctx, otp.ID); err != nil {
+	if err := s.consumeOTP(ctx, otp); err != nil {
 		return err
 	}
 
@@ -1245,22 +1314,13 @@ func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLog
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		return nil, errors.New("invalid email or password")
+		return nil, errors.New("invalid email/mobile or password")
 	}
 
-	// Role enforcement
-	if req.Role != "" {
-		hasTargetRole := slices.Contains(user.Roles, req.Role)
-		if !hasTargetRole {
-			switch req.Role {
-			case RoleRecruiter:
-				return nil, errors.New("This account is registered as a Candidate. Please sign in via the Candidate portal.")
-			case RoleUser:
-				return nil, errors.New("This account is registered as a Recruiter. Please sign in via the Recruiter portal.")
-			default:
-				return nil, errors.New("access denied: unauthorized role for this portal")
-			}
-		}
+	// One account works in every portal, as with OTP sign-in. Signing in as a candidate adds
+	// the candidate role; the recruiter role only comes with a company (see Register).
+	if req.Role == RoleUser && !slices.Contains(user.Roles, RoleUser) {
+		user.Roles = append(user.Roles, RoleUser)
 	}
 
 	// Update last active
@@ -1276,74 +1336,6 @@ func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLog
 		Token:        token,
 		User:         user,
 		IsRegistered: user.IsRegistered,
-	}, nil
-}
-
-func (s *UserServiceImpl) RegisterWithPassword(ctx context.Context, req PasswordRegisterRequest) (*PasswordLoginResponse, error) {
-	req.Name = strings.TrimSpace(req.Name)
-	req.Email = strings.ToLower(strings.TrimSpace(req.Email))
-	req.Password = strings.TrimSpace(req.Password)
-
-	if req.Name == "" {
-		return nil, errors.New("full name is required")
-	}
-	if req.Email == "" {
-		return nil, errors.New("email address is required")
-	}
-	if !emailRegex.MatchString(req.Email) {
-		return nil, apperr.New("EMAIL_INVALID", "please enter a valid email address")
-	}
-	if req.Password == "" {
-		return nil, errors.New("password is required")
-	}
-	if len(req.Password) < minPasswordLength {
-		return nil, errPasswordTooShort
-	}
-
-	existing, err := s.repo.FindUserByEmail(ctx, req.Email)
-	if err == nil && existing != nil {
-		return nil, apperr.New("EMAIL_TAKEN", "an account with this email already exists")
-	}
-
-	hashedBytes, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return nil, fmt.Errorf("failed to hash password: %w", err)
-	}
-
-	role := req.Role
-	if role == "" {
-		role = RoleUser
-	}
-	if !slices.Contains(selfServiceRoles, role) {
-		return nil, errors.New("invalid sign-up portal")
-	}
-
-	now := time.Now()
-	newUser := &User{
-		Name:         req.Name,
-		Email:        req.Email,
-		Password:     string(hashedBytes),
-		Roles:        []string{role},
-		IsRegistered: false,
-		CreatedAt:    now,
-		UpdatedAt:    now,
-		LastActiveAt: now,
-	}
-
-	createdUser, err := s.repo.CreateUser(ctx, newUser)
-	if err != nil {
-		return nil, err
-	}
-
-	token, err := s.GenerateToken(createdUser)
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate auth token: %w", err)
-	}
-
-	return &PasswordLoginResponse{
-		Token:        token,
-		User:         createdUser,
-		IsRegistered: createdUser.IsRegistered,
 	}, nil
 }
 
@@ -1444,16 +1436,13 @@ func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPassword
 	if user.Password == "" {
 		return errors.New("no password has been set for this account. Please use 'Login with OTP' to sign in.")
 	}
-
-	// Role enforcement if role provided
-	if req.Role != "" && !slices.Contains(user.Roles, req.Role) {
-		if req.Role == "recruiter" && slices.Contains(user.Roles, "user") {
-			return errors.New("This account is registered as a Candidate. Please use the Candidate portal to reset your password.")
-		}
-		if req.Role == "user" && slices.Contains(user.Roles, "recruiter") {
-			return errors.New("This account is registered as a Recruiter. Please use the Recruiter portal to reset your password.")
-		}
-		return fmt.Errorf("this account does not have the %s role", req.Role)
+	// Reset codes only go to an email the owner proved is theirs. Anyone else signs in with
+	// their mobile OTP and sets a new password from Settings.
+	if !user.IsEmailVerified {
+		return apperr.New("EMAIL_NOT_VERIFIED", "this email isn't verified. Sign in with your mobile OTP, then set a new password in Settings")
+	}
+	if err := s.checkEmailOTPLimits(ctx, email); err != nil {
+		return err
 	}
 
 	code, err := generateOTPCode()
@@ -1463,7 +1452,7 @@ func (s *UserServiceImpl) ForgotPassword(ctx context.Context, req ForgotPassword
 
 	otp := &OTP{
 		Email: email,
-		Code:  code,
+		Code:  s.hashOTP(code),
 	}
 
 	if err := s.repo.SaveOTP(ctx, otp); err != nil {
@@ -1590,7 +1579,7 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, req ResetPasswordRe
 	if len(code) != 4 {
 		return errors.New("please enter a valid 4-digit verification code")
 	}
-	if len(newPassword) < 6 {
+	if len(newPassword) < minPasswordLength {
 		return errPasswordTooShort
 	}
 
@@ -1602,30 +1591,19 @@ func (s *UserServiceImpl) ResetPassword(ctx context.Context, req ResetPasswordRe
 		return apperr.New("EMAIL_NOT_FOUND", "no account found with this email address")
 	}
 
-	// Role enforcement if role provided
-	if req.Role != "" && !slices.Contains(user.Roles, req.Role) {
-		if req.Role == "recruiter" && slices.Contains(user.Roles, "user") {
-			return errors.New("This account is registered as a Candidate. Please use the Candidate portal to reset your password.")
-		}
-		if req.Role == "user" && slices.Contains(user.Roles, "recruiter") {
-			return errors.New("This account is registered as a Recruiter. Please use the Recruiter portal to reset your password.")
-		}
-		return fmt.Errorf("this account does not have the %s role", req.Role)
-	}
-
 	otp, err := s.repo.GetLatestEmailOTP(ctx, email)
 	if err != nil {
 		return err
 	}
 	if otp == nil {
-		return apperr.New("OTP_EXPIRED", "verification code has expired or is invalid. Please request a new code.")
+		return apperr.New("OTP_EXPIRED", "This code has expired or was already used. Request a new code.")
 	}
 
 	if err := s.checkOTPCode(ctx, otp, code); err != nil {
 		return err
 	}
 
-	if err := s.repo.MarkOTPUsed(ctx, otp.ID); err != nil {
+	if err := s.consumeOTP(ctx, otp); err != nil {
 		return err
 	}
 

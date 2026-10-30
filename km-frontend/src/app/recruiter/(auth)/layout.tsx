@@ -34,8 +34,9 @@ const Layout = ({ children }: { children: React.ReactNode }) => {
                     }
                     setIsLoading(false);
                 } else {
-                    // Redirect non-recruiters to home page
-                    router.push('/');
+                    // A candidate account opening the employer portal: set up the employer
+                    // profile on the same account (the same place employer sign-in sends them)
+                    router.replace('/recruiter/register');
                 }
             } catch (error) {
                 console.error("Failed to verify recruiter access", error);

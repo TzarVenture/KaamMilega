@@ -267,8 +267,9 @@ func main() {
 		}),
 		fx.Invoke(
 			// Every authenticated request checks the session version and account status
-			func(repo user.UserRepository) {
+			func(repo user.UserRepository, cfg *config.Config) {
 				middleware.SetSessionLoader(user.NewSessionLoader(repo))
+				middleware.SecureCookies = cfg.Environment == "production"
 			},
 			// Every new notification also goes out as a push (browsers, Android, iOS)
 			push.Install,

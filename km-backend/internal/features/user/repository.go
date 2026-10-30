@@ -35,6 +35,8 @@ type UserRepository interface {
 	GetLatestOTP(ctx context.Context, mobile string) (*OTP, error)
 	GetLatestEmailOTP(ctx context.Context, email string) (*OTP, error)
 	MarkOTPUsed(ctx context.Context, id primitive.ObjectID) error
+	ConsumeOTP(ctx context.Context, id primitive.ObjectID) (bool, error)
+	CountEmailOTPsSince(ctx context.Context, email string, since time.Time) (int64, error)
 	IncrementOTPAttempts(ctx context.Context, id primitive.ObjectID) error
 	CountMobileOTPsSince(ctx context.Context, mobile string, since time.Time) (int64, error)
 
@@ -51,7 +53,7 @@ type UserRepository interface {
 	OwnsPrivateFile(ctx context.Context, userID, ref, kind string) (bool, error)
 	BumpSessionVersion(ctx context.Context, userID string) (int, error)
 	HasRestrictedProfileAccess(ctx context.Context, ownerID, viewerID string, allowConnections bool) (bool, error)
-	GetSessionState(ctx context.Context, userID string) (found bool, status string, version int, err error)
+	GetSessionState(ctx context.Context, userID string) (*SessionRecord, error)
 
 	ExportUsersCSV(ctx context.Context, role string) ([]byte, error)
 	ExportJobsCSV(ctx context.Context, status string) ([]byte, error)
@@ -79,10 +81,23 @@ func NewUserRepository(db *database.MongodbDB) UserRepository {
 		})
 	}()
 
+	otpColl := db.DB.Collection("otps")
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_, _ = otpColl.Indexes().CreateMany(ctx, []mongo.IndexModel{
+			// Spent codes clear themselves out. They are kept a day past expiry because the
+			// hourly send limits count recent codes.
+			{Keys: bson.M{"expires_at": 1}, Options: options.Index().SetExpireAfterSeconds(24 * 3600)},
+			{Keys: bson.D{{Key: "mobile", Value: 1}, {Key: "created_at", Value: -1}}},
+			{Keys: bson.D{{Key: "email", Value: 1}, {Key: "created_at", Value: -1}}},
+		})
+	}()
+
 	return &UserRepositoryImpl{
 		db:       db,
 		userColl: userColl,
-		otpColl:  db.DB.Collection("otps"),
+		otpColl:  otpColl,
 	}
 }
 
@@ -304,26 +319,34 @@ func (r *UserRepositoryImpl) BumpSessionVersion(ctx context.Context, userID stri
 	return out.SessionVersion, nil
 }
 
-// GetSessionState returns just the fields the auth middleware checks on every request
-func (r *UserRepositoryImpl) GetSessionState(ctx context.Context, userID string) (found bool, status string, version int, err error) {
+// SessionRecord is the part of a user the auth middleware checks on every request
+type SessionRecord struct {
+	AccountStatus  string   `bson:"account_status"`
+	SessionVersion int      `bson:"session_version"`
+	Roles          []string `bson:"roles"`
+	IsRegistered   bool     `bson:"is_registered"`
+	Name           string   `bson:"name"`
+}
+
+// GetSessionState returns the session fields of a user, or nil when there is no such user
+func (r *UserRepositoryImpl) GetSessionState(ctx context.Context, userID string) (*SessionRecord, error) {
 	oid, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return false, "", 0, nil
+		return nil, nil
 	}
-	var out struct {
-		AccountStatus  string `bson:"account_status"`
-		SessionVersion int    `bson:"session_version"`
-	}
+	var out SessionRecord
 	err = r.userColl.FindOne(ctx, bson.M{"_id": oid},
-		options.FindOne().SetProjection(bson.M{"account_status": 1, "session_version": 1}),
+		options.FindOne().SetProjection(bson.M{
+			"account_status": 1, "session_version": 1, "roles": 1, "is_registered": 1, "name": 1,
+		}),
 	).Decode(&out)
 	if err == mongo.ErrNoDocuments {
-		return false, "", 0, nil
+		return nil, nil
 	}
 	if err != nil {
-		return false, "", 0, err
+		return nil, err
 	}
-	return true, out.AccountStatus, out.SessionVersion, nil
+	return &out, nil
 }
 
 func (r *UserRepositoryImpl) UpdatePassword(ctx context.Context, userID string, passwordHash string) error {
@@ -371,6 +394,23 @@ func (r *UserRepositoryImpl) GetLatestOTP(ctx context.Context, mobile string) (*
 func (r *UserRepositoryImpl) MarkOTPUsed(ctx context.Context, id primitive.ObjectID) error {
 	_, err := r.otpColl.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"used": true}})
 	return err
+}
+
+// ConsumeOTP marks a code used only if it still is unused, so two requests with the same
+// code can never both succeed. It reports whether this call was the one that used it.
+func (r *UserRepositoryImpl) ConsumeOTP(ctx context.Context, id primitive.ObjectID) (bool, error) {
+	res, err := r.otpColl.UpdateOne(ctx, bson.M{"_id": id, "used": false}, bson.M{"$set": bson.M{"used": true}})
+	if err != nil {
+		return false, err
+	}
+	return res.ModifiedCount == 1, nil
+}
+
+func (r *UserRepositoryImpl) CountEmailOTPsSince(ctx context.Context, email string, since time.Time) (int64, error) {
+	return r.otpColl.CountDocuments(ctx, bson.M{
+		"email":      email,
+		"created_at": bson.M{"$gte": since},
+	})
 }
 
 func (r *UserRepositoryImpl) IncrementOTPAttempts(ctx context.Context, id primitive.ObjectID) error {

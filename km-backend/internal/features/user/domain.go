@@ -262,13 +262,6 @@ type PasswordLoginRequest struct {
 	Role       string `json:"role,omitempty"`
 }
 
-type PasswordRegisterRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Role     string `json:"role,omitempty"`
-}
-
 type SetPasswordRequest struct {
 	CurrentPassword string `json:"current_password,omitempty"`
 	NewPassword     string `json:"new_password"`

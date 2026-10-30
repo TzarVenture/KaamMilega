@@ -101,8 +101,18 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
         setNotifDropdownOpen(false);
       }
     };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsMenuOpen(false);
+        setNotifDropdownOpen(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
   }, []);
 
   // Close popovers on route change
@@ -500,7 +510,8 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
             {/* Context Menu (Dropdown) */}
             {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-km-surface-card rounded-2xl shadow-xl border border-slate-200 py-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+              // Never taller than the screen below the navbar: the menu scrolls inside instead
+              <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain km-menu-scroll bg-km-surface-card rounded-2xl shadow-xl border border-slate-200 py-4 z-50 animate-in fade-in zoom-in-95 duration-150">
                 {/* User Identity */}
                 <div className="px-4 pb-3 flex items-center gap-3">
                   <div className="w-11 h-11 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
