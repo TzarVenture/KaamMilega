@@ -27,6 +27,7 @@ import api from '@/lib/axios';
 interface PlatformUser {
     id: string;
     name: string;
+    companyName?: string;
     firstName?: string;
     lastName?: string;
     mobile?: string;
@@ -70,11 +71,19 @@ function UsersContent() {
             const data = (response as unknown as any[]) || [];
             const mappedUsers: PlatformUser[] = data.map((u: any) => {
                 const name = u.name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || 'KaamMilega User';
-                const roles: string[] = Array.isArray(u.roles) && u.roles.length > 0 ? u.roles : ['user'];
+                const rawRoles: string[] = Array.isArray(u.roles) && u.roles.length > 0 ? u.roles : ['user'];
+                
+                // Recruiter role is strictly restricted to users associated with a company in /admin/companies
+                const hasCompany = Boolean(u.company_name && u.company_name.trim());
+                let roles = rawRoles.filter(r => r.toLowerCase() !== 'recruiter' || hasCompany);
+                if (roles.length === 0) {
+                    roles = ['user'];
+                }
 
                 return {
                     id: u.id,
                     name,
+                    companyName: u.company_name || '',
                     firstName: u.first_name || name.split(' ')[0] || '',
                     lastName: u.last_name || name.split(' ').slice(1).join(' ') || '',
                     mobile: u.mobile || '',
@@ -146,8 +155,11 @@ function UsersContent() {
     // Save roles via API
     const handleSaveRoles = async (userId: string, newRoles: string[]) => {
         try {
-            await api.patch(`/admin/users/${userId}/roles`, { roles: newRoles });
-            setUsers(prev => prev.map(u => u.id === userId ? { ...u, roles: newRoles } : u));
+            const target = users.find(u => u.id === userId);
+            const hasCompany = Boolean(target?.companyName && target.companyName.trim());
+            const sanitizedRoles = newRoles.filter(r => r.toLowerCase() !== 'recruiter' || hasCompany);
+            await api.patch(`/admin/users/${userId}/roles`, { roles: sanitizedRoles });
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, roles: sanitizedRoles } : u));
             notify.success('User access permissions updated successfully!');
         } catch (error: any) {
             console.error('Failed to update roles:', error);
@@ -322,11 +334,11 @@ function UsersContent() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-purple-50 bg-slate-50/50">
-                                <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">User Identity & Contact</th>
-                                <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Active Roles</th>
-                                <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Access Control</th>
-                                <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Registered</th>
-                                <th className="px-8 py-5 text-[12px] font-bold text-slate-600 uppercase tracking-wider text-right">Actions</th>
+                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">User Identity & Contact</th>
+                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Active Roles</th>
+                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Access Control</th>
+                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Registered</th>
+                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-purple-50/50">
@@ -354,7 +366,7 @@ function UsersContent() {
                                         key={user.id}
                                         className="hover:bg-purple-50/30 transition-colors group cursor-default"
                                     >
-                                        <td className="px-8 py-5">
+                                        <td className="px-5 py-3.5 whitespace-nowrap">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center shrink-0 border border-purple-100 text-purple-700 font-bold text-sm">
                                                     {user.name.substring(0, 1).toUpperCase()}
@@ -388,16 +400,18 @@ function UsersContent() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-8 py-5">
+                                        <td className="px-5 py-3.5 whitespace-nowrap">
                                             <div className="flex flex-wrap items-center gap-1.5">
                                                 {user.roles.map((role) => (
                                                     <span
                                                         key={role}
                                                         className={`px-2.5 py-1 text-[11px] font-bold rounded-lg uppercase tracking-wider border ${role === 'admin'
-                                                            ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                                            ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800'
                                                             : role === 'recruiter'
-                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                            : 'bg-blue-50 text-blue-700 border-blue-200'
+                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                                                            : role === 'expert'
+                                                            ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
+                                                            : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
                                                         }`}
                                                     >
                                                         {role}
@@ -405,20 +419,20 @@ function UsersContent() {
                                                 ))}
                                             </div>
                                         </td>
-                                        <td className="px-8 py-5">
+                                        <td className="px-5 py-3.5 whitespace-nowrap">
                                             <button
                                                 onClick={() => handleOpenRoleModal(user)}
-                                                className="flex items-center gap-1.5 px-3.5 py-1.5 bg-km-surface-card border border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95"
+                                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-km-surface-card border border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
                                             >
-                                                <ShieldIcon weight="bold" size={13} />
-                                                <span>Manage Access</span>
+                                                <ShieldIcon weight="bold" size={13} className="shrink-0" />
+                                                <span className="whitespace-nowrap">Manage Access</span>
                                             </button>
                                         </td>
-                                        <td className="px-8 py-5">
+                                        <td className="px-5 py-3.5 whitespace-nowrap">
                                             <p className="text-xs font-semibold text-slate-700">{user.dateAdded}</p>
                                             <p className="text-[11px] text-slate-400 mt-0.5">Active: {user.lastActive}</p>
                                         </td>
-                                        <td className="px-8 py-5 text-right">
+                                        <td className="px-5 py-3.5 text-right">
                                             <button
                                                 onClick={() => handleEditUser(user)}
                                                 className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all border border-transparent hover:border-purple-100 dark:hover:text-purple-400"

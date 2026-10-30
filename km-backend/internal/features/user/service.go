@@ -1150,7 +1150,27 @@ func (s *UserServiceImpl) VerifyEmailOTP(ctx context.Context, email, code string
 func (s *UserServiceImpl) GetAllUsers(ctx context.Context) ([]*User, error) {
 	// Admin user list: includes deactivated/deleted and private accounts
 	users, _, err := s.repo.FindUsers(ctx, UserFilter{Role: RoleUser, AdminView: true})
-	return users, err
+	if err != nil {
+		return nil, err
+	}
+
+	// Enforce Industry Standard: Users not attached to a company cannot hold recruiter role/badge
+	for _, u := range users {
+		if strings.TrimSpace(u.CompanyName) == "" {
+			sanitized := make([]string, 0, len(u.Roles))
+			for _, r := range u.Roles {
+				if r != RoleRecruiter {
+					sanitized = append(sanitized, r)
+				}
+			}
+			if len(sanitized) == 0 {
+				sanitized = []string{RoleUser}
+			}
+			u.Roles = sanitized
+		}
+	}
+
+	return users, nil
 }
 
 func (s *UserServiceImpl) GetCommunityUsers(ctx context.Context) ([]*User, error) {

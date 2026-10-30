@@ -126,11 +126,11 @@ export default function CitiesPage() {
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-slate-50">
-                            <th className="px-8 py-5 text-left text-sm font-bold text-slate-400 uppercase tracking-wider">City Name</th>
-                            <th className="px-8 py-5 text-left text-sm font-bold text-slate-400 uppercase tracking-wider">State</th>
-                            <th className="px-8 py-5 text-left text-sm font-bold text-slate-400 uppercase tracking-wider">Country</th>
+                            <th className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">City Name</th>
+                            <th className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">State</th>
+                            <th className="px-5 py-3.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Country</th>
                             {/* <th className="px-8 py-5 text-left text-sm font-bold text-slate-400 uppercase tracking-wider">Vacancies</th> */}
-                            <th className="px-8 py-5 text-right text-sm font-bold text-slate-400 uppercase tracking-wider"></th>
+                            <th className="px-5 py-3.5 text-right text-xs font-bold text-slate-500 uppercase tracking-wider"></th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">
@@ -155,16 +155,16 @@ export default function CitiesPage() {
                         ) : (
                             cities.map((city) => (
                                 <tr key={city.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="px-8 py-5">
+                                    <td className="px-5 py-3.5">
                                         <span className="text-base font-bold text-slate-900">{city.name}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-5 py-3.5">
                                         <span className="text-sm font-medium text-slate-500">{city.state || '-'}</span>
                                     </td>
-                                    <td className="px-8 py-5">
+                                    <td className="px-5 py-3.5">
                                         <span className="text-sm font-medium text-slate-500">{city.country || '-'}</span>
                                     </td>
-                                    {/* <td className="px-8 py-5">
+                                    {/* <td className="px-5 py-3.5">
                                         <span className="text-sm font-medium text-slate-400">{city.vacancies}</span>
                                     </td> */}
                                     <td className="px-8 py-5 text-right relative">

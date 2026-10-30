@@ -182,7 +182,7 @@ export default function AdminGlobalSearch() {
     const isSearching = query.trim().length >= 2;
 
     return (
-        <div ref={containerRef} className="relative w-full max-w-xl">
+        <div ref={containerRef} className="relative flex-1 min-w-0 max-w-xl">
             {/* Search Input Bar */}
             <div className="relative w-full group">
                 <MagnifyingGlassIcon
@@ -200,7 +200,7 @@ export default function AdminGlobalSearch() {
                     }}
                     onFocus={() => setIsOpen(true)}
                     onKeyDown={handleInputKeyDown}
-                    placeholder="Search intelligence (users, companies, jobs, pages)..."
+                    placeholder="Search intelligence..."
                     className="w-full pl-10 pr-20 py-2 sm:py-2.5 bg-purple-50/60 dark:bg-slate-800/80 border border-purple-100 dark:border-slate-700/80 rounded-2xl text-xs sm:text-sm focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-purple-300 dark:focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-slate-800 dark:text-white placeholder:text-slate-400 shadow-2xs"
                 />
 

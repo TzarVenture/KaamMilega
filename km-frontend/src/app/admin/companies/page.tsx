@@ -366,7 +366,7 @@ function CompaniesContent() {
             <motion.div
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-km-surface-card rounded-2xl border border-purple-100/70 shadow-sm overflow-hidden"
+                className="bg-km-surface-card rounded-[32px] border border-purple-50 shadow-sm overflow-hidden"
             >
                 {/* Top Toolbar with Right-Aligned Pagination */}
                 <div className="px-5 py-2.5 bg-slate-50/70 border-b border-purple-50 flex flex-wrap items-center justify-between gap-3 text-xs">
@@ -444,11 +444,11 @@ function CompaniesContent() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-purple-50 bg-slate-50/40">
-                                <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider min-w-[260px]">Company Information</th>
-                                <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Action</th>
-                                <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap min-w-[120px]">Last Activity</th>
-                                <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap min-w-[120px]">Date Added</th>
-                                <th className="px-5 py-3 text-xs font-bold text-slate-600 uppercase tracking-wider text-right whitespace-nowrap min-w-[180px]">Status & Actions</th>
+                                <th className="px-5 py-3 text-[12px] font-bold text-slate-600 uppercase tracking-wider min-w-[260px]">Company Information</th>
+                                <th className="px-5 py-3 text-[12px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap min-w-[130px]">Action</th>
+                                <th className="px-5 py-3 text-[12px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap min-w-[120px]">Last Activity</th>
+                                <th className="px-5 py-3 text-[12px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap min-w-[120px]">Date Added</th>
+                                <th className="px-5 py-3 text-[12px] font-bold text-slate-600 uppercase tracking-wider text-right whitespace-nowrap min-w-[180px]">Status & Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-purple-50/40">
@@ -469,7 +469,7 @@ function CompaniesContent() {
                                         key={company.id}
                                         className="hover:bg-purple-50/25 transition-colors group cursor-default"
                                     >
-                                        <td className="px-5 py-3.5">
+                                        <td className="px-5 py-3">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 bg-gradient-to-tr from-purple-100 to-indigo-100 rounded-xl flex items-center justify-center shrink-0 border border-purple-200/60 shadow-2xs overflow-hidden text-purple-700 font-bold text-sm">
                                                     {(company.name || company.recruiter?.name || '?').substring(0, 1).toUpperCase()}
@@ -484,7 +484,7 @@ function CompaniesContent() {
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3.5">
+                                        <td className="px-5 py-3">
                                             <button
                                                 onClick={() => handleAccessDocuments(company)}
                                                 className="text-purple-600 text-xs font-bold hover:underline underline-offset-4 flex items-center gap-1 dark:text-purple-400"
@@ -493,13 +493,13 @@ function CompaniesContent() {
                                                 <span>Access Profile</span>
                                             </button>
                                         </td>
-                                        <td className="px-5 py-3.5 text-xs font-medium text-slate-600">
+                                        <td className="px-5 py-3 text-xs font-medium text-slate-600">
                                             {company.recruiter?.last_active}
                                         </td>
-                                        <td className="px-5 py-3.5 text-xs font-medium text-slate-600">
+                                        <td className="px-5 py-3 text-xs font-medium text-slate-600">
                                             {new Date(company.created_at).toLocaleDateString()}
                                         </td>
-                                        <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                                        <td className="px-5 py-3 text-right whitespace-nowrap">
                                             <div className="inline-flex items-center justify-end gap-2.5 relative" data-menu-container>
                                                 {company.status === 'verified' && (
                                                     <span className="inline-flex items-center justify-center px-3 py-1 text-xs font-semibold text-emerald-700 bg-emerald-100/90 rounded-lg border border-emerald-200/60 whitespace-nowrap shrink-0">
