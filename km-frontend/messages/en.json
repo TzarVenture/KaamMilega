@@ -822,6 +822,9 @@
     "PUSH_DISABLED": "Notifications aren't set up on the server yet.",
     "PUSH_TOKEN_INVALID": "Notifications couldn't be turned on for this device.",
     "PUSH_PLATFORM_INVALID": "Notifications aren't supported on this device.",
-    "PUSH_TEST_TOO_SOON": "Please wait a few seconds before sending another test."
+    "PUSH_TEST_TOO_SOON": "Please wait a few seconds before sending another test.",
+    "CHAT_ATTACHMENT_INVALID": "One of the files couldn't be attached. Please upload it again.",
+    "CHAT_TOO_MANY_ATTACHMENTS": "You can send up to 10 files at a time.",
+    "CHAT_REPLY_INVALID": "The message you're replying to isn't available."
   }
 }

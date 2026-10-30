@@ -812,3 +812,21 @@ html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-b
 @media (prefers-reduced-motion: reduce) {
   .km-typing-dot { animation: none; opacity: 0.7; }
 }
+
+/* Chat bubble tail (app/(common)/chat), iMessage style, on the last bubble of a group.
+   ::before is the tail in the bubble colour (--bubble); ::after carves its curve out of the
+   chat background (--chat-bg). */
+.km-tail-me::before,
+.km-tail-them::before,
+.km-tail-me::after,
+.km-tail-them::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  height: 20px;
+  pointer-events: none;
+}
+.km-tail-me::before { right: -7px; width: 20px; background: var(--bubble); border-bottom-left-radius: 16px 14px; }
+.km-tail-me::after { right: -10px; width: 10px; background: var(--chat-bg); border-bottom-left-radius: 10px; }
+.km-tail-them::before { left: -7px; width: 20px; background: var(--bubble); border-bottom-right-radius: 16px 14px; }
+.km-tail-them::after { left: -10px; width: 10px; background: var(--chat-bg); border-bottom-right-radius: 10px; }

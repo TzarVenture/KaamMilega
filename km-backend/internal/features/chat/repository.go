@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 	"km-backend/internal/database"
+	"regexp"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
 
 type repository struct {
 	db *database.MongodbDB
@@ -134,7 +134,6 @@ func (r *repository) GetMessagesByConversationID(ctx context.Context, conversati
 	return messages, nil
 }
 
-
 func (r *repository) UpdateLastMessage(ctx context.Context, conversationID, messageID primitive.ObjectID, content string) error {
 	filter := bson.M{"_id": conversationID}
 	update := bson.M{
@@ -207,10 +206,53 @@ func (r *repository) MarkMessageDeleted(ctx context.Context, messageID primitive
 			"attachment_type": "",
 			"attachment_name": "",
 			"attachment_size": 0,
+			"attachments":     []Attachment{},
 		},
 	}
-	_, err := r.db.DB.Collection("messages").UpdateOne(ctx, filter, update)
+	if _, err := r.db.DB.Collection("messages").UpdateOne(ctx, filter, update); err != nil {
+		return err
+	}
+	// Replies quoting it show "This message was deleted" instead of the old text
+	_, err := r.db.DB.Collection("messages").UpdateMany(ctx, bson.M{"reply_to.id": messageID}, bson.M{
+		"$set":   bson.M{"reply_to.is_deleted": true},
+		"$unset": bson.M{"reply_to.content": "", "reply_to.attachment_type": "", "reply_to.attachment_name": "", "reply_to.attachment_count": "", "reply_to.thumb_url": ""},
+	})
 	return err
+}
+
+var privateFileRef = regexp.MustCompile(`^/api/files/([a-f0-9]{24})$`)
+
+func (r *repository) ClaimChatFiles(ctx context.Context, senderID, conversationID primitive.ObjectID, refs []string) ([]Attachment, error) {
+	files := r.db.DB.Collection("files")
+	out := make([]Attachment, 0, len(refs))
+	for _, ref := range refs {
+		m := privateFileRef.FindStringSubmatch(ref)
+		if m == nil {
+			return nil, ErrAttachmentInvalid
+		}
+		id, _ := primitive.ObjectIDFromHex(m[1])
+		var f struct {
+			OriginalFilename string `bson:"original_filename"`
+			MimeType         string `bson:"mime_type"`
+			Size             int64  `bson:"size"`
+			RecordID         string `bson:"record_id"`
+		}
+		err := files.FindOne(ctx, bson.M{"_id": id, "uploaded_by": senderID, "kind": "chat", "visibility": "private"}).Decode(&f)
+		if err != nil {
+			return nil, ErrAttachmentInvalid
+		}
+		// A file already shared in another conversation stays there
+		if other, err := primitive.ObjectIDFromHex(f.RecordID); err == nil && other != conversationID {
+			return nil, ErrAttachmentInvalid
+		}
+		if f.RecordID != conversationID.Hex() {
+			if _, err := files.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"module_name": "chat", "record_id": conversationID.Hex()}}); err != nil {
+				return nil, err
+			}
+		}
+		out = append(out, Attachment{URL: ref, Type: f.MimeType, Name: f.OriginalFilename, Size: f.Size})
+	}
+	return out, nil
 }
 
 func (r *repository) ClearConversationForUser(ctx context.Context, conversationID, userID primitive.ObjectID) error {
@@ -472,4 +514,3 @@ func (r *repository) GetChatEntitlement(ctx context.Context, userID primitive.Ob
 		PassQuotaRemaining:    quotaRemaining,
 	}, nil
 }
-
