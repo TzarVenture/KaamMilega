@@ -150,6 +150,8 @@ func (s *CompanyService) GetCompany(ctx context.Context, id string) (*CompanyRes
 	recruiterInfo := RecruiterInfo{
 		Name:        u.Name,
 		Designation: u.Headline,
+		Email:       u.Email,
+		Mobile:      u.Mobile,
 		LastActive:  u.LastActiveAt.Format("Jan 02, 2006"), // Simple format
 	}
 
@@ -159,6 +161,7 @@ func (s *CompanyService) GetCompany(ctx context.Context, id string) (*CompanyRes
 		Name:        u.CompanyName,
 		Logo:        u.CompanyLogo,
 		Website:     u.CompanyWebsite,
+		Industry:    u.Industry,
 		GST:         u.GST,
 		Documents:   FromUserDocuments(u.CompanyDocuments),
 		Status:      u.VerificationStatus,
@@ -189,8 +192,9 @@ func (s *CompanyService) GetCompanies(ctx context.Context, filter CompanyFilter)
 		recruiterInfo := RecruiterInfo{
 			Name:        u.Name,
 			Designation: u.Headline,
-			// Calculate relative time or simple format
-			LastActive: "Recently", // u.LastActiveAt
+			Email:       u.Email,
+			Mobile:      u.Mobile,
+			LastActive:  "Recently",
 		}
 		if !u.LastActiveAt.IsZero() {
 			recruiterInfo.LastActive = u.LastActiveAt.Format("Jan 02, 2006")
@@ -203,6 +207,7 @@ func (s *CompanyService) GetCompanies(ctx context.Context, filter CompanyFilter)
 			Name:        u.CompanyName,
 			Logo:        u.CompanyLogo,
 			Website:     u.CompanyWebsite,
+			Industry:    u.Industry,
 			GST:         u.GST,
 			Documents:   FromUserDocuments(u.CompanyDocuments),
 			Status:      u.VerificationStatus,
@@ -226,7 +231,22 @@ func (s *CompanyService) UpdateCompany(ctx context.Context, id string, req Updat
 
 	// Update fields
 	if req.Name != "" {
-		u.CompanyName = req.Name
+		u.CompanyName = strings.TrimSpace(req.Name)
+	}
+	if req.RecruiterName != "" {
+		u.Name = strings.TrimSpace(req.RecruiterName)
+	}
+	if req.Designation != "" {
+		u.Headline = strings.TrimSpace(req.Designation)
+	}
+	if req.Email != "" {
+		u.Email = strings.ToLower(strings.TrimSpace(req.Email))
+	}
+	if req.Mobile != "" {
+		u.Mobile = strings.TrimSpace(req.Mobile)
+	}
+	if req.Industry != "" {
+		u.Industry = strings.TrimSpace(req.Industry)
 	}
 	if req.Logo != "" {
 		u.CompanyLogo = req.Logo
@@ -273,8 +293,6 @@ func (s *CompanyService) GetTopCompanies(ctx context.Context, limit int) ([]TopC
 	var top []TopCompanyResponse
 	for _, u := range users {
 		if u.CompanyName != "" {
-			// The company's industry, not the recruiter's personal headline ("HR", "Founder");
-			// empty values stay empty instead of placeholder text
 			category := strings.TrimSpace(u.Industry)
 			location := strings.TrimSpace(u.City)
 			top = append(top, TopCompanyResponse{
@@ -291,4 +309,3 @@ func (s *CompanyService) GetTopCompanies(ctx context.Context, limit int) ([]TopC
 	}
 	return top, nil
 }
-

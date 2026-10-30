@@ -503,6 +503,14 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 	// Dynamic update (simplified for now, can be improved with reflection or specific checks)
 	for key, value := range updates {
 		switch key {
+		case "mobile":
+			if v, ok := value.(string); ok && strings.TrimSpace(v) != "" {
+				user.Mobile = cleanMobile(v)
+			}
+		case "date_of_birth":
+			if v, ok := value.(string); ok {
+				user.DateOfBirth = v
+			}
 		case "name":
 			if v, ok := value.(string); ok {
 				user.Name = v
