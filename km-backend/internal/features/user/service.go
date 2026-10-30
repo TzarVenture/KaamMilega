@@ -85,9 +85,10 @@ type UserServiceImpl struct {
 	skillRepo  skill.SkillRepository
 	config     *config.Config
 	mailer     notification.Mailer
+	notifier   notification.NotificationService
 }
 
-func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config, mailer notification.Mailer) UserService {
+func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config, mailer notification.Mailer, notifier notification.NotificationService) UserService {
 	// Trigger non-destructive background backfill for legacy users
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -101,6 +102,7 @@ func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo sk
 		skillRepo:  skillRepo,
 		config:     cfg,
 		mailer:     mailer,
+		notifier:   notifier,
 	}
 }
 

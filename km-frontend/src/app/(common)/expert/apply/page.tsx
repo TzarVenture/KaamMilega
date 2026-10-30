@@ -71,6 +71,23 @@ const HINT = "mt-1.5 text-xs text-km-text-secondary";
 
 const digits = (v: string, max: number) => v.replace(/\D/g, "").slice(0, max);
 const groupAadhaar = (v: string) => v.replace(/(\d{4})(?=\d)/g, "$1 ");
+// Verhoeff checksum, the same rule UIDAI and the backend use, so typos are caught on this step
+const VERHOEFF_D = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 0, 6, 7, 8, 9, 5], [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+  [3, 4, 0, 1, 2, 8, 9, 5, 6, 7], [4, 0, 1, 2, 3, 9, 5, 6, 7, 8], [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+  [6, 5, 9, 8, 7, 1, 0, 4, 3, 2], [7, 6, 5, 9, 8, 2, 1, 0, 4, 3], [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+];
+const VERHOEFF_P = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 5, 7, 6, 2, 8, 3, 0, 9, 4], [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+  [8, 9, 1, 6, 0, 4, 3, 5, 2, 7], [9, 4, 5, 3, 1, 2, 6, 8, 7, 0], [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+  [2, 7, 9, 3, 8, 0, 6, 4, 1, 5], [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+];
+const validAadhaar = (v: string) =>
+  /^[2-9]\d{11}$/.test(v) &&
+  v.split("").reverse().reduce((c, ch, i) => VERHOEFF_D[c][VERHOEFF_P[i % 8][Number(ch)]], 0) === 0;
+// Server codes that belong to the Identity step
+const IDENTITY_CODES = ["AADHAAR_INVALID", "PAN_INVALID", "KYC_DOCUMENT_REQUIRED"];
 const formatSize = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`);
 
 export default function ExpertApplyPage() {
@@ -136,6 +153,7 @@ export default function ExpertApplyPage() {
     }
     if (s === 2) {
       if (aadhaar.length !== 12) return "Enter your 12-digit Aadhaar number.";
+      if (!validAadhaar(aadhaar)) return "This Aadhaar number isn't valid. Please check it.";
       if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) return "Enter a valid PAN, like ABCDE1234F.";
       if (!aadhaarDoc || !panDoc) return "Upload both your Aadhaar and PAN card.";
     }
@@ -195,6 +213,7 @@ export default function ExpertApplyPage() {
       await load();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
+      if (IDENTITY_CODES.includes((err as { code?: string })?.code ?? "")) setStep(2);
       notify.error(err, "Could not submit your application. Please try again.");
     } finally {
       setSubmitting(false);

@@ -3,11 +3,15 @@ package user
 import (
 	"context"
 	"errors"
+	"log"
 	"regexp"
 	"strings"
 	"time"
 
 	"km-backend/internal/common/apperr"
+	"km-backend/internal/features/notification"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // Becoming an Expert (client Q&A Q8–Q12): at least 2 years of experience, Aadhaar, PAN and
@@ -334,7 +338,40 @@ func (s *UserServiceImpl) ApproveExpert(ctx context.Context, adminID string, tar
 		user.ExpertKYC.RejectionReason = reason
 	}
 
-	return s.repo.UpdateUser(ctx, user)
+	updated, err := s.repo.UpdateUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	s.notifyExpertDecision(user.ID, req.Status, reason)
+	return updated, nil
+}
+
+// notifyExpertDecision tells the applicant the outcome in the app (bell, live update and push)
+func (s *UserServiceImpl) notifyExpertDecision(userID primitive.ObjectID, status, reason string) {
+	if s.notifier == nil {
+		return
+	}
+	req := notification.CreateNotificationRequest{
+		UserID:   userID,
+		Type:     notification.TypeExpertApplication,
+		Category: notification.CategorySystem,
+		Link:     "/expert/apply",
+		Metadata: map[string]interface{}{"status": status},
+	}
+	if status == ExpertStatusApproved {
+		req.Title = "You're now a verified Expert"
+		req.Message = "Your Expert application is approved. Create your sessions and set your availability to start taking bookings."
+	} else {
+		req.Title = "Your Expert application needs changes"
+		req.Message = "Reason: " + reason + " Update your details and resubmit."
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if _, err := s.notifier.CreateNotification(ctx, req); err != nil {
+			log.Printf("expert decision notification for %s: %v", userID.Hex(), err)
+		}
+	}()
 }
 
 // validationStatus answers 400 for a coded (user-facing) error and 500 for anything else
