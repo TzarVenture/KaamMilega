@@ -7,9 +7,15 @@ interface OtpInputProps {
     value: string[];
     onChange: (otp: string[]) => void;
     autoFocus?: boolean;
+    /** Locks the boxes, e.g. while the code is being checked */
+    disabled?: boolean;
+    /** Red boxes after a wrong code */
+    invalid?: boolean;
+    /** Box alignment: centred (default) or from the left edge, for left-aligned forms */
+    align?: "center" | "start";
 }
 
-export default function OtpInput({ length = 4, value, onChange, autoFocus = true }: OtpInputProps) {
+export default function OtpInput({ length = 4, value, onChange, autoFocus = true, disabled = false, invalid = false, align = "center" }: OtpInputProps) {
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
     useEffect(() => {
@@ -21,6 +27,14 @@ export default function OtpInput({ length = 4, value, onChange, autoFocus = true
             return () => clearTimeout(timer);
         }
     }, [autoFocus]);
+
+    // After a wrong code the boxes unlock empty: put the cursor back in the first one
+    useEffect(() => {
+        if (!disabled && autoFocus && value.every((v) => !v)) {
+            inputRefs.current[0]?.focus();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [disabled]);
 
     const focusBox = (index: number) => {
         const box = inputRefs.current[Math.max(0, Math.min(index, length - 1))];
@@ -91,7 +105,7 @@ export default function OtpInput({ length = 4, value, onChange, autoFocus = true
     };
 
     return (
-        <div className="flex justify-center gap-3 sm:gap-4 my-4">
+        <div className={`flex ${length > 4 ? "gap-2 sm:gap-3" : "gap-3"} ${align === "start" ? "justify-start" : "justify-center my-4"}`}>
             {Array.from({ length }).map((_, index) => (
                 <input
                     key={index}
@@ -102,12 +116,18 @@ export default function OtpInput({ length = 4, value, onChange, autoFocus = true
                     // Lets iOS/Android offer the code from the SMS; no maxLength, or autofill is cut to 1 digit
                     autoComplete={index === 0 ? "one-time-code" : "off"}
                     aria-label={`Digit ${index + 1} of ${length}`}
+                    aria-invalid={invalid || undefined}
                     value={value[index] || ""}
+                    disabled={disabled}
                     onChange={(e) => handleChange(e, index)}
                     onKeyDown={(e) => handleKeyDown(e, index)}
                     onPaste={handlePaste}
                     onClick={() => inputRefs.current[index]?.select()}
-                    className="w-12 h-14 sm:w-14 sm:h-16 text-center text-2xl font-black border-2 border-slate-300 rounded-2xl bg-km-surface-card text-slate-900 focus:border-km-primary focus:ring-4 focus:ring-km-primary/10 outline-none transition-all shadow-sm"
+                    className={`${length > 4 ? "w-11 h-12 sm:w-12 sm:h-14 text-xl" : "w-14 h-14 text-2xl"} text-center font-semibold font-inter rounded-xl border-[1.5px] bg-km-surface-card text-km-text-primary outline-none transition-colors focus:ring-4 disabled:opacity-60 disabled:cursor-not-allowed ${
+                        invalid
+                            ? "border-red-500 focus:border-red-500 focus:ring-red-100 dark:focus:ring-red-950"
+                            : "border-km-border focus:border-km-link focus:ring-[#DCE8FB] dark:focus:ring-[#16294F]"
+                    }`}
                 />
             ))}
         </div>

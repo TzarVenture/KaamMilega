@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -51,8 +52,10 @@ func (ctrl *UserController) setAuthCookies(c *fiber.Ctx, token string, user *Use
 		return
 	}
 
+	// The portal cookie names a role the person really holds: someone still setting up a
+	// company is not a recruiter yet
 	primaryRole := RoleUser
-	if preferredRole != "" {
+	if preferredRole != "" && slices.Contains(user.Roles, preferredRole) {
 		primaryRole = preferredRole
 	} else if len(user.Roles) > 0 && user.Roles[0] != "" {
 		primaryRole = user.Roles[0]
@@ -60,14 +63,16 @@ func (ctrl *UserController) setAuthCookies(c *fiber.Ctx, token string, user *Use
 
 	// In production or HTTPS, mark cookies as secure
 	isSecure := ctrl.config.Environment == "production" || c.Protocol() == "https"
+	expires := time.Now().Add(middleware.SessionTTL)
+	maxAge := int(middleware.SessionTTL.Seconds())
 
 	// 1. Primary Auth Token (HttpOnly, inaccessible via client JS, immune to XSS)
 	c.Cookie(&fiber.Cookie{
 		Name:     "km_auth_token",
 		Value:    token,
 		Path:     "/",
-		Expires:  time.Now().Add(72 * time.Hour),
-		MaxAge:   72 * 3600,
+		Expires:  expires,
+		MaxAge:   maxAge,
 		HTTPOnly: true,
 		Secure:   isSecure,
 		SameSite: "Lax",
@@ -78,8 +83,8 @@ func (ctrl *UserController) setAuthCookies(c *fiber.Ctx, token string, user *Use
 		Name:     "km_user_role",
 		Value:    primaryRole,
 		Path:     "/",
-		Expires:  time.Now().Add(72 * time.Hour),
-		MaxAge:   72 * 3600,
+		Expires:  expires,
+		MaxAge:   maxAge,
 		HTTPOnly: false,
 		Secure:   isSecure,
 		SameSite: "Lax",
@@ -206,9 +211,18 @@ func (ctrl *UserController) Register(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.Register(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
+	// Sign-up can add a role (a finished company form makes a recruiter): issue a token and
+	// portal cookie that carry it
+	portal := c.Cookies("km_user_role")
+	if slices.Contains(req.Roles, RoleRecruiter) {
+		portal = RoleRecruiter
+	}
+	if token, err := ctrl.service.GenerateToken(user); err == nil {
+		ctrl.setAuthCookies(c, token, user, portal)
+	}
 	return c.JSON(user)
 }
 
@@ -800,30 +814,6 @@ func (ctrl *UserController) LoginWithPassword(c *fiber.Ctx) error {
 
 	if res.RequiresPasswordSetup {
 		return c.Status(fiber.StatusOK).JSON(res)
-	}
-
-	ctrl.setAuthCookies(c, res.Token, res.User, "")
-	return c.JSON(res)
-}
-
-// RegisterWithPassword godoc
-// @Summary Register with Password
-// @Description Register a new account with email/mobile and password
-// @Tags auth
-// @Accept json
-// @Produce json
-// @Param request body PasswordRegisterRequest true "Registration Info"
-// @Success 200 {object} PasswordLoginResponse
-// @Router /api/auth/register/password [post]
-func (ctrl *UserController) RegisterWithPassword(c *fiber.Ctx) error {
-	var req PasswordRegisterRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request format"})
-	}
-
-	res, err := ctrl.service.RegisterWithPassword(c.Context(), req)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
 	ctrl.setAuthCookies(c, res.Token, res.User, "")
