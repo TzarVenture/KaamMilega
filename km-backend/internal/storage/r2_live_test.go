@@ -51,7 +51,7 @@ func TestR2Live(t *testing.T) {
 	if code, got := get(s.PublicURL(key)); code != 200 || got != body {
 		t.Errorf("public URL: HTTP %d", code)
 	}
-	signed, err := s.SignedURL(ctx, key, "check.txt", time.Minute)
+	signed, err := s.SignedURL(ctx, key, "check.txt", false, time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}

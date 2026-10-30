@@ -3,11 +3,23 @@
 import React, { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowsClockwiseIcon, CaretDownIcon, CaretLeftIcon, ChatIcon, CheckCircleIcon, CheckIcon, ChecksIcon, CircleNotchIcon, ClockIcon, CopyIcon, DotsThreeVerticalIcon, DownloadSimpleIcon, FileTextIcon, FlagIcon, MagnifyingGlassIcon, PaperPlaneRightIcon, PaperclipIcon, ProhibitIcon, SmileyIcon, TrashIcon, UserIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowBendUpLeftIcon, ArrowsClockwiseIcon, CaretDownIcon, CaretLeftIcon, ChatIcon, CheckCircleIcon, CheckIcon, ChecksIcon, CircleNotchIcon, ClockIcon, CopyIcon, DotsThreeVerticalIcon, FileTextIcon, FlagIcon, MagnifyingGlassIcon, PaperPlaneRightIcon, PaperclipIcon, ProhibitIcon, SmileyIcon, TrashIcon, UserIcon, XIcon } from '@phosphor-icons/react';
 import dynamic from "next/dynamic";
 import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
-import { isPrivateFileRef, openFile, uploadFile, useFileUrl } from "@/lib/upload";
+import { uploadFile, UPLOAD_LIMITS } from "@/lib/upload";
+import { compressImage } from "@/lib/compressImage";
+import MessageAttachments from "@/components/chat/MessageAttachments";
+import MediaViewer from "@/components/chat/MediaViewer";
+import ReplyQuote from "@/components/chat/ReplyQuote";
+import {
+  ChatAttachment,
+  ReplyPreview,
+  attachmentsOf,
+  formatFileSize,
+  isImageAttachment,
+  replyPreviewOf,
+} from "@/components/chat/chatTypes";
 import { playMessageReceivedSound } from "@/lib/sound";
 import {
   setActiveChatState,
@@ -61,10 +73,24 @@ interface Message {
   attachment_type?: string;
   attachment_name?: string;
   attachment_size?: number;
+  /** Every file of the message (an album); older messages only have attachment_* */
+  attachments?: ChatAttachment[];
+  reply_to?: ReplyPreview;
   isOptimistic?: boolean;
+  /** Sending failed; the bubble offers Retry */
+  sendFailed?: boolean;
 }
 
+// Same limits as the server: 10 files per message, chat file types only
+const MAX_FILES = 10;
+const CHAT_FILE_TYPES = /\.(jpe?g|png|webp|gif|pdf|docx?|txt)$/i;
+// Photos are shrunk before upload, so a large camera photo is fine as long as the result is
+// under the server's 10 MB
+const COMPRESSIBLE = /^image\/(jpeg|png|webp)$/;
+const MAX_PHOTO_BEFORE_COMPRESSION = 25 * 1024 * 1024;
+
 interface PendingAttachment {
+  id: string;
   file: File;
   previewUrl?: string;
   isImage: boolean;
@@ -73,12 +99,6 @@ interface PendingAttachment {
 }
 
 // --- Formatters ---
-const formatFileSize = (bytes?: number): string => {
-  if (!bytes || bytes <= 0) return "";
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
 
 const formatMessageTime = (dateStr: string): string => {
   try {
@@ -151,25 +171,6 @@ const getDateDividerLabel = (dateStr: string): string => {
 };
 
 // --- Resolve asset URL ---
-/** A chat image; private attachments load through a short-lived signed link */
-function ChatImage({ url, alt, onOpen }: { url: string; alt: string; onOpen: (src: string) => void }) {
-  const src = useFileUrl(isPrivateFileRef(url) ? url : getFullMediaUrl(url));
-  if (!src) {
-    return <div className="h-40 w-56 max-w-full rounded-xl bg-km-surface animate-pulse" aria-label={alt} />;
-  }
-  return (
-    <img
-      src={src}
-      alt={alt}
-      onClick={(e) => {
-        e.stopPropagation();
-        onOpen(src);
-      }}
-      className="max-h-60 w-auto rounded-xl object-cover cursor-pointer hover:opacity-95 transition-opacity"
-    />
-  );
-}
-
 const getFullMediaUrl = (url?: string): string => {
   if (!url) return "";
   if (
@@ -246,9 +247,13 @@ function ChatView() {
 
   // Input & Attachments
   const [inputText, setInputText] = useState("");
-  const [pendingAttachment, setPendingAttachment] =
-    useState<PendingAttachment | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([]);
+  const [replyTo, setReplyTo] = useState<Message | null>(null);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+  // Briefly highlighted after jumping to it from a reply quote
+  const [highlightedMessageId, setHighlightedMessageId] = useState<string | null>(null);
+  // A reply started in another conversation doesn't follow you
+  const activeReply = replyTo && activeChat && replyTo.conversation_id === activeChat.id ? replyTo : null;
 
   // Emoji Picker state
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -267,8 +272,8 @@ function ChatView() {
   const myTypingDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
-  // Lightbox image viewer
-  const [lightboxImage, setLightboxImage] = useState<string | null>(null);
+  // Full-screen photo viewer
+  const [viewer, setViewer] = useState<{ images: ChatAttachment[]; index: number } | null>(null);
 
   // Mobile slide-in view
   const [mobileChatOpen, setMobileChatOpen] = useState(false);
@@ -315,6 +320,7 @@ function ChatView() {
   const activeChatRef = useRef<Conversation | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const swipeRef = useRef<{ id: string; x: number; y: number } | null>(null);
   const prevMessagesLength = useRef(0);
   const prevActiveChatId = useRef<string | null>(null);
   const prevLastMsgId = useRef<string | null>(null);
@@ -644,19 +650,23 @@ function ChatView() {
                 // Prevent duplicate append if ID already in state
                 if (prev.some((m) => m.id === newMsg.id)) return prev;
 
-                // If this is my own message and an optimistic placeholder exists, replace it
-                const optIndex = prev.findIndex(
-                  (m) =>
-                    m.isOptimistic &&
-                    m.sender_id === newMsg.sender_id &&
-                    (m.content === newMsg.content ||
-                      (newMsg.attachment_name &&
-                        m.attachment_name === newMsg.attachment_name)),
-                );
-                if (optIndex !== -1) {
-                  const next = [...prev];
-                  next[optIndex] = newMsg;
-                  return next;
+                // My own message while one of mine is still sending here: the send's response
+                // puts it in place of its bubble. If it came from another device instead, add
+                // it once the sends have settled.
+                if (
+                  newMsg.sender_id === currentUser.id &&
+                  prev.some((m) => m.isOptimistic && !m.sendFailed)
+                ) {
+                  setTimeout(() => {
+                    setMessages((later) =>
+                      later.some((m) => m.id === newMsg.id)
+                        ? later
+                        : [...later, newMsg].sort(
+                            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+                          ),
+                    );
+                  }, 4000);
+                  return prev;
                 }
 
                 return [...prev, newMsg];
@@ -752,8 +762,11 @@ function ChatView() {
                       attachment_type: "",
                       attachment_name: "",
                       attachment_size: 0,
+                      attachments: [],
                     }
-                  : m,
+                  : m.reply_to && m.reply_to.id === deletedMsgId
+                    ? { ...m, reply_to: { id: deletedMsgId, sender_id: m.reply_to.sender_id, is_deleted: true } }
+                    : m,
               ),
             );
             if (currentUser) {
@@ -1131,50 +1144,94 @@ function ChatView() {
     }
   }, [messages, activeChat, isOtherTyping]);
 
-  // 9. File attachment selection
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Limit file size to 10MB
-    if (file.size > 10 * 1024 * 1024) {
-      notify.error("File size exceeds the 10 MB limit");
-      if (fileInputRef.current) fileInputRef.current.value = "";
+  // 9. File attachments: picked, pasted or dropped, up to 10 per message
+  const addFiles = (files: File[]) => {
+    if (files.length === 0) return;
+    const room = MAX_FILES - pendingAttachments.length;
+    if (room <= 0) {
+      notify.error(`You can send up to ${MAX_FILES} files at a time.`);
       return;
     }
+    const accepted: PendingAttachment[] = [];
+    for (const file of files) {
+      if (!CHAT_FILE_TYPES.test(file.name)) {
+        notify.error(`${file.name} can't be sent. Use photos, PDF, Word or text files.`);
+        continue;
+      }
+      const limit = COMPRESSIBLE.test(file.type) ? MAX_PHOTO_BEFORE_COMPRESSION : UPLOAD_LIMITS.chat;
+      if (file.size > limit) {
+        notify.error(`${file.name} is over ${Math.round(limit / 1024 / 1024)} MB.`);
+        continue;
+      }
+      const isImage = file.type.startsWith("image/");
+      accepted.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        file,
+        previewUrl: isImage ? URL.createObjectURL(file) : undefined,
+        isImage,
+        name: file.name,
+        sizeFormatted: formatFileSize(file.size),
+      });
+    }
+    if (accepted.length > room) {
+      notify.error(`You can send up to ${MAX_FILES} files at a time.`);
+      accepted.splice(room).forEach((p) => p.previewUrl && URL.revokeObjectURL(p.previewUrl));
+    }
+    if (accepted.length > 0) {
+      setPendingAttachments((prev) => [...prev, ...accepted]);
+      textareaRef.current?.focus();
+    }
+  };
 
-    const isImage = file.type.startsWith("image/");
-    const previewUrl = isImage ? URL.createObjectURL(file) : undefined;
-
-    setPendingAttachment({
-      file,
-      previewUrl,
-      isImage,
-      name: file.name,
-      sizeFormatted: formatFileSize(file.size),
-    });
-
-    // Reset input element so re-selecting same file triggers event
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    addFiles(Array.from(e.target.files ?? []));
+    // Reset so picking the same file again still triggers a change
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const removePendingAttachment = () => {
-    if (pendingAttachment?.previewUrl) {
-      URL.revokeObjectURL(pendingAttachment.previewUrl);
-    }
-    setPendingAttachment(null);
+  const removePendingAttachment = (id: string) => {
+    setPendingAttachments((prev) => {
+      const gone = prev.find((p) => p.id === id);
+      if (gone?.previewUrl) URL.revokeObjectURL(gone.previewUrl);
+      return prev.filter((p) => p.id !== id);
+    });
   };
 
-  // 10. Send message (with attachment upload & optimistic update)
-  const handleSendMessage = async () => {
-    const text = inputText.trim();
-    if (
-      (!text && !pendingAttachment) ||
-      !activeChat ||
-      !currentUser ||
-      isUploading
-    )
+  const startReply = (msg: Message) => {
+    if (msg.is_deleted || msg.isOptimistic) return;
+    setReplyTo(msg);
+    setActiveMessageMenuId(null);
+    textareaRef.current?.focus();
+  };
+
+  // Scrolls to the quoted message and highlights it for a moment
+  const jumpToMessage = (id: string) => {
+    const el = messagesContainerRef.current?.querySelector<HTMLElement>(`[data-msg-id="${id}"]`);
+    if (!el) {
+      notify.info("That message is further up. Scroll up to load it.");
       return;
+    }
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    setHighlightedMessageId(id);
+    setTimeout(() => setHighlightedMessageId((cur) => (cur === id ? null : cur)), 1600);
+  };
+
+  // Updates one file of a message that is being sent
+  const patchAttachment = (tempId: string, index: number, patch: Partial<ChatAttachment>) => {
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === tempId && m.attachments
+          ? { ...m, attachments: m.attachments.map((a, i) => (i === index ? { ...a, ...patch } : a)) }
+          : m,
+      ),
+    );
+  };
+
+  // 10. Send: the bubble appears at once with this device's previews; files upload in the
+  // background with progress, then the message is posted (WhatsApp pattern)
+  const handleSendMessage = () => {
+    const text = inputText.trim();
+    if ((!text && pendingAttachments.length === 0) || !activeChat || !currentUser) return;
 
     const other = activeChat.other_user || activeChat.otherUser;
     const otherId =
@@ -1194,134 +1251,123 @@ function ChatView() {
       return;
     }
 
-    // Close emoji picker
     setShowEmojiPicker(false);
-
-    // Clear typing
     emitTyping(false);
     if (myTypingDebounceRef.current) clearTimeout(myTypingDebounceRef.current);
 
-    let uploadedUrl = "";
-    let uploadedType = "";
-    let uploadedName = "";
-    let uploadedSize = 0;
-
-    // 1. Upload attachment if attached
-    if (pendingAttachment) {
-      setIsUploading(true);
-      try {
-        // Chat files are private: only the people in this conversation can open them
-        const uploadRes = await uploadFile(pendingAttachment.file, "chat", {
-          moduleName: "chat",
-          recordId: activeChat.id,
-        });
-
-        uploadedUrl = uploadRes.url;
-        uploadedType = uploadRes.mime_type || pendingAttachment.file.type || "";
-        uploadedName =
-          uploadRes.original_filename || pendingAttachment.name || "";
-        uploadedSize = uploadRes.size || pendingAttachment.file.size || 0;
-      } catch (err: any) {
-        console.error("File upload failed", err);
-        notify.error(
-          err?.message || "Attachment upload failed. Please try again.",
-        );
-        setIsUploading(false);
-        return;
-      }
-    }
-
-    // 2. Optimistic UI update
-    const tempId = `optimistic-${Date.now()}`;
     const optimisticMsg: Message = {
-      id: tempId,
+      id: `optimistic-${Date.now()}`,
       conversation_id: activeChat.id,
       sender_id: currentUser.id,
       content: text,
       created_at: new Date().toISOString(),
       is_read: false,
-      attachment_url: uploadedUrl || pendingAttachment?.previewUrl,
-      attachment_type:
-        uploadedType ||
-        (pendingAttachment?.isImage
-          ? "image/jpeg"
-          : "application/octet-stream"),
-      attachment_name: uploadedName || pendingAttachment?.name,
-      attachment_size: uploadedSize || pendingAttachment?.file.size,
+      attachments: pendingAttachments.map((p) => ({
+        url: "",
+        type: p.file.type,
+        name: p.name,
+        size: p.file.size,
+        localUrl: p.previewUrl,
+        file: p.file,
+        progress: 0,
+      })),
+      reply_to: activeReply ? replyPreviewOf(activeReply) : undefined,
       isOptimistic: true,
     };
 
     setMessages((prev) => [...prev, optimisticMsg]);
     setInputText("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
-    removePendingAttachment();
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
+    // Previews stay alive: the sent bubble keeps showing them
+    setPendingAttachments([]);
+    setReplyTo(null);
 
-    // Optimistically update conversation last message in the sidebar immediately (no spinner!)
-    const displayPreview =
-      text || (uploadedName ? `Attachment: ${uploadedName}` : "Sent an attachment");
+    const count = optimisticMsg.attachments!.length;
     updateConversationLastMessageLocally(
       activeChat.id,
-      displayPreview,
+      text || (count > 1 ? `${count} files` : count === 1 ? `Attachment: ${optimisticMsg.attachments![0].name}` : ""),
       otherId,
       0,
     );
 
-    // 3. Post to API
+    void deliverMessage(optimisticMsg, otherId, activeChat);
+  };
+
+  const deliverMessage = async (msg: Message, otherId: string, chat: Conversation) => {
+    const tempId = msg.id;
+    const atts = msg.attachments ?? [];
     try {
-      const payload: any = {
-        receiver_id: otherId,
-        content: text,
+      // Upload what isn't uploaded yet (a retry skips finished files)
+      const uploaded = await Promise.all(
+        atts.map(async (a, i) => {
+          if (a.url) return a;
+          const file = a.file!.type.startsWith("image/") ? await compressImage(a.file!) : a.file!;
+          if (file.size > UPLOAD_LIMITS.chat) {
+            throw new Error(`${a.name} is still over 10 MB after compressing. Please choose a smaller photo.`);
+          }
+          const res = await uploadFile(file, "chat", {
+            moduleName: "chat",
+            recordId: chat.id,
+            onProgress: (f) => patchAttachment(tempId, i, { progress: f }),
+          });
+          const done = { ...a, url: res.url, progress: 1 };
+          patchAttachment(tempId, i, { url: res.url, progress: 1 });
+          return done;
+        }),
+      );
+
+      const payload: Record<string, unknown> = { receiver_id: otherId, content: msg.content };
+      if (uploaded.length > 0) payload.attachments = uploaded.map((a) => ({ url: a.url }));
+      if (msg.reply_to) payload.reply_to_id = msg.reply_to.id;
+      const sent = (await api.post("/chats/messages", payload)) as Message;
+
+      // Keep this device's previews so the photos don't flash while signed links load
+      const withPreviews: Message = {
+        ...sent,
+        isOptimistic: false,
+        attachments: attachmentsOf(sent).map((a, i) => ({ ...a, localUrl: uploaded[i]?.localUrl })),
       };
-      if (uploadedUrl) {
-        payload.attachment_url = uploadedUrl;
-        payload.attachment_type = uploadedType;
-        payload.attachment_name = uploadedName;
-        payload.attachment_size = uploadedSize;
-      }
-
-      const sentMsg = (await api.post("/chats/messages", payload)) as Message;
-
-      // Replace optimistic message with actual message returned from server,
-      // or remove the optimistic placeholder if WebSocket already added it.
       setMessages((prev) => {
-        if (prev.some((m) => m.id === sentMsg.id)) {
-          return prev.filter((m) => m.id !== tempId);
+        const withoutTemp = prev.filter((m) => m.id !== tempId);
+        if (withoutTemp.some((m) => m.id === sent.id)) {
+          return withoutTemp.map((m) => (m.id === sent.id ? withPreviews : m));
         }
-        return prev.map((m) =>
-          m.id === tempId ? { ...sentMsg, isOptimistic: false } : m,
-        );
+        return prev.map((m) => (m.id === tempId ? withPreviews : m));
       });
 
-      // If it was a draft temporary conversation, refresh conversations to get real conversation ID
-      if (activeChat.id.startsWith("temp-")) {
-        const refreshed = await loadConversations(currentUser.id, false);
-        const realChat = refreshed.find((c) =>
-          c.participants.includes(otherId),
-        );
-        if (realChat) {
-          setActiveChat(realChat);
-        }
+      // A draft conversation gets its real ID from the server
+      if (chat.id.startsWith("temp-")) {
+        const refreshed = await loadConversations(currentUser!.id, false);
+        const realChat = refreshed.find((c) => c.participants.includes(otherId));
+        if (realChat) setActiveChat(realChat);
       } else {
-        // Quiet background sync without showing a spinner
-        loadConversations(currentUser.id, false);
+        loadConversations(currentUser!.id, false);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to send message", err);
-      const errMsg = err?.message || "Failed to send message";
-
+      const code = (err as { code?: string })?.code;
+      const message = (err as { message?: string })?.message ?? "";
       // Backend error for the 3-person free chat limit (chat/service.go SendMessage)
-      if (errMsg.toLowerCase().startsWith("free chat quota reached")) {
+      if (code === "CHAT_QUOTA_REACHED" || message.toLowerCase().startsWith("free chat quota reached")) {
         setIsPassModalOpen(true);
         loadChatEntitlement();
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        notify.error(err, "Failed to send message");
+        return;
       }
-      notify.error(errMsg);
-      // Remove optimistic message on failure
-      setMessages((prev) => prev.filter((m) => m.id !== tempId));
-    } finally {
-      setIsUploading(false);
+      notify.error(err, "Your message wasn't sent. Tap Retry to send it again.");
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, sendFailed: true } : m)));
     }
+  };
+
+  const retrySend = (msg: Message) => {
+    if (!activeChat || !currentUser) return;
+    const other = activeChat.other_user || activeChat.otherUser;
+    const otherId = other?.id || activeChat.participants.find((p) => p !== currentUser.id);
+    if (!otherId) return;
+    const again = { ...msg, sendFailed: false };
+    setMessages((prev) => prev.map((m) => (m.id === msg.id ? again : m)));
+    void deliverMessage(again, otherId, activeChat);
   };
 
   // 11. Platform-wide user search for starting a new chat
@@ -1951,7 +1997,7 @@ function ChatView() {
             <div
               ref={messagesContainerRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto p-3.5 sm:p-4 md:p-6 space-y-3.5 md:space-y-4 bg-km-surface"
+              className="flex-1 overflow-y-auto px-3 sm:px-5 md:px-8 py-4 bg-[var(--chat-bg)] [--chat-bg:#FFFFFF] dark:[--chat-bg:var(--km-surface)]"
             >
               {/* Top reverse loading spinner for infinite scroll */}
               {loadingOlderMessages && (
@@ -1986,47 +2032,129 @@ function ChatView() {
                 messages.map((msg, index) => {
                   const isMe = msg.sender_id === currentUser?.id;
                   const prevMsg = messages[index - 1];
+                  const nextMsg = messages[index + 1];
                   const showDateDivider =
                     index === 0 ||
                     new Date(msg.created_at).toDateString() !==
                       new Date(prevMsg.created_at).toDateString();
+                  // Messages from one person within a few minutes read as one group
+                  const sameGroup = (a?: Message, b?: Message) =>
+                    !!a &&
+                    !!b &&
+                    a.sender_id === b.sender_id &&
+                    new Date(a.created_at).toDateString() === new Date(b.created_at).toDateString() &&
+                    Math.abs(new Date(b.created_at).getTime() - new Date(a.created_at).getTime()) < 5 * 60_000;
+                  const isFirstInGroup = showDateDivider || !sameGroup(prevMsg, msg);
+                  const isLastInGroup = !sameGroup(msg, nextMsg);
+
+                  const atts = msg.is_deleted ? [] : attachmentsOf(msg);
+                  const hasMedia = atts.length > 0;
+                  // Photos with no caption: the time sits on the photo instead of a strip below it
+                  const photoOnly = hasMedia && !msg.content && atts.every(isImageAttachment);
+                  const menuOpen = activeMessageMenuId === msg.id;
+
+                  // iMessage colours: brand blue for mine, soft grey for theirs. --bubble also paints the tail.
+                  const bubbleTone = isMe
+                    ? "[--bubble:#0B5ED7] dark:[--bubble:#2348A8] bg-[var(--bubble)] text-white"
+                    : "[--bubble:#E9E9EB] dark:[--bubble:#1E2942] bg-[var(--bubble)] text-[#111827] dark:text-km-text-primary";
+                  const metaTone = msg.is_deleted
+                    ? "text-km-text-muted"
+                    : photoOnly
+                      ? "text-white"
+                      : isMe
+                        ? "text-[#DCE9FF] dark:text-[#C7D6F5]"
+                        : "text-[#6B7280] dark:text-km-text-muted";
+
+                  const meta = (
+                    <span className={`inline-flex items-center gap-1 text-[11px] leading-none select-none whitespace-nowrap ${metaTone}`}>
+                      {formatMessageTime(msg.created_at)}
+                      {isMe && !msg.is_deleted && !msg.sendFailed && (
+                        msg.isOptimistic ? (
+                          <ClockIcon weight="bold" size={11} aria-label="Sending" />
+                        ) : msg.is_read ? (
+                          <ChecksIcon weight="bold" size={15} aria-label="Read" />
+                        ) : (
+                          <CheckIcon weight="bold" size={13} aria-label="Sent" />
+                        )
+                      )}
+                    </span>
+                  );
 
                   return (
                     <React.Fragment key={`${msg.id || "msg"}-${index}`}>
                       {showDateDivider && (
-                        <div className="flex items-center justify-center my-3 sm:my-4">
-                          <span className="bg-km-surface-card text-km-text-secondary text-xs font-semibold px-3 py-1 rounded-full border border-km-border shadow-xs">
+                        <div className="flex items-center justify-center pt-4 pb-2 first:pt-0">
+                          <span className="text-km-text-muted text-[11px] font-semibold">
                             {getDateDividerLabel(msg.created_at)}
                           </span>
                         </div>
                       )}
 
                       <div
-                        className={`flex gap-2 sm:gap-2.5 group ${isMe ? "flex-row-reverse" : ""}`}
+                        data-msg-id={msg.id}
+                        className={`flex items-end gap-2 ${isMe ? "flex-row-reverse" : ""} ${
+                          isFirstInGroup && !showDateDivider ? "mt-3" : "mt-0.5"
+                        }`}
+                        // Swipe right on a phone to reply (WhatsApp gesture)
+                        onTouchStart={(e) => {
+                          swipeRef.current = { id: msg.id, x: e.touches[0].clientX, y: e.touches[0].clientY };
+                        }}
+                        onTouchMove={(e) => {
+                          const start = swipeRef.current;
+                          if (!start || start.id !== msg.id || msg.is_deleted || msg.isOptimistic) return;
+                          const dx = e.touches[0].clientX - start.x;
+                          const dy = Math.abs(e.touches[0].clientY - start.y);
+                          if (dx > 0 && dy < 30) {
+                            e.currentTarget.style.transform = `translateX(${Math.min(dx, 72)}px)`;
+                          }
+                        }}
+                        onTouchEnd={(e) => {
+                          const start = swipeRef.current;
+                          swipeRef.current = null;
+                          e.currentTarget.style.transform = "";
+                          if (!start || start.id !== msg.id) return;
+                          const dx = e.changedTouches[0].clientX - start.x;
+                          const dy = Math.abs(e.changedTouches[0].clientY - start.y);
+                          if (dx > 60 && dy < 30) startReply(msg);
+                        }}
                       >
-                        {/* Mini avatar for received messages */}
-                        {!isMe && (
-                          <ChatAvatar name={activePartner?.name} image={activePartner?.profile_image} size="sm" className="mt-1" />
-                        )}
+                        {/* Their avatar once per group, beside the last bubble */}
+                        {!isMe &&
+                          (isLastInGroup ? (
+                            // Above the bubble tail's mask, which reaches into the gap
+                            <span className="relative z-10 shrink-0">
+                              <ChatAvatar name={activePartner?.name} image={activePartner?.profile_image} size="sm" />
+                            </span>
+                          ) : (
+                            <span className="w-7 shrink-0" aria-hidden="true" />
+                          ))}
 
                         <div
-                          className={`relative flex flex-col max-w-[85%] sm:max-w-[75%] md:max-w-[70%] lg:max-w-[65%] group/msg ${
+                          className={`relative flex flex-col max-w-[80%] sm:max-w-[70%] lg:max-w-[60%] group/msg ${
                             isMe ? "items-end" : "items-start"
                           }`}
                           data-message-actions="true"
                         >
-                          {/* Floating Quick Action Pill (Appears on hover on desktop, or tap on mobile) */}
+                          {/* Quick actions: on hover (desktop) or tap (mobile) */}
                           {!msg.is_deleted && !msg.isOptimistic && (
                             <div
-                              className={`absolute -top-3.5 sm:-top-4 ${
-                                isMe ? "right-1 sm:right-2" : "left-1 sm:left-2"
-                              } z-20 items-center gap-1 bg-km-surface-card border border-km-border rounded-full shadow-md py-0.5 px-1.5 sm:px-2 transition-all duration-150 ${
-                                activeMessageMenuId === msg.id
-                                  ? "flex opacity-100 scale-100 pointer-events-auto ring-1 ring-slate-300"
-                                  : "hidden md:group-hover/msg:flex md:opacity-0 md:group-hover/msg:opacity-100 pointer-events-none md:pointer-events-auto"
+                              className={`absolute top-1/2 -translate-y-1/2 z-20 ${isMe ? "right-full pr-1.5" : "left-full pl-1.5"} ${
+                                menuOpen ? "flex" : "hidden md:group-hover/msg:flex"
                               }`}
                             >
-                              {/* Copy Message Button */}
+                            <div className="flex items-center gap-0.5 rounded-full p-0.5 bg-[#1F2937] shadow-lg dark:bg-km-surface-card dark:border dark:border-km-border">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  startReply(msg);
+                                }}
+                                title="Reply"
+                                aria-label="Reply"
+                                className="p-1.5 rounded-full text-[#E5E7EB] hover:text-white hover:bg-[#374151] dark:text-km-text-secondary dark:hover:text-km-heading dark:hover:bg-km-surface transition-colors"
+                              >
+                                <ArrowBendUpLeftIcon weight="bold" size={14} />
+                              </button>
                               {msg.content && (
                                 <button
                                   type="button"
@@ -2035,26 +2163,17 @@ function ChatView() {
                                     handleCopyMessage(msg);
                                     setActiveMessageMenuId(null);
                                   }}
-                                  title={
-                                    copiedMessageId === msg.id
-                                      ? "Copied!"
-                                      : "Copy message"
-                                  }
+                                  title={copiedMessageId === msg.id ? "Copied!" : "Copy message"}
                                   aria-label="Copy message"
-                                  className="p-1.5 rounded-full text-slate-500 hover:text-km-heading hover:bg-slate-100 active:scale-90 transition-all flex items-center justify-center"
+                                  className="p-1.5 rounded-full text-[#E5E7EB] hover:text-white hover:bg-[#374151] dark:text-km-text-secondary dark:hover:text-km-heading dark:hover:bg-km-surface transition-colors"
                                 >
                                   {copiedMessageId === msg.id ? (
-                                    <CheckIcon weight="bold"
-                                      size={13}
-                                      className="text-emerald-600 animate-in zoom-in-75 dark:text-emerald-400"
-                                    />
+                                    <CheckIcon weight="bold" size={14} className="text-[#6EE7B7] dark:text-emerald-400" />
                                   ) : (
-                                    <CopyIcon weight="bold" size={13} />
+                                    <CopyIcon weight="bold" size={14} />
                                   )}
                                 </button>
                               )}
-
-                              {/* Delete Message Button (Sender Only) */}
                               {isMe && (
                                 <button
                                   type="button"
@@ -2065,183 +2184,116 @@ function ChatView() {
                                   }}
                                   title="Delete message"
                                   aria-label="Delete message"
-                                  className="p-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-[#271E35] active:scale-90 transition-all flex items-center justify-center dark:hover:text-red-400"
+                                  className="p-1.5 rounded-full text-[#E5E7EB] hover:text-[#FCA5A5] hover:bg-[#374151] dark:text-km-text-secondary dark:hover:bg-[#271E35] dark:hover:text-red-400 transition-colors"
                                 >
-                                  <TrashIcon weight="bold" size={13} />
+                                  <TrashIcon weight="bold" size={14} />
                                 </button>
                               )}
                             </div>
+                            </div>
                           )}
 
-                          {/* Message Box */}
+                          {/* Message: photos and files stand on their own; text sits in a bubble,
+                              with the iMessage tail on the last bubble of a group */}
                           <div
                             onClick={() => {
                               if (!msg.is_deleted && !msg.isOptimistic) {
-                                setActiveMessageMenuId((prev) =>
-                                  prev === msg.id ? null : msg.id,
-                                );
+                                setActiveMessageMenuId((prev) => (prev === msg.id ? null : msg.id));
                               }
                             }}
-                            className={`rounded-2xl px-3.5 sm:px-4 py-2 sm:py-2.5 text-sm shadow-xs break-words transition-all active:brightness-95 md:active:brightness-100 ${
-                              msg.is_deleted
-                                ? "bg-slate-100 text-slate-500 border border-slate-200 italic"
-                                : isMe
-                                  ? `bg-[#071A4D] text-white rounded-tr-xs dark:bg-km-primary ${
-                                      activeMessageMenuId === msg.id
-                                        ? "ring-2 ring-sky-300"
-                                        : ""
-                                    }`
-                                  : `bg-km-surface-card text-km-text-primary border border-km-border rounded-tl-xs ${
-                                      activeMessageMenuId === msg.id
-                                        ? "ring-2 ring-[#071A4D]/35 dark:ring-km-link"
-                                        : ""
-                                    }`
+                            className={`flex flex-col gap-0.5 rounded-[20px] transition-shadow duration-300 ${isMe ? "items-end" : "items-start"} ${
+                              menuOpen || highlightedMessageId === msg.id
+                                ? "ring-2 ring-[#38BDF8] ring-offset-2 ring-offset-[var(--chat-bg)]"
+                                : ""
                             }`}
                           >
                             {msg.is_deleted ? (
-                              <div className="flex items-center gap-1.5 py-0.5 select-none not-italic">
-                                <ProhibitIcon weight="bold"
-                                  size={13}
-                                  className="text-slate-400 shrink-0"
-                                />
-                                <span className="text-[13px] text-slate-500 italic">
-                                  This message was deleted
-                                </span>
-                              </div>
+                              <p className="flex items-center gap-1.5 rounded-[18px] border border-dashed border-km-border px-3 py-1.5 italic text-[13px] text-km-text-secondary">
+                                <ProhibitIcon size={13} className="shrink-0" aria-hidden="true" />
+                                This message was deleted
+                                <span className="ml-1 not-italic">{meta}</span>
+                              </p>
                             ) : (
                               <>
-                                {/* Attachment: Image */}
-                                {msg.attachment_url &&
-                                  (msg.attachment_type?.startsWith("image/") ||
-                                    msg.attachment_url.match(
-                                      /\.(jpg|jpeg|png|webp|gif)$/i,
-                                    )) && (
-                                    <div className="mb-2 overflow-hidden rounded-xl">
-                                      <ChatImage
-                                        url={msg.attachment_url}
-                                        alt={
-                                          msg.attachment_name ||
-                                          "Attached image"
-                                        }
-                                        onOpen={setLightboxImage}
-                                      />
-                                    </div>
-                                  )}
-
-                                {/* Attachment: File/Document */}
-                                {msg.attachment_url &&
-                                  !msg.attachment_type?.startsWith("image/") &&
-                                  !msg.attachment_url.match(
-                                    /\.(jpg|jpeg|png|webp|gif)$/i,
-                                  ) && (
-                                    <a
-                                      href={isPrivateFileRef(msg.attachment_url) ? undefined : getFullMediaUrl(msg.attachment_url)}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      download={
-                                        msg.attachment_name || "document"
+                                {/* A reply with no text: the quote sits above the photos */}
+                                {msg.reply_to && !msg.content && (
+                                  <div className="w-[272px] max-w-full">
+                                    <ReplyQuote
+                                      reply={msg.reply_to}
+                                      senderLabel={
+                                        msg.reply_to.sender_id === currentUser?.id
+                                          ? "You"
+                                          : activePartner?.name?.split(" ")[0] || "Them"
                                       }
-                                      role="link"
-                                      tabIndex={0}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (isPrivateFileRef(msg.attachment_url)) {
-                                          e.preventDefault();
-                                          openFile(msg.attachment_url!).catch((err) =>
-                                            notify.error(err, "Could not open this file."),
-                                          );
-                                        }
-                                      }}
-                                      className={`flex items-center gap-2.5 p-2 mb-2 rounded-xl border transition-colors ${
-                                        isMe
-                                          ? "bg-white/10 hover:bg-white/20 border-white/20 text-white"
-                                          : "bg-km-surface hover:bg-slate-200 border-km-border text-km-heading"
-                                      }`}
-                                    >
-                                      <FileTextIcon size={24} weight="duotone" className="shrink-0" aria-hidden="true" />
-                                      <div className="min-w-0 flex-1">
-                                        <p className="text-xs font-semibold truncate">
-                                          {msg.attachment_name ||
-                                            "Attached Document"}
-                                        </p>
-                                        {msg.attachment_size ? (
-                                          <p
-                                            className={`text-xs ${
-                                              isMe
-                                                ? "text-white/70"
-                                                : "text-km-text-secondary"
-                                            }`}
-                                          >
-                                            {formatFileSize(
-                                              msg.attachment_size,
-                                            )}
-                                          </p>
-                                        ) : null}
-                                      </div>
-                                      <DownloadSimpleIcon weight="bold"
-                                        size={15}
-                                        className="shrink-0"
-                                      />
-                                    </a>
-                                  )}
+                                      onJump={() => jumpToMessage(msg.reply_to!.id)}
+                                    />
+                                  </div>
+                                )}
 
-                                {/* Text Content */}
+                                {hasMedia && (
+                                  <div className="relative">
+                                    <MessageAttachments
+                                      attachments={atts}
+                                      isMe={isMe}
+                                      sending={msg.isOptimistic}
+                                      onOpenImage={(images, i) => setViewer({ images, index: i })}
+                                    />
+                                    {photoOnly && (
+                                      // Liquid-glass time chip on the photo (approved exception to the
+                                      // no-glass rule)
+                                      <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-black/25 px-2 py-1 backdrop-blur-md backdrop-saturate-150">
+                                        {meta}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                {hasMedia && !photoOnly && !msg.content && <div className="px-2">{meta}</div>}
+
                                 {msg.content && (
-                                  <p className="whitespace-pre-wrap break-words leading-relaxed text-sm">
-                                    {msg.content}
-                                  </p>
+                                  <div
+                                    className={`relative rounded-[18px] px-3 py-1.5 text-[15px] leading-[1.35] break-words ${bubbleTone} ${
+                                      isLastInGroup ? (isMe ? "km-tail-me" : "km-tail-them") : ""
+                                    }`}
+                                  >
+                                    {msg.reply_to && (
+                                      <div className="-mx-1.5 mt-0.5">
+                                        <ReplyQuote
+                                          reply={msg.reply_to}
+                                          senderLabel={
+                                            msg.reply_to.sender_id === currentUser?.id
+                                              ? "You"
+                                              : activePartner?.name?.split(" ")[0] || "Them"
+                                          }
+                                          onDarkBubble={isMe}
+                                          onJump={() => jumpToMessage(msg.reply_to!.id)}
+                                        />
+                                      </div>
+                                    )}
+                                    {/* The time sits at the end of the last line; the spacer keeps text clear of it */}
+                                    <p className="whitespace-pre-wrap break-words">
+                                      {msg.content}
+                                      <span className={`inline-block align-bottom ${isMe ? "w-[68px]" : "w-12"}`} aria-hidden="true" />
+                                      <span className="absolute bottom-1.5 right-3">{meta}</span>
+                                    </p>
+                                  </div>
                                 )}
                               </>
                             )}
-
-                            {/* Time & Read Status */}
-                            <div
-                              className={`flex items-center gap-1.5 justify-end mt-1 text-xs select-none ${
-                                msg.is_deleted
-                                  ? "text-slate-400"
-                                  : isMe
-                                    ? "text-white/80"
-                                    : "text-km-text-secondary"
-                              }`}
-                            >
-                              <span className="leading-none">
-                                {formatMessageTime(msg.created_at)}
-                              </span>
-                              {isMe && !msg.is_deleted && (
-                                <span
-                                  className="inline-flex items-center justify-center shrink-0 pl-0.5 pr-0.5"
-                                  style={{ minWidth: "18px" }}
-                                >
-                                  {msg.isOptimistic ? (
-                                    <ClockIcon weight="bold"
-                                      size={12}
-                                      className="text-white/70"
-                                    />
-                                  ) : msg.is_read ? (
-                                    <span
-                                      title="Read"
-                                      className="inline-flex items-center"
-                                    >
-                                      <ChecksIcon weight="bold"
-                                        size={16}
-                                        className="text-[#38BDF8] shrink-0"
-                                      />
-                                    </span>
-                                  ) : (
-                                    <span
-                                      title="Sent"
-                                      className="inline-flex items-center"
-                                    >
-                                      <CheckIcon weight="bold"
-                                        size={14}
-                                        className="text-white/70 shrink-0"
-                                      />
-                                    </span>
-                                  )}
-                                </span>
-                              )}
-                            </div>
                           </div>
+
+                          {msg.sendFailed && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                retrySend(msg);
+                              }}
+                              className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#B91C1C] hover:underline dark:text-red-400"
+                            >
+                              <ArrowsClockwiseIcon weight="bold" size={12} aria-hidden="true" />
+                              Not sent. Tap to retry
+                            </button>
+                          )}
                         </div>
                       </div>
                     </React.Fragment>
@@ -2252,7 +2304,7 @@ function ChatView() {
               {/* Typing indicator: an incoming-style bubble with three dots in a soft wave
                   (WhatsApp pattern; still dots under reduced motion) */}
               {isOtherTyping && (
-                <div className="flex gap-2 sm:gap-2.5 items-end">
+                <div className="flex gap-2 items-end mt-3">
                   <ChatAvatar name={activePartner?.name} image={activePartner?.profile_image} size="sm" />
                   <div
                     role="status"
@@ -2283,35 +2335,82 @@ function ChatView() {
             )}
 
             {/* Input Area */}
-            <div className="p-2 sm:p-3 md:p-4 bg-km-surface-card border-t border-km-border space-y-2 shrink-0 relative pb-[max(0.6rem,env(safe-area-inset-bottom))]">
-              {/* Pending Attachment Draft Preview */}
-              {pendingAttachment && (
-                <div className="flex items-center gap-3 p-2 bg-km-surface border border-km-border rounded-xl">
-                  {pendingAttachment.isImage && pendingAttachment.previewUrl ? (
-                    <img
-                      src={pendingAttachment.previewUrl}
-                      alt="Preview"
-                      className="w-12 h-12 object-cover rounded-lg border border-km-border"
-                    />
-                  ) : (
-                    <FileTextIcon size={24} weight="duotone" className="text-km-heading" aria-hidden="true" />
+            <div
+              className={`p-2 sm:p-3 md:p-4 bg-km-surface-card border-t space-y-2 shrink-0 relative pb-[max(0.6rem,env(safe-area-inset-bottom))] ${
+                isDraggingFiles ? "border-km-link ring-2 ring-inset ring-km-link" : "border-km-border"
+              }`}
+              onDragOver={(e) => {
+                if (!e.dataTransfer.types.includes("Files")) return;
+                e.preventDefault();
+                setIsDraggingFiles(true);
+              }}
+              onDragLeave={() => setIsDraggingFiles(false)}
+              onDrop={(e) => {
+                if (!e.dataTransfer.files.length) return;
+                e.preventDefault();
+                setIsDraggingFiles(false);
+                addFiles(Array.from(e.dataTransfer.files));
+              }}
+            >
+              {/* Replying to */}
+              {activeReply && (
+                <ReplyQuote
+                  reply={replyPreviewOf(activeReply)}
+                  senderLabel={
+                    activeReply.sender_id === currentUser?.id
+                      ? "You"
+                      : activePartner?.name?.split(" ")[0] || "Them"
+                  }
+                  onCancel={() => setReplyTo(null)}
+                />
+              )}
+
+              {/* Files waiting to be sent */}
+              {pendingAttachments.length > 0 && (
+                <div className="flex gap-2 overflow-x-auto pb-1" role="list" aria-label="Files to send">
+                  {pendingAttachments.map((p) => (
+                    <div
+                      key={p.id}
+                      role="listitem"
+                      className="relative shrink-0 w-20"
+                      title={`${p.name} · ${p.sizeFormatted}`}
+                    >
+                      {p.isImage && p.previewUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- local preview
+                        <img
+                          src={p.previewUrl}
+                          alt={p.name}
+                          className="h-20 w-20 object-cover rounded-xl border border-km-border"
+                        />
+                      ) : (
+                        <div className="h-20 w-20 rounded-xl border border-km-border bg-km-surface flex flex-col items-center justify-center gap-1 px-1.5 text-center">
+                          <FileTextIcon size={24} weight="duotone" className="text-km-heading" aria-hidden="true" />
+                          <span className="w-full truncate text-[11px] font-semibold text-km-text-primary">{p.name}</span>
+                          <span className="text-[10px] text-km-text-secondary">{p.sizeFormatted}</span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removePendingAttachment(p.id)}
+                        className="absolute -top-1.5 -right-1.5 h-6 w-6 rounded-full bg-[#1F2937] text-white flex items-center justify-center shadow hover:bg-[#B91C1C] transition-colors"
+                        title="Remove file"
+                        aria-label={`Remove ${p.name}`}
+                      >
+                        <XIcon weight="bold" size={12} />
+                      </button>
+                    </div>
+                  ))}
+                  {pendingAttachments.length < MAX_FILES && (
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="h-20 w-20 shrink-0 rounded-xl border-2 border-dashed border-km-border text-km-text-secondary hover:text-km-heading hover:border-km-heading flex flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors"
+                      aria-label="Add more files"
+                    >
+                      <PaperclipIcon weight="bold" size={18} aria-hidden="true" />
+                      Add
+                    </button>
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs font-semibold text-km-text-primary truncate">
-                      {pendingAttachment.name}
-                    </p>
-                    <p className="text-xs text-km-text-secondary">
-                      {pendingAttachment.sizeFormatted}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={removePendingAttachment}
-                    className="p-1 rounded-lg text-km-text-secondary hover:text-red-500 hover:bg-km-surface-card transition-colors dark:hover:text-red-400"
-                    title="Remove file"
-                  >
-                    <XIcon weight="bold" size={16} />
-                  </button>
                 </div>
               )}
 
@@ -2372,6 +2471,7 @@ function ChatView() {
                   <input
                     ref={fileInputRef}
                     type="file"
+                    multiple
                     accept="image/jpeg,image/png,image/webp,image/gif,.pdf,.doc,.docx,.txt"
                     onChange={handleFileSelect}
                     className="hidden"
@@ -2381,8 +2481,8 @@ function ChatView() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    title="Attach image or file"
-                    disabled={isUploading}
+                    title="Attach photos or files"
+                    aria-label="Attach photos or files"
                     className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-slate-200/60 active:bg-slate-200 transition-colors shrink-0 mb-0.5"
                   >
                     <PaperclipIcon weight="bold" size={18} />
@@ -2414,7 +2514,14 @@ function ChatView() {
                         handleSendMessage();
                       }
                     }}
-                    placeholder="Type a message..."
+                    onPaste={(e) => {
+                      const files = Array.from(e.clipboardData.files);
+                      if (files.length > 0) {
+                        e.preventDefault();
+                        addFiles(files);
+                      }
+                    }}
+                    placeholder={pendingAttachments.length > 0 ? "Add a caption..." : "Type a message..."}
                     className="flex-1 bg-transparent border-none focus:outline-none text-base sm:text-sm text-km-text-primary placeholder-[#5B6472] resize-none py-1.5 min-h-[38px] max-h-24 sm:max-h-28 leading-normal dark:placeholder-km-text-muted"
                     style={{ scrollbarWidth: "none" }}
                   />
@@ -2423,20 +2530,15 @@ function ChatView() {
                   <button
                     type="button"
                     onClick={handleSendMessage}
-                    disabled={
-                      (!inputText.trim() && !pendingAttachment) || isUploading
-                    }
+                    disabled={!inputText.trim() && pendingAttachments.length === 0}
+                    aria-label="Send message"
                     className={`p-2.5 sm:p-2.5 rounded-xl transition-all shrink-0 mb-0.5 flex items-center justify-center active:scale-95 ${
-                      (inputText.trim() || pendingAttachment) && !isUploading
+                      inputText.trim() || pendingAttachments.length > 0
                         ? "bg-[#071A4D] text-white hover:bg-[#0B1F52] shadow-sm cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
                         : "bg-slate-200 text-slate-400 cursor-not-allowed"
                     }`}
                   >
-                    {isUploading ? (
-                      <CircleNotchIcon weight="bold" size={18} className="animate-spin" />
-                    ) : (
-                      <PaperPlaneRightIcon weight="bold" size={18} />
-                    )}
+                    <PaperPlaneRightIcon weight="bold" size={18} />
                   </button>
                 </div>
               )}
@@ -2457,24 +2559,13 @@ function ChatView() {
         )}
       </main>
 
-      {/* Lightbox Modal */}
-      {lightboxImage && (
-        <div
-          onClick={() => setLightboxImage(null)}
-          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4 cursor-zoom-out"
-        >
-          <button
-            onClick={() => setLightboxImage(null)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-[#111827] text-white hover:bg-black transition-colors"
-          >
-            <XIcon size={20} />
-          </button>
-          <img
-            src={lightboxImage}
-            alt="Enlarged view"
-            className="max-w-full max-h-[90vh] rounded-xl object-contain shadow-2xl"
-          />
-        </div>
+      {/* Full-screen photo viewer */}
+      {viewer && (
+        <MediaViewer
+          images={viewer.images}
+          startIndex={viewer.index}
+          onClose={() => setViewer(null)}
+        />
       )}
       {/* ── PROFESSIONAL IN-APP CONFIRMATION POPUP MODAL ── */}
       {confirmModal.isOpen && (

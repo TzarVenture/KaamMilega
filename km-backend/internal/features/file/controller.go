@@ -151,6 +151,7 @@ func (ctrl *FileController) UploadFile(c *fiber.Ctx) error {
 // @Tags files
 // @Produce json
 // @Param id path string true "File ID"
+// @Param download query string false "1 to save the file under its original name instead of opening it"
 // @Success 200 {object} map[string]any
 // @Failure 403 {object} map[string]any
 // @Failure 404 {object} map[string]any
@@ -174,7 +175,7 @@ func (ctrl *FileController) FileLink(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusForbidden).JSON(apperr.Body(errFileDenied))
 	}
 
-	url, err := ctrl.Storage.SignedURL(c.UserContext(), f.Key, f.OriginalFilename, storage.SignedLinkTTL)
+	url, err := ctrl.Storage.SignedURL(c.UserContext(), f.Key, f.OriginalFilename, c.Query("download") == "1", storage.SignedLinkTTL)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(errStoreFailed))
 	}
@@ -224,7 +225,11 @@ func (ctrl *FileController) ServeLocalPrivate(c *fiber.Ctx) error {
 	setSafeFileHeaders(c)
 	c.Set("Cache-Control", "private, no-store")
 	if name := c.Query("name"); name != "" {
-		c.Set(fiber.HeaderContentDisposition, mime.FormatMediaType("inline", map[string]string{"filename": name}))
+		kind := "inline"
+		if c.Query("dl") == "1" {
+			kind = "attachment"
+		}
+		c.Set(fiber.HeaderContentDisposition, mime.FormatMediaType(kind, map[string]string{"filename": name}))
 	}
 	return c.SendFile(p)
 }
