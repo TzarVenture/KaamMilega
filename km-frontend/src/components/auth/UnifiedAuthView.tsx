@@ -1,25 +1,52 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowRightIcon, CheckCircleIcon, EyeIcon, EyeSlashIcon, PhoneCallIcon, WarningCircleIcon } from '@phosphor-icons/react';
-import AuthNavbar from '@/components/auth/AuthNavbar';
+import { useTranslations } from 'next-intl';
+import { EyeIcon, EyeSlashIcon } from '@phosphor-icons/react';
+import { CodeSentArt, WelcomeArt } from '@/components/auth/AuthArt';
+import {
+    AuthShell,
+    BackButton,
+    FieldError,
+    Notice,
+    StepHeading,
+    SubmitButton,
+    actionLinkClass,
+    inputClass,
+    labelClass,
+    linkClass,
+    normalizeMobile,
+} from '@/components/auth/AuthUI';
 import OtpInput from '@/components/ui/OtpInput';
 import api from '@/lib/axios';
-import { saveSession, isAuthenticated, getCurrentUser } from '@/lib/auth';
+import { saveSession, isAuthenticated, type StoredUser } from '@/lib/auth';
 import { ACCOUNT_RESTORE_PATH, needsAccountRestore } from '@/lib/account';
+import { isSignupComplete, safeRedirect } from '@/lib/authPaths';
 import { errorText } from "@/lib/notify";
+
+// Matches the backend (minPasswordLength in km-backend user/service.go)
+const MIN_PASSWORD_LENGTH = 8;
+
+// The user object the sign-in endpoints return
+type AuthUser = StoredUser & { account_status?: string; company_name?: string; city?: string };
+
+export type AuthPreviewStep = 'phone' | 'code' | 'details' | 'password' | 'forgot';
 
 export interface UnifiedAuthViewProps {
     initialRole?: 'user' | 'recruiter';
+    /** Design preview (app/dev/auth): open on a step and skip the signed-in redirect */
+    previewStep?: AuthPreviewStep;
 }
 
 export default function UnifiedAuthView({
     initialRole = 'user',
+    previewStep,
 }: UnifiedAuthViewProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const t = useTranslations('auth');
 
     // Lock role cleanly to portal route: /login = user, /recruiter/login = recruiter
     const queryRole = searchParams.get('role');
@@ -28,11 +55,15 @@ export default function UnifiedAuthView({
     const isRecruiter = role === 'recruiter';
 
     // authMethod: 'otp' | 'password' | 'forgot'
-    const [authMethod, setAuthMethod] = useState<'otp' | 'password' | 'forgot'>('otp');
+    const [authMethod, setAuthMethod] = useState<'otp' | 'password' | 'forgot'>(
+        previewStep === 'password' || previewStep === 'forgot' ? previewStep : 'otp',
+    );
 
     // OTP states: 'input' -> 'verify' -> 'name' (for new candidates)
-    const [otpStep, setOtpStep] = useState<'input' | 'verify' | 'name'>('input');
-    const [mobile, setMobile] = useState('');
+    const [otpStep, setOtpStep] = useState<'input' | 'verify' | 'name'>(
+        previewStep === 'code' ? 'verify' : previewStep === 'details' ? 'name' : 'input',
+    );
+    const [mobile, setMobile] = useState(previewStep === 'code' ? '9876543210' : '');
     const [otp, setOtp] = useState<string[]>(['', '', '', '']);
     const [resendTimer, setResendTimer] = useState(30);
 
@@ -40,7 +71,7 @@ export default function UnifiedAuthView({
     const [fullName, setFullName] = useState('');
     const [city, setCity] = useState('');
     const [cityOptions, setCityOptions] = useState<string[]>([]);
-    const [verifiedUser, setVerifiedUser] = useState<any>(null);
+    const [verifiedUser, setVerifiedUser] = useState<StoredUser | null>(null);
 
     // Password credentials (available for candidates with existing passwords)
     const [identifier, setIdentifier] = useState('');
@@ -59,29 +90,49 @@ export default function UnifiedAuthView({
     const [error, setError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-    // If user is already authenticated, redirect to appropriate portal
+    // One code check at a time. Auto-submit on the 4th digit, SMS autofill and the button can
+    // all fire for the same code; once a code is accepted, later answers are ignored (they
+    // used to show "invalid code" while the first one was already signing the person in).
+    const verifyingRef = useRef(false);
+    const verifiedRef = useRef(false);
+    const sendingRef = useRef(false);
+
+    // Same-site page to return to after sign-in
+    const redirectTarget = safeRedirect(searchParams.get('redirect'));
+    const candidateHome = redirectTarget || '/';
+    const recruiterHome = redirectTarget?.startsWith('/recruiter') ? redirectTarget : '/recruiter';
+
+    const cleanMobile = mobile.replace(/\D/g, '');
+
+    // Already signed in: confirm the session with the server (saved browser data can outlive
+    // it), then go on, or resume an unfinished sign-up
     useEffect(() => {
-        if (isAuthenticated()) {
-            const user = getCurrentUser();
-            const roles = Array.isArray(user?.roles) ? user.roles : (user?.role ? [user.role] : []);
-            if (!isRecruiter && user && user.is_registered === false && !roles.includes('recruiter')) {
-                // Signed in by OTP but never finished signup: resume at the name step
-                setVerifiedUser(user);
-                setFullName(user.name || '');
-                setCity(user.city || '');
-                setOtpStep('name');
-                return;
-            }
-            if (roles.includes('recruiter') && isRecruiter) {
-                if (user?.company_name && user.company_name.trim()) {
-                    router.replace('/recruiter');
-                } else {
-                    router.replace('/recruiter/register');
+        if (previewStep || !isAuthenticated()) return;
+        let cancelled = false;
+        api.get('/user/profile')
+            .then((user: AuthUser) => {
+                if (cancelled || !user) return;
+                const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
+                if (isRecruiter) {
+                    // Employer portal: straight in with a company, else the company form
+                    router.replace(roles.includes('recruiter') && user.company_name?.trim() ? recruiterHome : '/recruiter/register');
+                    return;
                 }
-            } else if (!isRecruiter) {
-                router.replace('/');
-            }
-        }
+                if (!isSignupComplete(user)) {
+                    setVerifiedUser(user);
+                    setFullName(user.name || '');
+                    setCity(user.city || '');
+                    setOtpStep('name');
+                    return;
+                }
+                router.replace(candidateHome);
+            })
+            // A 401 clears the stale session (lib/axios); stay here and sign in
+            .catch(() => {});
+        return () => {
+            cancelled = true;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router, isRecruiter]);
 
     // Resend countdown timer
@@ -99,40 +150,34 @@ export default function UnifiedAuthView({
     useEffect(() => {
         if (otpStep !== 'name' || cityOptions.length > 0) return;
         api.get('/cities?active=true')
-            .then((res: any) => {
-                const list = Array.isArray(res) ? res : res?.data || [];
-                setCityOptions(list.map((c: any) => c?.name).filter(Boolean));
+            .then((res: unknown) => {
+                const list = (Array.isArray(res) ? res : (res as { data?: unknown[] })?.data || []) as { name?: string }[];
+                // The city list can repeat a name (one per state or area): suggest each once
+                const names = list.map((c) => c?.name?.trim()).filter((n): n is string => Boolean(n));
+                setCityOptions([...new Set(names)]);
             })
             .catch(() => {});
     }, [otpStep, cityOptions.length]);
 
-    // Destination resolver for candidate: only same-site paths ("//host" and "/\host" are external)
-    const getCandidateRedirect = () => {
-        const redirectParam = searchParams.get('redirect');
-        if (
-            redirectParam &&
-            redirectParam.startsWith('/') &&
-            !redirectParam.startsWith('//') &&
-            !redirectParam.startsWith('/\\') &&
-            !redirectParam.startsWith('/login') &&
-            !redirectParam.startsWith('/register') &&
-            !redirectParam.startsWith('/signup')
-        ) {
-            return redirectParam;
-        }
-        return '/';
+    const switchTo = (method: 'otp' | 'password' | 'forgot') => {
+        setAuthMethod(method);
+        setError(null);
+        setSuccessMsg(null);
+        if (method === 'otp') setOtpStep('input');
+        if (method === 'forgot') setForgotStep('request');
     };
 
     // 1. Send Mobile OTP
     const handleSendOtp = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        if (sendingRef.current) return;
 
-        const cleanMobile = mobile.replace(/\D/g, '');
         if (cleanMobile.length !== 10) {
-            setError('Please enter a valid 10-digit mobile number.');
+            setError(t('phone.invalid'));
             return;
         }
 
+        sendingRef.current = true;
         setError(null);
         setSuccessMsg(null);
         setLoading(true);
@@ -142,12 +187,15 @@ export default function UnifiedAuthView({
                 mobile: cleanMobile,
                 role,
             });
+            // A new code replaces the old one: start with empty boxes
+            setOtp(['', '', '', '']);
+            verifiedRef.current = false;
             setOtpStep('verify');
             setResendTimer(30);
-        } catch (err: any) {
-            const rawMsg = errorText(err, '');
-            setError(rawMsg || 'Failed to send verification code. Please try again.');
+        } catch (err: unknown) {
+            setError(errorText(err, t('sendFailed')));
         } finally {
+            sendingRef.current = false;
             setLoading(false);
         }
     };
@@ -155,68 +203,73 @@ export default function UnifiedAuthView({
     // 2. Verify OTP
     const handleVerifyOtp = async (explicitCode?: string, e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        if (verifyingRef.current || verifiedRef.current) return;
         const code = (typeof explicitCode === 'string' && explicitCode.trim().length === 4)
             ? explicitCode.trim()
             : otp.join('').trim();
 
         if (code.length !== 4) {
-            setError('Please enter the complete 4-digit code.');
+            setError(t('code.incomplete'));
             return;
         }
 
+        verifyingRef.current = true;
         setError(null);
         setLoading(true);
-        const cleanMobile = mobile.replace(/\D/g, '');
 
         try {
-            const res: any = await api.post('/auth/otp/verify', {
+            const res = (await api.post('/auth/otp/verify', {
                 mobile: cleanMobile,
                 code,
                 role,
-            });
+            })) as { user?: AuthUser };
 
             if (res && res.user) {
-                saveSession(res.user, role);
+                const user = res.user;
+                // Accepted: answers to any other check of this code no longer matter. The boxes
+                // stay locked while the next page loads.
+                verifiedRef.current = true;
+                saveSession(user, role);
                 // Deactivated or pending-deletion accounts restore themselves before anything else
-                if (needsAccountRestore(res.user)) {
+                if (needsAccountRestore(user)) {
                     router.push(ACCOUNT_RESTORE_PATH);
                     return;
                 }
 
                 if (isRecruiter) {
-                    const hasCompany = Boolean(res.user?.company_name && res.user.company_name.trim());
-                    const existingRoles: string[] = Array.isArray(res.user?.roles) ? res.user.roles : (res.user?.role ? [res.user.role] : []);
-                    const alreadyHadAccount = existingRoles.includes('user') || Boolean(res.user?.name?.trim());
+                    const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
+                    const hasCompany = roles.includes('recruiter') && Boolean(user.company_name?.trim());
 
                     if (hasCompany) {
-                        router.push('/recruiter');
+                        router.push(recruiterHome);
                     } else {
+                        // An existing candidate adds an employer profile to the same account
+                        const alreadyHadAccount = isSignupComplete(user);
                         if (alreadyHadAccount) {
-                            setSuccessMsg('Existing account found. Setting up your employer profile...');
+                            setSuccessMsg(t('existingAccount'));
                         }
                         // Brief pause so user can read the message, then redirect
                         setTimeout(() => router.push('/recruiter/register'), alreadyHadAccount ? 1400 : 0);
                     }
+                } else if (isSignupComplete(user)) {
+                    router.push(candidateHome);
                 } else {
-                    // Candidate flow: only skip name step if fully registered
-                    const hasName = Boolean(
-                        res.user?.name &&
-                        res.user.name.trim() &&
-                        res.user.is_registered === true
-                    );
-                    if (hasName) {
-                        router.push(getCandidateRedirect());
-                    } else {
-                        // New candidate: collect name on next step
-                        setVerifiedUser(res.user);
-                        setOtpStep('name');
-                    }
+                    // New here: create the account with name and city
+                    setVerifiedUser(user);
+                    setFullName(user.name || '');
+                    setCity(user.city || '');
+                    setOtpStep('name');
+                    setLoading(false);
                 }
             }
-        } catch (err: any) {
-            setError(errorText(err, 'Invalid verification code.'));
+        } catch (err: unknown) {
+            if (verifiedRef.current) return;
+            setError(errorText(err, t('code.invalid')));
+            // Clear the boxes for the next try
+            setOtp(['', '', '', '']);
         } finally {
-            setLoading(false);
+            verifyingRef.current = false;
+            if (!verifiedRef.current) setLoading(false);
         }
     };
 
@@ -225,12 +278,12 @@ export default function UnifiedAuthView({
         e.preventDefault();
         const cleanName = fullName.trim();
         const cleanCity = city.trim();
-        if (!cleanName || cleanName.length < 2) {
-            setError('Please enter your full name (minimum 2 characters).');
+        if (cleanName.length < 2) {
+            setError(t('details.nameInvalid'));
             return;
         }
         if (!cleanCity) {
-            setError('Please enter the city where you want to work.');
+            setError(t('details.cityRequired'));
             return;
         }
 
@@ -238,20 +291,20 @@ export default function UnifiedAuthView({
         setLoading(true);
 
         try {
-            const res: any = await api.post('/user/register', {
+            const res = (await api.post('/user/register', {
                 name: cleanName,
                 city: cleanCity,
                 roles: ['user'],
-            });
+            })) as StoredUser | null;
 
             const updated = res || { ...(verifiedUser || {}), name: cleanName, city: cleanCity, is_registered: true };
             saveSession(updated, 'user');
             window.dispatchEvent(new Event('km:auth-changed'));
             window.dispatchEvent(new Event('km:profile-updated'));
 
-            router.push(getCandidateRedirect());
-        } catch (err: any) {
-            setError(errorText(err, 'Failed to save name. Please try again.'));
+            router.push(candidateHome);
+        } catch (err: unknown) {
+            setError(errorText(err, t('genericError')));
             setLoading(false);
         }
     };
@@ -260,7 +313,7 @@ export default function UnifiedAuthView({
     const handlePasswordLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!identifier.trim() || !password) {
-            setError('Please enter your email or mobile and password.');
+            setError(t('password.required'));
             return;
         }
 
@@ -269,11 +322,11 @@ export default function UnifiedAuthView({
         setLoading(true);
 
         try {
-            const res: any = await api.post('/auth/login/password', {
+            const res = (await api.post('/auth/login/password', {
                 identifier: identifier.trim(),
                 password,
                 role,
-            });
+            })) as { user?: AuthUser; requires_password_setup?: boolean; message?: string };
 
             if (res?.requires_password_setup) {
                 setAuthMethod('otp');
@@ -282,7 +335,7 @@ export default function UnifiedAuthView({
                 if (cleanDigits.length === 10) {
                     setMobile(cleanDigits);
                 }
-                setSuccessMsg(res.message || 'You registered via Mobile OTP. Please sign in with OTP.');
+                setSuccessMsg(res.message || null);
                 return;
             }
 
@@ -292,10 +345,18 @@ export default function UnifiedAuthView({
                     router.push(ACCOUNT_RESTORE_PATH);
                     return;
                 }
-                router.push(getCandidateRedirect());
+                if (!isSignupComplete(res.user)) {
+                    // Has a password but never gave a name: finish creating the account
+                    setVerifiedUser(res.user);
+                    setCity(res.user.city || '');
+                    setAuthMethod('otp');
+                    setOtpStep('name');
+                    return;
+                }
+                router.push(candidateHome);
             }
-        } catch (err: any) {
-            setError(errorText(err, 'Invalid email/mobile or password.'));
+        } catch (err: unknown) {
+            setError(errorText(err, t('password.failed')));
         } finally {
             setLoading(false);
         }
@@ -304,8 +365,8 @@ export default function UnifiedAuthView({
     // 5. Send Forgot Password Code
     const handleSendForgotCode = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!forgotEmail.trim() || !forgotEmail.includes('@')) {
-            setError('Please enter a valid email address.');
+        if (!/^\S+@\S+\.\S+$/.test(forgotEmail.trim())) {
+            setError(t('forgot.emailInvalid'));
             return;
         }
 
@@ -317,9 +378,9 @@ export default function UnifiedAuthView({
                 email: forgotEmail.trim(),
             });
             setForgotStep('reset');
-            setSuccessMsg(`Reset code sent to ${forgotEmail}. Please check your inbox.`);
-        } catch (err: any) {
-            setError(errorText(err, 'Failed to send reset code.'));
+            setSuccessMsg(null);
+        } catch (err: unknown) {
+            setError(errorText(err, t('genericError')));
         } finally {
             setLoading(false);
         }
@@ -329,11 +390,11 @@ export default function UnifiedAuthView({
     const handleResetPassword = async (e: React.FormEvent) => {
         e.preventDefault();
         if (forgotCode.trim().length !== 4) {
-            setError('Please enter the 4-digit code.');
+            setError(t('forgot.codeInvalid'));
             return;
         }
-        if (newPassword.length < 6) {
-            setError('Password must be at least 6 characters.');
+        if (newPassword.length < MIN_PASSWORD_LENGTH) {
+            setError(t('forgot.tooShort', { min: MIN_PASSWORD_LENGTH }));
             return;
         }
 
@@ -346,614 +407,334 @@ export default function UnifiedAuthView({
                 code: forgotCode.trim(),
                 password: newPassword,
             });
-            setSuccessMsg('Password updated successfully! Please sign in with your new password.');
             setAuthMethod('password');
             setForgotStep('request');
             setForgotCode('');
             setNewPassword('');
-        } catch (err: any) {
-            setError(errorText(err, 'Failed to reset password.'));
+            setSuccessMsg(t('forgot.done'));
+        } catch (err: unknown) {
+            setError(errorText(err, t('genericError')));
         } finally {
             setLoading(false);
         }
     };
 
+
+    const terms = (
+        <p className="mt-6 text-[13px] leading-relaxed text-km-text-secondary">
+            {t.rich('terms', {
+                terms: (chunks) => <Link href="/policies/terms" className={linkClass}>{chunks}</Link>,
+                privacy: (chunks) => <Link href="/policies/privacy" className={linkClass}>{chunks}</Link>,
+            })}
+        </p>
+    );
+
     return (
-        <div className="min-h-screen bg-km-surface text-km-text-primary flex flex-col font-sans">
-            {/* Top Navigation Bar: Shared Unified Auth Navbar */}
-            <AuthNavbar />
+        <AuthShell brand={isRecruiter ? 'employer' : 'candidate'}>
+                        <Notice message={successMsg} />
 
-            {/* Split-Screen Main Container */}
-            <main className="flex-1 flex flex-col justify-center px-4 sm:px-6 md:px-10 lg:px-12 py-8 lg:py-12 max-w-6xl mx-auto w-full">
-                <div className="bg-km-surface-card border border-km-border rounded-3xl p-7 sm:p-10 lg:p-14 shadow-xs flex flex-col lg:flex-row items-center lg:items-start justify-between gap-10 lg:gap-14">
-                    {/* LEFT COLUMN: Value Proposition */}
-                    <div className="flex-1 space-y-6 text-center lg:text-left w-full">
-                        <div className="space-y-3">
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight tracking-tight">
-                                {isRecruiter ? (
-                                    <>
-                                        <span className="text-km-heading">Hire </span>
-                                        <span className="text-[#FF6B00]">Verified</span>
-                                        <span className="text-km-heading"> Talent Directly.</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span className="text-km-heading">Talk to HR </span>
-                                        <span className="text-[#FF6B00]">Directly</span>
-                                        <span className="text-km-heading"> and Get a Job in Your City.</span>
-                                    </>
-                                )}
-                            </h1>
-                            <p className="text-sm sm:text-base font-medium text-km-text-secondary">
-                                {isRecruiter
-                                    ? 'Post jobs and connect with candidates in your city.'
-                                    : 'Find verified local jobs with direct recruiter access.'}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* RIGHT COLUMN: Interactive Form Card */}
-                    <div className="w-full lg:w-[440px] shrink-0">
-                        <div className="bg-km-surface rounded-2xl border border-km-border p-6 sm:p-8 shadow-xs">
-                            {/* Error Banner */}
-                            {error && (
-                                <div className="mb-4 p-3.5 bg-red-50 border border-red-200 rounded-xl flex items-start gap-2.5 text-xs text-red-700 font-medium">
-                                    <WarningCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-red-600 dark:text-red-400" />
-                                    <span>{error}</span>
+                        {authMethod === 'otp' && otpStep === 'input' && (
+                            <form onSubmit={handleSendOtp} noValidate>
+                                <StepHeading
+                                    title={isRecruiter ? t('phone.titleEmployer') : t('phone.title')}
+                                    subtitle={t('phone.subtitle')}
+                                />
+                                <label htmlFor="auth-mobile" className={labelClass}>{t('phone.label')}</label>
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pr-3 my-3 border-r border-km-border text-base font-inter font-medium text-km-text-secondary pointer-events-none">
+                                        +91
+                                    </span>
+                                    <input
+                                        id="auth-mobile"
+                                        type="tel"
+                                        inputMode="numeric"
+                                        autoComplete="tel-national"
+                                        enterKeyHint="go"
+                                        placeholder={t('phone.placeholder')}
+                                        value={mobile}
+                                        onChange={(e) => {
+                                            setMobile(normalizeMobile(e.target.value));
+                                            setError(null);
+                                        }}
+                                        aria-invalid={Boolean(error) || undefined}
+                                        className={`${inputClass(Boolean(error))} pl-[4.25rem] tracking-wide`}
+                                        autoFocus
+                                    />
                                 </div>
-                            )}
-
-                            {/* Success Banner */}
-                            {successMsg && (
-                                <div className="mb-4 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5 text-xs text-emerald-800 font-medium">
-                                    <CheckCircleIcon weight="bold" size={16} className="shrink-0 mt-0.5 text-emerald-600 dark:text-emerald-400" />
-                                    <span>{successMsg}</span>
+                                <FieldError message={error} />
+                                <div className="mt-5">
+                                    <SubmitButton disabled={cleanMobile.length !== 10} busy={loading} label={t('phone.submit')} busyLabel={t('phone.sending')} />
                                 </div>
-                            )}
 
-                            {/* OTP AUTHENTICATION */}
-                            {authMethod === 'otp' && (
-                                <>
-                                    {/* Step 1: Mobile Input */}
-                                    {otpStep === 'input' && (
-                                        <form onSubmit={handleSendOtp} className="space-y-4">
-                                            <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
-                                                    {isRecruiter ? 'Employer Sign In' : 'Candidate Sign In'}
-                                                </h2>
-                                                <p className="text-xs text-km-text-secondary mt-1">
-                                                    {isRecruiter
-                                                        ? 'Enter your mobile number to sign in or register your company.'
-                                                        : 'Enter your mobile number to get a verification code.'}
-                                                </p>
-                                            </div>
-
-                                            <div className="pt-2">
-                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
-                                                    Mobile Number
-                                                </label>
-                                                <div className="relative flex items-center">
-                                                    <span className="absolute left-3 text-xs font-bold text-km-text-primary border-r border-km-border pr-2 pointer-events-none">
-                                                        +91
-                                                    </span>
-                                                    <input
-                                                        type="tel"
-                                                        maxLength={10}
-                                                        required
-                                                        placeholder="Enter 10-digit number"
-                                                        value={mobile}
-                                                        onChange={(e) => {
-                                                            const val = e.target.value.replace(/\D/g, '');
-                                                            setMobile(val);
-                                                            setError(null);
-                                                        }}
-                                                        className="w-full h-11 pl-14 pr-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all tracking-wide dark:focus:border-km-link dark:focus:ring-km-link"
-                                                        autoFocus
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                type="submit"
-                                                disabled={loading || mobile.replace(/\D/g, '').length !== 10}
-                                                className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
-                                                    mobile.replace(/\D/g, '').length === 10 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
-                                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                                                }`}
-                                            >
-                                                {loading ? (
-                                                    <span className="inline-flex items-center gap-2">
-                                                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                        Sending code...
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1.5">
-                                                        <span>Get Verification Code</span>
-                                                        <ArrowRightIcon weight="bold" size={16} />
-                                                    </span>
-                                                )}
-                                            </button>
-
-                                            {/* Candidate Password Option */}
-                                            {!isRecruiter && (
-                                                <div className="text-center pt-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setAuthMethod('password');
-                                                            setError(null);
-                                                            setSuccessMsg(null);
-                                                        }}
-                                                        className="text-xs font-semibold text-km-heading hover:underline cursor-pointer"
-                                                    >
-                                                        Sign in with Password →
-                                                    </button>
-                                                </div>
-                                            )}
-
-                                            {/* Discrete Cross-Portal Navigation Link */}
-                                            <div className="text-center pt-4 border-t border-km-border/70 mt-4">
-                                                {isRecruiter ? (
-                                                    <p className="text-xs text-km-text-secondary">
-                                                        Looking for a job?{' '}
-                                                        <Link
-                                                            href="/login"
-                                                            className="text-km-heading font-bold hover:underline cursor-pointer"
-                                                        >
-                                                            Go to Candidate Portal →
-                                                        </Link>
-                                                    </p>
-                                                ) : (
-                                                    <p className="text-xs text-km-text-secondary">
-                                                        Looking to hire staff?{' '}
-                                                        <Link
-                                                            href="/recruiter/login"
-                                                            className="text-km-heading font-bold hover:underline cursor-pointer"
-                                                        >
-                                                            Go to Employer Portal →
-                                                        </Link>
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </form>
-                                    )}
-
-                                    {/* Step 2: OTP Verification */}
-                                    {otpStep === 'verify' && (
-                                        <form
-                                            onSubmit={(e) => handleVerifyOtp(otp.join(''), e)}
-                                            className="space-y-4"
-                                        >
-                                            <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
-                                                    Enter verification code
-                                                </h2>
-                                                <p className="text-xs text-km-text-secondary mt-1">
-                                                    Code sent to +91 ••••••{mobile.slice(-4)}
-                                                </p>
-                                            </div>
-
-                                            {/* 4-Digit OTP Input */}
-                                            <div className="py-2">
-                                                <OtpInput
-                                                    value={otp}
-                                                    onChange={(newOtp) => {
-                                                        setOtp(newOtp);
-                                                        setError(null);
-                                                        if (newOtp.join('').trim().length === 4) {
-                                                            handleVerifyOtp(newOtp.join('').trim());
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-
-                                            {/* Resend & Change Number */}
-                                            <div className="flex items-center justify-between text-xs pt-1">
-                                                {resendTimer > 0 ? (
-                                                    <span className="text-km-text-secondary">
-                                                        Resend code in {resendTimer}s
-                                                    </span>
-                                                ) : (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleSendOtp()}
-                                                        className="text-km-heading font-bold hover:underline cursor-pointer"
-                                                    >
-                                                        Resend code
-                                                    </button>
-                                                )}
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setOtpStep('input');
-                                                        setOtp(['', '', '', '']);
-                                                        setError(null);
-                                                    }}
-                                                    className="text-km-text-secondary hover:text-km-heading font-medium cursor-pointer"
-                                                >
-                                                    Change number
-                                                </button>
-                                            </div>
-
-                                            <button
-                                                type="submit"
-                                                disabled={loading || otp.join('').length !== 4}
-                                                className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-2 shadow-xs ${
-                                                    otp.join('').length === 4 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
-                                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                                                }`}
-                                            >
-                                                {loading ? (
-                                                    <span className="inline-flex items-center gap-2">
-                                                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                        Verifying...
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1.5">
-                                                        <span>Verify &amp; Continue</span>
-                                                        <ArrowRightIcon weight="bold" size={16} />
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </form>
-                                    )}
-
-                                    {/* Step 3: Candidate Name (For brand new candidates only) */}
-                                    {otpStep === 'name' && (
-                                        <form onSubmit={handleCompleteName} className="space-y-4">
-                                            <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
-                                                    Welcome to KaamMilega!
-                                                </h2>
-                                                <p className="text-xs text-km-text-secondary mt-1">
-                                                    Tell us your name and the city you want to work in.
-                                                </p>
-                                            </div>
-
-                                            <div className="pt-2">
-                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
-                                                    Full Name
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type="text"
-                                                        required
-                                                        placeholder="e.g. Rahul Sharma"
-                                                        value={fullName}
-                                                        onChange={(e) => {
-                                                            setFullName(e.target.value);
-                                                            setError(null);
-                                                        }}
-                                                        className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
-                                                        autoFocus
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div>
-                                                <label htmlFor="signup-city" className="block text-xs font-semibold text-km-text-primary mb-1.5">
-                                                    City
-                                                </label>
-                                                <input
-                                                    id="signup-city"
-                                                    type="text"
-                                                    required
-                                                    list="signup-city-options"
-                                                    autoComplete="address-level2"
-                                                    placeholder="e.g. Pune"
-                                                    value={city}
-                                                    onChange={(e) => {
-                                                        setCity(e.target.value);
-                                                        setError(null);
-                                                    }}
-                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
-                                                />
-                                                <datalist id="signup-city-options">
-                                                    {cityOptions.map((name) => (
-                                                        <option key={name} value={name} />
-                                                    ))}
-                                                </datalist>
-                                            </div>
-
-                                            <button
-                                                type="submit"
-                                                disabled={loading || fullName.trim().length < 2 || !city.trim()}
-                                                className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
-                                                    fullName.trim().length >= 2 && city.trim() && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
-                                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                                                }`}
-                                            >
-                                                {loading ? (
-                                                    <span className="inline-flex items-center gap-2">
-                                                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                        Saving...
-                                                    </span>
-                                                ) : (
-                                                    <span className="inline-flex items-center gap-1.5">
-                                                        <span>Get Started</span>
-                                                        <ArrowRightIcon weight="bold" size={16} />
-                                                    </span>
-                                                )}
-                                            </button>
-                                        </form>
-                                    )}
-                                </>
-                            )}
-
-                            {/* PASSWORD LOGIN (Candidate fallback) */}
-                            {authMethod === 'password' && (
-                                <form onSubmit={handlePasswordLogin} className="space-y-4">
-                                    <div>
-                                        <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
-                                            Sign In with Password
-                                        </h2>
-                                        <p className="text-xs text-km-text-secondary mt-1">
-                                            Enter your registered email or mobile and password.
-                                        </p>
-                                    </div>
-
-                                    <div className="pt-2">
-                                        <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
-                                            Email address or Mobile
-                                        </label>
-                                        <input
-                                            type="text"
-                                            required
-                                            placeholder="name@example.com or mobile"
-                                            value={identifier}
-                                            onChange={(e) => {
-                                                setIdentifier(e.target.value);
-                                                setError(null);
-                                            }}
-                                            className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
-                                            autoFocus
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <div className="flex justify-between items-center mb-1.5">
-                                            <label className="text-xs font-semibold text-km-text-primary">
-                                                Password
-                                            </label>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    setAuthMethod('forgot');
-                                                    setError(null);
-                                                    setSuccessMsg(null);
-                                                }}
-                                                className="text-xs font-semibold text-km-heading hover:underline cursor-pointer"
-                                            >
-                                                Forgot password?
-                                            </button>
-                                        </div>
-                                        <div className="relative">
-                                            <input
-                                                type={showPassword ? 'text' : 'password'}
-                                                required
-                                                placeholder="Enter your password"
-                                                value={password}
-                                                onChange={(e) => {
-                                                    setPassword(e.target.value);
-                                                    setError(null);
-                                                }}
-                                                className="w-full h-11 pl-3.5 pr-10 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-km-text-secondary hover:text-km-text-primary p-1 cursor-pointer"
-                                            >
-                                                {showPassword ? <EyeSlashIcon weight="bold" size={16} /> : <EyeIcon weight="bold" size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    {/* Switch back to OTP */}
-                                    <div className="text-center pt-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setAuthMethod('otp');
-                                                setOtpStep('input');
-                                                setError(null);
-                                            }}
-                                            className="text-xs font-semibold text-km-heading hover:underline inline-flex items-center gap-1.5 cursor-pointer py-1"
-                                        >
-                                            <PhoneCallIcon weight="bold" size={14} className="text-km-heading" />
-                                            <span>Sign in with Mobile OTP instead</span>
-                                        </button>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={loading || !identifier.trim() || !password}
-                                        className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-2 shadow-xs ${
-                                            identifier.trim() && password && !loading
-                                                ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
-                                                : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                                        }`}
-                                    >
-                                        {loading ? (
-                                            <span className="inline-flex items-center gap-2">
-                                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                                Signing in...
-                                            </span>
-                                        ) : (
-                                            <span className="inline-flex items-center gap-1.5">
-                                                <span>Sign In</span>
-                                                <ArrowRightIcon weight="bold" size={16} />
-                                            </span>
-                                        )}
+                                {!isRecruiter && (
+                                    <button type="button" onClick={() => switchTo('password')} className={`mt-2 ${actionLinkClass}`}>
+                                        {t('phone.usePassword')}
                                     </button>
-                                </form>
-                            )}
+                                )}
 
-                            {/* FORGOT PASSWORD */}
-                            {authMethod === 'forgot' && (
-                                <>
-                                    {forgotStep === 'request' ? (
-                                        <form onSubmit={handleSendForgotCode} className="space-y-4">
-                                            <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
-                                                    Reset Password
-                                                </h2>
-                                                <p className="text-xs text-km-text-secondary mt-1">
-                                                    Enter your registered email to receive a reset code.
-                                                </p>
-                                            </div>
+                                <div className="mt-5 pt-3 border-t border-km-border">
+                                    <Link href={isRecruiter ? '/login' : '/recruiter/login'} className={actionLinkClass}>
+                                        {isRecruiter ? t('phone.jobLink') : t('phone.hireLink')}
+                                    </Link>
+                                </div>
+                                {terms}
+                            </form>
+                        )}
 
-                                            <div className="pt-2">
-                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
-                                                    Email address
-                                                </label>
-                                                <input
-                                                    type="email"
-                                                    required
-                                                    placeholder="name@example.com"
-                                                    value={forgotEmail}
-                                                    onChange={(e) => {
-                                                        setForgotEmail(e.target.value);
-                                                        setError(null);
-                                                    }}
-                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary placeholder:text-km-text-secondary/60 focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
-                                                    autoFocus
-                                                />
-                                            </div>
-
-                                            <button
-                                                type="submit"
-                                                disabled={loading || !forgotEmail.trim()}
-                                                className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
-                                                    forgotEmail.trim() && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
-                                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                                                }`}
-                                            >
-                                                {loading ? 'Sending code...' : 'Send Reset Code'}
-                                            </button>
-
-                                            <div className="text-center pt-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setAuthMethod('password');
-                                                        setError(null);
-                                                    }}
-                                                    className="text-xs font-semibold text-km-heading hover:underline cursor-pointer"
-                                                >
-                                                    Back to sign in
-                                                </button>
-                                            </div>
-                                        </form>
+                        {authMethod === 'otp' && otpStep === 'verify' && (
+                            <form onSubmit={(e) => handleVerifyOtp(otp.join(''), e)} noValidate>
+                                <BackButton
+                                    label={t('code.edit')}
+                                    onClick={() => {
+                                        setOtpStep('input');
+                                        setOtp(['', '', '', '']);
+                                        setError(null);
+                                    }}
+                                />
+                                <StepHeading
+                                    art={<CodeSentArt className="w-14 h-14 mb-4" />}
+                                    title={t('code.title')}
+                                    subtitle={t('code.sentTo', { mobile: `+91 ${cleanMobile.slice(0, 5)} ${cleanMobile.slice(5)}` })}
+                                />
+                                <OtpInput
+                                    value={otp}
+                                    align="start"
+                                    disabled={loading}
+                                    invalid={Boolean(error)}
+                                    onChange={(newOtp) => {
+                                        setOtp(newOtp);
+                                        setError(null);
+                                        if (newOtp.join('').trim().length === 4) {
+                                            handleVerifyOtp(newOtp.join('').trim());
+                                        }
+                                    }}
+                                />
+                                <FieldError message={error} />
+                                <div className="mt-3 min-h-11 flex items-center text-sm">
+                                    {resendTimer > 0 ? (
+                                        <span className="text-km-text-secondary font-inter">{t('code.resendIn', { seconds: resendTimer })}</span>
                                     ) : (
-                                        <form onSubmit={handleResetPassword} className="space-y-4">
-                                            <div>
-                                                <h2 className="text-xl sm:text-2xl font-bold text-km-text-primary tracking-tight">
-                                                    Enter Reset Code
-                                                </h2>
-                                                <p className="text-xs text-km-text-secondary mt-1">
-                                                    Code sent to {forgotEmail}
-                                                </p>
-                                            </div>
-
-                                            <div className="pt-2">
-                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
-                                                    4-digit reset code
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    maxLength={4}
-                                                    required
-                                                    placeholder="e.g. 1234"
-                                                    value={forgotCode}
-                                                    onChange={(e) => {
-                                                        setForgotCode(e.target.value.replace(/\D/g, ''));
-                                                        setError(null);
-                                                    }}
-                                                    className="w-full h-11 px-3.5 bg-km-surface-card border border-km-border rounded-xl text-sm font-semibold tracking-widest text-km-text-primary text-center focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
-                                                    autoFocus
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
-                                                    New password (min. 6 characters)
-                                                </label>
-                                                <div className="relative">
-                                                    <input
-                                                        type={showNewPassword ? 'text' : 'password'}
-                                                        required
-                                                        minLength={6}
-                                                        placeholder="Create a strong password"
-                                                        value={newPassword}
-                                                        onChange={(e) => {
-                                                            setNewPassword(e.target.value);
-                                                            setError(null);
-                                                        }}
-                                                        className="w-full h-11 pl-3.5 pr-10 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-primary focus:border-[#071A4D] focus:ring-2 focus:ring-[#071A4D]/10 outline-none transition-all dark:focus:border-km-link dark:focus:ring-km-link"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setShowNewPassword(!showNewPassword)}
-                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-km-text-secondary hover:text-km-text-primary p-1 cursor-pointer"
-                                                    >
-                                                        {showNewPassword ? <EyeSlashIcon weight="bold" size={16} /> : <EyeIcon weight="bold" size={16} />}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <button
-                                                type="submit"
-                                                disabled={loading || forgotCode.length !== 4 || newPassword.length < 6}
-                                                className={`w-full h-11 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer mt-3 shadow-xs ${
-                                                    forgotCode.length === 4 && newPassword.length >= 6 && !loading
-                                                        ? 'bg-[#071A4D] hover:bg-[#0B1F52] text-white active:scale-[0.99] dark:bg-km-primary dark:hover:bg-km-primary-dark'
-                                                        : 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
-                                                }`}
-                                            >
-                                                {loading ? 'Resetting password...' : 'Set New Password'}
-                                            </button>
-
-                                            <div className="text-center pt-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        setForgotStep('request');
-                                                        setError(null);
-                                                    }}
-                                                    className="text-xs font-semibold text-km-text-secondary hover:underline cursor-pointer"
-                                                >
-                                                    Change email
-                                                </button>
-                                            </div>
-                                        </form>
+                                        <button type="button" onClick={() => handleSendOtp()} disabled={loading} className={actionLinkClass}>
+                                            {t('code.resend')}
+                                        </button>
                                     )}
-                                </>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                                </div>
+                                <div className="mt-6">
+                                    <SubmitButton disabled={otp.join('').length !== 4} busy={loading} label={t('code.submit')} busyLabel={t('code.verifying')} />
+                                </div>
+                            </form>
+                        )}
 
-                {/* Bottom Legal Disclaimer */}
-                <div className="text-center mt-6 text-xs text-km-text-secondary">
-                    <p>
-                        By continuing, you agree to KaamMilega&apos;s{' '}
-                        <Link href="/policies/terms" className="text-km-heading hover:underline font-semibold">
-                            Terms of Service
-                        </Link>{' '}
-                        and{' '}
-                        <Link href="/policies/privacy" className="text-km-heading hover:underline font-semibold">
-                            Privacy Policy
-                        </Link>
-                        .
-                    </p>
-                </div>
-            </main>
-        </div>
+                        {authMethod === 'otp' && otpStep === 'name' && (
+                            <form onSubmit={handleCompleteName} noValidate>
+                                <StepHeading
+                                    art={<WelcomeArt className="w-14 h-14 mb-4" />}
+                                    title={t('details.title')}
+                                    subtitle={t('details.subtitle')}
+                                />
+                                <label htmlFor="auth-name" className={labelClass}>{t('details.name')}</label>
+                                <input
+                                    id="auth-name"
+                                    type="text"
+                                    enterKeyHint="next"
+                                    autoComplete="name"
+                                    placeholder={t('details.namePlaceholder')}
+                                    value={fullName}
+                                    onChange={(e) => {
+                                        setFullName(e.target.value);
+                                        setError(null);
+                                    }}
+                                    className={inputClass(false)}
+                                    autoFocus
+                                />
+                                <label htmlFor="auth-city" className={`${labelClass} mt-4`}>{t('details.city')}</label>
+                                <input
+                                    id="auth-city"
+                                    type="text"
+                                    enterKeyHint="done"
+                                    list="auth-city-options"
+                                    autoComplete="address-level2"
+                                    placeholder={t('details.cityPlaceholder')}
+                                    value={city}
+                                    onChange={(e) => {
+                                        setCity(e.target.value);
+                                        setError(null);
+                                    }}
+                                    className={inputClass(false)}
+                                />
+                                <datalist id="auth-city-options">
+                                    {cityOptions.map((name) => (
+                                        <option key={name} value={name} />
+                                    ))}
+                                </datalist>
+                                <FieldError message={error} />
+                                <div className="mt-6">
+                                    <SubmitButton
+                                        disabled={fullName.trim().length < 2 || !city.trim()}
+                                        busy={loading}
+                                        label={t('details.submit')}
+                                        busyLabel={t('details.saving')}
+                                    />
+                                </div>
+                                {terms}
+                            </form>
+                        )}
+
+                        {authMethod === 'password' && (
+                            <form onSubmit={handlePasswordLogin} noValidate>
+                                <BackButton label={t('back')} onClick={() => switchTo('otp')} />
+                                <StepHeading title={t('password.title')} subtitle={t('password.subtitle')} />
+                                <label htmlFor="auth-identifier" className={labelClass}>{t('password.identifier')}</label>
+                                <input
+                                    id="auth-identifier"
+                                    type="text"
+                                    autoComplete="username"
+                                    value={identifier}
+                                    onChange={(e) => {
+                                        setIdentifier(e.target.value);
+                                        setError(null);
+                                    }}
+                                    className={inputClass(false)}
+                                    autoFocus
+                                />
+                                <div className="mt-4 mb-1.5 flex items-center justify-between">
+                                    <label htmlFor="auth-password" className="text-sm font-semibold text-km-text-primary">{t('password.password')}</label>
+                                    <button type="button" onClick={() => switchTo('forgot')} className={actionLinkClass}>
+                                        {t('password.forgot')}
+                                    </button>
+                                </div>
+                                <div className="relative">
+                                    <input
+                                        id="auth-password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        autoComplete="current-password"
+                                        placeholder={t('password.passwordPlaceholder')}
+                                        value={password}
+                                        onChange={(e) => {
+                                            setPassword(e.target.value);
+                                            setError(null);
+                                        }}
+                                        className={`${inputClass(Boolean(error))} pr-12`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        aria-label={showPassword ? t('password.hide') : t('password.show')}
+                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-km-text-secondary hover:text-km-heading hover:bg-km-surface cursor-pointer"
+                                    >
+                                        {showPassword ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
+                                    </button>
+                                </div>
+                                <FieldError message={error} />
+                                <div className="mt-6">
+                                    <SubmitButton
+                                        disabled={!identifier.trim() || !password}
+                                        busy={loading}
+                                        label={t('password.submit')}
+                                        busyLabel={t('password.signingIn')}
+                                    />
+                                </div>
+                                <button type="button" onClick={() => switchTo('otp')} className={`mt-2 ${actionLinkClass}`}>
+                                    {t('password.useOtp')}
+                                </button>
+                            </form>
+                        )}
+
+                        {authMethod === 'forgot' && forgotStep === 'request' && (
+                            <form onSubmit={handleSendForgotCode} noValidate>
+                                <BackButton label={t('forgot.back')} onClick={() => switchTo('password')} />
+                                <StepHeading title={t('forgot.title')} subtitle={t('forgot.subtitle')} />
+                                <label htmlFor="auth-forgot-email" className={labelClass}>{t('forgot.email')}</label>
+                                <input
+                                    id="auth-forgot-email"
+                                    type="email"
+                                    autoComplete="email"
+                                    placeholder={t('forgot.emailPlaceholder')}
+                                    value={forgotEmail}
+                                    onChange={(e) => {
+                                        setForgotEmail(e.target.value);
+                                        setError(null);
+                                    }}
+                                    aria-invalid={Boolean(error) || undefined}
+                                    className={inputClass(Boolean(error))}
+                                    autoFocus
+                                />
+                                <FieldError message={error} />
+                                <div className="mt-6">
+                                    <SubmitButton disabled={!forgotEmail.trim()} busy={loading} label={t('forgot.submit')} busyLabel={t('forgot.sending')} />
+                                </div>
+                                <p className="mt-5 text-sm leading-relaxed text-km-text-secondary">
+                                    {t('forgot.noEmail')}{' '}
+                                    <button type="button" onClick={() => switchTo('otp')} className={linkClass}>
+                                        {t('password.useOtp')}
+                                    </button>
+                                </p>
+                            </form>
+                        )}
+
+                        {authMethod === 'forgot' && forgotStep === 'reset' && (
+                            <form onSubmit={handleResetPassword} noValidate>
+                                <BackButton
+                                    label={t('forgot.changeEmail')}
+                                    onClick={() => {
+                                        setForgotStep('request');
+                                        setError(null);
+                                    }}
+                                />
+                                <StepHeading title={t('forgot.codeTitle')} subtitle={t('forgot.codeSent', { email: forgotEmail.trim() })} />
+                                <label htmlFor="auth-reset-code" className={labelClass}>{t('forgot.code')}</label>
+                                <input
+                                    id="auth-reset-code"
+                                    type="text"
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    maxLength={4}
+                                    value={forgotCode}
+                                    onChange={(e) => {
+                                        setForgotCode(e.target.value.replace(/\D/g, ''));
+                                        setError(null);
+                                    }}
+                                    className={`${inputClass(false)} tracking-[0.5em]`}
+                                    autoFocus
+                                />
+                                <label htmlFor="auth-new-password" className={`${labelClass} mt-4`}>{t('forgot.newPassword')}</label>
+                                <div className="relative">
+                                    <input
+                                        id="auth-new-password"
+                                        type={showNewPassword ? 'text' : 'password'}
+                                        autoComplete="new-password"
+                                        minLength={MIN_PASSWORD_LENGTH}
+                                        aria-describedby="auth-new-password-hint"
+                                        value={newPassword}
+                                        onChange={(e) => {
+                                            setNewPassword(e.target.value);
+                                            setError(null);
+                                        }}
+                                        className={`${inputClass(false)} pr-12`}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                        aria-label={showNewPassword ? t('password.hide') : t('password.show')}
+                                        className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-lg text-km-text-secondary hover:text-km-heading hover:bg-km-surface cursor-pointer"
+                                    >
+                                        {showNewPassword ? <EyeSlashIcon size={20} /> : <EyeIcon size={20} />}
+                                    </button>
+                                </div>
+                                <p id="auth-new-password-hint" className="mt-1.5 text-[13px] text-km-text-secondary">
+                                    {t('forgot.newPasswordHint', { min: MIN_PASSWORD_LENGTH })}
+                                </p>
+                                <FieldError message={error} />
+                                <div className="mt-6">
+                                    <SubmitButton
+                                        disabled={forgotCode.length !== 4 || newPassword.length < MIN_PASSWORD_LENGTH}
+                                        busy={loading}
+                                        label={t('forgot.save')}
+                                        busyLabel={t('forgot.saving')}
+                                    />
+                                </div>
+                            </form>
+                        )}
+        </AuthShell>
     );
 }

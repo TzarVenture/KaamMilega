@@ -138,13 +138,8 @@ const JobDetailPage = () => {
             return;
         }
 
-        const roles = Array.isArray(user?.roles) ? user.roles : user?.role ? [user.role] : [];
-        const isOnlyUser = roles.includes('user') && !roles.includes('recruiter') && !roles.includes('expert');
-
-        if (!isOnlyUser) {
-            notify.warning('Only candidates are allowed to apply for jobs.');
-            return;
-        }
+        // One account does everything (client Q5): recruiters and experts apply too; the
+        // backend only stops someone applying to their own job
 
         setIsApplyModalOpen(true);
     };

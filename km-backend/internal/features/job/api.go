@@ -25,7 +25,8 @@ func (api *JobApi) Setup(app *fiber.App) {
 	// Login is checked per route, not on the group: Fiber runs group middleware for every
 	// request under the prefix, which made the public detail route below require a login too.
 	protected := app.Group("/api/jobs")
-	protected.Post("/", jwtAuth, api.controller.CreateJob)
+	// Jobs are posted by recruiters (a saved company), Experts and the KaamMilega team
+	protected.Post("/", jwtAuth, middleware.RequireRole("recruiter", "expert", "admin"), api.controller.CreateJob)
 	protected.Get("/my", jwtAuth, api.controller.GetMyJobs)
 	protected.Patch("/:id", jwtAuth, api.controller.UpdateJob)
 	protected.Delete("/:id", jwtAuth, api.controller.DeleteJob)

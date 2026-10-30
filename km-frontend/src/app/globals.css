@@ -857,3 +857,62 @@ html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-b
 .km-menu-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--km-text-muted);
 }
+
+/* Sign-in illustrations (components/auth/AuthArt.tsx): a short entrance, then a slow drift on
+   the floating pieces. Pieces start hidden only while their entrance runs (fill-mode both),
+   so with motion turned off everything simply shows, still */
+.km-auth-rise,
+.km-auth-card,
+.km-auth-pop,
+.km-auth-message,
+.km-auth-line {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.km-auth-rise { animation: km-auth-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* Cards and the tick replay on an 8s loop: arrive, hold, clear, arrive again */
+.km-auth-card { animation: km-auth-card 8s cubic-bezier(0.22, 1, 0.36, 1) infinite both; }
+.km-auth-tick { transform-box: fill-box; transform-origin: center; animation: km-auth-tick 8s cubic-bezier(0.34, 1.56, 0.64, 1) infinite both; }
+.km-auth-pop { animation: km-auth-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.km-auth-drift { animation: km-auth-drift 5s ease-in-out infinite; transform-box: fill-box; }
+.km-auth-dot { transform-box: fill-box; animation: km-auth-dot 1.2s ease-in-out infinite; }
+.km-auth-message { transform-origin: left bottom; animation: km-auth-message 0.5s 0.15s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+.km-auth-line { transform-origin: left center; animation: km-auth-line 0.45s ease-out both; }
+
+@keyframes km-auth-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes km-auth-card {
+  0% { opacity: 0; transform: translateY(14px); }
+  7%, 84% { opacity: 1; transform: translateY(0); }
+  92%, 100% { opacity: 0; transform: translateY(-8px); }
+}
+@keyframes km-auth-tick {
+  0% { opacity: 0; transform: scale(0.4); }
+  5%, 76% { opacity: 1; transform: scale(1); }
+  82%, 100% { opacity: 0; transform: scale(0.4); }
+}
+@keyframes km-auth-dot {
+  0%, 60%, 100% { opacity: 0.45; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+@keyframes km-auth-pop {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes km-auth-drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+@keyframes km-auth-message {
+  from { opacity: 0; transform: translateX(-6px) scale(0.7); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes km-auth-line {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .km-auth-rise, .km-auth-card, .km-auth-tick, .km-auth-pop, .km-auth-drift, .km-auth-dot, .km-auth-message, .km-auth-line { animation: none; }
+}

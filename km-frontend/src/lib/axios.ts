@@ -1,5 +1,6 @@
 
 import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { isAuthPage, loginPathFor, signupResumePath } from "./authPaths";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const api = axios.create({
@@ -48,10 +49,18 @@ api.interceptors.response.use(
                     const currentPath = window.location.pathname;
                     const isPublicRoute = currentPath === "/" || currentPath.startsWith("/jobs") || currentPath.startsWith("/mentorship");
 
-                    // Redirect to login only if not already there AND not on a public route
-                    if (!currentPath.includes("/login") && !isPublicRoute) {
-                        window.location.href = "/login";
+                    // Sign in again on the right portal, then come back to this page
+                    if (!isAuthPage(currentPath) && !isPublicRoute) {
+                        window.location.href = loginPathFor(currentPath, window.location.search);
                     }
+                }
+            }
+
+            // Verified the mobile but never finished sign-up: back to the step that is missing
+            if (error.response.status === 403 && errorData?.code === "SIGNUP_INCOMPLETE" && typeof window !== "undefined") {
+                const currentPath = window.location.pathname;
+                if (!isAuthPage(currentPath)) {
+                    window.location.href = signupResumePath(currentPath);
                 }
             }
 
