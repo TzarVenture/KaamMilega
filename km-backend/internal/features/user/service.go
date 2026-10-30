@@ -57,7 +57,8 @@ type UserService interface {
 	GetExperts(ctx context.Context) ([]*User, error)
 	SearchUsers(ctx context.Context, query string) ([]*User, error)
 	ApplyForExpert(ctx context.Context, userID string, req ApplyExpertRequest) (*User, error)
-	ApproveExpert(ctx context.Context, adminID string, targetUserID string, status string) (*User, error)
+	ApproveExpert(ctx context.Context, adminID string, targetUserID string, req ApproveExpertRequest) (*User, error)
+	GetExpertApplication(ctx context.Context, userID string) (*ExpertApplicationStatus, error)
 	GetExpertRequests(ctx context.Context) ([]*User, error)
 	ToggleBookmark(ctx context.Context, userID string, jobID string) ([]string, error)
 	GetUserSettings(ctx context.Context, userID string) (*UserSettings, error)
@@ -84,9 +85,10 @@ type UserServiceImpl struct {
 	skillRepo  skill.SkillRepository
 	config     *config.Config
 	mailer     notification.Mailer
+	notifier   notification.NotificationService
 }
 
-func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config, mailer notification.Mailer) UserService {
+func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config, mailer notification.Mailer, notifier notification.NotificationService) UserService {
 	// Trigger non-destructive background backfill for legacy users
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -100,6 +102,7 @@ func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo sk
 		skillRepo:  skillRepo,
 		config:     cfg,
 		mailer:     mailer,
+		notifier:   notifier,
 	}
 }
 
@@ -1171,64 +1174,6 @@ func (s *UserServiceImpl) SearchUsers(ctx context.Context, query string) ([]*Use
 		}(users)
 	}
 	return users, err
-}
-
-func (s *UserServiceImpl) ApplyForExpert(ctx context.Context, userID string, req ApplyExpertRequest) (*User, error) {
-	user, err := s.repo.FindUserByID(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, errors.New("user not found")
-	}
-
-	// 1. Minimum 2 years of experience (from the profile, never from the request body)
-	if ExperienceYears(user) < MinExpertExperienceYears {
-		return nil, ErrExpertExperienceRequired
-	}
-
-	// 2. Active ₹99 Universal Pass or Subscription Gate
-	hasPass, err := s.repo.HasActivePassOrSubscription(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	if !hasPass {
-		return nil, errors.New("active ₹99 Universal Access Pass or Pro Subscription required to activate Expert status")
-	}
-
-	user.ExpertCategory = req.ExpertCategory
-	user.ExpertBio = req.ExpertBio
-	user.ExpertPricing = req.ExpertPricing
-	user.ExpertDocuments = req.ExpertDocuments
-	user.ExpertApprovalStatus = "pending"
-
-	return s.repo.UpdateUser(ctx, user)
-}
-
-func (s *UserServiceImpl) ApproveExpert(ctx context.Context, adminID string, targetUserID string, status string) (*User, error) {
-	user, err := s.repo.FindUserByID(ctx, targetUserID)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, errors.New("user not found")
-	}
-
-	user.ExpertApprovalStatus = status
-	if status == "approved" {
-		hasExpert := false
-		for _, r := range user.Roles {
-			if r == RoleExpert {
-				hasExpert = true
-				break
-			}
-		}
-		if !hasExpert {
-			user.Roles = append(user.Roles, RoleExpert)
-		}
-	}
-
-	return s.repo.UpdateUser(ctx, user)
 }
 
 func (s *UserServiceImpl) GetExpertRequests(ctx context.Context) ([]*User, error) {

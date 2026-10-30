@@ -21,6 +21,7 @@ func (u *User) PublicView() *User {
 	// Private documents and review state
 	p.CompanyDocuments = nil
 	p.ExpertDocuments = nil
+	p.ExpertKYC = nil
 
 	// Location, activity and private lists
 	p.LastLoginLat = 0

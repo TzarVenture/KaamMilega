@@ -729,10 +729,23 @@ func (ctrl *UserController) ApplyForExpert(c *fiber.Ctx) error {
 
 	user, err := ctrl.service.ApplyForExpert(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return c.Status(validationStatus(err)).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
+}
+
+// GetExpertApplication returns the user's Expert application state for the apply page
+func (ctrl *UserController) GetExpertApplication(c *fiber.Ctx) error {
+	userID, _ := c.Locals("user_id").(string)
+	if userID == "" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	status, err := ctrl.service.GetExpertApplication(c.Context(), userID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+	}
+	return c.JSON(status)
 }
 
 func (ctrl *UserController) ApproveExpert(c *fiber.Ctx) error {
@@ -746,12 +759,12 @@ func (ctrl *UserController) ApproveExpert(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
 
-	// For now, allow any authenticated admin route access (middleware handles role ideally)
-	adminID := "" // c.Locals("user_id").(string)
+	// The admin group's middleware already checked the admin role
+	adminID, _ := c.Locals("user_id").(string)
 
-	user, err := ctrl.service.ApproveExpert(c.Context(), adminID, targetUserID, req.Status)
+	user, err := ctrl.service.ApproveExpert(c.Context(), adminID, targetUserID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return c.Status(validationStatus(err)).JSON(apperr.Body(err))
 	}
 
 	return c.JSON(user)
