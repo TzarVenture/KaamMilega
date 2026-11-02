@@ -14,6 +14,9 @@ var (
 	ErrInvalidCandidate = apperr.New("INVALID_CANDIDATE_ID", "invalid candidate ID format")
 	ErrJobClosed        = apperr.New("JOB_CLOSED", "job is closed and no longer accepting applications")
 	ErrCannotApplyOwn   = apperr.New("CANNOT_APPLY_OWN_JOB", "recruiters cannot apply to their own job postings")
+
+	// Applying unlocks at the Professional tier (70% profile)
+	ErrProfileIncomplete = apperr.New("PROFILE_INCOMPLETE", "add your job role, skills, experience and education to apply for jobs")
 )
 
 type Application struct {

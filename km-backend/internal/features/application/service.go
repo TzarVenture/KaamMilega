@@ -81,6 +81,15 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 		return nil, ErrAlreadyApplied
 	}
 
+	// Applications unlock at the Professional tier; the apply form asks for what is missing
+	candidate, err := s.userRepo.FindUserByID(ctx, candidateID)
+	if err != nil {
+		return nil, err
+	}
+	if !user.CanApplyForJobs(candidate) {
+		return nil, ErrProfileIncomplete
+	}
+
 	app := &Application{
 		JobID:       jOID,
 		RecruiterID: jobInfo.RecruiterID,
