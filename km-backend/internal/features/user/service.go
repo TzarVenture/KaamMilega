@@ -593,6 +593,15 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 			if v, ok := value.(string); ok {
 				user.Headline = v
 			}
+		case "work_experience":
+			// The declared experience bucket ("Fresher", "1-2 Years", ...), asked before applying
+			if v, ok := value.(string); ok {
+				user.WorkExperience = strings.TrimSpace(v)
+			}
+		case "education_level":
+			if v, ok := value.(string); ok {
+				user.EducationLevel = strings.TrimSpace(v)
+			}
 		case "about":
 			if v, ok := value.(string); ok {
 				user.About = v

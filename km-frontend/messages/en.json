@@ -829,7 +829,8 @@
     "PUSH_TEST_TOO_SOON": "Please wait a few seconds before sending another test.",
     "CHAT_ATTACHMENT_INVALID": "One of the files couldn't be attached. Please upload it again.",
     "CHAT_TOO_MANY_ATTACHMENTS": "You can send up to 10 files at a time.",
-    "CHAT_REPLY_INVALID": "The message you're replying to isn't available."
+    "CHAT_REPLY_INVALID": "The message you're replying to isn't available.",
+    "PROFILE_INCOMPLETE": "Add your job role, skills, experience and education to apply for jobs."
   },
   "auth": {
     "candidate": {
@@ -1017,5 +1018,50 @@
       },
       "saved": "Company saved. Your employer account is ready."
     }
+  },
+  "applyGate": {
+    "title": "Add a few details to apply",
+    "subtitle": "Recruiters see these with your application. You only do this once, then you apply in 1 click.",
+    "progress": "Profile {score}% · applying unlocks at {min}%",
+    "city": "City",
+    "cityPlaceholder": "e.g. Pune",
+    "cityRequired": "Enter the city where you want to work.",
+    "role": "Job role",
+    "rolePlaceholder": "e.g. Electrician, Delivery executive",
+    "roleRequired": "Enter the job you are looking for.",
+    "skills": "Skills",
+    "skillsHint": "Add at least 2. Press Enter after each one.",
+    "skillsPlaceholder": "e.g. Wiring",
+    "skillsRequired": "Add at least 2 skills.",
+    "addSkill": "Add",
+    "removeSkill": "Remove {skill}",
+    "experience": "Work experience",
+    "experienceRequired": "Choose your work experience.",
+    "education": "Highest education",
+    "educationPlaceholder": "Choose your education",
+    "educationRequired": "Choose your highest education.",
+    "experienceOptions": {
+      "fresher": "Fresher",
+      "lt1": "Less than 1 year",
+      "y1": "1 year",
+      "y2": "2 years",
+      "y3": "3 to 5 years",
+      "y5": "More than 5 years"
+    },
+    "educationOptions": {
+      "below10": "Below 10th",
+      "tenth": "10th pass",
+      "twelfth": "12th pass",
+      "diploma": "ITI or diploma",
+      "graduate": "Graduate",
+      "postgraduate": "Post graduate"
+    },
+    "submit": "Save and apply",
+    "saving": "Saving…",
+    "cancel": "Not now",
+    "close": "Close",
+    "stillShort": "Your profile is at {score}%. Add a few more details on your profile to apply.",
+    "openProfile": "Open profile",
+    "saveFailed": "Couldn't save your details. Please try again."
   }
 }

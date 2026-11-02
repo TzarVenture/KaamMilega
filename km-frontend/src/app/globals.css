@@ -916,3 +916,13 @@ html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-b
 @media (prefers-reduced-motion: reduce) {
   .km-auth-rise, .km-auth-card, .km-auth-tick, .km-auth-pop, .km-auth-drift, .km-auth-dot, .km-auth-message, .km-auth-line { animation: none; }
 }
+
+/* Bottom sheets (components/jobs/ApplyProfileGate.tsx): slide up and fade in */
+.km-sheet-in { animation: km-sheet-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes km-sheet-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .km-sheet-in { animation: none; }
+}

@@ -13,6 +13,18 @@ import (
 // MinExpertExperienceYears is the client rule: an Expert needs at least 2 years of experience.
 const MinExpertExperienceYears = 2.0
 
+// Tier thresholds (profile score out of 100). Applying for jobs needs the Professional tier.
+const (
+	BasicTierScore        = 30
+	ProfessionalTierScore = 70
+	CompleteTierScore     = 100
+)
+
+// CanApplyForJobs reports whether the profile has reached the tier that unlocks job applications
+func CanApplyForJobs(u *User) bool {
+	return u != nil && CalculateProfileCompletion(u).Score >= ProfessionalTierScore
+}
+
 var ErrExpertExperienceRequired = apperr.New("EXPERT_EXPERIENCE_REQUIRED", "at least 2 years of work experience is required to become an Expert. Add your experience on your profile first")
 
 // ProfileCriterion is one scored item of the profile checklist.
@@ -173,15 +185,15 @@ func CalculateProfileCompletion(u *User) ProfileCompletion {
 
 	tier, tierName := 0, "Getting Started"
 	var unlocked []string
-	if score >= 30 {
+	if score >= BasicTierScore {
 		tier, tierName = 1, "Basic"
 		unlocked = append(unlocked, "browse_jobs", "wage_benchmarks", "direct_chat_3")
 	}
-	if score >= 70 {
+	if score >= ProfessionalTierScore {
 		tier, tierName = 2, "Professional"
 		unlocked = append(unlocked, "one_click_apply", "recruiter_discovery")
 	}
-	if score >= 100 {
+	if score >= CompleteTierScore {
 		tier, tierName = 3, "Complete"
 		unlocked = append(unlocked, "instant_milega_gigs")
 		if expertEligible {
