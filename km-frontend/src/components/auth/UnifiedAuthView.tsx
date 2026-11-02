@@ -18,6 +18,7 @@ import {
     labelClass,
     linkClass,
     normalizeMobile,
+    useWideScreenFocus,
 } from '@/components/auth/AuthUI';
 import OtpInput from '@/components/ui/OtpInput';
 import api from '@/lib/axios';
@@ -103,6 +104,8 @@ export default function UnifiedAuthView({
     const recruiterHome = redirectTarget?.startsWith('/recruiter') ? redirectTarget : '/recruiter';
 
     const cleanMobile = mobile.replace(/\D/g, '');
+    const isPhoneStep = authMethod === 'otp' && otpStep === 'input';
+    const mobileInputRef = useWideScreenFocus<HTMLInputElement>(isPhoneStep);
 
     // Already signed in: confirm the session with the server (saved browser data can outlive
     // it), then go on, or resume an unfinished sign-up
@@ -430,7 +433,7 @@ export default function UnifiedAuthView({
     );
 
     return (
-        <AuthShell brand={isRecruiter ? 'employer' : 'candidate'}>
+        <AuthShell brand={isRecruiter ? 'employer' : 'candidate'} mobileHero={isPhoneStep}>
                         <Notice message={successMsg} />
 
                         {authMethod === 'otp' && otpStep === 'input' && (
@@ -458,7 +461,7 @@ export default function UnifiedAuthView({
                                         }}
                                         aria-invalid={Boolean(error) || undefined}
                                         className={`${inputClass(Boolean(error))} pl-[4.25rem] tracking-wide`}
-                                        autoFocus
+                                        ref={mobileInputRef}
                                     />
                                 </div>
                                 <FieldError message={error} />
