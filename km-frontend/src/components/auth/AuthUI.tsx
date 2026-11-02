@@ -132,7 +132,16 @@ export function StepHeading({ title, subtitle, art }: { title: string; subtitle?
  * panel on the left; phones put the form first and the panel after it, so the step in hand is
  * on screen without scrolling.
  */
-export function AuthShell({ brand, children }: { brand: AuthBrand; children: React.ReactNode }) {
+export function AuthShell({
+    brand,
+    mobileHero = false,
+    children,
+}: {
+    brand: AuthBrand;
+    /** Phones and tablets: show the short brand band above the form (the first step only) */
+    mobileHero?: boolean;
+    children: React.ReactNode;
+}) {
     const t = useTranslations('auth');
     const proofIcons = brand === 'employer' ? [UserCheckIcon, ChatsCircleIcon, SealCheckIcon] : [ShieldCheckIcon, MapPinIcon, CurrencyInrIcon];
 
@@ -140,33 +149,53 @@ export function AuthShell({ brand, children }: { brand: AuthBrand; children: Rea
         <div className="min-h-dvh bg-km-surface-card text-km-text-primary flex flex-col">
             <AuthNavbar />
 
-            <main className="flex-1 grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-                <aside className="order-last lg:order-none relative overflow-hidden bg-km-primary dark:bg-km-primary-dark text-white px-5 pt-8 sm:px-8 lg:px-14 lg:pt-16 flex flex-col">
+            <main className="flex-1 flex flex-col lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+                {/* Large screens: the full brand panel beside the form */}
+                <aside className="hidden lg:flex relative overflow-hidden bg-km-primary dark:bg-km-primary-dark text-white px-14 pt-16 flex-col">
                     <div className="max-w-xl">
-                        <h1 className="text-2xl sm:text-3xl lg:text-[40px] font-bold leading-[1.2] tracking-[-0.02em]">
-                            {t(`${brand}.headline`)}
-                        </h1>
-                        <p className="mt-3 text-[15px] lg:text-base leading-relaxed text-[#C9D6F0] max-w-md">
-                            {t(`${brand}.reason`)}
-                        </p>
-                        <ul className="mt-6 grid grid-cols-3 gap-3 lg:flex lg:flex-wrap lg:gap-x-6 lg:gap-y-3">
+                        <h1 className="text-[40px] font-bold leading-[1.2] tracking-[-0.02em]">{t(`${brand}.headline`)}</h1>
+                        <p className="mt-3 text-base leading-relaxed text-[#C9D6F0] max-w-md">{t(`${brand}.reason`)}</p>
+                        <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
                             {proofIcons.map((Icon, i) => (
-                                <li key={i} className="flex flex-col items-start gap-1.5 lg:flex-row lg:items-center lg:gap-2 text-[13px] lg:text-sm font-medium text-[#E4EBF7]">
+                                <li key={i} className="flex items-center gap-2 text-sm font-medium text-[#E4EBF7]">
                                     <Icon size={20} weight="duotone" className="text-[#FFB066] shrink-0" aria-hidden="true" />
                                     {t(`${brand}.proof${i + 1}`)}
                                 </li>
                             ))}
                         </ul>
                     </div>
-                    <div className="mt-auto pt-6 lg:pt-10 flex justify-center lg:justify-start">
-                        <AuthHeroArt variant={brand} className="w-full max-w-[280px] sm:max-w-[360px] lg:max-w-[480px] h-auto block" />
+                    <div className="mt-auto pt-10">
+                        <AuthHeroArt variant={brand} className="w-full max-w-[480px] h-auto block" />
                     </div>
                 </aside>
 
-                <section className="flex justify-center px-5 pt-6 pb-10 sm:px-8 sm:pt-10 lg:items-center lg:py-12">
+                {/* Phones: a short brand band on the first step, like app sign-in screens. The
+                    form sheet overlaps its bottom edge, so one screen holds both. Later steps
+                    show the form alone. */}
+                {mobileHero && (
+                    <div className="lg:hidden relative overflow-hidden bg-km-primary dark:bg-km-primary-dark text-white px-5 sm:px-8 pt-5">
+                        <h1 className="text-[22px] sm:text-2xl font-bold leading-[1.25] tracking-[-0.015em] max-w-[22rem]">{t(`${brand}.headline`)}</h1>
+                        <AuthHeroArt variant={brand} className="mx-auto mt-2 h-[132px] sm:h-[180px] [@media(max-height:700px)]:h-[100px] w-auto block" />
+                    </div>
+                )}
+
+                <section
+                    className={`flex-1 flex justify-center px-5 pb-10 sm:px-8 lg:items-center lg:py-12 ${
+                        mobileHero ? 'relative -mt-5 rounded-t-[28px] bg-km-surface-card pt-7 lg:mt-0 lg:rounded-none' : 'pt-6 sm:pt-10'
+                    }`}
+                >
                     <div className="w-full max-w-[420px]">{children}</div>
                 </section>
             </main>
         </div>
     );
+}
+
+/** Desktop-only autofocus: on phones focusing on load pops the keyboard over the screen */
+export function useWideScreenFocus<T extends HTMLElement>(active: boolean) {
+    const ref = React.useRef<T>(null);
+    React.useEffect(() => {
+        if (active && window.matchMedia('(min-width: 1024px)').matches) ref.current?.focus();
+    }, [active]);
+    return ref;
 }
