@@ -858,9 +858,9 @@ html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-b
   background: var(--km-text-muted);
 }
 
-/* Sign-in illustrations (components/auth/AuthArt.tsx): a short entrance, then a slow drift on
-   the floating pieces. Pieces start hidden only while their entrance runs (fill-mode both),
-   so with motion turned off everything simply shows, still */
+/* Sign-in illustrations (components/auth/AuthArt.tsx): an entrance, cards and the tick replaying
+   on a loop, floating pieces drifting and chat dots typing. Pieces start hidden only while their
+   animation runs (fill-mode both), so with motion turned off everything simply shows, still */
 .km-auth-rise,
 .km-auth-card,
 .km-auth-pop,
