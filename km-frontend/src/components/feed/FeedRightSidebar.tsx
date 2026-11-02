@@ -1,43 +1,84 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ArrowRightIcon, MedalIcon } from '@phosphor-icons/react';
+import { useLocale, useTranslations } from 'next-intl';
+import AdSlot, { type AdPlacement } from '@/components/ads/AdSlot';
+import { feedApi } from '@/lib/api/feed';
+import type { TrendingTag } from './feedTypes';
+import { compactNumber } from './feedUtils';
 
-export const FeedRightSidebar: React.FC = () => {
+/**
+ * Wide-screen column: what people are posting about, the expert programme, and an ad. The ad
+ * stays in view while the column scrolls past.
+ */
+export default function FeedRightSidebar({ placement = 'feed_sidebar' }: { placement?: AdPlacement }) {
   return (
-    <aside className="w-full space-y-4">
-      {/* 1. Rectangle Brand Promotion Banner (From /network) */}
-      <div className="bg-[#071A4D] border border-slate-700/60 rounded-2xl p-5 text-white shadow-xs dark:bg-km-primary">
-        <div className="flex items-center gap-2 mb-3">
-          <MedalIcon size={16} weight="bold" className="text-amber-300" aria-hidden="true" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
-            Expert Network
-          </span>
-        </div>
-
-        <h3 className="text-sm font-bold text-white mb-1.5 leading-snug">
-          Become a Verified Mentor
-        </h3>
-        <p className="text-xs text-slate-300 leading-relaxed mb-4">
-          Guide ambitious candidates, host 1-on-1 career sessions, and monetize your verified professional experience.
-        </p>
-
-        <Link
-          href="/mentorship"
-          className="inline-flex items-center gap-1.5 bg-[#FF6B00] hover:bg-[#E05E00] text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-xs transition-all duration-150 active:scale-[0.98] cursor-pointer"
-        >
-          <span>Join as Expert</span>
-          <ArrowRightIcon weight="bold" size={13} />
-        </Link>
+    <div className="flex h-full flex-col gap-4">
+      <TrendingTopics />
+      <ExpertCard />
+      <div className="sticky top-20">
+        <AdSlot placement={placement} />
       </div>
-
-      {/* 2. Blank Ad Banner Section (Matches /network & user reference) */}
-      <div className="w-full bg-km-surface-card rounded-2xl h-64 flex items-center justify-center border border-dashed border-gray-300 text-slate-400 font-medium text-sm shadow-2xs dark:border-slate-700 dark:text-slate-500">
-        Ad Banner
-      </div>
-    </aside>
+    </div>
   );
-};
+}
 
-export default FeedRightSidebar;
+function TrendingTopics() {
+  const t = useTranslations('feed');
+  const locale = useLocale();
+  const [tags, setTags] = useState<TrendingTag[] | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    feedApi
+      .trending()
+      .then((res) => live && setTags(res.tags))
+      .catch(() => live && setTags([]));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  if (tags === null) {
+    return <div className="h-64 rounded-2xl border border-km-border bg-km-surface-card animate-shimmer" aria-hidden="true" />;
+  }
+  // Nothing to show until people start using hashtags
+  if (tags.length === 0) return null;
+
+  return (
+    <section aria-labelledby="trending-title" className="rounded-2xl border border-km-border bg-km-surface-card py-4 shadow-xs">
+      <h2 id="trending-title" className="px-5 text-[15px] font-semibold text-km-heading">{t('trendingTitle')}</h2>
+      <p className="px-5 text-[13px] text-km-text-secondary">{t('trendingSubtitle')}</p>
+      <ol className="mt-2">
+        {tags.map(({ tag, posts }) => (
+          <li key={tag}>
+            <Link href={`/feed?tag=${encodeURIComponent(tag)}`} className="block px-5 py-2 hover:bg-km-surface focus-visible:bg-km-surface">
+              <span className="block truncate text-sm font-semibold text-km-heading">#{tag}</span>
+              <span className="block text-[13px] text-km-text-secondary">{t('trendingPosts', { count: posts, formatted: compactNumber(posts, locale) })}</span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function ExpertCard() {
+  const t = useTranslations('feed');
+  return (
+    <section className="rounded-2xl bg-[#071A4D] p-5 text-white dark:bg-km-primary">
+      <p className="flex items-center gap-2 text-[13px] font-semibold text-[#C4B5FD]">
+        <MedalIcon size={16} aria-hidden="true" />
+        {t('expertEyebrow')}
+      </p>
+      <h2 className="mt-2 text-base font-semibold leading-snug">{t('expertTitle')}</h2>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-slate-300">{t('expertBody')}</p>
+      <Link href="/expert/apply" className="btn-accent mt-4 inline-flex h-10 items-center gap-1.5 px-4 text-sm">
+        {t('expertCta')}
+        <ArrowRightIcon size={14} weight="bold" aria-hidden="true" />
+      </Link>
+    </section>
+  );
+}

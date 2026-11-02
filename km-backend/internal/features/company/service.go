@@ -72,12 +72,17 @@ func (s *CompanyService) CreateCompany(ctx context.Context, req CreateCompanyReq
 
 	if req.RecruiterID != "" {
 		return s.UpdateCompany(ctx, req.RecruiterID, UpdateCompanyRequest{
-			Name:      req.Name,
-			Logo:      req.Logo,
-			Website:   req.Website,
-			GST:       req.GST,
-			Documents: req.Documents,
-			Status:    req.Status,
+			Name:          req.Name,
+			RecruiterName: req.RecruiterName,
+			Designation:   req.Designation,
+			Email:         req.Email,
+			Mobile:        req.Mobile,
+			Industry:      req.Industry,
+			Logo:          req.Logo,
+			Website:       req.Website,
+			GST:           req.GST,
+			Documents:     req.Documents,
+			Status:        req.Status,
 		})
 	}
 
@@ -189,6 +194,10 @@ func (s *CompanyService) GetCompanies(ctx context.Context, filter CompanyFilter)
 
 	var responses []CompanyResponse
 	for _, u := range users {
+		// Industry standard: only users with an actual company profile qualify as a company
+		if strings.TrimSpace(u.CompanyName) == "" {
+			continue
+		}
 		recruiterInfo := RecruiterInfo{
 			Name:        u.Name,
 			Designation: u.Headline,
@@ -227,6 +236,18 @@ func (s *CompanyService) UpdateCompany(ctx context.Context, id string, req Updat
 	}
 	if u == nil {
 		return nil, errors.New("company (user) not found")
+	}
+
+	// Ensure user gets the recruiter role if not already present
+	hasRecruiter := false
+	for _, r := range u.Roles {
+		if r == user.RoleRecruiter {
+			hasRecruiter = true
+			break
+		}
+	}
+	if !hasRecruiter {
+		u.Roles = append(u.Roles, user.RoleRecruiter)
 	}
 
 	// Update fields

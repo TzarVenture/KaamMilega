@@ -64,7 +64,6 @@ const navItems = [
 function SidebarContent({
     collapsed,
     pathname,
-    adminName,
     onSignOut,
     unreadCount = 0,
 }: {
@@ -76,26 +75,7 @@ function SidebarContent({
 }) {
     return (
     <>
-        <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 pb-4 space-y-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {/* Admin Profile Mini */}
-            {!collapsed ? (
-                <div className="p-3.5 mx-1.5 rounded-2xl bg-linear-to-br from-purple-700 to-indigo-900 flex items-center gap-3 shadow-md shadow-purple-900/10 transition-all">
-                    <div className="w-10 h-10 bg-purple-950 rounded-xl flex items-center justify-center shrink-0">
-                        <span className="text-white text-base font-bold rotate-45">▲▲</span>
-                    </div>
-                    <div className="overflow-hidden min-w-0 flex-1">
-                        <h3 className="text-sm font-bold text-white truncate">{adminName || 'Admin'}</h3>
-                        <p className="text-[10px] text-purple-200/80 font-semibold tracking-wider truncate uppercase">System Controller</p>
-                    </div>
-                </div>
-            ) : (
-                <div className="flex justify-center" title={`${adminName || 'Admin'} (System Controller)`}>
-                    <div className="w-10 h-10 bg-linear-to-br from-purple-700 to-indigo-900 rounded-2xl flex items-center justify-center text-white border border-purple-500/30 shadow-md">
-                        <span className="text-white text-xs font-bold rotate-45">▲▲</span>
-                    </div>
-                </div>
-            )}
-
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-3 space-y-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {/* Navigation Links */}
             <nav className="space-y-1">
                 {navItems.map((item) => {
@@ -108,59 +88,46 @@ function SidebarContent({
                             key={item.href}
                             href={item.href}
                             prefetch={true}
-                            className="block group relative"
+                            title={item.name}
+                            className="block group"
                         >
                             <div
-                                className={`flex items-center rounded-2xl transition-all relative ${
+                                className={`flex items-center transition-all duration-150 ${
                                     collapsed
-                                        ? 'justify-center w-11 h-11 mx-auto'
-                                        : 'gap-3.5 px-3.5 py-2.5 mx-1'
-                                } ${
-                                    isActive
-                                        ? 'bg-purple-50 text-purple-700 font-bold shadow-xs'
-                                        : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50/60 dark:hover:text-purple-400'
+                                        ? `w-10 h-10 mx-auto rounded-xl justify-center relative ${
+                                            isActive
+                                                ? 'bg-purple-600 text-white shadow-sm shadow-purple-600/25'
+                                                : 'text-slate-500 hover:text-purple-600 hover:bg-purple-50/70 dark:text-slate-400 dark:hover:text-purple-300 dark:hover:bg-purple-950/40'
+                                          }`
+                                        : `gap-3 px-3.5 py-2 mx-1.5 rounded-xl ${
+                                            isActive
+                                                ? 'bg-purple-50 text-purple-700 font-semibold border border-purple-100/80 dark:bg-purple-950/50 dark:text-purple-300 dark:border-purple-800/60'
+                                                : 'text-slate-600 hover:text-purple-700 hover:bg-purple-50/50 dark:text-slate-400 dark:hover:text-purple-300 dark:hover:bg-purple-950/30'
+                                          }`
                                 }`}
                             >
-                                {isActive && !collapsed && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-6 bg-purple-600 rounded-r-full" />
-                                )}
-                                {isActive && collapsed && (
-                                    <div className="absolute inset-0 rounded-2xl border-2 border-purple-600/30 bg-purple-50" />
-                                )}
                                 <div className="relative shrink-0 flex items-center justify-center">
                                     <item.icon
-                                        size={20}
+                                        size={19}
                                         weight={isActive ? "bold" : "regular"}
-                                        className={`relative z-10 shrink-0 ${
+                                        className={`shrink-0 transition-colors ${
                                             isActive
-                                                ? 'text-purple-600 dark:text-purple-400'
+                                                ? collapsed ? 'text-white' : 'text-purple-600 dark:text-purple-400'
                                                 : 'text-slate-400 group-hover:text-purple-600 dark:group-hover:text-purple-400'
-                                        } transition-colors`}
+                                        }`}
                                     />
                                     {collapsed && hasUnread && (
-                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse z-20" />
+                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
                                     )}
                                 </div>
                                 {!collapsed && (
-                                    <div className="flex items-center justify-between flex-1 min-w-0 z-10">
-                                        <span className="text-[13.5px] whitespace-nowrap font-semibold truncate">
+                                    <div className="flex items-center justify-between flex-1 min-w-0">
+                                        <span className="text-[13px] whitespace-nowrap font-medium truncate">
                                             {item.name}
                                         </span>
                                         {hasUnread && (
                                             <span className="ml-auto inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-[10px] font-bold leading-none text-white bg-red-500 rounded-full animate-pulse shadow-xs">
                                                 {unreadCount > 99 ? '99+' : unreadCount}
-                                            </span>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Hover Tooltip when collapsed */}
-                                {collapsed && (
-                                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-[#071A4D] text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50 flex items-center gap-1.5">
-                                        <span>{item.name}</span>
-                                        {hasUnread && (
-                                            <span className="px-1.5 py-0.5 bg-red-500 text-[10px] font-bold rounded-full text-white">
-                                                {unreadCount}
                                             </span>
                                         )}
                                     </div>
@@ -173,22 +140,18 @@ function SidebarContent({
         </div>
 
         {/* Sign Out Button */}
-        <div className="p-3 border-t border-purple-50">
+        <div className="p-2.5 border-t border-purple-50 dark:border-slate-800">
             <button
                 onClick={onSignOut}
-                className={`flex items-center rounded-2xl transition-all font-semibold text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 group relative ${
+                title="Sign Out"
+                className={`flex items-center transition-all duration-150 cursor-pointer ${
                     collapsed
-                        ? 'justify-center w-11 h-11 mx-auto'
-                        : 'gap-3.5 px-3.5 py-2.5 w-full'
+                        ? 'w-10 h-10 mx-auto rounded-xl justify-center text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30'
+                        : 'gap-3 px-3.5 py-2 mx-1.5 w-[calc(100%-12px)] rounded-xl text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 font-medium text-[13px]'
                 }`}
             >
-                <SignOutIcon size={20} className="shrink-0" />
-                {!collapsed && <span className="text-[13.5px]">Sign Out</span>}
-                {collapsed && (
-                    <div className="absolute left-full ml-3 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-xl shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none whitespace-nowrap z-50">
-                        Sign Out
-                    </div>
-                )}
+                <SignOutIcon size={19} className="shrink-0" />
+                {!collapsed && <span>Sign Out</span>}
             </button>
         </div>
     </>
@@ -320,7 +283,7 @@ export default function AdminLayout({
                 initial={false}
                 animate={{ width: isSidebarOpen ? 280 : 80 }}
                 transition={{ duration: 0.2, ease: 'easeInOut' }}
-                className="bg-km-surface-card border-r border-purple-50 flex-col fixed inset-y-0 z-50 shadow-sm overflow-hidden hidden lg:flex"
+                className="bg-km-surface-card border-r border-purple-50 flex-col fixed inset-y-0 z-50 shadow-sm overflow-hidden hidden md:flex"
             >
                 {/* Sidebar Header */}
                 <div className={`h-20 flex items-center border-b border-purple-50 transition-all ${
@@ -363,14 +326,14 @@ export default function AdminLayout({
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsMobileMenuOpen(false)}
-                            className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+                            className="fixed inset-0 bg-black/40 z-50 md:hidden"
                         />
                         <motion.aside
                             initial={{ x: -280 }}
                             animate={{ x: 0 }}
                             exit={{ x: -280 }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            className="fixed inset-y-0 left-0 w-72 bg-km-surface-card border-r border-purple-50 flex flex-col z-50 shadow-2xl lg:hidden"
+                            className="fixed inset-y-0 left-0 w-72 bg-km-surface-card border-r border-purple-50 flex flex-col z-50 shadow-2xl md:hidden"
                         >
                             <div className="h-20 px-6 flex items-center justify-between border-b border-purple-50">
                                 <BrandLogo size="md" href="/admin" />
@@ -390,7 +353,7 @@ export default function AdminLayout({
             {/* ── MAIN CONTENT ── */}
             <div className="flex-1 flex flex-col transition-all duration-300 w-full min-w-0">
                 <style>{`
-                    @media (min-width: 1024px) {
+                    @media (min-width: 768px) {
                         .admin-main-shift {
                             padding-left: ${isSidebarOpen ? '280px' : '80px'};
                             transition: padding-left 0.2s ease-in-out;
@@ -402,7 +365,7 @@ export default function AdminLayout({
                     <header className="h-16 sm:h-20 bg-km-surface-card border-b border-purple-50 flex items-center justify-between px-4 sm:px-8 sticky top-0 z-40">
                         {/* Mobile hamburger */}
                         <button
-                            className="lg:hidden p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors mr-3 shrink-0"
+                            className="md:hidden p-2 hover:bg-purple-50 text-purple-900 rounded-xl transition-colors mr-3 shrink-0"
                             onClick={() => setIsMobileMenuOpen(true)}
                         >
                             <ListIcon size={22} />
@@ -410,16 +373,16 @@ export default function AdminLayout({
 
                         <AdminGlobalSearch />
 
-                        <div className="flex items-center gap-3 sm:gap-6 ml-3">
+                        <div className="flex items-center gap-2 sm:gap-3 lg:gap-5 ml-2 sm:ml-4 shrink-0">
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
-                                className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-km-surface-card border border-purple-100 text-purple-700 rounded-xl text-sm font-bold shadow-sm hover:shadow-md transition-all"
+                                className="hidden md:inline-flex items-center gap-1.5 lg:gap-2 px-3 lg:px-4 py-2 bg-km-surface-card border border-purple-100 text-purple-700 rounded-xl text-xs sm:text-sm font-bold shadow-xs hover:shadow-sm transition-all whitespace-nowrap shrink-0"
                             >
                                 <DownloadSimpleIcon weight="bold" size={18} />
-                                <span className="hidden md:inline">Download App</span>
+                                <span className="whitespace-nowrap">Download App</span>
                             </motion.button>
-                            <div className="h-8 w-px bg-purple-100 hidden sm:block"></div>
+                            <div className="h-8 w-px bg-purple-100 hidden md:block"></div>
                             <Link 
                                 href="/admin/notifications"
                                 className="relative p-2 rounded-xl hover:bg-purple-50 text-slate-400 hover:text-purple-600 transition-all cursor-pointer flex items-center justify-center dark:hover:text-purple-400"

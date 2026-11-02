@@ -13,8 +13,8 @@ import (
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
-	"km-backend/internal/middleware"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"km-backend/internal/middleware"
 )
 
 type Controller struct {
@@ -74,7 +74,7 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Receiver ID is required"})
 	}
 
-	if req.Content == "" && req.AttachmentURL == "" {
+	if req.Content == "" && req.AttachmentURL == "" && len(req.Attachments) == 0 {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Message content or attachment is required"})
 	}
 
@@ -82,7 +82,7 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 	switch {
 	case errors.Is(err, ErrRecipientUnavailable):
 		return ctx.Status(fiber.StatusForbidden).JSON(apperr.Body(err))
-	case errors.Is(err, ErrMessageSelf):
+	case IsBadRequest(err):
 		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 	if err != nil {
@@ -304,7 +304,6 @@ func (c *Controller) GetTotalUnreadCount(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(fiber.Map{"unread_count": count})
 }
-
 
 func (c *Controller) DeleteMessage(ctx *fiber.Ctx) error {
 	userIDStr := ctx.Locals("user_id").(string)
@@ -593,4 +592,3 @@ func (c *Controller) GetChatEntitlement(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(entitlement)
 }
-

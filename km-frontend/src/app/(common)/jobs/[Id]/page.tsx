@@ -9,6 +9,7 @@ import { notify, errorText } from "@/lib/notify";
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HERO_SHELL } from '@/components/km/PageHero';
+import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
 
 interface Job {
     id: string;
@@ -65,6 +66,7 @@ const JobDetailPage = () => {
     const params = useParams();
     const router = useRouter();
     const jobId = params.Id as string;
+    const { ensureCanApply, sheet: applyGateSheet } = useApplyGate();
 
     const [job, setJob] = useState<Job | null>(null);
     const [loading, setLoading] = useState(true);
@@ -126,7 +128,7 @@ const JobDetailPage = () => {
         if (jobId) fetchData();
     }, [jobId, router]);
 
-    const handleApplyClick = () => {
+    const handleApplyClick = async () => {
         if (!user) {
             notify.info('Please login to apply');
             router.push(`/login?redirect=${encodeURIComponent(`/jobs/${jobId}`)}`);
@@ -138,14 +140,11 @@ const JobDetailPage = () => {
             return;
         }
 
-        const roles = Array.isArray(user?.roles) ? user.roles : user?.role ? [user.role] : [];
-        const isOnlyUser = roles.includes('user') && !roles.includes('recruiter') && !roles.includes('expert');
+        // One account does everything (client Q5): recruiters and experts apply too; the
+        // backend only stops someone applying to their own job
 
-        if (!isOnlyUser) {
-            notify.warning('Only candidates are allowed to apply for jobs.');
-            return;
-        }
-
+        // Below the apply tier: ask for the missing details first (once), then the apply form
+        if (!(await ensureCanApply())) return;
         setIsApplyModalOpen(true);
     };
 
@@ -163,7 +162,9 @@ const JobDetailPage = () => {
             setHasApplied(true);
             setIsApplyModalOpen(false);
         } catch (error: any) {
-            if (error.response?.status === 409) {
+            if (isProfileIncomplete(error)) {
+                notify.info(errorText(error));
+            } else if (error.response?.status === 409) {
                 setHasApplied(true);
                 setIsApplyModalOpen(false);
                 notify.info(errorText(error, 'You have already applied for this job'));
@@ -857,6 +858,7 @@ const JobDetailPage = () => {
                     </div>
                 )}
             </AnimatePresence>
+            {applyGateSheet}
         </div>
     );
 };

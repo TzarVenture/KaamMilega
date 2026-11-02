@@ -1,11 +1,15 @@
 package instant_work
 
 import (
+	"context"
 	"errors"
+	"log"
 	"strconv"
+	"time"
 
 	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
+	"km-backend/internal/features/analytics"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,12 +18,14 @@ import (
 type InstantWorkController struct {
 	service InstantWorkService
 	config  *config.Config
+	stats   analytics.Service
 }
 
-func NewInstantWorkController(service InstantWorkService, config *config.Config) *InstantWorkController {
+func NewInstantWorkController(service InstantWorkService, config *config.Config, stats analytics.Service) *InstantWorkController {
 	return &InstantWorkController{
 		service: service,
 		config:  config,
+		stats:   stats,
 	}
 }
 
@@ -108,8 +114,51 @@ func (ctrl *InstantWorkController) GetNearbyCandidates(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
+	ctrl.recordSearchAppearances(c, candidates)
 
 	return c.Status(fiber.StatusOK).JSON(candidates)
+}
+
+// recordSearchAppearances counts the workers a recruiter's radar search returned as search
+// appearances for them, in the background. Each worker counts once a day per recruiter, so the
+// radar refreshing doesn't add up.
+func (ctrl *InstantWorkController) recordSearchAppearances(c *fiber.Ctx, found []NearbyCandidateResult) {
+	if ctrl.stats == nil || len(found) == 0 || hasAdminRole(c) {
+		return
+	}
+	searcher, err := parseUserID(c)
+	if err != nil {
+		return
+	}
+	ids := make([]primitive.ObjectID, 0, len(found))
+	for _, f := range found {
+		ids = append(ids, f.UserID)
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		if err := ctrl.stats.RecordSearchAppearances(ctx, searcher, ids); err != nil {
+			log.Printf("analytics: recording radar search appearances: %v", err)
+		}
+	}()
+}
+
+func hasAdminRole(c *fiber.Ctx) bool {
+	switch roles := c.Locals("roles").(type) {
+	case []string:
+		for _, r := range roles {
+			if r == "admin" {
+				return true
+			}
+		}
+	case []interface{}:
+		for _, r := range roles {
+			if s, ok := r.(string); ok && s == "admin" {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // PurchasePassWithWallet activates the ₹99 pass directly from the user's KaamMilega wallet balance

@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { CalendarBlankIcon, ChatIcon, CheckCircleIcon, MapPinIcon, TrashIcon, UserMinusIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
-import { ImpressionWrapper } from '@/lib/telemetry';
 import { useFormat } from '@/i18n/useFormat';
 
 export interface ProfileCardUser {
@@ -43,7 +42,6 @@ export interface ProfileConnectionCardProps {
     isConnected?: boolean;
     isSelf?: boolean;
     badgeText?: string;
-    entityType?: 'connect' | 'expert';
     onChat: (id: string) => void;
     onFollow?: (id: string, name?: string) => void;
     onConnect?: (id: string, name?: string) => void;
@@ -67,7 +65,6 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
     isConnected = false,
     isSelf = false,
     badgeText,
-    entityType,
     onChat,
     onFollow,
     onConnect,
@@ -260,18 +257,6 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
             </div>
         </div>
     );
-
-    if (entityType && userId) {
-        return (
-            <ImpressionWrapper
-                authorId={userId}
-                entityId={`${entityType}:${userId}`}
-                className={isGrid ? 'w-full h-full' : 'shrink-0 h-full'}
-            >
-                {cardContent}
-            </ImpressionWrapper>
-        );
-    }
 
     return cardContent;
 };

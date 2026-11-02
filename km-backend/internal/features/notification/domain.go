@@ -9,11 +9,11 @@ import (
 
 // In-App Notification Categories
 const (
-	CategoryAll     = "all"
+	CategoryAll      = "all"
 	CategoryMessages = "messages"
-	CategoryJobs    = "jobs"
-	CategoryNetwork = "network"
-	CategorySystem  = "system"
+	CategoryJobs     = "jobs"
+	CategoryNetwork  = "network"
+	CategorySystem   = "system"
 )
 
 // In-App Notification Types
@@ -25,6 +25,8 @@ const (
 	TypeConnectionRequest   = "connection_request"
 	TypeConnectionAccepted  = "connection_accepted"
 	TypeSystemAlert         = "system_alert"
+	TypeExpertApplication   = "expert_application"
+	TypeFeedComment         = "feed_comment"
 )
 
 // Notification represents an in-app notification document in MongoDB

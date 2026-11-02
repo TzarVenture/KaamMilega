@@ -22,21 +22,21 @@ const ModalWrapper = ({ isOpen, onClose, title, children, size = 'md' }: ModalWr
 
   return (
 
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-2.5 sm:p-4">
       <div className={`w-full ${sizeClasses[size]} bg-km-surface-card rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200`}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-slate-800">
+          <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate pr-2">{title}</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-full transition-colors cursor-pointer shrink-0"
           >
-            <XIcon size={24} className="text-gray-500" />
+            <XIcon size={20} className="text-gray-500 dark:text-slate-400" />
           </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="max-h-[80vh] overflow-y-auto p-6">
+        <div className="max-h-[85vh] overflow-y-auto p-4 sm:p-6">
           {children}
         </div>
       </div>

@@ -1,71 +1,65 @@
 'use client';
 
 import React from 'react';
-import { BriefcaseIcon, ImageIcon, MedalIcon } from '@phosphor-icons/react';
+import { BriefcaseIcon, GraduationCapIcon, ImageIcon } from '@phosphor-icons/react';
+import { useTranslations } from 'next-intl';
 import UserAvatar from '@/components/ui/UserAvatar';
-import { getCurrentUser } from '@/lib/auth';
-import { FeedCategory } from './feedTypes';
+import type { PostCategory } from './feedTypes';
+import { displayName, useFeedUser } from './feedUtils';
 
 interface CreatePostCardProps {
-  onOpenModal: (initialCategory?: FeedCategory) => void;
+  onCompose: (opts: { category?: PostCategory; pickPhoto?: boolean }) => void;
+  onSignIn: () => void;
 }
 
-export const CreatePostCard: React.FC<CreatePostCardProps> = ({ onOpenModal }) => {
-  const user = getCurrentUser();
-  const userName = user?.name || (user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'Guest');
-  const userAvatar = user?.profile_image || user?.avatar || null;
+/** The "start a post" box at the top of the feed; guests get a sign-in prompt instead */
+export default function CreatePostCard({ onCompose, onSignIn }: CreatePostCardProps) {
+  const t = useTranslations('feed');
+  const { user, ready } = useFeedUser();
 
-  return (
-    <div className="bg-km-surface-card border border-km-border rounded-2xl p-4 sm:p-5 shadow-xs">
-      {/* Top Input Trigger */}
-      <div className="flex items-center gap-3">
-        <div className="w-11 h-11 rounded-full border border-km-border overflow-hidden bg-km-surface shrink-0">
-          <UserAvatar src={userAvatar} name={userName} className="w-full h-full object-cover" />
-        </div>
+  if (!ready) return <div className="h-[132px] rounded-2xl border border-km-border bg-km-surface-card animate-shimmer" aria-hidden="true" />;
 
-        <button
-          type="button"
-          onClick={() => onOpenModal('all')}
-          className="flex-1 text-left px-4 py-3 bg-km-surface hover:bg-[#EBF1FA] border border-km-border rounded-full text-xs sm:text-sm font-poppins text-km-text-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-[#0B5ED7]/20 dark:hover:bg-[#1D253D]"
-        >
-          Start a post, share an opportunity or milestone...
+  if (!user) {
+    return (
+      <div className="rounded-2xl border border-km-border bg-km-surface-card p-5 shadow-xs">
+        <h2 className="text-base font-semibold text-km-heading">{t('guestTitle')}</h2>
+        <p className="mt-1 text-sm text-km-text-secondary leading-relaxed">{t('guestBody')}</p>
+        <button type="button" onClick={onSignIn} className="btn-primary mt-4 h-11 px-5 text-[15px]">
+          {t('signIn')}
         </button>
       </div>
+    );
+  }
 
-      {/* Quick Action Category Triggers */}
-      <div className="flex items-center justify-between border-t border-km-border mt-4 pt-3 gap-1 sm:gap-2">
+  const quick = 'flex-1 inline-flex items-center justify-center gap-2 h-11 px-2 rounded-xl text-sm font-semibold text-km-text-secondary hover:bg-km-surface hover:text-km-heading transition-colors cursor-pointer';
+  return (
+    <div className="rounded-2xl border border-km-border bg-km-surface-card px-4 sm:px-5 pt-4 pb-2 shadow-xs">
+      <div className="flex items-center gap-3">
+        <div className="w-12 h-12 rounded-full overflow-hidden bg-km-surface border border-km-border shrink-0">
+          <UserAvatar src={user.profile_image || user.avatar} name={displayName(user)} />
+        </div>
         <button
           type="button"
-          onClick={() => onOpenModal('all')}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#EFF6FF] hover:text-km-link transition-all dark:hover:bg-[#1D253D]"
+          onClick={() => onCompose({})}
+          className="flex-1 h-12 px-4 text-left rounded-full border border-km-border bg-km-surface-card text-[15px] text-km-text-secondary hover:bg-km-surface transition-colors cursor-pointer"
         >
-          <ImageIcon weight="bold" size={18} className="text-km-link" />
-          <span className="hidden sm:inline">Photo / Media</span>
-          <span className="sm:hidden">Photo</span>
+          {t('startPost')}
         </button>
-
-        <button
-          type="button"
-          onClick={() => onOpenModal('jobs')}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#FFF7ED] hover:text-[#FF6B00] transition-all dark:hover:bg-[#34272F]"
-        >
-          <BriefcaseIcon weight="bold" size={18} className="text-[#FF6B00]" />
-          <span className="hidden sm:inline">Hiring / Job</span>
-          <span className="sm:hidden">Job</span>
+      </div>
+      <div className="mt-2 flex items-center gap-1">
+        <button type="button" onClick={() => onCompose({ pickPhoto: true })} className={quick}>
+          <ImageIcon size={20} className="text-km-link" aria-hidden="true" />
+          {t('photo')}
         </button>
-
-        <button
-          type="button"
-          onClick={() => onOpenModal('skills')}
-          className="flex-1 flex items-center justify-center gap-2 py-2 px-2 sm:px-3 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:bg-[#F0FDF4] hover:text-[#16A34A] transition-all dark:hover:bg-[#1D253D]"
-        >
-          <MedalIcon weight="bold" size={18} className="text-[#16A34A]" />
-          <span className="hidden sm:inline">Celebration</span>
-          <span className="sm:hidden">Milestone</span>
+        <button type="button" onClick={() => onCompose({ category: 'jobs' })} className={quick}>
+          <BriefcaseIcon size={20} className="text-km-jobs" aria-hidden="true" />
+          {t('quickJob')}
+        </button>
+        <button type="button" onClick={() => onCompose({ category: 'skills' })} className={quick}>
+          <GraduationCapIcon size={20} className="text-km-skills" aria-hidden="true" />
+          {t('quickSkill')}
         </button>
       </div>
     </div>
   );
-};
-
-export default CreatePostCard;
+}

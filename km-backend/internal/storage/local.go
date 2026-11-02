@@ -84,11 +84,14 @@ func (s *localStorage) PublicURL(key string) string {
 	return s.baseURL + LocalPublicPrefix + "/" + key
 }
 
-func (s *localStorage) SignedURL(_ context.Context, key, downloadName string, ttl time.Duration) (string, error) {
+func (s *localStorage) SignedURL(_ context.Context, key, downloadName string, download bool, ttl time.Duration) (string, error) {
 	exp := strconv.FormatInt(time.Now().Add(ttl).Unix(), 10)
 	q := url.Values{"exp": {exp}, "sig": {s.sign(key, exp)}}
 	if downloadName != "" {
 		q.Set("name", downloadName)
+	}
+	if download {
+		q.Set("dl", "1")
 	}
 	return s.baseURL + LocalPrivatePrefix + "/" + key + "?" + q.Encode(), nil
 }

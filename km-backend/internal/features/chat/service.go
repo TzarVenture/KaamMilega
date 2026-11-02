@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"errors"
+	"fmt"
 	"km-backend/internal/common/apperr"
 	"math"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
 
 type service struct {
 	repo     ChatRepository
@@ -119,6 +119,84 @@ var ErrRecipientUnavailable = apperr.New("RECIPIENT_UNAVAILABLE", "This member i
 // ErrMessageSelf: a conversation needs two different people
 var ErrMessageSelf = apperr.New("MESSAGE_SELF", "You can't send a message to yourself.")
 
+// ErrAttachmentInvalid: an attachment is not a chat file this sender uploaded
+var ErrAttachmentInvalid = apperr.New("CHAT_ATTACHMENT_INVALID", "One of the files couldn't be attached. Please upload it again.")
+
+// ErrTooManyAttachments: more than MaxAttachments files in one message
+var ErrTooManyAttachments = apperr.New("CHAT_TOO_MANY_ATTACHMENTS", "You can send up to 10 files at a time.")
+
+// ErrReplyInvalid: the quoted message is not in this conversation
+var ErrReplyInvalid = apperr.New("CHAT_REPLY_INVALID", "The message you're replying to isn't available.")
+
+// IsBadRequest reports errors caused by the request itself (HTTP 400)
+func IsBadRequest(err error) bool {
+	return errors.Is(err, ErrMessageSelf) || errors.Is(err, ErrAttachmentInvalid) ||
+		errors.Is(err, ErrTooManyAttachments) || errors.Is(err, ErrReplyInvalid)
+}
+
+// attachmentRefs collects the file references of a request, old single-file form included
+func attachmentRefs(req CreateMessageRequest) []string {
+	refs := make([]string, 0, len(req.Attachments)+1)
+	for _, a := range req.Attachments {
+		if a.URL != "" {
+			refs = append(refs, a.URL)
+		}
+	}
+	if len(refs) == 0 && req.AttachmentURL != "" {
+		refs = append(refs, req.AttachmentURL)
+	}
+	return refs
+}
+
+// lastMessagePreview is the line shown under the name in the conversation list
+func lastMessagePreview(content string, atts []Attachment) string {
+	if content != "" || len(atts) == 0 {
+		return content
+	}
+	images := 0
+	for _, a := range atts {
+		if strings.HasPrefix(a.Type, "image/") {
+			images++
+		}
+	}
+	switch {
+	case len(atts) == 1 && images == 1:
+		return "Photo"
+	case len(atts) == 1:
+		return "Attachment: " + atts[0].Name
+	case images == len(atts):
+		return fmt.Sprintf("%d photos", images)
+	default:
+		return fmt.Sprintf("%d files", len(atts))
+	}
+}
+
+// replyPreview copies what the quote shows from the original message
+func replyPreview(orig *Message) *ReplyPreview {
+	p := &ReplyPreview{ID: orig.ID, SenderID: orig.SenderID, IsDeleted: orig.IsDeleted}
+	if orig.IsDeleted {
+		return p
+	}
+	content := []rune(orig.Content)
+	if len(content) > 200 {
+		content = append(content[:200], '…')
+	}
+	p.Content = string(content)
+	atts := orig.Attachments
+	if len(atts) == 0 && orig.AttachmentURL != "" {
+		atts = []Attachment{{URL: orig.AttachmentURL, Type: orig.AttachmentType, Name: orig.AttachmentName}}
+	}
+	if len(atts) > 0 {
+		p.AttachmentType = atts[0].Type
+		p.AttachmentName = atts[0].Name
+		p.AttachmentCount = len(atts)
+		if strings.HasPrefix(atts[0].Type, "image/") {
+			p.ThumbURL = atts[0].URL
+		}
+	}
+	return p
+}
+
 func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, req CreateMessageRequest) (*Message, error) {
 	if req.ReceiverID == senderID {
 		return nil, ErrMessageSelf
@@ -139,6 +217,11 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 		return nil, errors.New("cannot send message: messaging is blocked between these users")
 	}
 
+	refs := attachmentRefs(req)
+	if len(refs) > MaxAttachments {
+		return nil, ErrTooManyAttachments
+	}
+
 	// 1. Find or create conversation
 	participants := []primitive.ObjectID{senderID, req.ReceiverID}
 	conv, err := s.repo.GetConversationByParticipants(ctx, participants)
@@ -147,6 +230,7 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 		return nil, err
 	}
 
+	created := false
 	if conv == nil {
 		// Entitlement Gate: 3 distinct person chats free. 4th onwards requires active ₹99 Pass
 		canStart, err := s.repo.CanInitiateNewConversation(ctx, senderID)
@@ -161,15 +245,35 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 		if err != nil {
 			return nil, err
 		}
+		created = true
+	}
+	// A first message that fails its checks leaves no empty conversation behind
+	fail := func(err error) (*Message, error) {
+		if created {
+			_ = s.repo.DeleteConversation(ctx, conv.ID)
+		}
+		return nil, err
 	}
 
-	lastPreview := req.Content
-	if lastPreview == "" && req.AttachmentName != "" {
-		if req.AttachmentType == "image" {
-			lastPreview = "Photo"
-		} else {
-			lastPreview = "Attachment: " + req.AttachmentName
+	// Files must be the sender's own chat uploads; this also lets the receiver open them
+	var atts []Attachment
+	if len(refs) > 0 {
+		if atts, err = s.repo.ClaimChatFiles(ctx, senderID, conv.ID, refs); err != nil {
+			return fail(err)
 		}
+	}
+
+	var reply *ReplyPreview
+	if req.ReplyToID != "" {
+		origID, err := primitive.ObjectIDFromHex(req.ReplyToID)
+		if err != nil {
+			return fail(ErrReplyInvalid)
+		}
+		orig, err := s.repo.GetMessageByID(ctx, origID)
+		if err != nil || orig == nil || orig.ConversationID != conv.ID {
+			return fail(ErrReplyInvalid)
+		}
+		reply = replyPreview(orig)
 	}
 
 	// 2. Create message
@@ -177,12 +281,17 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 		ConversationID: conv.ID,
 		SenderID:       senderID,
 		Content:        req.Content,
-		AttachmentURL:  req.AttachmentURL,
-		AttachmentType: req.AttachmentType,
-		AttachmentName: req.AttachmentName,
-		AttachmentSize: req.AttachmentSize,
+		Attachments:    atts,
+		ReplyTo:        reply,
 		IsRead:         false,
 	}
+	if len(atts) > 0 {
+		msg.AttachmentURL = atts[0].URL
+		msg.AttachmentType = atts[0].Type
+		msg.AttachmentName = atts[0].Name
+		msg.AttachmentSize = atts[0].Size
+	}
+	lastPreview := lastMessagePreview(req.Content, atts)
 
 	createdMsg, err := s.repo.CreateMessage(ctx, msg)
 	if err != nil {
@@ -234,7 +343,6 @@ func (s *service) GetTotalUnreadCount(ctx context.Context, userID primitive.Obje
 	}
 	return total, nil
 }
-
 
 func (s *service) MarkConversationAsRead(ctx context.Context, conversationID, userID primitive.ObjectID) error {
 	return s.repo.MarkMessagesAsRead(ctx, conversationID, userID)
@@ -524,4 +632,3 @@ func (s *service) ResolveAdminChatReport(ctx context.Context, id, adminID primit
 func (s *service) GetChatEntitlement(ctx context.Context, userID primitive.ObjectID) (*ChatEntitlementResponse, error) {
 	return s.repo.GetChatEntitlement(ctx, userID)
 }
-

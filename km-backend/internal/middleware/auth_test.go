@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -142,5 +143,79 @@ func TestInvalidateSessionDropsCache(t *testing.T) {
 	InvalidateSession("u5")
 	if got := request(t, app, "/api/user/feed", tok); got != 401 {
 		t.Fatalf("after revoke + invalidate: got %d, want 401", got)
+	}
+}
+
+func TestUnfinishedSignupOnlyReachesOnboarding(t *testing.T) {
+	withLoader(t, map[string]SessionState{"new": {Found: true, Incomplete: true}})
+	app := testApp()
+	app.Get("/api/user/profile", func(c *fiber.Ctx) error { return c.SendString("ok") })
+	tok := signToken(t, jwt.SigningMethodHS256, claimsFor("new", 0))
+
+	if got := request(t, app, "/api/user/profile", tok); got != 200 {
+		t.Fatalf("profile during sign-up: got %d, want 200", got)
+	}
+	if got := request(t, app, "/api/user/feed", tok); got != 403 {
+		t.Fatalf("feed before sign-up is done: got %d, want 403", got)
+	}
+	if _, err := VerifyToken(context.Background(), tok, testSecret); err == nil {
+		t.Fatal("an unfinished sign-up must not open websockets")
+	}
+}
+
+func TestStoredRolesReplaceTokenRoles(t *testing.T) {
+	withLoader(t, map[string]SessionState{"rec": {Found: true, Roles: []string{"user", "recruiter"}}})
+	app := fiber.New()
+	app.Use(AuthMiddleware(testSecret))
+	app.Get("/api/jobs/post", RequireRole("recruiter"), func(c *fiber.Ctx) error { return c.SendString("ok") })
+	claims := claimsFor("rec", 0)
+	claims["roles"] = []string{"user"} // issued before the company form was saved
+
+	if got := request(t, app, "/api/jobs/post", signToken(t, jwt.SigningMethodHS256, claims)); got != 200 {
+		t.Fatalf("recruiter with an old token: got %d, want 200", got)
+	}
+}
+
+func cookieRequest(t *testing.T, app *fiber.App, token string) *http.Response {
+	t.Helper()
+	req := httptest.NewRequest("GET", "/api/user/feed", nil)
+	req.AddCookie(&http.Cookie{Name: "km_auth_token", Value: token})
+	res, err := app.Test(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return res
+}
+
+func renewedToken(res *http.Response) string {
+	for _, c := range res.Cookies() {
+		if c.Name == "km_auth_token" {
+			return c.Value
+		}
+	}
+	return ""
+}
+
+func TestDayOldCookieSessionIsRenewed(t *testing.T) {
+	app := testApp()
+
+	fresh := claimsFor("u6", 0)
+	fresh["iat"] = time.Now().Unix()
+	if got := renewedToken(cookieRequest(t, app, signToken(t, jwt.SigningMethodHS256, fresh))); got != "" {
+		t.Fatal("a token issued just now must not be reissued")
+	}
+
+	old := claimsFor("u6", 0)
+	old["iat"] = time.Now().Add(-25 * time.Hour).Unix()
+	got := renewedToken(cookieRequest(t, app, signToken(t, jwt.SigningMethodHS256, old)))
+	if got == "" {
+		t.Fatal("a day-old token was not renewed")
+	}
+	claims, userID, err := parseToken(got, testSecret)
+	if err != nil || userID != "u6" {
+		t.Fatalf("renewed token invalid: %v", err)
+	}
+	if exp, _ := claims["exp"].(float64); time.Until(time.Unix(int64(exp), 0)) < SessionTTL-time.Minute {
+		t.Fatal("renewed token does not last the full session")
 	}
 }

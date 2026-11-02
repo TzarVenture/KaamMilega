@@ -1,176 +1,61 @@
 import api from '@/lib/axios';
-import { FeedPost, FeedComment, FeedCategory, ReactionType } from '@/components/feed/feedTypes';
+import type {
+  CommentPage,
+  FeedComment,
+  FeedPage,
+  FeedPost,
+  PostCategory,
+  ReactionState,
+  ReactionType,
+  ReportReason,
+  TrendingTag,
+} from '@/components/feed/feedTypes';
 
-export interface FeedListResponse {
-  posts: FeedPost[];
-  nextCursor?: string;
-  hasMore: boolean;
+// The axios instance resolves to the response body
+const get = <T>(url: string, params?: Record<string, string | number | undefined>) =>
+  api.get(url, { params }) as unknown as Promise<T>;
+const send = <T>(method: 'post' | 'put' | 'patch' | 'delete', url: string, body?: unknown) =>
+  (method === 'delete' ? api.delete(url) : api[method](url, body)) as unknown as Promise<T>;
+
+export interface ListParams {
+  category?: PostCategory;
+  tag?: string;
+  authorId?: string;
+  before?: string;
+  limit?: number;
 }
 
-export function mapBackendPostToFeedPost(p: any): FeedPost {
-  return {
-    id: p.id,
-    author: {
-      id: p.author?.id || '',
-      name: p.author?.name || 'KaamMilega Member',
-      headline: p.author?.headline || 'Member on KaamMilega™',
-      avatar: p.author?.avatar || undefined,
-      isVerified: p.author?.is_verified ?? false,
-      role: p.author?.role || 'user',
-      badge: p.author?.badge || '',
-    },
-    createdAt: p.created_at || 'Just now',
-    timestampMs: p.timestamp_ms || Date.now(),
-    content: p.content || '',
-    tags: p.tags || [],
-    category: (p.category as FeedCategory) || 'all',
-    mediaUrl: p.media_url || p.mediaUrl || undefined,
-    mediaType: p.media_type || p.mediaType || undefined,
-    likesCount: p.likes_count ?? p.likesCount ?? 0,
-    repostsCount: p.reposts_count ?? p.repostsCount ?? 0,
-    isLiked: p.is_liked ?? p.isLiked ?? false,
-    userReaction: (p.user_reaction || p.userReaction || undefined) as ReactionType | undefined,
-    isReposted: p.is_reposted ?? p.isReposted ?? false,
-    isSaved: p.is_saved ?? p.isSaved ?? false,
-    comments: (p.comments || []).map((c: any): FeedComment => ({
-      id: c.id,
-      author: {
-        id: c.author?.id || '',
-        name: c.author?.name || 'Member',
-        headline: c.author?.headline || '',
-        avatar: c.author?.avatar || undefined,
-        isVerified: c.author?.is_verified ?? false,
-      },
-      createdAt: c.created_at || 'Just now',
-      content: c.content || '',
-      likesCount: c.likes_count ?? c.likesCount ?? 0,
-      isLiked: c.is_liked ?? c.isLiked ?? false,
-    })),
-  };
+export interface NewPost {
+  content: string;
+  category: PostCategory;
+  media: { file_id: string; width?: number; height?: number }[];
 }
 
 export const feedApi = {
-  async getFeed(params?: {
-    category?: FeedCategory;
-    before?: string;
-    limit?: number;
-    authorId?: string;
-    saved?: boolean;
-  }): Promise<FeedListResponse> {
-    const query = new URLSearchParams();
-    if (params?.category && params.category !== 'all') {
-      query.set('category', params.category);
-    }
-    if (params?.before) {
-      query.set('before', params.before);
-    }
-    if (params?.limit) {
-      query.set('limit', String(params.limit));
-    }
-    if (params?.authorId) {
-      query.set('author_id', params.authorId);
-    }
-    if (params?.saved) {
-      query.set('saved', 'true');
-    }
+  list: (p: ListParams = {}) =>
+    get<FeedPage>('/feed', { category: p.category, tag: p.tag, author_id: p.authorId, before: p.before, limit: p.limit }),
+  saved: (before?: string) => get<FeedPage>('/feed/saved', { before }),
+  get: (id: string) => get<FeedPost>(`/feed/${id}`),
+  trending: () => get<{ tags: TrendingTag[] }>('/feed/trending'),
 
-    const queryString = query.toString();
-    const url = `/feed${queryString ? `?${queryString}` : ''}`;
-    const data: any = await api.get(url);
+  create: (post: NewPost) => send<FeedPost>('post', '/feed', post),
+  update: (id: string, changes: { content: string; category: PostCategory }) => send<FeedPost>('patch', `/feed/${id}`, changes),
+  remove: (id: string) => send<void>('delete', `/feed/${id}`),
 
-    return {
-      posts: (data?.posts || []).map(mapBackendPostToFeedPost),
-      nextCursor: data?.next_cursor,
-      hasMore: Boolean(data?.has_more),
-    };
-  },
+  react: (id: string, type: ReactionType) => send<ReactionState>('put', `/feed/${id}/reaction`, { type }),
+  unreact: (id: string) => send<ReactionState>('delete', `/feed/${id}/reaction`),
+  save: (id: string) => send<void>('put', `/feed/${id}/save`),
+  unsave: (id: string) => send<void>('delete', `/feed/${id}/save`),
 
-  async getPost(id: string): Promise<FeedPost> {
-    const data: any = await api.get(`/feed/${id}`);
-    return mapBackendPostToFeedPost(data);
-  },
+  comments: (id: string, before?: string) => get<CommentPage>(`/feed/${id}/comments`, { before }),
+  addComment: (id: string, content: string) => send<FeedComment>('post', `/feed/${id}/comments`, { content }),
+  deleteComment: (id: string, commentId: string) => send<void>('delete', `/feed/${id}/comments/${commentId}`),
 
-  async createPost(payload: {
-    content: string;
-    category?: string;
-    mediaUrl?: string;
-    tags?: string[];
-  }): Promise<FeedPost> {
-    const data: any = await api.post('/feed', {
-      content: payload.content,
-      category: payload.category || 'all',
-      media_url: payload.mediaUrl || undefined,
-      tags: payload.tags || [],
-    });
-    return mapBackendPostToFeedPost(data);
-  },
-
-  async deletePost(id: string): Promise<{ message: string }> {
-    return (await api.delete(`/feed/${id}`)) as unknown as { message: string };
-  },
-
-  async reactToPost(id: string, reaction: ReactionType | ''): Promise<FeedPost> {
-    const data: any = await api.post(`/feed/${id}/reactions`, { reaction });
-    return mapBackendPostToFeedPost(data);
-  },
-
-  async toggleSavePost(id: string): Promise<{ saved: boolean }> {
-    return (await api.post(`/feed/${id}/save`)) as unknown as { saved: boolean };
-  },
-
-  async toggleRepostPost(id: string): Promise<{ reposted: boolean; reposts_count: number }> {
-    return (await api.post(`/feed/${id}/repost`)) as unknown as {
-      reposted: boolean;
-      reposts_count: number;
-    };
-  },
-
-  async getComments(postId: string, limit = 50): Promise<FeedComment[]> {
-    const data: any = await api.get(`/feed/${postId}/comments?limit=${limit}`);
-    return (data || []).map((c: any): FeedComment => ({
-      id: c.id,
-      author: {
-        id: c.author?.id || '',
-        name: c.author?.name || 'Member',
-        headline: c.author?.headline || '',
-        avatar: c.author?.avatar || undefined,
-        isVerified: c.author?.is_verified ?? false,
-      },
-      createdAt: c.created_at || 'Just now',
-      content: c.content || '',
-      likesCount: c.likes_count ?? c.likesCount ?? 0,
-      isLiked: c.is_liked ?? c.isLiked ?? false,
-    }));
-  },
-
-  async addComment(postId: string, content: string): Promise<FeedComment> {
-    const c: any = await api.post(`/feed/${postId}/comments`, { content });
-    return {
-      id: c.id,
-      author: {
-        id: c.author?.id || '',
-        name: c.author?.name || 'Member',
-        headline: c.author?.headline || '',
-        avatar: c.author?.avatar || undefined,
-        isVerified: c.author?.is_verified ?? false,
-      },
-      createdAt: c.created_at || 'Just now',
-      content: c.content || '',
-      likesCount: c.likes_count ?? c.likesCount ?? 0,
-      isLiked: c.is_liked ?? c.isLiked ?? false,
-    };
-  },
-
-  async deleteComment(postId: string, commentId: string): Promise<{ message: string }> {
-    return (await api.delete(`/feed/${postId}/comments/${commentId}`)) as unknown as {
-      message: string;
-    };
-  },
-
-  async reportPost(postId: string, reason: string): Promise<{ message: string }> {
-    return (await api.post(`/feed/${postId}/report`, { reason })) as unknown as {
-      message: string;
-    };
-  },
+  report: (id: string, reason: ReportReason, details?: string) => send<void>('post', `/feed/${id}/report`, { reason, details }),
 };
 
+/** The shareable address of a post */
+export function postUrl(id: string): string {
+  const origin = typeof window === 'undefined' ? '' : window.location.origin;
+  return `${origin}/feed/${id}`;
+}

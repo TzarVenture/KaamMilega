@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, CheckCircleIcon, MagnifyingGlassIcon, MapPinIcon, TrashIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
-import { notify } from "@/lib/notify";
+import { notify, errorText } from "@/lib/notify";
 import Link from 'next/link';
+import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
 
 interface Job {
     id: string;
@@ -23,6 +24,7 @@ interface Job {
 }
 
 export default function SavedJobsPage() {
+    const { ensureCanApply, sheet: applyGateSheet } = useApplyGate();
     const [savedJobs, setSavedJobs] = useState<Job[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -89,11 +91,14 @@ export default function SavedJobsPage() {
         }
 
         try {
+            // Below the apply tier: ask for the missing details first (once), then apply
+            if (!(await ensureCanApply())) return;
             await api.post('/applications', { job_id: jobId });
             notify.success("Applied successfully");
             setAppliedJobIds(prev => new Set(prev).add(jobId));
         } catch (error: any) {
-            notify.error(error, "Failed to apply");
+            if (isProfileIncomplete(error)) notify.info(errorText(error));
+            else notify.error(error, "Failed to apply");
         }
     };
 
@@ -234,6 +239,7 @@ export default function SavedJobsPage() {
                     </div>
                 )}
             </div>
+            {applyGateSheet}
         </div>
     );
 }

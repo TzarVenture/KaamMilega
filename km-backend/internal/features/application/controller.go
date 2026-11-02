@@ -43,6 +43,8 @@ func (c *ApplicationController) CreateApplication(ctx *fiber.Ctx) error {
 			return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 		case errors.Is(err, ErrJobClosed), errors.Is(err, ErrCannotApplyOwn):
 			return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+		case errors.Is(err, ErrProfileIncomplete):
+			return ctx.Status(fiber.StatusForbidden).JSON(apperr.Body(err))
 		default:
 			return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 		}

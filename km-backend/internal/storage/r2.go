@@ -91,11 +91,11 @@ func (s *r2Storage) PublicURL(key string) string {
 	return s.publicBaseURL + "/" + key
 }
 
-func (s *r2Storage) SignedURL(ctx context.Context, key, downloadName string, ttl time.Duration) (string, error) {
+func (s *r2Storage) SignedURL(ctx context.Context, key, downloadName string, download bool, ttl time.Duration) (string, error) {
 	in := &s3.GetObjectInput{Bucket: aws.String(s.privateBucket), Key: aws.String(key)}
 	if downloadName != "" {
 		// Opens in the browser (PDFs, images) and keeps the original name when saved
-		in.ResponseContentDisposition = aws.String(mime.FormatMediaType("inline", map[string]string{"filename": downloadName}))
+		in.ResponseContentDisposition = aws.String(mime.FormatMediaType(disposition(download), map[string]string{"filename": downloadName}))
 	}
 	req, err := s.presign.PresignGetObject(ctx, in, s3.WithPresignExpires(ttl))
 	if err != nil {

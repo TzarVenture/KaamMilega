@@ -6,6 +6,7 @@ import GuestNavbar from './GuestNavbar';
 import api from '@/lib/axios';
 import { isAuthenticated, clearSession } from '@/lib/auth';
 import { ACCOUNT_RESTORE_PATH, needsAccountRestore } from '@/lib/account';
+import { isAuthPage, isSignupComplete, signupResumePath } from '@/lib/authPaths';
 
 function AppNavbarContent() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -36,10 +37,11 @@ function AppNavbarContent() {
                     return;
                 }
 
-                // A candidate who verified OTP but never finished the name step resumes it
+                // Verified the mobile but never finished sign-up: resume the missing step
                 const roles: string[] = Array.isArray(userData?.roles) ? userData.roles : [];
-                if (userData && userData.is_registered === false && !roles.includes('recruiter') && !roles.includes('admin')) {
-                    router.replace('/login?complete=1');
+                const path = window.location.pathname;
+                if (userData && !isSignupComplete(userData) && !roles.includes('admin') && !isAuthPage(path)) {
+                    router.replace(signupResumePath(path));
                 }
             } catch (error: any) {
                 // Only a real auth failure ends the session; network or server errors keep it

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
 import { CheckIcon, XIcon } from '@phosphor-icons/react';
+import FileLink from '@/components/ui/FileLink';
 
 export default function ExpertRequestsPage() {
     const [requests, setRequests] = useState<any[]>([]);
@@ -26,8 +27,14 @@ export default function ExpertRequestsPage() {
     }, []);
 
     const handleAction = async (id: string, status: string) => {
+        // The applicant sees the reason and can fix their application
+        let reason = '';
+        if (status === 'rejected') {
+            reason = window.prompt('Reason for rejection (shown to the applicant):')?.trim() || '';
+            if (!reason) return;
+        }
         try {
-            await api.put(`/admin/experts/${id}/approve`, { status });
+            await api.put(`/admin/experts/${id}/approve`, { status, reason });
             notify.success(`Request ${status} successfully`);
             fetchRequests();
         } catch (error: any) {
@@ -71,15 +78,23 @@ export default function ExpertRequestsPage() {
                                         {req.expert_category}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        ₹{req.expert_pricing}/hr
+                                        ₹{req.expert_pricing}/session
                                     </td>
                                     <td className="px-6 py-4 text-sm text-gray-500">
                                         <div className="flex flex-col gap-1">
                                             {req.expert_documents?.map((doc: any, i: number) => (
-                                                <a key={i} href={doc.url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline dark:text-blue-400">
+                                                <FileLink key={i} href={doc.url} className="text-blue-600 hover:underline dark:text-blue-400">
                                                     {doc.name}
-                                                </a>
+                                                </FileLink>
                                             ))}
+                                            {req.expert_kyc && (
+                                                <span className="text-xs">
+                                                    Aadhaar …{req.expert_kyc.aadhaar_last4} · PAN {req.expert_kyc.pan_masked} ·{' '}
+                                                    {req.expert_kyc.payout_method === 'bank'
+                                                        ? `${req.expert_kyc.account_holder}, a/c …${req.expert_kyc.account_last4}, ${req.expert_kyc.ifsc}`
+                                                        : `${req.expert_kyc.account_holder}, UPI ${req.expert_kyc.upi_id}`}
+                                                </span>
+                                            )}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

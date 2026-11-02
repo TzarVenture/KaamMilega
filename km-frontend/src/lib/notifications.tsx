@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, UsersIcon } from '@phosphor-icons/react';
+import { SealCheckIcon, BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, UsersIcon } from '@phosphor-icons/react';
 import { notify } from "@/lib/notify";
 import CustomImage from "@/components/ui/CustomImage";
 import api from "./axios";
@@ -249,6 +249,8 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         const isMessage = n.category === "messages";
         const icon = n.actor_avatar ? (
             <CustomImage src={n.actor_avatar} alt="" className="w-full h-full object-cover rounded-full" />
+        ) : n.type === "expert_application" ? (
+            <SealCheckIcon size={22} />
         ) : n.type === "interview_scheduled" ? (
             <CalendarBlankIcon size={22} />
         ) : isMessage ? (

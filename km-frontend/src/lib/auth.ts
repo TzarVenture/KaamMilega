@@ -40,8 +40,8 @@ export function saveSession(user: StoredUser, activeRole?: string) {
             portalRole = currentRole;
         }
 
-        // Set readable role cookie for Next.js Edge Middleware (72 hours)
-        document.cookie = `km_user_role=${portalRole}; Path=/; Max-Age=259200; SameSite=Lax`;
+        // Set readable role cookie for Next.js Edge Middleware (30 days, renewed by the backend while in use)
+        document.cookie = `km_user_role=${portalRole}; Path=/; Max-Age=2592000; SameSite=Lax`;
     } catch (e) {
         console.error("Failed to save auth session:", e);
     }

@@ -1,11 +1,13 @@
 package feed
 
 import (
+	"errors"
+	"log"
 	"strconv"
 	"strings"
-	"time"
 
 	"km-backend/internal/common/apperr"
+	"km-backend/internal/features/analytics"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,29 +21,55 @@ func NewFeedController(service FeedService) *FeedController {
 	return &FeedController{service: service}
 }
 
-func parseCurrentUserID(c *fiber.Ctx) *primitive.ObjectID {
-	userIDStr, ok := c.Locals("user_id").(string)
-	if !ok || userIDStr == "" {
-		return nil
+var errInvalidID = apperr.New("FEED_POST_NOT_FOUND", "This post doesn't exist or was removed.")
+
+// fail picks the status for an error: missing → 404, not yours → 403, too fast → 429, any
+// other coded error is a bad request, and the rest is logged and hidden behind a 500
+func fail(c *fiber.Ctx, err error) error {
+	switch {
+	case errors.Is(err, ErrPostNotFound), errors.Is(err, ErrCommentNotFound):
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
+	case errors.Is(err, ErrNotAllowed), errors.Is(err, ErrReportOwnPost):
+		return c.Status(fiber.StatusForbidden).JSON(apperr.Body(err))
+	case errors.Is(err, ErrPostRateLimited), errors.Is(err, ErrCommentRateLimit):
+		return c.Status(fiber.StatusTooManyRequests).JSON(apperr.Body(err))
+	case apperr.CodeOf(err) != "":
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
-	oid, err := primitive.ObjectIDFromHex(userIDStr)
+	log.Printf("feed: %s %s: %v", c.Method(), c.Path(), err)
+	return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Something went wrong. Please try again."})
+}
+
+// viewer is the signed-in member, or nil on a public request
+func viewer(c *fiber.Ctx) *primitive.ObjectID {
+	s, _ := c.Locals("user_id").(string)
+	id, err := primitive.ObjectIDFromHex(s)
 	if err != nil {
 		return nil
 	}
-	return &oid
+	return &id
+}
+
+// me is the signed-in member on a protected route (the auth middleware guarantees one)
+func me(c *fiber.Ctx) (primitive.ObjectID, bool) {
+	v := viewer(c)
+	if v == nil {
+		return primitive.NilObjectID, false
+	}
+	return *v, true
 }
 
 func isAdmin(c *fiber.Ctx) bool {
 	switch roles := c.Locals("roles").(type) {
-	case []interface{}:
-		for _, r := range roles {
-			if s, ok := r.(string); ok && s == "admin" {
-				return true
-			}
-		}
 	case []string:
 		for _, r := range roles {
 			if r == "admin" {
+				return true
+			}
+		}
+	case []interface{}:
+		for _, r := range roles {
+			if s, ok := r.(string); ok && s == "admin" {
 				return true
 			}
 		}
@@ -49,319 +77,418 @@ func isAdmin(c *fiber.Ctx) bool {
 	return false
 }
 
-// GetFeed godoc
-// @Summary List feed posts
-// @Description Fetch paginated feed posts with cursor-based pagination
+// RecordImpressions godoc
+// @Summary Count posts seen on screen
+// @Description The browser sends the posts that were at least half on screen for a moment. Each member, and each signed-out visitor (by the anonymous km_vid cookie the feed sets), counts once a day per post. Authors seeing their own posts, admins, bots and visitors without the cookie don't count. Up to 30 posts per call.
+// @Tags feed
+// @Accept json
+// @Param body body ImpressionsRequest true "Post IDs"
+// @Success 204
+// @Router /api/feed/impressions [post]
+func (ctrl *FeedController) RecordImpressions(c *fiber.Ctx) error {
+	var who analytics.Viewer
+	if id, ok := me(c); ok {
+		if isAdmin(c) {
+			return c.SendStatus(fiber.StatusNoContent)
+		}
+		who = analytics.Member(id)
+	} else if vid := analytics.VisitorID(c); vid != "" {
+		who = analytics.Guest(vid)
+	} else {
+		// Nothing to tell this visitor apart by, so nothing is counted
+		return c.SendStatus(fiber.StatusNoContent)
+	}
+	var req ImpressionsRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+	ids := make([]primitive.ObjectID, 0, len(req.PostIDs))
+	for _, raw := range req.PostIDs {
+		if id, err := primitive.ObjectIDFromHex(raw); err == nil {
+			ids = append(ids, id)
+		}
+	}
+	if err := ctrl.service.RecordImpressions(c.Context(), who, ids); err != nil {
+		return fail(c, err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// Trending godoc
+// @Summary Trending hashtags
+// @Description The hashtags used by the most posts in the last 7 days.
 // @Tags feed
 // @Produce json
-// @Param category query string false "Feed category (all, jobs, skills, mentors)"
-// @Param before query string false "RFC3339 cursor timestamp"
-// @Param limit query int false "Number of posts to return (default 15)"
-// @Param author_id query string false "Filter by specific author ID"
-// @Param saved query bool false "Filter only current user saved posts"
-// @Success 200 {object} FeedListResponse
-// @Router /api/feed [get]
-func (ctrl *FeedController) GetFeed(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-
-	category := c.Query("category", "")
-	beforeStr := c.Query("before", "")
-	var before time.Time
-	if beforeStr != "" {
-		if t, err := time.Parse(time.RFC3339Nano, beforeStr); err == nil {
-			before = t
-		} else if t, err := time.Parse(time.RFC3339, beforeStr); err == nil {
-			before = t
-		}
-	}
-
-	limit, _ := strconv.Atoi(c.Query("limit", "15"))
-
-	var authorOID *primitive.ObjectID
-	if authorStr := strings.TrimSpace(c.Query("author_id", "")); authorStr != "" {
-		if oid, err := primitive.ObjectIDFromHex(authorStr); err == nil {
-			authorOID = &oid
-		}
-	}
-
-	savedOnly := c.Query("saved", "false") == "true"
-
-	res, err := ctrl.service.GetFeed(c.UserContext(), currentUserID, category, before, limit, authorOID, savedOnly)
+// @Success 200 {object} TrendingResponse
+// @Router /api/feed/trending [get]
+func (ctrl *FeedController) Trending(c *fiber.Ctx) error {
+	res, err := ctrl.service.Trending(c.Context())
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
+	return c.JSON(res)
+}
 
+func pathID(c *fiber.Ctx, name string) (primitive.ObjectID, bool) {
+	id, err := primitive.ObjectIDFromHex(c.Params(name))
+	return id, err == nil
+}
+
+// cursor reads an optional ?before=<id>; a malformed one starts from the top
+func cursor(c *fiber.Ctx) *primitive.ObjectID {
+	id, err := primitive.ObjectIDFromHex(strings.TrimSpace(c.Query("before")))
+	if err != nil {
+		return nil
+	}
+	return &id
+}
+
+func unauthorized(c *fiber.Ctx) error {
+	return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Please sign in."})
+}
+
+// List godoc
+// @Summary List feed posts
+// @Description Newest first. Pass next_cursor back as `before` for the next page.
+// @Tags feed
+// @Produce json
+// @Param category query string false "all | general | jobs | skills | mentors"
+// @Param tag query string false "Hashtag, with or without #"
+// @Param author_id query string false "Only this member's posts"
+// @Param before query string false "Cursor from the previous page"
+// @Param limit query int false "Page size (max 30)"
+// @Success 200 {object} ListResponse
+// @Router /api/feed [get]
+func (ctrl *FeedController) List(c *fiber.Ctx) error {
+	q := ListQuery{
+		Category: strings.ToLower(strings.TrimSpace(c.Query("category"))),
+		Tag:      c.Query("tag"),
+		Before:   cursor(c),
+	}
+	q.Limit, _ = strconv.Atoi(c.Query("limit"))
+	if raw := strings.TrimSpace(c.Query("author_id")); raw != "" {
+		id, err := primitive.ObjectIDFromHex(raw)
+		if err != nil {
+			return c.JSON(ListResponse{Posts: []PostResponse{}})
+		}
+		q.AuthorID = &id
+	}
+	res, err := ctrl.service.List(c.UserContext(), viewer(c), q)
+	if err != nil {
+		return fail(c, err)
+	}
+	return c.JSON(res)
+}
+
+// ListSaved godoc
+// @Summary The signed-in member's saved posts
+// @Tags feed
+// @Produce json
+// @Param before query string false "Cursor from the previous page"
+// @Param limit query int false "Page size (max 30)"
+// @Success 200 {object} ListResponse
+// @Router /api/feed/saved [get]
+func (ctrl *FeedController) ListSaved(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
+	}
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	res, err := ctrl.service.ListSaved(c.UserContext(), uid, cursor(c), limit)
+	if err != nil {
+		return fail(c, err)
+	}
 	return c.JSON(res)
 }
 
 // GetPost godoc
-// @Summary Get post by ID
+// @Summary One post (for shared links)
 // @Tags feed
 // @Produce json
 // @Param id path string true "Post ID"
-// @Success 200 {object} FeedPostResponse
+// @Success 200 {object} PostResponse
 // @Router /api/feed/{id} [get]
 func (ctrl *FeedController) GetPost(c *fiber.Ctx) error {
-	postID, err := primitive.ObjectIDFromHex(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
 	}
-
-	currentUserID := parseCurrentUserID(c)
-	post, err := ctrl.service.GetPost(c.UserContext(), currentUserID, postID)
+	post, err := ctrl.service.GetPost(c.UserContext(), viewer(c), id)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
-
 	return c.JSON(post)
 }
 
 // CreatePost godoc
-// @Summary Create a feed post
+// @Summary Create a post
+// @Description Photos are uploaded first through POST /api/files/upload with kind=feed_image; pass their file IDs here.
 // @Tags feed
 // @Accept json
 // @Produce json
-// @Param request body CreatePostRequest true "Post payload"
-// @Success 201 {object} FeedPostResponse
+// @Param request body CreatePostRequest true "Post"
+// @Success 201 {object} PostResponse
 // @Router /api/feed [post]
 func (ctrl *FeedController) CreatePost(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-	if currentUserID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
 	}
-
 	var req CreatePostRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-
-	post, err := ctrl.service.CreatePost(c.UserContext(), *currentUserID, req)
+	post, err := ctrl.service.CreatePost(c.UserContext(), uid, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
-
 	return c.Status(fiber.StatusCreated).JSON(post)
 }
 
-// DeletePost godoc
-// @Summary Delete a feed post
-// @Tags feed
-// @Param id path string true "Post ID"
-// @Success 200 {object} map[string]string
-// @Router /api/feed/{id} [delete]
-func (ctrl *FeedController) DeletePost(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-	if currentUserID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
-	}
-
-	postID, err := primitive.ObjectIDFromHex(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
-	}
-
-	if err := ctrl.service.DeletePost(c.UserContext(), *currentUserID, isAdmin(c), postID); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
-	}
-
-	return c.JSON(fiber.Map{"message": "Post deleted successfully"})
-}
-
-// ReactToPost godoc
-// @Summary React to a feed post
+// UpdatePost godoc
+// @Summary Edit a post's text or category (author only)
 // @Tags feed
 // @Accept json
 // @Produce json
 // @Param id path string true "Post ID"
-// @Param request body ReactionRequest true "Reaction payload"
-// @Success 200 {object} FeedPostResponse
-// @Router /api/feed/{id}/reactions [post]
-func (ctrl *FeedController) ReactToPost(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-	if currentUserID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+// @Param request body UpdatePostRequest true "Changes"
+// @Success 200 {object} PostResponse
+// @Router /api/feed/{id} [patch]
+func (ctrl *FeedController) UpdatePost(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
 	}
-
-	postID, err := primitive.ObjectIDFromHex(c.Params("id"))
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	var req UpdatePostRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	post, err := ctrl.service.UpdatePost(c.UserContext(), uid, id, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+		return fail(c, err)
 	}
+	return c.JSON(post)
+}
 
+// DeletePost godoc
+// @Summary Delete a post and its photos (author or admin)
+// @Tags feed
+// @Param id path string true "Post ID"
+// @Success 204
+// @Router /api/feed/{id} [delete]
+func (ctrl *FeedController) DeletePost(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
+	}
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	if err := ctrl.service.DeletePost(c.UserContext(), uid, isAdmin(c), id); err != nil {
+		return fail(c, err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// React godoc
+// @Summary Set the signed-in member's reaction (replaces an earlier one)
+// @Tags feed
+// @Accept json
+// @Produce json
+// @Param id path string true "Post ID"
+// @Param request body ReactionRequest true "like | celebrate | support | insightful"
+// @Success 200 {object} ReactionResponse
+// @Router /api/feed/{id}/reaction [put]
+func (ctrl *FeedController) React(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
+	}
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
 	var req ReactionRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-
-	post, err := ctrl.service.ReactToPost(c.UserContext(), *currentUserID, postID, req.Reaction)
+	res, err := ctrl.service.React(c.UserContext(), uid, id, req.Type)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
-
-	return c.JSON(post)
+	return c.JSON(res)
 }
 
-// ToggleSavePost godoc
-// @Summary Save or unsave a feed post
+// Unreact godoc
+// @Summary Remove the signed-in member's reaction
 // @Tags feed
+// @Produce json
 // @Param id path string true "Post ID"
-// @Success 200 {object} map[string]any
-// @Router /api/feed/{id}/save [post]
-func (ctrl *FeedController) ToggleSavePost(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-	if currentUserID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+// @Success 200 {object} ReactionResponse
+// @Router /api/feed/{id}/reaction [delete]
+func (ctrl *FeedController) Unreact(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
 	}
-
-	postID, err := primitive.ObjectIDFromHex(c.Params("id"))
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	res, err := ctrl.service.Unreact(c.UserContext(), uid, id)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+		return fail(c, err)
 	}
-
-	isSaved, err := ctrl.service.ToggleSavePost(c.UserContext(), *currentUserID, postID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
-	}
-
-	return c.JSON(fiber.Map{"saved": isSaved})
+	return c.JSON(res)
 }
 
-// ToggleRepostPost godoc
-// @Summary Repost or un-repost a feed post
+// Save godoc
+// @Summary Save a post (idempotent)
 // @Tags feed
 // @Param id path string true "Post ID"
-// @Success 200 {object} map[string]any
-// @Router /api/feed/{id}/repost [post]
-func (ctrl *FeedController) ToggleRepostPost(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-	if currentUserID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+// @Success 204
+// @Router /api/feed/{id}/save [put]
+func (ctrl *FeedController) Save(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
 	}
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	if err := ctrl.service.Save(c.UserContext(), uid, id); err != nil {
+		return fail(c, err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
 
-	postID, err := primitive.ObjectIDFromHex(c.Params("id"))
+// Unsave godoc
+// @Summary Remove a post from saved (idempotent)
+// @Tags feed
+// @Param id path string true "Post ID"
+// @Success 204
+// @Router /api/feed/{id}/save [delete]
+func (ctrl *FeedController) Unsave(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
+	}
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	if err := ctrl.service.Unsave(c.UserContext(), uid, id); err != nil {
+		return fail(c, err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
+// ListComments godoc
+// @Summary A post's comments, newest first
+// @Tags feed
+// @Produce json
+// @Param id path string true "Post ID"
+// @Param before query string false "Cursor from the previous page"
+// @Param limit query int false "Page size (max 50)"
+// @Success 200 {object} CommentListResponse
+// @Router /api/feed/{id}/comments [get]
+func (ctrl *FeedController) ListComments(c *fiber.Ctx) error {
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	res, err := ctrl.service.ListComments(c.UserContext(), viewer(c), id, cursor(c), limit)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+		return fail(c, err)
 	}
-
-	isReposted, count, err := ctrl.service.ToggleRepostPost(c.UserContext(), *currentUserID, postID)
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
-	}
-
-	return c.JSON(fiber.Map{"reposted": isReposted, "reposts_count": count})
+	return c.JSON(res)
 }
 
 // AddComment godoc
-// @Summary Add comment to a post
+// @Summary Comment on a post
 // @Tags feed
 // @Accept json
 // @Produce json
 // @Param id path string true "Post ID"
-// @Param request body CommentRequest true "Comment body"
-// @Success 201 {object} FeedCommentResponse
+// @Param request body CommentRequest true "Comment"
+// @Success 201 {object} CommentResponse
 // @Router /api/feed/{id}/comments [post]
 func (ctrl *FeedController) AddComment(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-	if currentUserID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
 	}
-
-	postID, err := primitive.ObjectIDFromHex(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
 	}
-
 	var req CommentRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-
-	comment, err := ctrl.service.AddComment(c.UserContext(), *currentUserID, postID, req)
+	comment, err := ctrl.service.AddComment(c.UserContext(), uid, id, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
-
 	return c.Status(fiber.StatusCreated).JSON(comment)
 }
 
-// GetComments godoc
-// @Summary Get comments for a post
-// @Tags feed
-// @Produce json
-// @Param id path string true "Post ID"
-// @Param limit query int false "Number of comments"
-// @Success 200 {array} FeedCommentResponse
-// @Router /api/feed/{id}/comments [get]
-func (ctrl *FeedController) GetComments(c *fiber.Ctx) error {
-	postID, err := primitive.ObjectIDFromHex(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
-	}
-
-	limit, _ := strconv.Atoi(c.Query("limit", "50"))
-	currentUserID := parseCurrentUserID(c)
-
-	comments, err := ctrl.service.GetComments(c.UserContext(), currentUserID, postID, limit)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
-	}
-
-	return c.JSON(comments)
-}
-
 // DeleteComment godoc
-// @Summary Delete a comment
+// @Summary Delete a comment (its author, the post's author or an admin)
 // @Tags feed
 // @Param id path string true "Post ID"
 // @Param commentId path string true "Comment ID"
-// @Success 200 {object} map[string]string
+// @Success 204
 // @Router /api/feed/{id}/comments/{commentId} [delete]
 func (ctrl *FeedController) DeleteComment(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-	if currentUserID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
 	}
-
-	commentID, err := primitive.ObjectIDFromHex(c.Params("commentId"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid comment ID"})
+	postID, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
 	}
-
-	if err := ctrl.service.DeleteComment(c.UserContext(), *currentUserID, isAdmin(c), commentID); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	commentID, ok := pathID(c, "commentId")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(ErrCommentNotFound))
 	}
-
-	return c.JSON(fiber.Map{"message": "Comment deleted successfully"})
+	if err := ctrl.service.DeleteComment(c.UserContext(), uid, isAdmin(c), postID, commentID); err != nil {
+		return fail(c, err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
 }
 
-// ReportPost godoc
-// @Summary Report a feed post
+// Report godoc
+// @Summary Report a post to moderators; the reporter stops seeing it
 // @Tags feed
 // @Accept json
-// @Produce json
 // @Param id path string true "Post ID"
-// @Param request body ReportPostRequest true "Report body"
-// @Success 200 {object} map[string]string
+// @Param request body ReportRequest true "reason: spam | harassment | misleading | inappropriate | other"
+// @Success 204
 // @Router /api/feed/{id}/report [post]
-func (ctrl *FeedController) ReportPost(c *fiber.Ctx) error {
-	currentUserID := parseCurrentUserID(c)
-	if currentUserID == nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+func (ctrl *FeedController) Report(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
 	}
-
-	postID, err := primitive.ObjectIDFromHex(c.Params("id"))
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid post ID"})
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
 	}
-
-	var req ReportPostRequest
+	var req ReportRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
-
-	if err := ctrl.service.ReportPost(c.UserContext(), *currentUserID, postID, req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	if err := ctrl.service.Report(c.UserContext(), uid, id, req); err != nil {
+		return fail(c, err)
 	}
-
-	return c.JSON(fiber.Map{"message": "Post reported. Our moderation team will review it."})
+	return c.SendStatus(fiber.StatusNoContent)
 }
-

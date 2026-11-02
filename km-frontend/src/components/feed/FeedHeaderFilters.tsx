@@ -1,47 +1,75 @@
 'use client';
 
 import React from 'react';
-import { BriefcaseIcon, GraduationCapIcon, SquaresFourIcon, StarIcon } from '@phosphor-icons/react';
-import { FeedCategory } from './feedTypes';
+import { XIcon } from '@phosphor-icons/react';
+import { useTranslations } from 'next-intl';
+import { POST_CATEGORIES, type FeedView, type PostCategory } from './feedTypes';
 
 interface FeedHeaderFiltersProps {
-  selectedCategory: FeedCategory;
-  onSelectCategory: (category: FeedCategory) => void;
+  view: FeedView;
+  category?: PostCategory;
+  tag?: string;
+  signedIn: boolean;
+  onView: (v: FeedView) => void;
+  onCategory: (c?: PostCategory) => void;
+  onClearTag: () => void;
 }
 
-const CATEGORIES: { id: FeedCategory; label: string; icon: React.ReactNode; activeColor: string }[] = [
-  { id: 'all', label: 'All Updates', icon: <SquaresFourIcon weight="bold" size={14} />, activeColor: 'bg-[#071A4D] text-white dark:bg-km-primary' },
-  { id: 'jobs', label: 'Jobs & Hiring', icon: <BriefcaseIcon weight="bold" size={14} />, activeColor: 'bg-[#0B5ED7] text-white' },
-  { id: 'skills', label: 'Skills & Learning', icon: <GraduationCapIcon weight="bold" size={14} />, activeColor: 'bg-[#16A34A] text-white' },
-  { id: 'mentors', label: 'Mentorship', icon: <StarIcon weight="bold" size={14} />, activeColor: 'bg-[#7C3AED] text-white' },
-];
+const chip = (active: boolean) =>
+  `shrink-0 h-9 px-4 rounded-full border text-sm font-semibold transition-colors cursor-pointer ${
+    active
+      ? 'bg-[#071A4D] border-[#071A4D] text-white dark:bg-km-primary dark:border-km-primary'
+      : 'bg-km-surface-card border-km-border text-km-text-secondary hover:text-km-heading hover:bg-km-surface'
+  }`;
 
-export const FeedHeaderFilters: React.FC<FeedHeaderFiltersProps> = ({
-  selectedCategory,
-  onSelectCategory,
-}) => {
+/** Phones get the Feed / Saved / My posts switch here (wider screens have it in the profile column); everyone gets the topic chips */
+export default function FeedHeaderFilters({ view, category, tag, signedIn, onView, onCategory, onClearTag }: FeedHeaderFiltersProps) {
+  const t = useTranslations('feed');
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none no-scrollbar">
-      {CATEGORIES.map((cat) => {
-        const isSelected = selectedCategory === cat.id;
-        return (
-          <button
-            key={cat.id}
-            type="button"
-            onClick={() => onSelectCategory(cat.id)}
-            className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-poppins font-semibold transition-all shrink-0 border ${
-              isSelected
-                ? `${cat.activeColor} border-transparent shadow-xs`
-                : 'bg-km-surface-card text-km-text-secondary border-km-border hover:border-[#0B5ED7]/40 hover:text-km-heading hover:bg-km-surface'
-            }`}
-          >
-            {cat.icon}
-            <span>{cat.label}</span>
+    <div className="space-y-3">
+      {signedIn && (
+        <div role="tablist" aria-label={t('views')} className="md:hidden grid grid-cols-3 rounded-xl border border-km-border bg-km-surface-card p-1">
+          {(['all', 'saved', 'mine'] as FeedView[]).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="tab"
+              aria-selected={view === v}
+              onClick={() => onView(v)}
+              className={`h-9 rounded-lg text-sm font-semibold transition-colors cursor-pointer ${
+                view === v ? 'bg-km-surface text-km-heading' : 'text-km-text-secondary hover:text-km-heading'
+              }`}
+            >
+              {t(`view.${v}`)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {view === 'all' && (
+        <div className="-mx-4 px-4 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label={t('topics')}>
+          <button type="button" aria-pressed={!category} onClick={() => onCategory(undefined)} className={chip(!category)}>
+            {t('category.all')}
           </button>
-        );
-      })}
+          {POST_CATEGORIES.map((c) => (
+            <button key={c} type="button" aria-pressed={category === c} onClick={() => onCategory(c)} className={chip(category === c)}>
+              {t(`category.${c}`)}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {tag && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-km-border bg-km-surface-card px-4 py-2.5">
+          <p className="text-sm text-km-text-secondary">
+            {t('showingTag')} <span className="font-semibold text-km-heading">#{tag}</span>
+          </p>
+          <button type="button" onClick={onClearTag} className="inline-flex items-center gap-1 text-sm font-semibold text-km-link hover:underline cursor-pointer">
+            <XIcon size={14} weight="bold" aria-hidden="true" />
+            {t('clear')}
+          </button>
+        </div>
+      )}
     </div>
   );
-};
-
-export default FeedHeaderFilters;
+}

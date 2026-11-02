@@ -1,522 +1,735 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRightIcon, CheckCircleIcon, CreditCardIcon, LightningIcon, LockIcon, MedalIcon, SealCheckIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  BankIcon,
+  BriefcaseIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  ClockIcon,
+  FileArrowUpIcon,
+  FileTextIcon,
+  IdentificationCardIcon,
+  LockKeyIcon,
+  MedalIcon,
+  SealCheckIcon,
+  TicketIcon,
+  WarningCircleIcon,
+} from "@phosphor-icons/react";
 import api from "@/lib/axios";
 import { isAuthenticated } from "@/lib/auth";
 import { notify } from "@/lib/notify";
-import PageHero, { HeroAccent } from '@/components/km/PageHero';
+import { uploadFile, UPLOAD_LIMITS } from "@/lib/upload";
+import PageHero, { HeroAccent } from "@/components/km/PageHero";
+import InstantPassModal from "@/components/instant-milega/InstantPassModal";
 
-interface PlanDetails {
-  plan_type: string;
+/**
+ * Becoming an Expert (client Q&A Q8–Q12): at least 2 years of experience, the ₹99 pass,
+ * Aadhaar + PAN + payout details, then our team reviews the application the same day.
+ */
+
+interface ExpertKYC {
+  aadhaar_last4: string;
+  pan_masked: string;
+  payout_method: "bank" | "upi";
+  account_holder: string;
+  account_last4?: string;
+  ifsc?: string;
+  upi_id?: string;
+  submitted_at: string;
+  rejection_reason?: string;
+}
+
+interface ApplicationStatus {
+  status: "" | "pending" | "approved" | "rejected";
+  experience_years: number;
+  min_years: number;
+  has_pass: boolean;
+  categories: string[];
+  expert_category?: string;
+  expert_bio?: string;
+  expert_pricing?: number;
+  kyc?: ExpertKYC;
+}
+
+interface UploadedDoc {
+  url: string;
   name: string;
-  price: number;
-  duration_days: number;
-  savings_percent: number;
-  description: string;
-  perks: string[];
+  size: number;
 }
 
-interface WalletSummary {
-  main_balance: number;
-  total_balance: number;
-  earnings_balance: number;
-}
+const STEPS = ["Eligibility", "Expertise", "Identity", "Payouts"] as const;
 
-export default function ExpertProSubscriptionPage() {
+const INPUT =
+  "block w-full rounded-xl border border-km-border bg-km-surface-card px-3.5 py-2.5 text-sm text-km-heading placeholder:text-km-text-muted focus:outline-none focus:ring-2 focus:ring-km-link/30 focus:border-km-link";
+const LABEL = "block text-sm font-semibold text-km-heading mb-1.5";
+const HINT = "mt-1.5 text-xs text-km-text-secondary";
+
+const digits = (v: string, max: number) => v.replace(/\D/g, "").slice(0, max);
+const groupAadhaar = (v: string) => v.replace(/(\d{4})(?=\d)/g, "$1 ");
+// Verhoeff checksum, the same rule UIDAI and the backend use, so typos are caught on this step
+const VERHOEFF_D = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 0, 6, 7, 8, 9, 5], [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
+  [3, 4, 0, 1, 2, 8, 9, 5, 6, 7], [4, 0, 1, 2, 3, 9, 5, 6, 7, 8], [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
+  [6, 5, 9, 8, 7, 1, 0, 4, 3, 2], [7, 6, 5, 9, 8, 2, 1, 0, 4, 3], [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
+  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
+];
+const VERHOEFF_P = [
+  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 5, 7, 6, 2, 8, 3, 0, 9, 4], [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
+  [8, 9, 1, 6, 0, 4, 3, 5, 2, 7], [9, 4, 5, 3, 1, 2, 6, 8, 7, 0], [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
+  [2, 7, 9, 3, 8, 0, 6, 4, 1, 5], [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
+];
+const validAadhaar = (v: string) =>
+  /^[2-9]\d{11}$/.test(v) &&
+  v.split("").reverse().reduce((c, ch, i) => VERHOEFF_D[c][VERHOEFF_P[i % 8][Number(ch)]], 0) === 0;
+// Server codes that belong to the Identity step
+const IDENTITY_CODES = ["AADHAAR_INVALID", "PAN_INVALID", "KYC_DOCUMENT_REQUIRED"];
+const formatSize = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`);
+
+export default function ExpertApplyPage() {
   const router = useRouter();
-  const [plans, setPlans] = useState<PlanDetails[]>([]);
-  const [selectedPlanType, setSelectedPlanType] = useState<string>("yearly");
-  const [activeSub, setActiveSub] = useState<any | null>(null);
-  const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [app, setApp] = useState<ApplicationStatus | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [step, setStep] = useState(0);
+  const [passOpen, setPassOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  // Checkout Modal State
-  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "wallet">("razorpay");
-  const [paymentProcessing, setPaymentProcessing] = useState(false);
+  // Form
+  const [category, setCategory] = useState("");
+  const [bio, setBio] = useState("");
+  const [price, setPrice] = useState("");
+  const [aadhaar, setAadhaar] = useState("");
+  const [pan, setPan] = useState("");
+  const [aadhaarDoc, setAadhaarDoc] = useState<UploadedDoc | null>(null);
+  const [panDoc, setPanDoc] = useState<UploadedDoc | null>(null);
+  const [payoutMethod, setPayoutMethod] = useState<"bank" | "upi">("bank");
+  const [holder, setHolder] = useState("");
+  const [account, setAccount] = useState("");
+  const [confirmAccount, setConfirmAccount] = useState("");
+  const [ifsc, setIfsc] = useState("");
+  const [upi, setUpi] = useState("");
+  const [consent, setConsent] = useState(false);
 
-  useEffect(() => {
-    const authed = isAuthenticated();
-    setIsLoggedIn(authed);
-
-    fetchPlans();
-    if (authed) {
-      fetchMySubscription();
-      fetchWallet();
-    }
-  }, []);
-
-  const fetchPlans = async () => {
+  const load = useCallback(async () => {
     try {
-      setLoading(true);
-      const res: any = await api.get("/subscriptions/expert/plans");
-      const data = Array.isArray(res) ? res : (res?.data || []);
-      if (data.length > 0) {
-        setPlans(data);
-      } else {
-        // Fallback default plans
-        setPlans([
-          {
-            plan_type: "monthly",
-            name: "Monthly Pro Expert",
-            price: 499,
-            duration_days: 30,
-            savings_percent: 0,
-            description: "Flexible month-to-month access to monetize your industry expertise.",
-            perks: [
-              "Verified Pro Expert Golden Badge",
-              "Featured Placement in Mentorship Directory",
-              "Host Unlimited 1-on-1 Paid Sessions",
-              "0% Platform Commission on Session Fees",
-              "Interactive Availability Schedule Manager",
-              "Instant Bank & UPI Earnings Payouts"
-            ],
-          },
-          {
-            plan_type: "yearly",
-            name: "Annual Pro Expert",
-            price: 4499,
-            duration_days: 365,
-            savings_percent: 25,
-            description: "Best value plan for dedicated mentors. Save 25% compared to monthly.",
-            perks: [
-              "All Monthly Pro Expert Perks",
-              "Priority Top-Ranking in Expert Search",
-              "Golden Verified Pro Badge Highlight",
-              "Save ₹1,489 with Annual Billing (₹375/mo)",
-              "Priority VIP Candidate Support",
-              "Annual Verified Mentor Certificate"
-            ],
-          }
-        ]);
-      }
+      const res = (await api.get("/user/expert-application")) as unknown as ApplicationStatus;
+      setApp(res);
+      setCategory((c) => c || res.expert_category || "");
+      setBio((b) => b || res.expert_bio || "");
+      setPrice((p) => p || (res.expert_pricing ? String(res.expert_pricing) : ""));
     } catch (err) {
-      console.warn("Failed to fetch plans from backend, using defaults", err);
+      notify.error(err, "Could not load your application. Please refresh the page.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchMySubscription = async () => {
-    try {
-      const res: any = await api.get("/subscriptions/expert/my");
-      if (res?.is_active && res?.subscription) {
-        setActiveSub(res);
-      }
-    } catch (err) {
-      console.warn("Could not check subscription status", err);
-    }
-  };
-
-  const fetchWallet = async () => {
-    try {
-      const res: any = await api.get("/wallet/balance");
-      setWallet(res);
-    } catch (err) {
-      console.warn("Could not load wallet", err);
-    }
-  };
-
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if ((window as any).Razorpay) return resolve(true);
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
-  const handleStartCheckout = (planType: string) => {
-    if (!isLoggedIn) {
-      router.push(`/login?redirect=/expert/apply`);
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace("/login?redirect=/expert/apply");
       return;
     }
-    setSelectedPlanType(planType);
-    setCheckoutModalOpen(true);
-  };
+    load();
+  }, [load, router]);
 
-  const selectedPlan = plans.find(p => p.plan_type === selectedPlanType) || plans[0] || {
-    plan_type: "monthly",
-    name: "Monthly Pro Expert",
-    price: 499,
-    duration_days: 30,
-  };
+  const eligible = !!app && app.experience_years >= app.min_years;
+  const showForm = !!app && (app.status === "" || (app.status === "rejected" && editing));
 
-  const handleRazorpayPayment = async () => {
-    try {
-      setPaymentProcessing(true);
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        notify.error("Failed to load Razorpay checkout gateway. Please check your connection.");
-        setPaymentProcessing(false);
-        return;
+  const stepError = (s: number): string | null => {
+    if (s === 0) {
+      if (!eligible) return "Add at least 2 years of work experience on your profile first.";
+      if (!app?.has_pass) return "Get the ₹99 pass to continue.";
+    }
+    if (s === 1) {
+      if (!category) return "Choose your expertise area.";
+      if (bio.trim().length < 50) return "Write at least 50 characters about your expertise.";
+      const p = Number(price);
+      if (!p || p < 99 || p > 50000) return "Set a session price between ₹99 and ₹50,000.";
+    }
+    if (s === 2) {
+      if (aadhaar.length !== 12) return "Enter your 12-digit Aadhaar number.";
+      if (!validAadhaar(aadhaar)) return "This Aadhaar number isn't valid. Please check it.";
+      if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) return "Enter a valid PAN, like ABCDE1234F.";
+      if (!aadhaarDoc || !panDoc) return "Upload both your Aadhaar and PAN card.";
+    }
+    if (s === 3) {
+      if (!holder.trim()) return "Enter the account holder's name.";
+      if (payoutMethod === "bank") {
+        if (!/^\d{9,18}$/.test(account)) return "Enter a valid bank account number.";
+        if (account !== confirmAccount) return "The two account numbers don't match.";
+        if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(ifsc)) return "Enter a valid IFSC code, like SBIN0001234.";
+      } else if (!/^[a-zA-Z0-9.\-_]{2,}@[a-zA-Z]{2,}$/.test(upi)) {
+        return "Enter a valid UPI ID, like name@bank.";
       }
-
-      // 1. Create Order on backend
-      const orderRes: any = await api.post("/subscriptions/expert/create-order", {
-        plan_type: selectedPlan.plan_type,
-      });
-
-      const rzpKey = orderRes.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-
-      // 2. Open Razorpay Checkout Modal
-      const options = {
-        key: rzpKey,
-        amount: orderRes.amount_paise,
-        currency: orderRes.currency || "INR",
-        name: "KaamMilega Pro Expert",
-        description: `${selectedPlan.name} Subscription`,
-        order_id: orderRes.order_id,
-        handler: async (response: any) => {
-          try {
-            // 3. Verify Payment on backend
-            await api.post("/subscriptions/expert/verify-payment", {
-              plan_type: selectedPlan.plan_type,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            notify.success("🎉 Welcome to KaamMilega Pro Expert! Subscription activated.");
-            setCheckoutModalOpen(false);
-            setTimeout(() => {
-              router.push("/expert/mentorship");
-            }, 1200);
-          } catch (err: any) {
-            console.error("Verification failed", err);
-            notify.error(err, "Payment verification failed. Please contact support.");
-          } finally {
-            setPaymentProcessing(false);
-          }
-        },
-        theme: {
-          color: "#1a2b8c",
-        },
-        modal: {
-          ondismiss: () => {
-            setPaymentProcessing(false);
-          },
-        },
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
-    } catch (err: any) {
-      console.error("Order creation failed", err);
-      notify.error(err, "Failed to initiate payment. Please try again.");
-      setPaymentProcessing(false);
+      if (!consent) return "Confirm that the details and documents are yours.";
     }
+    return null;
   };
 
-  const handleWalletPayment = async () => {
+  const next = () => {
+    const err = stepError(step);
+    if (err) return notify.error(err);
+    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const submit = async () => {
+    for (let s = 0; s < STEPS.length; s++) {
+      const err = stepError(s);
+      if (err) {
+        setStep(s);
+        return notify.error(err);
+      }
+    }
+    setSubmitting(true);
     try {
-      setPaymentProcessing(true);
-      const res: any = await api.post("/subscriptions/expert/wallet-checkout", {
-        plan_type: selectedPlan.plan_type,
+      await api.post("/user/apply-expert", {
+        expert_category: category,
+        expert_bio: bio.trim(),
+        expert_pricing: Number(price),
+        aadhaar_number: aadhaar,
+        pan_number: pan,
+        aadhaar_doc_url: aadhaarDoc?.url,
+        pan_doc_url: panDoc?.url,
+        payout_method: payoutMethod,
+        account_holder: holder.trim(),
+        account_number: payoutMethod === "bank" ? account : "",
+        confirm_account_number: payoutMethod === "bank" ? confirmAccount : "",
+        ifsc: payoutMethod === "bank" ? ifsc : "",
+        upi_id: payoutMethod === "upi" ? upi.trim() : "",
       });
-
-      notify.success("🎉 Subscribed successfully via KaamMilega Wallet!");
-      setCheckoutModalOpen(false);
-      setTimeout(() => {
-        router.push("/expert/mentorship");
-      }, 1200);
-    } catch (err: any) {
-      console.error("Wallet checkout failed", err);
-      notify.error(err, "Wallet checkout failed. Please check your balance.");
+      // Identity numbers are not kept in the browser after submitting
+      setAadhaar("");
+      setPan("");
+      setAccount("");
+      setConfirmAccount("");
+      setEditing(false);
+      notify.success("Application submitted. We'll review it today.");
+      await load();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      if (IDENTITY_CODES.includes((err as { code?: string })?.code ?? "")) setStep(2);
+      notify.error(err, "Could not submit your application. Please try again.");
     } finally {
-      setPaymentProcessing(false);
+      setSubmitting(false);
     }
   };
-
-  const walletBalance = wallet?.main_balance || 0;
-  const isWalletSufficient = walletBalance >= selectedPlan.price;
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-12 sm:pb-16 md:pb-20 text-slate-800 dark:bg-[#1D253D]">
-
-      {/* Hero */}
+    <main className="min-h-screen bg-km-surface pb-16 sm:pb-20">
       <PageHero
         width="max-w-5xl"
-        kicker={{ label: 'KaamMilega Pro Expert Program', Icon: MedalIcon, tone: 'experts' }}
-        title={<>Turn Your Industry Expertise Into <HeroAccent>Sustainable Income</HeroAccent></>}
-        description="Host paid 1-on-1 sessions, set your own price and keep 100% of your earnings."
+        kicker={{ label: "Become a KaamMilega Expert", Icon: MedalIcon, tone: "experts" }}
+        title={<>Share your experience. <HeroAccent>Get paid for it.</HeroAccent></>}
+        description="Host paid 1-on-1 sessions at your own price. One ₹99 pass, quick KYC, approval the same day."
+        highlights={[
+          { Icon: TicketIcon, label: "One ₹99 pass" },
+          { Icon: ClockIcon, label: "Same-day review" },
+          { Icon: SealCheckIcon, label: "Verified badge" },
+        ]}
       />
 
-      {/* Main Content Container */}
-      <section className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-8 sm:pt-12 md:pt-16 pb-4 sm:pb-6 relative z-10">
-        {/* Active Subscription Alert if already subscribed */}
-        {activeSub && (
-          <div className="bg-linear-to-r from-emerald-500 via-teal-600 to-[#1a2b8c] text-white p-5 md:p-6 rounded-3xl mb-8 sm:mb-10 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#047857] flex items-center justify-center text-white shrink-0">
-                <MedalIcon size={26} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-semibold bg-km-surface-card text-emerald-800 px-2.5 py-0.5 rounded-full">
-                    Active Subscription
-                  </span>
-                  <h3 className="font-extrabold text-base md:text-lg">
-                    {activeSub.plan_type === "yearly" ? "Annual Pro Expert" : "Monthly Pro Expert"}
-                  </h3>
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10">
+        {loading || !app ? (
+          <div className="h-64 rounded-3xl bg-km-surface-card border border-km-border animate-pulse" />
+        ) : app.status === "approved" ? (
+          <StatusCard
+            tone="success"
+            Icon={SealCheckIcon}
+            title="You're a verified Expert"
+            body="Your profile shows the Verified badge. Create your sessions and set your availability to start taking bookings."
+            action={<PrimaryLink href="/expert/mentorship">Open Expert dashboard</PrimaryLink>}
+          />
+        ) : app.status === "pending" ? (
+          <StatusCard
+            tone="info"
+            Icon={ClockIcon}
+            title="Your application is under review"
+            body="Our team checks applications the same day. We'll notify you as soon as it's done."
+          >
+            {app.kyc && <Summary app={app} />}
+          </StatusCard>
+        ) : app.status === "rejected" && !editing ? (
+          <StatusCard
+            tone="warning"
+            Icon={WarningCircleIcon}
+            title="Your application needs changes"
+            body={app.kyc?.rejection_reason ? `Reason: ${app.kyc.rejection_reason}` : "Please review your details and apply again."}
+            action={
+              <button type="button" onClick={() => { setEditing(true); setStep(0); }} className={PRIMARY_BTN}>
+                Update and resubmit <ArrowRightIcon weight="bold" size={16} aria-hidden="true" />
+              </button>
+            }
+          />
+        ) : null}
+
+        {showForm && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+            <div className="lg:col-span-8">
+              <Stepper step={step} onJump={(s) => s < step && setStep(s)} />
+
+              <div className="mt-5 rounded-3xl border border-km-border bg-km-surface-card p-5 sm:p-7">
+                {step === 0 && (
+                  <div>
+                    <h2 className="text-lg font-bold text-km-heading">Check you&apos;re eligible</h2>
+                    <p className="mt-1 text-sm text-km-text-secondary">Both are needed before you apply.</p>
+                    <div className="mt-5 space-y-3">
+                      <Requirement
+                        done={eligible}
+                        Icon={BriefcaseIcon}
+                        title="At least 2 years of work experience"
+                        detail={
+                          eligible
+                            ? `${app.experience_years.toFixed(1)} years on your profile`
+                            : `${app.experience_years.toFixed(1)} years on your profile. Add your past jobs to continue.`
+                        }
+                        action={!eligible && <SecondaryLink href="/profile">Add experience</SecondaryLink>}
+                      />
+                      <Requirement
+                        done={app.has_pass}
+                        Icon={TicketIcon}
+                        title="Active ₹99 pass"
+                        detail={app.has_pass ? "Your pass is active" : "One pass covers Expert listing, chats, mentors and InstantMilega"}
+                        action={
+                          !app.has_pass && (
+                            <button type="button" onClick={() => setPassOpen(true)} className={SECONDARY_BTN}>
+                              Get pass for ₹99
+                            </button>
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="mt-6 rounded-2xl bg-km-surface p-4">
+                      <p className="text-sm font-semibold text-km-heading">Keep these ready</p>
+                      <ul className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-km-text-secondary">
+                        <li className="flex items-center gap-2"><IdentificationCardIcon size={18} className="text-km-mentors shrink-0" aria-hidden="true" />Aadhaar card</li>
+                        <li className="flex items-center gap-2"><FileTextIcon size={18} className="text-km-mentors shrink-0" aria-hidden="true" />PAN card</li>
+                        <li className="flex items-center gap-2"><BankIcon size={18} className="text-km-mentors shrink-0" aria-hidden="true" />Bank or UPI details</li>
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                {step === 1 && (
+                  <div className="space-y-5">
+                    <div>
+                      <h2 className="text-lg font-bold text-km-heading">Your expertise</h2>
+                      <p className="mt-1 text-sm text-km-text-secondary">This is what people see on your Expert profile.</p>
+                    </div>
+                    <div>
+                      <label htmlFor="category" className={LABEL}>Expertise area</label>
+                      <select id="category" value={category} onChange={(e) => setCategory(e.target.value)} className={INPUT}>
+                        <option value="">Choose one</option>
+                        {app.categories.map((c) => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="bio" className={LABEL}>How you help people</label>
+                      <textarea
+                        id="bio"
+                        rows={5}
+                        maxLength={1000}
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        placeholder="e.g. 8 years as a hiring manager in retail. I help freshers prepare for interviews and choose their first role."
+                        className={INPUT}
+                      />
+                      <p className={HINT}>{bio.trim().length}/1000 characters, at least 50</p>
+                    </div>
+                    <div>
+                      <label htmlFor="price" className={LABEL}>Price per session</label>
+                      <div className="relative max-w-xs">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-km-text-secondary">₹</span>
+                        <input
+                          id="price"
+                          inputMode="numeric"
+                          value={price}
+                          onChange={(e) => setPrice(digits(e.target.value, 5))}
+                          placeholder="499"
+                          className={`${INPUT} pl-8`}
+                        />
+                      </div>
+                      <p className={HINT}>Between ₹99 and ₹50,000. You keep 100% of it.</p>
+                    </div>
+                  </div>
+                )}
+
+                {step === 2 && (
+                  <div className="space-y-5">
+                    <div>
+                      <h2 className="text-lg font-bold text-km-heading">Verify your identity</h2>
+                      <p className="mt-1 text-sm text-km-text-secondary">Only our verification team sees your documents.</p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="aadhaar" className={LABEL}>Aadhaar number</label>
+                        <input
+                          id="aadhaar"
+                          inputMode="numeric"
+                          autoComplete="off"
+                          value={groupAadhaar(aadhaar)}
+                          onChange={(e) => setAadhaar(digits(e.target.value, 12))}
+                          placeholder="1234 5678 9012"
+                          className={`${INPUT} tracking-wider`}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="pan" className={LABEL}>PAN</label>
+                        <input
+                          id="pan"
+                          autoComplete="off"
+                          value={pan}
+                          onChange={(e) => setPan(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10))}
+                          placeholder="ABCDE1234F"
+                          className={`${INPUT} tracking-wider`}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <DocUpload label="Aadhaar card" value={aadhaarDoc} onChange={setAadhaarDoc} />
+                      <DocUpload label="PAN card" value={panDoc} onChange={setPanDoc} />
+                    </div>
+                    <PrivacyNote />
+                  </div>
+                )}
+
+                {step === 3 && (
+                  <div className="space-y-5">
+                    <div>
+                      <h2 className="text-lg font-bold text-km-heading">Where should we pay you?</h2>
+                      <p className="mt-1 text-sm text-km-text-secondary">Session earnings are paid here.</p>
+                    </div>
+                    <div className="inline-flex rounded-xl border border-km-border bg-km-surface p-1" role="radiogroup" aria-label="Payout method">
+                      {(["bank", "upi"] as const).map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          role="radio"
+                          aria-checked={payoutMethod === m}
+                          onClick={() => setPayoutMethod(m)}
+                          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                            payoutMethod === m ? "bg-km-surface-card text-km-heading shadow-sm" : "text-km-text-secondary hover:text-km-heading"
+                          }`}
+                        >
+                          {m === "bank" ? "Bank account" : "UPI"}
+                        </button>
+                      ))}
+                    </div>
+                    <div>
+                      <label htmlFor="holder" className={LABEL}>Account holder name</label>
+                      <input id="holder" value={holder} onChange={(e) => setHolder(e.target.value)} placeholder="As on your bank account" className={INPUT} />
+                    </div>
+                    {payoutMethod === "bank" ? (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="account" className={LABEL}>Account number</label>
+                          <input id="account" inputMode="numeric" autoComplete="off" value={account} onChange={(e) => setAccount(digits(e.target.value, 18))} className={INPUT} />
+                        </div>
+                        <div>
+                          <label htmlFor="confirm-account" className={LABEL}>Re-enter account number</label>
+                          <input
+                            id="confirm-account"
+                            inputMode="numeric"
+                            autoComplete="off"
+                            value={confirmAccount}
+                            onChange={(e) => setConfirmAccount(digits(e.target.value, 18))}
+                            onPaste={(e) => e.preventDefault()}
+                            className={INPUT}
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="ifsc" className={LABEL}>IFSC code</label>
+                          <input
+                            id="ifsc"
+                            value={ifsc}
+                            onChange={(e) => setIfsc(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 11))}
+                            placeholder="SBIN0001234"
+                            className={`${INPUT} tracking-wider`}
+                          />
+                          <p className={HINT}>Printed on your cheque book or passbook</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="max-w-sm">
+                        <label htmlFor="upi" className={LABEL}>UPI ID</label>
+                        <input id="upi" autoComplete="off" value={upi} onChange={(e) => setUpi(e.target.value.trim())} placeholder="name@bank" className={INPUT} />
+                      </div>
+                    )}
+                    <label className="flex items-start gap-3 rounded-2xl bg-km-surface p-4 cursor-pointer">
+                      <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} className="mt-0.5 h-4 w-4 accent-km-primary" />
+                      <span className="text-sm text-km-text-primary">
+                        These details and documents are mine and correct. I agree to KaamMilega verifying them.
+                      </span>
+                    </label>
+                  </div>
+                )}
+
+                <div className="mt-7 flex items-center justify-between gap-3 border-t border-km-border pt-5">
+                  {step > 0 ? (
+                    <button type="button" onClick={() => setStep(step - 1)} className="inline-flex items-center gap-1.5 text-sm font-semibold text-km-text-secondary hover:text-km-heading">
+                      <ArrowLeftIcon weight="bold" size={16} aria-hidden="true" /> Back
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+                  {step < STEPS.length - 1 ? (
+                    <button type="button" onClick={next} disabled={step === 0 && (!eligible || !app.has_pass)} className={PRIMARY_BTN}>
+                      Continue <ArrowRightIcon weight="bold" size={16} aria-hidden="true" />
+                    </button>
+                  ) : (
+                    <button type="button" onClick={submit} disabled={submitting} className={PRIMARY_BTN}>
+                      {submitting ? "Submitting…" : "Submit application"}
+                    </button>
+                  )}
                 </div>
-                <p className="text-xs text-emerald-100 mt-1">
-                  You have <span className="font-bold text-white">{activeSub.days_remaining} days remaining</span> in your billing cycle.
-                </p>
               </div>
             </div>
-            <Link
-              href="/expert/mentorship"
-              className="bg-km-surface-card text-slate-900 hover:bg-slate-100 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95 flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
-            >
-              <span>Manage Mentorship Dashboard</span>
-              <ArrowRightIcon weight="bold" size={14} />
-            </Link>
+
+            <aside className="lg:col-span-4">
+              <HowItWorks />
+            </aside>
           </div>
         )}
-
-        {/* Plan Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
-          {plans.map((plan) => {
-            const isYearly = plan.plan_type === "yearly";
-
-            return (
-              <div
-                key={plan.plan_type}
-                className={`bg-km-surface-card rounded-3xl p-6 md:p-8 border transition-all flex flex-col justify-between relative ${
-                  isYearly
-                    ? "border-orange-500 shadow-xl ring-2 ring-orange-500/20 md:-translate-y-2"
-                    : "border-slate-200 shadow-sm hover:border-slate-300"
-                }`}
-              >
-                {isYearly && (
-                  <div className="absolute -top-3.5 right-6 bg-linear-to-r from-orange-500 to-amber-500 text-white text-[11px] font-semibold px-3 py-1 rounded-full shadow-md">
-                    Most Popular • Best Value
-                  </div>
-                )}
-
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-[#1a2b8c] dark:text-blue-400">
-                      {isYearly ? <MedalIcon size={26} /> : <LightningIcon size={26} />}
-                    </div>
-                    {isYearly && (
-                      <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-100 dark:text-emerald-400">
-                        Save 25% Annually
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="text-xl md:text-2xl font-black text-slate-900 mb-2">{plan.name}</h3>
-                  <p className="text-xs text-slate-500 font-medium mb-6 min-h-9">{plan.description}</p>
-
-                  <div className="flex items-baseline gap-1.5 mb-6 pb-6 border-b border-slate-100">
-                    <span className="text-3xl md:text-4xl font-black text-slate-900 font-mono">
-                      ₹{plan.price}
-                    </span>
-                    <span className="text-xs font-bold text-slate-400">
-                      / {isYearly ? "year (₹375/mo)" : "month"}
-                    </span>
-                  </div>
-
-                  {/* Perks list */}
-                  <div className="space-y-3 mb-8">
-                    <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">
-                      What's Included:
-                    </p>
-                    {plan.perks.map((perk, i) => (
-                      <div key={i} className="flex items-start gap-2.5 text-xs text-slate-700 font-medium">
-                        <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5 dark:text-emerald-400" />
-                        <span>{perk}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleStartCheckout(plan.plan_type)}
-                  className={`w-full py-3.5 rounded-2xl font-bold text-xs md:text-sm transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 cursor-pointer ${
-                    isYearly
-                      ? "bg-orange-500 hover:bg-orange-600 text-white shadow-orange-500/20"
-                      : "bg-[#1a2b8c] hover:bg-[#152370] text-white shadow-[#1a2b8c]/20"
-                  }`}
-                >
-                  <span>{activeSub ? "Switch to this Plan" : isYearly ? "Upgrade to Annual" : "Upgrade to Monthly"}</span>
-                  <ArrowRightIcon weight="bold" size={15} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
       </section>
 
-      {/* Dual-Payment Checkout Modal */}
-      <AnimatePresence>
-        {checkoutModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-km-surface-card rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex items-center gap-2">
-                  <SealCheckIcon size={24} weight="duotone" className="text-km-link" aria-hidden="true" />
-                  <h3 className="text-lg font-black text-slate-900">Upgrade to Pro Expert</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => !paymentProcessing && setCheckoutModalOpen(false)}
-                  disabled={paymentProcessing}
-                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors cursor-pointer"
-                >
-                  <XIcon weight="bold" size={16} />
-                </button>
-              </div>
-
-              {/* Order Summary */}
-              <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 mb-6">
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h4 className="font-extrabold text-sm text-slate-900">{selectedPlan.name}</h4>
-                    <p className="text-xs text-slate-500">
-                      Duration: {selectedPlan.duration_days} Days access
-                    </p>
-                  </div>
-                  <span className="text-lg font-black text-slate-900 font-mono">
-                    ₹{selectedPlan.price}
-                  </span>
-                </div>
-                <div className="text-[11px] text-emerald-700 bg-emerald-50 border border-emerald-200/60 rounded-lg p-2 font-medium">
-                  ✓ Instant activation of Verified Pro Badge & Mentorship Hosting
-                </div>
-              </div>
-
-              {/* Select Payment Method */}
-              <div className="mb-6 space-y-3">
-                <label className="block text-xs font-bold text-slate-700">Choose Payment Method:</label>
-
-                {/* Option 1: Razorpay */}
-                <div
-                  onClick={() => !paymentProcessing && setPaymentMethod("razorpay")}
-                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                    paymentMethod === "razorpay"
-                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c] dark:border-km-link dark:ring-km-link"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <CreditCardIcon size={22} className="text-[#1a2b8c] dark:text-blue-400" aria-hidden="true" />
-                    <div>
-                      <div className="font-bold text-xs text-slate-900">Razorpay Online Payment</div>
-                      <div className="text-[10px] text-slate-500">UPI (GPay/PhonePe), Cards, NetBanking</div>
-                    </div>
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    paymentMethod === "razorpay" ? "border-[#1a2b8c] bg-[#1a2b8c] dark:border-km-link" : "border-slate-300"
-                  }`}>
-                    {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
-                  </div>
-                </div>
-
-                {/* Option 2: Wallet */}
-                <div
-                  onClick={() => !paymentProcessing && setPaymentMethod("wallet")}
-                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between ${
-                    paymentMethod === "wallet"
-                      ? "border-[#1a2b8c] bg-blue-50/30 ring-1 ring-[#1a2b8c] dark:border-km-link dark:ring-km-link"
-                      : "border-slate-200 hover:border-slate-300"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <WalletIcon size={22} className="text-emerald-700" aria-hidden="true" />
-                    <div>
-                      <div className="font-bold text-xs text-slate-900">KaamMilega Wallet</div>
-                      <div className="text-[10px] text-slate-500">
-                        Available Balance: <span className="font-mono font-bold text-slate-800">₹{walletBalance.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                    paymentMethod === "wallet" ? "border-[#1a2b8c] bg-[#1a2b8c] dark:border-km-link" : "border-slate-300"
-                  }`}>
-                    {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
-                  </div>
-                </div>
-
-                {paymentMethod === "wallet" && !isWalletSufficient && (
-                  <div className="p-2.5 bg-amber-50 border border-amber-200/80 rounded-xl text-[11px] text-amber-800 flex items-center justify-between">
-                    <span>Insufficient wallet balance.</span>
-                    <Link href="/wallet" className="font-bold underline text-amber-900">Top up Wallet</Link>
-                  </div>
-                )}
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setCheckoutModalOpen(false)}
-                  disabled={paymentProcessing}
-                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 cursor-pointer disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-
-                {paymentMethod === "razorpay" ? (
-                  <button
-                    type="button"
-                    onClick={handleRazorpayPayment}
-                    disabled={paymentProcessing}
-                    className="bg-[#1a2b8c] hover:bg-[#152370] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-60"
-                  >
-                    {paymentProcessing ? (
-                      <>
-                        <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Processing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <LockIcon weight="bold" size={13} />
-                        <span>Pay ₹{selectedPlan.price} with Razorpay</span>
-                      </>
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleWalletPayment}
-                    disabled={paymentProcessing || !isWalletSufficient}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                  >
-                    {paymentProcessing ? (
-                      <>
-                        <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Deducting Wallet...</span>
-                      </>
-                    ) : (
-                      <>
-                        <WalletIcon weight="bold" size={14} />
-                        <span>Pay ₹{selectedPlan.price} from Wallet</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <InstantPassModal
+        isOpen={passOpen}
+        onClose={() => setPassOpen(false)}
+        onSuccess={() => {
+          setPassOpen(false);
+          load();
+        }}
+      />
     </main>
   );
 }
 
+const PRIMARY_BTN =
+  "inline-flex items-center justify-center gap-2 rounded-xl bg-km-primary px-5 py-2.5 text-sm font-semibold text-white hover:bg-km-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors";
+const SECONDARY_BTN =
+  "inline-flex items-center justify-center gap-1.5 rounded-xl border border-km-border bg-km-surface-card px-3.5 py-2 text-sm font-semibold text-km-heading hover:bg-km-surface transition-colors whitespace-nowrap";
+
+function PrimaryLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return (
+    <Link href={href} className={PRIMARY_BTN}>
+      {children} <ArrowRightIcon weight="bold" size={16} aria-hidden="true" />
+    </Link>
+  );
+}
+
+function SecondaryLink({ href, children }: { href: string; children: React.ReactNode }) {
+  return <Link href={href} className={SECONDARY_BTN}>{children}</Link>;
+}
+
+function Stepper({ step, onJump }: { step: number; onJump: (s: number) => void }) {
+  return (
+    <ol className="grid grid-cols-4 gap-2" aria-label="Application steps">
+      {STEPS.map((label, i) => {
+        const done = i < step;
+        const current = i === step;
+        return (
+          <li key={label}>
+            <button
+              type="button"
+              onClick={() => onJump(i)}
+              disabled={!done}
+              aria-current={current ? "step" : undefined}
+              className="w-full text-left disabled:cursor-default"
+            >
+              <span className={`block h-1.5 rounded-full ${done || current ? "bg-km-mentors" : "bg-km-border"}`} />
+              <span className={`mt-2 flex items-center gap-1.5 text-xs sm:text-sm font-semibold ${current ? "text-km-heading" : "text-km-text-secondary"}`}>
+                {done && <CheckIcon weight="bold" size={14} className="text-km-mentors shrink-0" aria-hidden="true" />}
+                <span className="truncate">{label}</span>
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+function Requirement({
+  done,
+  Icon,
+  title,
+  detail,
+  action,
+}: {
+  done: boolean;
+  Icon: React.ElementType;
+  title: string;
+  detail: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl border border-km-border p-4">
+      <div className="flex items-start gap-3 flex-1 min-w-0">
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${done ? "bg-[#ECFDF5] text-[#047857] dark:bg-[#0F2E2A] dark:text-[#6EE7B7]" : "bg-[#F4F7FB] text-km-text-secondary dark:bg-[#1A2440]"}`}>
+          {done ? <CheckCircleIcon weight="fill" size={22} aria-hidden="true" /> : <Icon size={22} aria-hidden="true" />}
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-km-heading">{title}</p>
+          <p className="text-sm text-km-text-secondary">{detail}</p>
+        </div>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function DocUpload({ label, value, onChange }: { label: string; value: UploadedDoc | null; onChange: (d: UploadedDoc | null) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+
+  const pick = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (file.size > UPLOAD_LIMITS.expert_document) return notify.error("This file is over 10 MB. Please choose a smaller one.");
+    setBusy(true);
+    try {
+      const res = await uploadFile(file, "expert_document", { moduleName: "expert_application" });
+      onChange({ url: res.url, name: file.name, size: file.size });
+    } catch (err) {
+      notify.error(err, "Could not upload the file. Please try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div>
+      <span className={LABEL}>{label}</span>
+      <input ref={ref} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={pick} className="hidden" />
+      {value ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-km-border p-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#ECFDF5] text-[#047857] dark:bg-[#0F2E2A] dark:text-[#6EE7B7]">
+            <CheckCircleIcon weight="fill" size={20} aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold text-km-heading">{value.name}</p>
+            <p className="text-xs text-km-text-secondary">{formatSize(value.size)} · Uploaded</p>
+          </div>
+          <button type="button" onClick={() => ref.current?.click()} className="text-sm font-semibold text-km-link hover:underline">
+            Replace
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => ref.current?.click()}
+          disabled={busy}
+          className="flex w-full items-center gap-3 rounded-2xl border-2 border-dashed border-km-border p-3 text-left hover:border-km-mentors disabled:opacity-60 transition-colors"
+        >
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F4F7FB] text-km-mentors dark:bg-[#1A2440]">
+            <FileArrowUpIcon size={20} aria-hidden="true" />
+          </span>
+          <span>
+            <span className="block text-sm font-semibold text-km-heading">{busy ? "Uploading…" : `Upload ${label}`}</span>
+            <span className="block text-xs text-km-text-secondary">PDF, JPG or PNG, up to 10 MB</span>
+          </span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function PrivacyNote() {
+  return (
+    <p className="flex items-start gap-2.5 rounded-2xl bg-km-surface p-4 text-sm text-km-text-secondary">
+      <LockKeyIcon size={18} className="mt-0.5 shrink-0 text-km-heading" aria-hidden="true" />
+      <span>
+        Documents are stored privately and opened only by our verification team. We keep just the last 4 digits of your
+        Aadhaar and PAN numbers.
+      </span>
+    </p>
+  );
+}
+
+function HowItWorks() {
+  const items = [
+    { title: "Apply in 5 minutes", body: "Experience, expertise, ID and payout details." },
+    { title: "Same-day review", body: "Our team checks your documents and profile." },
+    { title: "Get verified", body: "The Verified badge appears on your profile." },
+    { title: "Start earning", body: "Set your availability and take paid sessions." },
+  ];
+  return (
+    <div className="rounded-3xl border border-km-border bg-km-surface-card p-5 sm:p-6 lg:sticky lg:top-24">
+      <p className="text-sm font-bold text-km-heading">How it works</p>
+      <ol className="mt-4 space-y-4">
+        {items.map((it, i) => (
+          <li key={it.title} className="flex gap-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F3FF] text-xs font-bold text-[#6D28D9] dark:bg-[#231C45] dark:text-[#C4B5FD]">
+              {i + 1}
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-km-heading">{it.title}</p>
+              <p className="text-sm text-km-text-secondary">{it.body}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+function StatusCard({
+  tone,
+  Icon,
+  title,
+  body,
+  action,
+  children,
+}: {
+  tone: "success" | "info" | "warning";
+  Icon: React.ElementType;
+  title: string;
+  body: string;
+  action?: React.ReactNode;
+  children?: React.ReactNode;
+}) {
+  const chip = {
+    success: "bg-[#ECFDF5] text-[#047857] dark:bg-[#0F2E2A] dark:text-[#6EE7B7]",
+    info: "bg-[#EFF6FF] text-[#1D4ED8] dark:bg-[#132447] dark:text-[#93C5FD]",
+    warning: "bg-[#FFFBEB] text-[#B45309] dark:bg-[#2E2412] dark:text-[#FCD34D]",
+  }[tone];
+  return (
+    <div className="mx-auto max-w-2xl rounded-3xl border border-km-border bg-km-surface-card p-6 sm:p-8">
+      <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${chip}`}>
+        <Icon size={26} weight="fill" aria-hidden="true" />
+      </span>
+      <h2 className="mt-4 text-xl font-bold text-km-heading">{title}</h2>
+      <p className="mt-1.5 text-sm text-km-text-secondary">{body}</p>
+      {children}
+      {action && <div className="mt-6">{action}</div>}
+    </div>
+  );
+}
+
+function Summary({ app }: { app: ApplicationStatus }) {
+  const kyc = app.kyc!;
+  const rows: [string, string][] = [
+    ["Expertise", app.expert_category || "-"],
+    ["Session price", app.expert_pricing ? `₹${app.expert_pricing}` : "-"],
+    ["Aadhaar", `XXXX XXXX ${kyc.aadhaar_last4}`],
+    ["PAN", kyc.pan_masked],
+    ["Payouts", kyc.payout_method === "bank" ? `Bank account ending ${kyc.account_last4} (${kyc.ifsc})` : `UPI ${kyc.upi_id}`],
+    ["Submitted", new Date(kyc.submitted_at).toLocaleString()],
+  ];
+  return (
+    <dl className="mt-5 divide-y divide-km-border rounded-2xl border border-km-border">
+      {rows.map(([k, v]) => (
+        <div key={k} className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-4 px-4 py-3">
+          <dt className="w-32 shrink-0 text-xs font-semibold text-km-text-secondary">{k}</dt>
+          <dd className="text-sm text-km-heading break-words">{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}

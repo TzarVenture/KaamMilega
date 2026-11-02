@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
+import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
 
 // ─── Types ───
 
@@ -431,6 +432,7 @@ const JobCard = ({
 const JobsPageContent = () => {
     const searchParams = useSearchParams();
     const router = useRouter();
+    const { ensureCanApply, sheet: applyGateSheet } = useApplyGate();
 
     const [jobs, setJobs] = useState<Job[]>([]);
     const [totalJobs, setTotalJobs] = useState(0);
@@ -589,20 +591,20 @@ const JobsPageContent = () => {
             return;
         }
 
-        const roles = Array.isArray(user?.roles) ? user.roles : user?.role ? [user.role] : [];
-        const isOnlyUser = roles.includes('user') && !roles.includes('recruiter') && !roles.includes('expert');
-        if (!isOnlyUser) {
-            notify.warning('Only candidates are allowed to apply for jobs.');
-            return;
-        }
+        // One account does everything (client Q5): recruiters and experts apply too; the
+        // backend only stops someone applying to their own job
 
         setApplyingId(jobId);
         try {
+            // Below the apply tier: ask for the missing details first (once), then apply
+            if (!(await ensureCanApply())) return;
             await api.post('/applications', { job_id: jobId });
             notify.success('Applied successfully');
             setAppliedJobIds(prev => new Set(prev).add(jobId));
         } catch (error: any) {
-            if (error.response?.status === 409) {
+            if (isProfileIncomplete(error)) {
+                notify.info(errorText(error));
+            } else if (error.response?.status === 409) {
                 setAppliedJobIds(prev => new Set(prev).add(jobId));
                 notify.info(errorText(error, 'You have already applied for this job'));
             } else {
@@ -1002,6 +1004,7 @@ const JobsPageContent = () => {
                     </div>
                 </div>
             </div>
+            {applyGateSheet}
         </div>
     );
 };

@@ -102,13 +102,10 @@ type User struct {
 	ExpertBio            string     `bson:"expert_bio,omitempty" json:"expert_bio,omitempty"`
 	ExpertPricing        float64    `bson:"expert_pricing,omitempty" json:"expert_pricing,omitempty"`
 	ExpertDocuments      []Document `bson:"expert_documents,omitempty" json:"expert_documents,omitempty"`
-	ExpertApprovalStatus string     `bson:"expert_approval_status,omitempty" json:"expert_approval_status,omitempty"` // "pending", "approved", "rejected"
+	ExpertApprovalStatus string     `bson:"expert_approval_status,omitempty" json:"expert_approval_status,omitempty"`
+	// Identity and payout details of the Expert application (masked; see ExpertKYC)
+	ExpertKYC *ExpertKYC `bson:"expert_kyc,omitempty" json:"expert_kyc,omitempty"` // "pending", "approved", "rejected"
 
-	// Analytics & Views
-	ProfileViews      int      `bson:"profile_views,omitempty" json:"profile_views"`
-	PostImpressions   int      `bson:"post_impressions,omitempty" json:"post_impressions"`
-	SearchAppearances int      `bson:"search_appearances,omitempty" json:"search_appearances"`
-	ProfileViewers    []string `bson:"profile_viewers,omitempty" json:"profile_viewers,omitempty"`
 
 	// Account lifecycle (see internal/features/account)
 	AccountStatus        string     `bson:"account_status,omitempty" json:"account_status,omitempty"`
@@ -253,29 +250,11 @@ type UserFilter struct {
 	AdminView bool
 }
 
-type ApplyExpertRequest struct {
-	ExpertCategory    string     `json:"expert_category"`
-	ExpertBio         string     `json:"expert_bio"`
-	ExpertPricing     float64    `json:"expert_pricing"`
-	ExpertDocuments   []Document `json:"expert_documents"`
-}
-
-type ApproveExpertRequest struct {
-	Status string `json:"status"` // "approved" or "rejected"
-}
-
 type PasswordLoginRequest struct {
 	Email      string `json:"email"`
 	Identifier string `json:"identifier,omitempty"` // Fallback for backwards compatibility
 	Password   string `json:"password"`
 	Role       string `json:"role,omitempty"`
-}
-
-type PasswordRegisterRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Role     string `json:"role,omitempty"`
 }
 
 type SetPasswordRequest struct {
@@ -313,6 +292,9 @@ type UserSettings struct {
 	Language                string `bson:"language" json:"language"`                     // "hi", "mr", "gu", "bn", "en" (km-frontend/src/i18n/config.ts)
 	EnableAIRecommendations bool   `bson:"enable_ai_recommendations" json:"enable_ai_recommendations"`
 	SearchEngineIndexing    bool   `bson:"search_engine_indexing" json:"search_engine_indexing"`
+	// ProfileViewing is how the member appears when they view someone's profile: "name",
+	// "characteristics" or "private" (analytics.ViewAsName and so on); empty means "name"
+	ProfileViewing string `bson:"profile_viewing,omitempty" json:"profile_viewing"`
 }
 
 // DefaultUserSettings provides initial standard settings matching the frontend defaults
@@ -327,6 +309,7 @@ func DefaultUserSettings() UserSettings {
 		Language:                "en",
 		EnableAIRecommendations: true,
 		SearchEngineIndexing:    true,
+		ProfileViewing:          "name",
 	}
 }
 

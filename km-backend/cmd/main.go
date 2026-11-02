@@ -22,6 +22,7 @@ import (
 	"km-backend/internal/features/company"
 	"km-backend/internal/features/course"
 	"km-backend/internal/features/event"
+	"km-backend/internal/features/analytics"
 	"km-backend/internal/features/feed"
 	"km-backend/internal/features/file"
 	"km-backend/internal/storage"
@@ -182,6 +183,7 @@ func main() {
 			account.NewRepository,
 			push.NewRepository,
 			feed.NewFeedRepository,
+			analytics.NewRepository,
 
 			// Services
 			notification.NewMailer,
@@ -212,6 +214,7 @@ func main() {
 			account.NewService,
 			jobalert.NewService,
 			feed.NewFeedService,
+			analytics.NewService,
 
 			// controllers
 			file.NewFileController,
@@ -272,8 +275,9 @@ func main() {
 		}),
 		fx.Invoke(
 			// Every authenticated request checks the session version and account status
-			func(repo user.UserRepository) {
+			func(repo user.UserRepository, cfg *config.Config) {
 				middleware.SetSessionLoader(user.NewSessionLoader(repo))
+				middleware.SecureCookies = cfg.Environment == "production"
 			},
 			// Every new notification also goes out as a push (browsers, Android, iOS)
 			push.Install,

@@ -278,7 +278,6 @@ export default function ExpertsPage() {
                                         user={expert}
                                         variant="grid"
                                         actionType="expert"
-                                        entityType="expert"
                                         onChat={() => handleChat(expertId)}
                                         onRemove={() => handleDelete(expertId)}
                                     />

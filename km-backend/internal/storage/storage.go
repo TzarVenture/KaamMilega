@@ -42,10 +42,19 @@ type Storage interface {
 	Delete(ctx context.Context, vis Visibility, key string) error
 	// PublicURL is the permanent address of a public object
 	PublicURL(key string) string
-	// SignedURL is a temporary address of a private object
-	SignedURL(ctx context.Context, key, downloadName string, ttl time.Duration) (string, error)
+	// SignedURL is a temporary address of a private object. With download set, the browser saves
+	// the file under downloadName instead of opening it.
+	SignedURL(ctx context.Context, key, downloadName string, download bool, ttl time.Duration) (string, error)
 	// Driver names the backend ("r2" or "local") for logs and health checks
 	Driver() string
+}
+
+// disposition: "attachment" makes the browser save the file, "inline" opens it
+func disposition(download bool) string {
+	if download {
+		return "attachment"
+	}
+	return "inline"
 }
 
 // New returns the R2 driver when STORAGE_DRIVER=r2 and its settings are complete, otherwise the

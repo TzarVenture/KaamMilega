@@ -142,7 +142,7 @@ function AdminAnalyticsContent() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
         <Link
           href="/admin/companies"
-          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-100/80 hover:border-purple-200 hover:bg-purple-50/30 shadow-sm hover:shadow-md transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-1.5 rounded-lg bg-purple-50 text-purple-600 group-hover:scale-105 transition-transform dark:text-purple-400">
@@ -155,7 +155,7 @@ function AdminAnalyticsContent() {
 
         <Link
           href="/admin/jobs"
-          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-100/80 hover:border-purple-200 hover:bg-purple-50/30 shadow-sm hover:shadow-md transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600 group-hover:scale-105 transition-transform dark:text-blue-400">
@@ -168,7 +168,7 @@ function AdminAnalyticsContent() {
 
         <Link
           href="/admin/disputes"
-          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-100/80 hover:border-purple-200 hover:bg-purple-50/30 shadow-sm hover:shadow-md transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-1.5 rounded-lg bg-rose-50 text-rose-600 group-hover:scale-105 transition-transform dark:text-rose-400">
@@ -181,7 +181,7 @@ function AdminAnalyticsContent() {
 
         <Link
           href="/admin/users"
-          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-100/80 hover:border-purple-200 hover:bg-purple-50/30 shadow-sm hover:shadow-md transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group"
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600 group-hover:scale-105 transition-transform dark:text-emerald-400">
@@ -194,7 +194,7 @@ function AdminAnalyticsContent() {
 
         <Link
           href="/admin/reports"
-          className="p-3 rounded-2xl bg-km-surface-card border border-purple-50 hover:border-purple-200 hover:bg-purple-50/30 shadow-xs transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group col-span-2 sm:col-span-1"
+          className="p-3 rounded-2xl bg-km-surface-card border border-purple-100/80 hover:border-purple-200 hover:bg-purple-50/30 shadow-sm hover:shadow-md transition-all text-xs font-semibold text-slate-700 hover:text-purple-700 flex items-center justify-between group col-span-2 sm:col-span-1"
         >
           <div className="flex items-center gap-2 min-w-0">
             <div className="p-1.5 rounded-lg bg-indigo-50 text-indigo-600 group-hover:scale-105 transition-transform dark:text-indigo-400">
@@ -258,7 +258,7 @@ function AdminAnalyticsContent() {
         <section className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {/* Total Users */}
-            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
+            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-100/80 shadow-md hover:shadow-lg hover:border-purple-200 transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -286,7 +286,7 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Active Gigs */}
-            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
+            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-100/80 shadow-md hover:shadow-lg hover:border-purple-200 transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -310,7 +310,7 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Jobs Posted */}
-            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
+            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-100/80 shadow-md hover:shadow-lg hover:border-purple-200 transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -336,7 +336,7 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Platform Revenue */}
-            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs hover:border-purple-200 transition-all">
+            <div className="p-4 sm:p-5 bg-km-surface-card rounded-2xl border border-purple-100/80 shadow-md hover:shadow-lg hover:border-purple-200 transition-all">
               <div className="flex items-start justify-between mb-2">
                 <div>
                   <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">
@@ -378,7 +378,7 @@ function AdminAnalyticsContent() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
             {/* Candidates */}
-            <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-km-surface-card rounded-2xl border border-purple-100/80 p-4 sm:p-5 shadow-md hover:shadow-lg transition-all flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs dark:text-blue-400">
@@ -413,7 +413,7 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Employers */}
-            <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-km-surface-card rounded-2xl border border-purple-100/80 p-4 sm:p-5 shadow-md hover:shadow-lg transition-all flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs dark:text-emerald-400">
@@ -448,7 +448,7 @@ function AdminAnalyticsContent() {
             </div>
 
             {/* Experts */}
-            <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs flex flex-col justify-between">
+            <div className="bg-km-surface-card rounded-2xl border border-purple-100/80 p-4 sm:p-5 shadow-md hover:shadow-lg transition-all flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between mb-2.5">
                   <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-xs dark:text-purple-400">
@@ -500,7 +500,7 @@ function AdminAnalyticsContent() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs">
+            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-100/80 shadow-md hover:shadow-lg transition-all">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="p-1.5 rounded-lg bg-slate-100 text-slate-700">
                   <MapPinIcon weight="bold" size={15} />
@@ -513,7 +513,7 @@ function AdminAnalyticsContent() {
               <p className="text-[11px] text-slate-400 mt-0.5">Active locations</p>
             </div>
 
-            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs">
+            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-100/80 shadow-md hover:shadow-lg transition-all">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="p-1.5 rounded-lg bg-purple-50 text-purple-700">
                   <PhoneCallIcon weight="bold" size={15} />
@@ -526,7 +526,7 @@ function AdminAnalyticsContent() {
               <p className="text-[11px] text-slate-400 mt-0.5">Scheduled</p>
             </div>
 
-            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs">
+            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-100/80 shadow-md hover:shadow-lg transition-all">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700">
                   <GraduationCapIcon weight="bold" size={15} />
@@ -539,7 +539,7 @@ function AdminAnalyticsContent() {
               <p className="text-[11px] text-slate-400 mt-0.5">Categories</p>
             </div>
 
-            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-50 shadow-xs">
+            <div className="p-3.5 sm:p-4 bg-km-surface-card rounded-2xl border border-purple-100/80 shadow-md hover:shadow-lg transition-all">
               <div className="flex items-center gap-2 mb-1.5">
                 <div className="p-1.5 rounded-lg bg-rose-50 text-rose-700">
                   <ShieldWarningIcon weight="bold" size={15} />
@@ -567,7 +567,7 @@ function AdminAnalyticsContent() {
             </span>
           </div>
 
-          <div className="bg-km-surface-card rounded-2xl border border-purple-50 p-4 sm:p-5 shadow-xs">
+          <div className="bg-km-surface-card rounded-2xl border border-purple-100/80 p-4 sm:p-5 shadow-md">
             {isLoading ? (
               <p className="text-center text-slate-400 text-xs py-4">Loading activity...</p>
             ) : liveEvents.length === 0 ? (
