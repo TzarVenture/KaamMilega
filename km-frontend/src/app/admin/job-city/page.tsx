@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeftIcon, ArrowsClockwiseIcon, BriefcaseIcon, BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, CurrencyInrIcon, GlobeHemisphereEastIcon, MagnifyingGlassIcon, MapPinIcon, MapTrifoldIcon, TrendUpIcon, UsersIcon, WarningCircleIcon } from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowsClockwiseIcon, BriefcaseIcon, BuildingOfficeIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, CircleNotchIcon, MapPinIcon, WarningCircleIcon } from '@phosphor-icons/react';
+import { AdminPageHeader, AdminPanel, ConfirmDialog, EmptyState, FilterTabs, SearchInput, SkeletonRows, StatCard, btn, table } from '@/components/admin/ui';
 import api from '@/lib/axios';
 import { errorText } from "@/lib/notify";
 
@@ -50,6 +50,7 @@ function JobCityWiseContent() {
     const [filterCategory, setFilterCategory] = useState<'all' | 'with_vacancies'>('all');
     const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
     const [processingJobId, setProcessingJobId] = useState<string | null>(null);
+    const [closeTarget, setCloseTarget] = useState<Job | null>(null);
 
     // Fetch all cities with live vacancy aggregation
     const fetchCities = async () => {
@@ -65,7 +66,7 @@ function JobCityWiseContent() {
             console.error('Failed to fetch cities:', error);
             setActionMessage({
                 type: 'error',
-                message: 'Failed to load cities from database.'
+                message: "Couldn't load cities."
             });
         } finally {
             setIsLoading(false);
@@ -87,7 +88,7 @@ function JobCityWiseContent() {
                 const fallbackRes: any = await api.get(`/jobs?city=${encodeURIComponent(cityName.trim())}`);
                 const fallbackList = fallbackRes?.jobs || fallbackRes?.data || (Array.isArray(fallbackRes) ? fallbackRes : []);
                 setJobs(fallbackList);
-            } catch (err) {
+            } catch {
                 setJobs([]);
             }
         } finally {
@@ -150,7 +151,6 @@ function JobCityWiseContent() {
 
     // Close / Remove Job
     const handleCloseJob = async (jobId: string, jobTitle: string) => {
-        if (!confirm(`Are you sure you want to close or remove "${jobTitle}"?`)) return;
 
         setProcessingJobId(jobId);
         try {
@@ -158,7 +158,7 @@ function JobCityWiseContent() {
             setJobs((prev) => prev.filter((j) => j.id !== jobId));
             setActionMessage({
                 type: 'success',
-                message: `Job vacancy "${jobTitle}" closed successfully.`
+                message: `${jobTitle} is closed.`
             });
             if (activeCityName) {
                 setCities((prev) =>
@@ -184,384 +184,183 @@ function JobCityWiseContent() {
         }
     };
 
-    return (
-        <div className="max-w-7xl mx-auto space-y-8 pb-12">
-            {/* Status Feedback Banner */}
-            {actionMessage && (
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex items-center justify-between gap-3 p-4 rounded-2xl border text-xs sm:text-sm font-semibold ${
-                        actionMessage.type === 'success'
-                            ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
-                            : 'bg-rose-50 border-rose-200 text-rose-800'
-                    }`}
-                >
-                    <div className="flex items-center gap-2.5">
-                        {actionMessage.type === 'success' ? (
-                            <CheckCircleIcon weight="bold" size={18} className="text-emerald-600 shrink-0 dark:text-emerald-400" />
-                        ) : (
-                            <WarningCircleIcon weight="bold" size={18} className="text-rose-600 shrink-0 dark:text-rose-400" />
-                        )}
-                        <span>{actionMessage.message}</span>
-                    </div>
-                    <button
-                        onClick={() => setActionMessage(null)}
-                        className="text-xs font-bold hover:underline opacity-80"
-                    >
-                        Dismiss
-                    </button>
-                </motion.div>
-            )}
+    const banner = actionMessage && (
+        <div
+            role={actionMessage.type === 'error' ? 'alert' : 'status'}
+            className={`mb-4 flex items-center justify-between gap-3 px-4 py-3 rounded-xl border text-sm ${
+                actionMessage.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'
+            }`}
+        >
+            <span className="flex items-center gap-2">
+                {actionMessage.type === 'success'
+                    ? <CheckCircleIcon size={18} className="text-emerald-600 shrink-0" aria-hidden="true" />
+                    : <WarningCircleIcon size={18} className="text-red-600 shrink-0" aria-hidden="true" />}
+                {actionMessage.message}
+            </span>
+            <button type="button" onClick={() => setActionMessage(null)} className="text-sm font-medium hover:underline cursor-pointer">Dismiss</button>
+        </div>
+    );
 
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-km-surface-card p-6 sm:p-8 rounded-[28px] border border-purple-100/60 shadow-sm">
-                <div className="flex items-center gap-4">
-                    {view === 'jobs' && (
-                        <button
-                            onClick={handleBack}
-                            className="p-3 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-2xl transition-all border border-purple-200 shadow-sm"
-                            title="Back to all cities"
-                        >
-                            <ArrowLeftIcon size={20} />
-                        </button>
+    if (view === 'jobs') {
+        return (
+            <div>
+                <button type="button" onClick={handleBack} className="inline-flex items-center gap-1.5 mb-4 text-sm font-medium text-km-link hover:underline cursor-pointer">
+                    <CaretLeftIcon size={14} weight="bold" aria-hidden="true" />
+                    All cities
+                </button>
+                <AdminPageHeader
+                    title={`Jobs in ${selectedCity?.name || activeCityName}`}
+                    description={[selectedCity?.state, selectedCity?.country].filter(Boolean).join(', ') || undefined}
+                />
+                {banner}
+                <AdminPanel>
+                    <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-km-border-subtle">
+                        <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Search job title or company" className="w-full sm:max-w-sm" />
+                        {!isJobsLoading && <span className="hidden sm:inline text-sm text-km-text-secondary font-inter">{jobs.length} jobs</span>}
+                    </div>
+                    {isJobsLoading ? (
+                        <SkeletonRows rows={5} />
+                    ) : jobs.length === 0 ? (
+                        <EmptyState icon={BriefcaseIcon} title="No open jobs in this city" />
+                    ) : (
+                        <div className={table.wrap}>
+                            <table className={table.table}>
+                                <thead>
+                                    <tr>
+                                        <th className={table.th}>Job</th>
+                                        <th className={table.th}>Salary</th>
+                                        <th className={`${table.th} text-right`}>Applicants</th>
+                                        <th className={table.th}>Posted</th>
+                                        <th className={`${table.th} text-right`}><span className="sr-only">Actions</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {jobs.map((job) => (
+                                        <tr key={job.id} className={table.row}>
+                                            <td className={table.td}>
+                                                <p className="font-medium text-km-heading">{job.title}</p>
+                                                <p className="text-xs text-km-text-secondary">{[job.company, job.job_type].filter(Boolean).join(' · ')}</p>
+                                            </td>
+                                            <td className={`${table.td} whitespace-nowrap font-inter`}>
+                                                {job.salary_min && job.salary_max
+                                                    ? `₹${job.salary_min.toLocaleString('en-IN')} – ₹${job.salary_max.toLocaleString('en-IN')}`
+                                                    : job.salary_range || 'Not disclosed'}
+                                            </td>
+                                            <td className={`${table.td} text-right font-inter tabular-nums`}>{job.applicant_count ?? 0}</td>
+                                            <td className={`${table.td} whitespace-nowrap text-km-text-secondary font-inter`}>
+                                                {job.created_at ? new Date(job.created_at).toLocaleDateString('en-IN') : '–'}
+                                            </td>
+                                            <td className={`${table.td} text-right`}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCloseTarget(job)}
+                                                    disabled={processingJobId === job.id}
+                                                    className={`${btn.secondary} h-9 px-3`}
+                                                >
+                                                    {processingJobId === job.id ? <CircleNotchIcon size={16} className="animate-spin" aria-hidden="true" /> : null}
+                                                    Close job
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
-                    <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                            <MapTrifoldIcon size={28} weight="duotone" className="text-purple-700 shrink-0" aria-hidden="true" />
-                            <div>
-                                <h1 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-purple-950 via-purple-900 to-indigo-900 bg-clip-text text-transparent">
-                                    {view === 'cities' ? 'Job City Mapping & Vacancy Aggregator' : `${activeCityName} Job Listings`}
-                                </h1>
-                                <p className="text-slate-500 text-xs sm:text-sm font-medium">
-                                    {view === 'cities'
-                                        ? 'Real-time geographic distribution of jobs and verified recruiter vacancies across India'
-                                        : `Active vacancies and hiring positions currently listed in ${activeCityName}, ${selectedCity?.state || 'India'}`}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                </AdminPanel>
 
-                <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        onClick={view === 'cities' ? fetchCities : () => fetchJobsByCity(activeCityName)}
-                        disabled={isLoading || isJobsLoading}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-2xl text-xs font-bold transition-all disabled:opacity-50"
-                    >
-                        <ArrowsClockwiseIcon weight="bold" size={15} className={isLoading || isJobsLoading ? 'animate-spin' : ''} />
-                        <span>Refresh Data</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Metric Summary Cards (Shown on Cities view) */}
-            {view === 'cities' && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                        <GlobeHemisphereEastIcon size={28} weight="duotone" className="text-purple-700 shrink-0" aria-hidden="true" />
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Monitored Cities</p>
-                            <p className="text-2xl font-black text-slate-900 mt-0.5">{cities.length}</p>
-                        </div>
-                    </div>
-
-                    <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                        <BriefcaseIcon size={28} weight="duotone" className="text-emerald-700 shrink-0" aria-hidden="true" />
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Live Open Vacancies</p>
-                            <p className="text-2xl font-black text-emerald-700 mt-0.5">{totalVacanciesCount}</p>
-                        </div>
-                    </div>
-
-                    <div className="bg-km-surface-card p-6 rounded-[24px] border border-purple-100/60 shadow-sm flex items-center gap-4">
-                        <TrendUpIcon size={28} weight="duotone" className="text-indigo-700 shrink-0" aria-hidden="true" />
-                        <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Top Hiring Hub</p>
-                            <p className="text-xl font-black text-indigo-900 mt-0.5 truncate">
-                                {topCity ? `${topCity.name} (${topCity.jobs_count || 0})` : 'N/A'}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Filter & Search Bar */}
-            <div className="bg-km-surface-card p-6 rounded-[28px] border border-purple-100/60 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="relative w-full md:w-96">
-                    <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder={view === 'cities' ? "Search city or state..." : `Search jobs in ${activeCityName}...`}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm font-medium focus:outline-none focus:bg-km-surface-card focus:border-purple-600 focus:ring-4 focus:ring-purple-600/5 transition-all"
+                {closeTarget && (
+                    <ConfirmDialog
+                        title={`Close "${closeTarget.title}"?`}
+                        description="It stops taking applications and leaves the job listings."
+                        confirmLabel="Close job"
+                        busy={processingJobId === closeTarget.id}
+                        onCancel={() => setCloseTarget(null)}
+                        onConfirm={async () => {
+                            await handleCloseJob(closeTarget.id, closeTarget.title);
+                            setCloseTarget(null);
+                        }}
                     />
-                </div>
-
-                {view === 'cities' && (
-                    <div className="flex items-center gap-2 self-start md:self-auto overflow-x-auto">
-                        <button
-                            onClick={() => setFilterCategory('all')}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                                filterCategory === 'all'
-                                    ? 'bg-purple-600 text-white shadow-sm'
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                            }`}
-                        >
-                            All Cities ({cities.length})
-                        </button>
-                        <button
-                            onClick={() => setFilterCategory('with_vacancies')}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
-                                filterCategory === 'with_vacancies'
-                                    ? 'bg-purple-600 text-white shadow-sm'
-                                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                            }`}
-                        >
-                            <span>With Active Jobs</span>
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${filterCategory === 'with_vacancies' ? 'bg-km-surface-card/20 text-white' : 'bg-emerald-100 text-emerald-800'}`}>
-                                {cities.filter((c) => (c.jobs_count || 0) > 0).length}
-                            </span>
-                        </button>
-                    </div>
                 )}
             </div>
+        );
+    }
 
-            {/* Main Content View */}
-            <main>
-                <AnimatePresence mode="wait">
-                    {view === 'cities' ? (
-                        <motion.div
-                            key="cities-view"
-                            initial={{ opacity: 0, scale: 0.99 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.99 }}
-                            className="bg-km-surface-card rounded-[28px] shadow-sm border border-purple-100/60 overflow-hidden"
-                        >
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="border-b border-slate-100 bg-slate-50/60">
-                                            <th className="px-6 sm:px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                                City & State
-                                            </th>
-                                            <th className="px-6 sm:px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                                Aggregated Vacancies
-                                            </th>
-                                            <th className="px-6 sm:px-8 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider hidden sm:table-cell">
-                                                Status
-                                            </th>
-                                            <th className="px-6 sm:px-8 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider">
-                                                Action
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {isLoading ? (
-                                            <tr>
-                                                <td colSpan={4} className="px-8 py-20 text-center">
-                                                    <div className="flex flex-col items-center gap-3">
-                                                        <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin dark:text-purple-400" />
-                                                        <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">
-                                                            Aggregating job vacancies per city...
-                                                        </p>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ) : filteredCities.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={4} className="px-8 py-16 text-center text-slate-400">
-                                                    No cities found matching your search query.
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            filteredCities.map((city) => {
-                                                const hasJobs = (city.jobs_count || 0) > 0;
-                                                return (
-                                                    <tr
-                                                        key={city.id}
-                                                        onClick={() => handleCityClick(city)}
-                                                        className="hover:bg-purple-50/20 transition-colors cursor-pointer group"
-                                                    >
-                                                        <td className="px-6 sm:px-8 py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm shrink-0 border ${hasJobs ? 'bg-purple-100 text-purple-700 border-purple-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
-                                                                    <MapPinIcon weight="bold" size={18} />
-                                                                </div>
-                                                                <div>
-                                                                    <span className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
-                                                                        {city.name}
-                                                                    </span>
-                                                                    {city.state && (
-                                                                        <p className="text-xs text-slate-400 font-medium">
-                                                                            {city.state}, {city.country || 'India'}
-                                                                        </p>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </td>
+    return (
+        <div>
+            <AdminPageHeader
+                title="Jobs by city"
+                description="Open jobs in each city"
+                actions={
+                    <button type="button" onClick={fetchCities} disabled={isLoading} className={btn.secondary}>
+                        <ArrowsClockwiseIcon size={16} className={isLoading ? 'animate-spin' : ''} aria-hidden="true" />
+                        Refresh
+                    </button>
+                }
+            />
+            {banner}
 
-                                                        <td className="px-6 sm:px-8 py-4">
-                                                            <span
-                                                                className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold border ${
-                                                                    hasJobs
-                                                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                                                        : 'bg-slate-50 text-slate-500 border-slate-200'
-                                                                }`}
-                                                            >
-                                                                {city.vacancies || `${city.jobs_count || 0} Vacancies`}
-                                                            </span>
-                                                        </td>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <StatCard label="Cities" value={isLoading ? '–' : cities.length} icon={MapPinIcon} />
+                <StatCard label="Open jobs" value={isLoading ? '–' : totalVacanciesCount} icon={BriefcaseIcon} iconClassName="text-km-jobs-text" />
+                <StatCard label="Most jobs" value={isLoading ? '–' : (topCity && (topCity.jobs_count || 0) > 0 ? topCity.name : '–')}
+                    hint={topCity && (topCity.jobs_count || 0) > 0 ? `${topCity.jobs_count} open jobs` : undefined} icon={BuildingOfficeIcon} />
+            </div>
 
-                                                        <td className="px-6 sm:px-8 py-4 hidden sm:table-cell">
-                                                            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-                                                                <span className={`w-2 h-2 rounded-full ${city.active !== false ? 'bg-emerald-500' : 'bg-slate-300'}`}></span>
-                                                                {city.active !== false ? 'Active Hub' : 'Inactive'}
-                                                            </span>
-                                                        </td>
+            <AdminPanel>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-5 py-4 border-b border-km-border-subtle">
+                    <FilterTabs
+                        value={filterCategory}
+                        onChange={setFilterCategory}
+                        options={[
+                            { value: 'all', label: 'All cities' },
+                            { value: 'with_vacancies', label: 'With open jobs' },
+                        ]}
+                    />
+                    <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Search city or state" className="w-full sm:w-72" />
+                </div>
 
-                                                        <td className="px-6 sm:px-8 py-4 text-right">
-                                                            <button className="px-4 py-1.5 bg-purple-50 text-purple-700 hover:bg-purple-600 hover:text-white rounded-xl text-xs font-bold transition-all shadow-sm">
-                                                                View Jobs →
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="jobs-view"
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="space-y-4"
-                        >
-                            {isJobsLoading ? (
-                                <div className="bg-km-surface-card rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
-                                    <CircleNotchIcon className="w-12 h-12 text-purple-600 animate-spin dark:text-purple-400" />
-                                    <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">
-                                        Retrieving real-time jobs in {activeCityName}...
-                                    </p>
-                                </div>
-                            ) : jobs.length === 0 ? (
-                                <div className="bg-km-surface-card rounded-[28px] p-16 text-center border border-dashed border-purple-200 shadow-sm space-y-4">
-                                    <div className="w-16 h-16 bg-purple-50 rounded-3xl flex items-center justify-center text-3xl mx-auto">
-                                        📍
-                                    </div>
-                                    <h3 className="text-lg font-black text-slate-900">No Active Jobs in {activeCityName}</h3>
-                                    <p className="text-slate-500 text-xs max-w-md mx-auto">
-                                        There are currently no active job postings registered in {activeCityName}. Recruiters can post jobs mapped to this city via the Recruiter Portal.
-                                    </p>
-                                    <button
-                                        onClick={handleBack}
-                                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-2xl text-xs font-bold transition-all shadow-sm"
-                                    >
-                                        ← Back to All Cities
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                    {jobs.map((job) => {
-                                        const isProcessing = processingJobId === job.id;
-                                        const salaryDisplay =
-                                            job.salary_min && job.salary_max
-                                                ? `₹${job.salary_min.toLocaleString()} - ₹${job.salary_max.toLocaleString()}`
-                                                : job.salary_range || 'Competitive Salary';
-
-                                        return (
-                                            <div
-                                                key={job.id}
-                                                className="bg-km-surface-card rounded-[28px] p-6 sm:p-7 border border-purple-100/60 shadow-sm hover:shadow-md transition-all space-y-4"
-                                            >
-                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                                    <div>
-                                                        <h3 className="text-lg font-black text-slate-900">{job.title}</h3>
-                                                        <p className="text-xs sm:text-sm font-semibold text-slate-500 flex items-center gap-1.5 mt-0.5">
-                                                            <BuildingOfficeIcon weight="bold" size={15} className="text-purple-600 dark:text-purple-400" />
-                                                            <span>{job.company}</span>
-                                                        </p>
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2 self-start sm:self-auto">
-                                                        <span className="px-3 py-1 bg-purple-50 border border-purple-200 text-purple-700 text-xs font-bold rounded-full">
-                                                            {job.job_type || 'Full Time'}
-                                                        </span>
-                                                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${job.status === 'Closed' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
-                                                            {job.status || 'Active'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs font-bold text-slate-600">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <CurrencyInrIcon weight="bold" size={15} className="text-purple-600 dark:text-purple-400" />
-                                                        <span>{salaryDisplay}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <MapPinIcon weight="bold" size={15} className="text-purple-600 dark:text-purple-400" />
-                                                        <span>{job.location || job.city_name || activeCityName}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <UsersIcon weight="bold" size={15} className="text-purple-600 dark:text-purple-400" />
-                                                        <span>{job.applicant_count || 0} Applicants</span>
-                                                    </div>
-                                                </div>
-
-                                                {job.requirements && job.requirements.length > 0 && (
-                                                    <div className="flex flex-wrap items-center gap-2 pt-1">
-                                                        {job.requirements.slice(0, 4).map((req, idx) => (
-                                                            <span
-                                                                key={idx}
-                                                                className="px-2.5 py-1 bg-slate-100 text-slate-700 rounded-lg text-[11px] font-medium"
-                                                            >
-                                                                {req}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-
-                                                <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                                                    <span className="text-[11px] text-slate-400 font-mono">
-                                                        ID: {job.id}
-                                                    </span>
-
-                                                    <div className="flex items-center gap-2">
-                                                        <button
-                                                            onClick={() => handleCloseJob(job.id, job.title)}
-                                                            disabled={isProcessing}
-                                                            className="px-4 py-2 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50 dark:text-rose-400"
-                                                        >
-                                                            {isProcessing ? 'Updating...' : 'Close Vacancy'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </main>
+                {isLoading ? (
+                    <SkeletonRows rows={6} />
+                ) : filteredCities.length === 0 ? (
+                    <EmptyState icon={MapPinIcon} title="No cities found" description="Try a different search or filter." />
+                ) : (
+                    <div className={table.wrap}>
+                        <table className={table.table}>
+                            <thead>
+                                <tr>
+                                    <th className={table.th}>City</th>
+                                    <th className={table.th}>State</th>
+                                    <th className={`${table.th} text-right`}>Open jobs</th>
+                                    <th className={`${table.th} text-right`}><span className="sr-only">Open</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredCities.map((city) => (
+                                    <tr key={city.id || city.name} className={`${table.row} cursor-pointer`} onClick={() => handleCityClick(city)}>
+                                        <td className={`${table.td} font-medium text-km-heading`}>{city.name}</td>
+                                        <td className={`${table.td} text-km-text-secondary`}>{city.state || '–'}</td>
+                                        <td className={`${table.td} text-right font-inter tabular-nums`}>{city.jobs_count || 0}</td>
+                                        <td className={`${table.td} text-right`}>
+                                            <button type="button" onClick={(e) => { e.stopPropagation(); handleCityClick(city); }} className="inline-flex items-center gap-1 text-sm font-medium text-km-link hover:underline cursor-pointer">
+                                                View jobs
+                                                <CaretRightIcon size={14} aria-hidden="true" />
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </AdminPanel>
         </div>
     );
 }
 
 export default function JobCityWisePage() {
     return (
-        <Suspense fallback={
-            <div className="bg-km-surface-card rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
-                <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin dark:text-purple-400" />
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Loading city mapping...</p>
-            </div>
-        }>
+        <Suspense fallback={<SkeletonRows rows={6} />}>
             <JobCityWiseContent />
         </Suspense>
     );

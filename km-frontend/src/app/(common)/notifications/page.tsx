@@ -7,6 +7,7 @@ import { SealCheckIcon, ArrowUpRightIcon, ArrowsClockwiseIcon, BellIcon, Briefca
 import CustomImage from "@/components/ui/CustomImage";
 import PushPrompt from "@/components/km/PushPrompt";
 import { useNotifications, NotificationItem, sanitizeNotificationLink } from "@/lib/notifications";
+import AdSlot from '@/components/ads/AdSlot';
 
 const CATEGORIES = [
     { id: "all", label: "All", icon: BellIcon },
@@ -593,12 +594,12 @@ export default function NotificationsPage() {
                     </div>
                 </main>
 
-                {/* RIGHT SIDEBAR: Preserved Ad Banner Placeholder */}
-                <aside className="lg:col-span-3">
-                    <div className="bg-km-surface-card rounded-2xl h-64 flex items-center justify-center border border-dashed border-gray-200 text-gray-400 font-bold text-xl shadow-xs sticky top-20">
-                        Ad Banner
+                {/* Right column: an ad, which stays in view */}
+                <div className="lg:col-span-3">
+                    <div className="sticky top-20">
+                        <AdSlot placement="notifications_sidebar" />
                     </div>
-                </aside>
+                </div>
 
             </div>
         </div>

@@ -1255,7 +1255,8 @@
   },
   "ads": {
     "label": "विज्ञापन",
-    "placeholder": "विज्ञापन बैनर"
+    "sponsored": "प्रायोजित",
+    "learnMore": "और जानें"
   },
   "analytics": {
     "title": "एनालिटिक्स",

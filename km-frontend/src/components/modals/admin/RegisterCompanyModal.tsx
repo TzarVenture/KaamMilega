@@ -1,18 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ModalWrapper from '@/components/ui/ModalWrapper';
-import { 
-    BuildingOfficeIcon, 
-    CheckCircleIcon, 
-    CircleNotchIcon, 
-    EnvelopeSimpleIcon, 
-    GlobeIcon, 
-    IdentificationCardIcon, 
-    PhoneIcon, 
-    ShieldCheckIcon, 
-    UserIcon 
-} from '@phosphor-icons/react';
+import { AdminModal, btn, field } from '@/components/admin/ui';
+import { BuildingOfficeIcon, CircleNotchIcon, EnvelopeSimpleIcon, GlobeIcon, IdentificationCardIcon, PhoneIcon, ShieldCheckIcon, UserIcon } from '@phosphor-icons/react';
 import { notify } from '@/lib/notify';
 import api from '@/lib/axios';
 
@@ -80,7 +70,7 @@ const RegisterCompanyModal = ({ isOpen, onClose, user, onSuccess }: RegisterComp
         if (!user) return;
 
         if (!companyName.trim()) {
-            setError('Company Name is required.');
+            setError('Enter the company name.');
             return;
         }
 
@@ -102,7 +92,7 @@ const RegisterCompanyModal = ({ isOpen, onClose, user, onSuccess }: RegisterComp
             };
 
             await api.post('/admin/companies', payload);
-            notify.success(`Successfully registered "${user.name}" as Recruiter for "${companyName.trim()}"!`);
+            notify.success(`${user.name} is now a recruiter at ${companyName.trim()}`);
             onSuccess();
             onClose();
         } catch (err: any) {
@@ -116,63 +106,63 @@ const RegisterCompanyModal = ({ isOpen, onClose, user, onSuccess }: RegisterComp
     };
 
     return (
-        <ModalWrapper 
+        <AdminModal 
             isOpen={isOpen} 
             onClose={onClose} 
-            title={`Register as Company Recruiter — ${user?.name || 'User'}`}
+            title={`Make ${user?.name || 'this user'} a recruiter`}
         >
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                    <div className="p-3 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+                    <div className="p-3 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-xl">
                         {error}
                     </div>
                 )}
 
                 {/* Pre-fill Notice Banner */}
-                <div className="p-3.5 bg-purple-50/70 border border-purple-100 rounded-2xl flex items-start gap-3">
-                    <UserIcon size={20} weight="duotone" className="text-purple-600 shrink-0 mt-0.5" />
+                <div className="p-3.5 bg-km-surface border border-km-border rounded-2xl flex items-start gap-3">
+                    <UserIcon size={20} weight="duotone" className="text-km-link shrink-0 mt-0.5" />
                     <div>
-                        <p className="text-xs font-bold text-purple-900">
-                            Pre-filled from User Profile: <span className="font-semibold text-purple-700">{user?.name}</span>
+                        <p className="text-xs font-bold text-km-heading">
+                            Filled in from the profile of <span className="font-semibold text-km-link">{user?.name}</span>
                         </p>
-                        <p className="text-[11px] text-purple-600/80 mt-0.5">
-                            Mobile: <span className="font-mono font-medium">{user?.mobile || 'Not set'}</span>
-                            {user?.email && <> • Email: <span className="font-medium">{user.email}</span></>}
+                        <p className="text-xs text-km-link mt-0.5">
+                            Mobile: <span className="font-inter font-medium">{user?.mobile || 'Not set'}</span>
+                            {user?.email && <> · <span className="font-medium">{user.email}</span></>}
                         </p>
                     </div>
                 </div>
 
                 {/* Section 1: Company Credentials (Admin Enters These) */}
-                <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-200/80 space-y-3.5">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <BuildingOfficeIcon size={15} weight="bold" className="text-purple-600" />
-                        Company & Business Details
+                <div className="p-4 bg-km-surface rounded-2xl border border-km-border/80 space-y-3.5">
+                    <p className="text-xs font-bold text-km-text-secondary flex items-center gap-1.5">
+                        <BuildingOfficeIcon size={15} weight="bold" className="text-km-link" />
+                        Company & business details
                     </p>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Company / Organization Name <span className="text-rose-500">*</span>
+                        <label className={field.label}>
+                            Company name <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
                             required
-                            placeholder="e.g. Acme Technologies Pvt Ltd"
+                            placeholder="For example: Acme Technologies Pvt Ltd"
                             value={companyName}
                             onChange={(e) => setCompanyName(e.target.value)}
-                            className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all font-medium"
+                            className={field.input}
                             autoFocus
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Industry</label>
+                            <label className={field.label}>Industry</label>
                             <select
                                 value={industry}
                                 onChange={(e) => setIndustry(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium text-slate-700"
+                                className={`${field.input} cursor-pointer`}
                             >
-                                <option value="">Select Industry</option>
+                                <option value="">Select industry</option>
                                 {INDUSTRY_OPTIONS.map((opt) => (
                                     <option key={opt} value={opt}>{opt}</option>
                                 ))}
@@ -180,8 +170,8 @@ const RegisterCompanyModal = ({ isOpen, onClose, user, onSuccess }: RegisterComp
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-                                <GlobeIcon size={13} className="text-slate-400" />
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                                <GlobeIcon size={13} className="text-km-text-muted" />
                                 Website
                             </label>
                             <input
@@ -189,15 +179,15 @@ const RegisterCompanyModal = ({ isOpen, onClose, user, onSuccess }: RegisterComp
                                 placeholder="https://example.com"
                                 value={website}
                                 onChange={(e) => setWebsite(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium"
+                                className={field.input}
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-                                <IdentificationCardIcon size={14} className="text-slate-400" />
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                                <IdentificationCardIcon size={14} className="text-km-text-muted" />
                                 GSTIN / Tax ID
                             </label>
                             <input
@@ -205,119 +195,119 @@ const RegisterCompanyModal = ({ isOpen, onClose, user, onSuccess }: RegisterComp
                                 placeholder="e.g. 27ABCDE1234F1Z5"
                                 value={gst}
                                 onChange={(e) => setGst(e.target.value.toUpperCase())}
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono uppercase font-medium"
+                                className={`${field.input} font-inter`}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-                                <ShieldCheckIcon size={14} className="text-slate-400" />
-                                Initial Verification Status
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                                <ShieldCheckIcon size={14} className="text-km-text-muted" />
+                                Initial verification status
                             </label>
                             <select
                                 value={status}
                                 onChange={(e: any) => setStatus(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-bold text-slate-700"
+                                className={`${field.input} cursor-pointer`}
                             >
-                                <option value="verified">Verified (Direct Access)</option>
-                                <option value="pending">Pending Review</option>
-                                <option value="no_appeal">No Appeal</option>
+                                <option value="verified">Verified (direct access)</option>
+                                <option value="pending">Pending review</option>
+                                <option value="no_appeal">No appeal</option>
                             </select>
                         </div>
                     </div>
                 </div>
 
                 {/* Section 2: Recruiter Contact (Pre-filled from User) */}
-                <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-200/80 space-y-3.5">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                        <UserIcon size={15} weight="bold" className="text-purple-600" />
-                        Recruiter / HR Contact Details
+                <div className="p-4 bg-km-surface rounded-2xl border border-km-border/80 space-y-3.5">
+                    <p className="text-xs font-bold text-km-text-secondary flex items-center gap-1.5">
+                        <UserIcon size={15} weight="bold" className="text-km-link" />
+                        Recruiter / HR contact details
                     </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Recruiter Name</label>
+                            <label className={field.label}>Recruiter name</label>
                             <input
                                 type="text"
                                 value={recruiterName}
                                 onChange={(e) => setRecruiterName(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium"
+                                className={field.input}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Role / Designation</label>
+                            <label className={field.label}>Job title</label>
                             <input
                                 type="text"
-                                placeholder="e.g. HR Manager / Talent Lead"
+                                placeholder="For example: HR manager"
                                 value={designation}
                                 onChange={(e) => setDesignation(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium"
+                                className={field.input}
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-                                <EnvelopeSimpleIcon size={13} className="text-slate-400" />
-                                Work Email
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                                <EnvelopeSimpleIcon size={13} className="text-km-text-muted" />
+                                Work email
                             </label>
                             <input
                                 type="email"
                                 placeholder="recruiter@company.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-medium"
+                                className={field.input}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1 flex items-center gap-1">
-                                <PhoneIcon size={13} className="text-slate-400" />
-                                Mobile Number
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                                <PhoneIcon size={13} className="text-km-text-muted" />
+                                Mobile number
                             </label>
                             <input
                                 type="tel"
                                 placeholder="e.g. 9876543210"
                                 value={mobile}
                                 onChange={(e) => setMobile(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all font-mono font-medium"
+                                className={`${field.input} font-inter`}
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-km-border-subtle">
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={loading}
-                        className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                        className={btn.secondary}
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading || !companyName.trim()}
-                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 active:scale-95"
+                        className={btn.primary}
                     >
                         {loading ? (
                             <>
                                 <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
-                                <span>Registering Company...</span>
+                                <span>Saving</span>
                             </>
                         ) : (
                             <>
                                 <BuildingOfficeIcon weight="bold" size={16} />
-                                <span>Register as Company Recruiter</span>
+                                <span>Register as company recruiter</span>
                             </>
                         )}
                     </button>
                 </div>
             </form>
-        </ModalWrapper>
+        </AdminModal>
     );
 };
 

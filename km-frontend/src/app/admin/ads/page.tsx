@@ -1,164 +1,427 @@
 'use client';
 
-import React, { useState } from 'react';
-import { CaretDownIcon, DotsThreeVerticalIcon, MagnifyingGlassIcon, PlayCircleIcon, RocketLaunchIcon } from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'framer-motion';
-import AddAdsModal from '@/components/modals/admin/AddAdsModal';
-import Image from 'next/image';
-import { div } from 'framer-motion/client';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+    ArrowsClockwiseIcon,
+    ChartBarIcon,
+    CursorClickIcon,
+    EyeIcon,
+    MegaphoneIcon,
+    PauseIcon,
+    PencilSimpleIcon,
+    PercentIcon,
+    PlayIcon,
+    PlusIcon,
+    TrashIcon,
+    XIcon,
+} from '@phosphor-icons/react';
+import {
+    AdminPageHeader, AdminPanel, ConfirmDialog, EmptyState, FilterTabs, MenuItem, RowMenu, SearchInput,
+    SkeletonRows, StatCard, StatusBadge, btn, cx, table, type BadgeTone,
+} from '@/components/admin/ui';
+import AdCampaignModal from '@/components/modals/admin/AdCampaignModal';
+import { adsApi, type AdAudience, type AdCampaign, type AdDay, type AdPlacementInfo, type AdState } from '@/lib/api/ads';
+import api from '@/lib/axios';
+import { notify } from '@/lib/notify';
 
-const MOCK_ADS = [
-    {
-        id: '1',
-        title: 'Our Diversity And Inclusion At Workplace',
-        company: 'Company Name',
-        type: 'Video Ad',
-        thumbnail: 'https://images.unsplash.com/photo-1522071823991-b99c22302d9b?q=80&w=400&auto=format&fit=crop',
-    },
-    {
-        id: '2',
-        title: 'Our Diversity And Inclusion At Workplace',
-        company: 'Company Name',
-        type: 'Banner Ad',
-        thumbnail: 'https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=400&auto=format&fit=crop',
-    },
-    {
-        id: '3',
-        title: 'Our Diversity And Inclusion At Workplace',
-        company: 'Company Name',
-        type: 'Sidebar Ad',
-        thumbnail: 'https://images.unsplash.com/photo-1600880212340-02d9565539d0?q=80&w=400&auto=format&fit=crop',
-    }
-];
+const STATE_META: Record<AdState, { label: string; tone: BadgeTone }> = {
+    active: { label: 'Running', tone: 'green' },
+    scheduled: { label: 'Scheduled', tone: 'blue' },
+    paused: { label: 'Paused', tone: 'amber' },
+    ended: { label: 'Ended', tone: 'neutral' },
+};
 
-export default function AdsPublishedPage() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [view, setView] = useState<'list' | 'coming-soon'>('list');
+const fmt = (n: number) => n.toLocaleString('en-IN');
+const pct = (r: number) => `${(r * 100).toFixed(r > 0 && r < 0.001 ? 2 : 1)}%`;
+const date = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
 
-    const handleAddAd = (data: any) => {
-        console.log('Adding advertisement:', data);
+export default function AdsPage() {
+    const [campaigns, setCampaigns] = useState<AdCampaign[]>([]);
+    const [placements, setPlacements] = useState<AdPlacementInfo[]>([]);
+    const [audiences, setAudiences] = useState<AdAudience[]>([]);
+    const [cities, setCities] = useState<string[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState<'all' | AdState>('all');
+    const [search, setSearch] = useState('');
+
+    const [editing, setEditing] = useState<AdCampaign | null>(null);
+    const [formOpen, setFormOpen] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<AdCampaign | null>(null);
+    const [deleting, setDeleting] = useState(false);
+    const [statsFor, setStatsFor] = useState<AdCampaign | null>(null);
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        try {
+            const res = await adsApi.list();
+            setCampaigns(res.campaigns || []);
+            setPlacements(res.placements || []);
+            setAudiences(res.audiences || []);
+        } catch (err) {
+            notify.error(err, "Couldn't load campaigns");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => { load(); }, [load]);
+
+    // City names for the targeting picker
+    useEffect(() => {
+        api.get<unknown, { name: string }[] | { data?: { name: string }[] }>('/cities')
+            .then((res) => {
+                const list = Array.isArray(res) ? res : res?.data || [];
+                // Targeting matches on the name, and a name can repeat across states
+                setCities([...new Set(list.map((c) => c.name?.trim()).filter(Boolean))].sort());
+            })
+            .catch(() => setCities([]));
+    }, []);
+
+    const placementLabel = useMemo(() => Object.fromEntries(placements.map((p) => [p.id, p.label])), [placements]);
+
+    const counts = useMemo(() => {
+        const c: Record<string, number> = { all: campaigns.length, active: 0, scheduled: 0, paused: 0, ended: 0 };
+        campaigns.forEach((x) => { c[x.state] = (c[x.state] || 0) + 1; });
+        return c;
+    }, [campaigns]);
+
+    const totals = useMemo(() => {
+        const impressions = campaigns.reduce((s, c) => s + (c.impressions || 0), 0);
+        const clicks = campaigns.reduce((s, c) => s + (c.clicks || 0), 0);
+        return { impressions, clicks, ctr: impressions ? clicks / impressions : 0 };
+    }, [campaigns]);
+
+    const shown = useMemo(() => {
+        const q = search.trim().toLowerCase();
+        return campaigns.filter((c) =>
+            (filter === 'all' || c.state === filter) &&
+            (!q || [c.name, c.advertiser, c.headline].some((v) => v?.toLowerCase().includes(q))));
+    }, [campaigns, filter, search]);
+
+    const openNew = () => { setEditing(null); setFormOpen(true); };
+
+    const onSaved = (saved: AdCampaign) => {
+        setCampaigns((prev) => {
+            const exists = prev.some((c) => c.id === saved.id);
+            return exists ? prev.map((c) => (c.id === saved.id ? saved : c)) : [saved, ...prev];
+        });
     };
 
-    if (view === 'coming-soon') {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-8 p-8">
-                <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="relative"
-                >
-                    {/* Rocket Illustration Background */}
-                    <div className="absolute inset-0 bg-purple-100 rounded-full blur-3xl opacity-20 scale-150"></div>
-                    <div className="relative w-64 h-64 mx-auto bg-gradient-to-br from-purple-600 to-indigo-900 rounded-[64px] flex items-center justify-center shadow-2xl rotate-12">
-                        <RocketLaunchIcon size={120} className="text-white -rotate-12 animate-bounce" />
-                    </div>
-                </motion.div>
+    const toggleStatus = async (c: AdCampaign) => {
+        const next = c.status === 'paused' ? 'active' : 'paused';
+        try {
+            await adsApi.setStatus(c.id, next);
+            notify.success(next === 'paused' ? `${c.name} paused` : `${c.name} resumed`);
+            load();
+        } catch (err) {
+            notify.error(err, "Couldn't update the campaign");
+        }
+    };
 
-                <div className="space-y-3">
-                    <h1 className="text-5xl font-black text-slate-900 tracking-tight">Coming Soon</h1>
-                    <p className="text-xl font-bold text-slate-400 italic">We Are Working On It.</p>
-                </div>
-
-                <div className="pt-8">
-                    <button
-                        onClick={() => setView('list')}
-                        className="px-10 py-3 bg-purple-600 text-white rounded-full font-black uppercase tracking-widest hover:bg-purple-700 transition-all shadow-xl shadow-purple-600/20 active:scale-95"
-                    >
-                        Back To Dashboard
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    const confirmDelete = async () => {
+        if (!deleteTarget) return;
+        setDeleting(true);
+        try {
+            await adsApi.remove(deleteTarget.id);
+            setCampaigns((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+            notify.success(`${deleteTarget.name} deleted`);
+            setDeleteTarget(null);
+        } catch (err) {
+            notify.error(err, "Couldn't delete the campaign");
+        } finally {
+            setDeleting(false);
+        }
+    };
 
     return (
-        <div className="space-y-8">
-            <AddAdsModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSave={handleAddAd}
+        <div>
+            <AdminPageHeader
+                title="Ads"
+                description="Campaigns shown in ad slots across the site"
+                actions={
+                    <>
+                        <button type="button" onClick={load} disabled={loading} className={btn.icon} aria-label="Refresh">
+                            <ArrowsClockwiseIcon size={18} className={loading ? 'animate-spin' : ''} aria-hidden="true" />
+                        </button>
+                        <button type="button" onClick={openNew} className={btn.primary}>
+                            <PlusIcon size={16} weight="bold" aria-hidden="true" />
+                            New campaign
+                        </button>
+                    </>
+                }
             />
 
-            {/* Header Area */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                <div className="flex-1 flex items-center gap-6">
-                    <div className="flex items-center gap-2 text-sm font-bold text-slate-800 whitespace-nowrap">
-                        Sort by: <span className="flex items-center gap-1 text-slate-500 cursor-pointer hover:text-purple-600 transition-colors dark:hover:text-purple-400">Recently added <CaretDownIcon weight="bold" size={14} /></span>
-                    </div>
-                    <div className="relative flex-1 max-w-xl group">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Find Ad..."
-                            className="w-full pl-11 pr-4 py-2.5 bg-km-surface-card border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all outline-none shadow-sm"
-                        />
-                    </div>
-                </div>
-
-                <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setIsModalOpen(true)}
-                    className="flex items-center gap-2 px-8 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold shadow-lg shadow-purple-600/20 active:scale-95 uppercase tracking-wider"
-                >
-                    Add
-                </motion.button>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <StatCard label="Running now" value={loading ? '–' : counts.active} icon={MegaphoneIcon} />
+                <StatCard label="Impressions" value={loading ? '–' : fmt(totals.impressions)} icon={EyeIcon} hint="All time, all campaigns" />
+                <StatCard label="Clicks" value={loading ? '–' : fmt(totals.clicks)} icon={CursorClickIcon} />
+                <StatCard label="Click-through rate" value={loading ? '–' : pct(totals.ctr)} icon={PercentIcon} />
             </div>
 
-            {/* Ads List Table */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-km-surface-card rounded-[32px] border border-purple-50 shadow-xl shadow-purple-900/5 overflow-hidden"
-            >
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-separate border-spacing-0">
-                        <tbody className="divide-y divide-slate-50">
-                            {MOCK_ADS.map((ad, i) => (
-                                <tr key={ad.id} className="hover:bg-purple-50/20 transition-all group">
-                                    <td className="px-8 py-6 w-32">
-                                        <div className="relative w-20 h-14 bg-slate-100 rounded-xl overflow-hidden shadow-sm group-hover:scale-105 transition-transform">
-                                            <img src={ad.thumbnail} alt={ad.title} className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                                                <PlayCircleIcon size={24} className="text-white opacity-80" />
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-6">
-                                        <h4 className="text-lg font-bold text-slate-800 group-hover:text-purple-700 transition-colors">
-                                            {ad.title}
-                                        </h4>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex items-center gap-4 justify-end">
-                                            <div className="text-right">
-                                                <p className="text-sm font-black text-slate-700">{ad.company}</p>
-                                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{ad.type}</p>
-                                            </div>
-                                            <div className="w-10 h-10 bg-km-ink rounded-full flex items-center justify-center text-white ring-2 ring-purple-100 group-hover:ring-purple-200 transition-all">
-                                                <span className="text-xs font-bold italic rotate-45">▲▲</span>
-                                            </div>
-                                            <button className="p-2.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all ml-4 dark:hover:text-purple-400">
-                                                <DotsThreeVerticalIcon size={20} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            <AdminPanel>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between px-5 py-4 border-b border-km-border-subtle">
+                    <div className="overflow-x-auto -mx-1 px-1">
+                        <FilterTabs
+                            value={filter}
+                            onChange={setFilter}
+                            options={[
+                                { value: 'all', label: 'All', count: counts.all },
+                                { value: 'active', label: 'Running', count: counts.active },
+                                { value: 'scheduled', label: 'Scheduled', count: counts.scheduled },
+                                { value: 'paused', label: 'Paused', count: counts.paused },
+                                { value: 'ended', label: 'Ended', count: counts.ended },
+                            ]}
+                        />
+                    </div>
+                    <SearchInput value={search} onChange={setSearch} placeholder="Search campaign or advertiser" className="w-full lg:w-72" />
                 </div>
-            </motion.div>
 
-            {/* Temporary view toggle for demonstration */}
-            <div className="fixed bottom-8 right-8 flex gap-2">
-                <button
-                    onClick={() => setView(view === 'list' ? 'coming-soon' : 'list')}
-                    className="px-4 py-2 bg-km-ink text-white text-[10px] font-bold rounded-lg opacity-40 hover:opacity-100 transition-opacity uppercase tracking-widest"
-                >
-                    Toggle {view === 'list' ? 'Coming Soon' : 'List View'}
-                </button>
+                {loading ? (
+                    <SkeletonRows rows={5} />
+                ) : shown.length === 0 ? (
+                    <EmptyState
+                        icon={MegaphoneIcon}
+                        title={campaigns.length === 0 ? 'No campaigns yet' : 'No matching campaigns'}
+                        description={campaigns.length === 0
+                            ? 'Create a campaign to fill the ad slots in the feed, job search, job pages and Learn. Empty slots stay hidden.'
+                            : 'Try a different search or filter.'}
+                        action={campaigns.length === 0 ? (
+                            <button type="button" onClick={openNew} className={btn.primary}>
+                                <PlusIcon size={16} weight="bold" aria-hidden="true" />
+                                New campaign
+                            </button>
+                        ) : undefined}
+                    />
+                ) : (
+                    <div className={table.wrap}>
+                        <table className={table.table}>
+                            <thead>
+                                <tr>
+                                    <th className={table.th}>Campaign</th>
+                                    <th className={table.th}>Shows in</th>
+                                    <th className={table.th}>Status</th>
+                                    <th className={table.th}>Dates</th>
+                                    <th className={`${table.th} text-right`}>Impressions</th>
+                                    <th className={`${table.th} text-right`}>Clicks</th>
+                                    <th className={`${table.th} text-right`}>CTR</th>
+                                    <th className={`${table.th} text-right`}><span className="sr-only">Actions</span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {shown.map((c) => {
+                                    const meta = STATE_META[c.state] ?? STATE_META.ended;
+                                    return (
+                                        <tr key={c.id} className={table.row}>
+                                            <td className={table.td}>
+                                                <div className="flex items-center gap-3 min-w-[220px]">
+                                                    <span className="w-16 aspect-[1.91/1] shrink-0 overflow-hidden rounded-lg border border-km-border bg-km-surface">
+                                                        {c.creative_type === 'video'
+                                                            ? <video src={c.creative_url} muted preload="metadata" className="w-full h-full object-cover" aria-hidden="true" />
+                                                            // eslint-disable-next-line @next/next/no-img-element
+                                                            : <img src={c.creative_url} alt="" className="w-full h-full object-cover" />}
+                                                    </span>
+                                                    <span className="min-w-0">
+                                                        <span className="block font-medium text-km-heading truncate">{c.name}</span>
+                                                        <span className="block text-xs text-km-text-secondary truncate">{c.advertiser}</span>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className={`${table.td} text-km-text-secondary`}>
+                                                <span title={c.placements.map((p) => placementLabel[p] ?? p).join('\n')}>
+                                                    {c.placements.length === 1 ? placementLabel[c.placements[0]] ?? c.placements[0] : `${c.placements.length} places`}
+                                                </span>
+                                                {(c.audiences.length > 0 || c.cities.length > 0) && (
+                                                    <span className="block text-xs text-km-text-muted">
+                                                        {[c.audiences.length > 0 && `${c.audiences.length} audience${c.audiences.length > 1 ? 's' : ''}`,
+                                                          c.cities.length > 0 && `${c.cities.length} cit${c.cities.length > 1 ? 'ies' : 'y'}`].filter(Boolean).join(', ')}
+                                                    </span>
+                                                )}
+                                            </td>
+                                            <td className={table.td}><StatusBadge tone={meta.tone}>{meta.label}</StatusBadge></td>
+                                            <td className={`${table.td} whitespace-nowrap text-km-text-secondary font-inter`}>
+                                                {date(c.start_at)}
+                                                <span className="block text-xs text-km-text-muted">{c.end_at ? `to ${date(c.end_at)}` : 'No end date'}</span>
+                                            </td>
+                                            <td className={`${table.td} text-right font-inter tabular-nums`}>{fmt(c.impressions)}</td>
+                                            <td className={`${table.td} text-right font-inter tabular-nums`}>{fmt(c.clicks)}</td>
+                                            <td className={`${table.td} text-right font-inter tabular-nums`}>{c.impressions ? pct(c.ctr) : '–'}</td>
+                                            <td className={`${table.td} text-right`}>
+                                                <RowMenu label={`Actions for ${c.name}`}>
+                                                    {() => (
+                                                        <>
+                                                            <MenuItem icon={ChartBarIcon} onClick={() => setStatsFor(c)}>Daily numbers</MenuItem>
+                                                            <MenuItem icon={PencilSimpleIcon} onClick={() => { setEditing(c); setFormOpen(true); }}>Edit</MenuItem>
+                                                            {c.state !== 'ended' && (
+                                                                <MenuItem icon={c.status === 'paused' ? PlayIcon : PauseIcon} onClick={() => toggleStatus(c)}>
+                                                                    {c.status === 'paused' ? 'Resume' : 'Pause'}
+                                                                </MenuItem>
+                                                            )}
+                                                            <MenuItem icon={TrashIcon} danger onClick={() => setDeleteTarget(c)}>Delete</MenuItem>
+                                                        </>
+                                                    )}
+                                                </RowMenu>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </AdminPanel>
+
+            <AdCampaignModal
+                isOpen={formOpen}
+                onClose={() => setFormOpen(false)}
+                onSaved={onSaved}
+                campaign={editing}
+                placements={placements}
+                audiences={audiences}
+                cities={cities}
+            />
+
+            {deleteTarget && (
+                <ConfirmDialog
+                    title={`Delete ${deleteTarget.name}?`}
+                    description="The ad stops showing and its numbers are deleted. To keep the numbers, pause it instead."
+                    confirmLabel="Delete campaign"
+                    busy={deleting}
+                    onCancel={() => setDeleteTarget(null)}
+                    onConfirm={confirmDelete}
+                />
+            )}
+
+            {statsFor && <StatsDialog campaign={statsFor} onClose={() => setStatsFor(null)} />}
+        </div>
+    );
+}
+
+/** A campaign's daily impressions and clicks */
+function StatsDialog({ campaign, onClose }: { campaign: AdCampaign; onClose: () => void }) {
+    const [range, setRange] = useState<'7' | '30' | '90'>('30');
+    // Rows are kept with the range they belong to, so switching ranges shows loading until they arrive
+    const [loaded, setLoaded] = useState<{ range: string; days: AdDay[] } | null>(null);
+    const days = loaded?.range === range ? loaded.days : null;
+    const [metric, setMetric] = useState<'impressions' | 'clicks' | 'reach'>('impressions');
+
+    useEffect(() => {
+        let live = true;
+        adsApi.stats(campaign.id, Number(range) as 7 | 30 | 90)
+            .then((res) => live && setLoaded({ range, days: res.days || [] }))
+            .catch(() => live && setLoaded({ range, days: [] }));
+        return () => { live = false; };
+    }, [campaign.id, range]);
+
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [onClose]);
+
+    const sum = (k: keyof Omit<AdDay, 'day'>) => (days || []).reduce((s, d) => s + d[k], 0);
+    const impressions = sum('impressions');
+    const clicks = sum('clicks');
+    const max = Math.max(1, ...(days || []).map((d) => d[metric]));
+    const dayLabel = (d: string) => new Date(`${d}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/50" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+            <div role="dialog" aria-modal="true" aria-labelledby="ad-stats-title" className="w-full max-w-3xl max-h-[92vh] overflow-y-auto bg-km-surface-raised rounded-2xl border border-km-border shadow-lg">
+                <div className="flex items-start justify-between gap-4 px-6 py-4 border-b border-km-border-subtle">
+                    <div className="min-w-0">
+                        <h2 id="ad-stats-title" className="text-base font-semibold text-km-heading truncate">{campaign.name}</h2>
+                        <p className="text-xs text-km-text-secondary mt-0.5">{campaign.advertiser}</p>
+                    </div>
+                    <button type="button" onClick={onClose} className={btn.icon} aria-label="Close">
+                        <XIcon size={18} aria-hidden="true" />
+                    </button>
+                </div>
+
+                <div className="p-6 space-y-5">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                        <FilterTabs
+                            value={metric}
+                            onChange={setMetric}
+                            options={[
+                                { value: 'impressions', label: 'Impressions' },
+                                { value: 'reach', label: 'People reached' },
+                                { value: 'clicks', label: 'Clicks' },
+                            ]}
+                        />
+                        <FilterTabs
+                            value={range}
+                            onChange={setRange}
+                            options={[{ value: '7', label: '7 days' }, { value: '30', label: '30 days' }, { value: '90', label: '90 days' }]}
+                        />
+                    </div>
+
+                    <dl className="grid grid-cols-3 gap-3">
+                        {[
+                            ['Impressions', days ? fmt(impressions) : '–'],
+                            ['Clicks', days ? fmt(clicks) : '–'],
+                            ['Click-through rate', days ? (impressions ? pct(clicks / impressions) : '–') : '–'],
+                        ].map(([label, value]) => (
+                            <div key={label} className="rounded-xl border border-km-border-subtle p-3">
+                                <dt className="text-xs text-km-text-secondary">{label}</dt>
+                                <dd className="mt-0.5 text-lg font-semibold text-km-heading font-inter tabular-nums">{value}</dd>
+                            </div>
+                        ))}
+                    </dl>
+
+                    {days === null ? (
+                        <div className="h-48 rounded-xl bg-km-surface animate-pulse" aria-hidden="true" />
+                    ) : (
+                        <figure>
+                            <div className="flex h-48 items-end gap-[2px] border-b border-km-border" role="img" aria-label={`${metric} per day`}>
+                                {days.map((d) => (
+                                    <div key={d.day} className="group relative flex h-full flex-1 items-end">
+                                        <div
+                                            className={cx('w-full rounded-t-[4px] bg-km-blue', d[metric] === 0 && 'bg-transparent')}
+                                            style={{ height: `${(d[metric] / max) * 100}%` }}
+                                        />
+                                        <span className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-1 -translate-x-1/2 whitespace-nowrap rounded-lg bg-km-primary px-2 py-1 text-xs text-white opacity-0 group-hover:opacity-100 font-inter">
+                                            {dayLabel(d.day)}: {fmt(d[metric])}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                            <figcaption className="mt-1.5 flex justify-between text-xs text-km-text-muted font-inter">
+                                <span>{days[0] && dayLabel(days[0].day)}</span>
+                                <span>{days.length > 0 && dayLabel(days[days.length - 1].day)}</span>
+                            </figcaption>
+                        </figure>
+                    )}
+
+                    <details className="text-sm">
+                        <summary className="cursor-pointer text-km-link font-medium">Show as a table</summary>
+                        <div className={`${table.wrap} mt-3 max-h-64 overflow-y-auto rounded-xl border border-km-border-subtle`}>
+                            <table className={table.table}>
+                                <thead>
+                                    <tr>
+                                        <th className={table.th}>Day</th>
+                                        <th className={`${table.th} text-right`}>Impressions</th>
+                                        <th className={`${table.th} text-right`}>People reached</th>
+                                        <th className={`${table.th} text-right`}>Clicks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[...(days || [])].reverse().map((d) => (
+                                        <tr key={d.day}>
+                                            <td className={`${table.td} font-inter`}>{dayLabel(d.day)}</td>
+                                            <td className={`${table.td} text-right font-inter tabular-nums`}>{fmt(d.impressions)}</td>
+                                            <td className={`${table.td} text-right font-inter tabular-nums`}>{fmt(d.reach)}</td>
+                                            <td className={`${table.td} text-right font-inter tabular-nums`}>{fmt(d.clicks)}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+
+                    <p className="text-xs text-km-text-secondary">
+                        An impression is counted when half the ad is on screen for a second. Each person&apos;s clicks count once a day. Admins and bots are never counted.
+                    </p>
+                </div>
             </div>
         </div>
     );

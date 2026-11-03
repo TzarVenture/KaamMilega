@@ -1,135 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MagnifyingGlassIcon, NotePencilIcon, PlusIcon } from '@phosphor-icons/react';
-import { motion } from 'framer-motion';
-import PolicyModal from '@/components/modals/admin/PolicyModal';
+import React from 'react';
+import { ShieldCheckIcon } from '@phosphor-icons/react';
+import { AdminPageHeader, AdminPanel, EmptyState } from '@/components/admin/ui';
 
-const initialPolicies = [
-    {
-        id: '1',
-        title: 'Lorem Ipsum Dolor Sit Amet Consectetur.',
-        content: 'Lorem ipsum dolor sit amet consectetur. Dui ac erat sed consectetur. Elit elit sed convallis diam arcu massa facilisis arcu felis rhoncus. Gravida sed loren in risus. Dui egestas morbi lectus ipsum interdum id. Varius dignissim consequat eros felis facilisis feugiat blandit convallis diam arcu massa facilisis arcu felis rhoncus. Hendrerit varius libero hendrerit nisi id. Lorem ipsum dolor sit amet consectetur. Elit elit sed convallis diam arcu massa facilisis arcu felis rhoncus. Hendrerit varius libero hendrerit nisi id.'
-    },
-    {
-        id: '2',
-        title: 'Lorem Ipsum Dolor Sit Amet Consectetur.',
-        content: 'Lorem ipsum dolor sit amet consectetur. Dui ac erat sed consectetur. Elit elit sed convallis diam arcu massa facilisis arcu felis rhoncus. Gravida sed loren in risus. Dui egestas morbi lectus ipsum interdum id. Varius dignissim consequat eros felis facilisis feugiat blandit convallis diam arcu massa facilisis arcu felis rhoncus.'
-    },
-    {
-        id: '3',
-        title: 'Lorem Ipsum Dolor Sit Amet Consectetur.',
-        content: 'Lorem ipsum dolor sit amet consectetur. Dui ac erat sed consectetur. Elit elit sed convallis diam arcu massa facilisis arcu felis rhoncus. Gravida sed loren in risus. Dui egestas morbi lectus ipsum interdum id. Varius dignissim.'
-    }
-];
-
+// Terms and privacy pages have no backend yet (see docs/pending-todo.md), so there is nothing to
+// edit here. The page used to show placeholder text that looked like live policies.
 export default function PoliciesPage() {
-    const [policies, setPolicies] = useState(initialPolicies);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
-    const [selectedPolicy, setSelectedPolicy] = useState<any>(null);
-
-    const handleAddPolicy = () => {
-        setModalMode('add');
-        setSelectedPolicy(null);
-        setIsModalOpen(true);
-    };
-
-    const handleEditPolicy = (policy?: any) => {
-        setModalMode('edit');
-        setSelectedPolicy(policy || policies[0]); // Default to first for global edit button
-        setIsModalOpen(true);
-    };
-
-    const handleSavePolicy = (data: any) => {
-        if (modalMode === 'add') {
-            const newPolicy = {
-                id: (policies.length + 1).toString(),
-                ...data
-            };
-            setPolicies([...policies, newPolicy]);
-        } else {
-            setPolicies(policies.map(p => p.id === selectedPolicy.id ? { ...p, ...data } : p));
-        }
-        setIsModalOpen(false);
-    };
-
     return (
-        <div className="space-y-8 max-w-5xl mx-auto">
-            <PolicyModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                mode={modalMode}
-                policyData={selectedPolicy}
-                onSave={handleSavePolicy}
-            />
-
-            {/* Page Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-purple-100 pb-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-800">Policies</h1>
-                    <p className="text-slate-500 mt-1 font-medium">Manage platform terms, conditions and privacy rules</p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="relative group">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Find Policy..."
-                            className="w-full sm:w-64 pl-11 pr-4 py-2.5 bg-km-surface-card border border-purple-100 rounded-2xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/5 focus:border-purple-300 transition-all shadow-sm"
-                        />
-                    </div>
-                    <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={handleAddPolicy}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold hover:bg-purple-700 transition-all shadow-lg shadow-purple-200"
-                    >
-                        <PlusIcon weight="bold" size={18} />
-                        <span>Add Policies</span>
-                    </motion.button>
-                </div>
-            </div>
-
-            {/* Policies Content */}
-            <div className="bg-km-surface-card rounded-3xl p-8 border border-purple-50 shadow-sm relative">
-                <div className="space-y-10">
-                    {policies.map((policy, index) => (
-                        <div key={policy.id} className="relative group">
-                            <div className="flex items-start gap-4">
-                                <span className="text-xl font-bold text-gray-800 shrink-0">{index + 1}.</span>
-                                <div className="space-y-3">
-                                    <h3 className="text-xl font-bold text-gray-800 leading-snug">
-                                        {policy.title}
-                                    </h3>
-                                    <p className="text-gray-600 leading-relaxed text-base">
-                                        {policy.content}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Individual edit button appears on hover */}
-                            <button
-                                onClick={() => handleEditPolicy(policy)}
-                                className="absolute -right-2 -top-2 p-2 bg-km-surface-card border border-purple-100 rounded-xl text-purple-600 opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-purple-50 scale-90 dark:text-purple-400"
-                            >
-                                <NotePencilIcon weight="bold" size={16} />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Footer Edit Button as per mockup */}
-                <div className="mt-12">
-                    <button
-                        onClick={() => handleEditPolicy()}
-                        className="px-6 py-2 bg-purple-600 text-white rounded-xl text-sm font-bold hover:bg-purple-700 transition-all shadow-md active:scale-95"
-                    >
-                        Edit Policies
-                    </button>
-                </div>
-            </div>
+        <div>
+            <AdminPageHeader title="Policies" description="Terms of use, privacy and community rules" />
+            <AdminPanel>
+                <EmptyState
+                    icon={ShieldCheckIcon}
+                    title="Policies aren't connected yet"
+                    description="Policy pages need a backend before they can be edited here. Until then they're changed in the site's code."
+                />
+            </AdminPanel>
         </div>
     );
 }

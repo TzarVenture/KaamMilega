@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ModalWrapper from '@/components/ui/ModalWrapper';
+import { AdminModal, btn } from '@/components/admin/ui';
 import { CheckIcon, CircleNotchIcon, GraduationCapIcon, ShieldIcon, UserIcon } from '@phosphor-icons/react';
 
 interface UserRoleModalProps {
@@ -19,24 +19,24 @@ interface UserRoleModalProps {
 const AVAILABLE_ROLES = [
     {
         id: 'admin',
-        title: 'Platform Administrator',
+        title: 'Admin',
         description: 'Full platform access: moderate vacancies, verify companies, and manage all users.',
         icon: ShieldIcon,
-        color: 'text-purple-600 bg-purple-50 border-purple-200 dark:text-purple-400 dark:bg-purple-950/40 dark:border-purple-800'
+        color: 'text-km-link bg-km-surface border-km-border   '
     },
     {
         id: 'expert',
-        title: 'Verified Expert / Mentor',
+        title: 'Expert',
         description: 'Can host mentorship sessions, take expert bookings, and offer career advisory.',
         icon: GraduationCapIcon,
-        color: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/40 dark:border-amber-800'
+        color: 'text-amber-600 bg-amber-50 border-amber-200   '
     },
     {
         id: 'user',
-        title: 'Job Seeker / Candidate',
+        title: 'Jobseeker',
         description: 'Standard account: can browse jobs, apply to vacancies, and create profile.',
         icon: UserIcon,
-        color: 'text-blue-600 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950/40 dark:border-blue-800'
+        color: 'text-blue-600 bg-blue-50 border-blue-200   '
     }
 ];
 
@@ -79,14 +79,14 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
     };
 
     return (
-        <ModalWrapper
+        <AdminModal
             isOpen={isOpen}
             onClose={onClose}
-            title={`Manage Access — ${user?.name || 'User'}`}
+            title={`Roles for ${user?.name || 'this user'}`}
         >
             <form onSubmit={handleSave} className="space-y-6">
                 <div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-4">
+                    <p className="text-xs text-km-text-secondary font-medium mb-4">
                         Select one or multiple access roles for this account. Changes apply immediately upon saving.
                     </p>
 
@@ -101,8 +101,8 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
                                     type="button"
                                     onClick={() => toggleRole(role.id)}
                                     className={`w-full p-4 rounded-2xl border text-left transition-all flex items-start justify-between gap-4 ${isSelected
-                                        ? 'bg-purple-50/60 dark:bg-purple-950/20 border-purple-300 dark:border-purple-600 ring-2 ring-purple-500/10'
-                                        : 'bg-km-surface-card border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/50 dark:hover:bg-slate-800/40'
+ ?'bg-km-surface  border-km-border  ring-2 ring-km-border'
+                                        : 'bg-km-surface-card border-km-border  hover:border-km-border  hover:bg-km-surface '
                                         }`}
                                 >
                                     <div className="flex items-start gap-3.5">
@@ -111,20 +111,20 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
-                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white">{role.title}</h4>
-                                                <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 uppercase">
+                                                <h4 className="text-sm font-bold text-km-heading">{role.title}</h4>
+                                                <span className="font-inter text-xs font-bold px-2 py-0.5 rounded-md bg-km-surface text-km-text-secondary">
                                                     {role.id}
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium leading-relaxed">
+                                            <p className="text-xs text-km-text-secondary mt-1 font-medium leading-relaxed">
                                                 {role.description}
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className={`w-6 h-6 rounded-lg flex items-center justify-center border shrink-0 mt-0.5 transition-colors ${isSelected
-                                        ? 'bg-purple-600 border-purple-600 text-white'
-                                        : 'border-slate-300 dark:border-slate-600 bg-km-surface-card'
+ ?'bg-km-primary border-km-blue text-white'
+                                        : 'border-km-border  bg-km-surface-card'
                                         }`}>
                                         {isSelected && <CheckIcon weight="bold" size={14} />}
                                     </div>
@@ -134,32 +134,32 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
                     </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-km-border-subtle">
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={isSaving}
-                        className="px-5 py-2.5 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                        className={btn.secondary}
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={isSaving || selectedRoles.length === 0}
-                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 active:scale-95"
+                        className={btn.primary}
                     >
                         {isSaving ? (
                             <>
                                 <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
-                                <span>Updating Permissions...</span>
+                                <span>Saving</span>
                             </>
                         ) : (
-                            <span>Save Permissions</span>
+                            <span>Save permissions</span>
                         )}
                     </button>
                 </div>
             </form>
-        </ModalWrapper>
+        </AdminModal>
     );
 };
 

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
+import AdSlot from '@/components/ads/AdSlot';
 import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
 
 // ─── Types ───
@@ -70,6 +71,9 @@ const QUALIFICATION_OPTIONS = ['10th Pass', '12th Pass', 'Diploma', 'Graduation'
 const POPULAR_SEARCH_SUGGESTIONS = ['Software Engineer', 'Sales Executive', 'Driver', 'Delivery Representative', 'Telecaller', 'Accountant', 'Electrician'];
 
 // ─── Design.md Shimmer Skeleton Loader ───
+/** Job results show one sponsored card, after this many jobs */
+const JOBS_AD_AFTER = 4;
+
 const JobCardSkeleton = () => (
     <div className="bg-km-surface-card p-5 sm:p-6 rounded-2xl border border-km-border shadow-xs space-y-4">
         <div className="flex items-start justify-between gap-4">
@@ -939,14 +943,17 @@ const JobsPageContent = () => {
                                 </div>
                             ) : (
                                 <>
-                                    {jobs.map((job) => (
-                                        <JobCard
-                                            key={job.id}
-                                            job={job}
-                                            hasApplied={appliedJobIds.has(job.id)}
-                                            isBookmarked={bookmarkedJobIds.has(job.id)}
-                                            onToggleBookmark={(e) => handleToggleBookmark(job.id, e)}
-                                        />
+                                    {jobs.map((job, i) => (
+                                        <React.Fragment key={job.id}>
+                                            <JobCard
+                                                job={job}
+                                                hasApplied={appliedJobIds.has(job.id)}
+                                                isBookmarked={bookmarkedJobIds.has(job.id)}
+                                                onToggleBookmark={(e) => handleToggleBookmark(job.id, e)}
+                                            />
+                                            {/* One sponsored card per page of results, after the fourth job (or the last, on a short page) */}
+                                            {i === Math.min(JOBS_AD_AFTER, jobs.length) - 1 && <AdSlot placement="jobs_inline" />}
+                                        </React.Fragment>
                                     ))}
 
                                     {/* Pagination Controls */}

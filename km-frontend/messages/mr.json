@@ -1255,7 +1255,8 @@
   },
   "ads": {
     "label": "जाहिरात",
-    "placeholder": "जाहिरात बॅनर"
+    "sponsored": "प्रायोजित",
+    "learnMore": "अधिक जाणून घ्या"
   },
   "analytics": {
     "title": "ॲनालिटिक्स",

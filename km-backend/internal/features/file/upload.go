@@ -16,7 +16,7 @@ const MaxUploadSize = 10 << 20
 
 var (
 	errFileTooLarge   = apperr.New("FILE_TOO_LARGE", "File is too large. The limit is 10 MB.")
-	errFileType       = apperr.New("FILE_TYPE_NOT_ALLOWED", "This file type isn't supported. Use JPG, PNG, WebP, GIF, SVG, PDF, DOC, DOCX or TXT.")
+	errFileType       = apperr.New("FILE_TYPE_NOT_ALLOWED", "This file type isn't supported. Use JPG, PNG, WebP, GIF, SVG, PDF, DOC, DOCX, TXT, MP4 or WebM.")
 	errFileMismatch   = apperr.New("FILE_CONTENT_MISMATCH", "The file's contents don't match its extension.")
 	errFileEmpty      = apperr.New("FILE_EMPTY", "The file is empty.")
 	errUnreadableFile = apperr.New("FILE_UNREADABLE", "Error reading the uploaded file.")
@@ -35,6 +35,8 @@ var allowedTypes = map[string]string{
 	".doc":  "application/msword",
 	".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 	".txt":  "text/plain; charset=utf-8",
+	".mp4":  "video/mp4",
+	".webm": "video/webm",
 }
 
 // sniffMatches checks the first bytes against the claimed extension for formats with a
@@ -42,7 +44,7 @@ var allowedTypes = map[string]string{
 func sniffMatches(ext string, head []byte) bool {
 	detected := http.DetectContentType(head)
 	switch ext {
-	case ".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf":
+	case ".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf", ".mp4", ".webm":
 		return detected == allowedTypes[ext]
 	case ".docx":
 		return detected == "application/zip"

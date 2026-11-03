@@ -1255,7 +1255,8 @@
   },
   "ads": {
     "label": "Advertisement",
-    "placeholder": "Ad Banner"
+    "sponsored": "Sponsored",
+    "learnMore": "Learn more"
   },
   "analytics": {
     "title": "Analytics",

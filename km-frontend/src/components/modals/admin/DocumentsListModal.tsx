@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import ModalWrapper from '@/components/ui/ModalWrapper';
+import { AdminModal, btn } from '@/components/admin/ui';
 import { BuildingOfficeIcon, CaretRightIcon, CheckCircleIcon, CircleNotchIcon, FileTextIcon, ShieldCheckIcon, XCircleIcon } from '@phosphor-icons/react';
 
 interface DocumentsListModalProps {
@@ -43,22 +43,22 @@ const DocumentsListModal = ({
     };
 
     return (
-        <ModalWrapper
+        <AdminModal
             isOpen={isOpen}
             onClose={onClose}
-            title={`Company Verification — ${companyName}`}
+            title={`Verification documents, ${companyName}`}
         >
             {/* Company Metadata Header */}
-            <div className="bg-purple-50/60 border border-purple-100/80 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="bg-km-surface border border-km-border rounded-2xl p-4 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-600 text-white rounded-xl flex items-center justify-center font-bold shrink-0">
+                    <div className="w-10 h-10 bg-km-primary text-white rounded-xl flex items-center justify-center font-bold shrink-0">
                         <BuildingOfficeIcon size={20} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-slate-900 text-sm">{companyName || 'Unnamed Company'}</h4>
+                        <h4 className="font-bold text-km-heading text-sm">{companyName || 'Unnamed company'}</h4>
                         {companyGst && (
-                            <p className="text-xs text-slate-500 font-medium mt-0.5">
-                                GST: <span className="font-mono font-bold text-slate-700">{companyGst}</span>
+                            <p className="text-xs text-km-text-secondary font-medium mt-0.5">
+                                GST: <span className="font-inter font-bold text-km-text-secondary">{companyGst}</span>
                             </p>
                         )}
                     </div>
@@ -76,13 +76,13 @@ const DocumentsListModal = ({
                         </span>
                     )}
                     {status === 'rejected' && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-rose-700 bg-rose-100 border border-rose-200 rounded-full whitespace-nowrap shrink-0">
+                        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-red-700 bg-red-100 border border-red-200 rounded-full whitespace-nowrap shrink-0">
                             <XCircleIcon weight="bold" size={13} /> Rejected
                         </span>
                     )}
                     {(status === 'no_appeal' || !status) && (
-                        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-slate-600 bg-slate-100 border border-slate-200 rounded-full whitespace-nowrap shrink-0">
-                            No Appeal
+                        <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-bold text-km-text-secondary bg-km-surface border border-km-border rounded-full whitespace-nowrap shrink-0">
+                            No appeal
                         </span>
                     )}
                 </div>
@@ -90,12 +90,12 @@ const DocumentsListModal = ({
 
             {/* Documents Section */}
             <div className="space-y-3">
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Submitted Verification Documents</p>
+                <p className="text-xs font-bold text-km-text-muted">Submitted verification documents</p>
                 {documents.length === 0 ? (
-                    <div className="text-center py-8 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                        <FileTextIcon size={28} className="mx-auto text-slate-400 mb-2" />
-                        <p className="text-sm font-medium text-slate-500">No documents uploaded by recruiter.</p>
-                        <p className="text-xs text-slate-400 mt-1">This recruiter registered without submitting business verification files.</p>
+                    <div className="text-center py-8 bg-km-surface rounded-2xl border border-dashed border-km-border">
+                        <FileTextIcon size={28} className="mx-auto text-km-text-muted mb-2" />
+                        <p className="text-sm font-medium text-km-text-secondary">No documents uploaded by recruiter.</p>
+                        <p className="text-xs text-km-text-muted mt-1">This recruiter registered without submitting business verification files.</p>
                     </div>
                 ) : (
                     documents.map((doc) => (
@@ -103,16 +103,16 @@ const DocumentsListModal = ({
                             key={doc.id}
                             type="button"
                             onClick={() => onViewDocument(doc)}
-                            className="w-full flex items-center justify-between p-4 bg-slate-50/80 hover:bg-purple-50 rounded-2xl transition-all group border border-slate-100 hover:border-purple-200"
+                            className="w-full flex items-center justify-between p-4 bg-km-surface hover:bg-km-surface rounded-2xl transition-all group border border-km-border-subtle hover:border-km-border"
                         >
                             <div className="flex items-center gap-3">
-                                <FileTextIcon size={24} weight="duotone" className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
+                                <FileTextIcon size={24} weight="duotone" className="text-km-link" aria-hidden="true" />
                                 <div className="text-left">
-                                    <span className="font-bold text-slate-800 text-sm block">{doc.name || 'Document'}</span>
-                                    <span className="text-[11px] text-purple-600 font-semibold group-hover:underline dark:text-purple-400">Click to view document &rarr;</span>
+                                    <span className="font-bold text-km-heading text-sm block">{doc.name || 'Document'}</span>
+                                    <span className="text-xs text-km-link font-semibold group-hover:underline">Click to view document &rarr;</span>
                                 </div>
                             </div>
-                            <CaretRightIcon weight="bold" size={18} className="text-slate-400 group-hover:text-purple-600 group-hover:translate-x-1 transition-all dark:group-hover:text-purple-400" />
+                            <CaretRightIcon weight="bold" size={18} className="text-km-text-muted group-hover:text-km-link transition-all" />
                         </button>
                     ))
                 )}
@@ -120,15 +120,15 @@ const DocumentsListModal = ({
 
             {/* Verification Actions Footer */}
             {onUpdateStatus && companyId && (
-                <div className="mt-8 pt-6 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3">
+                <div className="mt-8 pt-6 border-t border-km-border-subtle flex flex-wrap items-center justify-end gap-3">
                     {(status === 'verified' || status === 'rejected') && (
                         <button
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleAction(documents.length > 0 ? 'pending' : 'no_appeal')}
-                            className="w-full sm:w-auto px-5 py-2.5 border border-purple-200 text-purple-700 hover:bg-purple-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                            className="w-full sm:w-auto px-5 py-2.5 border border-km-border text-km-link hover:bg-km-surface rounded-xl text-xs font-bold transition-all disabled:opacity-50"
                         >
-                            Undo to {documents.length > 0 ? 'Pending' : 'No Appeal'}
+                            Undo to {documents.length > 0 ? 'Pending' : 'No appeal'}
                         </button>
                     )}
                     {status !== 'rejected' && (
@@ -136,10 +136,10 @@ const DocumentsListModal = ({
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleAction('rejected')}
-                            className="w-full sm:w-auto px-6 py-2.5 border border-rose-200 text-rose-600 hover:bg-rose-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2 dark:text-rose-400"
+                            className="w-full sm:w-auto px-6 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             <XCircleIcon weight="bold" size={16} />
-                            <span>Reject Application</span>
+                            <span>Reject application</span>
                         </button>
                     )}
                     {status !== 'verified' && (
@@ -147,24 +147,24 @@ const DocumentsListModal = ({
                             type="button"
                             disabled={isUpdating}
                             onClick={() => handleAction('verified')}
-                            className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                            className={btn.primary}
                         >
                             {isUpdating ? (
                                 <>
                                     <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
-                                    <span>Updating...</span>
+                                    <span>Saving</span>
                                 </>
                             ) : (
                                 <>
                                     <CheckCircleIcon weight="bold" size={16} />
-                                    <span>Approve & Verify Company</span>
+                                    <span>Approve & verify company</span>
                                 </>
                             )}
                         </button>
                     )}
                 </div>
             )}
-        </ModalWrapper>
+        </AdminModal>
     );
 };
 

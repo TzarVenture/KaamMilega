@@ -2,28 +2,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { 
-    ArrowSquareOutIcon, 
-    ArrowsClockwiseIcon, 
-    CircleNotchIcon, 
-    ClockIcon, 
-    EyeIcon, 
-    MagnifyingGlassIcon, 
-    PencilSimpleIcon, 
-    PlayIcon, 
-    PlusIcon, 
-    StackIcon, 
-    TrashIcon, 
-    UserIcon, 
-    VideoCameraIcon, 
-    WarningIcon, 
-    XIcon 
-} from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowSquareOutIcon, ArrowsClockwiseIcon, EyeIcon, PencilSimpleIcon, PlayIcon, PlusIcon, StackIcon, TrashIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import { notify } from "@/lib/notify";
 import api from '@/lib/axios';
 import LearnVideoModal, { CourseVideo } from '@/components/modals/admin/LearnVideoModal';
 import Pagination from '@/components/ui/Pagination';
+import { AdminPageHeader, AdminPanel, ConfirmDialog, EmptyState, FilterTabs, SearchInput, SkeletonRows, StatCard, btn, field } from '@/components/admin/ui';
 import { openYouTubeVideo, getYouTubeThumbnail } from '@/lib/youtube';
 
 export default function LearnVideosPage() {
@@ -63,7 +47,7 @@ export default function LearnVideosPage() {
             setVideos(data);
         } catch (err: any) {
             console.error('Failed to fetch videos:', err);
-            notify.error(err?.message || 'Failed to load learn videos catalog');
+            notify.error(err, "Couldn't load courses");
         } finally {
             setLoading(false);
             setRefreshing(false);
@@ -154,7 +138,7 @@ export default function LearnVideosPage() {
                 thumbnail_url: formData.thumbnail_url,
                 description: formData.description
             });
-            notify.success('Course updated platform-wide!');
+            notify.success('Course updated');
             setVideos(prev => prev.map(v => v.id === formData.id ? { ...v, ...updated } : v));
         } else {
             // Create across platform
@@ -166,7 +150,7 @@ export default function LearnVideosPage() {
                 thumbnail_url: formData.thumbnail_url,
                 description: formData.description
             });
-            notify.success('New course added platform-wide!');
+            notify.success('Course added');
             setVideos(prev => [created, ...prev]);
         }
         setIsAddEditModalOpen(false);
@@ -179,14 +163,14 @@ export default function LearnVideosPage() {
         setIsDeleting(true);
         try {
             await api.delete(`/courses/${deleteModalVideo.id}`);
-            notify.success('Course permanently deleted platform-wide!');
+            notify.success('Course deleted');
             setVideos(prev => prev.filter(v => v.id !== deleteModalVideo.id));
             if (paginatedVideos.length === 1 && currentPage > 1) {
                 setCurrentPage(prev => prev - 1);
             }
             setDeleteModalVideo(null);
         } catch (err: any) {
-            notify.error(err?.message || 'Failed to delete course');
+            notify.error(err, "Couldn't delete the course");
         } finally {
             setIsDeleting(false);
         }
@@ -210,318 +194,182 @@ export default function LearnVideosPage() {
         }
     };
 
+    const openCreate = () => {
+        setEditingVideo(null);
+        setIsAddEditModalOpen(true);
+    };
+    const filtersActive = searchTerm !== '' || selectedCategory !== 'All';
+
     return (
-        <div className="space-y-6">
-            {/* ─── Top Bar / Admin Banner ─── */}
-            <div className="bg-km-surface-card rounded-2xl p-4 sm:p-5 border border-km-border shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 bg-km-surface text-[#071A4D] rounded-xl dark:bg-km-primary dark:text-km-primary">
-                            <VideoCameraIcon size={20} weight="bold" />
-                        </div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-km-heading">
-                            Admin Learn Videos Management
-                        </h1>
-                    </div>
-                    <p className="text-xs text-km-text-secondary">
-                        Manage, edit, or remove any learning video across Kaammilega.
-                    </p>
-                </div>
+        <div>
+            <AdminPageHeader
+                title="Learn videos"
+                description="Courses shown on the Learn page, from experts and the Kaammilega team"
+                actions={
+                    <>
+                        <button type="button" onClick={() => fetchVideos(false)} disabled={refreshing} className={btn.icon} aria-label="Refresh">
+                            <ArrowsClockwiseIcon size={18} className={refreshing ? 'animate-spin' : ''} aria-hidden="true" />
+                        </button>
+                        <button type="button" onClick={openCreate} className={btn.primary}>
+                            <PlusIcon size={16} weight="bold" aria-hidden="true" />
+                            Add course
+                        </button>
+                    </>
+                }
+            />
 
-                {/* Stats Chips & Add Button */}
-                <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-heading">
-                        <StackIcon size={14} className="text-[#0B5ED7]" />
-                        <span>{videos.length} Courses</span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-heading">
-                        <EyeIcon size={14} className="text-emerald-600" />
-                        <span>{totalViews.toLocaleString()} Views</span>
-                    </div>
-
-                    <button
-                        onClick={() => fetchVideos(false)}
-                        disabled={refreshing}
-                        title="Refresh Catalog"
-                        className="p-2 bg-km-surface hover:bg-km-surface-card text-km-text-secondary hover:text-km-heading rounded-xl border border-km-border transition-all disabled:opacity-50 cursor-pointer shadow-2xs"
-                    >
-                        <ArrowsClockwiseIcon size={15} className={refreshing ? 'animate-spin' : ''} />
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            setEditingVideo(null);
-                            setIsAddEditModalOpen(true);
-                        }}
-                        className="flex items-center gap-1.5 px-4 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-bold shadow-xs active:scale-95 transition-all cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
-                    >
-                        <PlusIcon weight="bold" size={14} />
-                        <span>Add New Course</span>
-                    </button>
-                </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                <StatCard label="Courses" value={loading ? '–' : videos.length} icon={StackIcon} />
+                <StatCard label="Total views" value={loading ? '–' : totalViews.toLocaleString('en-IN')} icon={EyeIcon} iconClassName="text-km-jobs-text" />
             </div>
 
-            {/* ─── Filter and Search Controls ─── */}
-            <div className="bg-km-surface-card p-3.5 sm:p-4 rounded-2xl border border-km-border shadow-xs space-y-3">
-                <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
-                    {/* Search Input */}
-                    <div className="relative flex-1">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-secondary" size={16} />
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            placeholder="Search courses by title, category, expert name or description..."
-                            className="w-full pl-9 pr-9 py-2 bg-km-surface hover:bg-km-surface/80 focus:bg-km-surface-card border border-km-border rounded-xl text-xs sm:text-sm text-km-text-primary focus:outline-hidden focus:ring-2 focus:ring-[#0B5ED7]/20 focus:border-[#0B5ED7] transition-all"
-                        />
-                        {searchTerm && (
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-km-text-secondary hover:text-km-text-primary p-0.5"
+            <AdminPanel>
+                <div className="flex flex-col gap-3 px-5 py-4 border-b border-km-border-subtle">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <SearchInput value={searchTerm} onChange={setSearchTerm} placeholder="Search title, category or expert" className="w-full sm:max-w-sm" />
+                        <label className="flex items-center gap-2 shrink-0 whitespace-nowrap text-sm text-km-text-secondary">
+                            Sort by
+                            <select
+                                value={sortBy}
+                                onChange={(e) => setSortBy(e.target.value as 'recent' | 'views' | 'title')}
+                                className={`${field.input} w-auto cursor-pointer`}
                             >
-                                <XIcon weight="bold" size={13} />
-                            </button>
-                        )}
+                                <option value="recent">Recently added</option>
+                                <option value="views">Most viewed</option>
+                                <option value="title">Title, A to Z</option>
+                            </select>
+                        </label>
                     </div>
-
-                    {/* Sort Options */}
-                    <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-xs font-semibold text-km-text-secondary">Sort:</span>
-                        <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value as any)}
-                            className="bg-km-surface border border-km-border rounded-xl px-3 py-1.5 text-xs font-semibold text-km-heading focus:outline-hidden focus:border-[#0B5ED7] transition-all cursor-pointer"
-                        >
-                            <option value="recent">Recently Added</option>
-                            <option value="views">Most Viewed</option>
-                            <option value="title">Title (A-Z)</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Category Pills */}
-                {categories.length > 1 && (
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 scrollbar-none">
-                        {categories.map((cat) => {
-                            const isSelected = selectedCategory === cat;
-                            return (
-                                <button
-                                    key={cat}
-                                    onClick={() => setSelectedCategory(cat)}
-                                    className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
-                                        isSelected
-                                            ? 'bg-[#071A4D] text-white border-[#071A4D] shadow-2xs dark:bg-km-primary dark:border-km-primary'
-                                            : 'bg-km-surface hover:bg-km-surface-card text-km-text-secondary border-km-border hover:border-[#0B5ED7]/40'
-                                    }`}
-                                >
-                                    {cat}
-                                </button>
-                            );
-                        })}
-                    </div>
-                )}
-            </div>
-
-            {/* ─── Video Cards Grid (Exact Card Layout from /courses/manage) ─── */}
-            {loading ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-km-surface-card rounded-2xl border border-km-border shadow-xs">
-                    <CircleNotchIcon size={32} className="text-km-link animate-spin mb-2.5" />
-                    <p className="text-xs font-semibold text-km-text-secondary">Loading courses catalog...</p>
-                </div>
-            ) : filteredVideos.length === 0 ? (
-                <div className="bg-km-surface-card rounded-2xl p-10 text-center border border-km-border shadow-xs space-y-3">
-                    <div className="w-14 h-14 bg-km-surface text-km-text-secondary rounded-full flex items-center justify-center mx-auto">
-                        <VideoCameraIcon size={26} />
-                    </div>
-                    <div className="space-y-1">
-                        <h3 className="text-base font-bold text-km-heading">No Learning Courses Found</h3>
-                        <p className="text-xs text-km-text-secondary max-w-sm mx-auto">
-                            {searchTerm || selectedCategory !== 'All'
-                                ? 'No courses match your active search or category filters. Try clearing filters.'
-                                : 'The catalog is empty. Add a new course to make it available platform-wide.'}
-                        </p>
-                    </div>
-                    {searchTerm || selectedCategory !== 'All' ? (
-                        <button
-                            onClick={() => {
-                                setSearchTerm('');
-                                setSelectedCategory('All');
-                            }}
-                            className="px-3.5 py-1.5 bg-km-surface hover:bg-km-surface/80 text-km-heading text-xs font-bold rounded-xl transition-all cursor-pointer border border-km-border"
-                        >
-                            Reset Filters
-                        </button>
-                    ) : (
-                        <button
-                            onClick={() => {
-                                setEditingVideo(null);
-                                setIsAddEditModalOpen(true);
-                            }}
-                            className="px-5 py-2 bg-[#071A4D] hover:bg-[#0B1F52] text-white text-xs font-bold rounded-xl shadow-xs transition-all inline-flex items-center gap-1.5 cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
-                        >
-                            <PlusIcon weight="bold" size={14} /> Add First Course
-                        </button>
-                    )}
-                </div>
-            ) : (
-                <div className="space-y-6">
-                    {/* Exact Card Grid from /courses/manage - Mobile, Tablet, Laptop, Monitor friendly */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
-                        {paginatedVideos.map((video) => {
-                            const formattedViews = (video.views || 0) >= 1000 
-                                ? `${((video.views || 0) / 1000).toFixed(1)}K` 
-                                : String(video.views || 0);
-
-                            return (
-                                <div
-                                    key={video.id}
-                                    className="bg-km-surface-card rounded-2xl border border-km-border overflow-hidden shadow-xs hover:border-[#0B5ED7]/40 hover:shadow-md transition-all flex flex-col justify-between"
-                                >
-                                    <div>
-                                        {/* Thumbnail Box */}
-                                        <div 
-                                            className="relative w-full aspect-video sm:h-44 bg-slate-100 overflow-hidden cursor-pointer"
-                                            onClick={() => setPreviewVideo(video)}
-                                        >
-                                            <img
-                                                src={video.thumbnail_url || getYouTubeThumbnail(video.youtube_video_id || '')}
-                                                alt={video.title}
-                                                className="w-full h-full object-cover"
-                                                onError={(e) => {
-                                                    if (video.youtube_video_id) {
-                                                        (e.target as HTMLImageElement).src = getYouTubeThumbnail(video.youtube_video_id);
-                                                    }
-                                                }}
-                                            />
-
-                                            {/* Category Badge on Top-Left matching reference screenshot */}
-                                            {video.category && (
-                                                <span className="absolute top-0 left-0 bg-[#071A4D] text-white text-xs font-semibold px-3.5 py-1.5 rounded-tl-xl rounded-br-2xl shadow-xs z-10 dark:bg-km-primary">
-                                                    {video.category}
-                                                </span>
-                                            )}
-
-                                            {/* Minimalist Play Icon in Center */}
-                                            <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
-                                                <div className="w-10 h-10 bg-km-surface-card text-km-heading rounded-full flex items-center justify-center shadow-xs">
-                                                    <PlayIcon weight="fill" size={15} className="ml-0.5" />
-                                                </div>
-                                            </div>
-
-                                            {/* Duration */}
-                                            <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 dark:bg-km-primary">
-                                                <ClockIcon weight="bold" size={11} /> {video.duration || "30 Min"}
-                                            </span>
-                                        </div>
-
-                                        {/* Info */}
-                                        <div className="p-4 space-y-2">
-                                            <h3 
-                                                onClick={() => setPreviewVideo(video)}
-                                                className="text-sm font-bold text-km-text-primary line-clamp-2 leading-snug cursor-pointer hover:text-km-link transition-colors"
-                                                title={video.title}
-                                            >
-                                                {video.title}
-                                            </h3>
-
-                                            {/* Full description without trimming */}
-                                            {video.description && (
-                                                <p className="text-xs text-km-text-secondary leading-relaxed break-words whitespace-pre-line line-clamp-3">
-                                                    {video.description}
-                                                </p>
-                                            )}
-
-                                            <div className="pt-2 border-t border-km-border/60 flex flex-col gap-2 text-xs text-km-text-secondary">
-                                                {/* Expert Profile Redirection - Clicking redirects to expert's profile */}
-                                                <div className="flex items-center justify-between gap-2">
-                                                    {video.expert_id ? (
-                                                        <Link 
-                                                            href={`/profile/${video.expert_id}`}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                            className="flex items-center gap-1.5 font-bold text-km-heading hover:text-km-link hover:underline truncate max-w-[170px] transition-colors"
-                                                            title={`View ${video.expert_name || 'Expert'}'s Profile`}
-                                                        >
-                                                            <UserIcon weight="bold" size={14} className="text-km-link shrink-0" />
-                                                            <span className="truncate">{video.expert_name || 'Expert'}</span>
-                                                        </Link>
-                                                    ) : (
-                                                        <div className="flex items-center gap-1.5 font-bold text-km-text-secondary truncate max-w-[170px]">
-                                                            <UserIcon weight="bold" size={14} className="shrink-0" />
-                                                            <span className="truncate">{video.expert_name || 'Admin'}</span>
-                                                        </div>
-                                                    )}
-
-                                                    <span className="text-[11px] text-km-text-secondary">
-                                                        {formatDate(video.created_at)}
-                                                    </span>
-                                                </div>
-
-                                                {/* Views and Watch button */}
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-1 font-bold text-km-heading">
-                                                        <EyeIcon weight="bold" size={13} className="text-km-link" />
-                                                        <span>{formattedViews} Viewers</span>
-                                                    </div>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => openYouTubeVideo(video.youtube_video_id || '', video.youtube_url)}
-                                                        className="text-[#FF6B00] hover:underline flex items-center gap-1 font-semibold cursor-pointer"
-                                                    >
-                                                        <span>Watch</span>
-                                                        <ArrowSquareOutIcon weight="bold" size={11} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Action Buttons: Edit and Delete with Admin Privileges */}
-                                    <div className="p-3 bg-km-surface/70 border-t border-km-border flex items-center justify-between gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setEditingVideo(video);
-                                                setIsAddEditModalOpen(true);
-                                            }}
-                                            className="flex-1 py-2 px-3 bg-km-surface-card hover:bg-blue-50 border border-km-border hover:border-[#0B5ED7]/50 text-km-heading hover:text-km-link rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
-                                        >
-                                            <PencilSimpleIcon weight="bold" size={13} />
-                                            <span>Edit</span>
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setDeleteModalVideo(video)}
-                                            className="flex-1 py-2 px-3 bg-km-surface-card hover:bg-red-50 border border-km-border hover:border-red-300 text-red-600 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs dark:text-red-400 cursor-pointer"
-                                        >
-                                            <TrashIcon weight="bold" size={13} />
-                                            <span>Delete</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* ─── Pagination Controls (Centered matching /courses/manage) ─── */}
-                    {totalPages > 1 && (
-                        <div className="flex justify-center pt-8 pb-4">
-                            <Pagination
-                                current={currentPage}
-                                total={totalPages}
-                                onPageChange={(p) => {
-                                    setCurrentPage(p);
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
+                    {categories.length > 1 && (
+                        <div className="overflow-x-auto -mx-1 px-1">
+                            <FilterTabs
+                                value={selectedCategory}
+                                onChange={setSelectedCategory}
+                                options={categories.map((cat) => ({ value: cat, label: cat }))}
                             />
                         </div>
                     )}
                 </div>
-            )}
 
-            {/* ─── Add / Edit Video Modal (Admin Power Across Platform) ─── */}
+                {loading ? (
+                    <SkeletonRows rows={6} />
+                ) : filteredVideos.length === 0 ? (
+                    <EmptyState
+                        icon={VideoCameraIcon}
+                        title={filtersActive ? 'No matching courses' : 'No courses yet'}
+                        description={filtersActive ? 'Try a different search or category.' : 'Add a course to show it on the Learn page.'}
+                        action={filtersActive ? (
+                            <button type="button" onClick={() => { setSearchTerm(''); setSelectedCategory('All'); }} className={btn.secondary}>
+                                Clear filters
+                            </button>
+                        ) : (
+                            <button type="button" onClick={openCreate} className={btn.primary}>
+                                <PlusIcon size={16} weight="bold" aria-hidden="true" />
+                                Add course
+                            </button>
+                        )}
+                    />
+                ) : (
+                    <div className="p-5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                            {paginatedVideos.map((video) => (
+                                <article key={video.id} className="flex flex-col bg-km-surface-card rounded-2xl border border-km-border overflow-hidden">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPreviewVideo(video)}
+                                        className="relative block w-full aspect-video bg-km-surface overflow-hidden cursor-pointer"
+                                        aria-label={`Play ${video.title}`}
+                                    >
+                                        <img
+                                            src={video.thumbnail_url || getYouTubeThumbnail(video.youtube_video_id || '')}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                if (video.youtube_video_id) {
+                                                    (e.target as HTMLImageElement).src = getYouTubeThumbnail(video.youtube_video_id);
+                                                }
+                                            }}
+                                        />
+                                        <span className="absolute inset-0 flex items-center justify-center bg-black/10">
+                                            <span className="w-10 h-10 rounded-full bg-white text-[#071A4D] flex items-center justify-center shadow-sm">
+                                                <PlayIcon weight="fill" size={16} className="ml-0.5" aria-hidden="true" />
+                                            </span>
+                                        </span>
+                                        {video.duration && (
+                                            <span className="absolute bottom-2 right-2 px-1.5 py-0.5 rounded-md bg-black/70 text-white text-xs font-medium font-inter">
+                                                {video.duration}
+                                            </span>
+                                        )}
+                                    </button>
+
+                                    <div className="flex-1 p-4">
+                                        {video.category && <p className="text-xs font-medium text-km-link mb-1">{video.category}</p>}
+                                        <h3 className="text-sm font-semibold text-km-heading line-clamp-2 leading-snug" title={video.title}>
+                                            {video.title}
+                                        </h3>
+                                        {video.description && (
+                                            <p className="mt-1.5 text-xs text-km-text-secondary leading-relaxed line-clamp-2">{video.description}</p>
+                                        )}
+                                        <div className="mt-3 flex items-center justify-between gap-2 text-xs text-km-text-secondary">
+                                            {video.expert_id ? (
+                                                <Link href={`/profile/${video.expert_id}`} className="font-medium text-km-heading hover:text-km-link hover:underline truncate">
+                                                    {video.expert_name || 'Expert'}
+                                                </Link>
+                                            ) : (
+                                                <span className="font-medium truncate">{video.expert_name || 'Kaammilega team'}</span>
+                                            )}
+                                            <span className="shrink-0 font-inter">
+                                                {(video.views || 0).toLocaleString('en-IN')} views · {formatDate(video.created_at)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1 px-3 py-2 border-t border-km-border-subtle">
+                                        <button
+                                            type="button"
+                                            onClick={() => { setEditingVideo(video); setIsAddEditModalOpen(true); }}
+                                            className={`${btn.ghost} h-9 px-3`}
+                                        >
+                                            <PencilSimpleIcon size={16} aria-hidden="true" />
+                                            Edit
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => openYouTubeVideo(video.youtube_video_id || '', video.youtube_url)}
+                                            className={`${btn.ghost} h-9 px-3`}
+                                        >
+                                            <ArrowSquareOutIcon size={16} aria-hidden="true" />
+                                            YouTube
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setDeleteModalVideo(video)}
+                                            className={`${btn.icon} ml-auto hover:text-red-600`}
+                                            aria-label={`Delete ${video.title}`}
+                                        >
+                                            <TrashIcon size={18} aria-hidden="true" />
+                                        </button>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+
+                        {totalPages > 1 && (
+                            <div className="flex justify-center pt-6">
+                                <Pagination
+                                    current={currentPage}
+                                    total={totalPages}
+                                    onPageChange={(p) => {
+                                        setCurrentPage(p);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                />
+                            </div>
+                        )}
+                    </div>
+                )}
+            </AdminPanel>
+
             <LearnVideoModal
                 isOpen={isAddEditModalOpen}
                 onClose={() => {
@@ -532,125 +380,77 @@ export default function LearnVideosPage() {
                 initialData={editingVideo}
             />
 
-            {/* ─── Delete Confirmation Modal (Admin Power Across Platform) ─── */}
-            <AnimatePresence>
-                {deleteModalVideo && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="w-full max-w-md bg-km-surface-card rounded-2xl p-6 shadow-2xl border border-red-100 space-y-4"
-                        >
-                            <div className="w-12 h-12 bg-red-50 text-red-600 rounded-xl flex items-center justify-center mx-auto">
-                                <WarningIcon weight="bold" size={24} />
-                            </div>
+            {deleteModalVideo && (
+                <ConfirmDialog
+                    title={`Delete "${deleteModalVideo.title}"?`}
+                    description="It's removed from the Learn page and from the expert's course list. This can't be undone."
+                    confirmLabel="Delete course"
+                    busy={isDeleting}
+                    onCancel={() => setDeleteModalVideo(null)}
+                    onConfirm={handleConfirmDelete}
+                />
+            )}
 
-                            <div className="text-center space-y-1.5">
-                                <h3 className="text-base font-bold text-km-heading">
-                                    Delete Course Platform-Wide?
-                                </h3>
-                                <p className="text-xs text-km-text-secondary leading-relaxed">
-                                    Are you sure you want to delete <span className="font-semibold text-km-heading">"{deleteModalVideo.title}"</span>? As an admin, this will permanently remove it from the catalog across the entire platform, including candidate search and the creator's course studio.
+            {previewVideo && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => setPreviewVideo(null)}>
+                    <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="preview-title"
+                        className="w-full max-w-3xl bg-km-surface-raised rounded-2xl overflow-hidden shadow-lg border border-km-border"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex items-center justify-between gap-4 px-5 py-3.5 border-b border-km-border-subtle">
+                            <div className="min-w-0">
+                                <h2 id="preview-title" className="text-sm font-semibold text-km-heading truncate">{previewVideo.title}</h2>
+                                <p className="text-xs text-km-text-secondary mt-0.5">
+                                    {[previewVideo.category, previewVideo.duration].filter(Boolean).join(' · ')}
                                 </p>
                             </div>
+                            <button type="button" onClick={() => setPreviewVideo(null)} className={btn.icon} aria-label="Close">
+                                <XIcon size={18} aria-hidden="true" />
+                            </button>
+                        </div>
 
-                            <div className="flex items-center justify-center gap-2.5 pt-2">
-                                <button
-                                    type="button"
-                                    onClick={() => setDeleteModalVideo(null)}
-                                    disabled={isDeleting}
-                                    className="px-4 py-2 text-xs font-semibold text-km-text-secondary hover:text-km-heading hover:bg-km-surface rounded-xl transition-all cursor-pointer border border-km-border"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleConfirmDelete}
-                                    disabled={isDeleting}
-                                    className="flex items-center gap-1.5 px-5 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-600/20 active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
-                                >
-                                    {isDeleting && <CircleNotchIcon size={14} className="animate-spin" />}
-                                    Delete Platform-Wide
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            {/* ─── Embedded Video Player Modal ─── */}
-            <AnimatePresence>
-                {previewVideo && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="w-full max-w-3xl bg-km-surface-card rounded-2xl overflow-hidden shadow-2xl border border-km-border"
-                        >
-                            <div className="flex items-center justify-between px-5 py-3.5 border-b border-km-border">
-                                <div className="truncate pr-4">
-                                    <h3 className="font-bold text-km-heading text-sm truncate">
-                                        {previewVideo.title}
-                                    </h3>
-                                    <div className="flex items-center gap-2 text-[11px] text-km-text-secondary mt-0.5">
-                                        <span className="text-[#0B5ED7] font-semibold">{previewVideo.category}</span>
-                                        <span>•</span>
-                                        <span>{previewVideo.duration}</span>
-                                    </div>
+                        <div className="relative aspect-video bg-black">
+                            {previewVideo.youtube_video_id ? (
+                                <iframe
+                                    src={`https://www.youtube.com/embed/${previewVideo.youtube_video_id}?autoplay=1&rel=0`}
+                                    title={previewVideo.title}
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowFullScreen
+                                    className="w-full h-full border-0"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-white text-sm">
+                                    This course has no YouTube video.
                                 </div>
-                                <button
-                                    onClick={() => setPreviewVideo(null)}
-                                    className="p-1.5 text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-lg transition-all cursor-pointer"
-                                >
-                                    <XIcon size={18} />
-                                </button>
-                            </div>
+                            )}
+                        </div>
 
-                            {/* Player */}
-                            <div className="relative aspect-video bg-black">
-                                {previewVideo.youtube_video_id ? (
-                                    <iframe
-                                        src={`https://www.youtube.com/embed/${previewVideo.youtube_video_id}?autoplay=1&rel=0`}
-                                        title={previewVideo.title}
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        className="w-full h-full border-0"
-                                    />
+                        <div className="flex items-center justify-between gap-3 px-5 py-3 border-t border-km-border-subtle">
+                            <p className="text-xs text-km-text-secondary">
+                                Added by{' '}
+                                {previewVideo.expert_id ? (
+                                    <Link href={`/profile/${previewVideo.expert_id}`} className="font-medium text-km-heading hover:text-km-link hover:underline">
+                                        {previewVideo.expert_name || 'Expert'}
+                                    </Link>
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white text-xs">
-                                        <p>No valid YouTube video ID found.</p>
-                                    </div>
+                                    <span className="font-medium text-km-heading">{previewVideo.expert_name || 'Kaammilega team'}</span>
                                 )}
-                            </div>
-
-                            <div className="p-3 bg-km-surface flex items-center justify-between border-t border-km-border">
-                                <p className="text-xs text-km-text-secondary">
-                                    Uploaded by{' '}
-                                    {previewVideo.expert_id ? (
-                                        <Link 
-                                            href={`/profile/${previewVideo.expert_id}`}
-                                            className="font-semibold text-km-heading hover:text-[#0B5ED7] hover:underline"
-                                            title="View Expert Profile"
-                                        >
-                                            {previewVideo.expert_name || 'Admin'}
-                                        </Link>
-                                    ) : (
-                                        <span className="font-semibold text-km-heading">{previewVideo.expert_name || 'Admin'}</span>
-                                    )}
-                                </p>
-                                <button
-                                    onClick={() => openYouTubeVideo(previewVideo.youtube_video_id || '', previewVideo.youtube_url)}
-                                    className="flex items-center gap-1.5 text-xs font-bold text-[#FF6B00] hover:underline cursor-pointer"
-                                >
-                                    <ArrowSquareOutIcon size={14} /> Open in YouTube App/Tab
-                                </button>
-                            </div>
-                        </motion.div>
+                            </p>
+                            <button
+                                type="button"
+                                onClick={() => openYouTubeVideo(previewVideo.youtube_video_id || '', previewVideo.youtube_url)}
+                                className="inline-flex items-center gap-1.5 text-sm font-medium text-km-link hover:underline cursor-pointer"
+                            >
+                                <ArrowSquareOutIcon size={16} aria-hidden="true" />
+                                Open in YouTube
+                            </button>
+                        </div>
                     </div>
-                )}
-            </AnimatePresence>
+                </div>
+            )}
         </div>
     );
 }

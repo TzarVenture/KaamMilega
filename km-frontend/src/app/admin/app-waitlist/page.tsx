@@ -105,7 +105,7 @@ export default function AppWaitlistPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-km-text-primary">App Waitlist</h1>
+                    <h1 className="text-2xl font-bold text-km-heading tracking-tight">App waitlist</h1>
                     <p className="mt-1 text-sm text-km-text-secondary">
                         People who asked to be told when the KaamMilega app launches (InstantMilega page and the Get the app dialog).
                     </p>
@@ -134,7 +134,7 @@ export default function AppWaitlistPage() {
                                 setPage(1);
                             }}
                             className={`px-4 h-9 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-                                filter === value ? "bg-km-surface-card text-km-text-primary shadow-xs" : "text-km-text-secondary hover:text-km-text-primary"
+ filter === value ?"bg-km-surface-card text-km-text-primary shadow-xs" : "text-km-text-secondary hover:text-km-text-primary"
                             }`}
                         >
                             {label}
@@ -170,9 +170,9 @@ export default function AppWaitlistPage() {
                                     <td className="px-5 py-3">
                                         <span
                                             className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                                                entry.interest === "hire"
-                                                    ? "bg-[#EBF3FE] text-km-link dark:bg-[#172A50]"
-                                                    : "bg-[#FFF7ED] text-[#C2410C] dark:bg-[#34272F] dark:text-orange-300"
+ entry.interest ==="hire"
+                                                    ? "bg-blue-50 text-km-link"
+                                                    : "bg-orange-50 text-km-instant-text"
                                             }`}
                                         >
                                             {entry.interest === "hire" ? "Hire" : "Work"}

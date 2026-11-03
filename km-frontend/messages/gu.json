@@ -1255,7 +1255,8 @@
   },
   "ads": {
     "label": "જાહેરાત",
-    "placeholder": "જાહેરાત બેનર"
+    "sponsored": "પ્રાયોજિત",
+    "learnMore": "વધુ જાણો"
   },
   "analytics": {
     "title": "એનાલિટિક્સ",

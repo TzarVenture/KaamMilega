@@ -3,6 +3,7 @@ import { BriefcaseIcon, ChatCircleIcon, MapPinIcon, PlusIcon, UsersIcon } from '
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { CompanyProvider, useCompany } from "./CompanyContext";
+import AdSlot from '@/components/ads/AdSlot';
 
 const tabs = [
     { id: 1, label: 'About', links: "/company/[Id]" },
@@ -113,10 +114,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                 {/* RIGHT COLUMN: Sidebar */}
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
 
-                    {/* Ad Banner Top */}
-                    <div className="bg-km-surface-card border border-gray-100 rounded-2xl h-48 flex items-center justify-center text-gray-400 font-bold shadow-sm">
-                        Ad Banner
-                    </div>
+                    <AdSlot placement="company_sidebar" />
 
                     {/* People Also Follow */}
                     <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -186,11 +184,6 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                             Show All
                         </button>
                     </section>
-
-                    {/* Ad Banner Bottom */}
-                    <div className="bg-km-surface-card border border-gray-100 rounded-2xl h-80 flex items-center justify-center text-gray-400 font-bold shadow-sm">
-                        Ad Banner
-                    </div>
 
                 </div>
             </div>

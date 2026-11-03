@@ -14,6 +14,8 @@ type Kind struct {
 	Visibility storage.Visibility
 	Extensions []string
 	MaxSize    int64
+	// AdminOnly kinds can only be uploaded by admins
+	AdminOnly bool
 }
 
 var (
@@ -29,6 +31,8 @@ var kinds = map[string]Kind{
 	"company_logo": {Visibility: storage.Public, Extensions: append([]string{".svg"}, imageExts...), MaxSize: 2 << 20},
 	"event_image":  {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
 	"feed_image":   {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
+	// Ad creatives (admins only): an image, an animated GIF or a short muted video
+	"ad_creative": {Visibility: storage.Public, Extensions: append([]string{".gif", ".mp4", ".webm"}, imageExts...), MaxSize: MaxUploadSize, AdminOnly: true},
 
 	// Private: owner, admins and the people the file was shared with, through signed links
 	"resume":           {Visibility: storage.Private, Extensions: documentExts, MaxSize: 5 << 20},
@@ -42,6 +46,7 @@ var (
 	errUnknownKind  = apperr.New("FILE_KIND_INVALID", "Unknown upload type.")
 	errKindFileType = apperr.New("FILE_TYPE_NOT_ALLOWED_HERE", "This file type isn't allowed here.")
 	errKindTooLarge = apperr.New("FILE_TOO_LARGE_HERE", "This file is over the size limit for this upload.")
+	errKindAdminOnly = apperr.New("FILE_KIND_ADMIN_ONLY", "Only admins can upload this.")
 )
 
 func init() {

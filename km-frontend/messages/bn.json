@@ -1255,7 +1255,8 @@
   },
   "ads": {
     "label": "বিজ্ঞাপন",
-    "placeholder": "বিজ্ঞাপন ব্যানার"
+    "sponsored": "স্পনসর করা",
+    "learnMore": "আরও জানুন"
   },
   "analytics": {
     "title": "অ্যানালিটিক্স",

@@ -3,22 +3,9 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { 
-    BuildingOfficeIcon, 
-    CheckCircleIcon, 
-    CircleNotchIcon, 
-    DotsThreeVerticalIcon, 
-    EnvelopeSimpleIcon, 
-    LightningIcon, 
-    MagnifyingGlassIcon, 
-    NotePencilIcon, 
-    PlusIcon, 
-    ShieldIcon, 
-    UserIcon, 
-    UserPlusIcon, 
-    UsersIcon 
-} from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { BuildingOfficeIcon, NotePencilIcon, ShieldIcon, UserIcon, UsersIcon } from '@phosphor-icons/react';
+import Pagination from '@/components/ui/Pagination';
+import { AdminPageHeader, AdminPanel, EmptyState, FilterTabs, SearchInput, SkeletonRows, StatCard, StatusBadge, btn, table, type BadgeTone } from '@/components/admin/ui';
 import { notify } from "@/lib/notify";
 import UserProfileModal from '@/components/modals/admin/UserProfileModal';
 import UserRoleModal from '@/components/modals/admin/UserRoleModal';
@@ -48,6 +35,7 @@ function UsersContent() {
     const [users, setUsers] = useState<PlatformUser[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+    const [roleFilter, setRoleFilter] = useState(searchParams.get('role') || 'all');
     const [page, setPage] = useState(1);
     const pageSize = 10;
 
@@ -102,7 +90,7 @@ function UsersContent() {
             setUsers(mappedUsers);
         } catch (error) {
             console.error('Failed to fetch users:', error);
-            notify.error('Failed to load platform users');
+            notify.error("Couldn't load users");
         } finally {
             setIsLoading(false);
         }
@@ -114,6 +102,7 @@ function UsersContent() {
 
     // Filter users
     const filteredUsers = users.filter((u) => {
+        if (roleFilter !== 'all' && !u.roles.includes(roleFilter)) return false;
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
         return (
@@ -135,12 +124,6 @@ function UsersContent() {
     const recruiterCount = users.filter(u => u.roles.includes('recruiter')).length;
     const candidateCount = users.filter(u => !u.roles.includes('admin') && !u.roles.includes('recruiter')).length;
 
-    const handleAddUser = () => {
-        setModalMode('add');
-        setSelectedUser(null);
-        setIsProfileModalOpen(true);
-    };
-
     const handleEditUser = (user: PlatformUser) => {
         setModalMode('edit');
         setSelectedUser(user);
@@ -160,10 +143,10 @@ function UsersContent() {
             const sanitizedRoles = newRoles.filter(r => r.toLowerCase() !== 'recruiter' || hasCompany);
             await api.patch(`/admin/users/${userId}/roles`, { roles: sanitizedRoles });
             setUsers(prev => prev.map(u => u.id === userId ? { ...u, roles: sanitizedRoles } : u));
-            notify.success('User access permissions updated successfully!');
+            notify.success('Roles updated');
         } catch (error: any) {
             console.error('Failed to update roles:', error);
-            notify.error(error, 'Failed to update roles');
+            notify.error(error, "Couldn't update roles");
             throw error;
         }
     };
@@ -171,7 +154,7 @@ function UsersContent() {
     // Save profile via API
     const handleSaveUser = async (data: any) => {
         if (!selectedUser) {
-            notify.info('New user invitations are dispatched via phone authentication.');
+            notify.info('People join by signing in with their phone number.');
             setIsProfileModalOpen(false);
             return;
         }
@@ -202,17 +185,17 @@ function UsersContent() {
                 city: updates.city,
                 about: updates.about
             } : u));
-            notify.success('User profile & personal details updated successfully!');
+            notify.success('Profile updated');
         } catch (error: any) {
             console.error('Failed to update user profile:', error);
-            notify.error(error, 'Failed to update profile');
+            notify.error(error, "Couldn't update the profile");
         } finally {
             setIsProfileModalOpen(false);
         }
     };
 
     return (
-        <div className="space-y-6">
+        <div>
             {/* Modals */}
             <UserProfileModal
                 isOpen={isProfileModalOpen}
@@ -239,264 +222,117 @@ function UsersContent() {
                 onSaveRoles={handleSaveRoles}
             />
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {[
-                    {
-                        label: 'Total Registered',
-                        value: isLoading ? '...' : totalUsersCount.toLocaleString(),
-                        icon: UsersIcon,
-                        color: 'text-purple-600 dark:text-purple-400',
-                        bg: 'bg-purple-50/70 border-purple-100/60 dark:bg-purple-950/30 dark:border-purple-900/50'
-                    },
-                    {
-                        label: 'Platform Admins',
-                        value: isLoading ? '...' : adminCount.toLocaleString(),
-                        icon: ShieldIcon,
-                        color: 'text-indigo-600 dark:text-indigo-400',
-                        bg: 'bg-indigo-50/70 border-indigo-100/60 dark:bg-indigo-950/30 dark:border-indigo-900/50'
-                    },
-                    {
-                        label: 'Verified Employers',
-                        value: isLoading ? '...' : recruiterCount.toLocaleString(),
-                        icon: BuildingOfficeIcon,
-                        color: 'text-emerald-600 dark:text-emerald-400',
-                        bg: 'bg-emerald-50/70 border-emerald-100/60 dark:bg-emerald-950/30 dark:border-emerald-900/50'
-                    },
-                    {
-                        label: 'Active Candidates',
-                        value: isLoading ? '...' : candidateCount.toLocaleString(),
-                        icon: UserIcon,
-                        color: 'text-blue-600 dark:text-blue-400',
-                        bg: 'bg-blue-50/70 border-blue-100/60 dark:bg-blue-950/30 dark:border-blue-900/50'
-                    },
-                ].map((stat, i) => (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.98 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.03 }}
-                        key={stat.label}
-                        className={`p-3 sm:p-3.5 bg-km-surface-card rounded-2xl border ${stat.bg} shadow-xs flex items-center justify-between gap-2.5`}
-                    >
-                        <div className="min-w-0">
-                            <p className="text-[11px] sm:text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">{stat.label}</p>
-                            <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mt-0.5">{stat.value}</h3>
-                        </div>
-                        <div className="w-9 h-9 rounded-xl bg-white/80 dark:bg-black/20 flex items-center justify-center shrink-0 shadow-2xs">
-                            <stat.icon size={20} weight="duotone" className={stat.color} aria-hidden="true" />
-                        </div>
-                    </motion.div>
-                ))}
+            <AdminPageHeader title="Users" description="Profiles, contact details and access roles" />
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <StatCard label="All users" value={isLoading ? '–' : totalUsersCount.toLocaleString('en-IN')} icon={UsersIcon} />
+                <StatCard label="Jobseekers" value={isLoading ? '–' : candidateCount.toLocaleString('en-IN')} icon={UserIcon} iconClassName="text-km-jobs-text" />
+                <StatCard label="Employers" value={isLoading ? '–' : recruiterCount.toLocaleString('en-IN')} icon={BuildingOfficeIcon} iconClassName="text-km-p2p-text" />
+                <StatCard label="Admins" value={isLoading ? '–' : adminCount.toLocaleString('en-IN')} icon={ShieldIcon} iconClassName="text-km-text-secondary" />
             </div>
 
-            {/* Page Header */}
-            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-6">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-900 to-indigo-700 bg-clip-text text-transparent">User Directory & Governance</h1>
-                    <p className="text-sm text-slate-500 mt-1 font-medium">Manage user identities, personal details, contact info, and access roles</p>
+            <AdminPanel>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between px-5 py-4 border-b border-km-border-subtle">
+                    <FilterTabs
+                        value={roleFilter}
+                        onChange={(v) => { setRoleFilter(v); setPage(1); }}
+                        options={[
+                            { value: 'all', label: 'All' },
+                            { value: 'user', label: 'Jobseekers' },
+                            { value: 'recruiter', label: 'Employers' },
+                            { value: 'expert', label: 'Experts' },
+                            { value: 'admin', label: 'Admins' },
+                        ]}
+                    />
+                    <SearchInput
+                        value={searchQuery}
+                        onChange={(v) => { setSearchQuery(v); setPage(1); }}
+                        placeholder="Search name, email, mobile or city"
+                        className="w-full lg:w-80"
+                    />
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <div className="relative group flex-1">
-                        <MagnifyingGlassIcon weight="bold" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Search by name, email, mobile, city, role..."
-                            value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setPage(1);
-                            }}
-                            className="w-full sm:w-80 pl-11 pr-4 py-2.5 bg-km-surface-card border border-purple-100 rounded-2xl text-sm focus:outline-none focus:border-purple-300 transition-all shadow-sm"
-                        />
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <motion.button
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={handleAddUser}
-                            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 bg-purple-600 text-white rounded-2xl text-sm font-bold hover:bg-purple-700 transition-all"
-                        >
-                            <UserPlusIcon weight="bold" size={18} />
-                            <span>Add User</span>
-                        </motion.button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Table Section */}
-            <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-km-surface-card rounded-[32px] border border-purple-50 shadow-sm overflow-hidden"
-            >
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-purple-50 bg-slate-50/50">
-                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">User Identity & Contact</th>
-                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Active Roles</th>
-                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider whitespace-nowrap">Access Control</th>
-                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider">Registered</th>
-                                <th className="px-5 py-3.5 text-[12px] font-bold text-slate-600 uppercase tracking-wider text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-purple-50/50">
-                            {isLoading ? (
+                {isLoading ? (
+                    <SkeletonRows rows={6} />
+                ) : paginatedUsers.length === 0 ? (
+                    <EmptyState icon={UserIcon} title="No users found" description="Try a different search or filter." />
+                ) : (
+                    <div className={table.wrap}>
+                        <table className={table.table}>
+                            <thead>
                                 <tr>
-                                    <td colSpan={5} className="px-8 py-16 text-center text-slate-500">
-                                        <CircleNotchIcon className="w-8 h-8 text-purple-600 animate-spin mx-auto mb-3 dark:text-purple-400" />
-                                        <p className="text-sm font-medium">Loading platform users...</p>
-                                    </td>
+                                    <th className={table.th}>User</th>
+                                    <th className={table.th}>Roles</th>
+                                    <th className={table.th}>Joined</th>
+                                    <th className={`${table.th} text-right`}><span className="sr-only">Actions</span></th>
                                 </tr>
-                            ) : paginatedUsers.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-8 py-16 text-center text-slate-500">
-                                        <UserIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                                        <h4 className="text-base font-bold text-slate-700">No Users Found</h4>
-                                        <p className="text-xs text-slate-400 mt-1">Try refining your search query.</p>
-                                    </td>
-                                </tr>
-                            ) : (
-                                paginatedUsers.map((user, i) => (
-                                    <motion.tr
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: i * 0.03 }}
-                                        key={user.id}
-                                        className="hover:bg-purple-50/30 transition-colors group cursor-default"
-                                    >
-                                        <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-purple-50 rounded-2xl flex items-center justify-center shrink-0 border border-purple-100 text-purple-700 font-bold text-sm">
-                                                    {user.name.substring(0, 1).toUpperCase()}
-                                                </div>
+                            </thead>
+                            <tbody>
+                                {paginatedUsers.map((user) => (
+                                    <tr key={user.id} className={table.row}>
+                                        <td className={table.td}>
+                                            <div className="flex items-center gap-3 min-w-[260px]">
+                                                <span className="w-9 h-9 rounded-full bg-km-surface border border-km-border text-km-heading text-sm font-semibold flex items-center justify-center shrink-0">
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </span>
                                                 <div className="min-w-0">
-                                                    <h4 className="text-sm font-bold text-slate-900 leading-tight group-hover:text-purple-700 transition-colors">
-                                                        {user.name}
-                                                    </h4>
-                                                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
-                                                        {user.email && (
-                                                            <span className="text-xs text-purple-700 dark:text-purple-400 font-medium truncate max-w-[200px]" title={user.email}>
-                                                                {user.email}
-                                                            </span>
-                                                        )}
-                                                        {user.email && user.mobile && (
-                                                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                                        )}
-                                                        {user.mobile && (
-                                                            <p className="text-xs font-mono text-slate-600 dark:text-slate-300 font-semibold">{user.mobile}</p>
-                                                        )}
-                                                        {(user.email || user.mobile) && user.city && (
-                                                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                                        )}
-                                                        {user.city && (
-                                                            <p className="text-xs text-slate-400 font-medium truncate max-w-[120px]">{user.city}</p>
-                                                        )}
-                                                    </div>
-                                                    {user.designation && (
-                                                        <p className="text-[11px] text-slate-400 font-medium truncate max-w-[260px] mt-0.5">{user.designation}</p>
-                                                    )}
+                                                    <p className="font-medium text-km-heading truncate">{user.name}</p>
+                                                    <p className="text-xs text-km-text-secondary truncate max-w-[360px]">
+                                                        {[user.email, user.mobile, user.city].filter(Boolean).join(' · ') || user.designation}
+                                                    </p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <div className="flex flex-wrap items-center gap-1.5">
+                                        <td className={table.td}>
+                                            <div className="flex flex-wrap gap-1.5">
                                                 {user.roles.map((role) => (
-                                                    <span
-                                                        key={role}
-                                                        className={`px-2.5 py-1 text-[11px] font-bold rounded-lg uppercase tracking-wider border ${role === 'admin'
-                                                            ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800'
-                                                            : role === 'recruiter'
-                                                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
-                                                            : role === 'expert'
-                                                            ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800'
-                                                            : 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800'
-                                                        }`}
-                                                    >
-                                                        {role}
-                                                    </span>
+                                                    <StatusBadge key={role} tone={ROLE_TONES[role] || 'neutral'} dot={false}>
+                                                        {ROLE_LABELS[role] || role}
+                                                    </StatusBadge>
                                                 ))}
                                             </div>
                                         </td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <button
-                                                onClick={() => handleOpenRoleModal(user)}
-                                                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-km-surface-card border border-purple-200 text-purple-700 hover:bg-purple-600 hover:text-white rounded-xl text-xs font-bold transition-all active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
-                                            >
-                                                <ShieldIcon weight="bold" size={13} className="shrink-0" />
-                                                <span className="whitespace-nowrap">Manage Access</span>
+                                        <td className={`${table.td} whitespace-nowrap`}>
+                                            <p className="font-inter">{user.dateAdded}</p>
+                                            <p className="text-xs text-km-text-secondary">
+                                                {user.status === 'Active' ? `Verified ${user.lastActive}` : 'Not verified'}
+                                            </p>
+                                        </td>
+                                        <td className={`${table.td} text-right whitespace-nowrap`}>
+                                            <button type="button" onClick={() => handleOpenRoleModal(user)} className={`${btn.ghost} h-9 px-3`}>
+                                                <ShieldIcon size={16} aria-hidden="true" />
+                                                Roles
+                                            </button>
+                                            <button type="button" onClick={() => handleEditUser(user)} className={btn.icon} aria-label={`Edit ${user.name}`}>
+                                                <NotePencilIcon size={18} aria-hidden="true" />
                                             </button>
                                         </td>
-                                        <td className="px-5 py-3.5 whitespace-nowrap">
-                                            <p className="text-xs font-semibold text-slate-700">{user.dateAdded}</p>
-                                            <p className="text-[11px] text-slate-400 mt-0.5">Active: {user.lastActive}</p>
-                                        </td>
-                                        <td className="px-5 py-3.5 text-right">
-                                            <button
-                                                onClick={() => handleEditUser(user)}
-                                                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all border border-transparent hover:border-purple-100 dark:hover:text-purple-400"
-                                                title="Edit Profile & Personal Details"
-                                            >
-                                                <NotePencilIcon weight="bold" size={16} />
-                                            </button>
-                                        </td>
-                                    </motion.tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="px-8 py-6 bg-slate-50/50 border-t border-purple-50 flex items-center justify-between">
-                        <p className="text-xs text-slate-500 font-medium">
-                            Showing <span className="font-bold text-slate-900">{((page - 1) * pageSize) + 1} - {Math.min(page * pageSize, filteredUsers.length)}</span> of <span className="font-bold text-slate-900">{filteredUsers.length}</span> users
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                disabled={page === 1}
-                                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-purple-50 bg-km-surface-card border border-purple-100 rounded-xl disabled:opacity-40 transition-colors"
-                            >
-                                Prev
-                            </button>
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-                                <button
-                                    key={p}
-                                    onClick={() => setPage(p)}
-                                    className={`w-8 h-8 flex items-center justify-center rounded-xl font-bold text-xs border transition-colors ${p === page
-                                        ? 'bg-purple-600 text-white border-purple-600'
-                                        : 'text-slate-600 hover:bg-purple-50 bg-km-surface-card border-purple-100'
-                                    }`}
-                                >
-                                    {p}
-                                </button>
-                            ))}
-                            <button
-                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                disabled={page === totalPages}
-                                className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-purple-50 bg-km-surface-card border border-purple-100 rounded-xl disabled:opacity-40 transition-colors"
-                            >
-                                Next
-                            </button>
-                        </div>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 )}
-            </motion.div>
+
+                {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4">
+                        <p className="text-sm text-km-text-secondary">
+                            {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, filteredUsers.length)} of {filteredUsers.length}
+                        </p>
+                        <Pagination current={page} total={totalPages} onPageChange={setPage} />
+                    </div>
+                )}
+            </AdminPanel>
         </div>
     );
 }
 
+const ROLE_LABELS: Record<string, string> = { user: 'Jobseeker', recruiter: 'Employer', expert: 'Expert', admin: 'Admin' };
+const ROLE_TONES: Record<string, BadgeTone> = { user: 'blue', recruiter: 'green', expert: 'amber', admin: 'neutral' };
+
 export default function UsersPage() {
     return (
-        <Suspense fallback={
-            <div className="bg-km-surface-card rounded-[28px] p-20 flex flex-col items-center justify-center gap-4 shadow-sm border border-purple-100/60">
-                <CircleNotchIcon className="w-10 h-10 text-purple-600 animate-spin dark:text-purple-400" />
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-[11px]">Loading user directory...</p>
-            </div>
-        }>
+        <Suspense fallback={<SkeletonRows rows={6} />}>
             <UsersContent />
         </Suspense>
     );
