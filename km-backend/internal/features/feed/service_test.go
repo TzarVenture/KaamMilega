@@ -3,6 +3,7 @@ package feed
 import (
 	"context"
 	"errors"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -231,8 +232,86 @@ func (m *memRepo) CountCommentsSince(_ context.Context, a primitive.ObjectID, si
 	return n, nil
 }
 func (m *memRepo) CreateReport(_ context.Context, r *Report) error {
-	m.reports = append(m.reports, *r)
+	for _, x := range m.reports {
+		if x.PostID == r.PostID && x.ReporterID == r.ReporterID {
+			return nil
+		}
+	}
+	rep := *r
+	rep.ID, rep.Status, rep.CreatedAt = primitive.NewObjectID(), ReportPending, time.Now()
+	m.reports = append(m.reports, rep)
 	return nil
+}
+func (m *memRepo) CountPendingReports(_ context.Context, postID primitive.ObjectID) (int64, error) {
+	var n int64
+	for _, r := range m.reports {
+		if r.PostID == postID && r.Status == ReportPending {
+			n++
+		}
+	}
+	return n, nil
+}
+func (m *memRepo) SetPostStatus(_ context.Context, postID primitive.ObjectID, from []string, to string) (bool, error) {
+	p, ok := m.posts[postID]
+	if !ok || !slices.Contains(from, p.Status) {
+		return false, nil
+	}
+	p.Status = to
+	return true, nil
+}
+func (m *memRepo) ResolveReports(_ context.Context, postID primitive.ObjectID, status string, by primitive.ObjectID, at time.Time) error {
+	for i := range m.reports {
+		if r := &m.reports[i]; r.PostID == postID && r.Status == ReportPending {
+			r.Status, r.ResolvedBy, r.ResolvedAt = status, &by, &at
+		}
+	}
+	return nil
+}
+func (m *memRepo) ReportQueue(_ context.Context, open bool, skip, limit int) ([]ReportedPost, int, error) {
+	var order []primitive.ObjectID
+	groups := map[primitive.ObjectID]*ReportedPost{}
+	for _, r := range m.reports {
+		if (r.Status == ReportPending) != open {
+			continue
+		}
+		g, ok := groups[r.PostID]
+		if !ok {
+			g = &ReportedPost{PostID: r.PostID}
+			groups[r.PostID] = g
+			order = append(order, r.PostID)
+		}
+		g.Reports++
+		g.Reasons = append(g.Reasons, r.Reason)
+		if !open {
+			g.Outcome = r.Status
+		}
+	}
+	out := []ReportedPost{}
+	for i, id := range order {
+		if i >= skip && len(out) < limit {
+			out = append(out, *groups[id])
+		}
+	}
+	return out, len(order), nil
+}
+func (m *memRepo) ReportsForPost(_ context.Context, postID primitive.ObjectID) ([]Report, error) {
+	out := []Report{}
+	for _, r := range m.reports {
+		if r.PostID == postID {
+			out = append(out, r)
+		}
+	}
+	return out, nil
+}
+func (m *memRepo) FindPostsAnyStatus(_ context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*Post, error) {
+	out := map[primitive.ObjectID]*Post{}
+	for _, id := range ids {
+		if p, ok := m.posts[id]; ok {
+			cp := *p
+			out[id] = &cp
+		}
+	}
+	return out, nil
 }
 func (m *memRepo) ReportedPostIDs(_ context.Context, u primitive.ObjectID) ([]primitive.ObjectID, error) {
 	var ids []primitive.ObjectID
@@ -575,5 +654,76 @@ func TestTrendingForgetsDeletedAndRetaggedPosts(t *testing.T) {
 	}
 	if res, _ := f.svc.Trending(ctx); len(res.Tags) != 0 {
 		t.Errorf("removed tag still trending: %+v", res.Tags)
+	}
+}
+
+func TestReportsHidePostAndModeratorDecides(t *testing.T) {
+	f := newFixture()
+	ctx := context.Background()
+	p, _ := f.svc.CreatePost(ctx, f.alice, CreatePostRequest{Content: "buy followers #deal"})
+	id := mustID(t, p.ID)
+	admin := primitive.NewObjectID()
+
+	reporters := []primitive.ObjectID{f.bob}
+	for i := 1; i < AutoHideReports; i++ {
+		u := primitive.NewObjectID()
+		f.users[u] = &user.User{ID: u, Name: "Reporter"}
+		reporters = append(reporters, u)
+	}
+	for i, u := range reporters {
+		if err := f.svc.Report(ctx, u, id, ReportRequest{Reason: "spam"}); err != nil {
+			t.Fatal(err)
+		}
+		// Reporting twice is one report
+		_ = f.svc.Report(ctx, u, id, ReportRequest{Reason: "spam"})
+		want := PostActive
+		if i+1 >= AutoHideReports {
+			want = PostHidden
+		}
+		if got := f.repo.posts[id].Status; got != want {
+			t.Fatalf("after %d reports the post is %q, want %q", i+1, got, want)
+		}
+	}
+	if list, _ := f.svc.List(ctx, nil, ListQuery{}); len(list.Posts) != 0 {
+		t.Fatal("a hidden post is still in the feed")
+	}
+
+	q, err := f.svc.ModerationQueue(ctx, true, 1, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if q.OpenTotal != 1 || len(q.Items) != 1 || q.Items[0].Reports != AutoHideReports || q.Items[0].Reasons["spam"] != AutoHideReports {
+		t.Fatalf("open queue: %+v", q)
+	}
+	if q.Items[0].Post.Status != PostHidden || q.Items[0].Post.Author == nil {
+		t.Fatalf("queued post: %+v", q.Items[0].Post)
+	}
+	d, err := f.svc.ModerationDetail(ctx, id)
+	if err != nil || len(d.Reports) != AutoHideReports {
+		t.Fatalf("detail: %v %+v", err, d)
+	}
+
+	if err := f.svc.Moderate(ctx, admin, id, "ban"); !errors.Is(err, ErrModerationAction) {
+		t.Fatalf("unknown action: %v", err)
+	}
+	if err := f.svc.Moderate(ctx, admin, id, ModerationKeep); err != nil {
+		t.Fatal(err)
+	}
+	if f.repo.posts[id].Status != PostActive {
+		t.Fatal("a kept post is not back in the feed")
+	}
+	q, _ = f.svc.ModerationQueue(ctx, false, 1, 10)
+	if q.OpenTotal != 0 || q.ClosedTotal != 1 || q.Items[0].Outcome != ReportDismissed {
+		t.Fatalf("closed queue after keep: %+v", q)
+	}
+
+	if err := f.svc.Moderate(ctx, admin, id, ModerationRemove); err != nil {
+		t.Fatal(err)
+	}
+	if f.repo.posts[id].Status != PostRemoved {
+		t.Fatal("removed post is still up")
+	}
+	if _, err := f.svc.GetPost(ctx, &f.bob, id); !errors.Is(err, ErrPostNotFound) {
+		t.Fatalf("removed post still opens: %v", err)
 	}
 }

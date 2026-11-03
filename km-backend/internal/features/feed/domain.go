@@ -60,7 +60,24 @@ const (
 
 const (
 	PostActive  = "active"
+	PostHidden  = "hidden"  // reported by enough members; out of the feed until a moderator decides
 	PostRemoved = "removed" // taken down by a moderator; never listed
+)
+
+// AutoHideReports is how many open reports take a post out of the feed before anyone reviews it
+const AutoHideReports = 3
+
+// Report states. A moderator's decision closes every open report on the post.
+const (
+	ReportPending   = "pending"
+	ReportDismissed = "dismissed" // the post was kept
+	ReportRemoved   = "removed"   // the post was taken down
+)
+
+// Moderation decisions on a reported post
+const (
+	ModerationKeep   = "keep"
+	ModerationRemove = "remove"
 )
 
 var (
@@ -79,6 +96,7 @@ var (
 	ErrReportOwnPost    = apperr.New("FEED_REPORT_OWN_POST", "You can't report your own post.")
 	ErrPostRateLimited  = apperr.New("FEED_POST_RATE_LIMITED", "You have posted a lot in the last hour. Please try again later.")
 	ErrCommentRateLimit = apperr.New("FEED_COMMENT_RATE_LIMITED", "You have commented a lot in the last hour. Please try again later.")
+	ErrModerationAction = apperr.New("FEED_MODERATION_ACTION_INVALID", "Choose whether to keep or remove the post.")
 )
 
 // Media is one photo on a post. FileID points at the upload record, which holds the storage
@@ -135,14 +153,27 @@ type Save struct {
 
 // Report is a member flagging a post for moderators; one per member per post
 type Report struct {
-	ID         primitive.ObjectID `bson:"_id,omitempty"`
-	PostID     primitive.ObjectID `bson:"post_id"`
-	AuthorID   primitive.ObjectID `bson:"author_id"` // the post's author, for moderation lists
-	ReporterID primitive.ObjectID `bson:"reporter_id"`
-	Reason     string             `bson:"reason"`
-	Details    string             `bson:"details,omitempty"`
-	Status     string             `bson:"status"` // pending, reviewed, dismissed
-	CreatedAt  time.Time          `bson:"created_at"`
+	ID         primitive.ObjectID  `bson:"_id,omitempty"`
+	PostID     primitive.ObjectID  `bson:"post_id"`
+	AuthorID   primitive.ObjectID  `bson:"author_id"` // the post's author, for moderation lists
+	ReporterID primitive.ObjectID  `bson:"reporter_id"`
+	Reason     string              `bson:"reason"`
+	Details    string              `bson:"details,omitempty"`
+	Status     string              `bson:"status"` // ReportPending, ReportDismissed or ReportRemoved
+	CreatedAt  time.Time           `bson:"created_at"`
+	ResolvedAt *time.Time          `bson:"resolved_at,omitempty"`
+	ResolvedBy *primitive.ObjectID `bson:"resolved_by,omitempty"`
+}
+
+// ReportedPost is one post's reports, grouped for the moderation queue
+type ReportedPost struct {
+	PostID         primitive.ObjectID `bson:"_id"`
+	Reports        int                `bson:"reports"`
+	Reasons        []string           `bson:"reasons"`
+	LastReportedAt time.Time          `bson:"last_reported_at"`
+	// For closed reports: what the moderator decided, and when
+	Outcome    string     `bson:"outcome,omitempty"`
+	ResolvedAt *time.Time `bson:"resolved_at,omitempty"`
 }
 
 // ─── Requests ───────────────────────────────────────────────────────────────────
@@ -232,6 +263,58 @@ type ReactionResponse struct {
 	ReactionCounts map[string]int `json:"reaction_counts"`
 	ReactionsTotal int            `json:"reactions_total"`
 	UserReaction   string         `json:"user_reaction,omitempty"`
+}
+
+// ─── Moderation ─────────────────────────────────────────────────────────────────
+
+// ModerationPost is a reported post as a moderator sees it, whatever its status. Author is nil
+// when the account is closed.
+type ModerationPost struct {
+	ID             string          `json:"id"`
+	Author         *AuthorResponse `json:"author"`
+	Content        string          `json:"content"`
+	Category       string          `json:"category"`
+	Media          []Media         `json:"media"`
+	Status         string          `json:"status"`
+	ReactionsTotal int             `json:"reactions_total"`
+	CommentsCount  int             `json:"comments_count"`
+	CreatedAt      time.Time       `json:"created_at"`
+	EditedAt       *time.Time      `json:"edited_at,omitempty"`
+}
+
+type ModerationItem struct {
+	Post           ModerationPost `json:"post"`
+	Reports        int            `json:"reports"`
+	Reasons        map[string]int `json:"reasons"`
+	LastReportedAt time.Time      `json:"last_reported_at"`
+	Outcome        string         `json:"outcome,omitempty"`
+	ResolvedAt     *time.Time     `json:"resolved_at,omitempty"`
+}
+
+type ModerationQueueResponse struct {
+	Items       []ModerationItem `json:"items"`
+	Total       int              `json:"total"`
+	OpenTotal   int              `json:"open_total"`
+	ClosedTotal int              `json:"closed_total"`
+}
+
+type ModerationReport struct {
+	ID       string          `json:"id"`
+	Reporter *AuthorResponse `json:"reporter"`
+	Reason   string          `json:"reason"`
+	Details  string          `json:"details,omitempty"`
+	Status   string          `json:"status"`
+	Created  time.Time       `json:"created_at"`
+	Resolved *time.Time      `json:"resolved_at,omitempty"`
+}
+
+type ModerationDetailResponse struct {
+	Post    ModerationPost     `json:"post"`
+	Reports []ModerationReport `json:"reports"`
+}
+
+type ModerationRequest struct {
+	Action string `json:"action"`
 }
 
 // ─── Impressions and trending ───────────────────────────────────────────────────

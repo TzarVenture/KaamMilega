@@ -65,6 +65,14 @@
     "rights": "সর্বস্বত্ব সংরক্ষিত © {year} KaamMilega™, ভারতের সবচেয়ে ভরসাযোগ্য কাজ ও স্কিল প্ল্যাটফর্ম",
     "slogan": "Kaam Bhi. Skill Bhi. Kamaai Bhi."
   },
+  "policies": {
+    "lastUpdated": "শেষ পরিবর্তন {date}",
+    "contents": "এই পেজে",
+    "notPublishedTitle": "এই পেজটি এখনও লেখা হচ্ছে",
+    "notPublished": "আমরা এখনও এই নীতিটি প্রকাশ করিনি। এ বিষয়ে কোনো প্রশ্ন থাকলে আমাদের সাপোর্ট টিম সাহায্য করতে পারে।",
+    "contactSupport": "সাপোর্টে যোগাযোগ করুন",
+    "otherPolicies": "অন্যান্য নীতি"
+  },
   "appDownload": {
     "notifyLabel": "অ্যাপ চালু হলে মেসেজ পান",
     "mobilePlaceholder": "মোবাইল নম্বর",

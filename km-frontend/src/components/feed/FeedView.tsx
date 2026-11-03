@@ -17,7 +17,7 @@ import PostCard from './PostCard';
 import { POST_CATEGORIES, type FeedPage, type FeedPost, type FeedView as View, type PostCategory } from './feedTypes';
 import { useFeedUser } from './feedUtils';
 
-/** The main feed shows one sponsored card, after this many posts */
+/** The main feed shows one sponsored card, after this many posts (or the last, on a short feed) */
 const FEED_AD_AFTER = 3;
 
 type Status = 'loading' | 'ready' | 'error';
@@ -234,8 +234,8 @@ export default function FeedView() {
                 {posts.map((post, i) => (
                   <React.Fragment key={post.id}>
                     <PostCard post={post} onUpdate={updatePost} onRemove={removePost} onEdit={(p) => setComposer({ editing: p })} />
-                    {/* One sponsored card after the third post of the main feed */}
-                    {view === 'all' && i === FEED_AD_AFTER - 1 && <AdSlot placement="feed_inline" />}
+                    {/* One sponsored card after the third post (or the last) of the main feed */}
+                    {view === 'all' && i === Math.min(FEED_AD_AFTER, posts.length) - 1 && <AdSlot placement="feed_inline" />}
                   </React.Fragment>
                 ))}
               </div>

@@ -17,6 +17,7 @@ import (
 	"km-backend/internal/features/mentorship"
 	"km-backend/internal/features/network"
 	"km-backend/internal/features/notification"
+	"km-backend/internal/features/policies"
 	"km-backend/internal/features/push"
 
 	"km-backend/internal/features/company"
@@ -186,6 +187,7 @@ func main() {
 			feed.NewFeedRepository,
 			analytics.NewRepository,
 			ads.NewRepository,
+			policies.NewRepository,
 
 			// Services
 			notification.NewMailer,
@@ -218,6 +220,7 @@ func main() {
 			feed.NewFeedService,
 			analytics.NewService,
 			ads.NewService,
+			policies.NewService,
 
 			// controllers
 			file.NewFileController,
@@ -243,6 +246,7 @@ func main() {
 			testimonial.NewTestimonialController,
 			app_waitlist.NewController,
 			ads.NewController,
+			policies.NewController,
 			account.NewController,
 			feed.NewFeedController,
 
@@ -271,6 +275,7 @@ func main() {
 			AsRoute(testimonial.NewTestimonialApi),
 			AsRoute(app_waitlist.NewApi),
 			AsRoute(ads.NewApi),
+			AsRoute(policies.NewApi),
 			AsRoute(account.NewApi),
 			AsRoute(push.NewApi),
 			AsRoute(feed.NewFeedApi),

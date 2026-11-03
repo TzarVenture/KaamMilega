@@ -1,8 +1,10 @@
 import api from '@/lib/axios';
 import type {
   CommentPage,
+  FeedAuthor,
   FeedComment,
   FeedPage,
+  FeedMedia,
   FeedPost,
   PostCategory,
   ReactionState,
@@ -52,6 +54,58 @@ export const feedApi = {
   deleteComment: (id: string, commentId: string) => send<void>('delete', `/feed/${id}/comments/${commentId}`),
 
   report: (id: string, reason: ReportReason, details?: string) => send<void>('post', `/feed/${id}/report`, { reason, details }),
+};
+
+// ─── Moderation (admins) ───
+
+export type ModeratedPostStatus = 'active' | 'hidden' | 'removed';
+export type ReportOutcome = 'dismissed' | 'removed';
+
+/** A reported post as a moderator sees it, whatever its status. author is null for a closed account. */
+export interface ModeratedPost {
+  id: string;
+  author: FeedAuthor | null;
+  content: string;
+  category: PostCategory;
+  media: FeedMedia[];
+  status: ModeratedPostStatus;
+  reactions_total: number;
+  comments_count: number;
+  created_at: string;
+  edited_at?: string;
+}
+
+export interface ModerationItem {
+  post: ModeratedPost;
+  reports: number;
+  reasons: Partial<Record<ReportReason, number>>;
+  last_reported_at: string;
+  outcome?: ReportOutcome;
+  resolved_at?: string;
+}
+
+export interface ModerationQueue {
+  items: ModerationItem[];
+  total: number;
+  open_total: number;
+  closed_total: number;
+}
+
+export interface ModerationReport {
+  id: string;
+  reporter: FeedAuthor | null;
+  reason: ReportReason;
+  details?: string;
+  status: 'pending' | ReportOutcome;
+  created_at: string;
+  resolved_at?: string;
+}
+
+export const moderationApi = {
+  queue: (state: 'open' | 'closed', page: number, limit = 15) =>
+    get<ModerationQueue>('/admin/feed/reports', { state, page, limit }),
+  detail: (postId: string) => get<{ post: ModeratedPost; reports: ModerationReport[] }>(`/admin/feed/reports/${postId}`),
+  decide: (postId: string, action: 'keep' | 'remove') => send<void>('post', `/admin/feed/reports/${postId}/decision`, { action }),
 };
 
 /** The shareable address of a post */

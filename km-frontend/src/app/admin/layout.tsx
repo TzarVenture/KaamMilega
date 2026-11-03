@@ -17,6 +17,7 @@ import {
     CircleNotchIcon,
     DeviceMobileIcon,
     FileXlsIcon,
+    FlagIcon,
     GraduationCapIcon,
     IdentificationBadgeIcon,
     ListIcon,
@@ -85,6 +86,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     {
         label: 'Trust and safety',
         items: [
+            { name: 'Post reports', icon: FlagIcon, href: '/admin/post-reports' },
             { name: 'Chat reports', icon: ChatCircleTextIcon, href: '/admin/chat-reports' },
             { name: 'Wallet disputes', icon: ShieldWarningIcon, href: '/admin/disputes' },
         ],

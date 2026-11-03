@@ -38,6 +38,12 @@ type FeedService interface {
 
 	Report(ctx context.Context, userID, postID primitive.ObjectID, req ReportRequest) error
 
+	// ModerationQueue lists reported posts: open (waiting for a decision) or closed
+	ModerationQueue(ctx context.Context, open bool, page, limit int) (*ModerationQueueResponse, error)
+	ModerationDetail(ctx context.Context, postID primitive.ObjectID) (*ModerationDetailResponse, error)
+	// Moderate keeps a reported post (back in the feed) or removes it, closing its open reports
+	Moderate(ctx context.Context, adminID, postID primitive.ObjectID, action string) error
+
 	// RecordImpressions counts posts that were on a member's or guest's screen, once a day each
 	RecordImpressions(ctx context.Context, viewer analytics.Viewer, postIDs []primitive.ObjectID) error
 	Trending(ctx context.Context) (*TrendingResponse, error)
@@ -509,7 +515,198 @@ func (s *feedService) Report(ctx context.Context, userID, postID primitive.Objec
 	if post.AuthorID == userID {
 		return ErrReportOwnPost
 	}
-	return s.repo.CreateReport(ctx, &Report{PostID: postID, AuthorID: post.AuthorID, ReporterID: userID, Reason: reason, Details: details})
+	if err := s.repo.CreateReport(ctx, &Report{PostID: postID, AuthorID: post.AuthorID, ReporterID: userID, Reason: reason, Details: details}); err != nil {
+		return err
+	}
+	// Enough reports take the post out of the feed until a moderator decides. The report itself
+	// is saved either way, so a failure here only delays hiding.
+	open, err := s.repo.CountPendingReports(ctx, postID)
+	if err != nil {
+		log.Printf("feed: counting reports on post %s: %v", postID.Hex(), err)
+		return nil
+	}
+	if open >= AutoHideReports {
+		hidden, err := s.repo.SetPostStatus(ctx, postID, []string{PostActive}, PostHidden)
+		if err != nil {
+			log.Printf("feed: hiding reported post %s: %v", postID.Hex(), err)
+		} else if hidden && len(post.Tags) > 0 {
+			s.forgetTrending()
+		}
+	}
+	return nil
+}
+
+// ─── Moderation ─────────────────────────────────────────────────────────────────
+
+func (s *feedService) ModerationQueue(ctx context.Context, open bool, page, limit int) (*ModerationQueueResponse, error) {
+	page = max(page, 1)
+	limit = pageSize(limit, DefaultPageSize, MaxPageSize)
+	groups, total, err := s.repo.ReportQueue(ctx, open, (page-1)*limit, limit)
+	if err != nil {
+		return nil, err
+	}
+	// The other tab's count, for its label
+	_, other, err := s.repo.ReportQueue(ctx, !open, 0, 0)
+	if err != nil {
+		return nil, err
+	}
+	ids := make([]primitive.ObjectID, 0, len(groups))
+	for _, g := range groups {
+		ids = append(ids, g.PostID)
+	}
+	posts, err := s.repo.FindPostsAnyStatus(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	views, err := s.moderationPosts(ctx, posts)
+	if err != nil {
+		return nil, err
+	}
+	out := &ModerationQueueResponse{Items: make([]ModerationItem, 0, len(groups)), Total: total}
+	if open {
+		out.OpenTotal, out.ClosedTotal = total, other
+	} else {
+		out.OpenTotal, out.ClosedTotal = other, total
+	}
+	for _, g := range groups {
+		view, ok := views[g.PostID]
+		if !ok {
+			continue // the author deleted the post, which also deleted its reports
+		}
+		reasons := map[string]int{}
+		for _, r := range g.Reasons {
+			reasons[r]++
+		}
+		out.Items = append(out.Items, ModerationItem{
+			Post: view, Reports: g.Reports, Reasons: reasons, LastReportedAt: g.LastReportedAt,
+			Outcome: g.Outcome, ResolvedAt: g.ResolvedAt,
+		})
+	}
+	return out, nil
+}
+
+func (s *feedService) ModerationDetail(ctx context.Context, postID primitive.ObjectID) (*ModerationDetailResponse, error) {
+	posts, err := s.repo.FindPostsAnyStatus(ctx, []primitive.ObjectID{postID})
+	if err != nil {
+		return nil, err
+	}
+	views, err := s.moderationPosts(ctx, posts)
+	if err != nil {
+		return nil, err
+	}
+	view, ok := views[postID]
+	if !ok {
+		return nil, ErrPostNotFound
+	}
+	reports, err := s.repo.ReportsForPost(ctx, postID)
+	if err != nil {
+		return nil, err
+	}
+	reporterIDs := make([]primitive.ObjectID, 0, len(reports))
+	for _, r := range reports {
+		reporterIDs = append(reporterIDs, r.ReporterID)
+	}
+	reporters, err := s.authors(ctx, reporterIDs)
+	if err != nil {
+		return nil, err
+	}
+	out := &ModerationDetailResponse{Post: view, Reports: make([]ModerationReport, 0, len(reports))}
+	for _, r := range reports {
+		var who *AuthorResponse
+		if a, ok := reporters[r.ReporterID]; ok {
+			who = &a
+		}
+		out.Reports = append(out.Reports, ModerationReport{
+			ID: r.ID.Hex(), Reporter: who, Reason: r.Reason, Details: r.Details, Status: r.Status,
+			Created: r.CreatedAt, Resolved: r.ResolvedAt,
+		})
+	}
+	return out, nil
+}
+
+func (s *feedService) Moderate(ctx context.Context, adminID, postID primitive.ObjectID, action string) error {
+	post, err := s.repo.FindPost(ctx, postID)
+	if err != nil {
+		return err
+	}
+	if post == nil {
+		return ErrPostNotFound
+	}
+	var reportStatus string
+	switch action {
+	case ModerationKeep:
+		// Also restores a post removed by mistake
+		if _, err := s.repo.SetPostStatus(ctx, postID, []string{PostHidden, PostRemoved}, PostActive); err != nil {
+			return err
+		}
+		reportStatus = ReportDismissed
+	case ModerationRemove:
+		removed, err := s.repo.SetPostStatus(ctx, postID, []string{PostActive, PostHidden}, PostRemoved)
+		if err != nil {
+			return err
+		}
+		if removed {
+			s.notifyRemoved(post)
+		}
+		reportStatus = ReportRemoved
+	default:
+		return ErrModerationAction
+	}
+	if len(post.Tags) > 0 {
+		s.forgetTrending()
+	}
+	return s.repo.ResolveReports(ctx, postID, reportStatus, adminID, s.now())
+}
+
+// notifyRemoved tells the author their post was taken down, after the response
+func (s *feedService) notifyRemoved(post *Post) {
+	if s.notify == nil {
+		return
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		_, err := s.notify.CreateNotification(ctx, notification.CreateNotificationRequest{
+			UserID:   post.AuthorID,
+			Type:     notification.TypeSystemAlert,
+			Category: notification.CategorySystem,
+			Title:    "Your post was removed",
+			Message:  fmt.Sprintf("We removed your post \"%s\" because it goes against our community rules.", snippet(post.Content, 60)),
+			Metadata: map[string]interface{}{"post_id": post.ID.Hex()},
+		})
+		if err != nil {
+			log.Printf("feed: telling the author post %s was removed: %v", post.ID.Hex(), err)
+		}
+	}()
+}
+
+// moderationPosts shows posts as a moderator sees them, whatever their status
+func (s *feedService) moderationPosts(ctx context.Context, posts map[primitive.ObjectID]*Post) (map[primitive.ObjectID]ModerationPost, error) {
+	authorIDs := make([]primitive.ObjectID, 0, len(posts))
+	for _, p := range posts {
+		authorIDs = append(authorIDs, p.AuthorID)
+	}
+	authors, err := s.authors(ctx, authorIDs)
+	if err != nil {
+		return nil, err
+	}
+	out := make(map[primitive.ObjectID]ModerationPost, len(posts))
+	for id, p := range posts {
+		var author *AuthorResponse
+		if a, ok := authors[p.AuthorID]; ok {
+			author = &a
+		}
+		media := p.Media
+		if media == nil {
+			media = []Media{}
+		}
+		out[id] = ModerationPost{
+			ID: id.Hex(), Author: author, Content: p.Content, Category: p.Category, Media: media,
+			Status: p.Status, ReactionsTotal: max(p.ReactionsTotal, 0), CommentsCount: max(p.CommentsCount, 0),
+			CreatedAt: p.CreatedAt, EditedAt: p.EditedAt,
+		}
+	}
+	return out, nil
 }
 
 // ─── Building responses ─────────────────────────────────────────────────────────
