@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowClockwiseIcon, BookmarkSimpleIcon, ChatsCircleIcon, NotePencilIcon, SpinnerGapIcon } from '@phosphor-icons/react';
 import { useTranslations } from 'next-intl';
+import AdSlot from '@/components/ads/AdSlot';
 import { feedApi } from '@/lib/api/feed';
 import { loginPathFor } from '@/lib/authPaths';
 import { notify } from '@/lib/notify';
@@ -15,6 +16,9 @@ import FeedRightSidebar from './FeedRightSidebar';
 import PostCard from './PostCard';
 import { POST_CATEGORIES, type FeedPage, type FeedPost, type FeedView as View, type PostCategory } from './feedTypes';
 import { useFeedUser } from './feedUtils';
+
+/** The main feed shows one sponsored card, after this many posts (or the last, on a short feed) */
+const FEED_AD_AFTER = 3;
 
 type Status = 'loading' | 'ready' | 'error';
 
@@ -227,8 +231,12 @@ export default function FeedView() {
           ) : (
             <>
               <div className="space-y-4">
-                {posts.map((post) => (
-                  <PostCard key={post.id} post={post} onUpdate={updatePost} onRemove={removePost} onEdit={(p) => setComposer({ editing: p })} />
+                {posts.map((post, i) => (
+                  <React.Fragment key={post.id}>
+                    <PostCard post={post} onUpdate={updatePost} onRemove={removePost} onEdit={(p) => setComposer({ editing: p })} />
+                    {/* One sponsored card after the third post (or the last) of the main feed */}
+                    {view === 'all' && i === Math.min(FEED_AD_AFTER, posts.length) - 1 && <AdSlot placement="feed_inline" />}
+                  </React.Fragment>
                 ))}
               </div>
               <div ref={sentinel} aria-hidden="true" />

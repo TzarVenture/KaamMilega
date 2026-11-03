@@ -86,6 +86,9 @@ func (ctrl *FileController) UploadFile(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
+	if kind.AdminOnly && !hasRole(c, "admin") {
+		return c.Status(fiber.StatusForbidden).JSON(apperr.Body(errKindAdminOnly))
+	}
 	if err := kind.check(ext, fh.Size); err != nil {
 		status := fiber.StatusUnsupportedMediaType
 		if err == errKindTooLarge {

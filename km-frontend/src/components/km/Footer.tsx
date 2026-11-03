@@ -47,10 +47,10 @@ export default function Footer() {
                         <div className="space-y-3">
                             <FooterLink>{t("jobseekerFaqs")}</FooterLink>
                             <FooterLink>{t("employerFaqs")}</FooterLink>
-                            <FooterLink>{t("userTerms")}</FooterLink>
-                            <FooterLink>{t("privacy")}</FooterLink>
-                            <FooterLink>{t("employerTerms")}</FooterLink>
-                            <FooterLink>{t("guidelines")}</FooterLink>
+                            <FooterLink href="/policies/terms">{t("userTerms")}</FooterLink>
+                            <FooterLink href="/policies/privacy">{t("privacy")}</FooterLink>
+                            <FooterLink href="/policies/employer-terms">{t("employerTerms")}</FooterLink>
+                            <FooterLink href="/policies/community-guidelines">{t("guidelines")}</FooterLink>
                         </div>
                     </div>
 

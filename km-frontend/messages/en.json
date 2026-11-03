@@ -65,6 +65,14 @@
     "rights": "All rights reserved © {year} KaamMilega™, India's most trusted work and skill platform",
     "slogan": "Kaam Bhi. Skill Bhi. Kamaai Bhi."
   },
+  "policies": {
+    "lastUpdated": "Last updated {date}",
+    "contents": "On this page",
+    "notPublishedTitle": "This page is being written",
+    "notPublished": "We haven’t published this policy yet. If you have a question about it, our support team can help.",
+    "contactSupport": "Contact support",
+    "otherPolicies": "Other policies"
+  },
   "appDownload": {
     "notifyLabel": "Get a message when the app launches",
     "mobilePlaceholder": "Mobile number",
@@ -1255,7 +1263,8 @@
   },
   "ads": {
     "label": "Advertisement",
-    "placeholder": "Ad Banner"
+    "sponsored": "Sponsored",
+    "learnMore": "Learn more"
   },
   "analytics": {
     "title": "Analytics",

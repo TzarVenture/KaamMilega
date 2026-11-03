@@ -2,30 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-    BriefcaseIcon,
-    BuildingOfficeIcon,
-    CalendarBlankIcon,
-    CircleNotchIcon,
-    CommandIcon,
-    FileXlsIcon,
-    FlagIcon,
-    GraduationCapIcon,
-    MagnifyingGlassIcon,
-    MapPinIcon,
-    QuestionIcon,
-    QuotesIcon,
-    ShieldCheckIcon,
-    ShieldWarningIcon,
-    SquaresFourIcon,
-    UserIcon,
-    UsersIcon,
-    VideoCameraIcon,
-    XIcon,
-    ArrowRightIcon,
-    ArrowElbowDownLeftIcon,
-} from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CircleNotchIcon, FileXlsIcon, FlagIcon, GraduationCapIcon, MagnifyingGlassIcon, MapPinIcon, QuestionIcon, QuotesIcon, ShieldCheckIcon, ShieldWarningIcon, SquaresFourIcon, UserIcon, UsersIcon, VideoCameraIcon, XIcon, ArrowRightIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 
 interface SearchResultItem {
@@ -187,7 +164,7 @@ export default function AdminGlobalSearch() {
             <div className="relative w-full group">
                 <MagnifyingGlassIcon
                     weight="bold"
-                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors pointer-events-none"
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-km-link transition-colors pointer-events-none"
                     size={17}
                 />
                 <input
@@ -200,14 +177,15 @@ export default function AdminGlobalSearch() {
                     }}
                     onFocus={() => setIsOpen(true)}
                     onKeyDown={handleInputKeyDown}
-                    placeholder="Search intelligence..."
-                    className="w-full pl-10 pr-20 py-2 sm:py-2.5 bg-purple-50/60 dark:bg-slate-800/80 border border-purple-100 dark:border-slate-700/80 rounded-2xl text-xs sm:text-sm focus:outline-none focus:bg-white dark:focus:bg-slate-900 focus:border-purple-300 dark:focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 transition-all outline-none text-slate-800 dark:text-white placeholder:text-slate-400 shadow-2xs"
+                    placeholder="Search users, companies, jobs"
+                    aria-label="Search the admin panel"
+                    className="w-full h-10 pl-10 pr-16 bg-km-surface border border-km-border rounded-xl text-sm outline-none focus:bg-km-surface-card focus:border-km-blue focus:ring-2 focus:ring-km-blue/15 transition-colors text-km-text-primary placeholder:text-km-text-muted"
                 />
 
                 {/* Right Input Badges & Controls */}
                 <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none">
                     {isLoading ? (
-                        <CircleNotchIcon size={16} className="text-purple-600 animate-spin" />
+                        <CircleNotchIcon size={16} className="text-km-link animate-spin" />
                     ) : query ? (
                         <button
                             type="button"
@@ -217,40 +195,36 @@ export default function AdminGlobalSearch() {
                                 setResults(null);
                                 inputRef.current?.focus();
                             }}
-                            className="pointer-events-auto p-1 hover:bg-purple-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                            className="pointer-events-auto p-1 hover:bg-km-surface rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
                             title="Clear search"
                         >
                             <XIcon size={13} weight="bold" />
                         </button>
                     ) : (
-                        <div className="hidden sm:flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-white dark:bg-slate-800 border border-purple-100 dark:border-slate-700 text-[10px] font-bold text-slate-400 shadow-2xs">
-                            <span className="text-[11px]">⌘</span>K
-                        </div>
+                        <kbd className="hidden sm:flex items-center px-1.5 py-0.5 rounded-md bg-km-surface-card border border-km-border text-xs font-medium font-inter text-km-text-muted">
+                            Ctrl K
+                        </kbd>
                     )}
                 </div>
             </div>
 
             {/* Dropdown Popover */}
-            <AnimatePresence>
+            <>
                 {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 6, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 4, scale: 0.98 }}
-                        transition={{ duration: 0.15, ease: 'easeOut' }}
-                        className="absolute left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 rounded-2xl border border-purple-100 dark:border-slate-800 shadow-2xl overflow-hidden z-50 max-h-[75vh] flex flex-col"
+                    <div
+                        className="absolute left-0 right-0 top-full mt-2 bg-km-surface-card rounded-2xl border border-km-border shadow-sm overflow-hidden z-50 max-h-[75vh] flex flex-col"
                     >
                         {/* Results Body */}
-                        <div className="overflow-y-auto p-2.5 space-y-3 divide-y divide-purple-50/70 dark:divide-slate-800/80">
+                        <div className="overflow-y-auto p-2.5 space-y-3 divide-y divide-km-border">
                             {/* ── CASE 1: SEARCH RESULTS ACROSS PLATFORM ── */}
                             {isSearching && hasResults && (
                                 <div className="space-y-3">
                                     {/* USERS GROUP */}
                                     {results!.users?.length > 0 && (
                                         <div className="space-y-1">
-                                            <div className="flex items-center justify-between px-2.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                            <div className="flex items-center justify-between px-2.5 py-1 text-xs font-bold text-slate-400">
                                                 <span className="flex items-center gap-1.5">
-                                                    <UsersIcon size={13} weight="bold" className="text-purple-600" />
+                                                    <UsersIcon size={13} weight="bold" className="text-km-link" />
                                                     <span>Users &amp; Candidates ({results!.users.length})</span>
                                                 </span>
                                             </div>
@@ -258,10 +232,10 @@ export default function AdminGlobalSearch() {
                                                 <div
                                                     key={`user-${user.id}`}
                                                     onClick={() => handleSelect(user.url)}
-                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-purple-50/70 dark:hover:bg-slate-800/70 cursor-pointer transition-colors group"
+                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <div className="w-8 h-8 rounded-xl bg-purple-100 dark:bg-slate-800 text-purple-700 dark:text-purple-400 font-bold text-xs flex items-center justify-center shrink-0 border border-purple-200 dark:border-slate-700">
+                                                        <div className="w-8 h-8 rounded-xl bg-km-surface text-km-link font-bold text-xs flex items-center justify-center shrink-0 border border-km-border">
                                                             {user.avatar ? (
                                                                 <img src={user.avatar} alt={user.title} className="w-full h-full object-cover rounded-xl" />
                                                             ) : (
@@ -269,25 +243,25 @@ export default function AdminGlobalSearch() {
                                                             )}
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="text-xs font-bold text-slate-800 dark:text-white truncate group-hover:text-purple-700 dark:group-hover:text-purple-400">
+                                                            <p className="text-xs font-bold text-slate-800 truncate group-hover:text-km-link">
                                                                 {user.title}
                                                             </p>
-                                                            <p className="text-[11px] text-slate-400 truncate">
+                                                            <p className="text-xs text-slate-400 truncate">
                                                                 {user.subtitle}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
-                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                                            user.badge === 'Admin'
+                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+ user.badge ==='Admin'
                                                                 ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                                                 : user.badge === 'Recruiter'
                                                                 ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                                                                : 'bg-purple-50 text-purple-700 border border-purple-200'
+                                                                : 'bg-km-surface text-km-link border border-km-border'
                                                         }`}>
                                                             {user.badge}
                                                         </span>
-                                                        <ArrowRightIcon size={12} weight="bold" className="text-slate-300 group-hover:text-purple-600 transition-colors" />
+                                                        <ArrowRightIcon size={12} weight="bold" className="text-slate-300 group-hover:text-km-link transition-colors" />
                                                     </div>
                                                 </div>
                                             ))}
@@ -297,9 +271,9 @@ export default function AdminGlobalSearch() {
                                     {/* COMPANIES GROUP */}
                                     {results!.companies?.length > 0 && (
                                         <div className="pt-2 space-y-1">
-                                            <div className="flex items-center justify-between px-2.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                            <div className="flex items-center justify-between px-2.5 py-1 text-xs font-bold text-slate-400">
                                                 <span className="flex items-center gap-1.5">
-                                                    <BuildingOfficeIcon size={13} weight="bold" className="text-indigo-600" />
+                                                    <BuildingOfficeIcon size={13} weight="bold" className="text-km-link" />
                                                     <span>Companies ({results!.companies.length})</span>
                                                 </span>
                                             </div>
@@ -307,10 +281,10 @@ export default function AdminGlobalSearch() {
                                                 <div
                                                     key={`comp-${company.id}`}
                                                     onClick={() => handleSelect(company.url)}
-                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-purple-50/70 dark:hover:bg-slate-800/70 cursor-pointer transition-colors group"
+                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-slate-800 text-indigo-700 dark:text-indigo-400 font-bold text-xs flex items-center justify-center shrink-0 border border-indigo-100 dark:border-slate-700">
+                                                        <div className="w-8 h-8 rounded-xl bg-km-surface text-km-link font-bold text-xs flex items-center justify-center shrink-0 border border-km-border">
                                                             {company.avatar ? (
                                                                 <img src={company.avatar} alt={company.title} className="w-full h-full object-cover rounded-xl" />
                                                             ) : (
@@ -318,19 +292,19 @@ export default function AdminGlobalSearch() {
                                                             )}
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="text-xs font-bold text-slate-800 dark:text-white truncate group-hover:text-indigo-700 dark:group-hover:text-indigo-400">
+                                                            <p className="text-xs font-bold text-slate-800 truncate group-hover:text-km-link">
                                                                 {company.title}
                                                             </p>
-                                                            <p className="text-[11px] text-slate-400 truncate">
+                                                            <p className="text-xs text-slate-400 truncate">
                                                                 {company.subtitle || 'Company Profile'}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                        <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                             {company.badge}
                                                         </span>
-                                                        <ArrowRightIcon size={12} weight="bold" className="text-slate-300 group-hover:text-indigo-600 transition-colors" />
+                                                        <ArrowRightIcon size={12} weight="bold" className="text-slate-300 group-hover:text-km-link transition-colors" />
                                                     </div>
                                                 </div>
                                             ))}
@@ -340,7 +314,7 @@ export default function AdminGlobalSearch() {
                                     {/* JOBS GROUP */}
                                     {results!.jobs?.length > 0 && (
                                         <div className="pt-2 space-y-1">
-                                            <div className="flex items-center justify-between px-2.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                            <div className="flex items-center justify-between px-2.5 py-1 text-xs font-bold text-slate-400">
                                                 <span className="flex items-center gap-1.5">
                                                     <BriefcaseIcon size={13} weight="bold" className="text-emerald-600" />
                                                     <span>Job Vacancies ({results!.jobs.length})</span>
@@ -350,24 +324,24 @@ export default function AdminGlobalSearch() {
                                                 <div
                                                     key={`job-${job.id}`}
                                                     onClick={() => handleSelect(job.url)}
-                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-purple-50/70 dark:hover:bg-slate-800/70 cursor-pointer transition-colors group"
+                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100 dark:border-slate-700">
+                                                        <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100">
                                                             <BriefcaseIcon size={16} weight="bold" />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="text-xs font-bold text-slate-800 dark:text-white truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-400">
+                                                            <p className="text-xs font-bold text-slate-800 truncate group-hover:text-emerald-700">
                                                                 {job.title}
                                                             </p>
-                                                            <p className="text-[11px] text-slate-400 truncate">
+                                                            <p className="text-xs text-slate-400 truncate">
                                                                 {job.subtitle}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
-                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                                                            job.badge.toLowerCase() === 'closed'
+                                                        <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
+ job.badge.toLowerCase() ==='closed'
                                                                 ? 'bg-amber-50 text-amber-700 border border-amber-200'
                                                                 : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                                         }`}>
@@ -383,7 +357,7 @@ export default function AdminGlobalSearch() {
                                     {/* EVENTS GROUP */}
                                     {results!.events?.length > 0 && (
                                         <div className="pt-2 space-y-1">
-                                            <div className="flex items-center justify-between px-2.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                                            <div className="flex items-center justify-between px-2.5 py-1 text-xs font-bold text-slate-400">
                                                 <span className="flex items-center gap-1.5">
                                                     <CalendarBlankIcon size={13} weight="bold" className="text-amber-600" />
                                                     <span>Events &amp; Workshops ({results!.events.length})</span>
@@ -393,23 +367,23 @@ export default function AdminGlobalSearch() {
                                                 <div
                                                     key={`event-${event.id}`}
                                                     onClick={() => handleSelect(event.url)}
-                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-purple-50/70 dark:hover:bg-slate-800/70 cursor-pointer transition-colors group"
+                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
-                                                        <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-slate-800 text-amber-700 dark:text-amber-400 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-100 dark:border-slate-700">
+                                                        <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-100">
                                                             <CalendarBlankIcon size={16} weight="bold" />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="text-xs font-bold text-slate-800 dark:text-white truncate group-hover:text-amber-700 dark:group-hover:text-amber-400">
+                                                            <p className="text-xs font-bold text-slate-800 truncate group-hover:text-amber-700">
                                                                 {event.title}
                                                             </p>
-                                                            <p className="text-[11px] text-slate-400 truncate">
+                                                            <p className="text-xs text-slate-400 truncate">
                                                                 {event.subtitle}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 shrink-0">
-                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                                                        <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
                                                             {event.badge}
                                                         </span>
                                                         <ArrowRightIcon size={12} weight="bold" className="text-slate-300 group-hover:text-amber-600 transition-colors" />
@@ -424,13 +398,13 @@ export default function AdminGlobalSearch() {
                             {/* ── CASE 2: EMPTY SEARCH STATE ── */}
                             {isSearching && !isLoading && !hasResults && filteredPages.length === 0 && (
                                 <div className="text-center py-8 px-4 space-y-1">
-                                    <div className="w-10 h-10 rounded-2xl bg-purple-50 dark:bg-slate-800 flex items-center justify-center text-purple-400 mx-auto mb-2">
+                                    <div className="w-10 h-10 rounded-2xl bg-km-surface flex items-center justify-center text-km-text-muted mx-auto mb-2">
                                         <MagnifyingGlassIcon size={20} weight="bold" />
                                     </div>
-                                    <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                                    <h4 className="text-xs font-bold text-slate-800">
                                         No records found for &ldquo;{query}&rdquo;
                                     </h4>
-                                    <p className="text-[11px] text-slate-400 max-w-xs mx-auto">
+                                    <p className="text-xs text-slate-400 max-w-xs mx-auto">
                                         Try searching by role, user name, mobile number, company, or portal module.
                                     </p>
                                 </div>
@@ -439,37 +413,37 @@ export default function AdminGlobalSearch() {
                             {/* ── CASE 3: QUICK PORTAL NAVIGATION ── */}
                             {(!isSearching || filteredPages.length > 0) && (
                                 <div className="space-y-1 pt-1.5 first:pt-0">
-                                    <div className="px-2.5 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                                    <div className="px-2.5 py-1 text-xs font-bold text-slate-400 flex items-center justify-between">
                                         <span>{isSearching ? 'Matching Admin Modules' : 'Quick Portal Navigation'}</span>
-                                        {!isSearching && <span className="text-[10px] lowercase opacity-75">jump to section</span>}
+                                        {!isSearching && <span className="text-xs lowercase opacity-75">jump to section</span>}
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
                                         {filteredPages.map((page) => (
                                             <div
                                                 key={page.href}
                                                 onClick={() => handleSelect(page.href)}
-                                                className="flex items-center justify-between p-2 rounded-xl hover:bg-purple-50/70 dark:hover:bg-slate-800/70 cursor-pointer transition-colors group"
+                                                className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                             >
                                                 <div className="flex items-center gap-2.5 min-w-0">
-                                                    <div className="w-7 h-7 rounded-lg bg-purple-50 dark:bg-slate-800 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 border border-purple-100/60 dark:border-slate-700">
+                                                    <div className="w-7 h-7 rounded-lg bg-km-surface text-km-link flex items-center justify-center shrink-0 border border-km-border">
                                                         <page.icon size={15} weight="bold" />
                                                     </div>
                                                     <div className="min-w-0">
-                                                        <span className="text-xs font-semibold text-slate-700 dark:text-slate-200 group-hover:text-purple-700 dark:group-hover:text-purple-400 truncate block">
+                                                        <span className="text-xs font-semibold text-slate-700 group-hover:text-km-link truncate block">
                                                             {page.name}
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <ArrowRightIcon size={12} weight="bold" className="text-slate-300 group-hover:text-purple-600 transition-colors shrink-0" />
+                                                <ArrowRightIcon size={12} weight="bold" className="text-slate-300 group-hover:text-km-link transition-colors shrink-0" />
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
                         </div>
-                    </motion.div>
+                    </div>
                 )}
-            </AnimatePresence>
+            </>
         </div>
     );
 }

@@ -9,6 +9,7 @@ import { notify, errorText } from "@/lib/notify";
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HERO_SHELL } from '@/components/km/PageHero';
+import AdSlot from '@/components/ads/AdSlot';
 import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
 
 interface Job {
@@ -683,6 +684,8 @@ const JobDetailPage = () => {
                                 </div>
                             </div>
                         </div>
+
+                        <AdSlot placement="job_detail_sidebar" />
                     </aside>
                 </div>
             </div>

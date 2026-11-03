@@ -44,4 +44,10 @@ func (a *FeedApi) Setup(app *fiber.App) {
 	feed.Post("/:id/comments", auth, a.controller.AddComment)
 	feed.Delete("/:id/comments/:commentId", auth, a.controller.DeleteComment)
 	feed.Post("/:id/report", auth, a.controller.Report)
+
+	// Moderators review reported posts
+	admin := app.Group("/api/admin/feed", auth, middleware.RequireRole("admin"))
+	admin.Get("/reports", a.controller.AdminReports)
+	admin.Get("/reports/:id", a.controller.AdminReportDetail)
+	admin.Post("/reports/:id/decision", a.controller.AdminModerate)
 }

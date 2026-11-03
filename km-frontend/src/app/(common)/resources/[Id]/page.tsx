@@ -1,6 +1,7 @@
 // pages/resources/[id].tsx
 import React from 'react';
 import { BookmarkSimpleIcon, CaretDownIcon, ChatCircleIcon, DotsThreeVerticalIcon, FlagIcon, PlayIcon, StarHalfIcon, StarIcon, ThumbsUpIcon } from '@phosphor-icons/react/ssr';
+import AdSlot from '@/components/ads/AdSlot';
 
 const ResourceDetailsPage = () => {
     return (
@@ -177,10 +178,7 @@ const ResourceDetailsPage = () => {
                     </div>
                 </div>
 
-                {/* Sidebar Ad */}
-                <div className="bg-km-surface-card rounded-3xl h-100 flex items-center justify-center border border-slate-100 text-slate-400 font-bold italic shadow-sm">
-                    Ad Banner
-                </div>
+                <AdSlot placement="resource_detail_sidebar" />
             </div>
         </div>
     );

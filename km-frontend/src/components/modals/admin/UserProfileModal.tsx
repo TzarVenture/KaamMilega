@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ModalWrapper from '@/components/ui/ModalWrapper';
+import { AdminModal, btn, field } from '@/components/admin/ui';
 import { 
     CaretDownIcon, 
     EnvelopeSimpleIcon, 
@@ -90,20 +90,20 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
     };
 
     return (
-        <ModalWrapper
+        <AdminModal
             isOpen={isOpen}
             onClose={onClose}
-            title={mode === 'add' ? 'Add Platform User' : 'Edit User & Personal Details'}
+            title={mode === 'add' ? 'Add user' : 'Edit user'}
         >
             <form onSubmit={handleSubmit} className="space-y-5">
-                <p className="text-xs text-purple-600 font-medium dark:text-purple-400">* Indicates required</p>
+                <p className="text-xs text-km-link font-medium">* Indicates required</p>
 
                 {/* Name Fields */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                            <UserIcon size={14} className="text-purple-600" />
-                            First Name*
+                        <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                            <UserIcon size={14} className="text-km-link" />
+                            First name*
                         </label>
                         <input
                             type="text"
@@ -112,13 +112,13 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                             onChange={handleChange}
                             required
                             placeholder="e.g. John"
-                            className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium"
+                            className={field.input}
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                            <UserIcon size={14} className="text-purple-600" />
-                            Last Name*
+                        <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                            <UserIcon size={14} className="text-km-link" />
+                            Last name*
                         </label>
                         <input
                             type="text"
@@ -127,21 +127,21 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                             onChange={handleChange}
                             required
                             placeholder="e.g. Doe"
-                            className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium"
+                            className={field.input}
                         />
                     </div>
                 </div>
 
                 {/* Contact & Personal Details */}
-                <div className="p-4 bg-purple-50/50 dark:bg-purple-950/20 rounded-2xl border border-purple-100 dark:border-purple-900/40 space-y-4">
-                    <h5 className="text-xs font-bold text-purple-900 dark:text-purple-300 uppercase tracking-wider">
-                        Personal & Contact Details
+                <div className="p-4 bg-km-surface rounded-2xl border border-km-border space-y-4">
+                    <h5 className="text-xs font-bold text-km-heading">
+                        Personal & contact details
                     </h5>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                                <EnvelopeSimpleIcon size={14} className="text-purple-600" />
-                                Email Address
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                                <EnvelopeSimpleIcon size={14} className="text-km-link" />
+                                Email address
                             </label>
                             <input
                                 type="email"
@@ -149,13 +149,13 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="e.g. user@example.com"
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium"
+                                className={field.input}
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                                <PhoneIcon size={14} className="text-purple-600" />
-                                Mobile Number
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                                <PhoneIcon size={14} className="text-km-link" />
+                                Mobile number
                             </label>
                             <input
                                 type="tel"
@@ -163,16 +163,16 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                                 value={formData.mobile}
                                 onChange={handleChange}
                                 placeholder="e.g. 9876543210"
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-mono font-medium"
+                                className={`${field.input} font-inter`}
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                                <MapPinIcon size={14} className="text-purple-600" />
-                                City / Location
+                            <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                                <MapPinIcon size={14} className="text-km-link" />
+                                City
                             </label>
                             <input
                                 type="text"
@@ -180,25 +180,25 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                                 value={formData.city}
                                 onChange={handleChange}
                                 placeholder="e.g. Mumbai, Maharashtra"
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium"
+                                className={field.input}
                             />
                         </div>
 
                         <div className="space-y-1.5">
-                            <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Pronouns</label>
+                            <label className={field.label}>Pronouns</label>
                             <div className="relative">
                                 <select
                                     name="pronouns"
                                     value={formData.pronouns}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all appearance-none text-gray-700 dark:text-gray-200 text-sm font-medium"
+                                    className={`${field.input} appearance-none cursor-pointer`}
                                 >
-                                    <option value="">Please Select</option>
+                                    <option value="">Please select</option>
                                     {PRONOUNS_OPTIONS.map(option => (
                                         <option key={option} value={option}>{option}</option>
                                     ))}
                                 </select>
-                                <CaretDownIcon weight="bold" className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+                                <CaretDownIcon weight="bold" className="absolute right-4 top-1/2 -translate-y-1/2 text-km-text-muted pointer-events-none" size={16} />
                             </div>
                         </div>
                     </div>
@@ -206,9 +206,9 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
 
                 {/* Additional Info */}
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                        <BriefcaseIcon size={14} className="text-purple-600" />
-                        Professional Headline*
+                    <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                        <BriefcaseIcon size={14} className="text-km-link" />
+                        Professional headline*
                     </label>
                     <input
                         type="text"
@@ -216,52 +216,52 @@ const UserProfileModal = ({ isOpen, onClose, mode, userData, onSave }: UserProfi
                         value={formData.headline}
                         onChange={handleChange}
                         required
-                        placeholder="e.g. Senior Frontend Developer | React, Next.js"
-                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium"
+                        placeholder="For example: Frontend developer"
+                        className={field.input}
                     />
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">Additional Name / Nickname</label>
+                    <label className={field.label}>Additional name / nickname</label>
                     <input
                         type="text"
                         name="additionalName"
                         value={formData.additionalName}
                         onChange={handleChange}
                         placeholder="e.g. Johnny"
-                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium"
+                        className={field.input}
                     />
                 </div>
 
                 <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">About / Summary</label>
+                    <label className={field.label}>About</label>
                     <textarea
                         name="about"
                         rows={3}
                         value={formData.about}
                         onChange={handleChange}
-                        placeholder="Brief summary of experience, interests, or background..."
-                        className="w-full px-4 py-2.5 bg-km-surface-card border border-gray-300 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium resize-none"
+                        placeholder="Experience, interests or background"
+                        className={`${field.textarea} resize-none`}
                     />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex justify-end gap-3 pt-4 border-t border-km-border-subtle">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                        className={btn.secondary}
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
-                        className="px-8 py-2.5 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-purple-600/20 active:scale-95"
+                        className={btn.primary}
                     >
-                        Save Profile Changes
+                        Save profile changes
                     </button>
                 </div>
             </form>
-        </ModalWrapper>
+        </AdminModal>
     );
 };
 

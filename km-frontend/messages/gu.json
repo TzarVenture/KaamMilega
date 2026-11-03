@@ -65,6 +65,14 @@
     "rights": "સર્વ હક્ક સુરક્ષિત © {year} KaamMilega™, ભારતનું સૌથી વિશ્વસનીય કામ અને સ્કિલ પ્લેટફોર્મ",
     "slogan": "Kaam Bhi. Skill Bhi. Kamaai Bhi."
   },
+  "policies": {
+    "lastUpdated": "છેલ્લો ફેરફાર {date}",
+    "contents": "આ પેજ પર",
+    "notPublishedTitle": "આ પેજ હજુ લખાઈ રહ્યું છે",
+    "notPublished": "અમે આ નીતિ હજુ પ્રકાશિત કરી નથી. તેના વિશે કોઈ પ્રશ્ન હોય તો અમારી સપોર્ટ ટીમ મદદ કરી શકે છે.",
+    "contactSupport": "સપોર્ટનો સંપર્ક કરો",
+    "otherPolicies": "અન્ય નીતિઓ"
+  },
   "appDownload": {
     "notifyLabel": "એપ શરૂ થાય ત્યારે મેસેજ મેળવો",
     "mobilePlaceholder": "મોબાઇલ નંબર",
@@ -1255,7 +1263,8 @@
   },
   "ads": {
     "label": "જાહેરાત",
-    "placeholder": "જાહેરાત બેનર"
+    "sponsored": "પ્રાયોજિત",
+    "learnMore": "વધુ જાણો"
   },
   "analytics": {
     "title": "એનાલિટિક્સ",

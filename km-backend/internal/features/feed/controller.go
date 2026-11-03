@@ -492,3 +492,68 @@ func (ctrl *FeedController) Report(c *fiber.Ctx) error {
 	}
 	return c.SendStatus(fiber.StatusNoContent)
 }
+
+// ─── Moderation (admins) ────────────────────────────────────────────────────────
+
+// AdminReports godoc
+// @Summary Reported posts, grouped by post: open ones wait for a decision
+// @Tags admin-feed
+// @Param state query string false "open (default) | closed"
+// @Param page query int false "Page, from 1"
+// @Param limit query int false "Posts per page"
+// @Success 200 {object} ModerationQueueResponse
+// @Router /api/admin/feed/reports [get]
+func (ctrl *FeedController) AdminReports(c *fiber.Ctx) error {
+	page, _ := strconv.Atoi(c.Query("page"))
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	res, err := ctrl.service.ModerationQueue(c.UserContext(), c.Query("state") != "closed", page, limit)
+	if err != nil {
+		return fail(c, err)
+	}
+	return c.JSON(res)
+}
+
+// AdminReportDetail godoc
+// @Summary A reported post with every report on it
+// @Tags admin-feed
+// @Param id path string true "Post ID"
+// @Success 200 {object} ModerationDetailResponse
+// @Router /api/admin/feed/reports/{id} [get]
+func (ctrl *FeedController) AdminReportDetail(c *fiber.Ctx) error {
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	res, err := ctrl.service.ModerationDetail(c.UserContext(), id)
+	if err != nil {
+		return fail(c, err)
+	}
+	return c.JSON(res)
+}
+
+// AdminModerate godoc
+// @Summary Keep a reported post (back in the feed) or remove it; closes its open reports
+// @Tags admin-feed
+// @Accept json
+// @Param id path string true "Post ID"
+// @Param request body ModerationRequest true "action: keep | remove"
+// @Success 204
+// @Router /api/admin/feed/reports/{id}/decision [post]
+func (ctrl *FeedController) AdminModerate(c *fiber.Ctx) error {
+	uid, ok := me(c)
+	if !ok {
+		return unauthorized(c)
+	}
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	var req ModerationRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	if err := ctrl.service.Moderate(c.UserContext(), uid, id, req.Action); err != nil {
+		return fail(c, err)
+	}
+	return c.SendStatus(fiber.StatusNoContent)
+}

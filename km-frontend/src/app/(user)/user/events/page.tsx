@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { BookmarkSimpleIcon, CalendarBlankIcon, CaretDownIcon, MapPinIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { notify } from "@/lib/notify";
+import AdSlot from '@/components/ads/AdSlot';
 
 interface EventData {
     id: string;
@@ -129,8 +130,8 @@ const EventsPage = () => {
 
             {/* Right Content: Sidebar */}
             <div className="hidden lg:block w-80">
-                <div className="sticky top-6 bg-km-surface-card rounded-[32px] p-8 h-[450px] border border-gray-100 shadow-sm flex items-center justify-center">
-                    <span className="text-gray-400 font-bold text-xl tracking-tight italic">Ad Banner</span>
+                <div className="sticky top-6">
+                    <AdSlot placement="events_sidebar" />
                 </div>
             </div>
         </div>

@@ -2,17 +2,22 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { ArrowLeftIcon, CaretRightIcon, CircleNotchIcon, KeyIcon, PhoneIcon, ShieldCheckIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon, CircleNotchIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { saveSession } from '@/lib/auth';
 import { errorText } from "@/lib/notify";
+import BrandLogo from '@/components/km/BrandLogo';
+import OtpInput from '@/components/ui/OtpInput';
+import { normalizeMobile } from '@/components/auth/AuthUI';
+import { btn, field } from '@/components/admin/ui';
+
+const EMPTY_OTP = ['', '', '', ''];
 
 export default function AdminLoginPage() {
     const router = useRouter();
     const [mobile, setMobile] = useState('');
-    const [otp, setOtp] = useState('');
+    const [otp, setOtp] = useState<string[]>(EMPTY_OTP);
     const [step, setStep] = useState<'SEND_OTP' | 'VERIFY_OTP'>('SEND_OTP');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -24,148 +29,115 @@ export default function AdminLoginPage() {
 
         try {
             await api.post('/auth/otp/send', { mobile, role: 'admin' });
+            setOtp(EMPTY_OTP);
             setStep('VERIFY_OTP');
-        } catch (err: any) {
-            setError(errorText(err, 'Failed to send OTP. Please check your number.'));
+        } catch (err) {
+            setError(errorText(err, "Couldn't send the code. Check the number and try again."));
         } finally {
             setIsLoading(false);
         }
     };
 
-    const handleVerifyOTP = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const verify = async (code: string) => {
         setIsLoading(true);
         setError('');
 
         try {
-            const response: any = await api.post('/auth/otp/verify', { mobile, code: otp, role: 'admin' });
+            const response = await api.post<unknown, { user?: Parameters<typeof saveSession>[0] }>('/auth/otp/verify', { mobile, code, role: 'admin' });
             if (response.user) {
                 saveSession(response.user, 'admin');
                 router.push('/admin');
             } else {
-                setError('Invalid response from server.');
+                setError('Something went wrong. Try again.');
             }
-        } catch (err: any) {
-            setError(errorText(err, 'Invalid OTP. Please try again.'));
+        } catch (err) {
+            setError(errorText(err, "That code didn't work. Try again."));
+            setOtp(EMPTY_OTP);
         } finally {
             setIsLoading(false);
         }
     };
 
+    const code = otp.join('');
+
     return (
-        <div className="min-h-screen bg-[#FDFCFE] flex items-center justify-center p-6 selection:bg-purple-200 dark:bg-[#1D253D]">
-            <div className="absolute top-8 left-8">
-                <Link href="/" className="flex items-center gap-2 text-slate-500 hover:text-purple-700 transition-colors font-semibold text-sm">
-                    <ArrowLeftIcon weight="bold" size={18} />
-                    Back to Site
+        <div className="min-h-screen bg-km-surface flex flex-col">
+            <div className="p-6">
+                <Link href="/" className="inline-flex items-center gap-2 text-sm font-medium text-km-text-secondary hover:text-km-link transition-colors">
+                    <ArrowLeftIcon size={16} aria-hidden="true" />
+                    Back to Kaammilega
                 </Link>
             </div>
 
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-120"
-            >
-                <div className="bg-km-surface-card rounded-[40px] shadow-2xl shadow-purple-900/10 border border-purple-50 p-10 md:p-12">
-                    {/* Logo & Header */}
-                    <div className="text-center mb-10">
-                        <div className="flex justify-center mb-6">
-                            <div className="relative">
-                                <div className="w-20 h-20 bg-linear-to-tr from-purple-600 to-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-purple-200 rotate-12">
-                                    <ShieldCheckIcon size={40} />
-                                </div>
-                                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full border-4 border-white flex items-center justify-center dark:border-km-surface-card">
-                                    <div className="w-2 h-2 bg-km-surface-card rounded-full"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <h1 className="text-3xl font-black text-slate-900 mb-2">Admin Portal</h1>
-                        <p className="text-slate-500 font-medium">Secure access to Kaam Milega Intelligence</p>
-                    </div>
+            <main className="flex-1 flex items-center justify-center px-4 pb-16">
+                <div className="w-full max-w-sm bg-km-surface-card rounded-2xl border border-km-border shadow-sm p-8">
+                    <BrandLogo size="md" />
+                    <h1 className="mt-6 text-xl font-bold text-km-heading">Admin sign in</h1>
+                    <p className="mt-1 text-sm text-km-text-secondary">
+                        {step === 'SEND_OTP' ? 'Use the mobile number on your admin account.' : `Enter the 4-digit code sent to ${mobile}.`}
+                    </p>
 
                     {error && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 text-sm font-bold dark:text-red-400"
-                        >
-                            <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+                        <p role="alert" className="mt-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+                            <WarningCircleIcon size={18} className="shrink-0 mt-px" aria-hidden="true" />
                             {error}
-                        </motion.div>
+                        </p>
                     )}
 
-                    <form onSubmit={step === 'SEND_OTP' ? handleSendOTP : handleVerifyOTP} className="space-y-6">
-                        {step === 'SEND_OTP' ? (
-                            <div className="space-y-2">
-                                <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest ml-1">Mobile Number</label>
-                                <div className="relative group">
-                                    <PhoneIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={20} />
-                                    <input
-                                        type="tel"
-                                        required
-                                        placeholder="9876543210"
-                                        value={mobile}
-                                        onChange={(e) => setMobile(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-purple-50/50 border border-transparent rounded-2xl text-[15px] font-medium focus:outline-none focus:bg-km-surface-card focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none"
-                                    />
+                    {step === 'SEND_OTP' ? (
+                        <form onSubmit={handleSendOTP} className="mt-6 space-y-5">
+                            <label className="block">
+                                <span className={field.label}>Mobile number</span>
+                                <input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    autoComplete="tel"
+                                    required
+                                    autoFocus
+                                    placeholder="98765 43210"
+                                    value={mobile}
+                                    onChange={(e) => setMobile(normalizeMobile(e.target.value))}
+                                    className={`${field.input} font-inter`}
+                                />
+                            </label>
+                            <button type="submit" disabled={isLoading || mobile.length < 10} className={`${btn.primary} w-full`}>
+                                {isLoading && <CircleNotchIcon size={16} className="animate-spin" aria-hidden="true" />}
+                                Send code
+                            </button>
+                        </form>
+                    ) : (
+                        <form onSubmit={(e) => { e.preventDefault(); if (code.length === 4) verify(code); }} className="mt-6 space-y-5">
+                            <div>
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className="text-sm font-medium text-km-heading">Code</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => { setStep('SEND_OTP'); setError(''); }}
+                                        className="text-sm font-medium text-km-link hover:underline cursor-pointer"
+                                    >
+                                        Change number
+                                    </button>
                                 </div>
+                                <OtpInput
+                                    value={otp}
+                                    align="start"
+                                    disabled={isLoading}
+                                    invalid={Boolean(error)}
+                                    onChange={(next) => {
+                                        setOtp(next);
+                                        setError('');
+                                        if (next.join('').length === 4) verify(next.join(''));
+                                    }}
+                                />
                             </div>
-                        ) : (
-                            <div className="space-y-2">
-                                <div className="flex justify-between items-center px-1">
-                                    <label className="text-[12px] font-black text-slate-400 uppercase tracking-widest">Verification Code</label>
-                                    <button type="button" onClick={() => setStep('SEND_OTP')} className="text-[11px] font-bold text-purple-600 hover:underline dark:text-purple-400">Change Number?</button>
-                                </div>
-                                <div className="relative group">
-                                    <KeyIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-purple-600 transition-colors dark:group-focus-within:text-purple-400" size={20} />
-                                    <input
-                                        type="text"
-                                        required
-                                        placeholder="1234"
-                                        maxLength={4}
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
-                                        className="w-full pl-12 pr-4 py-4 bg-purple-50/50 border border-transparent rounded-2xl text-[15px] font-medium focus:outline-none focus:bg-km-surface-card focus:border-purple-200 focus:ring-4 focus:ring-purple-500/5 transition-all outline-none tracking-widest"
-                                    />
-                                </div>
-                            </div>
-                        )}
-
-                        <button
-                            disabled={isLoading}
-                            className="w-full bg-linear-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-2xl py-4 font-bold text-[16px] shadow-xl shadow-purple-200 flex items-center justify-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:active:scale-100"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <CircleNotchIcon className="animate-spin" size={20} />
-                                    <span>Processing...</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span>{step === 'SEND_OTP' ? 'Send OTP' : 'Verify Access'}</span>
-                                    <CaretRightIcon size={20} />
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    <div className="mt-10 text-center">
-                        <div className="flex items-center justify-center gap-2 text-slate-400 text-[11px] font-bold uppercase tracking-widest">
-                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                            System Encrypted
-                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                            Kaam Milega V1.0
-                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                        </div>
-                    </div>
+                            <button type="submit" disabled={isLoading || code.length < 4} className={`${btn.primary} w-full`}>
+                                {isLoading && <CircleNotchIcon size={16} className="animate-spin" aria-hidden="true" />}
+                                Sign in
+                            </button>
+                        </form>
+                    )}
                 </div>
-            </motion.div>
-
-            {/* Background Decorative Elements */}
-            <div className="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none overflow-hidden">
-                <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-purple-100/50 blur-[120px] rounded-full"></div>
-                <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[40%] bg-indigo-100/50 blur-[120px] rounded-full"></div>
-            </div>
+            </main>
         </div>
     );
 }

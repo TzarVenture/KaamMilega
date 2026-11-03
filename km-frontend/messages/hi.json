@@ -65,6 +65,14 @@
     "rights": "सर्वाधिकार सुरक्षित © {year} KaamMilega™, भारत का सबसे भरोसेमंद काम और स्किल प्लेटफ़ॉर्म",
     "slogan": "काम भी। स्किल भी। कमाई भी।"
   },
+  "policies": {
+    "lastUpdated": "आखिरी बदलाव {date}",
+    "contents": "इस पेज पर",
+    "notPublishedTitle": "यह पेज अभी लिखा जा रहा है",
+    "notPublished": "हमने यह नीति अभी प्रकाशित नहीं की है। इसके बारे में कोई सवाल हो तो हमारी सपोर्ट टीम मदद कर सकती है।",
+    "contactSupport": "सपोर्ट से संपर्क करें",
+    "otherPolicies": "अन्य नीतियाँ"
+  },
   "appDownload": {
     "notifyLabel": "ऐप लॉन्च होने पर मैसेज पाएँ",
     "mobilePlaceholder": "मोबाइल नंबर",
@@ -1255,7 +1263,8 @@
   },
   "ads": {
     "label": "विज्ञापन",
-    "placeholder": "विज्ञापन बैनर"
+    "sponsored": "प्रायोजित",
+    "learnMore": "और जानें"
   },
   "analytics": {
     "title": "एनालिटिक्स",

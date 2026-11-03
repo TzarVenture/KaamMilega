@@ -1,6 +1,7 @@
 // pages/events/[id].tsx
 import React from 'react';
 import { BookmarkSimpleIcon, CalendarBlankIcon, ChatCircleIcon, ShareNetworkIcon, UsersIcon, VideoCameraIcon } from '@phosphor-icons/react/ssr';
+import AdSlot from '@/components/ads/AdSlot';
 
 const EventDetailsPage = () => {
     return (
@@ -151,10 +152,7 @@ const EventDetailsPage = () => {
                     </div>
                 </div>
 
-                {/* Ad Banner */}
-                <div className="bg-km-surface-card rounded-[32px] h-[500px] flex items-center justify-center border border-gray-100 shadow-sm text-gray-400 font-bold text-xl italic p-12 text-center">
-                    Ad Banner
-                </div>
+                <AdSlot placement="event_detail_sidebar" />
             </div>
         </div>
     );

@@ -1,30 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import {
-    CalendarBlankIcon,
-    CurrencyInrIcon,
-    MagnifyingGlassIcon,
-    PlusIcon,
-    TrashIcon,
-    PencilSimpleIcon,
-    EyeIcon,
-    TicketIcon,
-    UsersIcon,
-    MapPinIcon,
-    ClockIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    ArrowCounterClockwiseIcon,
-    CreditCardIcon,
-    WalletIcon,
-    XIcon,
-    CaretLeftIcon,
-    CaretRightIcon
-} from '@phosphor-icons/react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { CalendarBlankIcon, CurrencyInrIcon, PlusIcon, TrashIcon, PencilSimpleIcon, EyeIcon, TicketIcon, UsersIcon, CheckCircleIcon, ArrowCounterClockwiseIcon, CreditCardIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import { notify } from '@/lib/notify';
 import api from '@/lib/axios';
+import Pagination from '@/components/ui/Pagination';
+import { AdminPageHeader, AdminPanel, ConfirmDialog, EmptyState, MenuItem, RowMenu, SearchInput, SkeletonRows, StatCard, StatusBadge, btn, table } from '@/components/admin/ui';
 
 interface AdminEventItem {
     id: string;
@@ -143,7 +124,7 @@ export default function AdminEventsPage() {
             setEvents(res.data || []);
             setTotal(res.total || 0);
         } catch (error: any) {
-            notify.error(error, 'Failed to fetch events oversight data');
+            notify.error(error, "Couldn't load events");
         } finally {
             setLoading(false);
         }
@@ -158,25 +139,6 @@ export default function AdminEventsPage() {
         return Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
     }, [total]);
 
-    // Standard numbered pagination list: 1, 2, 3, 4, ...
-    const pageNumbers = useMemo(() => {
-        const pages: (number | string)[] = [];
-        if (totalPages <= 7) {
-            for (let i = 1; i <= totalPages; i++) {
-                pages.push(i);
-            }
-        } else {
-            // Keep first, current range, and last with ellipsis
-            if (page <= 4) {
-                pages.push(1, 2, 3, 4, 5, '...', totalPages);
-            } else if (page >= totalPages - 3) {
-                pages.push(1, '...', totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
-            } else {
-                pages.push(1, '...', page - 1, page, page + 1, '...', totalPages);
-            }
-        }
-        return pages;
-    }, [totalPages, page]);
 
     // Open Audit Inspector
     const handleInspectEvent = async (id: string) => {
@@ -186,7 +148,7 @@ export default function AdminEventsPage() {
             const res: any = await api.get(`/admin/events/${id}`);
             setSelectedEventDetail(res);
         } catch (error: any) {
-            notify.error(error, 'Failed to load event audit details');
+            notify.error(error, "Couldn't load this event's details");
             setAuditModalOpen(false);
         } finally {
             setAuditLoading(false);
@@ -237,7 +199,7 @@ export default function AdminEventsPage() {
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.title.trim()) {
-            notify.error('Title is required');
+            notify.error('Enter a title');
             return;
         }
 
@@ -245,15 +207,15 @@ export default function AdminEventsPage() {
         try {
             if (editingEventId) {
                 await api.put(`/admin/events/${editingEventId}`, formData);
-                notify.success('Event updated successfully');
+                notify.success('Event updated');
             } else {
                 await api.post('/admin/events', formData);
-                notify.success('Official platform event created');
+                notify.success('Event created');
             }
             setFormModalOpen(false);
             fetchEvents();
         } catch (error: any) {
-            notify.error(error, editingEventId ? 'Failed to update event' : 'Failed to create event');
+            notify.error(error, editingEventId ? "Couldn't update the event" : "Couldn't create the event");
         } finally {
             setSubmitting(false);
         }
@@ -269,7 +231,7 @@ export default function AdminEventsPage() {
             setDeleteConfirmId(null);
             fetchEvents();
         } catch (error: any) {
-            notify.error(error, 'Failed to delete event');
+            notify.error(error, "Couldn't delete the event");
         } finally {
             setDeleting(false);
         }
@@ -281,294 +243,133 @@ export default function AdminEventsPage() {
     const totalParticipantsSum = events.reduce((acc, curr) => acc + (curr.total_participants || 0), 0);
 
     return (
-        <div className="w-full max-w-7xl mx-auto space-y-6 px-3 sm:px-6 lg:px-8 py-2">
-            {/* Header: Title and Unified Action CTA */}
-            <div className="bg-white dark:bg-km-surface-card p-5 sm:p-6 rounded-2xl border border-purple-50 dark:border-white/5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-[#555870] flex items-center justify-center text-purple-600 dark:text-purple-400">
-                            <CalendarBlankIcon size={24} weight="duotone" />
-                        </div>
-                        <div>
-                            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">
-                                Events & Workshops Oversight
-                            </h1>
-                            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                                Administrative oversight over platform events, bookings, attendees, and ticket transactions.
-                            </p>
-                        </div>
-                    </div>
-                </div>
+        <div>
+            <AdminPageHeader
+                title="Events"
+                description="Workshops, webinars and hiring drives with their bookings"
+                actions={
+                    <>
+                        <button type="button" onClick={() => fetchEvents()} disabled={loading} className={btn.secondary}>
+                            <ArrowCounterClockwiseIcon size={16} aria-hidden="true" />
+                            Refresh
+                        </button>
+                        <button type="button" onClick={handleOpenCreate} className={btn.primary}>
+                            <PlusIcon size={16} weight="bold" aria-hidden="true" />
+                            Create event
+                        </button>
+                    </>
+                }
+            />
 
-                <div className="flex items-center gap-3 self-start md:self-center">
-                    <button
-                        type="button"
-                        onClick={handleOpenCreate}
-                        className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-700 active:scale-98 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-md shadow-purple-600/20 transition-all cursor-pointer whitespace-nowrap"
-                    >
-                        <PlusIcon weight="bold" size={16} />
-                        <span>Create Official Event</span>
-                    </button>
-                </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <StatCard label="Events" value={loading ? '–' : total} icon={CalendarBlankIcon} iconClassName="text-km-events-text" />
+                <StatCard label="Registrations" value={loading ? '–' : totalParticipantsSum} icon={UsersIcon} hint="Events on this page" />
+                <StatCard label="Tickets confirmed" value={loading ? '–' : totalTicketsSum} icon={TicketIcon} hint="Events on this page" />
+                <StatCard label="Revenue" value={loading ? '–' : `₹${totalRevenueSum.toLocaleString('en-IN')}`} icon={CurrencyInrIcon} iconClassName="text-km-skills-text" hint="Events on this page" />
             </div>
 
-            {/* Quick Metrics Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div className="bg-white dark:bg-km-surface-card p-4 sm:p-5 rounded-2xl border border-purple-50 dark:border-white/5 shadow-xs">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Events</p>
-                    <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1.5">{total}</p>
+            <AdminPanel>
+                <div className="px-5 py-4 border-b border-km-border-subtle">
+                    <SearchInput value={search} onChange={setSearch} placeholder="Search title, organiser, category or city" className="w-full sm:max-w-sm" />
                 </div>
-                <div className="bg-white dark:bg-km-surface-card p-4 sm:p-5 rounded-2xl border border-purple-50 dark:border-white/5 shadow-xs">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Registered</p>
-                    <p className="text-xl sm:text-2xl font-black text-purple-600 dark:text-purple-400 mt-1.5">{totalParticipantsSum}</p>
-                </div>
-                <div className="bg-white dark:bg-km-surface-card p-4 sm:p-5 rounded-2xl border border-purple-50 dark:border-white/5 shadow-xs">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tickets Confirmed</p>
-                    <p className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-1.5">{totalTicketsSum}</p>
-                </div>
-                <div className="bg-white dark:bg-km-surface-card p-4 sm:p-5 rounded-2xl border border-purple-50 dark:border-white/5 shadow-xs">
-                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Revenue</p>
-                    <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1.5">₹{totalRevenueSum.toLocaleString('en-IN')}</p>
-                </div>
-            </div>
 
-            {/* Search and Refresh Bar */}
-            <div className="bg-white dark:bg-km-surface-card p-3 sm:p-4 rounded-2xl border border-purple-50 dark:border-white/5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between shadow-xs">
-                <div className="relative flex-1 max-w-md">
-                    <MagnifyingGlassIcon size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input
-                        type="text"
-                        placeholder="Search by title, organizer, category, location..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 text-slate-800 dark:text-white"
-                    />
-                </div>
-                <div className="flex items-center justify-between sm:justify-end gap-3">
-                    <button
-                        onClick={() => { setSearch(''); setPage(1); fetchEvents(); }}
-                        className="text-xs text-slate-500 hover:text-purple-600 dark:hover:text-purple-400 font-semibold inline-flex items-center gap-1.5 cursor-pointer py-1.5 px-3 rounded-lg border border-slate-200 dark:border-white/10"
-                    >
-                        <ArrowCounterClockwiseIcon size={14} weight="bold" />
-                        <span>Refresh</span>
-                    </button>
-                </div>
-            </div>
-
-            {/* Events Management Table Container */}
-            <div className="bg-white dark:bg-km-surface-card rounded-2xl border border-purple-50 dark:border-white/5 overflow-hidden shadow-xs">
-                <div className="overflow-x-auto min-h-[300px]">
-                    <table className="w-full text-left text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-                        <thead className="bg-slate-50/80 dark:bg-[#1D253D] text-[11px] uppercase font-bold text-slate-400 border-b border-purple-50 dark:border-white/5 tracking-wider">
-                            <tr>
-                                <th className="px-5 py-4">Event Details</th>
-                                <th className="px-4 py-4">Organizer</th>
-                                <th className="px-4 py-4">Schedule & Venue</th>
-                                <th className="px-4 py-4">Price</th>
-                                <th className="px-4 py-4">Registrations</th>
-                                <th className="px-4 py-4">Revenue</th>
-                                <th className="px-5 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-purple-50 dark:divide-white/5">
-                            {loading ? (
+                {loading ? (
+                    <SkeletonRows rows={5} />
+                ) : events.length === 0 ? (
+                    <EmptyState icon={CalendarBlankIcon} title="No events found" description="Try a different search, or create an event." />
+                ) : (
+                    <div className={table.wrap}>
+                        <table className={table.table}>
+                            <thead>
                                 <tr>
-                                    <td colSpan={7} className="text-center py-16 text-slate-400 font-medium">
-                                        Loading platform events data...
-                                    </td>
+                                    <th className={table.th}>Event</th>
+                                    <th className={table.th}>Organiser</th>
+                                    <th className={table.th}>When and where</th>
+                                    <th className={table.th}>Price</th>
+                                    <th className={`${table.th} text-right`}>Booked</th>
+                                    <th className={`${table.th} text-right`}>Revenue</th>
+                                    <th className={`${table.th} text-right`}><span className="sr-only">Actions</span></th>
                                 </tr>
-                            ) : events.length === 0 ? (
-                                <tr>
-                                    <td colSpan={7} className="text-center py-16 text-slate-400 font-medium">
-                                        No events found matching your filter criteria.
-                                    </td>
-                                </tr>
-                            ) : (
-                                events.map((ev) => (
-                                    <tr key={ev.id} className="hover:bg-purple-50/20 dark:hover:bg-[#161F37] transition-colors">
-                                        {/* Title & Category - Full readable space without trimming */}
-                                        <td className="px-5 py-4 min-w-[240px] max-w-md">
-                                            <div className="font-bold text-slate-900 dark:text-white text-sm leading-snug break-words">
-                                                {ev.title}
-                                            </div>
-                                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-[#555870] dark:text-purple-300 border border-purple-100 dark:border-purple-800/40">
-                                                    {ev.category || 'General'}
-                                                </span>
-                                                <span className="text-[10px] text-slate-400 font-mono">ID: {ev.id.slice(-6)}</span>
+                            </thead>
+                            <tbody>
+                                {events.map((ev) => (
+                                    <tr key={ev.id} className={table.row}>
+                                        <td className={table.td}>
+                                            <div className="min-w-[220px] max-w-sm">
+                                                <button type="button" onClick={() => handleInspectEvent(ev.id)} className="font-medium text-km-heading hover:text-km-link text-left cursor-pointer">
+                                                    {ev.title}
+                                                </button>
+                                                <p className="text-xs text-km-text-secondary">{ev.category || 'General'}</p>
                                             </div>
                                         </td>
-
-                                        {/* Organizer */}
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <span className="font-medium text-slate-700 dark:text-slate-200">
-                                                {ev.organizer || 'Official'}
-                                            </span>
+                                        <td className={`${table.td} whitespace-nowrap`}>{ev.organizer || 'KaamMilega'}</td>
+                                        <td className={`${table.td} whitespace-nowrap`}>
+                                            <p className="font-inter">{ev.date || 'Date to be announced'}</p>
+                                            <p className="text-xs text-km-text-secondary truncate max-w-[180px]">{ev.location || 'Online'}</p>
                                         </td>
-
-                                        {/* Schedule & Venue */}
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                                                <CalendarBlankIcon size={14} className="text-purple-600 shrink-0" />
-                                                <span>{ev.date || 'TBD'}</span>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-[11px] text-slate-400 mt-1">
-                                                <MapPinIcon size={13} className="text-orange-500 shrink-0" />
-                                                <span className="truncate max-w-[150px]">{ev.location || 'Online'}</span>
-                                            </div>
+                                        <td className={`${table.td} whitespace-nowrap`}>
+                                            {ev.is_paid && (ev.price || 0) > 0
+                                                ? <span className="font-inter">₹{ev.price}</span>
+                                                : <StatusBadge tone="green" dot={false}>Free</StatusBadge>}
                                         </td>
-
-                                        {/* Pricing */}
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            {ev.is_paid && (ev.price || 0) > 0 ? (
-                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-[#251821] px-2 py-0.5 rounded-md border border-orange-200 dark:border-orange-900/40">
-                                                    ₹{ev.price}
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-[#0B212C] px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-900/40">
-                                                    Free Entry
-                                                </span>
+                                        <td className={`${table.td} text-right whitespace-nowrap`}>
+                                            <p className="font-inter tabular-nums">{ev.total_participants}</p>
+                                            <p className="text-xs text-km-text-secondary">
+                                                {ev.capacity ? `${ev.available_seats ?? ev.capacity} of ${ev.capacity} left` : 'No limit'}
+                                            </p>
+                                        </td>
+                                        <td className={`${table.td} text-right whitespace-nowrap`}>
+                                            <p className="font-inter tabular-nums">₹{ev.total_revenue.toLocaleString('en-IN')}</p>
+                                            {(ev.razorpay_bookings > 0 || ev.wallet_bookings > 0) && (
+                                                <p className="text-xs text-km-text-secondary">
+                                                    {[ev.razorpay_bookings > 0 && `${ev.razorpay_bookings} online`, ev.wallet_bookings > 0 && `${ev.wallet_bookings} wallet`].filter(Boolean).join(', ')}
+                                                </p>
                                             )}
                                         </td>
-
-                                        {/* Registrations */}
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800 dark:text-white">
-                                                <UsersIcon size={14} className="text-purple-600 shrink-0" />
-                                                <span>{ev.total_participants} booked</span>
-                                            </div>
-                                            <div className="text-[11px] text-slate-400 mt-0.5">
-                                                Seats Left: {ev.available_seats ?? ev.capacity ?? '∞'} / {ev.capacity || '∞'}
-                                            </div>
-                                        </td>
-
-                                        {/* Revenue & Payment Channels */}
-                                        <td className="px-4 py-4 whitespace-nowrap">
-                                            <div className="font-bold text-slate-800 dark:text-white text-xs sm:text-sm">
-                                                ₹{ev.total_revenue.toLocaleString('en-IN')}
-                                            </div>
-                                            <div className="text-[10px] text-slate-400 mt-0.5">
-                                                {ev.razorpay_bookings > 0 && `${ev.razorpay_bookings} via Gateway `}
-                                                {ev.wallet_bookings > 0 && `${ev.wallet_bookings} via Wallet`}
-                                                {ev.total_revenue === 0 && 'Free Passes'}
-                                            </div>
-                                        </td>
-
-                                        {/* Actions */}
-                                        <td className="px-5 py-4 text-right whitespace-nowrap">
-                                            <div className="inline-flex items-center gap-1.5">
-                                                <button
-                                                    onClick={() => handleInspectEvent(ev.id)}
-                                                    className="p-2 rounded-xl text-purple-600 hover:bg-purple-50 dark:hover:bg-[#555870] transition-colors"
-                                                    title="Inspect all booked attendees & transactions"
-                                                >
-                                                    <EyeIcon size={16} weight="bold" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleOpenEdit(ev)}
-                                                    className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-[#293147] transition-colors"
-                                                    title="Edit Event Information"
-                                                >
-                                                    <PencilSimpleIcon size={16} weight="bold" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setDeleteConfirmId(ev.id)}
-                                                    className="p-2 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-[#585668] transition-colors"
-                                                    title="Delete Event"
-                                                >
-                                                    <TrashIcon size={16} weight="bold" />
-                                                </button>
-                                            </div>
+                                        <td className={`${table.td} text-right`}>
+                                            <RowMenu label={`Actions for ${ev.title}`}>
+                                                {() => (
+                                                    <>
+                                                        <MenuItem icon={EyeIcon} onClick={() => handleInspectEvent(ev.id)}>View bookings</MenuItem>
+                                                        <MenuItem icon={PencilSimpleIcon} onClick={() => handleOpenEdit(ev)}>Edit event</MenuItem>
+                                                        <div className="my-1 border-t border-km-border-subtle" />
+                                                        <MenuItem icon={TrashIcon} danger onClick={() => setDeleteConfirmId(ev.id)}>Delete event</MenuItem>
+                                                    </>
+                                                )}
+                                            </RowMenu>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-
-                {/* ───────────────────────────────────────────────────────────── */}
-                {/* Standard Consistent Pagination: 1 2 3 4 ...                   */}
-                {/* ───────────────────────────────────────────────────────────── */}
-                <div className="px-5 py-4 bg-slate-50/60 dark:bg-[#161F37] border-t border-purple-50 dark:border-white/5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                    <p className="text-slate-500 font-medium">
-                        Showing <span className="font-bold text-slate-900 dark:text-white">{events.length > 0 ? (page - 1) * ITEMS_PER_PAGE + 1 : 0}</span> to <span className="font-bold text-slate-900 dark:text-white">{Math.min(page * ITEMS_PER_PAGE, total)}</span> of <span className="font-bold text-slate-900 dark:text-white">{total}</span> events
-                    </p>
-
-                    <div className="flex items-center gap-1.5 flex-wrap justify-center">
-                        {/* Prev Button */}
-                        <button
-                            type="button"
-                            disabled={page <= 1}
-                            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-[#1D253D] disabled:opacity-40 disabled:cursor-not-allowed font-medium inline-flex items-center gap-1 transition-colors"
-                        >
-                            <CaretLeftIcon size={14} weight="bold" />
-                            <span>Prev</span>
-                        </button>
-
-                        {/* Numbered Page Buttons: 1, 2, 3, 4 ... */}
-                        {pageNumbers.map((p, idx) => {
-                            if (p === '...') {
-                                return (
-                                    <span key={`dots-${idx}`} className="w-8 h-9 flex items-center justify-center text-slate-400 font-bold">
-                                        ...
-                                    </span>
-                                );
-                            }
-
-                            const pageNum = Number(p);
-                            const isActive = pageNum === page;
-
-                            return (
-                                <button
-                                    key={`page-${pageNum}`}
-                                    type="button"
-                                    onClick={() => setPage(pageNum)}
-                                    className={`w-9 h-9 rounded-xl font-bold transition-all text-xs border ${
-                                        isActive
-                                            ? 'bg-purple-600 text-white border-purple-600 shadow-sm shadow-purple-600/30'
-                                            : 'text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-[#1D253D] bg-white dark:bg-km-surface-card border-slate-200 dark:border-white/10'
-                                    }`}
-                                >
-                                    {pageNum}
-                                </button>
-                            );
-                        })}
-
-                        {/* Next Button */}
-                        <button
-                            type="button"
-                            disabled={page >= totalPages}
-                            onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                            className="h-9 px-3 rounded-xl border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-[#1D253D] disabled:opacity-40 disabled:cursor-not-allowed font-medium inline-flex items-center gap-1 transition-colors"
-                        >
-                            <span>Next</span>
-                            <CaretRightIcon size={14} weight="bold" />
-                        </button>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div>
+                )}
 
-            {/* ───────────────────────────────────────────────────────────── */}
+                {totalPages > 1 && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4">
+                        <p className="text-sm text-km-text-secondary">
+                            {(page - 1) * ITEMS_PER_PAGE + 1}–{Math.min(page * ITEMS_PER_PAGE, total)} of {total}
+                        </p>
+                        <Pagination current={page} total={totalPages} onPageChange={setPage} />
+                    </div>
+                )}
+            </AdminPanel>
+
             {/* AUDIT INSPECTOR MODAL: Full Detail of Bookings & Attendees   */}
             {/* ───────────────────────────────────────────────────────────── */}
-            <AnimatePresence>
+            <>
                 {auditModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white dark:bg-[#111827] rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-purple-50 dark:border-white/10"
+                        <div
+                            className="bg-km-surface-card rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-sm border border-km-border"
                         >
                             {/* Modal Header */}
-                            <div className="p-5 sm:p-6 border-b border-purple-50 dark:border-white/10 flex items-center justify-between bg-purple-50/50 dark:bg-[#19163D]">
+                            <div className="p-5 sm:p-6 border-b border-km-border flex items-center justify-between bg-km-surface">
                                 <div>
-                                    <span className="text-[11px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest">
-                                        Event Audit & Ledger Inspector
+                                    <span className="text-xs font-bold text-km-link">
+                                        Event audit & ledger inspector
                                     </span>
-                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white mt-0.5">
+                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800 mt-0.5">
                                         {selectedEventDetail?.event?.title || 'Event Details'}
                                     </h3>
                                     <p className="text-xs text-slate-500 mt-0.5">
@@ -577,7 +378,7 @@ export default function AdminEventsPage() {
                                 </div>
                                 <button
                                     onClick={() => setAuditModalOpen(false)}
-                                    className="p-2 rounded-xl text-slate-400 hover:bg-white dark:hover:bg-[#293147] transition-colors"
+                                    className="p-2 rounded-xl text-slate-400 hover:bg-km-surface-card transition-colors"
                                 >
                                     <XIcon size={18} weight="bold" />
                                 </button>
@@ -593,64 +394,64 @@ export default function AdminEventsPage() {
                                     <>
                                         {/* Financial Summary Cards */}
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                                            <div className="p-3.5 bg-slate-50 dark:bg-[#1D253D] rounded-2xl border border-purple-50 dark:border-white/5">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Gross Revenue</p>
-                                                <p className="text-lg sm:text-xl font-black text-emerald-600 mt-1">₹{selectedEventDetail?.total_revenue?.toLocaleString('en-IN')}</p>
+                                            <div className="p-3.5 bg-slate-50 rounded-2xl border border-km-border">
+                                                <p className="text-xs font-bold text-slate-400">Gross revenue</p>
+                                                <p className="text-lg sm:text-xl font-bold text-emerald-600 mt-1">₹{selectedEventDetail?.total_revenue?.toLocaleString('en-IN')}</p>
                                             </div>
-                                            <div className="p-3.5 bg-slate-50 dark:bg-[#1D253D] rounded-2xl border border-purple-50 dark:border-white/5">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Tickets Issued</p>
-                                                <p className="text-lg sm:text-xl font-black text-purple-600 mt-1">{selectedEventDetail?.total_tickets_sold}</p>
+                                            <div className="p-3.5 bg-slate-50 rounded-2xl border border-km-border">
+                                                <p className="text-xs font-bold text-slate-400">Tickets issued</p>
+                                                <p className="text-lg sm:text-xl font-bold text-km-link mt-1">{selectedEventDetail?.total_tickets_sold}</p>
                                             </div>
-                                            <div className="p-3.5 bg-slate-50 dark:bg-[#1D253D] rounded-2xl border border-purple-50 dark:border-white/5">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Paid Seats</p>
-                                                <p className="text-lg sm:text-xl font-black text-blue-600 mt-1">{selectedEventDetail?.paid_registrations}</p>
+                                            <div className="p-3.5 bg-slate-50 rounded-2xl border border-km-border">
+                                                <p className="text-xs font-bold text-slate-400">Paid seats</p>
+                                                <p className="text-lg sm:text-xl font-bold text-blue-600 mt-1">{selectedEventDetail?.paid_registrations}</p>
                                             </div>
-                                            <div className="p-3.5 bg-slate-50 dark:bg-[#1D253D] rounded-2xl border border-purple-50 dark:border-white/5">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Free Passes</p>
-                                                <p className="text-lg sm:text-xl font-black text-slate-700 dark:text-slate-300 mt-1">{selectedEventDetail?.free_registrations}</p>
+                                            <div className="p-3.5 bg-slate-50 rounded-2xl border border-km-border">
+                                                <p className="text-xs font-bold text-slate-400">Free passes</p>
+                                                <p className="text-lg sm:text-xl font-bold text-slate-700 mt-1">{selectedEventDetail?.free_registrations}</p>
                                             </div>
                                         </div>
 
                                         {/* Booked Attendees & Ticket Breakdown */}
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
-                                                <TicketIcon size={18} className="text-purple-600" />
+                                            <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                                                <TicketIcon size={18} className="text-km-link" />
                                                 All Issued Tickets & Bookings ({selectedEventDetail?.tickets?.length || 0})
                                             </h4>
 
                                             {(!selectedEventDetail?.tickets || selectedEventDetail.tickets.length === 0) ? (
-                                                <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-[#1D253D] rounded-2xl text-xs">
+                                                <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-2xl text-xs">
                                                     No tickets have been booked for this event yet.
                                                 </div>
                                             ) : (
-                                                <div className="rounded-2xl border border-purple-50 dark:border-white/5 overflow-hidden">
-                                                    <table className="w-full text-left text-xs text-slate-600 dark:text-slate-300">
-                                                        <thead className="bg-slate-50 dark:bg-[#1D253D] uppercase text-[10px] text-slate-400 font-bold border-b border-purple-50 dark:border-white/5">
+                                                <div className="rounded-2xl border border-km-border overflow-hidden">
+                                                    <table className="w-full text-left text-xs text-slate-600">
+                                                        <thead className="bg-slate-50 text-xs text-slate-400 font-bold border-b border-km-border">
                                                             <tr>
                                                                 <th className="px-4 py-3">Ticket #</th>
-                                                                <th className="px-4 py-3">Attendee Name</th>
+                                                                <th className="px-4 py-3">Attendee name</th>
                                                                 <th className="px-4 py-3">Contact</th>
                                                                 <th className="px-4 py-3">Method</th>
-                                                                <th className="px-4 py-3">Paid Amount</th>
+                                                                <th className="px-4 py-3">Paid amount</th>
                                                                 <th className="px-4 py-3">Status</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody className="divide-y divide-purple-50 dark:divide-white/5">
+                                                        <tbody className="divide-y divide-km-border">
                                                             {selectedEventDetail.tickets.map((t) => (
-                                                                <tr key={t.id} className="hover:bg-purple-50/30 dark:hover:bg-[#161F37]">
-                                                                    <td className="px-4 py-3 font-mono font-bold text-purple-600 dark:text-purple-400">
+                                                                <tr key={t.id} className="hover:bg-km-surface">
+                                                                    <td className="px-4 py-3 font-mono font-bold text-km-link">
                                                                         {t.ticket_number}
                                                                     </td>
-                                                                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-white">
+                                                                    <td className="px-4 py-3 font-medium text-slate-800">
                                                                         {t.attendee_name || 'Guest'}
                                                                     </td>
                                                                     <td className="px-4 py-3 text-slate-400">
                                                                         {t.attendee_email}
-                                                                        {t.attendee_phone && <span className="block text-[10px]">{t.attendee_phone}</span>}
+                                                                        {t.attendee_phone && <span className="block text-xs">{t.attendee_phone}</span>}
                                                                     </td>
                                                                     <td className="px-4 py-3 capitalize">
                                                                         {t.payment_method === 'wallet' && (
-                                                                            <span className="inline-flex items-center gap-1 text-purple-600 font-semibold">
+                                                                            <span className="inline-flex items-center gap-1 text-km-link font-semibold">
                                                                                 <WalletIcon size={12} /> Wallet
                                                                             </span>
                                                                         )}
@@ -663,11 +464,11 @@ export default function AdminEventsPage() {
                                                                             <span className="text-slate-400">Free</span>
                                                                         )}
                                                                     </td>
-                                                                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-white">
+                                                                    <td className="px-4 py-3 font-bold text-slate-800">
                                                                         ₹{t.amount}
                                                                     </td>
                                                                     <td className="px-4 py-3">
-                                                                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-[#0B212C] px-2 py-0.5 rounded-md">
+                                                                        <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md">
                                                                             <CheckCircleIcon size={12} weight="bold" /> {t.status}
                                                                         </span>
                                                                     </td>
@@ -681,30 +482,27 @@ export default function AdminEventsPage() {
                                     </>
                                 )}
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
+            </>
 
             {/* ───────────────────────────────────────────────────────────── */}
             {/* CREATE / EDIT EVENT MODAL                                     */}
             {/* ───────────────────────────────────────────────────────────── */}
-            <AnimatePresence>
+            <>
                 {formModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white dark:bg-[#111827] rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-2xl border border-purple-50 dark:border-white/10"
+                        <div
+                            className="bg-km-surface-card rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col shadow-sm border border-km-border"
                         >
-                            <div className="p-5 sm:p-6 border-b border-purple-50 dark:border-white/10 flex items-center justify-between">
-                                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                            <div className="p-5 sm:p-6 border-b border-km-border flex items-center justify-between">
+                                <h3 className="text-base sm:text-lg font-bold text-slate-900">
                                     {editingEventId ? 'Edit Event Details' : 'Create Official Event'}
                                 </h3>
                                 <button
                                     onClick={() => setFormModalOpen(false)}
-                                    className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 dark:hover:bg-[#293147] transition-colors"
+                                    className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors"
                                 >
                                     <XIcon size={18} weight="bold" />
                                 </button>
@@ -712,8 +510,8 @@ export default function AdminEventsPage() {
 
                             <form onSubmit={handleFormSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-4 flex-1">
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        Event Title *
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        Event title *
                                     </label>
                                     <input
                                         type="text"
@@ -721,97 +519,97 @@ export default function AdminEventsPage() {
                                         value={formData.title}
                                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                         placeholder="e.g. Masterclass in Scalable Backend Architecture"
-                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                            Organizer / Host Name
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Organizer / host name
                                         </label>
                                         <input
                                             type="text"
                                             value={formData.organizer}
                                             onChange={(e) => setFormData({ ...formData, organizer: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
                                             Category
                                         </label>
                                         <select
                                             value={formData.category}
                                             onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                         >
-                                            <option value="Skill Workshop">Skill Workshop</option>
-                                            <option value="Hiring Drive">Hiring Drive</option>
+                                            <option value="Skill Workshop">Skill workshop</option>
+                                            <option value="Hiring Drive">Hiring drive</option>
                                             <option value="Webinar">Webinar</option>
-                                            <option value="Expert Session">Expert Session</option>
-                                            <option value="Community Meetup">Community Meetup</option>
+                                            <option value="Expert Session">Expert session</option>
+                                            <option value="Community Meetup">Community meetup</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                            Event Date
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Event date
                                         </label>
                                         <input
                                             type="text"
                                             placeholder="e.g. 2026-11-15 or Nov 15, 2026"
                                             value={formData.date}
                                             onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                            Time Slot
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Time slot
                                         </label>
                                         <input
                                             type="text"
                                             placeholder="e.g. 10:00 AM - 12:00 PM"
                                             value={formData.time}
                                             onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        Location / Platform Link
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        Location / platform link
                                     </label>
                                     <input
                                         type="text"
                                         placeholder="e.g. Online (Zoom Link provided on ticket) or Mumbai Center"
                                         value={formData.location}
                                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                            Pricing Type
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Pricing type
                                         </label>
                                         <select
                                             value={formData.is_paid ? 'paid' : 'free'}
                                             onChange={(e) => setFormData({ ...formData, is_paid: e.target.value === 'paid' })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                         >
-                                            <option value="free">Free Registration</option>
-                                            <option value="paid">Paid Ticket</option>
+                                            <option value="free">Free registration</option>
+                                            <option value="paid">Paid ticket</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                            Ticket Price (₹)
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Ticket price (₹)
                                         </label>
                                         <input
                                             type="number"
@@ -819,107 +617,81 @@ export default function AdminEventsPage() {
                                             disabled={!formData.is_paid}
                                             value={formData.price}
                                             onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white disabled:opacity-40"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900 disabled:opacity-40"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                            Seat Capacity
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                            Seat capacity
                                         </label>
                                         <input
                                             type="number"
                                             min="0"
                                             value={formData.capacity}
                                             onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) || 0, available_seats: parseInt(e.target.value) || 0 })}
-                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                            className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                         />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        Cover Banner Image URL
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        Cover banner image URL
                                     </label>
                                     <input
                                         type="url"
                                         placeholder="https://..."
                                         value={formData.image_url}
                                         onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
-                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white"
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                                        Event Description / Agenda
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        Event description / agenda
                                     </label>
                                     <textarea
                                         rows={4}
                                         value={formData.description}
                                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                         placeholder="Describe key learnings, speaker bio, and target audience..."
-                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-[#1D253D] border border-slate-200 dark:border-white/10 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none text-slate-900 dark:text-white resize-none"
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900 resize-none"
                                     />
                                 </div>
 
-                                <div className="pt-4 flex items-center justify-end gap-3 border-t border-purple-50 dark:border-white/10">
+                                <div className="pt-4 flex items-center justify-end gap-3 border-t border-km-border">
                                     <button
                                         type="button"
                                         onClick={() => setFormModalOpen(false)}
-                                        className="px-4 py-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#293147] rounded-xl transition-colors cursor-pointer"
+                                        className="px-4 py-2 text-xs sm:text-sm text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={submitting}
-                                        className="px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-purple-600 hover:bg-purple-700 active:scale-98 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
+                                        className="px-5 py-2 text-xs sm:text-sm font-semibold text-white bg-km-primary hover:bg-km-primary-dark rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50"
                                     >
                                         {submitting ? 'Saving...' : editingEventId ? 'Update Event' : 'Publish Event'}
                                     </button>
                                 </div>
                             </form>
-                        </motion.div>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
+            </>
 
-            {/* Delete Confirmation Alert Modal */}
-            <AnimatePresence>
-                {deleteConfirmId && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white dark:bg-[#111827] rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl border border-purple-50 dark:border-white/10"
-                        >
-                            <div className="w-12 h-12 bg-red-50 dark:bg-[#261423] text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                <TrashIcon size={24} weight="bold" />
-                            </div>
-                            <h4 className="text-base font-bold text-slate-800 dark:text-white">Delete This Event?</h4>
-                            <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                                This will remove the event from the public directory. Existing registered tickets will be marked as cancelled.
-                            </p>
-                            <div className="mt-6 flex items-center gap-2 justify-center">
-                                <button
-                                    onClick={() => setDeleteConfirmId(null)}
-                                    className="px-4 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-[#293147] rounded-xl"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleDeleteEvent}
-                                    disabled={deleting}
-                                    className="px-4 py-2 text-xs font-semibold text-white bg-red-600 hover:bg-red-700 rounded-xl shadow-md transition-all cursor-pointer"
-                                >
-                                    {deleting ? 'Deleting...' : 'Confirm Delete'}
-                                </button>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+            {deleteConfirmId && (
+                <ConfirmDialog
+                    title="Delete this event?"
+                    description="It's removed from the events directory and existing tickets are marked as cancelled."
+                    confirmLabel="Delete event"
+                    busy={deleting}
+                    onCancel={() => setDeleteConfirmId(null)}
+                    onConfirm={handleDeleteEvent}
+                />
+            )}
         </div>
     );
 }

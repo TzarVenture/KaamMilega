@@ -17,6 +17,8 @@ type FeedRepository interface {
 	CreatePost(ctx context.Context, post *Post) error
 	FindPost(ctx context.Context, id primitive.ObjectID) (*Post, error)
 	FindPostsByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*Post, error)
+	// FindPostsAnyStatus is FindPostsByIDs including hidden and removed posts, for moderators
+	FindPostsAnyStatus(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*Post, error)
 	ListPosts(ctx context.Context, q ListQuery, hideAuthors, hidePosts []primitive.ObjectID) ([]Post, error)
 	UpdatePost(ctx context.Context, id primitive.ObjectID, content, category string, tags []string, editedAt time.Time) error
 	DeletePost(ctx context.Context, id primitive.ObjectID) error
@@ -50,6 +52,15 @@ type FeedRepository interface {
 
 	CreateReport(ctx context.Context, r *Report) error
 	ReportedPostIDs(ctx context.Context, reporterID primitive.ObjectID) ([]primitive.ObjectID, error)
+	CountPendingReports(ctx context.Context, postID primitive.ObjectID) (int64, error)
+	// SetPostStatus moves a post to status `to` only if it is in one of `from`; false if it wasn't
+	SetPostStatus(ctx context.Context, postID primitive.ObjectID, from []string, to string) (bool, error)
+	// ResolveReports closes every open report on a post with the moderator's decision
+	ResolveReports(ctx context.Context, postID primitive.ObjectID, status string, by primitive.ObjectID, at time.Time) error
+	// ReportQueue is reported posts grouped by post, open ones by latest report and closed ones by
+	// latest decision, plus how many posts there are in all
+	ReportQueue(ctx context.Context, open bool, skip, limit int) ([]ReportedPost, int, error)
+	ReportsForPost(ctx context.Context, postID primitive.ObjectID) ([]Report, error)
 	// BlockedUserIDs is everyone this member blocked or was blocked by
 	BlockedUserIDs(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
 }
@@ -112,6 +123,7 @@ func (r *feedRepository) ensureIndexes() {
 			{Keys: bson.D{{Key: "post_id", Value: 1}, {Key: "reporter_id", Value: 1}}, Options: unique()},
 			{Keys: bson.D{{Key: "reporter_id", Value: 1}, {Key: "_id", Value: -1}}},
 			{Keys: bson.D{{Key: "status", Value: 1}, {Key: "created_at", Value: -1}}},
+			{Keys: bson.D{{Key: "post_id", Value: 1}, {Key: "status", Value: 1}}},
 		}},
 	}
 	for _, s := range sets {
@@ -142,11 +154,19 @@ func (r *feedRepository) FindPost(ctx context.Context, id primitive.ObjectID) (*
 }
 
 func (r *feedRepository) FindPostsByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*Post, error) {
-	out := make(map[primitive.ObjectID]*Post, len(ids))
-	if len(ids) == 0 {
+	return r.findPosts(ctx, bson.M{"_id": bson.M{"$in": ids}, "status": PostActive}, len(ids))
+}
+
+func (r *feedRepository) FindPostsAnyStatus(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*Post, error) {
+	return r.findPosts(ctx, bson.M{"_id": bson.M{"$in": ids}}, len(ids))
+}
+
+func (r *feedRepository) findPosts(ctx context.Context, filter bson.M, n int) (map[primitive.ObjectID]*Post, error) {
+	out := make(map[primitive.ObjectID]*Post, n)
+	if n == 0 {
 		return out, nil
 	}
-	cur, err := r.posts.Find(ctx, bson.M{"_id": bson.M{"$in": ids}, "status": PostActive})
+	cur, err := r.posts.Find(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -518,7 +538,7 @@ func (r *feedRepository) CreateReport(ctx context.Context, rep *Report) error {
 			"author_id":  rep.AuthorID,
 			"reason":     rep.Reason,
 			"details":    rep.Details,
-			"status":     "pending",
+			"status":     ReportPending,
 			"created_at": time.Now(),
 		}},
 		options.Update().SetUpsert(true))
@@ -546,6 +566,99 @@ func (r *feedRepository) ReportedPostIDs(ctx context.Context, reporterID primiti
 		ids = append(ids, x.PostID)
 	}
 	return ids, nil
+}
+
+func (r *feedRepository) CountPendingReports(ctx context.Context, postID primitive.ObjectID) (int64, error) {
+	return r.reports.CountDocuments(ctx, bson.M{"post_id": postID, "status": ReportPending})
+}
+
+func (r *feedRepository) SetPostStatus(ctx context.Context, postID primitive.ObjectID, from []string, to string) (bool, error) {
+	res, err := r.posts.UpdateOne(ctx,
+		bson.M{"_id": postID, "status": bson.M{"$in": from}},
+		bson.M{"$set": bson.M{"status": to, "updated_at": time.Now()}})
+	if err != nil {
+		return false, err
+	}
+	return res.ModifiedCount > 0, nil
+}
+
+func (r *feedRepository) ResolveReports(ctx context.Context, postID primitive.ObjectID, status string, by primitive.ObjectID, at time.Time) error {
+	_, err := r.reports.UpdateMany(ctx,
+		bson.M{"post_id": postID, "status": ReportPending},
+		bson.M{"$set": bson.M{"status": status, "resolved_by": by, "resolved_at": at}})
+	return err
+}
+
+func (r *feedRepository) ReportQueue(ctx context.Context, open bool, skip, limit int) ([]ReportedPost, int, error) {
+	match := bson.M{"status": ReportPending}
+	group := bson.M{
+		"_id":              "$post_id",
+		"reports":          bson.M{"$sum": 1},
+		"reasons":          bson.M{"$push": "$reason"},
+		"last_reported_at": bson.M{"$max": "$created_at"},
+	}
+	sortBy := "last_reported_at"
+	if !open {
+		match = bson.M{"status": bson.M{"$in": bson.A{ReportDismissed, ReportRemoved}}}
+		// Sorted by decision first, so $last is the latest decision on the post
+		group["outcome"] = bson.M{"$last": "$status"}
+		group["resolved_at"] = bson.M{"$max": "$resolved_at"}
+		sortBy = "resolved_at"
+	}
+	page := bson.A{bson.M{"$skip": skip}}
+	if limit > 0 {
+		page = append(page, bson.M{"$limit": limit})
+	}
+	pipeline := mongo.Pipeline{
+		{{Key: "$match", Value: match}},
+		{{Key: "$sort", Value: bson.D{{Key: "resolved_at", Value: 1}, {Key: "created_at", Value: 1}}}},
+		{{Key: "$group", Value: group}},
+		{{Key: "$sort", Value: bson.D{{Key: sortBy, Value: -1}, {Key: "_id", Value: -1}}}},
+		{{Key: "$facet", Value: bson.M{
+			"page":  page,
+			"total": bson.A{bson.M{"$count": "n"}},
+		}}},
+	}
+	cur, err := r.reports.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, 0, err
+	}
+	var out []struct {
+		Page  []ReportedPost `bson:"page"`
+		Total []struct {
+			N int `bson:"n"`
+		} `bson:"total"`
+	}
+	if err := cur.All(ctx, &out); err != nil {
+		return nil, 0, err
+	}
+	if len(out) == 0 {
+		return []ReportedPost{}, 0, nil
+	}
+	total := 0
+	if len(out[0].Total) > 0 {
+		total = out[0].Total[0].N
+	}
+	if limit == 0 {
+		return []ReportedPost{}, total, nil
+	}
+	return out[0].Page, total, nil
+}
+
+// reportsPerPostLimit bounds the detail view; a post with more reports than this is clear enough
+const reportsPerPostLimit = 200
+
+func (r *feedRepository) ReportsForPost(ctx context.Context, postID primitive.ObjectID) ([]Report, error) {
+	cur, err := r.reports.Find(ctx, bson.M{"post_id": postID},
+		options.Find().SetSort(bson.D{{Key: "_id", Value: -1}}).SetLimit(reportsPerPostLimit))
+	if err != nil {
+		return nil, err
+	}
+	out := []Report{}
+	if err := cur.All(ctx, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (r *feedRepository) BlockedUserIDs(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error) {

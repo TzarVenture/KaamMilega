@@ -7,6 +7,10 @@ import { notify } from "@/lib/notify";
 import Link from 'next/link';
 import AttendeeListModal from '@/components/km/AttendeeListModal';
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
+import AdSlot from '@/components/ads/AdSlot';
+
+/** The events grid shows one sponsored row, after this many events (a full row at 1, 2 or 3 columns) */
+const GRID_AD_AFTER = 6;
 
 interface EventData {
     id: string;
@@ -339,9 +343,9 @@ const PublicEventsPage = () => {
                             const priceText = isPaid ? `₹${event.price}` : 'Free Entry';
 
                             return (
+                                <React.Fragment key={event.id || idx}>
                                 <Link
                                     href={`/events/${event.id}`}
-                                    key={event.id || idx}
                                     className="km-card flex flex-col group overflow-hidden"
                                 >
                                     {/* Card Image Area */}
@@ -433,6 +437,8 @@ const PublicEventsPage = () => {
                                         </div>
                                     </div>
                                 </Link>
+                                {idx === Math.min(GRID_AD_AFTER, events.length) - 1 && <AdSlot placement="events_inline" className="col-span-full" />}
+                                </React.Fragment>
                             );
                         })
                     )}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowRightIcon, CalendarBlankIcon, MedalIcon, UserPlusIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
+import AdSlot from '@/components/ads/AdSlot';
 
 interface SidebarCounts {
   invitations: number;
@@ -227,10 +228,7 @@ export const NetworkSidebar: React.FC = () => {
         </Link>
       </div>
 
-      {/* Ad Banner Placeholder */}
-      <div className="hidden lg:flex bg-km-surface-card rounded-xl h-64 items-center justify-center border border-dashed border-gray-300 text-gray-400">
-        Ad Banner
-      </div>
+      <AdSlot placement="network_sidebar" className="hidden lg:block" />
     </div>
   );
 };

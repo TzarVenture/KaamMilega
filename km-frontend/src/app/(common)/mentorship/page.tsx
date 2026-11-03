@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRightIcon, BookOpenIcon, CalendarBlankIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, ClockIcon, GraduationCapIcon, MagnifyingGlassIcon, MedalIcon, StarIcon, UsersIcon, VideoCameraIcon, XIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
+import AdSlot from '@/components/ads/AdSlot';
+
+/** The grid shows one sponsored row, after this many experts (a full row at 1, 2 or 3 columns) */
+const GRID_AD_AFTER = 6;
 
 const categories = [
   "All",
@@ -225,7 +229,10 @@ export default function MentorshipPage() {
         ) : filteredMentorships.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {filteredMentorships.map((m, i) => (
-              <MentorshipCard key={m?.mentorship?.id || i} data={m} index={i} />
+              <Fragment key={m?.mentorship?.id || i}>
+                <MentorshipCard data={m} index={i} />
+                {i === Math.min(GRID_AD_AFTER, filteredMentorships.length) - 1 && <AdSlot placement="mentorship_inline" className="col-span-full" />}
+              </Fragment>
             ))}
           </div>
         ) : (

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ModalWrapper from '@/components/ui/ModalWrapper';
+import { AdminModal, btn, field } from '@/components/admin/ui';
 import { extractYouTubeVideoId, getYouTubeThumbnail } from '@/lib/youtube';
 import { CircleNotchIcon, ImageIcon, PlayIcon, WarningCircleIcon, YoutubeLogoIcon } from '@phosphor-icons/react';
 import { errorText } from "@/lib/notify";
@@ -130,18 +130,18 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
         let cleanThumb = thumbnailUrl.trim();
 
         if (!cleanTitle) {
-            setError('Please enter a video title');
+            setError('Enter a title.');
             return;
         }
 
         if (!cleanUrl) {
-            setError('Please enter a YouTube video URL');
+            setError('Enter a YouTube link.');
             return;
         }
 
         const vidId = extractYouTubeVideoId(cleanUrl);
         if (!vidId) {
-            setError('Invalid YouTube link. Please provide a valid YouTube watch, shorts, or share URL.');
+            setError("That isn't a YouTube link. Paste a watch, Shorts or share link.");
             return;
         }
 
@@ -169,10 +169,10 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
     };
 
     return (
-        <ModalWrapper
+        <AdminModal
             isOpen={isOpen}
             onClose={onClose}
-            title={isEdit ? 'Edit Learning Video' : 'Add New Learning Video'}
+            title={isEdit ? 'Edit course' : 'Add course'}
             size="lg"
         >
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -185,11 +185,11 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
 
                 {/* Video URL */}
                 <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-gray-800 flex items-center justify-between">
-                        <span>Video URL <span className="text-red-500 dark:text-red-400">*</span></span>
+                    <label className="flex items-center justify-between text-sm font-medium text-km-heading mb-1.5">
+                        <span>Video URL <span className="text-red-500">*</span></span>
                         {detectedVideoId && (
-                            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full dark:text-emerald-400">
-                                ✓ YouTube ID: {detectedVideoId}
+                            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                YouTube video {detectedVideoId}
                             </span>
                         )}
                     </label>
@@ -199,26 +199,26 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                         onChange={(e) => handleUrlChange(e.target.value)}
                         placeholder="https://www.youtube.com/watch?v=..."
                         required
-                        className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all"
+                        className={field.input}
                     />
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-km-text-muted">
                         Paste standard YouTube watch links, youtu.be, or YouTube shorts.
                     </p>
                 </div>
 
                 {/* Title */}
                 <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-gray-800">
-                        Video Title <span className="text-red-500 dark:text-red-400">*</span>
+                    <label className={field.label}>
+                        Title <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        placeholder="e.g. Electrical Safety Fundamentals & Tools Guide"
+                        placeholder="For example: Electrical safety basics"
                         required
                         maxLength={150}
-                        className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium text-gray-900"
+                        className={field.input}
                     />
                 </div>
 
@@ -226,8 +226,8 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Category */}
                     <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-800">
-                            Category <span className="text-red-500 dark:text-red-400">*</span>
+                        <label className={field.label}>
+                            Category <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -235,7 +235,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                             onChange={(e) => setCategory(e.target.value)}
                             placeholder="Type or pick category below"
                             required
-                            className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium"
+                            className={field.input}
                         />
                         <div className="flex flex-wrap gap-1.5 pt-1">
                             {CATEGORY_PRESETS.map((cat) => (
@@ -243,10 +243,10 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                                     type="button"
                                     key={cat}
                                     onClick={() => setCategory(cat)}
-                                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
-                                        category === cat
-                                            ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
-                                            : 'bg-km-surface-card text-gray-600 border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                                    className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all ${
+ category === cat
+ ?'bg-km-primary text-white border-km-blue shadow-sm'
+                                            : 'bg-km-surface-card text-km-text-secondary border-km-border hover:border-km-border hover:bg-km-surface'
                                     }`}
                                 >
                                     {cat}
@@ -257,8 +257,8 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
 
                     {/* Duration */}
                     <div className="space-y-1.5">
-                        <label className="text-sm font-semibold text-gray-800">
-                            Duration <span className="text-red-500 dark:text-red-400">*</span>
+                        <label className={field.label}>
+                            Duration <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
@@ -266,7 +266,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                             onChange={(e) => setDuration(e.target.value)}
                             placeholder="e.g. 15 Min, 30 Min"
                             required
-                            className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all font-medium"
+                            className={field.input}
                         />
                         <div className="flex flex-wrap gap-1.5 pt-1">
                             {DURATION_PRESETS.map((dur) => (
@@ -274,10 +274,10 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                                     type="button"
                                     key={dur}
                                     onClick={() => setDuration(dur)}
-                                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-lg border transition-all ${
-                                        duration === dur
-                                            ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
-                                            : 'bg-km-surface-card text-gray-600 border-gray-200 hover:border-purple-300 hover:bg-purple-50/50'
+                                    className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all ${
+ duration === dur
+ ?'bg-km-primary text-white border-km-blue shadow-sm'
+                                            : 'bg-km-surface-card text-km-text-secondary border-km-border hover:border-km-border hover:bg-km-surface'
                                     }`}
                                 >
                                     {dur}
@@ -290,15 +290,15 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                 {/* Thumbnail Preview & URL */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <label className="text-sm font-semibold text-gray-800 flex items-center gap-1.5">
-                            <ImageIcon weight="bold" size={16} className="text-purple-600 dark:text-purple-400" />
+                        <label className="flex items-center gap-1.5 text-sm font-medium text-km-heading mb-1.5">
+                            <ImageIcon weight="bold" size={16} className="text-km-link" />
                             Thumbnail
                         </label>
                         {detectedVideoId && (
                             <button
                                 type="button"
                                 onClick={handleResetThumbnail}
-                                className="text-xs text-purple-600 hover:text-purple-700 font-semibold flex items-center gap-1 hover:underline dark:text-purple-400"
+                                className="text-xs text-km-link hover:text-km-link font-semibold flex items-center gap-1 hover:underline"
                             >
                                 <YoutubeLogoIcon weight="bold" size={12} /> Auto-fill from YouTube
                             </button>
@@ -307,7 +307,7 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
 
                     <div className="flex flex-col sm:flex-row gap-4 items-start">
                         {/* Live Thumbnail Preview */}
-                        <div className="relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 shadow-sm group">
+                        <div className="relative w-full sm:w-48 aspect-video rounded-xl overflow-hidden bg-km-surface border border-km-border shrink-0 shadow-sm group">
                             {thumbnailUrl ? (
                                 <img
                                     src={thumbnailUrl}
@@ -318,12 +318,12 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                                     }}
                                 />
                             ) : (
-                                <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 p-2 text-center text-xs">
-                                    <PlayIcon size={24} className="mb-1 text-gray-300" />
-                                    <span>Thumbnail Preview</span>
+                                <div className="w-full h-full flex flex-col items-center justify-center text-km-text-muted p-2 text-center text-xs">
+                                    <PlayIcon size={24} className="mb-1 text-km-text-muted" />
+                                    <span>Thumbnail preview</span>
                                 </div>
                             )}
-                            <div className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-[10px] font-bold px-1.5 py-0.5 rounded">
+                            <div className="absolute bottom-1.5 right-1.5 bg-black/75 text-white text-xs font-bold px-1.5 py-0.5 rounded">
                                 {duration || '15 Min'}
                             </div>
                         </div>
@@ -335,9 +335,9 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
                                 value={thumbnailUrl}
                                 onChange={(e) => setThumbnailUrl(e.target.value)}
                                 placeholder="https://img.youtube.com/vi/... or custom image URL"
-                                className="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-xs focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all"
+                                className={field.input}
                             />
-                            <p className="text-[11px] text-gray-400">
+                            <p className="text-xs text-km-text-muted">
                                 Automatically generated from YouTube. You can override with a custom image link if needed.
                             </p>
                         </div>
@@ -346,39 +346,39 @@ const LearnVideoModal: React.FC<LearnVideoModalProps> = ({
 
                 {/* Optional Description */}
                 <div className="space-y-1.5">
-                    <label className="text-sm font-semibold text-gray-800">
-                        Description <span className="text-xs text-gray-400 font-normal">(Optional)</span>
+                    <label className={field.label}>
+                        Description <span className="text-xs text-km-text-muted font-normal">(optional)</span>
                     </label>
                     <textarea
                         rows={2}
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
-                        placeholder="Brief summary of skills or key takeaways covered in this video..."
-                        className="w-full px-4 py-2 bg-slate-50 hover:bg-slate-50/80 focus:bg-km-surface-card border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-400 transition-all resize-none"
+                        placeholder="What people learn from this video"
+                        className={`${field.textarea} resize-none`}
                     />
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center justify-end gap-3 pt-3 border-t border-gray-100">
+                <div className="flex items-center justify-end gap-3 pt-3 border-t border-km-border-subtle">
                     <button
                         type="button"
                         onClick={onClose}
                         disabled={isSubmitting}
-                        className="px-5 py-2.5 text-sm font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-all"
+                        className={btn.secondary}
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="flex items-center gap-2 px-7 py-2.5 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-purple-600/20 active:scale-95 transition-all disabled:opacity-50"
+                        className={btn.primary}
                     >
                         {isSubmitting && <CircleNotchIcon weight="bold" size={16} className="animate-spin" />}
-                        {isEdit ? 'Update Video' : 'Add Video'}
+                        {isEdit ? 'Save' : 'Add course'}
                     </button>
                 </div>
             </form>
-        </ModalWrapper>
+        </AdminModal>
     );
 };
 

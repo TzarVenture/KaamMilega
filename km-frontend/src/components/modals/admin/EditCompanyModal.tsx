@@ -1,20 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import ModalWrapper from '@/components/ui/ModalWrapper';
-import { 
-    BuildingOfficeIcon, 
-    CheckCircleIcon, 
-    CircleNotchIcon, 
-    EnvelopeSimpleIcon, 
-    GlobeIcon, 
-    IdentificationCardIcon, 
-    PencilSimpleIcon, 
-    PhoneIcon, 
-    ShieldCheckIcon, 
-    UserIcon, 
-    XCircleIcon 
-} from '@phosphor-icons/react';
+import { AdminModal, btn, field } from '@/components/admin/ui';
+import { BuildingOfficeIcon, CheckCircleIcon, CircleNotchIcon, EnvelopeSimpleIcon, GlobeIcon, IdentificationCardIcon, PhoneIcon, UserIcon } from '@phosphor-icons/react';
 import { notify } from '@/lib/notify';
 import api from '@/lib/axios';
 
@@ -59,7 +47,7 @@ const EditCompanyModal = ({ isOpen, onClose, company, onSuccess }: EditCompanyMo
         if (!company?.id) return;
 
         if (!companyName.trim()) {
-            setError('Company Name is required.');
+            setError('Enter the company name.');
             return;
         }
 
@@ -80,7 +68,7 @@ const EditCompanyModal = ({ isOpen, onClose, company, onSuccess }: EditCompanyMo
             };
 
             await api.patch(`/admin/companies/${company.id}`, payload);
-            notify.success(`Company "${companyName.trim()}" updated successfully!`);
+            notify.success(`${companyName.trim()} updated`);
             onSuccess();
             onClose();
         } catch (err: any) {
@@ -94,135 +82,135 @@ const EditCompanyModal = ({ isOpen, onClose, company, onSuccess }: EditCompanyMo
     };
 
     return (
-        <ModalWrapper 
+        <AdminModal 
             isOpen={isOpen} 
             onClose={onClose} 
-            title={`Edit Company Details — ${company?.name || 'Company'}`}
+            title={`Edit ${company?.name || 'company'}`}
         >
             <form onSubmit={handleSubmit} className="space-y-5">
                 {error && (
-                    <div className="p-3 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+                    <div className="p-3 text-xs font-semibold text-red-700 bg-red-50 border border-red-200 rounded-xl">
                         {error}
                     </div>
                 )}
 
                 {/* Company Details Section */}
                 <div className="space-y-3.5">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <p className="text-xs font-bold text-km-text-muted flex items-center gap-1.5">
                         <BuildingOfficeIcon size={15} weight="bold" /> Company Details
                     </p>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">
-                            Company Name <span className="text-rose-500">*</span>
+                        <label className={field.label}>
+                            Company name <span className="text-red-500">*</span>
                         </label>
                         <input
                             type="text"
                             required
-                            placeholder="e.g. Acme Technologies Pvt Ltd"
+                            placeholder="For example: Acme Technologies Pvt Ltd"
                             value={companyName}
                             onChange={(e) => setCompanyName(e.target.value)}
-                            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                            className={field.input}
                         />
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Industry</label>
+                            <label className={field.label}>Industry</label>
                             <input
                                 type="text"
-                                placeholder="e.g. Information Technology"
+                                placeholder="For example: IT services"
                                 value={industry}
                                 onChange={(e) => setIndustry(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                                className={field.input}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Company Website</label>
+                            <label className={field.label}>Company website</label>
                             <div className="relative">
-                                <GlobeIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <GlobeIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-muted" />
                                 <input
                                     type="url"
                                     placeholder="https://acme.com"
                                     value={website}
                                     onChange={(e) => setWebsite(e.target.value)}
-                                    className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                                    className={`${field.input} pl-9`}
                                 />
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 mb-1">GSTIN / Tax ID</label>
+                        <label className={field.label}>GSTIN / Tax ID</label>
                         <div className="relative">
-                            <IdentificationCardIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <IdentificationCardIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-muted" />
                             <input
                                 type="text"
                                 placeholder="e.g. 27ABCDE1234F1Z5"
                                 value={gst}
                                 onChange={(e) => setGst(e.target.value)}
-                                className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                                className={`${field.input} pl-9 font-inter`}
                             />
                         </div>
                     </div>
                 </div>
 
                 {/* Recruiter Contact Section */}
-                <div className="pt-3 border-t border-slate-100 space-y-3.5">
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                <div className="pt-3 border-t border-km-border-subtle space-y-3.5">
+                    <p className="text-xs font-bold text-km-text-muted flex items-center gap-1.5">
                         <UserIcon size={15} weight="bold" /> Recruiter / HR Contact
                     </p>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Recruiter Name</label>
+                            <label className={field.label}>Recruiter name</label>
                             <input
                                 type="text"
-                                placeholder="e.g. Priya Sharma"
+                                placeholder="For example: Priya Sharma"
                                 value={recruiterName}
                                 onChange={(e) => setRecruiterName(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                                className={field.input}
                             />
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Designation / Role</label>
+                            <label className={field.label}>Job title</label>
                             <input
                                 type="text"
-                                placeholder="e.g. HR Manager / Talent Lead"
+                                placeholder="For example: HR manager"
                                 value={designation}
                                 onChange={(e) => setDesignation(e.target.value)}
-                                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                                className={field.input}
                             />
                         </div>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Work Email</label>
+                            <label className={field.label}>Work email</label>
                             <div className="relative">
-                                <EnvelopeSimpleIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <EnvelopeSimpleIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-muted" />
                                 <input
                                     type="email"
                                     placeholder="recruiter@acme.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                                    className={`${field.input} pl-9`}
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 mb-1">Mobile Number</label>
+                            <label className={field.label}>Mobile number</label>
                             <div className="relative">
-                                <PhoneIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <PhoneIcon size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-km-text-muted" />
                                 <input
                                     type="tel"
                                     placeholder="9876543210"
                                     value={mobile}
                                     onChange={(e) => setMobile(e.target.value)}
-                                    className="w-full pl-9 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white transition-all"
+                                    className={`${field.input} pl-9`}
                                 />
                             </div>
                         </div>
@@ -230,23 +218,23 @@ const EditCompanyModal = ({ isOpen, onClose, company, onSuccess }: EditCompanyMo
                 </div>
 
                 {/* Verification Status Choice */}
-                <div className="pt-3 border-t border-slate-100 space-y-2">
-                    <label className="block text-xs font-bold text-slate-700">Verification Status</label>
+                <div className="pt-3 border-t border-km-border-subtle space-y-2">
+                    <label className={field.label}>Verification status</label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {[
-                            { id: 'pending', label: 'Pending Review', color: 'hover:border-amber-300' },
+                            { id: 'pending', label: 'Pending', color: 'hover:border-amber-300' },
                             { id: 'verified', label: 'Verified', color: 'hover:border-emerald-300' },
-                            { id: 'no_appeal', label: 'No Appeal', color: 'hover:border-slate-300' },
-                            { id: 'rejected', label: 'Rejected', color: 'hover:border-rose-300' },
+                            { id: 'no_appeal', label: 'No appeal', color: 'hover:border-km-border' },
+                            { id: 'rejected', label: 'Rejected', color: 'hover:border-red-300' },
                         ].map((item) => (
                             <button
                                 key={item.id}
                                 type="button"
                                 onClick={() => setStatus(item.id as any)}
                                 className={`px-3 py-2 text-xs font-bold rounded-xl border transition-all text-center ${
-                                    status === item.id
-                                        ? 'bg-purple-600 text-white border-purple-600 shadow-sm'
-                                        : `bg-slate-50 text-slate-600 border-slate-200 ${item.color}`
+ status === item.id
+ ?'bg-km-primary text-white border-km-blue shadow-sm'
+                                        : `bg-km-surface text-km-text-secondary border-km-border ${item.color}`
                                 }`}
                             >
                                 {item.label}
@@ -256,34 +244,34 @@ const EditCompanyModal = ({ isOpen, onClose, company, onSuccess }: EditCompanyMo
                 </div>
 
                 {/* Modal Footer */}
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-end gap-3">
+                <div className="pt-4 border-t border-km-border-subtle flex items-center justify-end gap-3">
                     <button
                         type="button"
                         onClick={onClose}
-                        className="px-5 py-2.5 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all"
+                        className={btn.secondary}
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-bold transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-purple-600/20"
+                        className={btn.primary}
                     >
                         {loading ? (
                             <>
                                 <CircleNotchIcon size={16} weight="bold" className="animate-spin" />
-                                <span>Saving...</span>
+                                <span>Saving</span>
                             </>
                         ) : (
                             <>
                                 <CheckCircleIcon size={16} weight="bold" />
-                                <span>Save Changes</span>
+                                <span>Save changes</span>
                             </>
                         )}
                     </button>
                 </div>
             </form>
-        </ModalWrapper>
+        </AdminModal>
     );
 };
 

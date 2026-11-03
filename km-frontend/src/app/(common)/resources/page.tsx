@@ -1,5 +1,6 @@
 "use client";
 
+import AdSlot from '@/components/ads/AdSlot';
 import React, { useEffect, useState, useCallback } from "react";
 import { CircleNotchIcon, GraduationCapIcon, VideoCameraIcon } from '@phosphor-icons/react';
 import { notify } from "@/lib/notify";
@@ -10,6 +11,9 @@ import CourseCard, { CourseData } from "@/components/km/CourseCard";
 import CourseSearchBar from "@/components/km/CourseSearchBar";
 import Pagination from "@/components/ui/Pagination";
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
+
+/** The list shows one sponsored card, after this many videos */
+const LIST_AD_AFTER = 3;
 
 export default function ResourcePage() {
     const user = getCurrentUser();
@@ -154,13 +158,15 @@ export default function ResourcePage() {
                     </div>
                 ) : (
                     <div className="space-y-4">
-                        {courses.map((course) => (
-                            <CourseCard
-                                key={course.id}
-                                course={course}
-                                onViewClick={handleWatchCourse}
-                                isOwner={currentUserId === String(course.expert_id)}
-                            />
+                        {courses.map((course, i) => (
+                            <React.Fragment key={course.id}>
+                                <CourseCard
+                                    course={course}
+                                    onViewClick={handleWatchCourse}
+                                    isOwner={currentUserId === String(course.expert_id)}
+                                />
+                                {i === Math.min(LIST_AD_AFTER, courses.length) - 1 && <AdSlot placement="resources_inline" />}
+                            </React.Fragment>
                         ))}
                     </div>
                 )}
@@ -177,10 +183,10 @@ export default function ResourcePage() {
                 )}
             </div>
 
-            {/* Right: Sidebar Ad Banner (Preserved 100% as requested) */}
+            {/* Right: ad column */}
             <div className="hidden lg:block w-80 shrink-0">
-                <div className="sticky top-6 bg-km-surface-card rounded-3xl p-6 h-100 border border-km-border shadow-xs flex items-center justify-center text-km-text-secondary font-bold text-lg">
-                    Ad Banner
+                <div className="sticky top-6">
+                    <AdSlot placement="resources_sidebar" />
                 </div>
             </div>
         </div>
