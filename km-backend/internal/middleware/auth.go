@@ -283,3 +283,34 @@ func AuthMiddleware(jwtSecret string) fiber.Handler {
 		return c.Next()
 	}
 }
+
+// OptionalAuthMiddleware is for public routes that show more to a signed-in member (their own
+// reactions and saves). A valid token sets user_id and roles like AuthMiddleware; a missing,
+// expired or revoked token, or an inactive or unfinished account, carries on as a guest.
+func OptionalAuthMiddleware(jwtSecret string) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tokenString := strings.TrimPrefix(c.Get("Authorization"), "Bearer ")
+		if tokenString == "" {
+			tokenString = c.Cookies("km_auth_token")
+		}
+		if tokenString == "" {
+			return c.Next()
+		}
+		claims, userID, err := parseToken(tokenString, jwtSecret)
+		if err != nil {
+			return c.Next()
+		}
+		// An empty path asks for a fully active account
+		roles, err := checkSession(c.Context(), userID, claims, "")
+		if err != nil {
+			return c.Next()
+		}
+		c.Locals("user_id", userID)
+		if roles != nil {
+			c.Locals("roles", roles)
+		} else if rolesRaw, ok := claims["roles"]; ok {
+			c.Locals("roles", rolesRaw)
+		}
+		return c.Next()
+	}
+}

@@ -60,7 +60,6 @@ export const ConnectJustLikeYou: React.FC<Props> = ({ users, pendingIds = [], co
                                         isSelf={isSelf}
                                         isPending={isPending}
                                         isConnected={isConnected}
-                                        entityType="connect"
                                         onChat={onChat}
                                         onFollow={onFollow}
                                     />

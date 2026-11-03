@@ -26,6 +26,7 @@ const (
 	TypeConnectionAccepted  = "connection_accepted"
 	TypeSystemAlert         = "system_alert"
 	TypeExpertApplication   = "expert_application"
+	TypeFeedComment         = "feed_comment"
 )
 
 // Notification represents an in-app notification document in MongoDB

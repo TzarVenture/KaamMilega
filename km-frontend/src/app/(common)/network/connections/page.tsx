@@ -240,7 +240,6 @@ const ConnectionsPage = () => {
                                         user={person}
                                         variant="grid"
                                         actionType="connected"
-                                        entityType="connect"
                                         onChat={() => handleChat(personId)}
                                         onRemove={() => handleDelete(personId)}
                                     />

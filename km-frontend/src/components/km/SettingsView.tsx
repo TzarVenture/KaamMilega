@@ -6,6 +6,7 @@ import { notify } from "@/lib/notify";
 import { BellIcon, CheckIcon, GlobeIcon, LockIcon, ShieldCheckIcon, UserCircleIcon } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
 import api from "@/lib/axios";
+import { clearAnalyticsCache, type ProfileViewingMode } from "@/lib/api/analytics";
 import { errorMessage } from "@/lib/account";
 import { FEATURES } from "@/config/features";
 import { LOCALES, LOCALE_NAMES, isLocale, type Locale } from "@/i18n/config";
@@ -32,6 +33,7 @@ interface UserSettingsState {
     language: string;
     enable_ai_recommendations: boolean;
     search_engine_indexing: boolean;
+    profile_viewing: ProfileViewingMode;
 }
 
 // Matches DefaultUserSettings in the backend (km-backend/internal/features/user/domain.go)
@@ -45,7 +47,59 @@ const DEFAULT_SETTINGS: UserSettingsState = {
     language: "en",
     enable_ai_recommendations: true,
     search_engine_indexing: true,
+    profile_viewing: "name",
 };
+
+interface Choice<T extends string> {
+    id: T;
+    title: string;
+    desc: string;
+}
+
+/** A row of selectable cards for one setting, keyboard-accessible as a radio group */
+function ChoiceCards<T extends string>({ name, legend, choices, value, onChange }: {
+    name: string;
+    legend: string;
+    choices: Choice<T>[];
+    value: T;
+    onChange: (id: T) => void;
+}) {
+    return (
+        <fieldset className="pt-4">
+            <legend className="sr-only">{legend}</legend>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {choices.map((opt) => {
+                    const selected = value === opt.id;
+                    return (
+                        <label
+                            key={opt.id}
+                            className={`relative p-4 rounded-xl border cursor-pointer transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-km-link ${
+                                selected ? "border-[#0B5ED7] bg-blue-50 ring-1 ring-[#0B5ED7]" : "border-km-border hover:border-slate-400"
+                            }`}
+                        >
+                            <input
+                                type="radio"
+                                name={name}
+                                value={opt.id}
+                                checked={selected}
+                                onChange={() => onChange(opt.id)}
+                                className="sr-only"
+                            />
+                            <span className="flex items-center justify-between gap-2">
+                                <span className="text-sm font-semibold text-km-text-primary">{opt.title}</span>
+                                <span
+                                    aria-hidden="true"
+                                    className={`h-4 w-4 rounded-full border-2 ${selected ? "border-[#0B5ED7] bg-[#0B5ED7] shadow-[inset_0_0_0_2px_white]" : "border-slate-300"}`}
+                                />
+                            </span>
+                            <span className="mt-1.5 block text-xs text-km-text-secondary leading-relaxed">{opt.desc}</span>
+                        </label>
+                    );
+                })}
+            </div>
+        </fieldset>
+    );
+}
 
 interface SettingsProfile {
     email?: string;
@@ -221,43 +275,37 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                     {activeTab === "privacy" && !isRecruiter && (
                         <>
                             <SettingsCard title="Who can see your profile">
-                                <fieldset className="pt-4">
-                                    <legend className="sr-only">Profile visibility</legend>
-                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                        {[
-                                            { id: "public", title: "Everyone", desc: "Employers and members can find and view your profile." },
-                                            { id: "connections", title: "Connections only", desc: "People can find you, but only connections and employers you apply to see your full profile." },
-                                            { id: "private", title: "Only employers I apply to", desc: "Hidden from search and suggestions. Employers see you only when you apply." },
-                                        ].map((opt) => {
-                                            const selected = settings.profile_visibility === opt.id;
-                                            return (
-                                                <label
-                                                    key={opt.id}
-                                                    className={`relative p-4 rounded-xl border cursor-pointer transition-colors ${
-                                                        selected ? "border-[#0B5ED7] bg-blue-50 ring-1 ring-[#0B5ED7]" : "border-km-border hover:border-slate-400"
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="profile_visibility"
-                                                        value={opt.id}
-                                                        checked={selected}
-                                                        onChange={() => update("profile_visibility", opt.id as UserSettingsState["profile_visibility"])}
-                                                        className="sr-only"
-                                                    />
-                                                    <span className="flex items-center justify-between gap-2">
-                                                        <span className="text-sm font-semibold text-km-text-primary">{opt.title}</span>
-                                                        <span
-                                                            aria-hidden="true"
-                                                            className={`h-4 w-4 rounded-full border-2 ${selected ? "border-[#0B5ED7] bg-[#0B5ED7] shadow-[inset_0_0_0_2px_white]" : "border-slate-300"}`}
-                                                        />
-                                                    </span>
-                                                    <span className="mt-1.5 block text-xs text-km-text-secondary leading-relaxed">{opt.desc}</span>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                </fieldset>
+                                <ChoiceCards
+                                    name="profile_visibility"
+                                    legend="Profile visibility"
+                                    value={settings.profile_visibility}
+                                    onChange={(v) => update("profile_visibility", v)}
+                                    choices={[
+                                        { id: "public", title: "Everyone", desc: "Employers and members can find and view your profile." },
+                                        { id: "connections", title: "Connections only", desc: "People can find you, but only connections and employers you apply to see your full profile." },
+                                        { id: "private", title: "Only employers I apply to", desc: "Hidden from search and suggestions. Employers see you only when you apply." },
+                                    ]}
+                                />
+                            </SettingsCard>
+
+                            <SettingsCard
+                                title="Profile viewing"
+                                description="How you appear when you view someone’s profile. They see it under “Who viewed your profile”."
+                            >
+                                <ChoiceCards
+                                    name="profile_viewing"
+                                    legend="How you appear when you view profiles"
+                                    value={settings.profile_viewing}
+                                    onChange={(v) => {
+                                        update("profile_viewing", v);
+                                        clearAnalyticsCache();
+                                    }}
+                                    choices={[
+                                        { id: "name", title: "Your name and headline", desc: "People see your name, photo and headline, and you see who viewed you." },
+                                        { id: "characteristics", title: "What you do and where", desc: "People see only your job title and city, like “Electrician in Pune”." },
+                                        { id: "private", title: "Private mode", desc: "People see a private KaamMilega member. You won’t see who viewed you, only your numbers." },
+                                    ]}
+                                />
                             </SettingsCard>
 
                             <SettingsCard title="Discovery">

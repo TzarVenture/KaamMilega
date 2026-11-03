@@ -12,6 +12,7 @@ import TopEmployersWidget from '@/components/profile/TopEmployersWidget';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { errorText, notify } from "@/lib/notify";
 import { getCurrentUser } from "@/lib/auth";
+import { recordProfileView } from "@/lib/telemetry";
 
 const OtherUserProfilePage = () => {
     const params = useParams();
@@ -72,6 +73,10 @@ const OtherUserProfilePage = () => {
             try {
                 const response = await api.get(`/user/${params.Id}`);
                 setUser(response);
+                // Counts as a profile view (the URL may hold a username, so use the loaded ID)
+                const viewed = response as { id?: string; _id?: string } | null;
+                const viewedId = viewed?.id || viewed?._id;
+                if (viewedId) recordProfileView(viewedId);
 
                 // Fetch connection status if authenticated
                 api.get(`/network/status/${params.Id}`).then((res: any) => {

@@ -27,7 +27,6 @@ func (u *User) PublicView() *User {
 	p.LastLoginLat = 0
 	p.LastLoginLng = 0
 	p.BookmarkedJobs = nil
-	p.ProfileViewers = nil
 
 	// Account internals
 	p.Roles = publicRoles(u.Roles)

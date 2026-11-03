@@ -1,451 +1,324 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { BookmarkSimpleIcon, ChatIcon, ConfettiIcon, DotsThreeIcon, GlobeIcon, HeartIcon, LightbulbIcon, PaperPlaneRightIcon, RepeatIcon, ShareNetworkIcon, ShieldCheckIcon, ThumbsUpIcon, TrashIcon } from '@phosphor-icons/react';
+import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import {
+  BookmarkSimpleIcon,
+  ChartBarIcon,
+  ChatCircleIcon,
+  DotsThreeIcon,
+  FlagIcon,
+  LinkSimpleIcon,
+  PencilSimpleIcon,
+  SealCheckIcon,
+  ShareFatIcon,
+  TrashIcon,
+} from '@phosphor-icons/react';
+import { useLocale, useTranslations } from 'next-intl';
 import UserAvatar from '@/components/ui/UserAvatar';
-import { FeedPost, FeedAuthor, ReactionType } from './feedTypes';
-import { getCurrentUser } from '@/lib/auth';
-import { notify } from "@/lib/notify";
+import { feedApi, postUrl } from '@/lib/api/feed';
+import { loginPathFor } from '@/lib/authPaths';
+import { notify } from '@/lib/notify';
+import { usePostImpression } from '@/lib/telemetry';
+import { ConfirmDialog } from './FeedDialog';
+import PostComments from './PostComments';
+import PostContent from './PostContent';
+import PostMedia from './PostMedia';
+import { ReactionButton, ReactionSummary, withReaction } from './PostReactions';
+import ReportPostDialog from './ReportPostDialog';
+import type { FeedPost, ReactionType } from './feedTypes';
+import { compactNumber, useFeedUser, useRelativeTime } from './feedUtils';
 
 interface PostCardProps {
   post: FeedPost;
-  onLike: (postId: string, reaction?: ReactionType) => void;
-  onSave: (postId: string) => void;
-  onRepost: (postId: string) => void;
-  onComment: (postId: string, content: string) => void;
-  onDelete?: (postId: string) => void;
+  /** Apply a change to this post in the list that owns it */
+  onUpdate: (id: string, change: (p: FeedPost) => FeedPost) => void;
+  /** The post was deleted, or reported and hidden */
+  onRemove: (id: string) => void;
+  onEdit: (post: FeedPost) => void;
+  /** Open the comments straight away (a shared link to the post) */
+  commentsOpen?: boolean;
+  /** Show the whole text without folding (a shared link to the post) */
+  expanded?: boolean;
 }
 
-const REACTION_CONFIG: Record<
-  ReactionType,
-  { label: string; icon: React.ReactNode; color: string; badgeBg: string }
-> = {
-  like: {
-    label: 'Like',
-    icon: <ThumbsUpIcon weight="bold" size={15} className="fill-[#0B5ED7] text-km-link dark:fill-blue-400" />,
-    color: 'text-km-link',
-    badgeBg: 'bg-[#0B5ED7]',
-  },
-  celebrate: {
-    label: 'Celebrate',
-    icon: <ConfettiIcon weight="bold" size={15} className="fill-[#16A34A] text-[#16A34A]" />,
-    color: 'text-[#16A34A]',
-    badgeBg: 'bg-[#16A34A]',
-  },
-  support: {
-    label: 'Support',
-    icon: <HeartIcon weight="bold" size={15} className="fill-[#EF4444] text-[#EF4444]" />,
-    color: 'text-[#EF4444]',
-    badgeBg: 'bg-[#EF4444]',
-  },
-  love: {
-    label: 'Love',
-    icon: <HeartIcon weight="bold" size={15} className="fill-[#EF4444] text-[#EF4444]" />,
-    color: 'text-[#EF4444]',
-    badgeBg: 'bg-[#EF4444]',
-  },
-  insightful: {
-    label: 'Insightful',
-    icon: <LightbulbIcon weight="bold" size={15} className="fill-[#F59E0B] text-[#F59E0B]" />,
-    color: 'text-[#F59E0B]',
-    badgeBg: 'bg-[#F59E0B]',
-  },
-};
+// Text colour is left out so the reaction button can show the member's reaction in its own colour
+const actionClass = 'w-full flex items-center justify-center gap-2 h-11 px-2 rounded-xl text-sm font-semibold hover:bg-km-surface transition-colors cursor-pointer';
+const idleText = 'text-km-text-secondary hover:text-km-heading';
 
-export const PostCard: React.FC<PostCardProps> = ({
-  post,
-  onLike,
-  onSave,
-  onRepost,
-  onComment,
-  onDelete,
-}) => {
-  const currentUser = getCurrentUser();
-  const currentUserId = currentUser?.id || currentUser?._id;
+export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpen = false, expanded = false }: PostCardProps) {
+  const t = useTranslations('feed');
+  const locale = useLocale();
+  const router = useRouter();
+  const pathname = usePathname();
+  const search = useSearchParams();
+  const { user } = useFeedUser();
+  const time = useRelativeTime(post.created_at);
+  const impressionRef = usePostImpression<HTMLElement>(post.id, post.author.id);
 
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(commentsOpen);
+  // Each tap on Comment asks the comment box for focus again
+  const [focusRequest, setFocusRequest] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [commentText, setCommentText] = useState('');
-  const [showReactionPicker, setShowReactionPicker] = useState(false);
-
+  const [reporting, setReporting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const reactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  // Only the latest reaction request may settle the counts (quick taps can finish out of order)
+  const reactionSeq = useRef(0);
+  const saveBusy = useRef(false);
 
-  // Close 3-dots dropdown on outside click
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
+    if (!menuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (!menuRef.current?.contains(e.target as Node)) setMenuOpen(false);
     };
-    if (menuOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [menuOpen]);
 
-  const isOwner = currentUserId && post.author.id === currentUserId;
+  const signIn = () => {
+    const qs = search.toString();
+    router.push(loginPathFor(pathname, qs ? `?${qs}` : ''));
+  };
 
-  const handleCopyLink = () => {
-    if (typeof window !== 'undefined') {
-      navigator.clipboard.writeText(`${window.location.origin}/feed#${post.id}`);
-      notify.success('Post link copied to clipboard!');
-      setMenuOpen(false);
+  const react = async (next?: ReactionType) => {
+    if (!user) return signIn();
+    const before = { reaction_counts: post.reaction_counts, reactions_total: post.reactions_total, user_reaction: post.user_reaction };
+    onUpdate(post.id, (p) => withReaction(p, next));
+    const seq = ++reactionSeq.current;
+    try {
+      const res = next ? await feedApi.react(post.id, next) : await feedApi.unreact(post.id);
+      if (seq === reactionSeq.current) onUpdate(post.id, (p) => ({ ...p, ...res, user_reaction: res.user_reaction || undefined }));
+    } catch (err) {
+      if (seq === reactionSeq.current) {
+        onUpdate(post.id, (p) => ({ ...p, ...before }));
+        notify.error(err, t('reactFailed'));
+      }
     }
   };
 
-  const handleCommentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!commentText.trim()) return;
-    onComment(post.id, commentText.trim());
-    setCommentText('');
+  const toggleSave = async () => {
+    setMenuOpen(false);
+    if (!user) return signIn();
+    if (saveBusy.current) return;
+    saveBusy.current = true;
+    const next = !post.is_saved;
+    onUpdate(post.id, (p) => ({ ...p, is_saved: next }));
+    try {
+      await (next ? feedApi.save(post.id) : feedApi.unsave(post.id));
+      notify.success(next ? t('saved') : t('unsaved'));
+    } catch (err) {
+      onUpdate(post.id, (p) => ({ ...p, is_saved: !next }));
+      notify.error(err, t('saveFailed'));
+    } finally {
+      saveBusy.current = false;
+    }
   };
 
-  // Format content text with highlighted hashtags
-  const renderFormattedText = (text: string) => {
-    const maxLength = 240;
-    const shouldTruncate = text.length > maxLength && !isExpanded;
-    const displayText = shouldTruncate ? `${text.slice(0, maxLength)}...` : text;
-
-    // Split words to highlight hashtags
-    const parts = displayText.split(/(#[a-zA-Z0-9_]+)/g);
-
-    return (
-      <div className="text-sm font-poppins text-km-text-primary leading-relaxed whitespace-pre-line">
-        {parts.map((part, index) => {
-          if (part.startsWith('#')) {
-            return (
-              <span key={index} className="text-km-link font-medium hover:underline cursor-pointer">
-                {part}
-              </span>
-            );
-          }
-          return <span key={index}>{part}</span>;
-        })}
-        {shouldTruncate && (
-          <button
-            type="button"
-            onClick={() => setIsExpanded(true)}
-            className="text-xs font-semibold text-km-link hover:underline ml-1 inline-block"
-          >
-            see more
-          </button>
-        )}
-      </div>
-    );
+  const copyLink = async () => {
+    setMenuOpen(false);
+    try {
+      await navigator.clipboard.writeText(postUrl(post.id));
+      notify.success(t('linkCopied'));
+    } catch {
+      notify.error(t('copyFailed'));
+    }
   };
 
-  const currentReaction = post.userReaction ? REACTION_CONFIG[post.userReaction] : null;
+  // Phones open the system share sheet (WhatsApp and the rest); elsewhere the link is copied
+  const share = async () => {
+    const url = postUrl(post.id);
+    if (typeof navigator.share === 'function' && window.matchMedia('(pointer: coarse)').matches) {
+      try {
+        await navigator.share({ title: t('shareTitle', { name: post.author.name }), url });
+      } catch {
+        // Closing the share sheet is not an error
+      }
+      return;
+    }
+    await copyLink();
+  };
+
+  const remove = async () => {
+    setDeleting(true);
+    try {
+      await feedApi.remove(post.id);
+      setConfirmDelete(false);
+      notify.success(t('deleted'));
+      onRemove(post.id);
+    } catch (err) {
+      notify.error(err, t('deleteFailed'));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const openComments = () => {
+    setShowComments(true);
+    if (user) setFocusRequest((n) => n + 1);
+  };
+
+  const profile = `/profile/${post.author.id}`;
+  const roleLabel = post.author.role === 'recruiter' ? t('role.recruiter') : post.author.role === 'expert' ? t('role.expert') : null;
+  const menuItem = 'w-full flex items-center gap-3 px-4 py-2.5 text-[15px] text-km-text-primary hover:bg-km-surface cursor-pointer';
 
   return (
-    <article
-      id={post.id}
-      className="bg-km-surface-card border border-km-border rounded-2xl shadow-xs transition-all duration-200 hover:border-[#0B5ED7]/40 hover:shadow-md overflow-hidden"
-    >
-      {/* 1. Header: Author Identity & 3-Dots Menu */}
-      <div className="p-4 sm:p-5 pb-3 flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="w-12 h-12 rounded-full border border-km-border overflow-hidden bg-km-surface shrink-0">
-            <UserAvatar src={post.author.avatar} name={post.author.name} className="w-full h-full object-cover" />
-          </div>
-
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <h3 className="font-poppins font-bold text-sm text-km-text-primary hover:text-km-link cursor-pointer transition-colors leading-snug">
-                {post.author.name}
-              </h3>
-              {post.author.isVerified && (
-                <span title="Verified Member" className="inline-flex">
-                  <ShieldCheckIcon weight="bold" size={15} className="text-km-link shrink-0" />
-                </span>
-              )}
-            </div>
-
-            <p className="text-xs text-km-text-secondary font-poppins line-clamp-1 mt-0.5">
-              {post.author.headline}
-            </p>
-
-            <div className="flex items-center gap-1 text-[11px] text-km-text-secondary mt-0.5 font-poppins">
-              <span>{post.createdAt}</span>
-              <span>•</span>
-              <GlobeIcon weight="bold" size={11} className="text-km-text-secondary" />
-            </div>
-          </div>
+    <article ref={impressionRef} aria-labelledby={`post-${post.id}-author`} className="bg-km-surface-card border border-km-border rounded-2xl shadow-xs">
+      <header className="flex items-start gap-3 px-4 sm:px-5 pt-4">
+        <Link href={profile} className="w-12 h-12 rounded-full overflow-hidden bg-km-surface border border-km-border shrink-0" tabIndex={-1} aria-hidden="true">
+          <UserAvatar src={post.author.avatar} name={post.author.name} />
+        </Link>
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1 min-w-0">
+            <Link id={`post-${post.id}-author`} href={profile} className="truncate text-[15px] font-semibold text-km-heading hover:text-km-link hover:underline">
+              {post.author.name}
+            </Link>
+            {post.author.is_verified && <SealCheckIcon size={16} weight="fill" className="text-km-link shrink-0" aria-label={t('verified')} />}
+            {roleLabel && <span className="shrink-0 text-[13px] text-km-text-secondary">· {roleLabel}</span>}
+          </p>
+          {post.author.headline && <p className="truncate text-[13px] text-km-text-secondary">{post.author.headline}</p>}
+          <p className="flex flex-wrap items-center gap-x-1 text-[12px] text-km-text-secondary">
+            <Link href={`/feed/${post.id}`} className="hover:underline">
+              <time dateTime={post.created_at} title={time.full}>{time.label}</time>
+            </Link>
+            {post.category !== 'general' && <span>· {t(`category.${post.category}`)}</span>}
+            {post.edited_at && <span>· {t('edited')}</span>}
+          </p>
         </div>
 
-        {/* 3-Dots Action Menu */}
-        <div className="relative" ref={menuRef}>
+        <div className="relative -mr-2" ref={menuRef}>
           <button
             type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="p-1.5 text-km-text-secondary hover:text-km-text-primary hover:bg-km-surface rounded-full transition-colors"
-            aria-label="Post actions"
+            onClick={() => setMenuOpen((o) => !o)}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            aria-label={t('postActions')}
+            className="p-2 rounded-full text-km-text-secondary hover:text-km-heading hover:bg-km-surface cursor-pointer"
           >
-            <DotsThreeIcon size={20} />
+            <DotsThreeIcon size={22} weight="bold" />
           </button>
-
           {menuOpen && (
-            <div className="absolute right-0 top-8 w-48 bg-km-surface-card border border-km-border rounded-2xl shadow-lg py-1.5 z-20 text-xs font-poppins font-medium animate-in fade-in zoom-in-95 duration-100">
-              <button
-                type="button"
-                onClick={() => {
-                  onSave(post.id);
-                  setMenuOpen(false);
-                  notify.info(post.isSaved ? 'Removed from saved items' : 'Post saved to bookmarks');
-                }}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-km-text-primary hover:bg-km-surface transition-colors"
-              >
-                <BookmarkSimpleIcon weight="bold" size={15} className={post.isSaved ? 'text-[#FF6B00] fill-[#FF6B00]' : 'text-km-text-secondary'} />
-                <span>{post.isSaved ? 'Unsave Post' : 'Save Post'}</span>
+            <div role="menu" className="absolute right-0 top-full mt-1 z-20 w-56 py-1.5 rounded-2xl border border-km-border bg-km-surface-card shadow-lg">
+              <button type="button" role="menuitem" onClick={toggleSave} className={menuItem}>
+                <BookmarkSimpleIcon size={18} weight={post.is_saved ? 'fill' : 'regular'} className="text-km-text-secondary" aria-hidden="true" />
+                {post.is_saved ? t('unsave') : t('save')}
               </button>
-
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-km-text-primary hover:bg-km-surface transition-colors"
-              >
-                <ShareNetworkIcon weight="bold" size={15} className="text-km-text-secondary" />
-                <span>Copy Link to Post</span>
+              <button type="button" role="menuitem" onClick={copyLink} className={menuItem}>
+                <LinkSimpleIcon size={18} className="text-km-text-secondary" aria-hidden="true" />
+                {t('copyLink')}
               </button>
-
-              {isOwner && onDelete && (
+              {post.is_owner ? (
+                <>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onEdit(post);
+                    }}
+                    className={menuItem}
+                  >
+                    <PencilSimpleIcon size={18} className="text-km-text-secondary" aria-hidden="true" />
+                    {t('edit')}
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setConfirmDelete(true);
+                    }}
+                    className={`${menuItem} text-red-600 dark:text-red-400`}
+                  >
+                    <TrashIcon size={18} aria-hidden="true" />
+                    {t('delete')}
+                  </button>
+                </>
+              ) : (
                 <button
                   type="button"
+                  role="menuitem"
                   onClick={() => {
-                    onDelete(post.id);
                     setMenuOpen(false);
-                    notify.success('Post deleted');
+                    if (!user) return signIn();
+                    setReporting(true);
                   }}
-                  className="w-full flex items-center gap-2.5 px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors border-t border-km-border dark:text-red-400"
+                  className={menuItem}
                 >
-                  <TrashIcon weight="bold" size={15} />
-                  <span>Delete Post</span>
+                  <FlagIcon size={18} className="text-km-text-secondary" aria-hidden="true" />
+                  {t('report')}
                 </button>
               )}
             </div>
           )}
         </div>
+      </header>
+
+      <div className="px-4 sm:px-5 pt-3 pb-3">
+        <PostContent text={post.content} expanded={expanded} />
       </div>
 
-      {/* 2. Post Content Body */}
-      <div className="px-4 sm:px-5 pb-3">
-        {renderFormattedText(post.content)}
-      </div>
+      <PostMedia media={post.media} authorName={post.author.name} />
 
-      {/* 3. Media Preview Frame */}
-      {post.mediaUrl && (
-        <div className="border-y border-km-border bg-km-surface overflow-hidden max-h-[500px] flex items-center justify-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={post.mediaUrl}
-            alt="Post attachment"
-            className="w-full h-auto max-h-[500px] object-cover"
-            loading="lazy"
-          />
-        </div>
+      {/* Only the author gets this number, as on their analytics */}
+      {post.impressions !== undefined && (
+        <p className="flex items-center gap-1.5 px-4 sm:px-5 pt-3 text-[13px] text-km-text-secondary">
+          <ChartBarIcon size={16} aria-hidden="true" />
+          {t('impressionsCount', { count: post.impressions, formatted: compactNumber(post.impressions, locale) })}
+        </p>
       )}
 
-      {/* 4. Engagement Counters Summary */}
-      <div className="px-4 sm:px-5 py-2.5 flex items-center justify-between text-xs font-inter text-km-text-secondary border-b border-km-border/60">
-        <div className="flex items-center gap-1.5">
-          {post.likesCount > 0 ? (
-            <>
-              <div className="flex -space-x-1 items-center">
-                <span className="w-4 h-4 rounded-full bg-[#0B5ED7] flex items-center justify-center text-white text-[9px] shadow-xs">
-                  👍
-                </span>
-                <span className="w-4 h-4 rounded-full bg-[#16A34A] flex items-center justify-center text-white text-[9px] shadow-xs">
-                  👏
-                </span>
-                <span className="w-4 h-4 rounded-full bg-[#EF4444] flex items-center justify-center text-white text-[9px] shadow-xs">
-                  ❤️
-                </span>
-              </div>
-              <span className="font-medium text-km-text-primary">{post.likesCount}</span>
-            </>
-          ) : (
-            <span className="text-[11px] text-km-text-secondary">Be the first to react</span>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3 text-[11px]">
-          {post.comments.length > 0 && (
-            <button
-              type="button"
-              onClick={() => setShowComments(!showComments)}
-              className="hover:underline hover:text-km-link"
-            >
-              {post.comments.length} {post.comments.length === 1 ? 'comment' : 'comments'}
+      {(post.reactions_total > 0 || post.comments_count > 0) && (
+        <div className="flex items-center justify-between gap-3 px-4 sm:px-5 pt-3 text-[13px] text-km-text-secondary">
+          <ReactionSummary post={post} />
+          {post.comments_count > 0 && (
+            <button type="button" onClick={() => setShowComments((s) => !s)} className="ml-auto hover:text-km-link hover:underline cursor-pointer">
+              {t('commentsCount', { count: post.comments_count, formatted: compactNumber(post.comments_count, locale) })}
             </button>
           )}
-          {post.repostsCount > 0 && (
-            <>
-              <span>•</span>
-              <span>
-                {post.repostsCount} {post.repostsCount === 1 ? 'repost' : 'reposts'}
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-
-      {/* 5. LinkedIn Interactive Action Bar */}
-      <div className="px-2 py-1 flex items-center justify-between relative">
-        {/* Reaction Hover Picker Drawer */}
-        {showReactionPicker && (
-          <div
-            onMouseEnter={() => {
-              if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
-              setShowReactionPicker(true);
-            }}
-            onMouseLeave={() => setShowReactionPicker(false)}
-            className="absolute left-4 -top-11 bg-km-surface-card border border-km-border shadow-xl rounded-full px-3 py-1.5 flex items-center gap-3 z-30 animate-in fade-in slide-in-from-bottom-2 duration-150"
-          >
-            {(['like', 'celebrate', 'support', 'insightful'] as ReactionType[]).map((r) => (
-              <button
-                key={r}
-                type="button"
-                onClick={() => {
-                  onLike(post.id, r);
-                  setShowReactionPicker(false);
-                }}
-                className="transform hover:scale-130 transition-transform duration-150 p-1 text-lg"
-                title={REACTION_CONFIG[r].label}
-              >
-                {r === 'like' && '👍'}
-                {r === 'celebrate' && '👏'}
-                {r === 'support' && '❤️'}
-                {r === 'insightful' && '💡'}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* 1. Like Button */}
-        <button
-          type="button"
-          onMouseEnter={() => {
-            if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
-            reactionTimeoutRef.current = setTimeout(() => setShowReactionPicker(true), 350);
-          }}
-          onMouseLeave={() => {
-            if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
-            reactionTimeoutRef.current = setTimeout(() => setShowReactionPicker(false), 400);
-          }}
-          onClick={() => onLike(post.id, 'like')}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
-            post.isLiked
-              ? currentReaction?.color || 'text-km-link'
-              : 'text-km-text-secondary hover:text-km-heading'
-          }`}
-        >
-          {post.isLiked && currentReaction ? (
-            currentReaction.icon
-          ) : (
-            <ThumbsUpIcon weight="bold" size={16} />
-          )}
-          <span>{post.isLiked && currentReaction ? currentReaction.label : 'Like'}</span>
-        </button>
-
-        {/* 2. Comment Button */}
-        <button
-          type="button"
-          onClick={() => setShowComments(!showComments)}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
-            showComments ? 'text-km-link' : 'text-km-text-secondary hover:text-km-heading'
-          }`}
-        >
-          <ChatIcon weight="bold" size={16} />
-          <span>Comment</span>
-        </button>
-
-        {/* 3. Repost Button */}
-        <button
-          type="button"
-          onClick={() => {
-            onRepost(post.id);
-            notify.success(post.isReposted ? 'Repost removed' : 'Reposted to your network!');
-          }}
-          className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold transition-all hover:bg-km-surface ${
-            post.isReposted ? 'text-[#16A34A]' : 'text-km-text-secondary hover:text-km-heading'
-          }`}
-        >
-          <RepeatIcon weight="bold" size={17} />
-          <span>Repost</span>
-        </button>
-
-        {/* 4. Send / Share Button */}
-        <button
-          type="button"
-          onClick={handleCopyLink}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-1 rounded-xl text-xs font-poppins font-semibold text-km-text-secondary hover:text-km-heading hover:bg-km-surface transition-all"
-        >
-          <PaperPlaneRightIcon weight="bold" size={15} />
-          <span>Share</span>
-        </button>
-      </div>
-
-      {/* 6. Inline Expandable Comments Section */}
-      {showComments && (
-        <div className="border-t border-km-border bg-km-surface/40 p-4 sm:p-5 space-y-4 animate-in fade-in duration-200">
-          {/* New Comment Input Box */}
-          <form onSubmit={handleCommentSubmit} className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-full border border-km-border overflow-hidden bg-km-surface-card shrink-0 mt-0.5">
-              <UserAvatar
-                src={currentUser?.profile_image || currentUser?.avatar}
-                name={currentUser?.name || 'You'}
-                className="w-full h-full object-cover"
-              />
-            </div>
-
-            <div className="flex-1 space-y-2">
-              <input
-                type="text"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                placeholder="Add a constructive comment..."
-                className="w-full px-4 py-2.5 text-xs sm:text-sm font-poppins bg-km-surface-card border border-km-border rounded-full focus:outline-none focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/15 transition-all text-km-text-primary placeholder:text-km-text-secondary/60"
-              />
-
-              {commentText.trim() && (
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 bg-[#071A4D] hover:bg-[#0B1F52] text-white rounded-xl text-xs font-poppins font-semibold shadow-xs transition-all dark:bg-km-primary dark:hover:bg-km-primary-dark"
-                  >
-                    Post Comment
-                  </button>
-                </div>
-              )}
-            </div>
-          </form>
-
-          {/* List of Comments */}
-          {post.comments.length > 0 && (
-            <div className="space-y-3 pt-2">
-              {post.comments.map((comm) => (
-                <div key={comm.id} className="flex items-start gap-2.5 text-xs font-poppins">
-                  <div className="w-8 h-8 rounded-full border border-km-border overflow-hidden bg-km-surface-card shrink-0 mt-0.5">
-                    <UserAvatar src={comm.author.avatar} name={comm.author.name} className="w-full h-full object-cover" />
-                  </div>
-
-                  <div className="flex-1 bg-km-surface-card border border-km-border rounded-2xl p-3 shadow-xs">
-                    <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-km-text-primary">{comm.author.name}</h4>
-                      <span className="text-[10px] text-km-text-secondary">{comm.createdAt}</span>
-                    </div>
-                    {comm.author.headline && (
-                      <p className="text-[11px] text-km-text-secondary truncate">{comm.author.headline}</p>
-                    )}
-                    <p className="text-xs text-km-text-primary mt-1.5 leading-relaxed">{comm.content}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
+
+      <div className="mx-2 sm:mx-3 mt-2 mb-1 pt-1 grid grid-cols-3 gap-1 border-t border-km-border">
+        <ReactionButton current={post.user_reaction} onReact={react} className={actionClass} />
+        <button type="button" onClick={openComments} aria-expanded={showComments} className={`${actionClass} ${idleText}`}>
+          <ChatCircleIcon size={20} aria-hidden="true" />
+          <span>{t('comment')}</span>
+        </button>
+        <button type="button" onClick={share} className={`${actionClass} ${idleText}`}>
+          <ShareFatIcon size={20} aria-hidden="true" />
+          <span>{t('share')}</span>
+        </button>
+      </div>
+
+      {showComments && (
+        <PostComments
+          post={post}
+          focusRequest={focusRequest}
+          onSignIn={signIn}
+          onCountChange={(d) => onUpdate(post.id, (p) => ({ ...p, comments_count: Math.max(0, p.comments_count + d) }))}
+        />
+      )}
+
+      <ReportPostDialog postId={post.id} open={reporting} onClose={() => setReporting(false)} onReported={() => onRemove(post.id)} />
+      <ConfirmDialog
+        open={confirmDelete}
+        title={t('deletePostTitle')}
+        description={t('deletePostBody')}
+        confirmLabel={t('delete')}
+        busy={deleting}
+        onConfirm={remove}
+        onClose={() => setConfirmDelete(false)}
+      />
     </article>
   );
-};
-
-export default PostCard;
+}

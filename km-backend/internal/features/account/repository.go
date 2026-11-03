@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"km-backend/internal/database"
+	"km-backend/internal/features/analytics"
 	"km-backend/internal/features/user"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -331,6 +332,22 @@ func (r *mongoRepository) EraseRelatedData(ctx context.Context, u *user.User, no
 			_, err := r.db.Collection("notifications").DeleteMany(ctx, bson.M{"user_id": id})
 			return err
 		},
+		// Feed: their posts with everything on them, and their comments and reactions elsewhere
+		func() error { return r.eraseFeedData(ctx, id) },
+		// Analytics: their own numbers, and their visits and searches that named other people.
+		// Impressions they made on others' posts stay, so those posts' counts don't drop.
+		func() error {
+			_, err := r.db.Collection(analytics.ProfileViewsCollection).DeleteMany(ctx, bson.M{"$or": []bson.M{{"profile_id": id}, {"viewer_id": id}}})
+			return err
+		},
+		func() error {
+			_, err := r.db.Collection(analytics.SearchAppearancesCollection).DeleteMany(ctx, bson.M{"$or": []bson.M{{"user_id": id}, {"searcher_id": id}}})
+			return err
+		},
+		func() error {
+			_, err := r.db.Collection(analytics.PostImpressionsCollection).DeleteMany(ctx, bson.M{"$or": []bson.M{{"author_id": id}, {"viewer_id": id}}})
+			return err
+		},
 		// Browser and phone push registrations
 		func() error {
 			_, err := r.db.Collection("push_tokens").DeleteMany(ctx, bson.M{"user_id": id})
@@ -397,6 +414,90 @@ func (r *mongoRepository) EraseRelatedData(ctx context.Context, u *user.User, no
 	return nil
 }
 
+// eraseFeedData removes a member's feed activity. Counts on other members' posts are lowered
+// by what is removed, so they stay right.
+func (r *mongoRepository) eraseFeedData(ctx context.Context, id primitive.ObjectID) error {
+	posts := r.db.Collection("feed_posts")
+
+	cur, err := posts.Find(ctx, bson.M{"author_id": id}, options.Find().SetProjection(bson.M{"_id": 1}))
+	if err != nil {
+		return err
+	}
+	var own []struct {
+		ID primitive.ObjectID `bson:"_id"`
+	}
+	if err := cur.All(ctx, &own); err != nil {
+		return err
+	}
+	if len(own) > 0 {
+		ids := make([]primitive.ObjectID, len(own))
+		for i, p := range own {
+			ids[i] = p.ID
+		}
+		for _, name := range []string{"feed_comments", "feed_reactions", "feed_saves", "feed_reports"} {
+			if _, err := r.db.Collection(name).DeleteMany(ctx, bson.M{"post_id": bson.M{"$in": ids}}); err != nil {
+				return err
+			}
+		}
+		// The photos' storage objects are not removed here (see deleteUploadedFiles)
+		if _, err := posts.DeleteMany(ctx, bson.M{"_id": bson.M{"$in": ids}}); err != nil {
+			return err
+		}
+	}
+
+	// Their comments on other posts
+	type tally struct {
+		Post  primitive.ObjectID `bson:"_id"`
+		Count int                `bson:"n"`
+	}
+	cc, err := r.db.Collection("feed_comments").Aggregate(ctx, []bson.M{
+		{"$match": bson.M{"author_id": id}},
+		{"$group": bson.M{"_id": "$post_id", "n": bson.M{"$sum": 1}}},
+	})
+	if err != nil {
+		return err
+	}
+	var comments []tally
+	if err := cc.All(ctx, &comments); err != nil {
+		return err
+	}
+	for _, t := range comments {
+		if _, err := posts.UpdateOne(ctx, bson.M{"_id": t.Post}, bson.M{"$inc": bson.M{"comments_count": -t.Count}}); err != nil {
+			return err
+		}
+	}
+	if _, err := r.db.Collection("feed_comments").DeleteMany(ctx, bson.M{"author_id": id}); err != nil {
+		return err
+	}
+
+	// Their reactions (one per post)
+	rc, err := r.db.Collection("feed_reactions").Find(ctx, bson.M{"user_id": id})
+	if err != nil {
+		return err
+	}
+	var reactions []struct {
+		PostID primitive.ObjectID `bson:"post_id"`
+		Type   string             `bson:"type"`
+	}
+	if err := rc.All(ctx, &reactions); err != nil {
+		return err
+	}
+	for _, x := range reactions {
+		if _, err := posts.UpdateOne(ctx, bson.M{"_id": x.PostID}, bson.M{"$inc": bson.M{
+			"reactions_total": -1, "reaction_counts." + x.Type: -1,
+		}}); err != nil {
+			return err
+		}
+	}
+	for _, name := range []string{"feed_reactions", "feed_saves"} {
+		if _, err := r.db.Collection(name).DeleteMany(ctx, bson.M{"user_id": id}); err != nil {
+			return err
+		}
+	}
+	_, err = r.db.Collection("feed_reports").DeleteMany(ctx, bson.M{"reporter_id": id})
+	return err
+}
+
 // erasedUserFields are removed from the user document on final deletion. Kept: _id, roles,
 // created_at (so references in messages, applications and payments still resolve), the
 // business-level company name/industry, and the lifecycle fields.
@@ -409,7 +510,9 @@ var erasedUserFields = []string{
 	"bookmarked_jobs", "open_to_work", "providing_services",
 	"company_logo", "company_website", "gst", "company_documents",
 	"expert_category", "expert_bio", "expert_pricing", "expert_documents",
-	"last_login_lat", "last_login_lng", "profile_viewers",
+	"last_login_lat", "last_login_lng",
+	// Counters from before analytics moved to its own collections
+	"profile_viewers", "profile_views", "post_impressions", "search_appearances",
 	"deactivated_at", "deletion_requested_at",
 }
 

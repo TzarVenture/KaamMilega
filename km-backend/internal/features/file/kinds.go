@@ -28,6 +28,7 @@ var kinds = map[string]Kind{
 	"cover":        {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
 	"company_logo": {Visibility: storage.Public, Extensions: append([]string{".svg"}, imageExts...), MaxSize: 2 << 20},
 	"event_image":  {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
+	"feed_image":   {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
 
 	// Private: owner, admins and the people the file was shared with, through signed links
 	"resume":           {Visibility: storage.Private, Extensions: documentExts, MaxSize: 5 << 20},

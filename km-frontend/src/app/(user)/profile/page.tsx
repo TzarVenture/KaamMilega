@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowSquareOutIcon, BriefcaseIcon, CameraIcon, CaretDownIcon, CaretRightIcon, ChartBarIcon, ChatCircleIcon, CheckCircleIcon, CheckIcon, CopyIcon, DiamondIcon, EyeIcon, FolderIcon, GlobeIcon, GraduationCapIcon, MagnifyingGlassIcon, PencilSimpleIcon, PlusIcon, TrashIcon, WrenchIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowSquareOutIcon, BriefcaseIcon, CameraIcon, CaretDownIcon, CaretRightIcon, ChatCircleIcon, CheckCircleIcon, CheckIcon, CopyIcon, DiamondIcon, FolderIcon, GlobeIcon, GraduationCapIcon, PencilSimpleIcon, PlusIcon, TrashIcon, WrenchIcon, XIcon } from '@phosphor-icons/react';
 import InterestsSection from './InterestSection';
 import { useEffect, useState, useRef } from 'react';
 import api from '@/lib/axios';
@@ -25,6 +25,8 @@ import CustomImage from '@/components/ui/CustomImage';
 import Link from 'next/link';
 import ProfileStrengthCard from './ProfileStrengthCard';
 import TopEmployersWidget from '@/components/profile/TopEmployersWidget';
+import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
+import ProfileViewers from '@/components/profile/ProfileViewers';
 import UserAvatar from '@/components/ui/UserAvatar';
 
 const ProfilePage = () => {
@@ -67,11 +69,8 @@ const ProfilePage = () => {
     const [copiedLink, setCopiedLink] = useState(false);
 
     // Sidebar Live Data
-    const [sidebarUsers, setSidebarUsers] = useState<any[]>([]);
     const [sidebarExperts, setSidebarExperts] = useState<any[]>([]);
     const [sidebarJobs, setSidebarJobs] = useState<any[]>([]);
-    const [connectedUserIds, setConnectedUserIds] = useState<string[]>([]);
-    const [connectingUserId, setConnectingUserId] = useState<string | null>(null);
 
     const router = useRouter();
     const openToRef = useRef<HTMLDivElement>(null);
@@ -207,20 +206,6 @@ const ProfilePage = () => {
         });
     };
 
-    // Connect with user
-    const handleConnectUser = async (targetId: string) => {
-        try {
-            setConnectingUserId(targetId);
-            await api.post('/network/connect', { receiver_id: targetId });
-            setConnectedUserIds((prev) => [...prev, targetId]);
-        } catch (err: any) {
-            console.error('Failed to send connection request:', err);
-            notify.error(err, 'Could not send invitation.');
-        } finally {
-            setConnectingUserId(null);
-        }
-    };
-
     useEffect(() => {
         const fetchProfile = async () => {
             try {
@@ -235,9 +220,7 @@ const ProfilePage = () => {
 
         const fetchSidebarData = async () => {
             try {
-                const [viewersRes, usersRes, expertsRes, jobsRes, walletRes] = await Promise.allSettled([
-                    api.get('/user/viewers').catch(() => []),
-                    api.get('/community/users').catch(() => []),
+                const [expertsRes, jobsRes, walletRes] = await Promise.allSettled([
                     api.get('/experts').catch(() => []),
                     api.get('/jobs?limit=3').catch(() => ({ jobs: [] })),
                     api.get('/wallet/balance').catch(() => null)
@@ -247,27 +230,6 @@ const ProfilePage = () => {
                     const wData = walletRes.value as any;
                     const bal = typeof wData.total_balance === 'number' ? wData.total_balance : (typeof wData.main_balance === 'number' ? wData.main_balance : 0);
                     setWalletBalance(bal);
-                }
-
-                const currentUserId = user?.id || user?._id;
-                const currentUsername = user?.username;
-
-                const rawViewers = (viewersRes.status === 'fulfilled' && Array.isArray(viewersRes.value)) ? viewersRes.value : [];
-                const cleanViewers = rawViewers.filter((v: any) => {
-                    const vid = v.id || v._id;
-                    return vid && vid !== currentUserId && (!currentUsername || v.username !== currentUsername);
-                });
-
-                if (cleanViewers.length > 0) {
-                    setSidebarUsers(cleanViewers.slice(0, 4));
-                } else if (usersRes.status === 'fulfilled') {
-                    const uData = usersRes.value as any;
-                    const uList = Array.isArray(uData) ? uData : uData.data || [];
-                    const filteredCommunity = uList.filter((u: any) => {
-                        const uid = u.id || u._id;
-                        return uid && uid !== currentUserId && (!currentUsername || u.username !== currentUsername);
-                    });
-                    setSidebarUsers(filteredCommunity.slice(0, 4));
                 }
 
                 if (expertsRes.status === 'fulfilled') {
@@ -755,37 +717,7 @@ const ProfilePage = () => {
                         onOpenModal={(modalKey) => setModals((prev) => ({ ...prev, [modalKey]: true }))}
                     />
 
-                    {/* Analytics Section */}
-                    <div className="bg-km-surface-card rounded-xl p-6 shadow-sm border border-gray-200">
-                        <h2 className="text-xl font-bold mb-1 text-gray-900">Analytics</h2>
-                        <p className="text-xs text-gray-400 flex items-center gap-1 mb-6">
-                            <EyeIcon weight="bold" size={12} /> Private To You
-                        </p>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
-                            <div className="flex gap-3">
-                                <ChartBarIcon size={24} className="text-km-heading" />
-                                <div>
-                                    <p className="font-bold text-gray-900">{(user?.profile_views ?? 0)} Profile Views</p>
-                                    <p className="text-xs text-gray-500">Discover who viewed your profile.</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <ChartBarIcon size={24} className="text-km-heading" />
-                                <div>
-                                    <p className="font-bold text-gray-900">{(user?.post_impressions ?? 0)} Post Impressions</p>
-                                    <p className="text-xs text-gray-500">Check engagement on your discussions.</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-3">
-                                <MagnifyingGlassIcon size={24} className="text-km-heading" />
-                                <div>
-                                    <p className="font-bold text-gray-900">{(user?.search_appearances ?? 0)} Search Appearances</p>
-                                    <p className="text-xs text-gray-500">How often you appear in recruiter search.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <ProfileAnalytics userId={user.id || user._id} />
 
                     {/* About Section */}
                     <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
@@ -1278,58 +1210,7 @@ const ProfilePage = () => {
                         </div>
                     </div>
 
-                    {/* People Who Viewed Section (Live Community Users) */}
-                    <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm">
-                        <h3 className="font-bold text-gray-900 mb-4 flex justify-between items-center text-base">
-                            <span>People Who <span className="text-km-heading">Viewed</span></span>
-                            <Link href="/network" className="text-xs font-semibold text-km-heading hover:underline">
-                                See all
-                            </Link>
-                        </h3>
-
-                        <div className="space-y-5">
-                            {sidebarUsers.length > 0 ? (
-                                sidebarUsers.map((person: any, i: number) => {
-                                    const pName = person.name || (person.first_name ? `${person.first_name} ${person.last_name || ''}` : 'Platform Member');
-                                    const pHeadline = person.headline || person.designation || 'Active Professional';
-                                    const pId = person.id || person._id;
-                                    const isConnected = connectedUserIds.includes(pId);
-                                    const isConnecting = connectingUserId === pId;
-
-                                    return (
-                                        <div key={pId || i} className="flex flex-col gap-2.5 pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-                                            <div className="flex gap-3 items-center">
-                                                <div className="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center overflow-hidden shrink-0 border border-slate-200">
-                                                    <UserAvatar src={person.profile_image} name={pName} />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="font-bold text-sm text-gray-900 truncate">{pName}</p>
-                                                    <p className="text-xs text-gray-500 truncate">{pHeadline}</p>
-                                                    <p className="text-[10px] text-gray-400 mt-0.5">Active recently</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-2">
-                                                <Link href={`/chat?userId=${pId}`} className="flex-1">
-                                                    <button className="w-full border border-gray-300 rounded-xl py-1 text-xs font-semibold flex items-center justify-center gap-1 hover:bg-gray-50 transition-colors cursor-pointer">
-                                                        <ChatCircleIcon weight="bold" size={13} /> Chat
-                                                    </button>
-                                                </Link>
-                                                <button
-                                                    onClick={() => handleConnectUser(pId)}
-                                                    disabled={isConnected || isConnecting}
-                                                    className="flex-1 bg-km-primary text-white rounded-xl py-1 text-xs font-bold hover:bg-km-primary-dark transition-colors shadow-xs disabled:bg-emerald-600 disabled:opacity-80 cursor-pointer"
-                                                >
-                                                    {isConnected ? 'Connected' : (isConnecting ? 'Connecting...' : 'Connect')}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    );
-                                })
-                            ) : (
-                                <p className="text-xs text-gray-400 italic">No recent profile viewers.</p>
-                            )}
-                        </div>
-                    </div>
+                    <ProfileViewers userId={user.id || user._id} />
 
                     {/* Our Experts Widget */}
                     <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm">

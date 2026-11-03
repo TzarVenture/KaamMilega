@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/features/analytics"
 	"km-backend/internal/features/notification"
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
@@ -57,7 +58,7 @@ type UserService interface {
 	GetAllUsers(ctx context.Context) ([]*User, error)
 	GetCommunityUsers(ctx context.Context) ([]*User, error)
 	GetExperts(ctx context.Context) ([]*User, error)
-	SearchUsers(ctx context.Context, query string) ([]*User, error)
+	SearchUsers(ctx context.Context, searcherID, query string) ([]*User, error)
 	ApplyForExpert(ctx context.Context, userID string, req ApplyExpertRequest) (*User, error)
 	ApproveExpert(ctx context.Context, adminID string, targetUserID string, req ApproveExpertRequest) (*User, error)
 	GetExpertApplication(ctx context.Context, userID string) (*ExpertApplicationStatus, error)
@@ -67,9 +68,10 @@ type UserService interface {
 	UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error)
 	GetPlatformStats(ctx context.Context) (map[string]interface{}, error)
 	GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error)
-	RecordProfileView(ctx context.Context, targetUserID, viewerID string) error
-	GetProfileViewers(ctx context.Context, userID string) ([]*User, error)
-	RecordPostImpressions(ctx context.Context, viewerID string, authorIDs []string) error
+	// RecordProfileView counts a member opening someone else's profile page (see analytics.go)
+	RecordProfileView(ctx context.Context, targetID, viewerID string) error
+	// GetAnalytics is the member's profile, search and post numbers for the last `days` days
+	GetAnalytics(ctx context.Context, userID string, days int) (*AnalyticsResponse, error)
 	UpdateUsername(ctx context.Context, userID, newUsername string) (*User, error)
 	CheckUsernameAvailability(ctx context.Context, currentUserID, username string) (bool, string, error)
 	UpdateOpenToWork(ctx context.Context, userID string, prefs OpenToWorkPreferences) (*User, error)
@@ -88,9 +90,10 @@ type UserServiceImpl struct {
 	config     *config.Config
 	mailer     notification.Mailer
 	notifier   notification.NotificationService
+	stats      analytics.Service
 }
 
-func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config, mailer notification.Mailer, notifier notification.NotificationService) UserService {
+func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo skill.SkillRepository, cfg *config.Config, mailer notification.Mailer, notifier notification.NotificationService, stats analytics.Service) UserService {
 	// Trigger non-destructive background backfill for legacy users
 	go func() {
 		bgCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
@@ -105,6 +108,7 @@ func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo sk
 		config:     cfg,
 		mailer:     mailer,
 		notifier:   notifier,
+		stats:      stats,
 	}
 }
 
@@ -1261,17 +1265,16 @@ func (s *UserServiceImpl) GetExperts(ctx context.Context) ([]*User, error) {
 	return users, err
 }
 
-func (s *UserServiceImpl) SearchUsers(ctx context.Context, query string) ([]*User, error) {
+func (s *UserServiceImpl) SearchUsers(ctx context.Context, searcherID, query string) ([]*User, error) {
 	users, _, err := s.repo.FindUsers(ctx, UserFilter{Search: query, Limit: 20})
-	if err == nil && len(users) > 0 {
-		go func(found []*User) {
-			for _, u := range found {
-				u.SearchAppearances++
-				_, _ = s.repo.UpdateUser(context.Background(), u)
-			}
-		}(users)
+	if err != nil {
+		return nil, err
 	}
-	return users, err
+	// Only a real search counts as appearing in one, not the list shown before typing
+	if strings.TrimSpace(query) != "" {
+		s.recordSearchAppearances(searcherID, users)
+	}
+	return users, nil
 }
 
 func (s *UserServiceImpl) GetExpertRequests(ctx context.Context) ([]*User, error) {
@@ -1642,12 +1645,30 @@ func (s *UserServiceImpl) GetUserSettings(ctx context.Context, userID string) (*
 	if userID == "" {
 		return nil, errors.New("unauthorized: missing user ID")
 	}
-	return s.repo.GetUserSettings(ctx, userID)
+	settings, err := s.repo.GetUserSettings(ctx, userID)
+	if err == nil && settings.ProfileViewing == "" {
+		settings.ProfileViewing = analytics.ViewAsName
+	}
+	return settings, err
 }
+
+// ErrInvalidProfileViewing is returned for a profile viewing mode other than the three LinkedIn-style ones
+var ErrInvalidProfileViewing = apperr.New("SETTINGS_INVALID_PROFILE_VIEWING", "Choose how you appear when you view profiles: by name, by characteristics or privately.")
 
 func (s *UserServiceImpl) UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error) {
 	if userID == "" {
 		return nil, errors.New("unauthorized: missing user ID")
+	}
+	if !analytics.ValidViewMode(settings.ProfileViewing) {
+		return nil, ErrInvalidProfileViewing
+	}
+	// Settings are saved whole; a client that doesn't know this setting yet keeps the current one
+	if settings.ProfileViewing == "" {
+		current, err := s.GetUserSettings(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
+		settings.ProfileViewing = current.ProfileViewing
 	}
 	return s.repo.UpdateUserSettings(ctx, userID, settings)
 }
@@ -1660,115 +1681,6 @@ func (s *UserServiceImpl) GetLiveActivity(ctx context.Context) ([]map[string]int
 	return s.repo.GetLiveActivity(ctx)
 }
 
-func (s *UserServiceImpl) RecordProfileView(ctx context.Context, targetUserID, viewerID string) error {
-	if targetUserID == "" {
-		return errors.New("target user ID required")
-	}
-
-	target, err := s.repo.FindUserByID(ctx, targetUserID)
-	if err != nil || target == nil {
-		return err
-	}
-
-	targetIDHex := target.ID.Hex()
-
-	// Never record or count self-views (or unauthenticated visits)
-	if viewerID == "" || viewerID == targetIDHex {
-		return nil
-	}
-
-	// 24-hour debounce check: if viewer is already in recent viewers, do not increment again
-	alreadyViewedRecently := false
-	for _, vid := range target.ProfileViewers {
-		if vid == viewerID {
-			alreadyViewedRecently = true
-			break
-		}
-	}
-
-	if alreadyViewedRecently {
-		return nil
-	}
-
-	// Atomic increment and prepend unique viewer
-	target.ProfileViews++
-	target.ProfileViewers = append([]string{viewerID}, target.ProfileViewers...)
-	if len(target.ProfileViewers) > 20 {
-		target.ProfileViewers = target.ProfileViewers[:20]
-	}
-
-	_, err = s.repo.UpdateUser(ctx, target)
-	return err
-}
-
-func (s *UserServiceImpl) GetProfileViewers(ctx context.Context, userID string) ([]*User, error) {
-	if userID == "" {
-		return nil, errors.New("user ID required")
-	}
-
-	user, err := s.repo.FindUserByID(ctx, userID)
-	if err != nil || user == nil {
-		return nil, err
-	}
-
-	userIDHex := user.ID.Hex()
-	if len(user.ProfileViewers) == 0 {
-		return []*User{}, nil
-	}
-
-	var viewers []*User
-	cleanedViewers := make([]string, 0, len(user.ProfileViewers))
-	hasSelfViewer := false
-
-	for _, vid := range user.ProfileViewers {
-		// Filter out self-viewer if it was previously recorded
-		if vid == userIDHex {
-			hasSelfViewer = true
-			continue
-		}
-		cleanedViewers = append(cleanedViewers, vid)
-		v, err := s.repo.FindUserByID(ctx, vid)
-		if err == nil && v != nil && v.ID.Hex() != userIDHex {
-			viewers = append(viewers, v)
-		}
-	}
-
-	// If self-viewer was detected, clean up the array in the database permanently
-	if hasSelfViewer {
-		user.ProfileViewers = cleanedViewers
-		_, _ = s.repo.UpdateUser(ctx, user)
-	}
-
-	return viewers, nil
-}
-
-func (s *UserServiceImpl) RecordPostImpressions(ctx context.Context, viewerID string, authorIDs []string) error {
-	if len(authorIDs) == 0 {
-		return nil
-	}
-
-	counts := make(map[string]int)
-	for _, id := range authorIDs {
-		id = strings.TrimSpace(id)
-		if id == "" || id == viewerID {
-			continue
-		}
-		counts[id]++
-	}
-
-	if len(counts) == 0 {
-		return nil
-	}
-
-	go func(c map[string]int) {
-		bgCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		_ = s.repo.IncrementPostImpressions(bgCtx, c)
-	}(counts)
-
-	return nil
-}
-
 var reservedUsernames = map[string]bool{
 	"admin": true, "administrator": true, "api": true, "login": true,
 	"register": true, "auth": true, "settings": true, "profile": true,
@@ -1776,7 +1688,7 @@ var reservedUsernames = map[string]bool{
 	"events": true, "company": true, "expert": true, "experts": true,
 	"community": true, "help": true, "support": true, "root": true,
 	"system": true, "kaammilega": true, "instantmilega": true,
-	"viewers": true, "impressions": true, "notifications": true,
+	"viewers": true, "impressions": true, "notifications": true, "analytics": true,
 }
 
 var validUsernameRegex = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{1,28}[a-z0-9])?$`)

@@ -21,7 +21,6 @@ import CompanyCard from '@/components/company/CompanyCard';
 import ProfileConnectionCard from '@/components/network/ProfileConnectionCard';
 import InteractiveScrollbar from '@/components/ui/InteractiveScrollbar';
 import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
-import { ImpressionWrapper } from '@/lib/telemetry';
 import CandidateProgressCard from '@/components/dashboard/CandidateProgressCard';
 import { useUniformMarqueeSpeed } from '@/lib/useUniformMarqueeSpeed';
 import SectionHeader from '@/components/home/SectionHeader';
@@ -1114,7 +1113,6 @@ const ExpertSlider = ({
                   isSelf={isSelf}
                   isPending={isPending}
                   isConnected={isConnected}
-                  entityType="expert"
                   onChat={onChat}
                   onFollow={onFollow}
                 />

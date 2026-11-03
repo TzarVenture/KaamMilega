@@ -29,6 +29,7 @@ type UserRepository interface {
 	UpdateUser(ctx context.Context, user *User) (*User, error)
 	UpdatePassword(ctx context.Context, userID string, passwordHash string) error
 	FindUserByID(ctx context.Context, id string) (*User, error)
+	FindUsersByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*User, error)
 	DeleteUser(ctx context.Context, id string) error
 
 	SaveOTP(ctx context.Context, otp *OTP) error
@@ -46,7 +47,6 @@ type UserRepository interface {
 	UpdateUserSettings(ctx context.Context, userID string, settings UserSettings) (*UserSettings, error)
 	GetPlatformStats(ctx context.Context) (map[string]interface{}, error)
 	GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error)
-	IncrementPostImpressions(ctx context.Context, authorCounts map[string]int) error
 	FindUserByUsername(ctx context.Context, username string) (*User, error)
 	BackfillUsernames(ctx context.Context) error
 	HasActivePassOrSubscription(ctx context.Context, userID string) (bool, error)
@@ -213,6 +213,45 @@ func (r *UserRepositoryImpl) FindUserByID(ctx context.Context, id string) (*User
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepositoryImpl) FindUsersByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*User, error) {
+	result := make(map[primitive.ObjectID]*User)
+	if len(ids) == 0 {
+		return result, nil
+	}
+	filter := bson.M{"_id": bson.M{"$in": ids}}
+	// Only what a byline needs (name, headline, photo, badges), whether the account is open, and
+	// the traits a semi-private profile viewer shows (title and city)
+	opts := options.Find().SetProjection(bson.M{
+		"_id":                 1,
+		"name":                1,
+		"first_name":          1,
+		"last_name":           1,
+		"headline":            1,
+		"profile_image":       1,
+		"roles":               1,
+		"verification_status": 1,
+		"company_name":        1,
+		"account_status":      1,
+		"city":                1,
+		"expert_category":     1,
+		"job_categories":      1,
+		"experience.title":    1,
+		"experience.end_date": 1,
+	})
+	cursor, err := r.userColl.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	var users []User
+	if err := cursor.All(ctx, &users); err != nil {
+		return nil, err
+	}
+	for i := range users {
+		result[users[i].ID] = &users[i]
+	}
+	return result, nil
 }
 
 func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *User) (*User, error) {
@@ -734,36 +773,6 @@ func (r *UserRepositoryImpl) GetLiveActivity(ctx context.Context) ([]map[string]
 	}
 
 	return activities, nil
-}
-
-func (r *UserRepositoryImpl) IncrementPostImpressions(ctx context.Context, authorCounts map[string]int) error {
-	if len(authorCounts) == 0 {
-		return nil
-	}
-
-	var writes []mongo.WriteModel
-	for idStr, count := range authorCounts {
-		if count <= 0 {
-			continue
-		}
-		oid, err := primitive.ObjectIDFromHex(idStr)
-		if err != nil {
-			continue
-		}
-		model := mongo.NewUpdateOneModel().
-			SetFilter(bson.M{"_id": oid}).
-			SetUpdate(bson.M{
-				"$inc": bson.M{"post_impressions": count},
-			})
-		writes = append(writes, model)
-	}
-
-	if len(writes) == 0 {
-		return nil
-	}
-
-	_, err := r.userColl.BulkWrite(ctx, writes)
-	return err
 }
 
 func (r *UserRepositoryImpl) FindUserByUsername(ctx context.Context, username string) (*User, error) {

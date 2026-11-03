@@ -10,6 +10,7 @@ import (
 
 	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
+	"km-backend/internal/features/analytics"
 
 	"github.com/gofiber/fiber/v2"
 	"km-backend/internal/middleware"
@@ -321,27 +322,53 @@ func (ctrl *UserController) GetOtherUserProfile(c *fiber.Ctx) error {
 			user = user.PublicView()
 		}
 		user.HasPassword = false
-		// Record view only for authentic other-user visits
-		if requesterID != "" {
-			_ = ctrl.service.RecordProfileView(c.Context(), targetIDHex, requesterID)
-		}
 	}
 
 	return c.JSON(user)
 }
 
-func (ctrl *UserController) GetProfileViewers(c *fiber.Ctx) error {
-	userID, _ := c.Locals("user_id").(string)
-	if userID == "" {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+// RecordProfileView godoc
+// @Summary Count a profile view
+// @Description Sent by the profile page once someone else's profile has loaded. Each member counts once a day per profile, shown the way they chose in settings (name, characteristics or private). Loading a member's details elsewhere (chat, lists) is not a view, and admins are never counted.
+// @Tags user
+// @Param id path string true "The viewed member's ID"
+// @Success 204
+// @Router /api/user/{id}/view [post]
+func (ctrl *UserController) RecordProfileView(c *fiber.Ctx) error {
+	if hasRole(c, RoleAdmin) {
+		return c.SendStatus(fiber.StatusNoContent)
 	}
-
-	viewers, err := ctrl.service.GetProfileViewers(c.Context(), userID)
+	viewerID, _ := c.Locals("user_id").(string)
+	err := ctrl.service.RecordProfileView(c.Context(), c.Params("id"), viewerID)
+	if errors.Is(err, ErrViewedProfileNotFound) {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
+	}
 	if err != nil {
+		log.Printf("analytics: recording a profile view: %v", err)
 		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
+	return c.SendStatus(fiber.StatusNoContent)
+}
 
-	return c.JSON(PublicViews(viewers))
+// GetAnalytics godoc
+// @Summary Your profile analytics
+// @Description Profile viewers (different people), post impressions and search appearances for the last 7, 28 or 90 days, each with the previous period and a daily series, plus the latest people who viewed the profile in the past 90 days. Each person counts once a day.
+// @Tags user
+// @Produce json
+// @Param days query int false "7 | 28 | 90 (default 28)"
+// @Success 200 {object} AnalyticsResponse
+// @Router /api/user/analytics [get]
+func (ctrl *UserController) GetAnalytics(c *fiber.Ctx) error {
+	userID, _ := c.Locals("user_id").(string)
+	res, err := ctrl.service.GetAnalytics(c.Context(), userID, c.QueryInt("days", 28))
+	if errors.Is(err, analytics.ErrInvalidRange) {
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	}
+	if err != nil {
+		log.Printf("analytics summary for %s: %v", userID, err)
+		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+	}
+	return c.JSON(res)
 }
 
 func (ctrl *UserController) AddEducation(c *fiber.Ctx) error {
@@ -722,7 +749,12 @@ func (ctrl *UserController) GetPlatformLiveActivity(c *fiber.Ctx) error {
 
 func (ctrl *UserController) SearchUsers(c *fiber.Ctx) error {
 	query := c.Query("q")
-	users, err := ctrl.service.SearchUsers(c.Context(), query)
+	searcherID, _ := c.Locals("user_id").(string)
+	// Admins looking people up don't count as search appearances
+	if hasRole(c, RoleAdmin) {
+		searcherID = ""
+	}
+	users, err := ctrl.service.SearchUsers(c.Context(), searcherID, query)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
@@ -1026,6 +1058,9 @@ func (ctrl *UserController) UpdateSettings(c *fiber.Ctx) error {
 	}
 
 	updated, err := ctrl.service.UpdateUserSettings(c.Context(), userID, req)
+	if errors.Is(err, ErrInvalidProfileViewing) {
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	}
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
@@ -1034,34 +1069,6 @@ func (ctrl *UserController) UpdateSettings(c *fiber.Ctx) error {
 		"message":  "Settings updated successfully",
 		"settings": updated,
 	})
-}
-
-type RecordImpressionsRequest struct {
-	AuthorIDs []string `json:"author_ids"`
-}
-
-func (ctrl *UserController) RecordPostImpressions(c *fiber.Ctx) error {
-	userID, _ := c.Locals("user_id").(string)
-
-	var req RecordImpressionsRequest
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request payload"})
-	}
-
-	if len(req.AuthorIDs) == 0 {
-		return c.JSON(fiber.Map{"status": "ok", "recorded": 0})
-	}
-
-	// Restrict max batch size to 100
-	if len(req.AuthorIDs) > 100 {
-		req.AuthorIDs = req.AuthorIDs[:100]
-	}
-
-	if err := ctrl.service.RecordPostImpressions(c.Context(), userID, req.AuthorIDs); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to record impressions"})
-	}
-
-	return c.JSON(fiber.Map{"status": "ok", "recorded": len(req.AuthorIDs)})
 }
 
 func (ctrl *UserController) UpdateUsername(c *fiber.Ctx) error {

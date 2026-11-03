@@ -13,6 +13,7 @@ func TestKindFor(t *testing.T) {
 		vis               storage.Visibility
 	}{
 		{"avatar", "", ".png", "avatar", storage.Public},
+		{"feed_image", "", ".jpg", "feed_image", storage.Public},
 		{"resume", "", ".pdf", "resume", storage.Private},
 		{"expert_document", "", ".jpg", "expert_document", storage.Private},
 		// Older app versions send no kind: documents must never become public

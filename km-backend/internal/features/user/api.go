@@ -36,12 +36,11 @@ func (api *UserApi) Setup(app *fiber.App) {
 	protected.Post("/register", api.controller.Register)
 	protected.Put("/password", api.controller.SetPassword)
 	protected.Post("/sessions/revoke-others", api.controller.RevokeOtherSessions)
-	protected.Post("/impressions", api.controller.RecordPostImpressions)
+	protected.Get("/analytics", api.controller.GetAnalytics)
 	protected.Patch("/username", api.controller.UpdateUsername)
 	protected.Get("/username/check", api.controller.CheckUsernameAvailability)
 	protected.Patch("/open-to-work", api.controller.UpdateOpenToWork)
 	protected.Patch("/providing-services", api.controller.UpdateProvidingServices)
-	protected.Get("/viewers", api.controller.GetProfileViewers)
 	protected.Put("/location", api.controller.UpdateLocation)
 	protected.Patch("/profile", api.controller.UpdateProfile)
 	protected.Post("/education", api.controller.AddEducation)
@@ -66,6 +65,7 @@ func (api *UserApi) Setup(app *fiber.App) {
 	// Catch-all profile lookup must stay last: Fiber matches in registration order, so registered
 	// earlier it swallowed GET /settings and GET /bookmarks ("settings" was read as a user ID)
 	protected.Get("/:id", api.controller.GetOtherUserProfile)
+	protected.Post("/:id/view", api.controller.RecordProfileView)
 
 	// Settings alias route group
 	settings := app.Group("/api/settings", middleware.AuthMiddleware(api.controller.config.JWTSecret))

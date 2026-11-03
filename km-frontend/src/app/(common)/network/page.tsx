@@ -369,7 +369,6 @@ const NetworkPage = () => {
                                     user={user}
                                     variant="grid"
                                     actionType="discover"
-                                    entityType="connect"
                                     isPending={isPending}
                                     isConnected={isConnected}
                                     onConnect={() => handleConnect(uid)}
