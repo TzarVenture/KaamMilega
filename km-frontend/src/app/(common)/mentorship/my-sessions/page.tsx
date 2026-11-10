@@ -1,512 +1,281 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeftIcon, ArrowSquareOutIcon, ArrowsClockwiseIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, ShieldCheckIcon, StarIcon, VideoCameraIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
+import { useCallback, useEffect, useState } from 'react';
+import { ArrowLeftIcon, ArrowSquareOutIcon, CalendarBlankIcon, CircleNotchIcon, StarIcon, VideoCameraIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
+import { useLocale, useTranslations } from 'next-intl';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
-import { notify } from "@/lib/notify";
+import { notify } from '@/lib/notify';
+import { dateTime, inr } from '@/lib/money';
+import { AdminModal, BadgeTone, EmptyState, FilterTabs, StatusBadge, btn, cx, field } from '@/components/admin/ui';
+import SessionConfirmation from '@/components/km/SessionConfirmation';
+
+type Filter = 'all' | 'upcoming' | 'completed' | 'cancelled';
+
+interface Booking {
+  id?: string;
+  _id?: string;
+  status: string;
+  amount: number;
+  scheduled_at: string;
+  release_after?: string;
+  payment_method?: string;
+  mentorship_title?: string;
+  expert_name?: string;
+  expert_headline?: string;
+  expert_image?: string;
+  meeting_link?: string;
+  notes?: string;
+  rating?: number;
+  review?: string;
+}
+
+const UPCOMING = ['pending', 'confirmed', 'awaiting_confirmation', 'reported'];
+
+const STATUS_TONE: Record<string, BadgeTone> = {
+  pending: 'neutral',
+  confirmed: 'green',
+  awaiting_confirmation: 'amber',
+  reported: 'amber',
+  completed: 'blue',
+  cancelled: 'red',
+};
+
+const bookingId = (booking: Booking) => booking.id || booking._id || '';
 
 export default function MyMentorshipSessionsPage() {
-  const [myBookings, setMyBookings] = useState<any[]>([]);
+  const t = useTranslations('mySessions');
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [bookingFilter, setBookingFilter] = useState<'all' | 'upcoming' | 'completed' | 'cancelled'>('all');
+  const [filter, setFilter] = useState<Filter>('all');
 
-  // Review Modal State (F45)
-  const [reviewModalBooking, setReviewModalBooking] = useState<any | null>(null);
-  const [reviewRating, setReviewRating] = useState<number>(5);
-  const [reviewComment, setReviewComment] = useState<string>("");
-  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewing, setReviewing] = useState<Booking | null>(null);
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await api.get<unknown, Booking[] | { data?: Booking[] }>('/mentorships/bookings/my');
+      const data = Array.isArray(res) ? res : res?.data;
+      setBookings(Array.isArray(data) ? data : []);
+    } catch (err) {
+      notify.error(err, t('loadFailed'));
+    } finally {
+      setLoading(false);
+    }
+  }, [t]);
 
   useEffect(() => {
     const authed = isAuthenticated();
     setIsLoggedIn(authed);
-    if (authed) {
-      fetchMyBookings();
-    } else {
-      setLoading(false);
-    }
-  }, []);
+    if (authed) load();
+    else setLoading(false);
+  }, [load]);
 
-  const fetchMyBookings = async () => {
+  const openReview = (booking: Booking) => {
+    setReviewing(booking);
+    setRating(5);
+    setComment('');
+  };
+
+  const submitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewing) return;
+    const id = bookingId(reviewing);
+    setSubmitting(true);
     try {
-      setLoading(true);
-      const res: any = await api.get('/mentorships/bookings/my');
-      const data = Array.isArray(res) ? res : (res?.data || []);
-      setMyBookings(Array.isArray(data) ? data : []);
+      await api.post(`/mentorships/bookings/${id}/review`, { rating, review: comment.trim() });
+      notify.success(t('review.thanks'));
+      setBookings((prev) => prev.map((b) => (bookingId(b) === id ? { ...b, rating, review: comment.trim() } : b)));
+      setReviewing(null);
     } catch (err) {
-      console.error("Failed to fetch my bookings", err);
-      notify.error("Could not load booked sessions");
+      notify.error(err, t('review.failed'));
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  const handleOpenReview = (booking: any) => {
-    setReviewModalBooking(booking);
-    setReviewRating(5);
-    setReviewComment("");
-  };
+  const countOf = (value: Filter) => bookings.filter((b) => {
+    if (value === 'upcoming') return UPCOMING.includes(b.status);
+    return value === 'all' || b.status === value;
+  }).length;
 
-  const handleSubmitReview = async () => {
-    if (!reviewModalBooking) return;
-    try {
-      setSubmittingReview(true);
-      const bookingId = reviewModalBooking.id || reviewModalBooking._id;
-      await api.post(`/mentorships/bookings/${bookingId}/review`, {
-        rating: reviewRating,
-        review: reviewComment,
-      });
-
-      notify.success("Thank you! Your review has been submitted.");
-      setMyBookings(prev => prev.map(b => {
-        const bId = b.id || b._id;
-        if (bId === bookingId) {
-          return { ...b, rating: reviewRating, review: reviewComment };
-        }
-        return b;
-      }));
-      setReviewModalBooking(null);
-    } catch (err: any) {
-      console.error("Failed to submit review", err);
-      notify.error(err, "Failed to submit review. Make sure session is completed.");
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
-
-  const upcomingCount = myBookings.filter(b => b.status === 'confirmed' || b.status === 'pending').length;
-  const completedCount = myBookings.filter(b => b.status === 'completed').length;
-  const cancelledCount = myBookings.filter(b => b.status === 'cancelled').length;
-
-  const filteredBookings = (myBookings || []).filter(b => {
-    if (bookingFilter === 'all') return true;
-    if (bookingFilter === 'upcoming') return b.status === 'confirmed' || b.status === 'pending';
-    if (bookingFilter === 'completed') return b.status === 'completed';
-    if (bookingFilter === 'cancelled') return b.status === 'cancelled';
-    return true;
-  });
+  const visible = bookings.filter((b) => (filter === 'upcoming' ? UPCOMING.includes(b.status) : filter === 'all' || b.status === filter));
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-24 dark:bg-[#1D253D]">
-
-      {/* Clean Dashboard Header */}
-      <section className="bg-km-surface-card border-b border-slate-200/80 pt-8 pb-8 px-4 md:px-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Back Navigation */}
-          <Link
-            href="/mentorship"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-[#1a2b8c] transition-colors mb-4 group dark:hover:text-blue-400"
-          >
-            <ArrowLeftIcon weight="bold" size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Mentorship Marketplace</span>
+    <main className="min-h-screen bg-km-surface px-4 py-6 sm:px-6 lg:py-8">
+      <div className="max-w-5xl mx-auto space-y-6">
+        <div>
+          <Link href="/mentorship" className="inline-flex items-center gap-1.5 text-sm font-medium text-km-text-secondary hover:text-km-heading">
+            <ArrowLeftIcon size={16} aria-hidden="true" />
+            {t('back')}
           </Link>
-
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-                  My Booked Sessions
-                </h1>
-                {myBookings.length > 0 && (
-                  <span className="bg-orange-50 text-orange-600 border border-orange-200/80 text-xs font-black px-2.5 py-0.5 rounded-full dark:text-orange-400">
-                    {myBookings.length} {myBookings.length === 1 ? 'Booking' : 'Bookings'}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs md:text-sm text-slate-500 font-medium mt-1 max-w-xl">
-                Track your scheduled 1-on-1 mentorship calls, join video meetings, and manage escrow-protected sessions.
-              </p>
+              <h1 className="text-2xl font-bold text-km-heading tracking-tight">{t('title')}</h1>
+              <p className="mt-1 text-sm text-km-text-secondary">{t('subtitle')}</p>
             </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={fetchMyBookings}
-                disabled={loading}
-                className="inline-flex items-center gap-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95 disabled:opacity-50"
-              >
-                <ArrowsClockwiseIcon weight="bold" size={13} className={loading ? "animate-spin" : ""} />
-                <span>Refresh</span>
-              </button>
-              <Link
-                href="/mentorship"
-                className="inline-flex items-center gap-1.5 bg-[#1a2b8c] hover:bg-[#152370] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs active:scale-95"
-              >
-                <span>Find More Mentors</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main Body */}
-      <section className="max-w-6xl mx-auto px-4 md:px-8 pt-8">
-        {/* Escrow Guarantee Banner */}
-        <div className="bg-linear-to-r from-emerald-50 via-teal-50 to-blue-50 border border-emerald-200/80 rounded-2xl md:rounded-3xl p-4 md:p-6 mb-8 flex items-start gap-4 shadow-2xs">
-          <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-            <ShieldCheckIcon size={22} />
-          </div>
-          <div>
-            <h4 className="font-black text-slate-900 text-sm md:text-base">100% Escrow-Protected Guarantee</h4>
-            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-              Every mentorship session is protected by KaamMilega Escrow. Your payment is safely held until the session is successfully conducted. If the mentor cancels or does not attend, your money is immediately refunded.
-            </p>
+            <Link href="/mentorship" className={cx(btn.secondary, 'self-start sm:self-auto')}>{t('findMentors')}</Link>
           </div>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 mb-6">
-          <button
-            onClick={() => setBookingFilter('all')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              bookingFilter === 'all'
-                ? 'bg-km-ink text-white shadow-xs'
-                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            All Sessions ({myBookings.length})
-          </button>
-          <button
-            onClick={() => setBookingFilter('upcoming')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              bookingFilter === 'upcoming'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            Upcoming / Confirmed ({upcomingCount})
-          </button>
-          <button
-            onClick={() => setBookingFilter('completed')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              bookingFilter === 'completed'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            Completed ({completedCount})
-          </button>
-          <button
-            onClick={() => setBookingFilter('cancelled')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-              bookingFilter === 'cancelled'
-                ? 'bg-red-600 text-white shadow-xs'
-                : 'bg-km-surface-card text-slate-600 hover:bg-slate-100 border border-slate-200'
-            }`}
-          >
-            Cancelled ({cancelledCount})
-          </button>
-        </div>
-
-        {/* Dynamic States */}
-        {!isLoggedIn ? (
-          <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-slate-200 p-8 shadow-xs max-w-lg mx-auto">
-            <CalendarBlankIcon size={36} weight="duotone" className="text-orange-500 mx-auto mb-4 dark:text-orange-400" aria-hidden="true" />
-            <h3 className="text-lg font-bold text-slate-900 mb-2">Log In to View Your Sessions</h3>
-            <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-              Please sign in to your KaamMilega candidate account to view scheduled calls, join video meetings, and manage bookings.
-            </p>
-            <Link
-              href="/login?redirect=/mentorship/my-sessions"
-              className="inline-block bg-[#1a2b8c] hover:bg-[#152370] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md active:scale-95"
-            >
-              Log In to Your Account
-            </Link>
-          </div>
-        ) : loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-km-surface-card rounded-2xl h-52 animate-pulse border border-slate-200" />
-            ))}
-          </div>
-        ) : filteredBookings.length > 0 ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {filteredBookings.map((booking, idx) => (
-              <BookingCard
-                key={booking.id || booking._id || idx}
-                booking={booking}
-                onLeaveReview={handleOpenReview}
-              />
-            ))}
+        {!isLoggedIn && !loading ? (
+          <div className="bg-km-surface-card border border-km-border rounded-2xl">
+            <EmptyState
+              icon={CalendarBlankIcon}
+              title={t('signInTitle')}
+              description={t('signInHint')}
+              action={<Link href="/login?redirect=/mentorship/my-sessions" className={btn.primary}>{t('signIn')}</Link>}
+            />
           </div>
         ) : (
-          <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-dashed border-slate-200 p-8">
-            <CalendarBlankIcon size={36} weight="duotone" className="text-slate-400 mx-auto mb-4" aria-hidden="true" />
-            <h3 className="text-lg font-bold text-slate-800 mb-1">No Bookings Found</h3>
-            <p className="text-xs text-slate-500 max-w-xs mx-auto mb-6">
-              {bookingFilter === 'all' 
-                ? "You haven't booked any mentorship sessions yet. Accelerate your career with 1-on-1 industry guidance!"
-                : `You currently have no ${bookingFilter} mentorship sessions.`}
-            </p>
-            <Link
-              href="/mentorship"
-              className="inline-block bg-[#1a2b8c] hover:bg-[#152370] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95"
-            >
-              Explore Mentors Now
-            </Link>
-          </div>
-        )}
-      </section>
+          <>
+            <div className="overflow-x-auto">
+              <FilterTabs
+                value={filter}
+                onChange={setFilter}
+                options={(['all', 'upcoming', 'completed', 'cancelled'] as Filter[]).map((value) => ({
+                  value,
+                  label: t(`filter.${value}`),
+                  count: countOf(value),
+                }))}
+              />
+            </div>
 
-      {/* Leave Review Modal (F45) */}
-      <AnimatePresence>
-        {reviewModalBooking && (
-          <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="bg-km-surface-card rounded-2xl md:rounded-3xl max-w-md w-full p-6 md:p-8 shadow-2xl border border-slate-100"
-            >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-black text-slate-900">Leave Mentor Review</h3>
-                <button
-                  type="button"
-                  onClick={() => setReviewModalBooking(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 transition-colors"
-                >
-                  <XIcon weight="bold" size={16} />
-                </button>
+            {loading ? (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {[1, 2].map((i) => <div key={i} className="h-48 rounded-2xl border border-km-border bg-km-surface-card animate-pulse" />)}
               </div>
-
-              <p className="text-xs text-slate-500 mb-6">
-                How was your session with <span className="font-bold text-slate-800">{reviewModalBooking.expert_name || "your mentor"}</span>? Your feedback helps the community.
-              </p>
-
-              {/* Star Rating Selector */}
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-slate-700 mb-2">Rating</label>
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setReviewRating(star)}
-                      className="p-1.5 rounded-lg hover:bg-amber-50 transition-all cursor-pointer"
-                    >
-                      <StarIcon weight="fill"
-                        size={28}
-                        className={`transition-colors ${
-                          star <= reviewRating
-                            ? "fill-amber-400 text-amber-400"
-                            : "text-slate-300"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                  <span className="text-xs font-bold text-amber-700 ml-2">{reviewRating} / 5 Stars</span>
-                </div>
-              </div>
-
-              {/* Review Text Area */}
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-slate-700 mb-2">Your Feedback</label>
-                <textarea
-                  rows={4}
-                  value={reviewComment}
-                  onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="Share details about what you learned, resume feedback received, interview tips, etc..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#1a2b8c] font-medium dark:focus:ring-km-link"
+            ) : visible.length === 0 ? (
+              <div className="bg-km-surface-card border border-km-border rounded-2xl">
+                <EmptyState
+                  icon={CalendarBlankIcon}
+                  title={t('emptyTitle')}
+                  description={filter === 'all' ? t('emptyHint') : undefined}
+                  action={filter === 'all' ? <Link href="/mentorship" className={btn.primary}>{t('findMentors')}</Link> : undefined}
                 />
               </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setReviewModalBooking(null)}
-                  disabled={submittingReview}
-                  className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 transition-colors cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmitReview}
-                  disabled={submittingReview}
-                  className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-all shadow-md shadow-orange-500/20 active:scale-95 flex items-center gap-2 cursor-pointer"
-                >
-                  {submittingReview ? (
-                    <>
-                      <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Submitting...</span>
-                    </>
-                  ) : (
-                    <span>Submit Review</span>
-                  )}
-                </button>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {visible.map((booking) => (
+                  <BookingCard key={bookingId(booking)} booking={booking} onReview={openReview} onChanged={load} />
+                ))}
               </div>
-            </motion.div>
-          </div>
+            )}
+          </>
         )}
-      </AnimatePresence>
+      </div>
+
+      <AdminModal isOpen={!!reviewing} onClose={() => !submitting && setReviewing(null)} title={t('review.title')}>
+        <form onSubmit={submitReview} className="space-y-4">
+          <p className="text-sm text-km-text-secondary">{t('review.prompt', { name: reviewing?.expert_name || t('defaultMentor') })}</p>
+          <div>
+            <p className={field.label}>{t('review.rating')}</p>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button key={star} type="button" onClick={() => setRating(star)} aria-label={t('review.star', { count: star })} aria-pressed={star === rating} className="p-1 cursor-pointer">
+                  <StarIcon size={28} weight={star <= rating ? 'fill' : 'regular'} className={star <= rating ? 'text-amber-500 dark:text-amber-400' : 'text-km-text-muted'} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="block">
+            <span className={field.label}>{t('review.feedback')}</span>
+            <textarea rows={4} value={comment} onChange={(e) => setComment(e.target.value)} className={field.textarea} />
+          </label>
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setReviewing(null)} disabled={submitting} className={btn.secondary}>{t('review.cancel')}</button>
+            <button type="submit" disabled={submitting} className={btn.primary}>
+              {submitting && <CircleNotchIcon size={16} className="animate-spin" aria-hidden="true" />}
+              {t('review.submit')}
+            </button>
+          </div>
+        </form>
+      </AdminModal>
     </main>
   );
 }
 
-function BookingCard({ booking, onLeaveReview }: { booking: any; onLeaveReview: (booking: any) => void }) {
-  const expertNameClean = (booking?.expert_name || "Verified Mentor").replace(/\s*\.+$/, "");
-  const expertInitial = (expertNameClean[0] || "M").toUpperCase();
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleDateString('en-IN', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return dateStr;
-    }
-  };
-
-  const formatTime = (dateStr: string) => {
-    try {
-      const d = new Date(dateStr);
-      return d.toLocaleTimeString('en-IN', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true,
-      });
-    } catch {
-      return '';
-    }
-  };
-
-  const getStatusBadge = () => {
-    switch (booking.status) {
-      case 'confirmed':
-        return (
-          <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-            <ShieldCheckIcon weight="bold" size={13} className="text-emerald-600 dark:text-emerald-400" />
-            <span>Confirmed (Escrow Protected)</span>
-          </span>
-        );
-      case 'completed':
-        return (
-          <span className="bg-blue-50 text-blue-700 border border-blue-200 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-            <CheckCircleIcon weight="bold" size={13} className="text-blue-600 dark:text-blue-400" />
-            <span>Completed</span>
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="bg-red-50 text-red-700 border border-red-200 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-            <WarningCircleIcon weight="bold" size={13} className="text-red-500 dark:text-red-400" />
-            <span>Cancelled (Refunded)</span>
-          </span>
-        );
-      default:
-        return (
-          <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-semibold px-2.5 py-1 rounded-full flex items-center gap-1">
-            <ClockIcon weight="bold" size={13} className="text-amber-500 dark:text-amber-400" />
-            <span>Pending Payment</span>
-          </span>
-        );
-    }
-  };
+function BookingCard({ booking, onReview, onChanged }: { booking: Booking; onReview: (booking: Booking) => void; onChanged: () => void }) {
+  const t = useTranslations('mySessions');
+  const locale = useLocale();
+  const mentor = (booking.expert_name || t('defaultMentor')).replace(/\s*\.+$/, '');
+  const canReview = booking.status === 'completed' && !booking.rating;
+  const link = booking.meeting_link && (booking.meeting_link.startsWith('http') ? booking.meeting_link : `https://${booking.meeting_link}`);
+  const showLink = link && UPCOMING.includes(booking.status);
 
   return (
-    <div className="bg-km-surface-card rounded-2xl md:rounded-3xl border border-slate-200/80 p-5 md:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
-      <div>
-        {/* Top Header: Date/Time + Status */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-slate-100">
-          <div className="flex items-center gap-2 text-slate-800 text-xs font-bold">
-            <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c] dark:text-blue-400" />
-            <span>{formatDate(booking.scheduled_at)}</span>
-            <span className="text-slate-300">•</span>
-            <ClockIcon weight="bold" size={14} className="text-orange-500 dark:text-orange-400" />
-            <span>{formatTime(booking.scheduled_at)}</span>
-          </div>
-          {getStatusBadge()}
-        </div>
-
-        {/* Mentor & Session Info */}
-        <div className="flex items-start gap-3.5 mb-4">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 overflow-hidden text-[#1a2b8c] font-black text-lg dark:text-blue-400">
-            {booking.expert_image ? (
-              <img src={booking.expert_image} alt={expertNameClean} className="w-full h-full object-cover" />
-            ) : (
-              <span>{expertInitial}</span>
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h4 className="font-bold text-slate-900 text-sm md:text-base leading-snug line-clamp-1">
-              {booking.mentorship_title || "1-on-1 Mentorship Session"}
-            </h4>
-            <p className="text-xs text-slate-500 font-medium line-clamp-1 mt-0.5">
-              Mentor: <span className="text-slate-700 font-bold">{expertNameClean}</span> {booking.expert_headline ? `• ${booking.expert_headline}` : ''}
-            </p>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs font-extrabold text-slate-900 font-mono">₹{booking.amount || 499}</span>
-              <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
-                Paid via {booking.payment_method || 'Razorpay'}
-              </span>
-            </div>
+    <article className="flex flex-col bg-km-surface-card border border-km-border rounded-2xl p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          {booking.expert_image ? (
+            <img src={booking.expert_image} alt="" className="h-11 w-11 shrink-0 rounded-full object-cover" />
+          ) : (
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-km-surface text-base font-semibold text-km-heading" aria-hidden="true">
+              {mentor[0]?.toUpperCase()}
+            </span>
+          )}
+          <div className="min-w-0">
+            <h2 className="truncate text-base font-semibold text-km-heading">{booking.mentorship_title || t('defaultTitle')}</h2>
+            <p className="truncate text-sm text-km-text-secondary">{mentor}</p>
           </div>
         </div>
-
-        {/* Notes if any */}
-        {booking.notes && (
-          <div className="bg-slate-50 rounded-xl p-3 mb-4 text-xs text-slate-600 border border-slate-100">
-            <span className="font-bold text-slate-700">Topic: </span> {booking.notes}
-          </div>
-        )}
-
-        {/* Review summary if already reviewed */}
-        {booking.rating ? (
-          <div className="bg-amber-50/70 border border-amber-200/60 rounded-xl p-3 mb-4">
-            <div className="flex items-center gap-1.5 text-amber-900 font-bold text-xs mb-1">
-              <StarIcon weight="fill" size={13} className="fill-amber-400 text-amber-400" />
-              <span>You Rated: {booking.rating} / 5</span>
-            </div>
-            {booking.review && (
-              <p className="text-xs text-slate-600 italic">"{booking.review}"</p>
-            )}
-          </div>
-        ) : null}
+        <div className="shrink-0">
+          <StatusBadge tone={STATUS_TONE[booking.status] ?? 'neutral'}>{t(`status.${booking.status in STATUS_TONE ? booking.status : 'pending'}`)}</StatusBadge>
+        </div>
       </div>
 
-      {/* Card Actions Footer */}
-      <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 mt-2">
-        {/* Join Meeting Link / Button */}
-        {booking.meeting_link ? (
-          <a
-            href={booking.meeting_link.startsWith('http') ? booking.meeting_link : `https://${booking.meeting_link}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 md:px-5 py-2.5 rounded-xl text-xs flex items-center gap-2 shadow-sm transition-all active:scale-95 cursor-pointer"
-          >
-            <VideoCameraIcon weight="bold" size={15} />
-            <span>Join Meeting</span>
-            <ArrowSquareOutIcon weight="bold" size={13} />
-          </a>
-        ) : booking.status === 'confirmed' ? (
-          <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50/80 px-3 py-2 rounded-xl border border-amber-200/50">
-            <ClockIcon weight="bold" size={13} className="shrink-0 text-amber-600 dark:text-amber-400" />
-            <span>Mentor will share meeting link prior to the call</span>
-          </div>
-        ) : (
-          <div />
-        )}
+      <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
+        <div>
+          <dt className="text-km-text-secondary">{t('when')}</dt>
+          <dd className="mt-0.5 font-medium text-km-text-primary font-inter">{dateTime(booking.scheduled_at, locale)}</dd>
+        </div>
+        <div>
+          <dt className="text-km-text-secondary">{booking.payment_method === 'wallet' ? t('paidWallet') : t('paidOnline')}</dt>
+          <dd className="mt-0.5 font-medium text-km-text-primary font-inter tabular-nums">{inr(booking.amount)}</dd>
+        </div>
+      </dl>
 
-        {/* Leave Review Action (F45) */}
-        {booking.status === 'completed' && !booking.rating && (
-          <button
-            type="button"
-            onClick={() => onLeaveReview(booking)}
-            className="bg-orange-500 hover:bg-orange-600 text-white font-bold px-4 py-2.5 rounded-xl text-xs flex items-center gap-1.5 shadow-sm transition-all active:scale-95 cursor-pointer"
-          >
-            <StarIcon weight="bold" size={13} />
-            <span>Leave a Review</span>
-          </button>
-        )}
+      {booking.notes && <p className="mt-3 text-sm text-km-text-secondary"><span className="font-medium text-km-text-primary">{t('topic')}</span> {booking.notes}</p>}
+
+      {booking.rating ? (
+        <div className="mt-3 text-sm">
+          <p className="flex items-center gap-1.5 font-medium text-km-text-primary">
+            <StarIcon size={16} weight="fill" className="text-amber-500 dark:text-amber-400" aria-hidden="true" />
+            {t('youRated', { rating: booking.rating })}
+          </p>
+          {booking.review && <p className="mt-1 text-km-text-secondary">{booking.review}</p>}
+        </div>
+      ) : null}
+
+      {booking.status === 'confirmed' && !link && <p className="mt-3 text-sm text-km-text-secondary">{t('linkSoon')}</p>}
+
+      <div className="mt-4 empty:hidden">
+        <SessionConfirmation
+          bookingId={bookingId(booking)}
+          status={booking.status}
+          releaseAfter={booking.release_after}
+          scheduledAt={booking.scheduled_at}
+          onChanged={onChanged}
+        />
       </div>
-    </div>
+
+      {(showLink || canReview) && (
+        <div className="mt-auto flex flex-wrap gap-2 pt-1">
+          {showLink && (
+            <a href={link} target="_blank" rel="noopener noreferrer" className={btn.primary}>
+              <VideoCameraIcon size={16} aria-hidden="true" />
+              {t('join')}
+              <ArrowSquareOutIcon size={14} aria-hidden="true" />
+            </a>
+          )}
+          {canReview && <button type="button" onClick={() => onReview(booking)} className={btn.secondary}>{t('leaveReview')}</button>}
+        </div>
+      )}
+    </article>
   );
 }

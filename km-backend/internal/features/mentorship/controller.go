@@ -293,3 +293,47 @@ func (c *MentorshipController) GetExpertReviews(ctx *fiber.Ctx) error {
 }
 
 
+
+// ConfirmSession lets the mentee confirm the session happened, which pays the mentor
+func (c *MentorshipController) ConfirmSession(ctx *fiber.Ctx) error {
+	userID := ctx.Locals("user_id").(string)
+	if err := c.service.ConfirmSession(ctx.Context(), userID, ctx.Params("id")); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	}
+	return ctx.JSON(fiber.Map{"status": BookingCompleted})
+}
+
+// ReportSession lets the mentee hold the payment and report a problem
+func (c *MentorshipController) ReportSession(ctx *fiber.Ctx) error {
+	var req ReportSessionRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	userID := ctx.Locals("user_id").(string)
+	if err := c.service.ReportSession(ctx.Context(), userID, ctx.Params("id"), req.Reason); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	}
+	return ctx.JSON(fiber.Map{"status": BookingReported})
+}
+
+// GetReportedBookings lists sessions waiting for an admin decision
+func (c *MentorshipController) GetReportedBookings(ctx *fiber.Ctx) error {
+	bookings, err := c.service.GetReportedBookings(ctx.Context())
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+	}
+	return ctx.JSON(fiber.Map{"bookings": bookings})
+}
+
+// ResolveReport records an admin's decision on a reported session
+func (c *MentorshipController) ResolveReport(ctx *fiber.Ctx) error {
+	var req ResolveReportRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
+	}
+	adminID := ctx.Locals("user_id").(string)
+	if err := c.service.ResolveReport(ctx.Context(), adminID, ctx.Params("id"), req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	}
+	return ctx.JSON(fiber.Map{"message": "Report resolved"})
+}

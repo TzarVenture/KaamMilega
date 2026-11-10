@@ -168,6 +168,7 @@ type EventRepository interface {
 	GetTicketsByUser(ctx context.Context, userID primitive.ObjectID) ([]EventTicket, error)
 	GetTicketsByEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error)
 	DecrementAvailableSeats(ctx context.Context, eventID primitive.ObjectID) error
+	RevokeTicket(ctx context.Context, eventID, userID primitive.ObjectID, razorpayOrderID string) error
 
 	// Attendee operations (F64)
 	GetEventAttendees(ctx context.Context, eventID primitive.ObjectID) ([]EventAttendeeItem, error)

@@ -2,12 +2,14 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRightIcon, ArrowSquareOutIcon, BookOpenIcon, CalendarBlankIcon, CalendarIcon, CaretLeftIcon, ChatCircleIcon, CheckCircleIcon, CheckIcon, ClockIcon, CreditCardIcon, LightningIcon, LockIcon, MedalIcon, ShieldCheckIcon, StarIcon, UsersIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowRightIcon, BookOpenIcon, CalendarBlankIcon, CalendarIcon, CaretLeftIcon, ChatCircleIcon, CheckCircleIcon, CheckIcon, ClockIcon, LightningIcon, LockIcon, MedalIcon, ShieldCheckIcon, StarIcon, UsersIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth';
 import { notify } from "@/lib/notify";
+import { CheckoutOrder, useCheckout } from "@/lib/razorpay";
+import PaymentMethodPicker from "@/components/km/PaymentMethodPicker";
 
 interface AvailabilitySlot {
   day_of_week: number;
@@ -58,6 +60,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   const router = useRouter();
   
   const [data, setData] = useState<any>(null);
+  const pay = useCheckout();
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
@@ -141,21 +144,6 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
     fetchWallet();
   }, [fetchDetail, fetchWallet]);
 
-  // Dynamically load Razorpay Checkout SDK
-  const loadRazorpayScript = () => {
-    return new Promise<boolean>((resolve) => {
-      if (typeof window === 'undefined') return resolve(false);
-      if ((window as any).Razorpay) return resolve(true);
-
-      const script = document.createElement('script');
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.async = true;
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
   // Helper to check if expert is available on given date
   const getDayAvailability = (date: Date | null): AvailabilitySlot | null => {
     if (!date || !availability || availability.length === 0) return null;
@@ -225,7 +213,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
       notify.success("Session confirmed & fee locked safely in Escrow!");
     } catch (err: any) {
       console.error("Wallet booking error", err);
-      notify.error(err.message || "Failed to complete payment via wallet");
+      notify.error(err, "Failed to complete payment via wallet");
     } finally {
       setPaymentProcessing(false);
     }
@@ -241,84 +229,33 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
     setPaymentProcessing(true);
     try {
-      const scriptLoaded = await loadRazorpayScript();
-      if (!scriptLoaded) {
-        notify.error("Unable to load Razorpay payment gateway. Please check your internet connection.");
-        setPaymentProcessing(false);
-        return;
-      }
-
-      // 1. Create order on backend
-      const orderRes: any = await api.post('/mentorships/create-order', {
+      const order = await api.post<unknown, CheckoutOrder & { booking_id: string; amount: number }>('/mentorships/create-order', {
         mentorship_id: id,
         scheduled_at: scheduledAt.toISOString(),
         notes: notes.trim(),
       });
-
-      if (!orderRes || !orderRes.order_id) {
-        notify.error(orderRes?.error || "Failed to initialize payment order");
-        setPaymentProcessing(false);
-        return;
-      }
-
-      const rzpKey = orderRes.key_id || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-
-      // 2. Open Razorpay Checkout Modal
-      const options = {
-        key: rzpKey,
-        amount: orderRes.amount_paise,
-        currency: orderRes.currency || 'INR',
-        name: 'KaamMilega™ Mentorship',
-        description: `${data?.mentorship?.title || '1-on-1 Mentorship'} with ${expertNameClean}`,
-        order_id: orderRes.order_id,
-        handler: async function (response: any) {
-          try {
-            notify.info("Verifying payment with secure Escrow ledger...");
-            const verifyRes: any = await api.post('/mentorships/verify-payment', {
-              booking_id: orderRes.booking_id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            });
-
-            setConfirmedBooking(verifyRes.booking || {
-              id: orderRes.booking_id,
-              scheduled_at: scheduledAt.toISOString(),
-              amount: orderRes.amount,
-              payment_method: 'razorpay',
-              status: 'confirmed',
-            });
-
-            setIsCheckoutModalOpen(false);
-            setIsSuccessModalOpen(true);
-            fetchWallet();
-            notify.success("Payment verified! Your mentorship session is confirmed.");
-          } catch (verifyErr: any) {
-            console.error("Payment verification failed", verifyErr);
-            notify.error(verifyErr, "Payment verification failed. Please contact support.");
-          } finally {
-            setPaymentProcessing(false);
-          }
-        },
-        theme: {
-          color: '#071A4D',
-        },
-        modal: {
-          ondismiss: function () {
-            setPaymentProcessing(false);
-          }
-        }
-      };
-
-      const rzp = new (window as any).Razorpay(options);
-      rzp.on('payment.failed', function (resp: any) {
-        notify.error(`Payment failed: ${resp.error?.description || 'Transaction was cancelled'}`);
-        setPaymentProcessing(false);
+      const outcome = await pay({
+        order,
+        description: data?.mentorship?.title || 'Mentorship session',
+        verify: (signed) => api.post<unknown, { booking: any }>('/mentorships/verify-payment', signed),
       });
-      rzp.open();
+      if (outcome.status === 'paid') {
+        setConfirmedBooking(outcome.result?.booking || {
+          id: order.booking_id,
+          scheduled_at: scheduledAt.toISOString(),
+          amount: order.amount,
+          payment_method: 'razorpay',
+          status: 'confirmed',
+        });
+        setIsCheckoutModalOpen(false);
+        setIsSuccessModalOpen(true);
+        fetchWallet();
+        notify.success("Payment confirmed. Your session is booked.");
+      }
+      if (outcome.status === 'pending' || outcome.status === 'refunding') setIsCheckoutModalOpen(false);
     } catch (err: any) {
-      console.error("Razorpay initiation error", err);
       notify.error(err, "Failed to initiate payment. Please try again.");
+    } finally {
       setPaymentProcessing(false);
     }
   };
@@ -871,114 +808,15 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                   </div>
                 </div>
 
-                {/* Payment Method Selection */}
-                <div>
-                  <label className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2.5 block">
-                    Select Payment Method
-                  </label>
-                  
-                  <div className="space-y-3">
-                    {/* Option 1: KaamMilega Wallet */}
-                    <div 
-                      onClick={() => !paymentProcessing && setPaymentMethod('wallet')}
-                      className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${
-                        paymentMethod === 'wallet' 
-                          ? 'border-km-primary bg-blue-50/40 shadow-xs' 
-                          : 'border-slate-200 hover:border-slate-300 bg-km-surface-card'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                            paymentMethod === 'wallet' ? 'bg-km-primary text-white' : 'bg-slate-100 text-slate-600'
-                          }`}>
-                            <WalletIcon size={20} />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 text-sm">KaamMilega Wallet</span>
-                              <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">
-                                Instant 1-Click
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                              Available Main Balance: <span className="font-bold text-slate-800">₹{mainBal.toFixed(2)}</span>
-                            </p>
-                          </div>
-                        </div>
+                <PaymentMethodPicker
+                  value={paymentMethod}
+                  onChange={setPaymentMethod}
+                  balance={walletData ? mainBal : null}
+                  price={sessionPrice}
+                  disabled={paymentProcessing}
+                />
 
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${
-                          paymentMethod === 'wallet' ? 'border-km-primary bg-km-primary' : 'border-slate-300'
-                        }`}>
-                          {paymentMethod === 'wallet' && <div className="w-2 h-2 rounded-full bg-km-surface-card" />}
-                        </div>
-                      </div>
-
-                      {/* Insufficient balance warning if applicable */}
-                      {paymentMethod === 'wallet' && !hasSufficientWallet && (
-                        <div className="mt-3 p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 flex items-center justify-between">
-                          <div className="flex items-center gap-1.5">
-                            <WarningCircleIcon weight="bold" size={14} className="text-amber-600 shrink-0 dark:text-amber-400" />
-                            <span>Short by ₹{(sessionPrice - mainBal).toFixed(2)}</span>
-                          </div>
-                          <Link 
-                            href="/wallet" 
-                            target="_blank"
-                            className="text-km-heading font-bold hover:underline flex items-center gap-1"
-                          >
-                            <span>Top Up Wallet</span>
-                            <ArrowSquareOutIcon weight="bold" size={12} />
-                          </Link>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Option 2: Razorpay Online Payment */}
-                    <div 
-                      onClick={() => !paymentProcessing && setPaymentMethod('razorpay')}
-                      className={`p-4 rounded-2xl border-2 transition-all cursor-pointer ${
-                        paymentMethod === 'razorpay' 
-                          ? 'border-km-primary bg-blue-50/40 shadow-xs' 
-                          : 'border-slate-200 hover:border-slate-300 bg-km-surface-card'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-                            paymentMethod === 'razorpay' ? 'bg-km-primary text-white' : 'bg-slate-100 text-slate-600'
-                          }`}>
-                            <CreditCardIcon size={20} />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-slate-900 text-sm">UPI, Cards & NetBanking</span>
-                              <span className="text-[10px] font-black uppercase tracking-wider bg-blue-100 text-km-heading px-1.5 py-0.5 rounded">
-                                Razorpay
-                              </span>
-                            </div>
-                            <p className="text-xs text-slate-500 mt-0.5 font-medium">
-                              Google Pay, PhonePe, Paytm, Cards & 50+ Banks
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 mt-1 ${
-                          paymentMethod === 'razorpay' ? 'border-km-primary bg-km-primary' : 'border-slate-300'
-                        }`}>
-                          {paymentMethod === 'razorpay' && <div className="w-2 h-2 rounded-full bg-km-surface-card" />}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Escrow Guarantee Callout */}
-                <div className="p-3.5 bg-emerald-50/70 rounded-2xl border border-emerald-200/80 flex items-start gap-2.5">
-                  <LockIcon weight="bold" size={16} className="text-emerald-700 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-emerald-900 leading-relaxed font-medium">
-                    <strong className="font-bold text-emerald-950">KaamMilega Escrow Protection:</strong> Your payment is held safely in escrow. Mentor will only receive the payout once the session is successfully conducted.
-                  </p>
-                </div>
+                <p className="text-sm text-km-text-secondary">Your payment is held until the session is done.</p>
               </div>
 
               {/* Modal Footer */}
@@ -1108,7 +946,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                   className="w-full bg-km-primary hover:bg-km-primary-dark text-white py-3 rounded-xl font-bold text-xs md:text-sm transition shadow-md shadow-blue-900/20 active:scale-95 flex items-center justify-center gap-2"
                 >
                   <WalletIcon weight="bold" size={15} />
-                  <span>View Wallet & Escrow Ledger</span>
+                  <span>View wallet</span>
                 </Link>
                 <Link
                   href="/mentorship"

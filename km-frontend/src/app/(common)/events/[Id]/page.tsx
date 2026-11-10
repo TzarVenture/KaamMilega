@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, CreditCardIcon, LockIcon, PrinterIcon, QrCodeIcon, ShieldCheckIcon, TicketIcon, UsersIcon, VideoCameraIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, LockIcon, PrinterIcon, QrCodeIcon, ShieldCheckIcon, TicketIcon, UsersIcon, VideoCameraIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
+import { CheckoutOrder, useCheckout } from "@/lib/razorpay";
+import PaymentMethodPicker from "@/components/km/PaymentMethodPicker";
 import { notify } from "@/lib/notify";
 import Link from 'next/link';
 import AttendeeListModal from '@/components/km/AttendeeListModal';
@@ -156,6 +158,8 @@ const EventDetailsPage = () => {
         }
     };
 
+    const pay = useCheckout();
+
     const fetchWalletBalance = async () => {
         try {
             const walletRes: any = await api.get('/wallet/balance');
@@ -163,20 +167,6 @@ const EventDetailsPage = () => {
         } catch (err) {
             // Wallet load failed
         }
-    };
-
-    const loadRazorpayScript = () => {
-        return new Promise((resolve) => {
-            if (typeof window !== "undefined" && (window as any).Razorpay) {
-                resolve(true);
-                return;
-            }
-            const script = document.createElement("script");
-            script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
-            document.body.appendChild(script);
-        });
     };
 
     // Free 1-Click Registration
@@ -218,70 +208,27 @@ const EventDetailsPage = () => {
             return;
         }
 
+        const attendee = { attendee_name: attendeeName, attendee_email: attendeeEmail, attendee_phone: attendeePhone };
+        setPaymentProcessing(true);
         try {
-            setPaymentProcessing(true);
-            const loaded = await loadRazorpayScript();
-            if (!loaded) {
-                notify.error("Failed to load Razorpay payment gateway. Please check connection.");
-                setPaymentProcessing(false);
-                return;
+            const order = await api.post<unknown, CheckoutOrder & { event_title: string }>(`/events/${Id}/create-order`, attendee);
+            const outcome = await pay({
+                order,
+                description: order.event_title,
+                prefill: { name: attendeeName, email: attendeeEmail, contact: attendeePhone },
+                verify: (signed) => api.post<unknown, { ticket: any }>(`/events/${Id}/verify-payment`, { ...signed, ...attendee }),
+            });
+            if (outcome.status === 'paid') {
+                notify.success("Payment successful! Your workshop seat is confirmed.");
+                setIsRegistered(true);
+                if (outcome.result?.ticket) setTicket(outcome.result.ticket);
+                else await fetchUserTicket();
+                setCheckoutModalOpen(false);
+                setTicketModalOpen(true);
             }
-
-            // 1. Create order
-            const orderRes: any = await api.post(`/events/${Id}/create-order`, {
-                attendee_name: attendeeName,
-                attendee_email: attendeeEmail,
-                attendee_phone: attendeePhone,
-            });
-
-            const options = {
-                key: orderRes.key_id,
-                amount: orderRes.amount_paise,
-                currency: orderRes.currency || "INR",
-                name: "KaamMilega Workshops",
-                description: `Pass: ${orderRes.event_title}`,
-                order_id: orderRes.order_id,
-                prefill: {
-                    name: attendeeName,
-                    email: attendeeEmail,
-                    contact: attendeePhone,
-                },
-                theme: { color: "#071A4D" },
-                handler: async (response: any) => {
-                    try {
-                        const verifyRes: any = await api.post(`/events/${Id}/verify-payment`, {
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                            attendee_name: attendeeName,
-                            attendee_email: attendeeEmail,
-                            attendee_phone: attendeePhone,
-                        });
-
-                        notify.success("Payment successful! Your workshop seat is confirmed.");
-                        setIsRegistered(true);
-                        setTicket(verifyRes.ticket);
-                        setCheckoutModalOpen(false);
-                        setTicketModalOpen(true);
-                    } catch (err: any) {
-                        notify.error(err, "Payment verification failed");
-                    } finally {
-                        setPaymentProcessing(false);
-                    }
-                },
-                modal: {
-                    ondismiss: () => setPaymentProcessing(false),
-                },
-            };
-
-            const rzp = new (window as any).Razorpay(options);
-            rzp.on("payment.failed", (resp: any) => {
-                notify.error(`Payment Failed: ${resp.error?.description || "Unknown error"}`);
-                setPaymentProcessing(false);
-            });
-            rzp.open();
         } catch (error: any) {
             notify.error(error, "Failed to initialize payment");
+        } finally {
             setPaymentProcessing(false);
         }
     };
@@ -733,65 +680,13 @@ const EventDetailsPage = () => {
                                     </div>
                                 </div>
 
-                                {/* Payment Method Selector */}
-                                <div className="space-y-2">
-                                    <label className="block text-xs font-semibold text-km-text-primary">Choose Payment Method:</label>
-
-                                    {/* Razorpay */}
-                                    <div
-                                        onClick={() => !paymentProcessing && setPaymentMethod("razorpay")}
-                                        className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                                            paymentMethod === "razorpay"
-                                                ? "border-[#071A4D] bg-[#071A4D]/5 ring-1 ring-[#071A4D] dark:border-km-link dark:bg-km-primary dark:ring-km-link"
-                                                : "border-km-border hover:border-slate-300"
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-2.5">
-                                            <CreditCardIcon size={20} className="text-km-heading shrink-0" aria-hidden="true" />
-                                            <div>
-                                                <div className="font-bold text-xs text-km-text-primary">Razorpay Online Checkout</div>
-                                                <div className="text-[10px] text-km-text-secondary">UPI, Cards, NetBanking</div>
-                                            </div>
-                                        </div>
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                            paymentMethod === "razorpay" ? "border-[#071A4D] bg-[#071A4D] dark:border-km-link dark:bg-km-primary" : "border-slate-300"
-                                        }`}>
-                                            {paymentMethod === "razorpay" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
-                                        </div>
-                                    </div>
-
-                                    {/* KaamMilega Wallet */}
-                                    <div
-                                        onClick={() => !paymentProcessing && setPaymentMethod("wallet")}
-                                        className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
-                                            paymentMethod === "wallet"
-                                                ? "border-[#071A4D] bg-[#071A4D]/5 ring-1 ring-[#071A4D] dark:border-km-link dark:bg-km-primary dark:ring-km-link"
-                                                : "border-km-border hover:border-slate-300"
-                                        }`}
-                                    >
-                                        <div className="flex items-center gap-2.5">
-                                            <WalletIcon size={20} className="text-emerald-700 shrink-0" aria-hidden="true" />
-                                            <div>
-                                                <div className="font-bold text-xs text-km-text-primary">KaamMilega Wallet</div>
-                                                <div className="text-[10px] text-km-text-secondary">
-                                                    Available Balance: <span className="font-mono font-bold text-km-text-primary">₹{walletBalance.toFixed(2)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
-                                            paymentMethod === "wallet" ? "border-[#071A4D] bg-[#071A4D] dark:border-km-link dark:bg-km-primary" : "border-slate-300"
-                                        }`}>
-                                            {paymentMethod === "wallet" && <div className="w-1.5 h-1.5 rounded-full bg-km-surface-card" />}
-                                        </div>
-                                    </div>
-
-                                    {paymentMethod === "wallet" && !isWalletSufficient && (
-                                        <div className="text-[11px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2 flex items-center gap-1.5">
-                                            <WarningCircleIcon weight="bold" size={13} className="text-amber-600 shrink-0 dark:text-amber-400" />
-                                            <span>Insufficient wallet balance. Please select Razorpay or refill wallet.</span>
-                                        </div>
-                                    )}
-                                </div>
+                                <PaymentMethodPicker
+                                    value={paymentMethod}
+                                    onChange={setPaymentMethod}
+                                    balance={wallet ? walletBalance : null}
+                                    price={event.price || 0}
+                                    disabled={paymentProcessing}
+                                />
                             </div>
 
                             {/* Modal Footer */}

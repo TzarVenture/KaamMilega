@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRightIcon, CheckCircleIcon, ShieldCheckIcon, WalletIcon } from '@phosphor-icons/react';
+import { ArrowRightIcon, CheckCircleIcon, ShieldCheckIcon } from '@phosphor-icons/react';
 
 export default function DailyEarningsSummary() {
     return (
@@ -13,7 +13,7 @@ export default function DailyEarningsSummary() {
                     <div className="lg:col-span-8 space-y-3">
                         <div className="inline-flex items-center gap-2 text-[13px] font-semibold text-[#FDBA74]">
                             <ShieldCheckIcon weight="bold" size={14} className="text-[#FF6B00]" />
-                            <span>KaamMilega Payout Guarantee</span>
+                            <span>KaamMilega payouts</span>
                         </div>
 
                         <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
@@ -21,7 +21,7 @@ export default function DailyEarningsSummary() {
                         </h3>
 
                         <p className="text-xs sm:text-sm text-slate-300 max-w-xl font-normal leading-relaxed">
-                            Once an employer confirms your spot gig completion, earnings are credited immediately to your KaamMilega Wallet with support for same-day UPI and IMPS bank withdrawal.
+                            Once an employer confirms your work, your earnings reach your KaamMilega Wallet. Complete KYC to withdraw them to your bank.
                         </p>
 
                         <div className="flex flex-wrap items-center gap-5 pt-2 text-xs font-medium text-slate-200">
@@ -35,7 +35,7 @@ export default function DailyEarningsSummary() {
                             </div>
                             <div className="flex items-center gap-1.5">
                                 <CheckCircleIcon weight="bold" size={15} className="text-[#FF6B00]" />
-                                <span>Same-Day Bank Transfers</span>
+                                <span>Withdraw to your bank</span>
                             </div>
                         </div>
                     </div>
@@ -43,16 +43,12 @@ export default function DailyEarningsSummary() {
                     {/* Right: Wallet Access Card */}
                     <div className="lg:col-span-4 flex flex-col justify-center">
                         <div className="p-5 rounded-xl bg-[#0B1F52] text-center">
-                            <div className="w-10 h-10 rounded-xl bg-[#FF6B00] mx-auto flex items-center justify-center text-white mb-2.5">
-                                <WalletIcon size={20} />
-                            </div>
-
                             <h4 className="text-base font-bold text-white">
                                 KaamMilega Wallet
                             </h4>
 
                             <p className="text-xs text-slate-300 mt-1 mb-4">
-                                Check shift credits, view ledger statements, or transfer funds to your bank.
+                                See your earnings and withdraw them to your bank.
                             </p>
 
                             <Link

@@ -6,6 +6,8 @@ import { ArrowRightIcon, CheckIcon, CreditCardIcon, ShieldCheckIcon, WalletIcon,
 import { notify } from "@/lib/notify";
 import api from '@/lib/axios';
 import { getCurrentUser } from '@/lib/auth';
+import { CheckoutOrder, useCheckout } from '@/lib/razorpay';
+import PaymentMethodPicker from '@/components/km/PaymentMethodPicker';
 
 interface InstantPassModalProps {
     isOpen: boolean;
@@ -18,6 +20,7 @@ export default function InstantPassModal({
     onClose,
     onSuccess,
 }: InstantPassModalProps) {
+    const pay = useCheckout();
     const [loading, setLoading] = useState(false);
     const [walletLoading, setWalletLoading] = useState(false);
     const [walletBalance, setWalletBalance] = useState<number | null>(null);
@@ -50,18 +53,6 @@ export default function InstantPassModal({
 
     if (!isOpen) return null;
 
-    // Dynamically load Razorpay Checkout SDK
-    const loadRazorpayScript = () => {
-        return new Promise<boolean>((resolve) => {
-            if ((window as any).Razorpay) return resolve(true);
-            const script = document.createElement('script');
-            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-            script.onload = () => resolve(true);
-            script.onerror = () => resolve(false);
-            document.body.appendChild(script);
-        });
-    };
-
     // 1. Pay via KaamMilega Wallet (Instant 1-Click Debit)
     const handlePayFromWallet = async () => {
         setWalletLoading(true);
@@ -71,7 +62,7 @@ export default function InstantPassModal({
             onSuccess(res?.pass?.quota_remaining || 10);
             onClose();
         } catch (err: any) {
-            notify.error(err.message || 'Failed to pay with wallet. Please try online payment.');
+            notify.error(err, 'Failed to pay with wallet. Please try online payment.');
             setSelectedMethod('razorpay');
         } finally {
             setWalletLoading(false);
@@ -80,81 +71,30 @@ export default function InstantPassModal({
 
     // 2. Pay via Razorpay Gateway (UPI, Cards, NetBanking)
     const handlePurchaseWithRazorpay = async () => {
+        const user = getCurrentUser();
+        if (!user) {
+            notify.info('Please log in to activate your InstantPass');
+            window.location.href = `/login?redirect=${encodeURIComponent('/instant-milega')}`;
+            return;
+        }
+
         setLoading(true);
         try {
-            const user = getCurrentUser();
-            if (!user) {
-                notify.info('Please log in to activate your InstantPass');
-                window.location.href = `/login?redirect=${encodeURIComponent('/instant-milega')}`;
-                return;
+            const order = await api.post<unknown, CheckoutOrder>('/instant-work/pass/order');
+            const outcome = await pay({
+                order,
+                description: 'InstantPass',
+                prefill: { name: user.name || '', contact: user.mobile || '', email: user.email || '' },
+                verify: (signed) => api.post<unknown, { quota_remaining?: number }>('/instant-work/pass/verify', signed),
+            });
+            if (outcome.status === 'paid') {
+                notify.success('InstantPass activated. 10 dispatches added.');
+                onSuccess(outcome.result?.quota_remaining || 10);
             }
-
-            const orderRes: any = await api.post('/instant-work/pass/order');
-
-            const sdkLoaded = await loadRazorpayScript();
-            if (!sdkLoaded) {
-                notify.error('Could not load payment gateway. Please check your connection.');
-                setLoading(false);
-                return;
-            }
-
-            // Local mock order handling for dev environment
-            if (orderRes.order_id?.startsWith('order_mock_')) {
-                const verifyRes: any = await api.post('/instant-work/pass/verify', {
-                    razorpay_order_id: orderRes.order_id,
-                    razorpay_payment_id: `pay_mock_${Date.now()}`,
-                    razorpay_signature: 'mock_verified_signature',
-                });
-                notify.success('InstantPass activated. 10 guaranteed dispatches added.');
-                onSuccess(verifyRes.quota_remaining || 10);
-                onClose();
-                setLoading(false);
-                return;
-            }
-
-            const options = {
-                key: orderRes.key_id,
-                amount: orderRes.amount,
-                currency: 'INR',
-                name: 'KaamMilega InstantMilega™',
-                description: '₹99 InstantPass — 10 Guaranteed Dispatches',
-                image: '/kaammilega-logo-icon.png',
-                order_id: orderRes.order_id,
-                handler: async function (response: any) {
-                    try {
-                        const verifyRes: any = await api.post('/instant-work/pass/verify', {
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature,
-                        });
-                        notify.success('InstantPass activated. 10 guaranteed dispatches added.');
-                        onSuccess(verifyRes.quota_remaining || 10);
-                        onClose();
-                    } catch (err: any) {
-                        notify.error(err.message || 'Payment verification failed');
-                    } finally {
-                        setLoading(false);
-                    }
-                },
-                prefill: {
-                    name: user.name || '',
-                    contact: user.mobile || '',
-                    email: user.email || '',
-                },
-                theme: {
-                    color: '#FF6B00',
-                },
-                modal: {
-                    ondismiss: () => {
-                        setLoading(false);
-                    },
-                },
-            };
-
-            const rzp = new (window as any).Razorpay(options);
-            rzp.open();
-        } catch (err: any) {
-            notify.error(err.message || 'Failed to initiate pass purchase');
+            if (outcome.status !== 'cancelled') onClose();
+        } catch (err) {
+            notify.error(err, 'Failed to start the pass purchase');
+        } finally {
             setLoading(false);
         }
     };
@@ -204,61 +144,14 @@ export default function InstantPassModal({
                         </div>
                     </div>
 
-                    {/* Payment Method Selector */}
-                    <div>
-                        <span className="text-xs font-bold text-km-text-primary block mb-2">Select Payment Method:</span>
-                        <div className="grid grid-cols-2 gap-3">
-                            {/* Option 1: KaamMilega Wallet */}
-                            <button
-                                type="button"
-                                onClick={() => setSelectedMethod('wallet')}
-                                className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
-                                    selectedMethod === 'wallet'
-                                        ? 'border-[#071A4D] bg-km-surface ring-1 ring-[#071A4D] dark:border-km-link dark:ring-km-link'
-                                        : 'border-km-border hover:border-[#071A4D]/40 bg-km-surface-card dark:hover:border-km-link'
-                                }`}
-                            >
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <WalletIcon size={24} weight={selectedMethod === 'wallet' ? 'duotone' : 'regular'} className="text-km-heading" aria-hidden="true" />
-                                    {selectedMethod === 'wallet' && (
-                                        <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center dark:bg-km-primary">
-                                            <CheckIcon weight="bold" size={11} />
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-xs font-bold text-km-text-primary block">KaamMilega Wallet</span>
-                                <span className={`text-[11px] block mt-0.5 font-medium ${
-                                    hasEnoughWalletBalance ? 'text-[#16A34A]' : 'text-km-text-secondary'
-                                }`}>
-                                    {walletBalance != null ? `Balance: ₹${walletBalance.toFixed(2)}` : 'Fetching...'}
-                                </span>
-                            </button>
-
-                            {/* Option 2: Online Gateway */}
-                            <button
-                                type="button"
-                                onClick={() => setSelectedMethod('razorpay')}
-                                className={`p-3.5 rounded-xl border text-left transition-colors cursor-pointer ${
-                                    selectedMethod === 'razorpay'
-                                        ? 'border-[#071A4D] bg-km-surface ring-1 ring-[#071A4D] dark:border-km-link dark:ring-km-link'
-                                        : 'border-km-border hover:border-[#071A4D]/40 bg-km-surface-card dark:hover:border-km-link'
-                                }`}
-                            >
-                                <div className="flex items-center justify-between mb-1.5">
-                                    <CreditCardIcon size={24} weight={selectedMethod === 'razorpay' ? 'duotone' : 'regular'} className="text-km-heading" aria-hidden="true" />
-                                    {selectedMethod === 'razorpay' && (
-                                        <div className="w-4 h-4 rounded-full bg-[#071A4D] text-white flex items-center justify-center dark:bg-km-primary">
-                                            <CheckIcon weight="bold" size={11} />
-                                        </div>
-                                    )}
-                                </div>
-                                <span className="text-xs font-bold text-km-text-primary block">Online Gateway</span>
-                                <span className="text-[11px] text-km-text-secondary block mt-0.5 font-medium">
-                                    UPI, Cards &amp; NetBanking
-                                </span>
-                            </button>
-                        </div>
-                    </div>
+                    <PaymentMethodPicker
+                        value={selectedMethod}
+                        onChange={setSelectedMethod}
+                        balance={walletBalance}
+                        price={99}
+                        disabled={loading || walletLoading}
+                        showShortfall={false}
+                    />
 
                     {/* Features Checklist */}
                     <div className="space-y-2 pt-1">

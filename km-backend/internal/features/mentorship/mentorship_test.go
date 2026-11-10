@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/database"
+	"km-backend/internal/features/payment"
+	"km-backend/internal/features/payment/paymenttest"
 	"km-backend/internal/features/wallet"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -83,7 +86,9 @@ func (m *mockMentorshipRepo) GetBookingByID(ctx context.Context, id string) (*Bo
 	if !ok {
 		return nil, errors.New("booking not found")
 	}
-	return b, nil
+	// A copy, like a database read: later writes must not change what the caller loaded
+	copied := *b
+	return &copied, nil
 }
 
 func (m *mockMentorshipRepo) ListBookingsByUser(ctx context.Context, userID string) ([]Booking, error) {
@@ -192,48 +197,62 @@ func (m *mockMentorshipRepo) UpdateMentorshipRatingStats(ctx context.Context, me
 	return nil
 }
 
+func (m *mockMentorshipRepo) TransitionBooking(ctx context.Context, id string, from []string, t BookingTransition) (bool, error) {
+	b, ok := m.bookings[id]
+	if !ok {
+		return false, nil
+	}
+	for _, status := range from {
+		if b.Status == status {
+			b.Status = t.Status
+			if t.PaymentStatus != "" {
+				b.PaymentStatus = t.PaymentStatus
+			}
+			b.ReleaseAfter = t.ReleaseAfter
+			b.ReportReason = t.ReportReason
+			b.ResolutionNote = t.ResolutionNote
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (m *mockMentorshipRepo) ListBookingsDueRelease(ctx context.Context, now time.Time, limit int64) ([]Booking, error) {
+	var list []Booking
+	for _, b := range m.bookings {
+		if b.Status == BookingAwaitingConfirmation && b.ReleaseAfter != nil && !b.ReleaseAfter.After(now) {
+			list = append(list, *b)
+		}
+	}
+	return list, nil
+}
+
+func (m *mockMentorshipRepo) ListReportedBookings(ctx context.Context) ([]Booking, error) {
+	var list []Booking
+	for _, b := range m.bookings {
+		if b.Status == BookingReported {
+			list = append(list, *b)
+		}
+	}
+	return list, nil
+}
+
 type mockWalletService struct {
+	wallet.WalletService
 	wallets map[string]*wallet.WalletSummaryResponse
 }
 
 func newMockWalletService() *mockWalletService {
-	return &mockWalletService{
-		wallets: make(map[string]*wallet.WalletSummaryResponse),
-	}
+	return &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 }
 
 func (w *mockWalletService) GetWalletSummary(ctx context.Context, userID string) (*wallet.WalletSummaryResponse, error) {
 	sum, ok := w.wallets[userID]
 	if !ok {
-		sum = &wallet.WalletSummaryResponse{
-			UserID:              userID,
-			Currency:            "INR",
-			Status:              "active",
-			MainBalance:         0,
-			EarningsBalance:     0,
-			LockedBalance:       0,
-			BonusBalance:        0,
-			TotalBalance:        0,
-			WithdrawableBalance: 0,
-		}
+		sum = &wallet.WalletSummaryResponse{UserID: userID, Currency: "INR", Status: "active"}
 		w.wallets[userID] = sum
 	}
 	return sum, nil
-}
-
-func (w *mockWalletService) AdjustBalances(ctx context.Context, userID string, mainDelta, earningsDelta, lockedDelta, bonusDelta float64) (*wallet.WalletSummaryResponse, error) {
-	sum, _ := w.GetWalletSummary(ctx, userID)
-	sum.MainBalance += mainDelta
-	sum.EarningsBalance += earningsDelta
-	sum.LockedBalance += lockedDelta
-	sum.BonusBalance += bonusDelta
-	sum.TotalBalance = sum.MainBalance + sum.EarningsBalance + sum.BonusBalance
-	sum.WithdrawableBalance = sum.EarningsBalance
-	return sum, nil
-}
-
-func (w *mockWalletService) GetTransactions(ctx context.Context, userID string, query wallet.TransactionQuery) (*wallet.TransactionListResponse, error) {
-	return &wallet.TransactionListResponse{}, nil
 }
 
 func (w *mockWalletService) RecordTransaction(ctx context.Context, input wallet.RecordTransactionInput) (*wallet.TransactionItemResponse, *wallet.WalletSummaryResponse, error) {
@@ -244,7 +263,6 @@ func (w *mockWalletService) RecordTransaction(ctx context.Context, input wallet.
 	if input.Type == wallet.TypeDebit {
 		delta = -input.Amount
 	}
-
 	switch input.TargetBalance {
 	case wallet.BalanceLocked:
 		sum.LockedBalance += delta
@@ -258,7 +276,7 @@ func (w *mockWalletService) RecordTransaction(ctx context.Context, input wallet.
 	}
 	sum.TotalBalance = sum.MainBalance + sum.EarningsBalance + sum.BonusBalance
 
-	txItem := &wallet.TransactionItemResponse{
+	return &wallet.TransactionItemResponse{
 		ID:            primitive.NewObjectID().Hex(),
 		WalletID:      uid,
 		Type:          input.Type,
@@ -269,193 +287,268 @@ func (w *mockWalletService) RecordTransaction(ctx context.Context, input wallet.
 		ReferenceID:   input.ReferenceID,
 		Description:   input.Description,
 		CreatedAt:     time.Now(),
+	}, sum, nil
+}
+
+type fixture struct {
+	ctx      context.Context
+	repo     *mockMentorshipRepo
+	wallets  *mockWalletService
+	payments *paymenttest.Fake
+	svc      MentorshipService
+	expert   primitive.ObjectID
+	mentee   primitive.ObjectID
+}
+
+func newFixture() *fixture {
+	f := &fixture{
+		ctx:      context.Background(),
+		repo:     newMockMentorshipRepo(),
+		wallets:  newMockWalletService(),
+		payments: paymenttest.New(),
+		expert:   primitive.NewObjectID(),
+		mentee:   primitive.NewObjectID(),
 	}
-	return txItem, sum, nil
+	f.svc = NewMentorshipService(f.repo, nil, f.wallets, &config.Config{}, nil, f.payments, database.NoopTransactor{})
+	return f
 }
 
-func (w *mockWalletService) CreateTopupOrder(ctx context.Context, userID string, amount float64) (*wallet.CreateTopupOrderResponse, error) {
-	return nil, nil
-}
-
-func (w *mockWalletService) VerifyTopupPayment(ctx context.Context, userID string, req wallet.VerifyTopupPaymentRequest) (*wallet.WalletSummaryResponse, *wallet.TransactionItemResponse, error) {
-	return nil, nil, nil
-}
-
-func (w *mockWalletService) RequestWithdrawal(ctx context.Context, userID string, req wallet.WithdrawalRequest) (*wallet.WithdrawalResponse, error) {
-	return nil, nil
-}
-
-func (w *mockWalletService) CreateDispute(ctx context.Context, userID string, req wallet.CreateDisputeRequest) (*wallet.WalletDispute, error) {
-	return nil, nil
-}
-
-func (w *mockWalletService) GetMyDisputes(ctx context.Context, userID string, query wallet.DisputeQuery) (*wallet.DisputeListResponse, error) {
-	return nil, nil
-}
-
-func (w *mockWalletService) GetAdminDisputes(ctx context.Context, query wallet.DisputeQuery) (*wallet.DisputeListResponse, error) {
-	return nil, nil
-}
-
-func (w *mockWalletService) ResolveDispute(ctx context.Context, disputeID string, adminID string, req wallet.ResolveDisputeRequest) (*wallet.WalletDispute, *wallet.WalletSummaryResponse, error) {
-	return nil, nil, nil
-}
-
-func TestUpdateBookingStatus_EscrowReleaseOnCompletion(t *testing.T) {
-	mockRepo := newMockMentorshipRepo()
-	mockWallet := newMockWalletService()
-	cfg := &config.Config{Port: "8000"}
-
-	svc := &MentorshipServiceImpl{
-		repo:          mockRepo,
-		walletService: mockWallet,
-		cfg:           cfg,
-	}
-
-	ctx := context.Background()
-	expertID := primitive.NewObjectID()
-	menteeID := primitive.NewObjectID()
-	bookingID := primitive.NewObjectID()
-
-	// Mentee starts with 500 in locked escrow balance
-	_, _ = mockWallet.AdjustBalances(ctx, menteeID.Hex(), 0, 0, 500, 0)
-	// Expert starts with 0 in earnings
-	expertWallet, _ := mockWallet.GetWalletSummary(ctx, expertID.Hex())
-	if expertWallet.EarningsBalance != 0 {
-		t.Fatalf("expected initial 0 earnings, got %f", expertWallet.EarningsBalance)
-	}
-
-	booking := &Booking{
-		ID:            bookingID,
-		ExpertID:      expertID,
-		UserID:        menteeID,
+// paidBooking creates a booking whose money is already held, and whose start time has passed.
+func (f *fixture) paidBooking(status, method string) *Booking {
+	b, _ := f.repo.CreateBooking(f.ctx, &Booking{
+		ExpertID:      f.expert,
+		UserID:        f.mentee,
 		Amount:        500,
-		Status:        "confirmed",
+		Status:        status,
 		PaymentStatus: "paid",
-		PaymentMethod: "wallet",
-	}
-	_, _ = mockRepo.CreateBooking(ctx, booking)
+		PaymentMethod: method,
+		ScheduledAt:   time.Now().Add(-time.Hour),
+	})
+	_, _, _ = f.wallets.RecordTransaction(f.ctx, wallet.RecordTransactionInput{
+		UserID: f.mentee, Type: wallet.TypeCredit, TargetBalance: wallet.BalanceLocked, Amount: 500,
+	})
+	return b
+}
 
-	// Expert marks session as completed
-	err := svc.UpdateBookingStatus(ctx, expertID.Hex(), bookingID.Hex(), "completed")
-	if err != nil {
-		t.Fatalf("unexpected error marking completed: %v", err)
-	}
+func (f *fixture) balances() (locked, main, earnings float64) {
+	mentee, _ := f.wallets.GetWalletSummary(f.ctx, f.mentee.Hex())
+	expert, _ := f.wallets.GetWalletSummary(f.ctx, f.expert.Hex())
+	return mentee.LockedBalance, mentee.MainBalance, expert.EarningsBalance
+}
 
-	// Verify booking status
-	updatedBooking, _ := mockRepo.GetBookingByID(ctx, bookingID.Hex())
-	if updatedBooking.Status != "completed" {
-		t.Errorf("expected booking status 'completed', got '%s'", updatedBooking.Status)
-	}
+func TestMarkingDoneStartsTheConfirmationWindowWithoutPaying(t *testing.T) {
+	f := newFixture()
+	b := f.paidBooking(BookingConfirmed, methodWallet)
 
-	// Verify mentee locked balance was debited: 500 - 500 = 0
-	menteeWallet, _ := mockWallet.GetWalletSummary(ctx, menteeID.Hex())
-	if menteeWallet.LockedBalance != 0 {
-		t.Errorf("expected mentee locked balance 0, got %f", menteeWallet.LockedBalance)
+	if err := f.svc.UpdateBookingStatus(f.ctx, f.expert.Hex(), b.ID.Hex(), BookingCompleted); err != nil {
+		t.Fatal(err)
 	}
-
-	// Verify expert earnings balance was credited: 0 + 500 = 500
-	expertWallet, _ = mockWallet.GetWalletSummary(ctx, expertID.Hex())
-	if expertWallet.EarningsBalance != 500 {
-		t.Errorf("expected expert earnings balance 500, got %f", expertWallet.EarningsBalance)
+	if b.Status != BookingAwaitingConfirmation || b.ReleaseAfter == nil {
+		t.Fatalf("booking = %+v", b)
 	}
-	if expertWallet.WithdrawableBalance != 500 {
-		t.Errorf("expected expert withdrawable balance 500, got %f", expertWallet.WithdrawableBalance)
+	if wait := time.Until(*b.ReleaseAfter); wait < 23*time.Hour || wait > 25*time.Hour {
+		t.Fatalf("release in %v", wait)
+	}
+	if locked, _, earnings := f.balances(); locked != 500 || earnings != 0 {
+		t.Fatalf("locked = %v, earnings = %v", locked, earnings)
 	}
 }
 
-func TestUpdateBookingStatus_RefundOnCancellation(t *testing.T) {
-	mockRepo := newMockMentorshipRepo()
-	mockWallet := newMockWalletService()
-	cfg := &config.Config{Port: "8000"}
+func TestSessionCanNotBeMarkedDoneBeforeItStarts(t *testing.T) {
+	f := newFixture()
+	b := f.paidBooking(BookingConfirmed, methodWallet)
+	b.ScheduledAt = time.Now().Add(time.Hour)
 
-	svc := &MentorshipServiceImpl{
-		repo:          mockRepo,
-		walletService: mockWallet,
-		cfg:           cfg,
+	if err := f.svc.UpdateBookingStatus(f.ctx, f.expert.Hex(), b.ID.Hex(), BookingCompleted); !errors.Is(err, ErrSessionNotDue) {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestMenteeConfirmationPaysTheMentorOnce(t *testing.T) {
+	f := newFixture()
+	b := f.paidBooking(BookingAwaitingConfirmation, methodWallet)
+
+	if err := f.svc.ConfirmSession(f.ctx, f.mentee.Hex(), b.ID.Hex()); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.ConfirmSession(f.ctx, f.mentee.Hex(), b.ID.Hex()); !errors.Is(err, ErrBookingMoved) {
+		t.Fatalf("second confirm: %v", err)
+	}
+	if locked, _, earnings := f.balances(); b.Status != BookingCompleted || locked != 0 || earnings != 500 {
+		t.Fatalf("status = %s, locked = %v, earnings = %v", b.Status, locked, earnings)
+	}
+}
+
+func TestOnlyTheMenteeCanConfirmOrReport(t *testing.T) {
+	f := newFixture()
+	b := f.paidBooking(BookingAwaitingConfirmation, methodWallet)
+
+	if err := f.svc.ConfirmSession(f.ctx, f.expert.Hex(), b.ID.Hex()); !errors.Is(err, ErrNotYourBooking) {
+		t.Fatalf("confirm: %v", err)
+	}
+	if err := f.svc.ReportSession(f.ctx, f.expert.Hex(), b.ID.Hex(), "x"); !errors.Is(err, ErrNotYourBooking) {
+		t.Fatalf("report: %v", err)
+	}
+}
+
+func TestMentorIsPaidAutomaticallyOnlyAfterTheWindow(t *testing.T) {
+	f := newFixture()
+	b := f.paidBooking(BookingAwaitingConfirmation, methodWallet)
+	later := time.Now().Add(time.Hour)
+	b.ReleaseAfter = &later
+
+	if n, err := f.svc.ReleaseDueSessions(f.ctx); err != nil || n != 0 {
+		t.Fatalf("early: n = %d, err = %v", n, err)
 	}
 
-	ctx := context.Background()
-	expertID := primitive.NewObjectID()
-	menteeID := primitive.NewObjectID()
-	bookingID := primitive.NewObjectID()
-
-	// Mentee starts with 100 in main balance and 300 in locked balance
-	_, _ = mockWallet.AdjustBalances(ctx, menteeID.Hex(), 100, 0, 300, 0)
-
-	booking := &Booking{
-		ID:            bookingID,
-		ExpertID:      expertID,
-		UserID:        menteeID,
-		Amount:        300,
-		Status:        "confirmed",
-		PaymentStatus: "paid",
-		PaymentMethod: "wallet",
+	earlier := time.Now().Add(-time.Minute)
+	b.ReleaseAfter = &earlier
+	if n, err := f.svc.ReleaseDueSessions(f.ctx); err != nil || n != 1 {
+		t.Fatalf("due: n = %d, err = %v", n, err)
 	}
-	_, _ = mockRepo.CreateBooking(ctx, booking)
+	if n, _ := f.svc.ReleaseDueSessions(f.ctx); n != 0 {
+		t.Fatalf("a released session was paid again")
+	}
+	if _, _, earnings := f.balances(); earnings != 500 {
+		t.Fatalf("earnings = %v", earnings)
+	}
+}
 
-	// Session is cancelled
-	err := svc.UpdateBookingStatus(ctx, expertID.Hex(), bookingID.Hex(), "cancelled")
+func TestReportStopsTheAutomaticPayment(t *testing.T) {
+	f := newFixture()
+	b := f.paidBooking(BookingAwaitingConfirmation, methodWallet)
+	earlier := time.Now().Add(-time.Minute)
+	b.ReleaseAfter = &earlier
+
+	if err := f.svc.ReportSession(f.ctx, f.mentee.Hex(), b.ID.Hex(), "   "); !errors.Is(err, ErrReasonRequired) {
+		t.Fatalf("blank reason: %v", err)
+	}
+	if err := f.svc.ReportSession(f.ctx, f.mentee.Hex(), b.ID.Hex(), "Mentor did not join"); err != nil {
+		t.Fatal(err)
+	}
+	if n, _ := f.svc.ReleaseDueSessions(f.ctx); n != 0 || b.Status != BookingReported {
+		t.Fatalf("n = %d, status = %s", n, b.Status)
+	}
+	if _, _, earnings := f.balances(); earnings != 0 {
+		t.Fatalf("earnings = %v", earnings)
+	}
+}
+
+func TestSessionCanNotBeReportedBeforeItStarts(t *testing.T) {
+	f := newFixture()
+	b := f.paidBooking(BookingConfirmed, methodWallet)
+	b.ScheduledAt = time.Now().Add(time.Hour)
+
+	if err := f.svc.ReportSession(f.ctx, f.mentee.Hex(), b.ID.Hex(), "early"); !errors.Is(err, ErrSessionNotDue) {
+		t.Fatalf("err = %v", err)
+	}
+}
+
+func TestAdminCanSettleAReportEitherWay(t *testing.T) {
+	f := newFixture()
+	paid := f.paidBooking(BookingReported, methodWallet)
+	if err := f.svc.ResolveReport(f.ctx, "admin", paid.ID.Hex(), ResolveReportRequest{Action: "release", Note: "joined"}); err != nil {
+		t.Fatal(err)
+	}
+	if locked, main, earnings := f.balances(); locked != 0 || main != 0 || earnings != 500 {
+		t.Fatalf("release: locked = %v, main = %v, earnings = %v", locked, main, earnings)
+	}
+
+	refunded := f.paidBooking(BookingReported, methodWallet)
+	if err := f.svc.ResolveReport(f.ctx, "admin", refunded.ID.Hex(), ResolveReportRequest{Action: "refund"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.svc.ResolveReport(f.ctx, "admin", refunded.ID.Hex(), ResolveReportRequest{Action: "refund"}); !errors.Is(err, ErrBookingMoved) {
+		t.Fatalf("second decision: %v", err)
+	}
+	if locked, main, earnings := f.balances(); locked != 0 || main != 500 || earnings != 500 {
+		t.Fatalf("refund: locked = %v, main = %v, earnings = %v", locked, main, earnings)
+	}
+	if refunded.Status != BookingCancelled || refunded.PaymentStatus != "refunded" {
+		t.Fatalf("booking = %+v", refunded)
+	}
+}
+
+func TestCancellingAWalletBookingRefundsTheWallet(t *testing.T) {
+	f := newFixture()
+	b := f.paidBooking(BookingConfirmed, methodWallet)
+
+	if err := f.svc.UpdateBookingStatus(f.ctx, f.expert.Hex(), b.ID.Hex(), BookingCancelled); err != nil {
+		t.Fatal(err)
+	}
+	if locked, main, _ := f.balances(); b.PaymentStatus != "refunded" || locked != 0 || main != 500 {
+		t.Fatalf("payment = %s, locked = %v, main = %v", b.PaymentStatus, locked, main)
+	}
+}
+
+func TestCancellingACardBookingRefundsTheCardNotTheWallet(t *testing.T) {
+	f := newFixture()
+	checkout, _, _ := f.payments.CreateOrder(f.ctx, payment.CreateOrderInput{UserID: f.mentee, Purpose: payment.PurposeMentorshipBooking, AmountPaise: 50000})
+	b := f.paidBooking(BookingConfirmed, methodRazorpay)
+	b.RazorpayOrderID = checkout.OrderID
+
+	if err := f.svc.UpdateBookingStatus(f.ctx, f.expert.Hex(), b.ID.Hex(), BookingCancelled); err != nil {
+		t.Fatal(err)
+	}
+	if locked, main, _ := f.balances(); locked != 0 || main != 0 {
+		t.Fatalf("locked = %v, main = %v", locked, main)
+	}
+	if len(f.payments.Refunds) != 1 || f.payments.Orders[checkout.OrderID].RefundPaise != 50000 {
+		t.Fatalf("refunds = %v", f.payments.Refunds)
+	}
+}
+
+func TestCardBookingExistsOnlyAfterPaymentAndOnlyOnce(t *testing.T) {
+	f := newFixture()
+	m, _ := f.repo.CreateMentorship(f.ctx, &Mentorship{ExpertID: f.expert, Title: "Go", Price: 500})
+	checkout, err := f.svc.CreateBookingOrder(f.ctx, f.mentee.Hex(), CreateMentorshipOrderRequest{MentorshipID: m.ID.Hex(), ScheduledAt: time.Now().Add(time.Hour)})
 	if err != nil {
-		t.Fatalf("unexpected error cancelling session: %v", err)
+		t.Fatal(err)
+	}
+	if len(f.repo.bookings) != 0 {
+		t.Fatal("an unpaid checkout must not create a booking")
 	}
 
-	updatedBooking, _ := mockRepo.GetBookingByID(ctx, bookingID.Hex())
-	if updatedBooking.Status != "cancelled" {
-		t.Errorf("expected booking status 'cancelled', got '%s'", updatedBooking.Status)
+	input := VerifyMentorshipPaymentRequest{RazorpayOrderID: checkout.OrderID, RazorpayPaymentID: "pay_1", RazorpaySignature: "sig"}
+	for i := 0; i < 2; i++ {
+		b, err := f.svc.VerifyBookingPayment(f.ctx, f.mentee.Hex(), input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if b.ID.Hex() != checkout.BookingID || b.Status != BookingConfirmed || b.Amount != 500 {
+			t.Fatalf("booking = %+v", b)
+		}
 	}
-	if updatedBooking.PaymentStatus != "refunded" {
-		t.Errorf("expected payment status 'refunded', got '%s'", updatedBooking.PaymentStatus)
+	if locked, _, _ := f.balances(); len(f.repo.bookings) != 1 || locked != 500 {
+		t.Fatalf("bookings = %d, locked = %v", len(f.repo.bookings), locked)
 	}
 
-	// Mentee locked balance was released: 300 - 300 = 0
-	menteeWallet, _ := mockWallet.GetWalletSummary(ctx, menteeID.Hex())
-	if menteeWallet.LockedBalance != 0 {
-		t.Errorf("expected mentee locked balance 0, got %f", menteeWallet.LockedBalance)
+	if _, err := f.svc.VerifyBookingPayment(f.ctx, f.expert.Hex(), input); !errors.Is(err, payment.ErrOrderNotFound) {
+		t.Fatalf("another user: %v", err)
 	}
-	// Mentee main balance was refunded: 100 + 300 = 400
-	if menteeWallet.MainBalance != 400 {
-		t.Errorf("expected mentee main balance 400, got %f", menteeWallet.MainBalance)
+}
+
+func TestMentorCanNotBookTheirOwnSession(t *testing.T) {
+	f := newFixture()
+	m, _ := f.repo.CreateMentorship(f.ctx, &Mentorship{ExpertID: f.expert, Title: "Go", Price: 500})
+	_, err := f.svc.CreateBookingOrder(f.ctx, f.expert.Hex(), CreateMentorshipOrderRequest{MentorshipID: m.ID.Hex(), ScheduledAt: time.Now().Add(time.Hour)})
+	if !errors.Is(err, ErrSelfBooking) {
+		t.Fatalf("err = %v", err)
 	}
 }
 
 func TestUpdateBookingStatus_Guards(t *testing.T) {
-	mockRepo := newMockMentorshipRepo()
-	mockWallet := newMockWalletService()
-	cfg := &config.Config{Port: "8000"}
+	f := newFixture()
+	b := f.paidBooking(BookingCompleted, methodWallet)
 
-	svc := &MentorshipServiceImpl{
-		repo:          mockRepo,
-		walletService: mockWallet,
-		cfg:           cfg,
+	if err := f.svc.UpdateBookingStatus(f.ctx, primitive.NewObjectID().Hex(), b.ID.Hex(), BookingCompleted); !errors.Is(err, ErrNotYourBooking) {
+		t.Fatalf("another mentor: %v", err)
 	}
-
-	ctx := context.Background()
-	expertID := primitive.NewObjectID()
-	unauthorizedID := primitive.NewObjectID()
-	menteeID := primitive.NewObjectID()
-	bookingID := primitive.NewObjectID()
-
-	booking := &Booking{
-		ID:            bookingID,
-		ExpertID:      expertID,
-		UserID:        menteeID,
-		Amount:        300,
-		Status:        "completed",
-		PaymentStatus: "paid",
+	if err := f.svc.UpdateBookingStatus(f.ctx, f.expert.Hex(), b.ID.Hex(), BookingCancelled); !errors.Is(err, ErrBookingMoved) {
+		t.Fatalf("after completion: %v", err)
 	}
-	_, _ = mockRepo.CreateBooking(ctx, booking)
-
-	// 1. Unauthorized caller
-	err := svc.UpdateBookingStatus(ctx, unauthorizedID.Hex(), bookingID.Hex(), "completed")
-	if err == nil {
-		t.Fatal("expected unauthorized error, got nil")
-	}
-
-	// 2. Modifying already completed session
-	err = svc.UpdateBookingStatus(ctx, expertID.Hex(), bookingID.Hex(), "cancelled")
-	if err == nil || err.Error() != "cannot change status of an already completed session" {
-		t.Fatalf("expected already completed error, got %v", err)
+	if err := f.svc.UpdateBookingStatus(f.ctx, f.expert.Hex(), b.ID.Hex(), "paid_out"); !errors.Is(err, ErrInvalidBookState) {
+		t.Fatalf("unknown status: %v", err)
 	}
 }
 
@@ -485,12 +578,12 @@ func TestSubmitBookingReview(t *testing.T) {
 	_, _ = mockRepo.CreateMentorship(ctx, ms)
 
 	booking := &Booking{
-		ID:           bookingID,
-		MentorshipID: mentorshipID,
-		ExpertID:     expertID,
-		UserID:       menteeID,
-		Amount:       500,
-		Status:       "confirmed",
+		ID:            bookingID,
+		MentorshipID:  mentorshipID,
+		ExpertID:      expertID,
+		UserID:        menteeID,
+		Amount:        500,
+		Status:        "confirmed",
 		PaymentStatus: "paid",
 	}
 	_, _ = mockRepo.CreateBooking(ctx, booking)
@@ -547,4 +640,3 @@ func TestSubmitBookingReview(t *testing.T) {
 		t.Fatalf("expected review text in list, got %+v", reviewResp.Reviews)
 	}
 }
-

@@ -31,7 +31,8 @@ type InstantWorkRepository interface {
 	CreatePass(ctx context.Context, pass *InstantPass) error
 	GetActivePassByUserID(ctx context.Context, userID primitive.ObjectID) (*InstantPass, error)
 	GetPassByOrderID(ctx context.Context, orderID string) (*InstantPass, error)
-	ActivatePass(ctx context.Context, orderID string, paymentID string) (*InstantPass, error)
+	DeactivatePassByOrderID(ctx context.Context, orderID string) error
+	SetWorkerQuota(ctx context.Context, userID primitive.ObjectID, quota int) error
 	DecrementQuota(ctx context.Context, userID primitive.ObjectID) (int, error)
 
 	// Spot Job operations
@@ -334,43 +335,6 @@ func (r *InstantWorkRepositoryImpl) GetPassByOrderID(ctx context.Context, orderI
 	return &pass, nil
 }
 
-// ActivatePass activates the pass with 10 quota and 90-day validity upon verified payment
-func (r *InstantWorkRepositoryImpl) ActivatePass(ctx context.Context, orderID string, paymentID string) (*InstantPass, error) {
-	now := time.Now()
-	expiresAt := now.Add(90 * 24 * time.Hour)
-
-	filter := bson.M{"razorpay_order_id": orderID}
-	update := bson.M{
-		"$set": bson.M{
-			"has_active_pass":     true,
-			"quota_total":         10,
-			"quota_remaining":     10,
-			"razorpay_payment_id": paymentID,
-			"activated_at":        now,
-			"expires_at":          expiresAt,
-			"updated_at":          now,
-		},
-	}
-	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
-	var pass InstantPass
-	err := r.passesColl.FindOneAndUpdate(ctx, filter, update, opts).Decode(&pass)
-	if err != nil {
-		return nil, err
-	}
-
-	// Synchronize worker quota
-	workerFilter := bson.M{"user_id": pass.UserID}
-	workerUpdate := bson.M{
-		"$set": bson.M{
-			"quota_remaining": 10,
-			"updated_at":      now,
-		},
-	}
-	_, _ = r.workersColl.UpdateOne(ctx, workerFilter, workerUpdate)
-
-	return &pass, nil
-}
-
 // DecrementQuota atomically reduces the candidate's remaining pass quota by 1
 func (r *InstantWorkRepositoryImpl) DecrementQuota(ctx context.Context, userID primitive.ObjectID) (int, error) {
 	now := time.Now()
@@ -594,7 +558,7 @@ func (r *InstantWorkRepositoryImpl) CompleteJob(ctx context.Context, jobID primi
 // CloseJob marks job as closed upon recruiter payment release
 func (r *InstantWorkRepositoryImpl) CloseJob(ctx context.Context, jobID primitive.ObjectID) (*InstantJob, error) {
 	now := time.Now()
-	filter := bson.M{"_id": jobID}
+	filter := bson.M{"_id": jobID, "status": JobStatusCompleted}
 	update := bson.M{
 		"$set": bson.M{
 			"status":     JobStatusClosed,
@@ -608,4 +572,18 @@ func (r *InstantWorkRepositoryImpl) CloseJob(ctx context.Context, jobID primitiv
 		return nil, err
 	}
 	return &job, nil
+}
+
+// DeactivatePassByOrderID switches off a pass whose payment was refunded
+func (r *InstantWorkRepositoryImpl) DeactivatePassByOrderID(ctx context.Context, orderID string) error {
+	_, err := r.passesColl.UpdateOne(ctx, bson.M{"razorpay_order_id": orderID},
+		bson.M{"$set": bson.M{"has_active_pass": false, "quota_remaining": 0, "updated_at": time.Now()}})
+	return err
+}
+
+// SetWorkerQuota copies the pass quota onto the worker's record, leaving the rest of it alone
+func (r *InstantWorkRepositoryImpl) SetWorkerQuota(ctx context.Context, userID primitive.ObjectID, quota int) error {
+	_, err := r.workersColl.UpdateOne(ctx, bson.M{"user_id": userID},
+		bson.M{"$set": bson.M{"quota_remaining": quota, "updated_at": time.Now()}})
+	return err
 }

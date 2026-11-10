@@ -1,24 +1,18 @@
 package instant_work
 
 import (
-	"bytes"
 	"context"
-	"crypto/hmac"
 	"crypto/rand"
-	"crypto/sha256"
-	"encoding/base64"
-	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"km-backend/internal/common/apperr"
 	"math"
 	"math/big"
-	"net/http"
-	"strings"
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/features/payment"
+	"km-backend/internal/database"
 	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
@@ -31,6 +25,8 @@ var (
 	ErrPassQuotaExhausted = apperr.New("PASS_QUOTA_EXHAUSTED", "your InstantPass quota has been exhausted. Please recharge your pass")
 	ErrJobNotFound        = apperr.New("INSTANT_JOB_NOT_FOUND", "instant job not found")
 	ErrUnauthorizedJob    = apperr.New("INSTANT_JOB_FORBIDDEN", "unauthorized access to this instant job")
+	ErrJobNotCompleted    = apperr.New("INSTANT_JOB_NOT_COMPLETED", "this gig must be completed before it can be closed")
+	ErrSelfClaim          = apperr.New("INSTANT_JOB_SELF_CLAIM", "you can't accept a job you posted")
 )
 
 type InstantWorkService interface {
@@ -58,6 +54,8 @@ type InstantWorkServiceImpl struct {
 	walletService wallet.WalletService
 	notifService  notification.NotificationService
 	cfg           *config.Config
+	payments      payment.Service
+	tx            database.Transactor
 }
 
 func NewInstantWorkService(
@@ -66,14 +64,23 @@ func NewInstantWorkService(
 	walletService wallet.WalletService,
 	cfg *config.Config,
 	notifService notification.NotificationService,
+	payments payment.Service,
+	tx database.Transactor,
 ) InstantWorkService {
-	return &InstantWorkServiceImpl{
+	s := &InstantWorkServiceImpl{
 		repo:          repo,
 		userRepo:      userRepo,
 		walletService: walletService,
 		notifService:  notifService,
 		cfg:           cfg,
+		payments:      payments,
+		tx:            tx,
 	}
+	payments.Register(payment.PurposeInstantPass, payment.Handlers{
+		Fulfill: s.fulfillPass,
+		Revoke:  s.revokePass,
+	})
+	return s
 }
 
 // GetCandidateStatus returns live availability, skill, and pass quota info
@@ -254,236 +261,6 @@ func jitterCoordinates(lng, lat float64) (float64, float64) {
 	return lng + dLng, lat + dLat
 }
 
-// PurchasePassWithWallet debits ₹99 directly from the user's KaamMilega Wallet ledger
-func (s *InstantWorkServiceImpl) PurchasePassWithWallet(ctx context.Context, userID primitive.ObjectID) (*InstantPass, *wallet.WalletSummaryResponse, error) {
-	// 1. Verify user wallet balance
-	walletSummary, err := s.walletService.GetWalletSummary(ctx, userID.Hex())
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to retrieve wallet: %w", err)
-	}
-
-	const passPrice = 99.00
-	if walletSummary.MainBalance < passPrice {
-		return nil, nil, apperr.New("WALLET_INSUFFICIENT", fmt.Sprintf("insufficient wallet balance: required ₹%.2f, available ₹%.2f. Please top up your wallet", passPrice, walletSummary.MainBalance))
-	}
-
-	// 2. Create and activate the InstantPass
-	now := time.Now()
-	pass := &InstantPass{
-		UserID:            userID,
-		HasActivePass:     true,
-		QuotaTotal:        10,
-		QuotaRemaining:    10,
-		PriceINR:          passPrice,
-		RazorpayOrderID:   fmt.Sprintf("wallet_pass_%d", now.UnixNano()),
-		RazorpayPaymentID: fmt.Sprintf("wallet_pay_%d", now.UnixNano()),
-		ActivatedAt:       now,
-		ExpiresAt:         now.Add(90 * 24 * time.Hour),
-		CreatedAt:         now,
-		UpdatedAt:         now,
-	}
-
-	if err := s.repo.CreatePass(ctx, pass); err != nil {
-		return nil, nil, err
-	}
-
-	// Sync worker quota
-	_ = s.repo.UpsertWorker(ctx, &InstantWorker{
-		UserID:         userID,
-		QuotaRemaining: 10,
-		UpdatedAt:      now,
-	})
-
-	// 3. Atomically debit user's main wallet balance via immutable ledger
-	debitInput := wallet.RecordTransactionInput{
-		UserID:        userID,
-		Type:          wallet.TypeDebit,
-		TargetBalance: wallet.BalanceMain,
-		Category:      wallet.CategoryPassPurchase,
-		Amount:        passPrice,
-		ReferenceID:   pass.ID.Hex(),
-		Description:   "InstantPass Activation (10 Spot Gigs)",
-		Metadata: map[string]interface{}{
-			"pass_id": pass.ID.Hex(),
-			"type":    "instant_pass",
-			"quota":   10,
-			"channel": "wallet",
-		},
-	}
-
-	_, updatedSummary, err := s.walletService.RecordTransaction(ctx, debitInput)
-	if err != nil {
-		return nil, nil, fmt.Errorf("wallet debit transaction failed: %w", err)
-	}
-
-	if s.notifService != nil {
-		go func() {
-			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
-				UserID:   userID,
-				Type:     "instant_pass_activated",
-				Category: notification.CategorySystem,
-				Title:    "InstantPass Activated",
-				Message:  "Your InstantPass (10 spot gigs) is active! You can now accept spot jobs.",
-				Link:     "/instant-work",
-			})
-		}()
-	}
-
-	return pass, updatedSummary, nil
-}
-
-// CreatePassOrder creates a ₹99 order for 10 instant gig dispatches
-func (s *InstantWorkServiceImpl) CreatePassOrder(ctx context.Context, userID primitive.ObjectID) (*CreatePassOrderResponse, error) {
-	keyID := s.cfg.RazorpayKeyID
-	keySecret := s.cfg.RazorpayKeySecret
-
-	// If Razorpay keys are not configured (e.g. dev environment), generate deterministic mock order
-	if keyID == "" || keySecret == "" {
-		mockOrderID := fmt.Sprintf("order_mock_pass_%d", time.Now().UnixNano())
-		pass := &InstantPass{
-			UserID:          userID,
-			HasActivePass:   false,
-			QuotaTotal:      10,
-			QuotaRemaining:  10,
-			PriceINR:        99.00,
-			RazorpayOrderID: mockOrderID,
-			CreatedAt:       time.Now(),
-			UpdatedAt:       time.Now(),
-		}
-		if err := s.repo.CreatePass(ctx, pass); err != nil {
-			return nil, err
-		}
-		return &CreatePassOrderResponse{
-			KeyID:   "rzp_mock_key_instant_pass",
-			OrderID: mockOrderID,
-			Amount:  9900,
-			PassINR: 99.00,
-		}, nil
-	}
-
-	// Call official Razorpay Orders API
-	orderPayload := map[string]interface{}{
-		"amount":   9900, // ₹99.00 in paise
-		"currency": "INR",
-		"receipt":  fmt.Sprintf("inst_pass_%d", time.Now().Unix()),
-		"notes": map[string]string{
-			"user_id": userID.Hex(),
-			"type":    "instant_pass",
-		},
-	}
-	bodyBytes, err := json.Marshal(orderPayload)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", "https://api.razorpay.com/v1/orders", bytes.NewBuffer(bodyBytes))
-	if err != nil {
-		return nil, err
-	}
-	auth := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", keyID, keySecret)))
-	req.Header.Set("Authorization", "Basic "+auth)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to contact Razorpay API: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("razorpay order creation failed with status %d", resp.StatusCode)
-	}
-
-	var rzpResp struct {
-		ID     string  `json:"id"`
-		Amount float64 `json:"amount"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&rzpResp); err != nil {
-		return nil, err
-	}
-
-	pass := &InstantPass{
-		UserID:          userID,
-		HasActivePass:   false,
-		QuotaTotal:      10,
-		QuotaRemaining:  10,
-		PriceINR:        99.00,
-		RazorpayOrderID: rzpResp.ID,
-		CreatedAt:       time.Now(),
-		UpdatedAt:       time.Now(),
-	}
-	if err := s.repo.CreatePass(ctx, pass); err != nil {
-		return nil, err
-	}
-
-	return &CreatePassOrderResponse{
-		KeyID:   keyID,
-		OrderID: rzpResp.ID,
-		Amount:  9900,
-		PassINR: 99.00,
-	}, nil
-}
-
-// VerifyPassPayment validates HMAC signature and activates the ₹99 pass
-func (s *InstantWorkServiceImpl) VerifyPassPayment(ctx context.Context, userID primitive.ObjectID, req VerifyPassPaymentRequest) (*InstantPass, error) {
-	if req.RazorpayOrderID == "" || req.RazorpayPaymentID == "" {
-		return nil, errors.New("missing order or payment identification")
-	}
-
-	keySecret := s.cfg.RazorpayKeySecret
-
-	// Signature verification (skip if mock order in dev)
-	if keySecret != "" && !strings.HasPrefix(req.RazorpayOrderID, "order_mock_") {
-		data := req.RazorpayOrderID + "|" + req.RazorpayPaymentID
-		mac := hmac.New(sha256.New, []byte(keySecret))
-		mac.Write([]byte(data))
-		expected := hex.EncodeToString(mac.Sum(nil))
-
-		if !hmac.Equal([]byte(expected), []byte(req.RazorpaySignature)) {
-			return nil, errors.New("invalid razorpay payment signature")
-		}
-	}
-
-	activatedPass, err := s.repo.ActivatePass(ctx, req.RazorpayOrderID, req.RazorpayPaymentID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Record transaction in immutable wallet ledger
-	debitInput := wallet.RecordTransactionInput{
-		UserID:        userID,
-		Type:          wallet.TypeDebit,
-		TargetBalance: wallet.BalanceMain,
-		Category:      wallet.CategoryPassPurchase,
-		Amount:        99.00,
-		ReferenceID:   req.RazorpayPaymentID,
-		Description:   "InstantPass Online Purchase via Razorpay",
-		Metadata: map[string]interface{}{
-			"order_id":   req.RazorpayOrderID,
-			"payment_id": req.RazorpayPaymentID,
-			"channel":    "razorpay",
-			"quota":      10,
-		},
-	}
-	_, _, _ = s.walletService.RecordTransaction(ctx, debitInput)
-
-	if s.notifService != nil {
-		go func() {
-			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
-				UserID:   userID,
-				Type:     "instant_pass_activated",
-				Category: notification.CategorySystem,
-				Title:    "InstantPass Activated",
-				Message:  "Your InstantPass (10 spot gigs) is active via Razorpay!",
-				Link:     "/instant-work",
-			})
-		}()
-	}
-
-	return activatedPass, nil
-}
-
 // CreateSpotJob creates a spot hiring demand and opens the 3-minute broadcast window
 func (s *InstantWorkServiceImpl) CreateSpotJob(ctx context.Context, recruiterID primitive.ObjectID, req CreateInstantJobRequest) (*InstantJob, error) {
 	u, err := s.userRepo.FindUserByID(ctx, recruiterID.Hex())
@@ -548,6 +325,12 @@ func (s *InstantWorkServiceImpl) GetNearbyJobsForCandidate(ctx context.Context, 
 
 // ClaimSpotGig performs the atomic CAS lock to claim a broadcasted spot job
 func (s *InstantWorkServiceImpl) ClaimSpotGig(ctx context.Context, candidateID primitive.ObjectID, jobID primitive.ObjectID) (*InstantJob, error) {
+	if job, err := s.repo.GetJobByID(ctx, jobID); err != nil {
+		return nil, err
+	} else if job != nil && job.RecruiterID == candidateID {
+		return nil, ErrSelfClaim
+	}
+
 	// Verify candidate has active pass quota
 	pass, err := s.repo.GetActivePassByUserID(ctx, candidateID)
 	if err != nil {
@@ -665,56 +448,10 @@ func (s *InstantWorkServiceImpl) CloseSpotJob(ctx context.Context, recruiterID p
 		return nil, ErrUnauthorizedJob
 	}
 
-	closedJob, err := s.repo.CloseJob(ctx, jobID)
-	if err != nil {
-		return nil, err
+	// No earnings are credited here: the hirer isn't charged anywhere yet, so a payout would be
+	// money from nothing. InstantMilega's payment flow has to add that first.
+	if job.Status != JobStatusCompleted {
+		return nil, ErrJobNotCompleted
 	}
-
-	// Release payout directly into candidate's wallet as withdrawable earnings
-	if closedJob.CandidateID != nil {
-		payoutAmount := closedJob.PayRate
-		if closedJob.RateType == "hourly" && closedJob.DurationHours > 0 {
-			payoutAmount = closedJob.PayRate * float64(closedJob.DurationHours)
-		}
-		if payoutAmount > 0 {
-			creditInput := wallet.RecordTransactionInput{
-				UserID:        *closedJob.CandidateID,
-				Type:          wallet.TypeCredit,
-				TargetBalance: wallet.BalanceEarnings,
-				Category:      wallet.CategoryGigPayout,
-				Amount:        payoutAmount,
-				ReferenceID:   closedJob.ID.Hex(),
-				Description:   fmt.Sprintf("Spot Gig Payout: %s (%s)", closedJob.Skill, closedJob.CompanyName),
-				Metadata: map[string]interface{}{
-					"job_id":      closedJob.ID.Hex(),
-					"skill":       closedJob.Skill,
-					"employer":    closedJob.CompanyName,
-					"rate_type":   closedJob.RateType,
-					"hourly_rate": closedJob.PayRate,
-					"channel":     "wallet",
-				},
-			}
-			_, _, _ = s.walletService.RecordTransaction(ctx, creditInput)
-
-			if s.notifService != nil {
-				candID := *closedJob.CandidateID
-				go func() {
-					_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
-						UserID:   candID,
-						Type:     "instant_job_payout",
-						Category: notification.CategorySystem,
-						Title:    "Gig Payout Released",
-						Message:  fmt.Sprintf("₹%.2f credited to your wallet for %s gig (%s).", payoutAmount, closedJob.Skill, closedJob.CompanyName),
-						Link:     "/wallet",
-						Metadata: map[string]interface{}{
-							"job_id": closedJob.ID.Hex(),
-							"amount": payoutAmount,
-						},
-					})
-				}()
-			}
-		}
-	}
-
-	return closedJob, nil
+	return s.repo.CloseJob(ctx, jobID)
 }

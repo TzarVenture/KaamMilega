@@ -27,12 +27,16 @@ type Booking struct {
 	ExpertID          primitive.ObjectID `bson:"expert_id" json:"expert_id"`
 	UserID            primitive.ObjectID `bson:"user_id" json:"user_id"`
 	ScheduledAt       time.Time          `bson:"scheduled_at" json:"scheduled_at"`
-	Status            string             `bson:"status" json:"status"` // "pending", "confirmed", "cancelled", "completed"
+	Status            string             `bson:"status" json:"status"` // pending, confirmed, awaiting_confirmation, reported, completed, cancelled
 	Amount            float64            `bson:"amount" json:"amount"`
 	PaymentStatus     string             `bson:"payment_status" json:"payment_status"` // "pending", "paid", "refunded"
 	PaymentMethod     string             `bson:"payment_method,omitempty" json:"payment_method,omitempty"` // "wallet", "razorpay"
 	RazorpayOrderID   string             `bson:"razorpay_order_id,omitempty" json:"razorpay_order_id,omitempty"`
 	RazorpayPaymentID string             `bson:"razorpay_payment_id,omitempty" json:"razorpay_payment_id,omitempty"`
+	ReleaseAfter      *time.Time         `bson:"release_after,omitempty" json:"release_after,omitempty"` // When the mentor is paid if the mentee does nothing
+	ReportReason      string             `bson:"report_reason,omitempty" json:"report_reason,omitempty"`
+	ReportedAt        *time.Time         `bson:"reported_at,omitempty" json:"reported_at,omitempty"`
+	ResolutionNote    string             `bson:"resolution_note,omitempty" json:"resolution_note,omitempty"`
 	MeetingLink       string             `bson:"meeting_link,omitempty" json:"meeting_link,omitempty"`
 	Notes             string             `bson:"notes,omitempty" json:"notes,omitempty"`
 	Rating            float64            `bson:"rating,omitempty" json:"rating,omitempty"`
@@ -154,4 +158,27 @@ type VerifyMentorshipPaymentRequest struct {
 type SubmitBookingReviewRequest struct {
 	Rating float64 `json:"rating" validate:"required,min=1,max=5"`
 	Review string  `json:"review"`
+}
+
+// Booking statuses. A paid session goes confirmed, then awaiting_confirmation once the mentor
+// marks it done, then completed when the mentor is paid. A mentee's report parks it in reported
+// until an admin decides.
+const (
+	BookingPending              = "pending"
+	BookingConfirmed            = "confirmed"
+	BookingAwaitingConfirmation = "awaiting_confirmation"
+	BookingReported             = "reported"
+	BookingCompleted            = "completed"
+	BookingCancelled            = "cancelled"
+)
+
+// ReportSessionRequest is a mentee saying something went wrong with a session.
+type ReportSessionRequest struct {
+	Reason string `json:"reason"`
+}
+
+// ResolveReportRequest is an admin's decision on a reported session.
+type ResolveReportRequest struct {
+	Action string `json:"action"` // "release" pays the mentor, "refund" returns the money
+	Note   string `json:"note"`
 }

@@ -17,6 +17,7 @@ type SubscriptionRepository interface {
 	CreateSubscription(ctx context.Context, sub *ExpertSubscription) (*ExpertSubscription, error)
 	GetActiveSubscription(ctx context.Context, userID string) (*ExpertSubscription, error)
 	GetSubscriptionByID(ctx context.Context, id string) (*ExpertSubscription, error)
+	GetByRazorpayOrderID(ctx context.Context, orderID string) (*ExpertSubscription, error)
 	UpdateSubscriptionStatus(ctx context.Context, id string, status string) error
 }
 
@@ -95,4 +96,17 @@ func (r *SubscriptionRepositoryImpl) UpdateSubscriptionStatus(ctx context.Contex
 		},
 	})
 	return err
+}
+
+// GetByRazorpayOrderID finds the subscription an online payment bought, or nil
+func (r *SubscriptionRepositoryImpl) GetByRazorpayOrderID(ctx context.Context, orderID string) (*ExpertSubscription, error) {
+	var sub ExpertSubscription
+	err := r.coll.FindOne(ctx, bson.M{"razorpay_order_id": orderID}).Decode(&sub)
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &sub, nil
 }

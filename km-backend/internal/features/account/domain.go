@@ -14,7 +14,9 @@ package account
 
 import (
 	"errors"
+
 	"km-backend/internal/common/apperr"
+	"km-backend/internal/common/money"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -107,15 +109,15 @@ type CodeChannel struct {
 
 // Overview powers the Account section of Settings
 type Overview struct {
-	AccountStatus        string       `json:"account_status"` // "active" | "deactivated" | "pending_deletion"
-	DeactivatedAt        *time.Time   `json:"deactivated_at,omitempty"`
-	DeletionScheduledFor *time.Time   `json:"deletion_scheduled_for,omitempty"`
-	GracePeriodDays      int          `json:"grace_period_days"`
-	HasPassword          bool         `json:"has_password"`
-	CodeChannel          CodeChannel  `json:"code_channel"`
-	Blockers             []Blocker    `json:"blockers"`
-	Warnings             []Warning    `json:"warnings"`
-	CanDelete            bool         `json:"can_delete"`
+	AccountStatus        string      `json:"account_status"` // "active" | "deactivated" | "pending_deletion"
+	DeactivatedAt        *time.Time  `json:"deactivated_at,omitempty"`
+	DeletionScheduledFor *time.Time  `json:"deletion_scheduled_for,omitempty"`
+	GracePeriodDays      int         `json:"grace_period_days"`
+	HasPassword          bool        `json:"has_password"`
+	CodeChannel          CodeChannel `json:"code_channel"`
+	Blockers             []Blocker   `json:"blockers"`
+	Warnings             []Warning   `json:"warnings"`
+	CanDelete            bool        `json:"can_delete"`
 }
 
 type SendCodeResponse struct {
@@ -125,10 +127,10 @@ type SendCodeResponse struct {
 
 // walletState is the slice of a wallet the deletion checks need
 type walletState struct {
-	Main     float64 `bson:"main_balance"`
-	Earnings float64 `bson:"earnings_balance"`
-	Locked   float64 `bson:"locked_balance"`
-	Bonus    float64 `bson:"bonus_balance"`
+	MainPaise     int64 `bson:"main_paise"`
+	EarningsPaise int64 `bson:"earnings_paise"`
+	LockedPaise   int64 `bson:"locked_paise"`
+	BonusPaise    int64 `bson:"bonus_paise"`
 }
 
 // deletionChecks are the cross-feature facts that decide blockers and warnings
@@ -140,3 +142,8 @@ type deletionChecks struct {
 	SubscriptionEndsAt  *time.Time
 	OpenJobs            int64
 }
+
+func (w *walletState) main() float64     { return money.ToRupees(w.MainPaise) }
+func (w *walletState) earnings() float64 { return money.ToRupees(w.EarningsPaise) }
+func (w *walletState) locked() float64   { return money.ToRupees(w.LockedPaise) }
+func (w *walletState) bonus() float64    { return money.ToRupees(w.BonusPaise) }

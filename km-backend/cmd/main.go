@@ -38,6 +38,7 @@ import (
 	"km-backend/internal/features/subscription"
 	"km-backend/internal/features/testimonial"
 	"km-backend/internal/features/user"
+	"km-backend/internal/features/payment"
 	"km-backend/internal/features/wallet"
 
 	"km-backend/internal/logger"
@@ -152,6 +153,12 @@ func main() {
 
 			// Initialize Database
 			database.NewDatabase,
+			database.NewTransactor,
+			payment.NewGateway,
+			payment.NewRepository,
+			payment.NewService,
+			payment.NewController,
+			AsRoute(payment.NewApi),
 
 			// Media storage (Cloudflare R2, or local disk in development)
 			storage.New,
@@ -293,6 +300,8 @@ func main() {
 			push.Install,
 			// Final account deletions after the grace period
 			account.RegisterDeletionWorker,
+			payment.RegisterWorker,
+			mentorship.RegisterReleaseWorker,
 			// Daily job-alert emails (settings.email_job_alerts)
 			jobalert.RegisterWorker,
 			// Register Routes & Start

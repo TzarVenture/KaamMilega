@@ -30,6 +30,8 @@ func (api *WalletApi) Setup(app *fiber.App) {
 	walletGroup.Post("/topup/create-order", api.controller.CreateTopupOrder)
 	walletGroup.Post("/topup/verify", api.controller.VerifyTopupPayment)
 	walletGroup.Post("/withdraw", api.controller.RequestWithdrawal)
+	walletGroup.Get("/withdrawals", api.controller.GetMyWithdrawals)
+	walletGroup.Get("/payout-account", api.controller.GetPayoutAccount)
 
 	// User Dispute Routes (F73)
 	walletGroup.Post("/disputes", api.controller.CreateDispute)
@@ -39,4 +41,14 @@ func (api *WalletApi) Setup(app *fiber.App) {
 	adminDisputes := app.Group("/api/admin/disputes", jwtAuth, middleware.RequireRole("admin"))
 	adminDisputes.Get("/", api.controller.GetAdminDisputes)
 	adminDisputes.Put("/:id/resolve", api.controller.ResolveAdminDispute)
+
+	adminWithdrawals := app.Group("/api/admin/withdrawals", jwtAuth, middleware.RequireRole("admin"))
+	adminWithdrawals.Get("/", api.controller.GetAdminWithdrawals)
+	adminWithdrawals.Post("/:id/reveal-account", api.controller.RevealWithdrawalAccount)
+	adminWithdrawals.Put("/:id", api.controller.UpdateWithdrawal)
+
+	adminWallets := app.Group("/api/admin/wallets", jwtAuth, middleware.RequireRole("admin"))
+	adminWallets.Get("/overview", api.controller.GetFinanceOverview)
+	adminWallets.Get("/lookup", api.controller.LookupWallet)
+	adminWallets.Put("/:user_id/status", api.controller.SetWalletStatus)
 }
