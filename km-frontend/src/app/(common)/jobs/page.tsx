@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
-import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowUpRightIcon, ArrowsDownUpIcon, BookmarkSimpleIcon, BriefcaseIcon, BuildingOfficeIcon, CaretDownIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, MapPinIcon, ShieldCheckIcon, SlidersHorizontalIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowUpRightIcon, ArrowsDownUpIcon, BookmarkSimpleIcon, BriefcaseIcon, CaretDownIcon, ChatCircleIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, MapPinIcon, ShieldCheckIcon, SlidersHorizontalIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { notify, errorText } from "@/lib/notify";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,6 +10,7 @@ import Link from 'next/link';
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
 import AdSlot from '@/components/ads/AdSlot';
 import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
+import ChatWithHRButton from '@/components/jobs/ChatWithHRButton';
 
 // ─── Types ───
 
@@ -29,6 +30,7 @@ interface Job {
     created_at: string;
     is_top_match?: boolean;
     is_verified?: boolean;
+    recruiter_id?: string;
 }
 
 interface FilterState {
@@ -408,6 +410,12 @@ const JobCard = ({
                             {isBookmarked ? <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-km-link dark:fill-blue-400" /> : <BookmarkSimpleIcon weight="bold" size={16} />}
                         </button>
 
+                        <ChatWithHRButton
+                            recruiterId={job.recruiter_id}
+                            jobTitle={job.title}
+                            className="h-10 px-4 rounded-xl text-xs font-semibold border border-km-border bg-km-surface-card text-km-heading hover:bg-km-surface transition-colors flex items-center justify-center gap-1.5 whitespace-nowrap cursor-pointer"
+                        />
+
                         {hasApplied ? (
                             <Link
                                 href="/applications"
@@ -736,11 +744,11 @@ const JobsPageContent = () => {
                 overlap
                 kicker={{ label: 'Verified Direct Employment', Icon: BriefcaseIcon, tone: 'jobs' }}
                 title={<>Find Verified Jobs & <HeroAccent>Hire Direct</HeroAccent></>}
-                description="Apply directly to verified employers across India. Zero brokerage, 1-click apply."
+                description="Apply to verified employers and chat with HR directly. No brokers, no agencies."
                 highlights={[
                     { Icon: ShieldCheckIcon, label: '100% Verified Employers' },
                     { Icon: CheckCircleIcon, label: 'Zero Candidate Brokerage' },
-                    { Icon: BuildingOfficeIcon, label: 'Direct Recruiter Contacts' },
+                    { Icon: ChatCircleIcon, label: '3 free chats with HR a day' },
                 ]}
                 art={{ src: '/jobs-page-hero-art.png', alt: 'KaamMilega Verified Jobs', wide: true }}
             >

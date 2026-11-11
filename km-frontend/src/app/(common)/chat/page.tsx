@@ -303,9 +303,10 @@ function ChatView() {
   // Entitlement & ₹99 Pass Gate state
   const [isPassModalOpen, setIsPassModalOpen] = useState(false);
   const [chatEntitlement, setChatEntitlement] = useState<{
-    distinct_conversations: number;
     free_remaining: number;
+    daily_free_limit: number;
     has_active_pass: boolean;
+    unlimited: boolean;
     can_start_new: boolean;
   } | null>(null);
 
@@ -930,6 +931,9 @@ function ChatView() {
           };
           setActiveChat(draft);
           setMessages([]);
+          // ?text= prefills the first message, e.g. from a job's "Chat with HR"
+          const text = searchParams.get("text");
+          if (text) setInputText(text.slice(0, 500));
           openMobileChat();
         } catch (e) {
           console.error("Failed to resolve target user for chat deep-link", e);
@@ -1347,8 +1351,8 @@ function ChatView() {
       console.error("Failed to send message", err);
       const code = (err as { code?: string })?.code;
       const message = (err as { message?: string })?.message ?? "";
-      // Backend error for the 3-person free chat limit (chat/service.go SendMessage)
-      if (code === "CHAT_QUOTA_REACHED" || message.toLowerCase().startsWith("free chat quota reached")) {
+      // Free daily chat limit, or a free user messaging someone who isn't a recruiter (chat/service.go SendMessage)
+      if (code === "CHAT_QUOTA_REACHED" || code === "CHAT_PASS_REQUIRED") {
         setIsPassModalOpen(true);
         loadChatEntitlement();
         setMessages((prev) => prev.filter((m) => m.id !== tempId));
@@ -1689,15 +1693,15 @@ function ChatView() {
           </div>
 
           {/* Free Chat Quota / Universal Pass Entitlement Banner */}
-          {chatEntitlement && !chatEntitlement.has_active_pass && (
+          {chatEntitlement && !chatEntitlement.unlimited && (
             <div className="px-3 py-2 rounded-xl bg-km-surface border border-km-border flex items-center justify-between gap-2">
               <span className="text-xs text-km-text-secondary">
                 {chatEntitlement.free_remaining > 0 ? (
                   <>
-                    <span className="font-semibold text-km-text-primary">{chatEntitlement.free_remaining} of 3</span> free new chats left
+                    <span className="font-semibold text-km-text-primary">{chatEntitlement.free_remaining} of {chatEntitlement.daily_free_limit}</span> free chats with HR left today
                   </>
                 ) : (
-                  <span className="font-semibold text-km-text-primary">Free new chats used (3 of 3)</span>
+                  <span className="font-semibold text-km-text-primary">Free chats with HR used for today</span>
                 )}
               </span>
               <button

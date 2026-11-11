@@ -12,6 +12,7 @@ import WalletDisputesList from '@/components/km/WalletDisputesList';
 import WalletDisputeModal from '@/components/km/WalletDisputeModal';
 import AddMoneyModal from '@/components/km/AddMoneyModal';
 import WithdrawModal from '@/components/km/WithdrawModal';
+import InstantPassCard from '@/components/instant-milega/InstantPassCard';
 
 export interface WalletSummary {
     total_balance: number;
@@ -35,13 +36,10 @@ export default function WalletPage() {
     const [withdrawing, setWithdrawing] = useState(false);
     const [disputing, setDisputing] = useState<TransactionItem | null>(null);
 
-    const load = useCallback(async () => {
-        setFailed(false);
-        try {
-            setWallet(await api.get<unknown, WalletSummary>('/wallet/balance'));
-        } catch {
-            setFailed(true);
-        }
+    const load = useCallback(() => {
+        api.get<unknown, WalletSummary>('/wallet/balance')
+            .then((summary) => { setWallet(summary); setFailed(false); })
+            .catch(() => setFailed(true));
     }, []);
 
     useEffect(() => { load(); }, [load]);
@@ -90,6 +88,8 @@ export default function WalletPage() {
                         {(wallet?.bonus_balance ?? 0) > 0 && <StatCard label={t('bonus')} value={value(wallet?.bonus_balance)} />}
                     </div>
                 )}
+
+                {!failed && <InstantPassCard onBought={refresh} />}
 
                 <section className="bg-km-surface-card border border-km-border rounded-2xl overflow-hidden">
                     <div className="px-5 py-4 border-b border-km-border-subtle overflow-x-auto">

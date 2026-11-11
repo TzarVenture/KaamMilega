@@ -44,7 +44,15 @@ type WalletService interface {
 	GetFinanceOverview(ctx context.Context) (*FinanceOverview, error)
 	LookupWallet(ctx context.Context, search string) (*WalletLookupResponse, error)
 	SetWalletStatus(ctx context.Context, userID, status string) (*WalletSummaryResponse, error)
+
+	// RegisterPurchaseRevoker sets how to take back what a wallet purchase of this category
+	// bought, when an admin refunds its dispute in full. Call it at startup.
+	RegisterPurchaseRevoker(category TransactionCategory, fn PurchaseRevoker)
 }
+
+// PurchaseRevoker takes back the item a wallet purchase bought. It runs inside the refund
+// transaction, so returning an error cancels the refund.
+type PurchaseRevoker func(ctx context.Context, purchase *WalletTransaction) error
 
 type WalletServiceImpl struct {
 	repo         WalletRepository
@@ -53,6 +61,11 @@ type WalletServiceImpl struct {
 	notifService notification.NotificationService
 	payments     payment.Service
 	tx           database.Transactor
+	revokers     map[TransactionCategory]PurchaseRevoker
+}
+
+func (s *WalletServiceImpl) RegisterPurchaseRevoker(category TransactionCategory, fn PurchaseRevoker) {
+	s.revokers[category] = fn
 }
 
 func NewWalletService(
@@ -70,6 +83,7 @@ func NewWalletService(
 		notifService: notifService,
 		payments:     payments,
 		tx:           tx,
+		revokers:     map[TransactionCategory]PurchaseRevoker{},
 	}
 	payments.Register(payment.PurposeWalletTopup, payment.Handlers{
 		Fulfill:   s.fulfillTopup,
@@ -868,6 +882,12 @@ func (s *WalletServiceImpl) ResolveDispute(ctx context.Context, disputeID string
 			if err != nil {
 				return err
 			}
+			// A full refund also takes back what was bought; a partial one is goodwill
+			if refundPaise == dispute.AmountPaise {
+				if err := s.revokePurchase(ctx, dispute.TransactionID); err != nil {
+					return err
+				}
+			}
 			claim(ctx, []DisputeStatus{DisputeStatusApproved}, DisputeUpdate{Status: DisputeStatusApproved, RefundTxID: &tx.ID})
 			return claimErr
 		})
@@ -888,6 +908,21 @@ func (s *WalletServiceImpl) ResolveDispute(ctx context.Context, disputeID string
 		return updated, nil, err
 	}
 	return updated, summary, nil
+}
+
+// revokePurchase runs the revoker registered for the purchase's category, if any
+func (s *WalletServiceImpl) revokePurchase(ctx context.Context, purchaseID primitive.ObjectID) error {
+	purchase, err := s.repo.GetTransactionByID(ctx, purchaseID)
+	if err != nil {
+		return err
+	}
+	if purchase == nil {
+		return nil
+	}
+	if revoke, ok := s.revokers[purchase.Category]; ok {
+		return revoke(ctx, purchase)
+	}
+	return nil
 }
 
 // GetFinanceOverview returns platform money totals and any balance that disagrees with its ledger

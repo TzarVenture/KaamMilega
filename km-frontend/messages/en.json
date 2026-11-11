@@ -702,6 +702,46 @@
       "title": "Connect just like you",
       "text": "People with similar skills and roles who are growing their careers on KaamMilega.",
       "action": "View all people"
+    },
+    "chatHr": {
+      "title": "Talk to HR directly",
+      "text": "Message the person who is hiring. Ask about the job, salary or interview and get a real answer.",
+      "point1": "No brokers or agencies in between",
+      "point2": "3 free chats with HR every day",
+      "point3": "Unlimited chats with the ₹99 InstantPass",
+      "findJobs": "Find jobs and chat",
+      "openChats": "Open my chats",
+      "sampleName": "Priya, HR",
+      "sampleRole": "Store manager job, Pune",
+      "sample1": "Hi, I'm interested in the store manager job. Is it still open?",
+      "sample2": "Yes, it is. Can you come for an interview on Monday at 11?",
+      "sample3": "Yes, I'll be there. Thank you!"
+    },
+    "categories": {
+      "title": "Explore jobs by category",
+      "textJobs": "Office, sales, tech and other regular jobs from verified employers.",
+      "textGigs": "Book a skilled worker or find same-day work near you.",
+      "tabJobs": "Jobs",
+      "tabGigs": "Instant Milega gigs",
+      "tabTrades": "Skilled trades",
+      "gigCta": "Book or find work",
+      "tradeCta": "See jobs",
+      "viewJobs": "View all jobs",
+      "viewGigs": "Open Instant Milega",
+      "job": {
+        "sales": "Sales",
+        "support": "Customer support",
+        "accounts": "Accounts and finance",
+        "software": "Software and IT",
+        "marketing": "Marketing",
+        "hr": "HR and recruitment",
+        "teaching": "Teaching",
+        "healthcare": "Nursing and healthcare",
+        "admin": "Office admin",
+        "retail": "Retail store",
+        "hospitality": "Hotels and restaurants",
+        "engineering": "Engineering"
+      }
     }
   },
   "hubs": {
@@ -816,13 +856,13 @@
     "INVALID_JOB_ID": "This job link isn't valid.",
     "INVALID_CANDIDATE_ID": "This candidate link isn't valid.",
     "PASS_REQUIRED": "You need an active InstantPass (₹99) to go Free Now and get work requests.",
-    "PASS_QUOTA_EXHAUSTED": "Your InstantPass quota is used up. Please recharge your pass.",
+    "PASS_QUOTA_EXHAUSTED": "Your InstantPass has no gig credits left. Buy a new pass to accept more gigs.",
     "INSTANT_JOB_NOT_FOUND": "Instant job not found.",
     "INSTANT_JOB_FORBIDDEN": "You don't have access to this instant job.",
     "GIG_UNAVAILABLE": "This gig has already been taken by someone else or has expired.",
     "WALLET_INSUFFICIENT": "Your wallet balance is too low. Please top up your wallet.",
     "EARNINGS_INSUFFICIENT": "You don't have enough earnings to withdraw this amount.",
-    "CHAT_QUOTA_REACHED": "You've chatted with 3 people for free. Get the ₹99 Universal Pass for unlimited networking and 10 work credits.",
+    "CHAT_QUOTA_REACHED": "You've started 3 new chats with HR today. Get the ₹99 pass for unlimited chats, or try again tomorrow.",
     "RECIPIENT_UNAVAILABLE": "This member isn't available on KaamMilega right now, so you can't message them.",
     "MESSAGE_SELF": "You can't send a message to yourself.",
     "INVITATION_EXISTS": "You've already sent an invitation, or you're already connected.",
@@ -901,9 +941,16 @@
     "EVENT_NOT_FOUND": "Event not found.",
     "SUBSCRIPTION_PLAN_INVALID": "That plan is not available.",
     "SUBSCRIPTION_JUST_PURCHASED": "You just bought this plan.",
-    "PASS_ALREADY_ACTIVE": "Your pass is already active.",
+    "PASS_ALREADY_ACTIVE": "You still have gig credits on your current InstantPass.",
     "INSTANT_JOB_NOT_COMPLETED": "This job is not complete yet.",
-    "INSTANT_JOB_SELF_CLAIM": "You cannot take your own job."
+    "INSTANT_JOB_SELF_CLAIM": "You cannot take your own job.",
+    "PASS_USED": "This InstantPass has been used, so it can't be refunded.",
+    "INSTANT_JOB_WRONG_STATE": "This gig can't be changed at its current stage.",
+    "INSTANT_ALREADY_ON_GIG": "Finish your current gig before taking another one.",
+    "INSTANT_OPEN_JOB_EXISTS": "You already have an open spot job. Close or cancel it first.",
+    "INSTANT_LOCATION_INVALID": "Share a valid location.",
+    "INSTANT_SKILL_REQUIRED": "Choose a skill.",
+    "CHAT_PASS_REQUIRED": "Free chats are for recruiters and HR. Get the ₹99 pass to message anyone."
   },
   "auth": {
     "candidate": {
@@ -1549,5 +1596,32 @@
       "thanks": "Thank you. Your review was submitted.",
       "failed": "Couldn't submit your review"
     }
+  },
+  "instantPass": {
+    "title": "InstantPass",
+    "summary": "10 gig credits and unlimited chats for 90 days",
+    "benefitGigs": "10 gig credits. Each Instant Milega gig you accept uses one.",
+    "benefitChats": "Chat with anyone, with no daily limit. Without the pass: 3 new chats with HR a day.",
+    "benefitExpert": "Apply as an Expert if you have 2 years' experience.",
+    "validity": "Valid for 90 days. Credits left after that are lost.",
+    "pay": "Pay {amount}",
+    "cancel": "Cancel",
+    "close": "Close",
+    "activated": "InstantPass activated",
+    "failed": "Couldn't complete the purchase",
+    "loginRequired": "Log in to buy the InstantPass",
+    "haveOne": "You already have an InstantPass",
+    "creditsLeft": "{count} of {total} gig credits left",
+    "validUntil": "Valid until {date}",
+    "usedUp": "No gig credits left. Chats stay unlocked until {date}.",
+    "none": "{price} for 10 gig credits and unlimited chats for 90 days",
+    "buy": "Get the pass",
+    "buyAgain": "Buy a new pass"
+  },
+  "chatHr": {
+    "button": "Chat with HR",
+    "hint": "3 free chats with HR a day",
+    "signIn": "Sign in to chat with HR",
+    "firstMessage": "Hi, I'm interested in the {title} job. Is it still open?"
   }
 }

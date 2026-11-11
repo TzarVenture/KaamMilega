@@ -113,3 +113,32 @@ Show mentors "You'll be paid when the mentee confirms, or after 24 hours". Do no
 | `WITHDRAWAL_ALREADY_OPEN` | Show the open withdrawal |
 | `PAYMENT_SIGNATURE_INVALID`, `PAYMENT_NOT_COMPLETE` | Poll the order status, as above |
 | `PAYMENT_REFUNDING` | Tell the person their money is being returned |
+
+## InstantPass and spot gigs
+
+The ₹99 pass gives 10 gig credits and unlocks unlimited chats and the Expert application for 90 days. Running out of credits doesn't end the 90 days. A new pass can be bought once the current one has no credits left or has expired.
+
+`GET /instant-work/candidate/status` returns `{has_active_pass, quota_remaining, quota_total, pass_expires_at, is_free_now, active_skill, hourly_rate, current_location, last_ping_at}`.
+
+| Action | Route | Notes |
+|---|---|---|
+| Go Free Now | `POST /instant-work/availability` `{is_free_now: true, skill, hourly_rate, lat, lng}` | Needs a pass with credits. Location is required |
+| Stop | `POST /instant-work/availability` `{is_free_now: false}` | |
+| Location ping | `POST /instant-work/location` `{lat, lng}` | Send at least every 2 minutes. Workers silent for 5 minutes leave the radar |
+| Open gigs nearby | `GET /instant-work/candidate/feed?lat=&lng=&radius_km=&skill=` | `lat` and `lng` are required. Radius 1 to 10 km, default 5 |
+| Accept | `POST /instant-work/claim` `{job_id}` | Uses 1 credit. One gig at a time |
+| Mark done | `PUT /instant-work/jobs/:id/complete` | Worker, after accepting |
+| Nearby workers | `GET /instant-work/recruiter/radar?lat=&lng=&radius_km=&skill=` | Names are shortened and locations moved 100 to 180 m. Best rated first |
+| Post a gig | `POST /instant-work/dispatch` `{skill, lat, lng, address, pay_rate, rate_type, duration_hours, notes}` | `rate_type` is `flat` or `hourly` (hourly needs 1 to 24 hours). One worker per gig, one open gig per hirer. Open for 3 minutes |
+| Cancel a waiting gig | `PUT /instant-work/jobs/:id/cancel` | Only before a worker accepts |
+| Approve a done gig | `PUT /instant-work/jobs/:id/close` | No money moves yet |
+
+Codes: `PASS_REQUIRED` and `PASS_QUOTA_EXHAUSTED` (HTTP 402, offer the pass), `PASS_ALREADY_ACTIVE`, `GIG_UNAVAILABLE`, `INSTANT_ALREADY_ON_GIG`, `INSTANT_OPEN_JOB_EXISTS`, `INSTANT_JOB_WRONG_STATE` (HTTP 409), `INSTANT_LOCATION_INVALID`, `INSTANT_SKILL_REQUIRED`, `INSTANT_JOB_INVALID` (HTTP 400, show the message).
+
+## Chat limit
+
+`GET /chat/entitlement` returns `{started_today, daily_free_limit, free_remaining, resets_at, has_active_pass, unlimited, can_start_new, pass_quota_remaining}`.
+
+Without the ₹99 pass, a person can start 3 new chats a day (India time), and only with recruiters. Replies in an existing chat are always free, and chats a recruiter starts don't count. Pass holders, recruiters and admins have no limit (`unlimited: true`).
+
+Starting a chat returns `CHAT_QUOTA_REACHED` when the 3 are used today, or `CHAT_PASS_REQUIRED` when the other person isn't a recruiter. Offer the pass for both.

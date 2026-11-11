@@ -294,7 +294,7 @@ export default function ExpertApplyPage() {
                         done={app.has_pass}
                         Icon={TicketIcon}
                         title="Active ₹99 pass"
-                        detail={app.has_pass ? "Your pass is active" : "One pass covers Expert listing, chats, mentors and InstantMilega"}
+                        detail={app.has_pass ? "Your pass is active" : "One pass covers your Expert application, unlimited chats and InstantMilega gigs"}
                         action={
                           !app.has_pass && (
                             <button type="button" onClick={() => setPassOpen(true)} className={SECONDARY_BTN}>

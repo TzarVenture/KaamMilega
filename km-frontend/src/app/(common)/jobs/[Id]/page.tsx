@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CalendarBlankIcon, ChatCircleIcon, CheckCircleIcon, ClockIcon, CloudArrowUpIcon, FileTextIcon, MapPinIcon, MedalIcon, ShareNetworkIcon, ShieldCheckIcon, TrashIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CalendarBlankIcon, CheckCircleIcon, CloudArrowUpIcon, FileTextIcon, MapPinIcon, MedalIcon, ShareNetworkIcon, ShieldCheckIcon, TrashIcon, XIcon } from '@phosphor-icons/react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { uploadFile } from '@/lib/upload';
@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { HERO_SHELL } from '@/components/km/PageHero';
 import AdSlot from '@/components/ads/AdSlot';
 import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
+import ChatWithHRButton from '@/components/jobs/ChatWithHRButton';
 
 interface Job {
     id: string;
@@ -80,9 +81,6 @@ const JobDetailPage = () => {
     const [isBookmarked, setIsBookmarked] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-    // Network / Recruiter Connection State
-    const [connectionStatus, setConnectionStatus] = useState<string>(''); // '', 'pending', 'accepted'
-
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -101,18 +99,6 @@ const JobDetailPage = () => {
                         const checkRes = (await api.get(`/applications/check/${jobId}`)) as { applied?: boolean };
                         if (checkRes?.applied) {
                             setHasApplied(true);
-                        }
-                    } catch {
-                        // Continue
-                    }
-                }
-
-                // Check connection status with recruiter
-                if (userData && jobData?.recruiter_id) {
-                    try {
-                        const statusRes = (await api.get(`/network/status/${jobData.recruiter_id}`)) as { status?: string };
-                        if (statusRes?.status) {
-                            setConnectionStatus(statusRes.status);
                         }
                     } catch {
                         // Continue
@@ -218,43 +204,6 @@ const JobDetailPage = () => {
                 notify.success('Job link copied to clipboard');
             } catch {
                 notify.info('Share URL: ' + window.location.href);
-            }
-        }
-    };
-
-    const handleConnectOrChat = async () => {
-        if (!user) {
-            notify.info('Please sign in to connect with recruiter');
-            router.push(`/login?redirect=${encodeURIComponent(`/jobs/${jobId}`)}`);
-            return;
-        }
-
-        if (connectionStatus === 'accepted') {
-            router.push(`/chat?userId=${job?.recruiter_id}`);
-            return;
-        }
-
-        if (connectionStatus === 'pending') {
-            notify.info('Connection request is pending recruiter acceptance.');
-            return;
-        }
-
-        if (!job?.recruiter_id) {
-            notify.info('Recruiter contact details will be shared once your application is reviewed.');
-            return;
-        }
-
-        try {
-            await api.post('/network/connect', { receiver_id: job.recruiter_id });
-            notify.success('Connection request sent to recruiter. You can chat once accepted.');
-            setConnectionStatus('pending');
-        } catch (error: any) {
-            const msg = errorText(error, '');
-            if (msg.toLowerCase().includes('already') || msg.toLowerCase().includes('pending')) {
-                setConnectionStatus('pending');
-                notify.info('Connection request already sent.');
-            } else {
-                notify.error(msg || 'Failed to send connection request.');
             }
         }
     };
@@ -377,38 +326,11 @@ const JobDetailPage = () => {
                                 </button>
                             )}
 
-                            {/* Connect or Chat with Recruiter Button */}
-                            {job.recruiter_id && (
-                                <button
-                                    type="button"
-                                    onClick={handleConnectOrChat}
-                                    disabled={connectionStatus === 'pending'}
-                                    className={`h-11 px-4 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs border ${
-                                        connectionStatus === 'accepted'
-                                            ? 'bg-[#0B5ED7] hover:bg-[#094bb3] text-white border-transparent'
-                                            : connectionStatus === 'pending'
-                                            ? 'bg-km-surface-card/10 text-white/70 border-white/20 cursor-default'
-                                            : 'bg-[#0B1F52] hover:bg-white/10 text-white border-white/20 dark:bg-km-primary-dark'
-                                    }`}
-                                >
-                                    {connectionStatus === 'accepted' ? (
-                                        <>
-                                            <ChatCircleIcon weight="fill" size={15} className="fill-white" />
-                                            <span>Chat with HR</span>
-                                        </>
-                                    ) : connectionStatus === 'pending' ? (
-                                        <>
-                                            <ClockIcon weight="fill" size={15} className="fill-amber-400/20 text-amber-400" />
-                                            <span>Connection Pending</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <UserPlusIcon weight="fill" size={15} className="fill-white/20" />
-                                            <span>Connect with HR</span>
-                                        </>
-                                    )}
-                                </button>
-                            )}
+                            <ChatWithHRButton
+                                recruiterId={job.recruiter_id}
+                                jobTitle={job.title}
+                                className="h-11 px-4 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer border bg-[#0B5ED7] hover:bg-[#094bb3] text-white border-transparent"
+                            />
 
                             {/* Bookmark Button */}
                             <button
@@ -578,37 +500,12 @@ const JobDetailPage = () => {
                                     </button>
                                 )}
 
-                                {job.recruiter_id && (
-                                    <button
-                                        type="button"
-                                        onClick={handleConnectOrChat}
-                                        disabled={connectionStatus === 'pending'}
-                                        className={`w-full h-10 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer border transition-colors ${
-                                            connectionStatus === 'accepted'
-                                                ? 'bg-[#0B5ED7] hover:bg-[#094bb3] text-white border-transparent'
-                                                : connectionStatus === 'pending'
-                                                ? 'bg-km-surface text-km-text-secondary border-km-border cursor-default'
-                                                : 'btn-outline'
-                                        }`}
-                                    >
-                                        {connectionStatus === 'accepted' ? (
-                                            <>
-                                                <ChatCircleIcon weight="fill" size={14} className="fill-current" />
-                                                <span>Chat with Hiring Manager</span>
-                                            </>
-                                        ) : connectionStatus === 'pending' ? (
-                                            <>
-                                                <ClockIcon weight="fill" size={14} className="fill-amber-500/20 text-amber-500 dark:text-amber-400" />
-                                                <span>Connection Pending</span>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <UserPlusIcon weight="fill" size={14} className="fill-current/20" />
-                                                <span>Connect with Recruiter</span>
-                                            </>
-                                        )}
-                                    </button>
-                                )}
+                                <ChatWithHRButton
+                                    recruiterId={job.recruiter_id}
+                                    jobTitle={job.title}
+                                    showHint
+                                    className="w-full h-10 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer border transition-colors btn-outline"
+                                />
                             </div>
 
                             {/* Direct Hiring Assurance Box */}

@@ -228,7 +228,7 @@ func (s *UserServiceImpl) GetExpertApplication(ctx context.Context, userID strin
 	if user == nil {
 		return nil, errors.New("user not found")
 	}
-	hasPass, err := s.repo.HasActivePassOrSubscription(ctx, userID)
+	hasPass, err := s.repo.HasActivePass(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func (s *UserServiceImpl) ApplyForExpert(ctx context.Context, userID string, req
 	}
 
 	// 2. Active ₹99 pass
-	hasPass, err := s.repo.HasActivePassOrSubscription(ctx, userID)
+	hasPass, err := s.repo.HasActivePass(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

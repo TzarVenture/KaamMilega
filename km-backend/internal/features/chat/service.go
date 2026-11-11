@@ -201,8 +201,10 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 	if req.ReceiverID == senderID {
 		return nil, ErrMessageSelf
 	}
+	var receiver *user.User
 	if s.userRepo != nil {
-		receiver, err := s.userRepo.FindUserByID(ctx, req.ReceiverID.Hex())
+		var err error
+		receiver, err = s.userRepo.FindUserByID(ctx, req.ReceiverID.Hex())
 		if err != nil || receiver == nil || !user.IsActiveAccount(receiver.AccountStatus) {
 			return nil, ErrRecipientUnavailable
 		}
@@ -232,13 +234,18 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 
 	created := false
 	if conv == nil {
-		// Entitlement Gate: 3 distinct person chats free. 4th onwards requires active ₹99 Pass
-		canStart, err := s.repo.CanInitiateNewConversation(ctx, senderID)
+		// Without the ₹99 pass: a few new chats a day, only with recruiters
+		ent, err := s.GetChatEntitlement(ctx, senderID)
 		if err != nil {
 			return nil, err
 		}
-		if !canStart {
-			return nil, apperr.New("CHAT_QUOTA_REACHED", "free chat quota reached: you have connected with 3 people for free. Unlock unlimited networking and 10 work credits with the ₹99 Universal Pass")
+		if !ent.Unlimited {
+			if receiver == nil || !hasRole(receiver.Roles, user.RoleRecruiter) {
+				return nil, ErrChatPassRequired
+			}
+			if ent.FreeRemaining <= 0 {
+				return nil, ErrChatDailyLimit
+			}
 		}
 
 		conv, err = s.repo.CreateConversation(ctx, participants)
@@ -628,7 +635,67 @@ func (s *service) ResolveAdminChatReport(ctx context.Context, id, adminID primit
 	return nil
 }
 
-// GetChatEntitlement retrieves user's chat count, free quota remaining, and active pass status
+// DailyFreeChats is how many new chats with recruiters a user without the pass can start each day
+const DailyFreeChats = 3
+
+var (
+	ErrChatDailyLimit   = apperr.New("CHAT_QUOTA_REACHED", "you've started 3 new chats with recruiters today. Get the ₹99 pass for unlimited chats, or try again tomorrow")
+	ErrChatPassRequired = apperr.New("CHAT_PASS_REQUIRED", "free chats are for recruiters and HR. Get the ₹99 pass to message anyone")
+)
+
+var istZone = time.FixedZone("IST", 5*60*60+30*60)
+
+// startOfDayIST is when "today" began in India
+func startOfDayIST(now time.Time) time.Time {
+	n := now.In(istZone)
+	return time.Date(n.Year(), n.Month(), n.Day(), 0, 0, 0, 0, istZone)
+}
+
+func hasRole(roles []string, want string) bool {
+	for _, r := range roles {
+		if r == want {
+			return true
+		}
+	}
+	return false
+}
+
+// GetChatEntitlement says which new chats the user can start today. Pass holders, recruiters
+// and admins have no limit. Replying in an existing chat is never limited.
 func (s *service) GetChatEntitlement(ctx context.Context, userID primitive.ObjectID) (*ChatEntitlementResponse, error) {
-	return s.repo.GetChatEntitlement(ctx, userID)
+	hasPass, quota, err := s.repo.ActivePass(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	now := time.Now()
+	dayStart := startOfDayIST(now)
+	started, err := s.repo.CountConversationsStartedSince(ctx, userID, dayStart)
+	if err != nil {
+		return nil, err
+	}
+
+	unlimited := hasPass
+	if !unlimited && s.userRepo != nil {
+		u, err := s.userRepo.FindUserByID(ctx, userID.Hex())
+		if err != nil {
+			return nil, err
+		}
+		unlimited = u != nil && (hasRole(u.Roles, user.RoleRecruiter) || hasRole(u.Roles, user.RoleAdmin))
+	}
+
+	remaining := int64(DailyFreeChats) - started
+	if remaining < 0 {
+		remaining = 0
+	}
+	return &ChatEntitlementResponse{
+		StartedToday:          started,
+		DailyFreeLimit:        DailyFreeChats,
+		FreeRemaining:         remaining,
+		ResetsAt:              dayStart.Add(24 * time.Hour),
+		HasActivePass:         hasPass,
+		Unlimited:             unlimited,
+		CanStartNew:           unlimited || remaining > 0,
+		PassQuotaRemaining:    quota,
+		DistinctConversations: started,
+	}, nil
 }

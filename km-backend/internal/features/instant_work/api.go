@@ -44,4 +44,5 @@ func (api *InstantWorkApi) Setup(app *fiber.App) {
 	group.Post("/dispatch", api.controller.CreateSpotJob)
 	group.Get("/recruiter/active-job", api.controller.GetRecruiterActiveJob)
 	group.Put("/jobs/:id/close", api.controller.CloseJob)
+	group.Put("/jobs/:id/cancel", api.controller.CancelJob)
 }
