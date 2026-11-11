@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { ArrowRightIcon, ArrowUpRightIcon, BookOpenIcon, BookOpenTextIcon, BriefcaseIcon, CertificateIcon, ExamIcon, GenderFemaleIcon, HouseLineIcon, NotebookIcon, PlantIcon, StudentIcon, BuildingsIcon, CalendarBlankIcon, CaretDownIcon, CaretRightIcon, CaretUpIcon, ClockIcon, GraduationCapIcon, HouseIcon, LightningIcon, MedalIcon, PhoneCallIcon, PlayIcon, ScrollIcon, SealCheckIcon, ShieldCheckIcon, StarIcon, UserIcon, UsersIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated, getCurrentPortalRole } from '@/lib/auth';
@@ -24,6 +23,9 @@ import { getCityHubMetadata, normalizeCitySlug } from '@/lib/constants/hubs';
 import CandidateProgressCard from '@/components/dashboard/CandidateProgressCard';
 import { useUniformMarqueeSpeed } from '@/lib/useUniformMarqueeSpeed';
 import SectionHeader from '@/components/home/SectionHeader';
+import ChatWithHRSection from '@/components/home/ChatWithHRSection';
+import JobCategoriesSection from '@/components/home/JobCategoriesSection';
+import { useJobCounts, useOpeningsLabel } from '@/lib/jobCounts';
 import ProfileBoostArt from '@/components/home/illustrations/ProfileBoostArt';
 import {
   BelowTenthArt, TenthPassArt, TwelfthPassArt, DiplomaItiArt, GraduateArt, PostGraduateArt,
@@ -43,7 +45,6 @@ export default function LandingPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [experts, setExperts] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const [skills, setSkills] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [pendingConnectIds, setPendingConnectIds] = useState<string[]>([]);
   const [connectedIds, setConnectedIds] = useState<string[]>([]);
@@ -109,14 +110,13 @@ export default function LandingPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [citiesRes, questionsRes, jobsRes, usersRes, expertsRes, eventsRes, skillsRes, statsRes] = await Promise.allSettled([
+        const [citiesRes, questionsRes, jobsRes, usersRes, expertsRes, eventsRes, statsRes] = await Promise.allSettled([
           api.get('/cities'),
           api.get('/questions').catch(() => api.get('/admin/questions')).catch(() => []),
           api.get('/jobs?limit=50'), // Get some jobs to extract companies
           api.get('/community/users').catch(() => []),
           api.get('/experts').catch(() => []),
           api.get('/events?limit=5').catch(() => []),
-          api.get('/skills').catch(() => []),
           api.get('/platform/stats').catch(() => null)
         ]);
 
@@ -139,11 +139,6 @@ export default function LandingPage() {
         if (questionsRes.status === 'fulfilled') {
           const data = questionsRes.value as any;
           setQuestions(Array.isArray(data) ? data : data.data || []);
-        }
-
-        if (skillsRes.status === 'fulfilled') {
-          const data = skillsRes.value as any;
-          setSkills(Array.isArray(data) ? data : data.data || []);
         }
 
         if (statsRes.status === 'fulfilled' && statsRes.value) {
@@ -213,9 +208,10 @@ export default function LandingPage() {
         </section>
       )}
       <SevenServicesSection />
+      <ChatWithHRSection />
       <LocationSection cities={cities} />
       <TrustCard isLoggedIn={isLoggedIn} user={currentUser} />
-      <JobRolesGrid skills={skills} />
+      <JobCategoriesSection />
       {users.length > 0 && (
         <ConnectJustLikeYou
           users={users}
@@ -454,119 +450,6 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
       </div>
     </div>
   </section>
-  );
-};
-
-// --- Real open-job counts (GET /jobs?…&limit=1 returns the matching `total`) ---
-// Category cards show these instead of invented totals; while loading, or with no matches,
-// they say "Browse jobs".
-function useJobCounts(queries: string[]): Record<string, number> {
-  const [counts, setCounts] = useState<Record<string, number>>({});
-  const key = queries.join("\n");
-  useEffect(() => {
-    let alive = true;
-    Promise.all(
-      key.split("\n").map((q) =>
-        api
-          .get(`/jobs?limit=1&${q}`)
-          .then((res) => {
-            const total = (res as unknown as { total?: unknown })?.total;
-            return [q, typeof total === "number" ? total : 0] as const;
-          })
-          .catch(() => [q, 0] as const),
-      ),
-    ).then((entries) => alive && setCounts(Object.fromEntries(entries)));
-    return () => {
-      alive = false;
-    };
-  }, [key]);
-  return counts;
-}
-
-/** "12 open jobs" in the visitor's language, or "Browse jobs" when there are none */
-function useOpeningsLabel() {
-  const tc = useTranslations("common");
-  const { number } = useFormat();
-  return (n?: number) => (n && n > 0 ? tc("openJobs", { count: n, n: number(n) }) : tc("browseJobs"));
-}
-
-// --- Job Roles Grid ---
-// `count` is a precise search (regex) for counting; `keywords` match catalogue skill names
-const JobRolesGrid = ({ skills = [] }: { skills?: any[] }) => {
-  const t = useTranslations('home.roles');
-  const openingsLabel = useOpeningsLabel();
-  // `key`: label in home.roles; `title`: the English role searched for
-  const popularTradeConfig = [
-    { key: "delivery", title: "Delivery Executive", img: "/asset/trades/delivery.jpg", count: "delivery|courier", keywords: ["delivery", "courier", "rider"] },
-    { key: "driver", title: "Commercial Vehicle Driver", img: "/asset/trades/driver.jpg", count: "driver", keywords: ["driver", "commercial", "truck"] },
-    { key: "warehouse", title: "Warehouse Associate", img: "/asset/trades/warehouse.jpg", count: "warehouse", keywords: ["warehouse", "logistics", "inventory"] },
-    { key: "electrician", title: "Electrician", img: "/asset/trades/electrician.jpg", count: "electrician", keywords: ["electrician"] },
-    { key: "security", title: "Security Guard", img: "/asset/trades/security.jpg", count: "security guard|security officer", keywords: ["security", "guard"] },
-    { key: "plumber", title: "Plumber", img: "/asset/trades/plumber.jpg", count: "plumber", keywords: ["plumber"] },
-    { key: "painter", title: "Painter & Decorator", img: "/asset/trades/painter.jpg", count: "painter", keywords: ["painter"] },
-    { key: "ac", title: "AC & HVAC Technician", img: "/asset/trades/ac.jpg", count: "hvac|air condition", keywords: ["ac", "hvac", "technician"] },
-    { key: "housekeeping", title: "Housekeeping & Helper", img: "/asset/trades/labour.jpg", count: "housekeeping|helper", keywords: ["housekeeping", "helper", "peon", "labour"] },
-    { key: "office", title: "Office Assistant & DEO", img: "/asset/trades/office-executive.jpg", count: "office assistant|data entry", keywords: ["office", "data entry", "deo", "assistant"] },
-  ];
-
-  const counts = useJobCounts(popularTradeConfig.map((t) => `search=${encodeURIComponent(t.count)}`));
-
-  // Match each trade with real DB skills where available
-  const displayRoles = popularTradeConfig.map((item) => {
-    const matchedSkill = skills?.find((s: any) =>
-      item.keywords.some(kw => (s.name || '').toLowerCase().includes(kw))
-    );
-    return {
-      label: t(item.key),
-      // Search with the catalogue skill when there is one, otherwise the English role
-      query: matchedSkill?.name || item.title,
-      img: item.img,
-      vacancies: openingsLabel(counts[`search=${encodeURIComponent(item.count)}`]),
-    };
-  });
-
-  return (
-    <section className={`${SECTION} px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-sans`}>
-      <SectionHeader
-        title={t('title')}
-        description={t('text')}
-      />
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 sm:gap-6">
-        {displayRoles.map((role, i) => (
-          <Link key={i} href={`/jobs?role=${encodeURIComponent(role.query)}`}>
-            <div className="km-on-dark relative h-48 sm:h-56 rounded-2xl overflow-hidden group cursor-pointer border border-slate-200/90 shadow-2xs hover:shadow-lg transition-all duration-300">
-              <Image
-                src={role.img}
-                alt={role.label}
-                fill
-                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-                className="object-cover object-top"
-              />
-              <div className="absolute inset-0 bg-linear-to-t from-[#020617]/90 via-[#020617]/30 to-transparent z-10" />
-              <div className="absolute bottom-3.5 left-3.5 right-3.5 z-20 text-white">
-                <h4 className="font-bold text-sm sm:text-base leading-snug group-hover:text-amber-300 transition-colors">
-                  {role.label}
-                </h4>
-                <p className="text-xs text-slate-300 font-semibold mt-0.5">
-                  {role.vacancies}
-                </p>
-              </div>
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      <div className="text-center mt-8 sm:mt-10">
-        <Link
-          href="/jobs"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-km-primary text-km-heading hover:bg-km-primary hover:text-white text-sm font-semibold transition-colors"
-        >
-          {t('viewAll')}
-          <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
-        </Link>
-      </div>
-    </section>
   );
 };
 

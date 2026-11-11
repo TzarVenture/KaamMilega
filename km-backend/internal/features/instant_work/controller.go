@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"math"
 	"strconv"
 	"time"
 
@@ -41,6 +42,53 @@ func parseUserID(c *fiber.Ctx) (primitive.ObjectID, error) {
 	return primitive.ObjectIDFromHex(str)
 }
 
+// fail sends err with the status that fits it
+func fail(c *fiber.Ctx, err error) error {
+	status := fiber.StatusInternalServerError
+	switch {
+	case errors.Is(err, ErrPassRequired), errors.Is(err, ErrPassQuotaExhausted):
+		return c.Status(fiber.StatusPaymentRequired).JSON(fiber.Map{
+			"error":         err.Error(),
+			"code":          apperr.CodeOf(err),
+			"requires_pass": true,
+			"price_inr":     passPriceINR,
+			"quota_total":   passQuota,
+		})
+	case errors.Is(err, ErrJobNotFound):
+		status = fiber.StatusNotFound
+	case errors.Is(err, ErrUnauthorizedJob):
+		status = fiber.StatusForbidden
+	case errors.Is(err, ErrGigUnavailable), errors.Is(err, ErrAlreadyOnGig), errors.Is(err, ErrOpenJobExists),
+		errors.Is(err, ErrJobWrongState), errors.Is(err, ErrJobNotCompleted), errors.Is(err, ErrPassAlreadyActive),
+		errors.Is(err, ErrSelfClaim):
+		status = fiber.StatusConflict
+	case apperr.CodeOf(err) != "":
+		status = fiber.StatusBadRequest
+	}
+	if status == fiber.StatusInternalServerError {
+		log.Printf("instant work: %v", err)
+		return c.Status(status).JSON(fiber.Map{"error": "something went wrong, please try again"})
+	}
+	return c.Status(status).JSON(apperr.Body(err))
+}
+
+func jobIDParam(c *fiber.Ctx) (primitive.ObjectID, error) {
+	id, err := primitive.ObjectIDFromHex(c.Params("id"))
+	if err != nil {
+		return id, ErrJobNotFound
+	}
+	return id, nil
+}
+
+// queryFloat reads a number from the query string, or NaN when it's missing or not a number
+func queryFloat(c *fiber.Ctx, key string) float64 {
+	v, err := strconv.ParseFloat(c.Query(key), 64)
+	if err != nil {
+		return math.NaN()
+	}
+	return v
+}
+
 // GetCandidateStatus returns live availability, active pass status and quota
 func (ctrl *InstantWorkController) GetCandidateStatus(c *fiber.Ctx) error {
 	userID, err := parseUserID(c)
@@ -50,7 +98,7 @@ func (ctrl *InstantWorkController) GetCandidateStatus(c *fiber.Ctx) error {
 
 	status, err := ctrl.service.GetCandidateStatus(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(status)
@@ -70,15 +118,7 @@ func (ctrl *InstantWorkController) ToggleAvailability(c *fiber.Ctx) error {
 
 	worker, err := ctrl.service.ToggleAvailability(c.Context(), userID, req)
 	if err != nil {
-		if errors.Is(err, ErrPassRequired) || errors.Is(err, ErrPassQuotaExhausted) {
-			return c.Status(fiber.StatusPaymentRequired).JSON(fiber.Map{
-				"error":          err.Error(),
-				"requires_pass":  true,
-				"price_inr":      99.00,
-				"quota_total":    10,
-			})
-		}
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(worker)
@@ -97,7 +137,7 @@ func (ctrl *InstantWorkController) UpdateLocation(c *fiber.Ctx) error {
 	}
 
 	if err := ctrl.service.UpdateLocation(c.Context(), userID, req); err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"success": true})
@@ -105,14 +145,12 @@ func (ctrl *InstantWorkController) UpdateLocation(c *fiber.Ctx) error {
 
 // GetNearbyCandidates returns active candidates within radius with 100-180m privacy jitter
 func (ctrl *InstantWorkController) GetNearbyCandidates(c *fiber.Ctx) error {
-	lng, _ := strconv.ParseFloat(c.Query("lng", "72.8777"), 64)
-	lat, _ := strconv.ParseFloat(c.Query("lat", "19.0760"), 64)
-	radiusKm, _ := strconv.ParseFloat(c.Query("radius_km", "5.0"), 64)
+	lng, lat, radiusKm := queryFloat(c, "lng"), queryFloat(c, "lat"), queryFloat(c, "radius_km")
 	skill := c.Query("skill", "")
 
 	candidates, err := ctrl.service.GetNearbyCandidatesForRecruiter(c.Context(), lng, lat, radiusKm, skill)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 	ctrl.recordSearchAppearances(c, candidates)
 
@@ -170,7 +208,7 @@ func (ctrl *InstantWorkController) PurchasePassWithWallet(c *fiber.Ctx) error {
 
 	pass, summary, err := ctrl.service.PurchasePassWithWallet(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
@@ -189,7 +227,7 @@ func (ctrl *InstantWorkController) CreatePassOrder(c *fiber.Ctx) error {
 
 	resp, err := ctrl.service.CreatePassOrder(c.Context(), userID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(resp)
@@ -209,7 +247,7 @@ func (ctrl *InstantWorkController) VerifyPassPayment(c *fiber.Ctx) error {
 
 	pass, err := ctrl.service.VerifyPassPayment(c.Context(), userID, req)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(pass)
@@ -229,7 +267,7 @@ func (ctrl *InstantWorkController) CreateSpotJob(c *fiber.Ctx) error {
 
 	job, err := ctrl.service.CreateSpotJob(c.Context(), recruiterID, req)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusCreated).JSON(job)
@@ -242,14 +280,12 @@ func (ctrl *InstantWorkController) GetCandidateJobsFeed(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
-	lng, _ := strconv.ParseFloat(c.Query("lng", "72.8777"), 64)
-	lat, _ := strconv.ParseFloat(c.Query("lat", "19.0760"), 64)
-	radiusKm, _ := strconv.ParseFloat(c.Query("radius_km", "10.0"), 64)
+	lng, lat, radiusKm := queryFloat(c, "lng"), queryFloat(c, "lat"), queryFloat(c, "radius_km")
 	skill := c.Query("skill", "")
 
 	jobs, err := ctrl.service.GetNearbyJobsForCandidate(c.Context(), candidateID, lng, lat, radiusKm, skill)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(jobs)
@@ -274,14 +310,7 @@ func (ctrl *InstantWorkController) ClaimGig(c *fiber.Ctx) error {
 
 	job, err := ctrl.service.ClaimSpotGig(c.Context(), candidateID, jobID)
 	if err != nil {
-		if errors.Is(err, ErrPassQuotaExhausted) {
-			return c.Status(fiber.StatusPaymentRequired).JSON(fiber.Map{
-				"error":         err.Error(),
-				"requires_pass": true,
-				"price_inr":     99.00,
-			})
-		}
-		return c.Status(fiber.StatusConflict).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)
@@ -296,7 +325,7 @@ func (ctrl *InstantWorkController) GetCandidateActiveJob(c *fiber.Ctx) error {
 
 	job, err := ctrl.service.GetActiveJobForCandidate(c.Context(), candidateID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)
@@ -311,7 +340,7 @@ func (ctrl *InstantWorkController) GetRecruiterActiveJob(c *fiber.Ctx) error {
 
 	job, err := ctrl.service.GetActiveJobForRecruiter(c.Context(), recruiterID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)
@@ -324,15 +353,14 @@ func (ctrl *InstantWorkController) CompleteJob(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
-	jobIDStr := c.Params("id")
-	jobID, err := primitive.ObjectIDFromHex(jobIDStr)
+	jobID, err := jobIDParam(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid job ID"})
+		return fail(c, err)
 	}
 
 	job, err := ctrl.service.CompleteSpotJob(c.Context(), candidateID, jobID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
 	return c.Status(fiber.StatusOK).JSON(job)
@@ -345,16 +373,32 @@ func (ctrl *InstantWorkController) CloseJob(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
-	jobIDStr := c.Params("id")
-	jobID, err := primitive.ObjectIDFromHex(jobIDStr)
+	jobID, err := jobIDParam(c)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid job ID"})
+		return fail(c, err)
 	}
 
 	job, err := ctrl.service.CloseSpotJob(c.Context(), recruiterID, jobID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return fail(c, err)
 	}
 
+	return c.Status(fiber.StatusOK).JSON(job)
+}
+
+// CancelJob withdraws a spot job no worker has accepted yet
+func (ctrl *InstantWorkController) CancelJob(c *fiber.Ctx) error {
+	recruiterID, err := parseUserID(c)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
+	}
+	jobID, err := jobIDParam(c)
+	if err != nil {
+		return fail(c, err)
+	}
+	job, err := ctrl.service.CancelSpotJob(c.Context(), recruiterID, jobID)
+	if err != nil {
+		return fail(c, err)
+	}
 	return c.Status(fiber.StatusOK).JSON(job)
 }

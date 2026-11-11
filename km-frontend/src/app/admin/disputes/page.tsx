@@ -17,7 +17,7 @@ interface AdminDisputeItem {
     user_email?: string;
     transaction_id: string;
     amount: number;
-    currency: string;
+    refund_amount?: number;
     reason: string;
     description: string;
     status: 'pending' | 'under_review' | 'approved' | 'rejected';
@@ -43,6 +43,7 @@ export default function AdminDisputesPage() {
     const [selectedDispute, setSelectedDispute] = useState<AdminDisputeItem | null>(null);
     const [resolveStatus, setResolveStatus] = useState<'approved' | 'rejected' | 'under_review'>('approved');
     const [adminNotes, setAdminNotes] = useState('');
+    const [refundAmount, setRefundAmount] = useState('');
     const [isResolving, setIsResolving] = useState(false);
 
     const fetchDisputes = useCallback(async (targetPage = 1, filter = statusFilter) => {
@@ -127,6 +128,7 @@ export default function AdminDisputesPage() {
         setSelectedDispute(disp);
         setResolveStatus('approved');
         setAdminNotes(disp.admin_notes || '');
+        setRefundAmount('');
     };
 
     const closeResolveModal = () => {
@@ -141,11 +143,12 @@ export default function AdminDisputesPage() {
 
         setIsResolving(true);
         try {
-            const action = resolveStatus === 'approved' ? 'approve' : 'reject';
+            const action = resolveStatus === 'approved' ? 'approve' : resolveStatus === 'rejected' ? 'reject' : 'under_review';
+            const partial = resolveStatus === 'approved' && refundAmount.trim() ? Number(refundAmount) : undefined;
             const res = await api.put<unknown, { message?: string }>(`/admin/disputes/${selectedDispute.id}/resolve`, {
                 action,
-                status: resolveStatus,
                 admin_notes: adminNotes.trim(),
+                refund_amount: partial,
             });
             notify.success(res?.message || `Dispute marked ${STATUS_META[resolveStatus].label.toLowerCase()}`);
             setSelectedDispute(null);
@@ -358,9 +361,11 @@ export default function AdminDisputesPage() {
                                         ))}
                                     </div>
                                     {resolveStatus === 'approved' && (
-                                        <p className={field.hint}>
-                                            {formatCurrency(selectedDispute.amount)} goes back to the customer&apos;s wallet straight away.
-                                        </p>
+                                        <label className="block mt-3">
+                                            <span className={field.label}>Refund amount</span>
+                                            <input type="number" inputMode="decimal" step="0.01" max={selectedDispute.amount} value={refundAmount} onChange={(e) => setRefundAmount(e.target.value)} placeholder={String(selectedDispute.amount)} className={field.input} />
+                                            <span className={field.hint}>Leave blank to refund the full {formatCurrency(selectedDispute.amount)} to their wallet straight away.</span>
+                                        </label>
                                     )}
                                 </fieldset>
 

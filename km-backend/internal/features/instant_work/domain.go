@@ -34,23 +34,37 @@ type InstantWorker struct {
 	Mobile         string             `bson:"mobile" json:"mobile"`
 	ActiveSkill    string             `bson:"active_skill" json:"active_skill"` // e.g. "driver", "electrician", "plumber"
 	HourlyRate     float64            `bson:"hourly_rate" json:"hourly_rate"`
-	Rating         float64            `bson:"rating" json:"rating"`             // e.g. 4.9
-	TotalGigs      int                `bson:"total_gigs" json:"total_gigs"`     // e.g. 24
-	Location       GeoJSONPoint       `bson:"location" json:"location"`         // [lng, lat]
+	Rating         float64            `bson:"rating" json:"rating"`         // e.g. 4.9
+	TotalGigs      int                `bson:"total_gigs" json:"total_gigs"` // e.g. 24
+	Location       GeoJSONPoint       `bson:"location" json:"location"`     // [lng, lat]
 	IsFreeNow      bool               `bson:"is_free_now" json:"is_free_now"`
 	LastPingAt     time.Time          `bson:"last_ping_at" json:"last_ping_at"`
 	QuotaRemaining int                `bson:"quota_remaining" json:"quota_remaining"`
+	PassExpiresAt  time.Time          `bson:"pass_expires_at" json:"pass_expires_at"` // copied from the pass, so the radar can skip expired ones
 	UpdatedAt      time.Time          `bson:"updated_at" json:"updated_at"`
 }
 
-// InstantPass represents the ₹99 access pass granting 10 accepted gig dispatches
+// Pass channels: how the pass was paid for
+const (
+	PassChannelWallet = "wallet"
+	PassChannelOnline = "online"
+)
+
+// InstantPass is the ₹99 pass. It gives 10 gig credits and unlocks unlimited chats and the
+// Expert application for 90 days. Running out of credits doesn't end the 90 days.
+//
+// HasActivePass means this is the user's current pass: true until the pass is refunded or
+// replaced by a new one. A user has at most one such pass (unique partial index). Whether it's
+// still valid also depends on ExpiresAt.
 type InstantPass struct {
 	ID                primitive.ObjectID `bson:"_id,omitempty" json:"id"`
 	UserID            primitive.ObjectID `bson:"user_id" json:"user_id"`
 	HasActivePass     bool               `bson:"has_active_pass" json:"has_active_pass"`
-	QuotaTotal        int                `bson:"quota_total" json:"quota_total"`         // 10
-	QuotaRemaining    int                `bson:"quota_remaining" json:"quota_remaining"` // decrements on accepted claim
-	PriceINR          float64            `bson:"price_inr" json:"price_inr"`             // 99.00
+	Channel           string             `bson:"channel,omitempty" json:"channel,omitempty"`
+	EndedReason       string             `bson:"ended_reason,omitempty" json:"ended_reason,omitempty"` // replaced or refunded
+	QuotaTotal        int                `bson:"quota_total" json:"quota_total"`                       // 10
+	QuotaRemaining    int                `bson:"quota_remaining" json:"quota_remaining"`               // decrements on accepted claim
+	PriceINR          float64            `bson:"price_inr" json:"price_inr"`                           // 99.00
 	RazorpayOrderID   string             `bson:"razorpay_order_id,omitempty" json:"razorpay_order_id,omitempty"`
 	RazorpayPaymentID string             `bson:"razorpay_payment_id,omitempty" json:"razorpay_payment_id,omitempty"`
 	ActivatedAt       time.Time          `bson:"activated_at" json:"activated_at"`
@@ -80,6 +94,8 @@ type InstantJob struct {
 	CandidateMobile string              `bson:"candidate_mobile,omitempty" json:"candidate_mobile,omitempty"`
 	MatchedAt       *time.Time          `bson:"matched_at,omitempty" json:"matched_at,omitempty"`
 	CompletedAt     *time.Time          `bson:"completed_at,omitempty" json:"completed_at,omitempty"`
+	ClosedAt        *time.Time          `bson:"closed_at,omitempty" json:"closed_at,omitempty"`
+	CancelledAt     *time.Time          `bson:"cancelled_at,omitempty" json:"cancelled_at,omitempty"`
 	ExpiresAt       time.Time           `bson:"expires_at" json:"expires_at"` // 3-minute broadcast window
 	DistanceMeters  float64             `bson:"distance_meters,omitempty" json:"distance_meters,omitempty"`
 	DistanceKm      float64             `bson:"-" json:"distance_km,omitempty"`
@@ -127,7 +143,7 @@ type CreateInstantJobRequest struct {
 	PayRate         float64 `json:"pay_rate"`
 	RateType        string  `json:"rate_type"` // "hourly" or "flat"
 	DurationHours   int     `json:"duration_hours"`
-	RequiredWorkers int     `json:"required_workers"`
+	RequiredWorkers int     `json:"required_workers"` // only 1 is supported for now
 	Notes           string  `json:"notes"`
 }
 
@@ -153,7 +169,8 @@ type CandidateStatusResponse struct {
 	ActiveSkill     string       `json:"active_skill"`
 	HourlyRate      float64      `json:"hourly_rate"`
 	QuotaRemaining  int          `json:"quota_remaining"`
-	HasActivePass   bool         `json:"has_active_pass"`
+	HasActivePass   bool         `json:"has_active_pass"` // a pass that hasn't expired, even with 0 credits left
+	QuotaTotal      int          `json:"quota_total"`
 	PassExpiresAt   *time.Time   `json:"pass_expires_at,omitempty"`
 	CurrentLocation GeoJSONPoint `json:"current_location"`
 	LastPingAt      *time.Time   `json:"last_ping_at,omitempty"`

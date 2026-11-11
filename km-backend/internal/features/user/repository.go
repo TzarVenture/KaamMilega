@@ -49,7 +49,7 @@ type UserRepository interface {
 	GetLiveActivity(ctx context.Context) ([]map[string]interface{}, error)
 	FindUserByUsername(ctx context.Context, username string) (*User, error)
 	BackfillUsernames(ctx context.Context) error
-	HasActivePassOrSubscription(ctx context.Context, userID string) (bool, error)
+	HasActivePass(ctx context.Context, userID string) (bool, error)
 	OwnsPrivateFile(ctx context.Context, userID, ref, kind string) (bool, error)
 	BumpSessionVersion(ctx context.Context, userID string) (int, error)
 	HasRestrictedProfileAccess(ctx context.Context, ownerID, viewerID string, allowConnections bool) (bool, error)
@@ -861,15 +861,15 @@ func GenerateDefaultUsername(name, idHex string) string {
 	return fmt.Sprintf("%s-%s", base, suffix)
 }
 
-// HasActivePassOrSubscription checks if the user has an active ₹99 InstantPass or active Pro Expert Subscription
-func (r *UserRepositoryImpl) HasActivePassOrSubscription(ctx context.Context, userID string) (bool, error) {
+// HasActivePass checks if the user has a ₹99 InstantPass that has not expired or been refunded.
+// Used-up gig credits do not matter here.
+func (r *UserRepositoryImpl) HasActivePass(ctx context.Context, userID string) (bool, error) {
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return false, err
 	}
 	now := time.Now()
 
-	// 1. Check instant_passes
 	passCount, err := r.db.DB.Collection("instant_passes").CountDocuments(ctx, bson.M{
 		"user_id":         objID,
 		"has_active_pass": true,
@@ -878,21 +878,7 @@ func (r *UserRepositoryImpl) HasActivePassOrSubscription(ctx context.Context, us
 	if err != nil {
 		return false, err
 	}
-	if passCount > 0 {
-		return true, nil
-	}
-
-	// 2. Check expert_subscriptions
-	subCount, err := r.db.DB.Collection("expert_subscriptions").CountDocuments(ctx, bson.M{
-		"user_id":    objID,
-		"status":     "active",
-		"expires_at": bson.M{"$gte": now},
-	})
-	if err != nil {
-		return false, err
-	}
-
-	return subCount > 0, nil
+	return passCount > 0, nil
 }
 
 func (r *UserRepositoryImpl) ExportUsersCSV(ctx context.Context, role string) ([]byte, error) {

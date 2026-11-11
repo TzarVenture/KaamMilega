@@ -2,14 +2,14 @@ package event
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"testing"
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/database"
+	"km-backend/internal/features/payment"
+	"km-backend/internal/features/payment/paymenttest"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -76,7 +76,10 @@ func (m *mockEventRepo) DecrementAvailableSeats(ctx context.Context, eventID pri
 	if !ok {
 		return errors.New("event not found")
 	}
-	if e.Capacity > 0 && e.AvailableSeats > 0 {
+	if e.Capacity > 0 {
+		if e.AvailableSeats <= 0 {
+			return ErrEventSoldOut
+		}
 		e.AvailableSeats--
 	}
 	return nil
@@ -183,6 +186,23 @@ func (m *mockEventRepo) AdminDeleteEvent(ctx context.Context, eventID primitive.
 	return nil
 }
 
+func (m *mockEventRepo) RevokeTicket(ctx context.Context, eventID, userID primitive.ObjectID, razorpayOrderID string) error {
+	for _, ticket := range m.tickets {
+		if ticket.RazorpayOrderID == razorpayOrderID && ticket.Status == "confirmed" {
+			ticket.Status, ticket.PaymentStatus = "cancelled", "refunded"
+			e := m.events[eventID.Hex()]
+			for i, p := range e.Participants {
+				if p == userID {
+					e.Participants = append(e.Participants[:i], e.Participants[i+1:]...)
+					break
+				}
+			}
+			e.AvailableSeats++
+		}
+	}
+	return nil
+}
+
 // Mock User Repo
 type mockUserRepo struct {
 	user.UserRepository
@@ -256,7 +276,7 @@ func TestEvent_FreeRegistration(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil, paymenttest.New(), database.NoopTransactor{})
 
 	// Create Free Event
 	ev, _ := repo.CreateEvent(ctx, &Event{
@@ -306,7 +326,7 @@ func TestEvent_PaidEventRejectsFreeRegistration(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil, paymenttest.New(), database.NoopTransactor{})
 
 	// Create Paid Event
 	ev, _ := repo.CreateEvent(ctx, &Event{
@@ -335,7 +355,7 @@ func TestEvent_WalletCheckout_InsufficientFunds(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil, paymenttest.New(), database.NoopTransactor{})
 
 	ev, _ := repo.CreateEvent(ctx, &Event{
 		Title:          "Fullstack AI Masterclass",
@@ -366,7 +386,7 @@ func TestEvent_WalletCheckout_Success(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil, paymenttest.New(), database.NoopTransactor{})
 
 	ev, _ := repo.CreateEvent(ctx, &Event{
 		Title:          "DevOps & Kubernetes Workshop",
@@ -431,61 +451,125 @@ func TestEvent_WalletCheckout_Success(t *testing.T) {
 	}
 }
 
-func TestEvent_RazorpayPaymentVerification(t *testing.T) {
-	ctx := context.Background()
+func paidEvent(ctx context.Context, repo *mockEventRepo, price float64, seats int) *Event {
+	ev, _ := repo.CreateEvent(ctx, &Event{Title: "Data Science Hackathon Pass", IsPaid: true, Price: price, Capacity: seats, AvailableSeats: seats})
+	return ev
+}
+
+func newRazorpayFixture() (*mockEventRepo, *paymenttest.Fake, EventService) {
 	repo := newMockEventRepo()
+	fake := paymenttest.New()
 	userRepo := &mockUserRepo{users: make(map[string]*user.User)}
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
-	secret := "test_secret_key_12345"
-	cfg := &config.Config{RazorpayKeySecret: secret}
+	return repo, fake, NewEventService(repo, userRepo, walletSvc, &config.Config{}, nil, fake, database.NoopTransactor{})
+}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
-
-	ev, _ := repo.CreateEvent(ctx, &Event{
-		Title:          "Data Science Hackathon Pass",
-		IsPaid:         true,
-		Price:          199.0,
-		Capacity:       100,
-		AvailableSeats: 100,
-	})
-
+func TestEvent_RazorpayCheckoutIssuesOneTicketAfterPayment(t *testing.T) {
+	ctx := context.Background()
+	repo, _, svc := newRazorpayFixture()
+	ev := paidEvent(ctx, repo, 199, 100)
 	userID := primitive.NewObjectID().Hex()
-	orderID := "order_evt_998877"
-	paymentID := "pay_evt_112233"
 
-	// Calculate valid HMAC-SHA256 signature
-	data := orderID + "|" + paymentID
-	h := hmac.New(sha256.New, []byte(secret))
-	h.Write([]byte(data))
-	validSig := hex.EncodeToString(h.Sum(nil))
-
-	// Invalid signature test
-	_, errInvalid := svc.VerifyEventPayment(ctx, userID, ev.ID.Hex(), VerifyEventPaymentRequest{
-		RazorpayOrderID:   orderID,
-		RazorpayPaymentID: paymentID,
-		RazorpaySignature: "invalid_sig_abc",
-	})
-	if errInvalid == nil {
-		t.Errorf("expected signature verification failure, got nil")
+	checkout, err := svc.CreateEventOrder(ctx, userID, ev.ID.Hex(), CreateEventOrderRequest{AttendeeName: "Alex", AttendeeEmail: "alex@example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(repo.tickets) != 0 || checkout.Amount != 199 {
+		t.Fatalf("tickets = %d, amount = %v", len(repo.tickets), checkout.Amount)
 	}
 
-	// Valid signature test
-	ticket, errValid := svc.VerifyEventPayment(ctx, userID, ev.ID.Hex(), VerifyEventPaymentRequest{
-		RazorpayOrderID:   orderID,
-		RazorpayPaymentID: paymentID,
-		RazorpaySignature: validSig,
-		AttendeeName:      "Alex Data",
-		AttendeeEmail:     "alex@datascience.com",
-	})
-	if errValid != nil {
-		t.Fatalf("expected payment verification success, got: %v", errValid)
+	input := VerifyEventPaymentRequest{RazorpayOrderID: checkout.OrderID, RazorpayPaymentID: "pay_1", RazorpaySignature: "sig"}
+	for i := 0; i < 2; i++ {
+		ticket, err := svc.VerifyEventPayment(ctx, userID, ev.ID.Hex(), input)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if ticket.PaymentStatus != "paid" || ticket.PaymentMethod != "razorpay" || ticket.RazorpayPaymentID != "pay_1" || ticket.AttendeeName != "Alex" {
+			t.Fatalf("ticket = %+v", ticket)
+		}
+	}
+	if len(repo.tickets) != 1 || ev.AvailableSeats != 99 {
+		t.Fatalf("tickets = %d, seats = %d", len(repo.tickets), ev.AvailableSeats)
 	}
 
-	if ticket.PaymentStatus != "paid" || ticket.PaymentMethod != "razorpay" {
-		t.Errorf("unexpected ticket payment status: %+v", ticket)
+	if _, err := svc.VerifyEventPayment(ctx, primitive.NewObjectID().Hex(), ev.ID.Hex(), input); !errors.Is(err, payment.ErrOrderNotFound) {
+		t.Fatalf("another user: %v", err)
 	}
-	if ticket.RazorpayPaymentID != paymentID || ticket.RazorpayOrderID != orderID {
-		t.Errorf("unexpected razorpay reference IDs")
+}
+
+func TestEvent_PriceComesFromTheServer(t *testing.T) {
+	ctx := context.Background()
+	repo, fake, svc := newRazorpayFixture()
+	ev := paidEvent(ctx, repo, 199, 100)
+
+	checkout, err := svc.CreateEventOrder(ctx, primitive.NewObjectID().Hex(), ev.ID.Hex(), CreateEventOrderRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fake.Orders[checkout.OrderID].AmountPaise != 19900 {
+		t.Fatalf("order = %+v", fake.Orders[checkout.OrderID])
+	}
+}
+
+func TestEvent_SoldOutWhilePayingIsRefunded(t *testing.T) {
+	ctx := context.Background()
+	repo, fake, svc := newRazorpayFixture()
+	ev := paidEvent(ctx, repo, 199, 1)
+	userID := primitive.NewObjectID().Hex()
+
+	checkout, err := svc.CreateEventOrder(ctx, userID, ev.ID.Hex(), CreateEventOrderRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ev.AvailableSeats = 0
+
+	_, err = svc.VerifyEventPayment(ctx, userID, ev.ID.Hex(), VerifyEventPaymentRequest{RazorpayOrderID: checkout.OrderID, RazorpayPaymentID: "pay_1", RazorpaySignature: "sig"})
+	if !errors.Is(err, payment.ErrRefunding) {
+		t.Fatalf("err = %v", err)
+	}
+	if len(repo.tickets) != 0 || fake.Orders[checkout.OrderID].Status != payment.StatusRefundDue {
+		t.Fatalf("tickets = %d, order = %+v", len(repo.tickets), fake.Orders[checkout.OrderID])
+	}
+}
+
+func TestEvent_AdminRefundCancelsTheTicketAndFreesTheSeat(t *testing.T) {
+	ctx := context.Background()
+	repo, fake, svc := newRazorpayFixture()
+	ev := paidEvent(ctx, repo, 199, 10)
+	userID := primitive.NewObjectID().Hex()
+
+	checkout, _ := svc.CreateEventOrder(ctx, userID, ev.ID.Hex(), CreateEventOrderRequest{})
+	ticket, err := svc.VerifyEventPayment(ctx, userID, ev.ID.Hex(), VerifyEventPaymentRequest{RazorpayOrderID: checkout.OrderID, RazorpayPaymentID: "pay_1", RazorpaySignature: "sig"})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := fake.Handlers[payment.PurposeEventTicket].Revoke(ctx, fake.Orders[checkout.OrderID]); err != nil {
+		t.Fatal(err)
+	}
+	if ticket.Status != "cancelled" || ev.AvailableSeats != 10 || len(ev.Participants) != 0 {
+		t.Fatalf("ticket = %s, seats = %d, participants = %d", ticket.Status, ev.AvailableSeats, len(ev.Participants))
+	}
+}
+
+func TestEvent_SecondWalletTicketIsRefused(t *testing.T) {
+	ctx := context.Background()
+	repo := newMockEventRepo()
+	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
+	svc := NewEventService(repo, &mockUserRepo{users: make(map[string]*user.User)}, walletSvc, &config.Config{}, nil, paymenttest.New(), database.NoopTransactor{})
+	ev := paidEvent(ctx, repo, 100, 10)
+	userID := primitive.NewObjectID().Hex()
+	walletSvc.wallets[userID] = &wallet.WalletSummaryResponse{MainBalance: 1000}
+
+	req := EventWalletCheckoutRequest{AttendeeName: "A", AttendeeEmail: "a@example.com"}
+	if _, _, err := svc.BookTicketWithWallet(ctx, userID, ev.ID.Hex(), req); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := svc.BookTicketWithWallet(ctx, userID, ev.ID.Hex(), req); !errors.Is(err, ErrEventTicketTaken) {
+		t.Fatalf("err = %v", err)
+	}
+	if walletSvc.wallets[userID].MainBalance != 900 {
+		t.Fatalf("balance = %v", walletSvc.wallets[userID].MainBalance)
 	}
 }
 
@@ -496,7 +580,7 @@ func TestEvent_CapacitySoldOut(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil, paymenttest.New(), database.NoopTransactor{})
 
 	ev, _ := repo.CreateEvent(ctx, &Event{
 		Title:          "Exclusive VIP Workshop",
@@ -526,7 +610,7 @@ func TestGetEventAttendees(t *testing.T) {
 	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
 	cfg := &config.Config{}
 
-	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil)
+	svc := NewEventService(repo, userRepo, walletSvc, cfg, nil, paymenttest.New(), database.NoopTransactor{})
 
 	p1 := primitive.NewObjectID()
 	p2 := primitive.NewObjectID()
@@ -554,4 +638,3 @@ func TestGetEventAttendees(t *testing.T) {
 		t.Errorf("expected attendee ID %s, got %s", p1.Hex(), resp.Attendees[0].ID)
 	}
 }
-

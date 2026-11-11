@@ -1,8 +1,10 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowSquareOutIcon, ArrowUpRightIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, LinkSimpleIcon, NotePencilIcon, PlusIcon, ShieldCheckIcon, TrashIcon, UserIcon, VideoCameraIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowSquareOutIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, LinkSimpleIcon, NotePencilIcon, PlusIcon, ShieldCheckIcon, TrashIcon, UserIcon, VideoCameraIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
+import { inr } from '@/lib/money';
+import { btn } from '@/components/admin/ui';
 import Link from 'next/link';
 import { notify, errorText } from "@/lib/notify";
 
@@ -70,30 +72,26 @@ export default function ExpertMentorshipManagement() {
               </span>
             </div>
             <h1 className="text-xl md:text-3xl font-black text-gray-900 mb-0.5 md:mb-1">Mentor Dashboard</h1>
-            <p className="text-[11px] md:text-sm text-gray-500 font-medium">Manage booked 1-on-1 sessions, release completed escrow earnings, and track payouts.</p>
+            <p className="text-[11px] md:text-sm text-gray-500 font-medium">Manage your booked sessions and track your payouts.</p>
           </div>
 
           {/* Quick Wallet Stats Widget */}
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             {wallet && (
-              <div className="flex items-center gap-4 bg-km-surface-card border border-gray-200/80 rounded-2xl px-4 py-2.5 shadow-sm">
+              <dl className="flex items-center gap-6 bg-km-surface-card border border-km-border rounded-xl px-4 py-2">
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">Withdrawable Earnings</div>
-                  <div className="text-base md:text-lg font-black text-emerald-600 dark:text-emerald-400">₹{wallet.withdrawable_balance?.toLocaleString('en-IN') || 0}</div>
+                  <dt className="text-sm text-km-text-secondary">Earnings</dt>
+                  <dd className="text-lg font-semibold text-km-heading font-inter tabular-nums">{inr(wallet.withdrawable_balance)}</dd>
                 </div>
-                <div className="h-7 w-[1px] bg-gray-100" />
                 <div>
-                  <div className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">In Escrow (Held)</div>
-                  <div className="text-base md:text-lg font-black text-blue-600 dark:text-blue-400">₹{wallet.locked_balance?.toLocaleString('en-IN') || 0}</div>
+                  <dt className="text-sm text-km-text-secondary">On hold</dt>
+                  <dd className="text-lg font-semibold text-km-heading font-inter tabular-nums">{inr(wallet.locked_balance)}</dd>
                 </div>
-              </div>
+              </dl>
             )}
 
-            <Link 
-              href="/wallet"
-              className="bg-km-primary hover:bg-km-primary-dark text-white px-4 py-2.5 rounded-xl font-bold transition-all shadow-md flex items-center gap-1.5 text-xs md:text-sm whitespace-nowrap"
-            >
-              <WalletIcon weight="bold" size={16} /> Wallet & Payouts (F71) <ArrowUpRightIcon weight="bold" size={14} />
+            <Link href="/wallet" className={btn.secondary}>
+              <WalletIcon size={16} aria-hidden="true" /> Wallet
             </Link>
 
             {activeTab === 'sessions' && (
@@ -196,11 +194,11 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
       setActionLoadingId(booking.id);
       await api.patch(`/mentorships/bookings/${booking.id}/status?status=${status}`);
       if (status === 'completed') {
-        notify.success(`🎉 Session Completed! ₹${booking.amount || 0} has been released from escrow into your Wallet Earnings!`);
+        notify.success("Session marked done. You're paid when the mentee confirms, or automatically after 24 hours.");
       } else if (status === 'confirmed') {
         notify.success("Session confirmed! Candidate has been notified.");
       } else if (status === 'cancelled') {
-        notify.info("Session cancelled. Escrow payment was safely refunded to the candidate.");
+        notify.info("Session cancelled. The candidate is being refunded.");
       }
       onUpdate();
     } catch (e: any) {
@@ -246,6 +244,8 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
         const isConfirmed = b.status === 'confirmed';
         const isPending = b.status === 'pending';
         const isCancelled = b.status === 'cancelled';
+        const isAwaiting = b.status === 'awaiting_confirmation';
+        const isReported = b.status === 'reported';
         const isLoading = actionLoadingId === b.id;
 
         return (
@@ -269,7 +269,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                     isPending ? 'bg-amber-50 text-amber-700 border border-amber-200' :
                     'bg-gray-100 text-gray-600'
                   }`}>
-                    {b.status}
+                    {isAwaiting ? 'Waiting for mentee' : isReported ? 'Reported' : b.status}
                   </span>
                 </div>
 
@@ -353,13 +353,13 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                     ) : (
                       <CheckCircleIcon weight="bold" size={14} />
                     )}
-                    Mark Completed & Release ₹{b.amount}
+                    Mark session done
                   </button>
                   
                   <button 
                     disabled={isLoading}
                     onClick={() => {
-                      if (confirm("Are you sure you want to cancel? The mentee will receive an automatic wallet refund.")) {
+                      if (confirm("Are you sure you want to cancel? The mentee will be refunded automatically.")) {
                         handleStatus(b, 'cancelled');
                       }
                     }}
@@ -370,6 +370,9 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                   </button>
                 </div>
               )}
+
+              {isAwaiting && <p className="text-xs text-gray-500">You'll be paid ₹{b.amount} when the mentee confirms, or after 24 hours.</p>}
+              {isReported && <p className="text-xs text-gray-500">Reported by the mentee. Payment is on hold while we review it.</p>}
 
               {isCompleted && (
                 <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 dark:text-emerald-400">

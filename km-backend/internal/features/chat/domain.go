@@ -10,6 +10,7 @@ import (
 type Conversation struct {
 	ID            primitive.ObjectID   `bson:"_id,omitempty" json:"id"`
 	Participants  []primitive.ObjectID `bson:"participants" json:"participants"`
+	StartedBy     primitive.ObjectID   `bson:"started_by,omitempty" json:"-"`
 	LastMessageID primitive.ObjectID   `bson:"last_message_id,omitempty" json:"last_message_id,omitempty"`
 	LastMessage   string               `bson:"last_message,omitempty" json:"last_message,omitempty"`
 	UpdatedAt     time.Time            `bson:"updated_at" json:"updated_at"`
@@ -201,17 +202,25 @@ type ChatRepository interface {
 	GetChatReportByID(ctx context.Context, id primitive.ObjectID) (*ChatReport, error)
 	ResolveChatReport(ctx context.Context, id primitive.ObjectID, status, actionTaken, adminNotes string, adminID *primitive.ObjectID, adminName string) error
 
-	// Entitlement & ₹99 Pass Gate (3 Free Chats limit)
-	CanInitiateNewConversation(ctx context.Context, userID primitive.ObjectID) (bool, error)
-	GetChatEntitlement(ctx context.Context, userID primitive.ObjectID) (*ChatEntitlementResponse, error)
+	// Free chat limit and ₹99 pass
+	ActivePass(ctx context.Context, userID primitive.ObjectID) (bool, int, error)
+	CountConversationsStartedSince(ctx context.Context, userID primitive.ObjectID, since time.Time) (int64, error)
 }
 
+// ChatEntitlementResponse says which new chats the user can start. Without the ₹99 pass, a user
+// can start DailyFreeChats new chats a day, only with recruiters. Replies are always free.
 type ChatEntitlementResponse struct {
+	StartedToday       int64     `json:"started_today"`
+	DailyFreeLimit     int64     `json:"daily_free_limit"`
+	FreeRemaining      int64     `json:"free_remaining"` // new chats with recruiters left today
+	ResetsAt           time.Time `json:"resets_at"`
+	HasActivePass      bool      `json:"has_active_pass"`
+	Unlimited          bool      `json:"unlimited"`     // pass holders, recruiters and admins can start any chat
+	CanStartNew        bool      `json:"can_start_new"` // can start a chat with a recruiter right now
+	PassQuotaRemaining int       `json:"pass_quota_remaining"`
+
+	// Deprecated: same as StartedToday, kept for older app versions
 	DistinctConversations int64 `json:"distinct_conversations"`
-	FreeRemaining         int64 `json:"free_remaining"`
-	HasActivePass         bool  `json:"has_active_pass"`
-	CanStartNew           bool  `json:"can_start_new"`
-	PassQuotaRemaining    int   `json:"pass_quota_remaining"`
 }
 
 type ChatService interface {

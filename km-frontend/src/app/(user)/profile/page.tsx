@@ -17,7 +17,7 @@ import EditContactInfoModal from './modals/EditContactInfoModal';
 import EmailVerificationModal from './modals/EmailVerificationModal';
 import ProjectModal from './modals/ProjectModal';
 import PortfolioLinkModal from './modals/PortfolioLinkModal';
-import RefillWalletModal from './modals/RefillWalletModal';
+import WalletSummaryCard from '@/components/km/WalletSummaryCard';
 import { EditPublicUrlModal } from './modals/EditPublicUrlModal';
 import { OpenToWorkModal } from './modals/OpenToWorkModal';
 import { ProvidingServicesModal } from './modals/ProvidingServicesModal';
@@ -46,9 +46,7 @@ const ProfilePage = () => {
         portfolioLink: false,
     });
 
-    // Wallet states
-    const [walletBalance, setWalletBalance] = useState<number>(0);
-    const [isRefillModalOpen, setIsRefillModalOpen] = useState(false);
+
     const [isEditUrlModalOpen, setIsEditUrlModalOpen] = useState(false);
 
     // Edit states
@@ -220,17 +218,10 @@ const ProfilePage = () => {
 
         const fetchSidebarData = async () => {
             try {
-                const [expertsRes, jobsRes, walletRes] = await Promise.allSettled([
+                const [expertsRes, jobsRes] = await Promise.allSettled([
                     api.get('/experts').catch(() => []),
                     api.get('/jobs?limit=3').catch(() => ({ jobs: [] })),
-                    api.get('/wallet/balance').catch(() => null)
                 ]);
-
-                if (walletRes.status === 'fulfilled' && walletRes.value) {
-                    const wData = walletRes.value as any;
-                    const bal = typeof wData.total_balance === 'number' ? wData.total_balance : (typeof wData.main_balance === 'number' ? wData.main_balance : 0);
-                    setWalletBalance(bal);
-                }
 
                 if (expertsRes.status === 'fulfilled') {
                     const eData = expertsRes.value as any;
@@ -1155,23 +1146,7 @@ const ProfilePage = () => {
                 {/* RIGHT COLUMN - SIDEBAR (4 Units) */}
                 <div className="lg:col-span-4 space-y-6">
 
-                    {/* Wallet Card */}
-                    <div className="bg-linear-to-br from-km-primary-dark via-[#071A4D] to-[#0F172A] rounded-xl p-5 sm:p-6 text-white flex justify-between items-center shadow-lg border border-blue-900/40">
-                        <div>
-                            <p className="text-xs font-medium text-blue-200">Wallet Balance</p>
-                            <p className="text-2xl sm:text-3xl font-black mt-1">₹{walletBalance.toFixed(2)}</p>
-                            <Link href="/wallet" className="text-xs text-blue-300 hover:text-white underline mt-1 inline-block">
-                                View transactions ↗
-                            </Link>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={() => setIsRefillModalOpen(true)}
-                            className="bg-km-accent hover:bg-orange-600 text-white font-bold px-4 py-2 rounded-xl text-xs shadow-md transition-all cursor-pointer active:scale-95"
-                        >
-                            Refill
-                        </button>
-                    </div>
+                    <WalletSummaryCard />
 
                     {/* Settings / Public Profile Card */}
                     <div className="bg-km-surface-card rounded-xl p-6 border border-gray-200 space-y-4">
@@ -1342,15 +1317,6 @@ const ProfilePage = () => {
                 user={user}
                 onClose={() => setModals((m) => ({ ...m, portfolioLink: false }))}
                 onSuccess={(updatedUser) => setUser(updatedUser)}
-            />
-            <RefillWalletModal
-                isOpen={isRefillModalOpen}
-                currentBalance={walletBalance}
-                onClose={() => setIsRefillModalOpen(false)}
-                onSuccess={(newBal) => {
-                    setWalletBalance(newBal);
-                    setUser((prev: any) => ({ ...prev, wallet_balance: newBal }));
-                }}
             />
             <EditPublicUrlModal
                 isOpen={isEditUrlModalOpen}

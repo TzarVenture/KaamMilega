@@ -34,6 +34,10 @@ import {
     UsersIcon,
     VideoCameraIcon,
     XIcon,
+    BankIcon,
+    ChartLineUpIcon,
+    ChatsCircleIcon,
+    CreditCardIcon,
 } from '@phosphor-icons/react';
 import { useNotifications } from '@/lib/notifications';
 import AdminGlobalSearch from '@/components/admin/AdminGlobalSearch';
@@ -84,11 +88,20 @@ const navGroups: { label: string; items: NavItem[] }[] = [
         ],
     },
     {
+        label: 'Money',
+        items: [
+            { name: 'Payouts', icon: BankIcon, href: '/admin/payouts' },
+            { name: 'Finance', icon: ChartLineUpIcon, href: '/admin/finance' },
+            { name: 'Payments', icon: CreditCardIcon, href: '/admin/payments' },
+        ],
+    },
+    {
         label: 'Trust and safety',
         items: [
             { name: 'Post reports', icon: FlagIcon, href: '/admin/post-reports' },
             { name: 'Chat reports', icon: ChatCircleTextIcon, href: '/admin/chat-reports' },
             { name: 'Wallet disputes', icon: ShieldWarningIcon, href: '/admin/disputes' },
+            { name: 'Session reports', icon: ChatsCircleIcon, href: '/admin/session-reports' },
         ],
     },
 ];

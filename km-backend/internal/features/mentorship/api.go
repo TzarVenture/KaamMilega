@@ -18,6 +18,10 @@ func NewMentorshipApi(controller *MentorshipController) api.Route {
 func (api *MentorshipApi) Setup(app *fiber.App) {
 	jwtAuth := middleware.AuthMiddleware(api.controller.config.JWTSecret)
 
+	admin := app.Group("/api/admin/mentorship/reports", jwtAuth, middleware.RequireRole("admin"))
+	admin.Get("/", api.controller.GetReportedBookings)
+	admin.Post("/:id/resolve", api.controller.ResolveReport)
+
 	// Public routes
 	app.Get("/api/mentorships", api.controller.ListMentorships)
 	app.Get("/api/mentorships/expert/:expert_id/availability", api.controller.GetAvailability)
@@ -46,6 +50,8 @@ func (api *MentorshipApi) Setup(app *fiber.App) {
 	protected.Get("/bookings/expert", jwtAuth, api.controller.GetExpertBookings)
 	protected.Patch("/bookings/:id/status", jwtAuth, api.controller.UpdateBookingStatus)
 	protected.Patch("/bookings/:id/meeting-link", jwtAuth, api.controller.UpdateMeetingLink)
+	protected.Post("/bookings/:id/confirm", jwtAuth, api.controller.ConfirmSession)
+	protected.Post("/bookings/:id/report", jwtAuth, api.controller.ReportSession)
 	protected.Post("/bookings/:id/review", jwtAuth, api.controller.SubmitBookingReview)
 	
 	// Dynamic ID routes must be defined last

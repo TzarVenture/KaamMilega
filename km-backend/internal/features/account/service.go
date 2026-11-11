@@ -201,31 +201,31 @@ func evaluate(c *deletionChecks) ([]Blocker, []Warning) {
 	blockers := []Blocker{}
 	warnings := []Warning{}
 	if w := c.Wallet; w != nil {
-		if w.Earnings > 0.0049 {
+		if w.earnings() > 0.0049 {
 			blockers = append(blockers, Blocker{
 				Code: "wallet_earnings", Title: "Withdraw your earnings",
-				Detail:      formatINR(w.Earnings) + " in earnings is still in your wallet.",
+				Detail:      formatINR(w.earnings()) + " in earnings is still in your wallet.",
 				ActionLabel: "Go to wallet", ActionURL: "/wallet",
 			})
 		}
-		if w.Main > 0.0049 {
+		if w.main() > 0.0049 {
 			blockers = append(blockers, Blocker{
 				Code: "wallet_balance", Title: "Use or refund your wallet balance",
-				Detail:      formatINR(w.Main) + " is in your wallet. Spend it, or contact support for a refund.",
+				Detail:      formatINR(w.main()) + " is in your wallet. Spend it, or contact support for a refund.",
 				ActionLabel: "Go to wallet", ActionURL: "/wallet",
 			})
 		}
-		if w.Locked > 0.0049 {
+		if w.locked() > 0.0049 {
 			blockers = append(blockers, Blocker{
 				Code: "wallet_escrow", Title: "Payments on hold",
-				Detail:      formatINR(w.Locked) + " is held for sessions or work in progress. It's released once they finish.",
+				Detail:      formatINR(w.locked()) + " is held for sessions or work in progress. It's released once they finish.",
 				ActionLabel: "Go to wallet", ActionURL: "/wallet",
 			})
 		}
-		if w.Bonus > 0.0049 {
+		if w.bonus() > 0.0049 {
 			warnings = append(warnings, Warning{
 				Code: "wallet_bonus", Title: "Bonus credits will be lost",
-				Detail: formatINR(w.Bonus) + " in promotional credits can't be withdrawn and will be forfeited.",
+				Detail: formatINR(w.bonus()) + " in promotional credits can't be withdrawn and will be forfeited.",
 			})
 		}
 	}

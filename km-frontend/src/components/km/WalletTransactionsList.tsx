@@ -1,345 +1,109 @@
-"use client";
+'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowDownLeftIcon, ArrowUpRightIcon, BriefcaseIcon, CaretLeftIcon, CaretRightIcon, ClockIcon, CreditCardIcon, GiftIcon, LightningIcon, ReceiptIcon, ShieldWarningIcon, UsersIcon } from '@phosphor-icons/react';
+import React, { useEffect, useState } from 'react';
+import { ReceiptIcon } from '@phosphor-icons/react';
+import { useLocale, useTranslations } from 'next-intl';
 import api from '@/lib/axios';
+import { dateTime, inr } from '@/lib/money';
+import Pagination from '@/components/ui/Pagination';
+import { BadgeTone, EmptyState, FilterTabs, SkeletonRows, StatusBadge } from '@/components/admin/ui';
 
 export interface TransactionItem {
     id: string;
-    wallet_id: string;
     type: 'credit' | 'debit';
     target_balance: 'main' | 'earnings' | 'locked' | 'bonus';
     category: string;
     amount: number;
     balance_after: number;
-    status: string;
-    reference_id?: string;
+    status: 'completed' | 'pending' | 'failed' | 'reversed';
     description: string;
-    metadata?: Record<string, any>;
+    disputable: boolean;
     created_at: string;
 }
 
-interface TransactionsResponse {
-    transactions: TransactionItem[];
-    total: number;
-    page: number;
-    limit: number;
-    total_pages: number;
+type Filter = 'all' | 'credit' | 'debit' | 'earnings';
+
+const CATEGORIES = ['topup', 'pass_purchase', 'session_booking', 'session_payout', 'gig_payout', 'withdrawal', 'bonus_reward', 'refund', 'subscription', 'event_ticket'];
+const STATUS_TONE: Record<TransactionItem['status'], BadgeTone> = { completed: 'green', pending: 'amber', failed: 'red', reversed: 'neutral' };
+
+function filterParams(filter: Filter) {
+    if (filter === 'credit' || filter === 'debit') return { type: filter };
+    if (filter === 'earnings') return { target_balance: 'earnings' };
+    return {};
 }
 
 interface Props {
     refreshKey?: number;
-    onRaiseDispute?: (transaction: TransactionItem) => void;
+    onRaiseDispute: (transaction: TransactionItem) => void;
 }
 
 export default function WalletTransactionsList({ refreshKey = 0, onRaiseDispute }: Props) {
-    const [transactions, setTransactions] = useState<TransactionItem[]>([]);
+    const t = useTranslations('walletPage');
+    const locale = useLocale();
+    const [items, setItems] = useState<TransactionItem[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'all' | 'credit' | 'debit' | 'earnings'>('all');
+    const [filter, setFilter] = useState<Filter>('all');
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
-
-    const fetchTransactions = useCallback(async (targetPage = 1, filter = activeTab) => {
-        setLoading(true);
-        try {
-            const params: Record<string, any> = {
-                page: targetPage,
-                limit: 10,
-            };
-
-            if (filter === 'credit') {
-                params.type = 'credit';
-            } else if (filter === 'debit') {
-                params.type = 'debit';
-            } else if (filter === 'earnings') {
-                params.target_balance = 'earnings';
-            }
-
-            const res: any = await api.get('/wallet/transactions', { params });
-            if (res && res.transactions) {
-                setTransactions(res.transactions);
-                setTotalPages(res.total_pages || 1);
-                setTotalCount(res.total || 0);
-            } else {
-                setTransactions([]);
-                setTotalPages(1);
-                setTotalCount(0);
-            }
-        } catch (error) {
-            console.error("Failed to load transactions", error);
-            setTransactions([]);
-            setTotalPages(1);
-            setTotalCount(0);
-        } finally {
-            setLoading(false);
-        }
-    }, [activeTab]);
 
     useEffect(() => {
-        fetchTransactions(page, activeTab);
-    }, [fetchTransactions, page, activeTab, refreshKey]);
-
-    const handleTabChange = (tab: 'all' | 'credit' | 'debit' | 'earnings') => {
-        setActiveTab(tab);
-        setPage(1);
-    };
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            maximumFractionDigits: 2,
-        }).format(amount);
-    };
-
-    const formatDate = (isoString: string) => {
-        if (!isoString) return '';
-        const d = new Date(isoString);
-        return d.toLocaleDateString('en-IN', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
-
-    const getCategoryBadge = (category: string, targetBalance: string) => {
-        switch (category) {
-            case 'topup':
-                return { label: 'Recharge', bg: 'bg-blue-50 text-blue-700 border-blue-100', icon: CreditCardIcon };
-            case 'pass_purchase':
-                return { label: 'Platform Pass', bg: 'bg-amber-50 text-amber-700 border-amber-100', icon: LightningIcon };
-            case 'session_booking':
-                return { label: 'Mentorship', bg: 'bg-purple-50 text-purple-700 border-purple-100', icon: UsersIcon };
-            case 'session_payout':
-            case 'gig_payout':
-                return { label: 'Gig Earning', bg: 'bg-emerald-50 text-emerald-800 border-emerald-100', icon: BriefcaseIcon };
-            case 'bonus_reward':
-                return { label: 'Bonus Reward', bg: 'bg-indigo-50 text-indigo-700 border-indigo-100', icon: GiftIcon };
-            case 'withdrawal':
-                return { label: 'Bank Payout', bg: 'bg-slate-100 text-slate-800 border-slate-200', icon: ArrowUpRightIcon };
-            default:
-                if (targetBalance === 'earnings') {
-                    return { label: 'Earnings', bg: 'bg-emerald-50 text-emerald-700 border-emerald-100', icon: BriefcaseIcon };
-                }
-                return { label: 'Activity', bg: 'bg-slate-50 text-slate-700 border-slate-200', icon: ReceiptIcon };
-        }
-    };
+        setLoading(true);
+        api.get<unknown, { transactions: TransactionItem[]; total_pages: number }>('/wallet/transactions', { params: { page, limit: 10, ...filterParams(filter) } })
+            .then((res) => { setItems(res.transactions || []); setTotalPages(res.total_pages || 1); })
+            .catch(() => setItems([]))
+            .finally(() => setLoading(false));
+    }, [page, filter, refreshKey]);
 
     return (
-        <div className="bg-km-surface-card rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
-            {/* Header & Filter Tabs */}
-            <div className="p-5 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <ReceiptIcon size={24} className="text-blue-900" aria-hidden="true" />
-                    <div>
-                        <h2 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-                            Ledger & Transaction History
-                        </h2>
-                        <p className="text-xs text-slate-500 font-medium">
-                            Immutable audit trail of all credits, deductions, and payouts.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="flex items-center bg-slate-100/90 p-1 rounded-2xl self-start sm:self-auto overflow-x-auto max-w-full">
-                    {[
-                        { key: 'all', label: 'All Activity' },
-                        { key: 'credit', label: 'Inflow (+)' },
-                        { key: 'debit', label: 'Outflow (-)' },
-                        { key: 'earnings', label: 'Earnings' },
-                    ].map((tab) => (
-                        <button
-                            key={tab.key}
-                            onClick={() => handleTabChange(tab.key as any)}
-                            className={`px-3 sm:px-4 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap cursor-pointer ${
-                                activeTab === tab.key 
-                                    ? 'bg-km-surface-card text-slate-900 shadow-xs' 
-                                    : 'text-slate-600 hover:text-slate-900'
-                            }`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
+        <>
+            <div className="px-5 py-4 border-b border-km-border-subtle overflow-x-auto">
+                <FilterTabs
+                    value={filter}
+                    onChange={(next) => { setFilter(next); setPage(1); }}
+                    options={[
+                        { value: 'all', label: t('filter.all') },
+                        { value: 'credit', label: t('filter.in') },
+                        { value: 'debit', label: t('filter.out') },
+                        { value: 'earnings', label: t('filter.earnings') },
+                    ]}
+                />
             </div>
 
-            {/* Content Area */}
-            <div className="p-4 sm:p-6">
-                {loading ? (
-                    // Shimmer Skeletons
-                    <div className="space-y-3">
-                        {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-slate-50/50 animate-pulse">
-                                <div className="flex items-center gap-3.5">
-                                    <div className="w-10 h-10 rounded-2xl bg-slate-200" />
-                                    <div className="space-y-2">
-                                        <div className="w-32 h-3.5 rounded-md bg-slate-200" />
-                                        <div className="w-24 h-2.5 rounded-md bg-slate-200" />
-                                    </div>
+            {loading ? (
+                <SkeletonRows rows={5} />
+            ) : items.length === 0 ? (
+                <EmptyState icon={ReceiptIcon} title={t('noActivity')} description={filter === 'all' ? t('noActivityHint') : undefined} />
+            ) : (
+                <ul className="divide-y divide-km-border-subtle">
+                    {items.map((tx) => {
+                        const credit = tx.type === 'credit';
+                        return (
+                            <li key={tx.id} className="flex items-start justify-between gap-4 px-5 py-4">
+                                <div className="min-w-0">
+                                    <p className="text-sm font-medium text-km-heading">{CATEGORIES.includes(tx.category) ? t(`category.${tx.category}`) : t('category.other')}</p>
+                                    {tx.description && <p className="mt-0.5 text-sm text-km-text-secondary truncate">{tx.description}</p>}
+                                    <p className="mt-0.5 text-xs text-km-text-secondary font-inter">
+                                        {dateTime(tx.created_at, locale)} · {t(`balanceName.${tx.target_balance}`)}
+                                    </p>
+                                    {tx.disputable && (
+                                        <button type="button" onClick={() => onRaiseDispute(tx)} className="mt-1 text-sm font-medium text-km-link hover:underline cursor-pointer">
+                                            {t('requestRefund')}
+                                        </button>
+                                    )}
                                 </div>
-                                <div className="space-y-2 text-right">
-                                    <div className="w-20 h-4 rounded-md bg-slate-200 ml-auto" />
-                                    <div className="w-16 h-2.5 rounded-md bg-slate-200 ml-auto" />
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                    <span className={`text-sm font-semibold font-inter tabular-nums ${credit ? 'text-emerald-700 dark:text-emerald-400' : 'text-km-heading'}`}>
+                                        {credit ? '+' : '-'}{inr(tx.amount)}
+                                    </span>
+                                    {tx.status !== 'completed' && <StatusBadge tone={STATUS_TONE[tx.status]}>{t(`transactionStatus.${tx.status}`)}</StatusBadge>}
                                 </div>
-                            </div>
-                        ))}
-                    </div>
-                ) : transactions.length === 0 ? (
-                    // Empty State
-                    <div className="py-12 sm:py-16 text-center space-y-3">
-                        <ReceiptIcon size={36} weight="duotone" className="text-slate-400 mx-auto" aria-hidden="true" />
-                        <h3 className="text-base sm:text-lg font-bold text-slate-800">
-                            No Transactions Found
-                        </h3>
-                        <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
-                            {activeTab === 'all' 
-                                ? "When you add money, unlock platform passes, or earn from gigs and mentorships, your transactions will be logged here."
-                                : `No transactions found under the "${activeTab}" filter.`}
-                        </p>
-                    </div>
-                ) : (
-                    // Transactions List
-                    <div className="divide-y divide-slate-100">
-                        {transactions.map((tx) => {
-                            const isCredit = tx.type === 'credit';
-                            const badge = getCategoryBadge(tx.category, tx.target_balance);
-                            const BadgeIcon = badge.icon;
+                            </li>
+                        );
+                    })}
+                </ul>
+            )}
 
-                            return (
-                                <div 
-                                    key={tx.id} 
-                                    className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 hover:bg-slate-50/70 p-3 rounded-2xl transition -mx-3"
-                                >
-                                    {/* Left: Direction Icon + Info */}
-                                    <div className="flex items-center gap-3.5">
-                                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 shadow-xs border ${
-                                            isCredit 
-                                                ? 'bg-emerald-50 text-emerald-700 border-emerald-100' 
-                                                : 'bg-slate-100 text-slate-700 border-slate-200'
-                                        }`}>
-                                            {isCredit ? (
-                                                <ArrowDownLeftIcon className="w-5 h-5" />
-                                            ) : (
-                                                <ArrowUpRightIcon className="w-5 h-5" />
-                                            )}
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg text-[11px] font-bold border ${badge.bg}`}>
-                                                    <BadgeIcon size={12} />
-                                                    <span>{badge.label}</span>
-                                                </span>
-
-                                                <span className="text-xs sm:text-sm font-bold text-slate-900">
-                                                    {tx.description || (isCredit ? 'Account Recharge' : 'Payment')}
-                                                </span>
-                                            </div>
-
-                                            <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium flex-wrap">
-                                                <span className="flex items-center gap-1">
-                                                    <ClockIcon weight="bold" size={11} className="text-slate-400" />
-                                                    <span>{formatDate(tx.created_at)}</span>
-                                                </span>
-
-                                                <span className="text-slate-300">•</span>
-
-                                                <span className="capitalize px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-semibold">
-                                                    {tx.target_balance} Balance
-                                                </span>
-
-                                                {tx.reference_id && (
-                                                    <>
-                                                        <span className="text-slate-300">•</span>
-                                                        <span className="font-mono text-slate-400">
-                                                            #{tx.reference_id.slice(-8)}
-                                                        </span>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Right: Amount & Status */}
-                                    <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center pl-14 sm:pl-0">
-                                        <div className={`text-sm sm:text-base font-black font-mono tracking-tight ${
-                                            isCredit ? 'text-emerald-700' : 'text-slate-900'
-                                        }`}>
-                                            {isCredit ? '+' : '-'}{formatCurrency(tx.amount)}
-                                        </div>
-
-                                        <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-[11px] text-slate-400 font-medium">
-                                                After: <strong className="font-mono text-slate-600">{formatCurrency(tx.balance_after)}</strong>
-                                            </span>
-
-                                            <span className="inline-block w-1 h-1 rounded-full bg-slate-300" />
-
-                                            <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded-full ${
-                                                tx.status === 'completed' 
-                                                    ? 'bg-emerald-100 text-emerald-800' 
-                                                    : tx.status === 'pending'
-                                                    ? 'bg-amber-100 text-amber-800'
-                                                    : 'bg-rose-100 text-rose-800'
-                                            }`}>
-                                                {tx.status}
-                                            </span>
-                                        </div>
-
-                                        {onRaiseDispute && !isCredit && tx.category !== 'withdrawal' && tx.category !== 'refund' && tx.status === 'completed' && (
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onRaiseDispute(tx);
-                                                }}
-                                                className="mt-1 text-[11px] font-semibold text-amber-700 hover:text-amber-800 bg-amber-50 hover:bg-amber-100/80 border border-amber-200/80 px-2.5 py-1 rounded-xl transition inline-flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
-                                                title="Request refund or report an issue with this transaction"
-                                            >
-                                                <ShieldWarningIcon weight="bold" size={12} className="text-amber-600 dark:text-amber-400" />
-                                                <span>Dispute / Refund</span>
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
-
-                {/* Pagination Controls */}
-                {totalPages > 1 && (
-                    <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-                        <span>
-                            Showing page <strong>{page}</strong> of <strong>{totalPages}</strong> ({totalCount} total entries)
-                        </span>
-
-                        <div className="flex items-center gap-1.5">
-                            <button
-                                onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-                                disabled={page <= 1 || loading}
-                                className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
-                                aria-label="Previous page"
-                            >
-                                <CaretLeftIcon weight="bold" size={14} />
-                            </button>
-
-                            <button
-                                onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-                                disabled={page >= totalPages || loading}
-                                className="p-2 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
-                                aria-label="Next page"
-                            >
-                                <CaretRightIcon weight="bold" size={14} />
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
-        </div>
+            {totalPages > 1 && <div className="flex justify-center px-5 py-4 border-t border-km-border-subtle"><Pagination current={page} total={totalPages} onPageChange={setPage} /></div>}
+        </>
     );
 }

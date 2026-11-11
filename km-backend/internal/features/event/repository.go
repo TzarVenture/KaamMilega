@@ -129,8 +129,14 @@ func (r *EventRepositoryImpl) DecrementAvailableSeats(ctx context.Context, event
 	update := bson.M{
 		"$inc": bson.M{"available_seats": -1},
 	}
-	_, err := r.collection.UpdateOne(ctx, filter, update)
-	return err
+	res, err := r.collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return ErrEventSoldOut
+	}
+	return nil
 }
 
 func (r *EventRepositoryImpl) CreateTicket(ctx context.Context, ticket *EventTicket) (*EventTicket, error) {
@@ -525,3 +531,22 @@ func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID prim
 	return nil
 }
 
+
+// RevokeTicket cancels a refunded ticket, removes the attendee and returns their seat
+func (r *EventRepositoryImpl) RevokeTicket(ctx context.Context, eventID, userID primitive.ObjectID, razorpayOrderID string) error {
+	res, err := r.ticketColl.UpdateOne(ctx,
+		bson.M{"razorpay_order_id": razorpayOrderID, "status": "confirmed"},
+		bson.M{"$set": bson.M{"status": "cancelled", "payment_status": "refunded"}},
+	)
+	if err != nil || res.ModifiedCount == 0 {
+		return err
+	}
+	if _, err := r.collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$pull": bson.M{"participants": userID}}); err != nil {
+		return err
+	}
+	_, err = r.collection.UpdateOne(ctx,
+		bson.M{"_id": eventID, "capacity": bson.M{"$gt": 0}},
+		bson.M{"$inc": bson.M{"available_seats": 1}},
+	)
+	return err
+}

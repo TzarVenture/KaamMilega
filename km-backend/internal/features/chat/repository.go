@@ -2,6 +2,7 @@ package chat
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"km-backend/internal/database"
 	"regexp"
@@ -9,6 +10,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -17,6 +19,14 @@ type repository struct {
 }
 
 func NewRepository(db *database.MongodbDB) ChatRepository {
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		// Counts the new chats a user started today, for the free daily limit
+		database.SyncIndexes(ctx, db.DB.Collection("conversations"), []mongo.IndexModel{
+			{Keys: bson.D{{Key: "started_by", Value: 1}, {Key: "created_at", Value: -1}}, Options: options.Index().SetSparse(true)},
+		})
+	}()
 	return &repository{db: db}
 }
 
@@ -24,6 +34,7 @@ func (r *repository) CreateConversation(ctx context.Context, participants []prim
 	conv := &Conversation{
 		ID:           primitive.NewObjectID(),
 		Participants: participants,
+		StartedBy:    participants[0], // the sender of the first message
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
 	}
@@ -448,69 +459,30 @@ func (r *repository) ResolveChatReport(ctx context.Context, id primitive.ObjectI
 	return err
 }
 
-// CanInitiateNewConversation checks if user is allowed to start a conversation with a new person
-// Rules: 3 distinct contacts free. 4th onwards requires active ₹99 Pass or Pro subscription.
-func (r *repository) CanInitiateNewConversation(ctx context.Context, userID primitive.ObjectID) (bool, error) {
-	entitlement, err := r.GetChatEntitlement(ctx, userID)
-	if err != nil {
-		return false, err
-	}
-	return entitlement.CanStartNew, nil
-}
-
-// GetChatEntitlement calculates the user's free chat usage and active pass status
-func (r *repository) GetChatEntitlement(ctx context.Context, userID primitive.ObjectID) (*ChatEntitlementResponse, error) {
-	// 1. Count distinct conversations this user participates in
-	distinctCount, err := r.db.DB.Collection("conversations").CountDocuments(ctx, bson.M{
-		"participants": userID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// 2. Check for active ₹99 Universal Pass
-	now := time.Now()
+// ActivePass reports whether the user has a ₹99 pass that hasn't expired or been refunded,
+// and its gig credits left. Used-up credits don't end the chat unlock.
+func (r *repository) ActivePass(ctx context.Context, userID primitive.ObjectID) (bool, int, error) {
 	var pass struct {
-		HasActivePass  bool `bson:"has_active_pass"`
-		QuotaRemaining int  `bson:"quota_remaining"`
+		QuotaRemaining int `bson:"quota_remaining"`
 	}
-	hasActivePass := false
-	quotaRemaining := 0
-
-	passErr := r.db.DB.Collection("instant_passes").FindOne(ctx, bson.M{
+	err := r.db.DB.Collection("instant_passes").FindOne(ctx, bson.M{
 		"user_id":         userID,
 		"has_active_pass": true,
-		"expires_at":      bson.M{"$gte": now},
+		"expires_at":      bson.M{"$gt": time.Now()},
 	}).Decode(&pass)
-
-	if passErr == nil {
-		hasActivePass = true
-		quotaRemaining = pass.QuotaRemaining
-	} else {
-		// Also check expert subscription
-		subCount, errSub := r.db.DB.Collection("expert_subscriptions").CountDocuments(ctx, bson.M{
-			"user_id":    userID,
-			"status":     "active",
-			"expires_at": bson.M{"$gte": now},
-		})
-		if errSub == nil && subCount > 0 {
-			hasActivePass = true
-			quotaRemaining = 10
-		}
+	if errors.Is(err, mongo.ErrNoDocuments) {
+		return false, 0, nil
 	}
-
-	freeRemaining := int64(3) - distinctCount
-	if freeRemaining < 0 {
-		freeRemaining = 0
+	if err != nil {
+		return false, 0, err
 	}
+	return true, pass.QuotaRemaining, nil
+}
 
-	canStartNew := freeRemaining > 0 || hasActivePass
-
-	return &ChatEntitlementResponse{
-		DistinctConversations: distinctCount,
-		FreeRemaining:         freeRemaining,
-		HasActivePass:         hasActivePass,
-		CanStartNew:           canStartNew,
-		PassQuotaRemaining:    quotaRemaining,
-	}, nil
+// CountConversationsStartedSince counts the chats the user opened since the given time
+func (r *repository) CountConversationsStartedSince(ctx context.Context, userID primitive.ObjectID, since time.Time) (int64, error) {
+	return r.db.DB.Collection("conversations").CountDocuments(ctx, bson.M{
+		"started_by": userID,
+		"created_at": bson.M{"$gte": since},
+	})
 }

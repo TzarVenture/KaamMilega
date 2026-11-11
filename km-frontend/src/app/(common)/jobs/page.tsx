@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense, useCallback } from 'react';
-import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowUpRightIcon, ArrowsDownUpIcon, BookmarkSimpleIcon, BriefcaseIcon, BuildingOfficeIcon, CaretDownIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, ClockIcon, MagnifyingGlassIcon, MapPinIcon, ShieldCheckIcon, SlidersHorizontalIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowCounterClockwiseIcon, ArrowRightIcon, ArrowsDownUpIcon, BookmarkSimpleIcon, BriefcaseIcon, CaretDownIcon, ChatCircleIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, MagnifyingGlassIcon, MapPinIcon, ShieldCheckIcon, SlidersHorizontalIcon, XIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { notify, errorText } from "@/lib/notify";
 import { motion, AnimatePresence } from 'framer-motion';
@@ -10,10 +10,12 @@ import Link from 'next/link';
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
 import AdSlot from '@/components/ads/AdSlot';
 import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
+import JobCard, { type JobCardJob, type JobTag } from '@/components/jobs/JobCard';
+import InstantMilegaPromo from '@/components/jobs/InstantMilegaPromo';
 
 // ─── Types ───
 
-interface Job {
+interface Job extends JobCardJob {
     id: string;
     title: string;
     company: string;
@@ -28,7 +30,6 @@ interface Job {
     vacancies: number;
     created_at: string;
     is_top_match?: boolean;
-    is_verified?: boolean;
 }
 
 interface FilterState {
@@ -178,6 +179,7 @@ const FilterPanelContent = ({
                         </label>
                     );
                 })}
+                <InstantMilegaPromo />
             </div>
         </FilterAccordion>
 
@@ -309,128 +311,6 @@ const FilterPanelContent = ({
         )}
     </div>
 );
-
-// ─── Professional Job Card (Zero Emojis, Zero Sparkles, Zero AI Slop) ───
-const JobCard = ({
-    job,
-    hasApplied,
-    isBookmarked,
-    onToggleBookmark
-}: {
-    job: Job;
-    hasApplied?: boolean;
-    isBookmarked?: boolean;
-    onToggleBookmark?: (e: React.MouseEvent) => void;
-}) => {
-    const companyInitial = job.company ? job.company.charAt(0).toUpperCase() : 'C';
-
-    return (
-        <div className="bg-km-surface-card p-5 sm:p-6 rounded-2xl border border-km-border shadow-xs hover:border-[#0B5ED7]/50 hover:shadow-sm transition-all group">
-            <div className="flex flex-col lg:flex-row justify-between items-start gap-5">
-                <div className="flex-1 min-w-0 w-full">
-                    {/* Header: Company Avatar & Title */}
-                    <div className="flex items-start gap-3.5 mb-3.5">
-                        <div className="w-12 h-12 rounded-xl bg-[#071A4D] border border-[#0B1F52] text-white font-bold text-base flex items-center justify-center shrink-0 shadow-xs dark:bg-km-primary dark:border-km-link">
-                            {companyInitial}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                            <Link href={`/jobs/${job.id}`}>
-                                <h3 className="text-lg sm:text-xl font-bold text-km-text-primary group-hover:text-km-link transition-colors line-clamp-1 cursor-pointer">
-                                    {job.title}
-                                </h3>
-                            </Link>
-                            <p className="text-km-text-secondary font-medium text-xs mt-1 flex items-center gap-2">
-                                <span>{job.company}</span>
-                                <span className="w-1 h-1 rounded-full bg-[#D9E0EA] dark:bg-[#293147]" />
-                                <span className="text-km-link font-semibold">Active Opening</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Metrics Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 my-3.5">
-                        <div className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-km-surface border border-km-border">
-                            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 font-bold flex items-center justify-center text-xs shrink-0">
-                                ₹
-                            </div>
-                            <div className="min-w-0">
-                                <p className="text-[11px] font-medium text-km-text-secondary">Monthly Salary</p>
-                                <p className="text-xs sm:text-sm font-bold text-km-text-primary truncate">
-                                    ₹{job.salary_min?.toLocaleString('en-IN') || 0} - ₹{job.salary_max?.toLocaleString('en-IN') || 0}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-xl bg-km-surface border border-km-border">
-                            <MapPinIcon size={20} className="text-km-link shrink-0" aria-hidden="true" />
-                            <div className="min-w-0">
-                                <p className="text-[11px] font-medium text-km-text-secondary">Location</p>
-                                <p className="text-xs sm:text-sm font-bold text-km-text-primary truncate">
-                                    {job.location ? `${job.location}, ` : ''}{job.city_name || 'All India'}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Semantic Tags */}
-                    <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <span className="px-2.5 py-1 bg-km-surface text-km-text-secondary border border-km-border text-xs font-medium rounded-lg">
-                            {job.job_type}
-                        </span>
-                        <span className="px-2.5 py-1 bg-km-surface text-km-text-secondary border border-km-border text-xs font-medium rounded-lg flex items-center gap-1">
-                            <UsersIcon weight="bold" size={12} className="text-km-text-secondary" />
-                            <span>{job.vacancies || 1} Openings</span>
-                        </span>
-                        <span className="px-2.5 py-1 bg-km-surface text-km-text-secondary border border-km-border text-xs font-medium rounded-lg flex items-center gap-1">
-                            <ClockIcon weight="bold" size={12} className="text-km-text-secondary" />
-                            <span>{job.experience_min === 0 ? 'Fresher Friendly' : `${job.experience_min}+ yrs exp`}</span>
-                        </span>
-                        <span className="px-2.5 py-1 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold rounded-lg flex items-center gap-1 dark:bg-[#172A50] dark:border-blue-500/30">
-                            <CheckCircleIcon weight="bold" size={12} className="text-km-link" />
-                            <span>KM Verified Employer</span>
-                        </span>
-                    </div>
-                </div>
-
-                {/* Right Action Column */}
-                <div className="flex flex-row lg:flex-col items-center justify-end gap-2.5 w-full lg:w-auto pt-3 lg:pt-0 border-t lg:border-0 border-km-border shrink-0">
-                    <div className="flex items-center gap-2 w-full lg:w-auto">
-                        <button
-                            type="button"
-                            onClick={onToggleBookmark}
-                            title={isBookmarked ? 'Remove Bookmark' : 'Save / Bookmark Job'}
-                            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors cursor-pointer border ${
-                                isBookmarked
-                                    ? 'bg-[#EBF3FE] text-km-link border-[#BFDBFE] dark:bg-[#172A50] dark:border-blue-500/30'
-                                    : 'bg-km-surface-card text-km-text-secondary hover:bg-km-surface hover:text-km-heading border-km-border'
-                            }`}
-                        >
-                            {isBookmarked ? <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-km-link dark:fill-blue-400" /> : <BookmarkSimpleIcon weight="bold" size={16} />}
-                        </button>
-
-                        {hasApplied ? (
-                            <Link
-                                href="/applications"
-                                className="h-10 px-4 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition-colors flex items-center justify-center gap-1.5 flex-1 lg:flex-initial whitespace-nowrap shadow-xs"
-                            >
-                                <CheckCircleIcon weight="bold" size={14} className="text-emerald-600 dark:text-emerald-400" />
-                                <span>Applied • Track</span>
-                            </Link>
-                        ) : (
-                            <Link
-                                href={`/jobs/${job.id}`}
-                                className="h-10 px-5 rounded-xl text-xs font-semibold btn-primary transition-all flex items-center justify-center gap-1.5 flex-1 lg:flex-initial whitespace-nowrap shadow-xs cursor-pointer"
-                            >
-                                <span>View & Apply</span>
-                                <ArrowUpRightIcon weight="bold" size={14} />
-                            </Link>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
 
 // ─── Main Jobs Page Content ───
 const JobsPageContent = () => {
@@ -631,6 +511,31 @@ const JobsPageContent = () => {
         }
     };
 
+    const isTagActive = (tag: JobTag) => {
+        switch (tag.kind) {
+            case 'jobType': return filters.jobType.includes(tag.value);
+            case 'qualification': return filters.qualification.includes(tag.value);
+            case 'experience': return filters.experience === tag.value;
+            case 'city': return cityFilter.toLowerCase() === tag.value.toLowerCase();
+        }
+    };
+
+    // A tag on a job card toggles the same filter as the panel, then shows page 1 from the top
+    const handleTag = (tag: JobTag) => {
+        const params = new URLSearchParams(searchParams.toString());
+        params.set('page', '1');
+        if (tag.kind === 'city') {
+            if (isTagActive(tag)) params.delete('city');
+            else params.set('city', tag.value);
+        } else if (tag.kind === 'experience') {
+            handleFilterChange('experience', isTagActive(tag) ? 'all' : tag.value, false);
+        } else {
+            handleFilterChange(tag.kind, tag.value);
+        }
+        router.push(`/jobs?${params.toString()}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
     const handlePageChange = (newPage: number) => {
         const params = new URLSearchParams(searchParams.toString());
         params.set('page', newPage.toString());
@@ -736,11 +641,11 @@ const JobsPageContent = () => {
                 overlap
                 kicker={{ label: 'Verified Direct Employment', Icon: BriefcaseIcon, tone: 'jobs' }}
                 title={<>Find Verified Jobs & <HeroAccent>Hire Direct</HeroAccent></>}
-                description="Apply directly to verified employers across India. Zero brokerage, 1-click apply."
+                description="Apply to verified employers and chat with HR directly. No brokers, no agencies."
                 highlights={[
                     { Icon: ShieldCheckIcon, label: '100% Verified Employers' },
                     { Icon: CheckCircleIcon, label: 'Zero Candidate Brokerage' },
-                    { Icon: BuildingOfficeIcon, label: 'Direct Recruiter Contacts' },
+                    { Icon: ChatCircleIcon, label: '3 free chats with HR a day' },
                 ]}
                 art={{ src: '/jobs-page-hero-art.png', alt: 'KaamMilega Verified Jobs', wide: true }}
             >
@@ -862,7 +767,7 @@ const JobsPageContent = () => {
                                 </h2>
                                 {(searchTerm || cityFilter !== 'All') && (
                                     <p className="text-xs text-km-text-secondary font-medium mt-0.5">
-                                        Filtered by {searchTerm && <span className="font-semibold text-km-text-primary">"{searchTerm}"</span>}
+                                        Filtered by {searchTerm && <span className="font-semibold text-km-text-primary">&ldquo;{searchTerm}&rdquo;</span>}
                                         {searchTerm && cityFilter !== 'All' && ' in '}
                                         {cityFilter !== 'All' && <span className="font-semibold text-km-text-primary">{cityFilter}</span>}
                                     </p>
@@ -950,6 +855,9 @@ const JobsPageContent = () => {
                                                 hasApplied={appliedJobIds.has(job.id)}
                                                 isBookmarked={bookmarkedJobIds.has(job.id)}
                                                 onToggleBookmark={(e) => handleToggleBookmark(job.id, e)}
+                                                onTag={handleTag}
+                                                isTagActive={isTagActive}
+                                                qualifications={QUALIFICATION_OPTIONS}
                                             />
                                             {/* One sponsored card per page of results, after the fourth job (or the last, on a short page) */}
                                             {i === Math.min(JOBS_AD_AFTER, jobs.length) - 1 && <AdSlot placement="jobs_inline" />}

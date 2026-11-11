@@ -26,6 +26,9 @@ type MentorshipRepository interface {
 	ListBookingsByUser(ctx context.Context, userID string) ([]Booking, error)
 	ListBookingsByExpert(ctx context.Context, expertID string) ([]Booking, error)
 	UpdateBookingStatus(ctx context.Context, id string, status string) error
+	TransitionBooking(ctx context.Context, id string, from []string, t BookingTransition) (bool, error)
+	ListBookingsDueRelease(ctx context.Context, now time.Time, limit int64) ([]Booking, error)
+	ListReportedBookings(ctx context.Context) ([]Booking, error)
 	UpdateBookingPayment(ctx context.Context, id string, paymentStatus string, paymentMethod string, rzpPaymentID string, status string) error
 	UpdateMeetingLink(ctx context.Context, id string, meetingLink string) error
 	UpdateBookingReview(ctx context.Context, id string, rating float64, review string) error
@@ -342,3 +345,72 @@ func (r *MentorshipRepositoryImpl) UpdateMentorshipRatingStats(ctx context.Conte
 	return err
 }
 
+
+// BookingTransition is a booking's move to its next status.
+type BookingTransition struct {
+	Status         string
+	PaymentStatus  string
+	ReleaseAfter   *time.Time
+	ReportReason   string
+	ResolutionNote string
+}
+
+// TransitionBooking moves a booking on, only if it's still in one of the expected states. That
+// condition is what stops a session being paid out or refunded twice.
+func (r *MentorshipRepositoryImpl) TransitionBooking(ctx context.Context, id string, from []string, t BookingTransition) (bool, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return false, err
+	}
+	now := time.Now()
+	set := bson.M{"status": t.Status, "updated_at": now}
+	if t.PaymentStatus != "" {
+		set["payment_status"] = t.PaymentStatus
+	}
+	if t.ReleaseAfter != nil {
+		set["release_after"] = *t.ReleaseAfter
+	}
+	if t.ReportReason != "" {
+		set["report_reason"] = t.ReportReason
+		set["reported_at"] = now
+	}
+	if t.ResolutionNote != "" {
+		set["resolution_note"] = t.ResolutionNote
+	}
+	res, err := r.bookingColl.UpdateOne(ctx, bson.M{"_id": oid, "status": bson.M{"$in": from}}, bson.M{"$set": set})
+	if err != nil {
+		return false, err
+	}
+	return res.ModifiedCount == 1, nil
+}
+
+// ListBookingsDueRelease finds sessions whose 24 hour wait for the mentee has run out
+func (r *MentorshipRepositoryImpl) ListBookingsDueRelease(ctx context.Context, now time.Time, limit int64) ([]Booking, error) {
+	cursor, err := r.bookingColl.Find(ctx,
+		bson.M{"status": BookingAwaitingConfirmation, "release_after": bson.M{"$lte": now}},
+		options.Find().SetSort(bson.D{{Key: "release_after", Value: 1}}).SetLimit(limit))
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	bookings := []Booking{}
+	if err := cursor.All(ctx, &bookings); err != nil {
+		return nil, err
+	}
+	return bookings, nil
+}
+
+// ListReportedBookings returns sessions waiting for an admin decision, oldest first
+func (r *MentorshipRepositoryImpl) ListReportedBookings(ctx context.Context) ([]Booking, error) {
+	cursor, err := r.bookingColl.Find(ctx, bson.M{"status": BookingReported},
+		options.Find().SetSort(bson.D{{Key: "reported_at", Value: 1}}).SetLimit(200))
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+	bookings := []Booking{}
+	if err := cursor.All(ctx, &bookings); err != nil {
+		return nil, err
+	}
+	return bookings, nil
+}

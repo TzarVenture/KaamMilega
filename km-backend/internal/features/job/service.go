@@ -13,17 +13,54 @@ type ApplicationCounter interface {
 	CountByJob(ctx context.Context, jobID string) (int, error)
 }
 
-type JobService struct {
-	repo     JobRepository
-	cityRepo city.CityRepository
-	appRepo  ApplicationCounter
+// Employer is what job seekers see about the account that posted a job
+type Employer struct {
+	Verified bool
+	Logo     string
 }
 
-func NewJobService(repo JobRepository, cityRepo city.CityRepository, appRepo ApplicationCounter) *JobService {
+// EmployerLookup reads the posting accounts for a set of jobs in one query
+type EmployerLookup interface {
+	Employers(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]Employer, error)
+}
+
+type JobService struct {
+	repo      JobRepository
+	cityRepo  city.CityRepository
+	appRepo   ApplicationCounter
+	employers EmployerLookup
+}
+
+func NewJobService(repo JobRepository, cityRepo city.CityRepository, appRepo ApplicationCounter, employers EmployerLookup) *JobService {
 	return &JobService{
-		repo:     repo,
-		cityRepo: cityRepo,
-		appRepo:  appRepo,
+		repo:      repo,
+		cityRepo:  cityRepo,
+		appRepo:   appRepo,
+		employers: employers,
+	}
+}
+
+// addEmployers marks each job with its employer's verification and logo. A failed
+// lookup only hides the badge, it never fails the listing.
+func (s *JobService) addEmployers(ctx context.Context, jobs []Job) {
+	if s.employers == nil || len(jobs) == 0 {
+		return
+	}
+	ids := make([]primitive.ObjectID, 0, len(jobs))
+	for i := range jobs {
+		if !jobs[i].RecruiterID.IsZero() {
+			ids = append(ids, jobs[i].RecruiterID)
+		}
+	}
+	found, err := s.employers.Employers(ctx, ids)
+	if err != nil {
+		return
+	}
+	for i := range jobs {
+		if e, ok := found[jobs[i].RecruiterID]; ok {
+			jobs[i].EmployerVerified = e.Verified
+			jobs[i].CompanyLogo = e.Logo
+		}
 	}
 }
 
@@ -81,7 +118,9 @@ func (s *JobService) GetJob(ctx context.Context, id string) (*Job, error) {
 	}
 	count, _ := s.appRepo.CountByJob(ctx, job.ID.Hex())
 	job.ApplicantCount = count
-	return job, nil
+	one := []Job{*job}
+	s.addEmployers(ctx, one)
+	return &one[0], nil
 }
 
 func (s *JobService) GetAllJobs(ctx context.Context, filter JobFilter) ([]Job, int64, error) {
@@ -94,6 +133,7 @@ func (s *JobService) GetAllJobs(ctx context.Context, filter JobFilter) ([]Job, i
 		count, _ := s.appRepo.CountByJob(ctx, jobs[i].ID.Hex())
 		jobs[i].ApplicantCount = count
 	}
+	s.addEmployers(ctx, jobs)
 
 	return jobs, total, nil
 }

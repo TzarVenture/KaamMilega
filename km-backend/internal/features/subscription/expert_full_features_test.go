@@ -7,7 +7,9 @@ import (
 	"time"
 
 	"km-backend/internal/config"
+	"km-backend/internal/database"
 	"km-backend/internal/features/mentorship"
+	"km-backend/internal/features/payment/paymenttest"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -17,14 +19,12 @@ import (
 // In-memory mock implementing wallet.WalletService
 type mockFullWalletService struct {
 	wallet.WalletService
-	wallets     map[string]*wallet.WalletSummaryResponse
-	withdrawals []*wallet.WithdrawalResponse
+	wallets map[string]*wallet.WalletSummaryResponse
 }
 
 func newMockFullWalletService() *mockFullWalletService {
 	return &mockFullWalletService{
-		wallets:     make(map[string]*wallet.WalletSummaryResponse),
-		withdrawals: make([]*wallet.WithdrawalResponse, 0),
+		wallets: make(map[string]*wallet.WalletSummaryResponse),
 	}
 }
 
@@ -107,36 +107,6 @@ func (w *mockFullWalletService) RecordTransaction(ctx context.Context, input wal
 		CreatedAt:     time.Now(),
 	}
 	return tx, sum, nil
-}
-
-func (w *mockFullWalletService) RequestWithdrawal(ctx context.Context, userID string, req wallet.WithdrawalRequest) (*wallet.WithdrawalResponse, error) {
-	uid, _ := primitive.ObjectIDFromHex(userID)
-	sum, _ := w.GetWalletSummary(ctx, userID)
-
-	if sum.EarningsBalance < req.Amount {
-		return nil, errors.New("insufficient earnings balance for withdrawal")
-	}
-
-	tx, sum, err := w.RecordTransaction(ctx, wallet.RecordTransactionInput{
-		UserID:        uid,
-		Type:          wallet.TypeDebit,
-		TargetBalance: wallet.BalanceEarnings,
-		Category:      wallet.CategoryWithdrawal,
-		Amount:        req.Amount,
-		ReferenceID:   primitive.NewObjectID().Hex() + "_payout",
-		Description:   "Payout withdrawal to " + req.PayoutMethod,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	res := &wallet.WithdrawalResponse{
-		Transaction: tx,
-		Wallet:      sum,
-		Message:     "Payout withdrawal initiated",
-	}
-	w.withdrawals = append(w.withdrawals, res)
-	return res, nil
 }
 
 // In-memory mock for Mentorship repository
@@ -316,6 +286,29 @@ func (m *mockMentorshipRepoFull) UpdateMentorshipRatingStats(ctx context.Context
 	return nil
 }
 
+func (m *mockMentorshipRepoFull) TransitionBooking(ctx context.Context, id string, from []string, t mentorship.BookingTransition) (bool, error) {
+	b, ok := m.bookings[id]
+	if !ok {
+		return false, nil
+	}
+	for _, status := range from {
+		if b.Status == status {
+			b.Status = t.Status
+			b.ReleaseAfter = t.ReleaseAfter
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func (m *mockMentorshipRepoFull) ListBookingsDueRelease(ctx context.Context, now time.Time, limit int64) ([]mentorship.Booking, error) {
+	return nil, nil
+}
+
+func (m *mockMentorshipRepoFull) ListReportedBookings(ctx context.Context) ([]mentorship.Booking, error) {
+	return nil, nil
+}
+
 // -------------------------------------------------------------
 // END-TO-END TEST: Complete Expert Lifecycle & All Feature Tests
 // -------------------------------------------------------------
@@ -329,8 +322,9 @@ func TestCompleteExpertLifecycleAndFeatures(t *testing.T) {
 	mentRepo := newMockMentorshipRepoFull()
 	cfg := &config.Config{RazorpayKeyID: "rzp_test_key", RazorpayKeySecret: "rzp_test_secret"}
 
-	subSvc := NewSubscriptionService(subRepo, userRepo, walletSvc, cfg)
-	mentSvc := mentorship.NewMentorshipService(mentRepo, userRepo, walletSvc, cfg, nil)
+	fake := paymenttest.New()
+	subSvc := NewSubscriptionService(subRepo, userRepo, walletSvc, cfg, fake, database.NoopTransactor{})
+	mentSvc := mentorship.NewMentorshipService(mentRepo, userRepo, walletSvc, cfg, nil, fake, database.NoopTransactor{})
 
 	// 2. Setup Users
 	// Regular User who will become an Expert
@@ -495,12 +489,19 @@ func TestCompleteExpertLifecycleAndFeatures(t *testing.T) {
 	t.Log("Meeting link attached successfully")
 
 	t.Log("===> Step 8: Expert Conducts Call & Marks Session Completed (100% Payout, 0% Platform Commission)")
+	mentRepo.bookings[booking.ID.Hex()].ScheduledAt = time.Now().Add(-time.Hour)
 	err = mentSvc.UpdateBookingStatus(ctx, expertUserID, booking.ID.Hex(), "completed")
 	if err != nil {
 		t.Fatalf("UpdateBookingStatus to completed failed: %v", err)
 	}
 	bDone, _ := mentRepo.GetBookingByID(ctx, booking.ID.Hex())
-	if bDone.Status != "completed" {
+	if bDone.Status != mentorship.BookingAwaitingConfirmation {
+		t.Errorf("expected status awaiting_confirmation, got Status=%s", bDone.Status)
+	}
+	if err := mentSvc.ConfirmSession(ctx, candidateUserID, booking.ID.Hex()); err != nil {
+		t.Fatalf("ConfirmSession failed: %v", err)
+	}
+	if bDone.Status != mentorship.BookingCompleted {
 		t.Errorf("expected status completed, got Status=%s", bDone.Status)
 	}
 
@@ -525,25 +526,6 @@ func TestCompleteExpertLifecycleAndFeatures(t *testing.T) {
 	}
 	t.Log("Review and 5-star rating recorded successfully")
 
-	t.Log("===> Step 10: Expert Requests Payout to Bank / UPI")
-	payoutRes, err := walletSvc.RequestWithdrawal(ctx, expertUserID, wallet.WithdrawalRequest{
-		Amount:        1200.0,
-		PayoutMethod:  "upi",
-		AccountHolder: "John Expert",
-		UPIID:         "john.expert@okhdfcbank",
-	})
-	if err != nil {
-		t.Fatalf("RequestWithdrawal failed: %v", err)
-	}
-	if payoutRes.Transaction == nil || payoutRes.Transaction.Amount != 1200.0 {
-		t.Errorf("unexpected payout response: %+v", payoutRes)
-	}
-	expSummaryAfterPayout, _ := walletSvc.GetWalletSummary(ctx, expertUserID)
-	if expSummaryAfterPayout.EarningsBalance != 300.0 { // 1500 - 1200 = 300
-		t.Errorf("expected remaining earnings ₹300, got ₹%.2f", expSummaryAfterPayout.EarningsBalance)
-	}
-	t.Logf("Expert payout requested successfully: ₹1200 to UPI, remaining earnings balance: ₹%.2f", expSummaryAfterPayout.EarningsBalance)
-
 	t.Log("================================================================================")
 	t.Log("ALL PRO EXPERT FEATURES TESTED AND FULLY FUNCTIONAL!")
 	t.Log("1. Instant Subscription via Wallet/Razorpay: PASS")
@@ -555,6 +537,5 @@ func TestCompleteExpertLifecycleAndFeatures(t *testing.T) {
 	t.Log("7. Meeting Link Management: PASS")
 	t.Log("8. Escrow Settlement with 0% Platform Commission (100% Payout): PASS")
 	t.Log("9. Candidate Review & Rating System: PASS")
-	t.Log("10. Instant Earnings Withdrawal to Bank / UPI: PASS")
 	t.Log("================================================================================")
 }

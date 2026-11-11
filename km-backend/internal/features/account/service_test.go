@@ -182,7 +182,7 @@ func setup(t *testing.T) (*Service, *fakeRepo, *captureMailer, *user.User, *time
 func TestEvaluateBlocksOnMoneyAndSessions(t *testing.T) {
 	ends := time.Now().Add(72 * time.Hour)
 	blockers, warnings := evaluate(&deletionChecks{
-		Wallet:              &walletState{Main: 50, Earnings: 120.5, Locked: 10, Bonus: 25},
+		Wallet:              &walletState{MainPaise: 5000, EarningsPaise: 12050, LockedPaise: 1000, BonusPaise: 2500},
 		PendingTransactions: 1, OpenDisputes: 1, UpcomingSessions: 2,
 		SubscriptionEndsAt: &ends, OpenJobs: 3,
 	})
@@ -299,7 +299,7 @@ func TestDeletionRules(t *testing.T) {
 		t.Fatalf("lowercase confirm: %v", err)
 	}
 
-	repo.checks = deletionChecks{Wallet: &walletState{Earnings: 500}}
+	repo.checks = deletionChecks{Wallet: &walletState{EarningsPaise: 50000}}
 	if _, blockers, err := svc.RequestDeletion(ctx, u.ID.Hex(), good); !errors.Is(err, ErrBlocked) || len(blockers) != 1 {
 		t.Fatalf("with balance: err %v blockers %d", err, len(blockers))
 	}
@@ -341,7 +341,7 @@ func TestWorkerDeletesOnlyDueUnblockedAccounts(t *testing.T) {
 	repo.users[notDue.ID] = notDue
 
 	// A refund landed during the grace period: postponed
-	repo.checks = deletionChecks{Wallet: &walletState{Main: 99}}
+	repo.checks = deletionChecks{Wallet: &walletState{MainPaise: 9900}}
 	if n, err := svc.ProcessDueDeletions(ctx); err != nil || n != 0 {
 		t.Fatalf("blocked run: n=%d err=%v", n, err)
 	}
