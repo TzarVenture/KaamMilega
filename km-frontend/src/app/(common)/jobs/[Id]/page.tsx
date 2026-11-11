@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CalendarBlankIcon, CheckCircleIcon, CloudArrowUpIcon, FileTextIcon, MapPinIcon, MedalIcon, ShareNetworkIcon, ShieldCheckIcon, TrashIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CalendarBlankIcon, CheckCircleIcon, CloudArrowUpIcon, FileTextIcon, MapPinIcon, MedalIcon, SealCheckIcon, ShareNetworkIcon, ShieldCheckIcon, TrashIcon, XIcon } from '@phosphor-icons/react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { uploadFile } from '@/lib/upload';
@@ -12,6 +12,7 @@ import { HERO_SHELL } from '@/components/km/PageHero';
 import AdSlot from '@/components/ads/AdSlot';
 import { isProfileIncomplete, useApplyGate } from '@/components/jobs/ApplyProfileGate';
 import ChatWithHRButton from '@/components/jobs/ChatWithHRButton';
+import { applicantText, experienceText, salaryText } from '@/lib/jobFormat';
 
 interface Job {
     id: string;
@@ -30,10 +31,11 @@ interface Job {
     we_offer: string[];
     status: string;
     created_at: string;
-    vacancies: number;
     education?: string;
     gender?: string;
     applicant_count?: number;
+    employer_verified?: boolean;
+    company_logo?: string;
 }
 
 // ─── Design.md Shimmer Skeleton Loader ───
@@ -245,10 +247,12 @@ const JobDetailPage = () => {
                         {/* Left Header Content */}
                         <div className="flex-1 min-w-0">
                             {/* Category Indicator */}
-                            <div className="inline-flex items-center gap-2 bg-[#EBF3FE] text-km-link border border-[#BFDBFE] text-xs font-semibold px-3 py-1 rounded-full mb-3 dark:bg-[#172A50] dark:border-blue-500/30">
-                                <BriefcaseIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
-                                <span>Verified Direct Job Opening</span>
-                            </div>
+                            {job.employer_verified && (
+                                <p className="flex items-center gap-1.5 text-xs font-semibold text-white/90 mb-3" title="KaamMilega checked this employer's documents">
+                                    <SealCheckIcon weight="fill" size={16} className="text-[#60A5FA]" aria-hidden="true" />
+                                    Verified employer
+                                </p>
+                            )}
 
                             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-[1.2]">
                                 {job.title}
@@ -278,9 +282,9 @@ const JobDetailPage = () => {
                             {/* Key Metrics Chips Grid inside Hero */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 mt-6 pt-5 border-t border-white/10">
                                 <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3 dark:bg-km-primary-dark">
-                                    <p className="text-[11px] font-medium text-white/60">Monthly Salary</p>
+                                    <p className="text-[11px] font-medium text-white/60">Salary</p>
                                     <p className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">
-                                        ₹{job.salary_min?.toLocaleString('en-IN') || 0} - ₹{job.salary_max?.toLocaleString('en-IN') || 0}
+                                        {salaryText(job.salary_min, job.salary_max)}
                                     </p>
                                 </div>
                                 <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3 dark:bg-km-primary-dark">
@@ -292,13 +296,13 @@ const JobDetailPage = () => {
                                 <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3 dark:bg-km-primary-dark">
                                     <p className="text-[11px] font-medium text-white/60">Experience</p>
                                     <p className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">
-                                        {job.experience_min === 0 ? 'Fresher Friendly' : `${job.experience_min} - ${job.experience_max} Yrs`}
+                                        {experienceText(job.experience_min, job.experience_max)}
                                     </p>
                                 </div>
                                 <div className="bg-[#0B1F52] border border-white/10 rounded-xl p-3 dark:bg-km-primary-dark">
-                                    <p className="text-[11px] font-medium text-white/60">Openings</p>
+                                    <p className="text-[11px] font-medium text-white/60">Applicants</p>
                                     <p className="text-xs sm:text-sm font-bold text-white mt-0.5 truncate">
-                                        {job.vacancies || 1} Positions
+                                        {applicantText(job.applicant_count ?? 0)}
                                     </p>
                                 </div>
                             </div>
@@ -399,12 +403,8 @@ const JobDetailPage = () => {
                                 <div className="flex items-start gap-2.5">
                                     <span className="font-semibold text-km-text-secondary w-32 shrink-0">Experience:</span>
                                     <span className="font-bold text-km-text-primary">
-                                        {job.experience_min === 0 ? 'Fresher Friendly (0 yrs)' : `${job.experience_min} to ${job.experience_max} Years`}
+                                        {experienceText(job.experience_min, job.experience_max)}
                                     </span>
-                                </div>
-                                <div className="flex items-start gap-2.5">
-                                    <span className="font-semibold text-km-text-secondary w-32 shrink-0">Available Vacancies:</span>
-                                    <span className="font-bold text-km-text-primary">{job.vacancies || 1} Positions</span>
                                 </div>
                                 {typeof job.applicant_count === 'number' && job.applicant_count > 0 && (
                                     <div className="flex items-start gap-2.5">
@@ -472,10 +472,10 @@ const JobDetailPage = () => {
                         <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 shadow-xs space-y-5">
                             <div>
                                 <span className="text-xs font-semibold text-km-text-secondary">
-                                    Offered Monthly Salary
+                                    Salary
                                 </span>
                                 <div className="text-2xl font-extrabold text-km-text-primary mt-0.5">
-                                    ₹{job.salary_min?.toLocaleString('en-IN') || 0} - ₹{job.salary_max?.toLocaleString('en-IN') || 0}
+                                    {salaryText(job.salary_min, job.salary_max)}
                                 </div>
                                 <span className="text-xs text-km-text-secondary">Direct recruitment with zero agency deductions</span>
                             </div>
@@ -533,14 +533,23 @@ const JobDetailPage = () => {
                             {/* Company Info Box */}
                             <div className="pt-4 border-t border-km-border">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[#071A4D] text-white font-bold text-sm flex items-center justify-center shrink-0 border border-[#0B1F52] dark:bg-km-primary dark:border-km-link">
-                                        {job.company ? job.company.charAt(0).toUpperCase() : 'C'}
-                                    </div>
+                                    {job.company_logo ? (
+                                        // eslint-disable-next-line @next/next/no-img-element
+                                        <img src={job.company_logo} alt="" className="w-10 h-10 rounded-xl object-cover border border-km-border shrink-0 bg-white" />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-xl bg-[#071A4D] text-white font-bold text-sm flex items-center justify-center shrink-0 border border-[#0B1F52] dark:bg-km-primary dark:border-km-link">
+                                            {job.company ? job.company.charAt(0).toUpperCase() : 'C'}
+                                        </div>
+                                    )}
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs font-bold text-km-text-primary truncate">{job.company}</p>
-                                        <p className="text-[11px] text-km-link font-semibold flex items-center gap-1">
-                                            <CheckCircleIcon weight="bold" size={11} className="fill-[#0B5ED7] text-white dark:fill-blue-400" /> Verified Employer
-                                        </p>
+                                        {job.employer_verified ? (
+                                            <p className="text-xs text-km-link font-medium flex items-center gap-1">
+                                                <SealCheckIcon weight="fill" size={14} aria-hidden="true" /> Verified employer
+                                            </p>
+                                        ) : (
+                                            <p className="text-xs text-km-text-secondary">Not verified yet</p>
+                                        )}
                                     </div>
                                 </div>
                             </div>

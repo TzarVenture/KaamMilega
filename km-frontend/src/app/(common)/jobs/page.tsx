@@ -27,7 +27,6 @@ interface Job extends JobCardJob {
     experience_min: number;
     experience_max: number;
     description: string;
-    vacancies: number;
     created_at: string;
     is_top_match?: boolean;
 }
@@ -326,7 +325,7 @@ const JobsPageContent = () => {
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [appliedJobIds, setAppliedJobIds] = useState<Set<string>>(new Set());
     const [bookmarkedJobIds, setBookmarkedJobIds] = useState<Set<string>>(new Set());
-    const [sortBy, setSortBy] = useState<'newest' | 'salary' | 'openings'>('newest');
+    const [sortBy, setSortBy] = useState<'newest' | 'salary' | 'applicants'>('newest');
 
     // Filter state
     const [filters, setFilters] = useState<FilterState>({
@@ -378,8 +377,8 @@ const JobsPageContent = () => {
             // Client-side Sorting
             if (sortBy === 'salary') {
                 fetchedJobs = [...fetchedJobs].sort((a, b) => b.salary_max - a.salary_max);
-            } else if (sortBy === 'openings') {
-                fetchedJobs = [...fetchedJobs].sort((a, b) => (b.vacancies || 0) - (a.vacancies || 0));
+            } else if (sortBy === 'applicants') {
+                fetchedJobs = [...fetchedJobs].sort((a, b) => (b.applicant_count || 0) - (a.applicant_count || 0));
             }
 
             setJobs(fetchedJobs);
@@ -543,21 +542,29 @@ const JobsPageContent = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleSearchSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+    const applySearch = (q: string, city: string) => {
         const params = new URLSearchParams(searchParams.toString());
-        if (searchInput.trim()) {
-            params.set('q', searchInput.trim());
-        } else {
-            params.delete('q');
-        }
-        if (cityInput.trim()) {
-            params.set('city', cityInput.trim());
-        } else {
-            params.delete('city');
-        }
+        if (q.trim()) params.set('q', q.trim());
+        else params.delete('q');
+        if (city.trim()) params.set('city', city.trim());
+        else params.delete('city');
         params.set('page', '1');
         router.push(`/jobs?${params.toString()}`);
+    };
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        applySearch(searchInput, cityInput);
+    };
+
+    // Emptying a box (X button or deleting the text) drops that filter at once, without pressing Find
+    const changeSearch = (value: string) => {
+        setSearchInput(value);
+        if (!value.trim() && searchTerm) applySearch('', cityInput);
+    };
+    const changeCity = (value: string) => {
+        setCityInput(value);
+        if (!value.trim() && cityFilter !== 'All') applySearch(searchInput, '');
     };
 
     const handleSuggestionClick = (term: string) => {
@@ -678,13 +685,14 @@ const JobsPageContent = () => {
                                 type="text"
                                 placeholder="Search by job title, trade, or company..."
                                 value={searchInput}
-                                onChange={(e) => setSearchInput(e.target.value)}
+                                onChange={(e) => changeSearch(e.target.value)}
                                 className="w-full bg-transparent text-sm text-km-text-primary placeholder:text-km-text-secondary/70 focus:outline-hidden font-medium"
                             />
                             {searchInput && (
                                 <button
                                     type="button"
-                                    onClick={() => setSearchInput('')}
+                                    onClick={() => changeSearch('')}
+                                    aria-label="Clear search"
                                     className="text-km-text-secondary hover:text-km-text-primary p-0.5 rounded-full"
                                 >
                                     <XIcon weight="bold" size={14} />
@@ -699,13 +707,14 @@ const JobsPageContent = () => {
                                 type="text"
                                 placeholder="City or location..."
                                 value={cityInput}
-                                onChange={(e) => setCityInput(e.target.value)}
+                                onChange={(e) => changeCity(e.target.value)}
                                 className="w-full bg-transparent text-sm text-km-text-primary placeholder:text-km-text-secondary/70 focus:outline-hidden font-medium"
                             />
                             {cityInput && (
                                 <button
                                     type="button"
-                                    onClick={() => setCityInput('')}
+                                    onClick={() => changeCity('')}
+                                    aria-label="Clear city"
                                     className="text-km-text-secondary hover:text-km-text-primary p-0.5 rounded-full"
                                 >
                                     <XIcon weight="bold" size={14} />
@@ -786,7 +795,7 @@ const JobsPageContent = () => {
                                     >
                                         <option value="newest">Newest First</option>
                                         <option value="salary">Highest Salary</option>
-                                        <option value="openings">Most Openings</option>
+                                        <option value="applicants">Most applicants</option>
                                     </select>
                                 </div>
 

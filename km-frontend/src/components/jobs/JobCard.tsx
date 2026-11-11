@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CheckCircleIcon, GraduationCapIcon, MapPinIcon, SealCheckIcon } from '@phosphor-icons/react';
 import ChatWithHRButton from '@/components/jobs/ChatWithHRButton';
+import { applicantText, salaryText } from '@/lib/jobFormat';
 
 export interface JobCardJob {
     id: string;
@@ -43,15 +44,6 @@ interface Props {
 
 const DAY = 24 * 60 * 60 * 1000;
 
-const rupees = (n: number) => `₹${n.toLocaleString('en-IN')}`;
-
-function salaryText(min: number, max: number) {
-    if (!min && !max) return 'Salary not disclosed';
-    if (!max || min === max) return `${rupees(min || max)} a month`;
-    if (!min) return `Up to ${rupees(max)} a month`;
-    return `${rupees(min)} – ${rupees(max)} a month`;
-}
-
 function postedText(createdAt: string, now: number) {
     const days = Math.floor((now - new Date(createdAt).getTime()) / DAY);
     if (Number.isNaN(days)) return '';
@@ -59,12 +51,6 @@ function postedText(createdAt: string, now: number) {
     if (days === 1) return 'Posted yesterday';
     if (days < 30) return `Posted ${days} days ago`;
     return 'Posted 30+ days ago';
-}
-
-function applicantText(count?: number) {
-    if (count === undefined) return '';
-    if (count === 0) return 'Be the first to apply';
-    return count === 1 ? '1 applicant' : `${count} applicants`;
 }
 
 /** Experience filter bucket a job belongs to (matches the filter panel values) */
