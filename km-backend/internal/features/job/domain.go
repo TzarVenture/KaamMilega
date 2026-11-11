@@ -20,12 +20,12 @@ type Job struct {
 	SalaryMax   int    `bson:"salary_max" json:"salary_max"`
 	SalaryRange string `bson:"salary_range,omitempty" json:"salary_range,omitempty"` // Deprecated but kept for backward compat if needed, or removed. I'll remove it to force new usage.
 
-	JobType      string   `bson:"job_type" json:"job_type"`
-	Status       string   `bson:"status" json:"status"`
+	JobType string `bson:"job_type" json:"job_type"`
+	Status  string `bson:"status" json:"status"`
 	// HiddenByAccount is set while the recruiter account is deactivated or pending deletion
-	HiddenByAccount bool `bson:"hidden_by_account,omitempty" json:"-"`
-	Requirements []string `bson:"requirements" json:"requirements"`
-	WeOffer      []string `bson:"we_offer" json:"we_offer"`
+	HiddenByAccount bool     `bson:"hidden_by_account,omitempty" json:"-"`
+	Requirements    []string `bson:"requirements" json:"requirements"`
+	WeOffer         []string `bson:"we_offer" json:"we_offer"`
 
 	Gender    string `bson:"gender,omitempty" json:"gender,omitempty"`
 	Education string `bson:"education,omitempty" json:"education,omitempty"`
@@ -37,6 +37,10 @@ type Job struct {
 	CreatedAt      time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt      time.Time `bson:"updated_at" json:"updated_at"`
 	ApplicantCount int       `bson:"-" json:"applicant_count"`
+
+	// Filled from the recruiter's account when jobs are read, never stored on the job
+	EmployerVerified bool   `bson:"-" json:"employer_verified"`
+	CompanyLogo      string `bson:"-" json:"company_logo,omitempty"`
 }
 
 type CreateJobRequest struct {

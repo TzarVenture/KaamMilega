@@ -256,4 +256,3 @@ func (c *JobController) AdminDeleteJob(ctx *fiber.Ctx) error {
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
-

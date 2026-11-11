@@ -36,13 +36,18 @@ export default function ChatWithHRButton({ recruiterId, jobTitle, className, sho
         router.push(target);
     };
 
+    const button = (
+        <button type="button" onClick={open} className={className}>
+            <ChatCircleIcon weight="bold" size={16} aria-hidden="true" />
+            <span>{t('button')}</span>
+        </button>
+    );
+    if (!showHint) return button;
+
     return (
         <div className="flex flex-col items-stretch gap-1">
-            <button type="button" onClick={open} className={className}>
-                <ChatCircleIcon weight="bold" size={16} aria-hidden="true" />
-                <span>{t('button')}</span>
-            </button>
-            {showHint && <span className="text-center text-xs text-km-text-secondary">{t('hint')}</span>}
+            {button}
+            <span className="text-center text-xs text-km-text-secondary">{t('hint')}</span>
         </div>
     );
 }

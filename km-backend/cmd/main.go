@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	common_api "km-backend/internal/common/api"
 	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
@@ -20,26 +21,26 @@ import (
 	"km-backend/internal/features/policies"
 	"km-backend/internal/features/push"
 
+	"km-backend/internal/features/ads"
+	"km-backend/internal/features/analytics"
 	"km-backend/internal/features/company"
 	"km-backend/internal/features/course"
 	"km-backend/internal/features/event"
-	"km-backend/internal/features/ads"
-	"km-backend/internal/features/analytics"
 	"km-backend/internal/features/feed"
 	"km-backend/internal/features/file"
-	"km-backend/internal/storage"
 	"km-backend/internal/features/job"
 	"km-backend/internal/features/jobalert"
+	"km-backend/internal/features/payment"
 	"km-backend/internal/features/question"
 	"km-backend/internal/features/setting"
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
-	"km-backend/internal/features/system"
 	"km-backend/internal/features/subscription"
+	"km-backend/internal/features/system"
 	"km-backend/internal/features/testimonial"
 	"km-backend/internal/features/user"
-	"km-backend/internal/features/payment"
 	"km-backend/internal/features/wallet"
+	"km-backend/internal/storage"
 
 	"km-backend/internal/logger"
 	"km-backend/internal/middleware"
@@ -139,6 +140,21 @@ func StartServer(lc fx.Lifecycle, app *fiber.App, cfg *config.Config) {
 // @license.url     http://www.apache.org/licenses/LICENSE-2.0.html
 
 // @BasePath        /
+// newEmployerLookup lets job listings show whether the posting recruiter is verified
+func newEmployerLookup(users user.UserRepository) job.EmployerLookup {
+	return job.EmployerSource(func(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]job.Employer, error) {
+		found, err := users.FindUsersByIDs(ctx, ids)
+		if err != nil {
+			return nil, err
+		}
+		out := make(map[primitive.ObjectID]job.Employer, len(found))
+		for id, u := range found {
+			out[id] = job.Employer{Verified: u.VerificationStatus == "verified", Logo: u.CompanyLogo}
+		}
+		return out, nil
+	})
+}
+
 func main() {
 	app := fx.New(
 		fx.Provide(
@@ -208,6 +224,7 @@ func main() {
 			wallet.NewWalletService,
 			skill.NewSkillService,
 			job.NewJobService,
+			newEmployerLookup,
 			application.NewApplicationService,
 			interview.NewInterviewService,
 			city.NewCityService,
