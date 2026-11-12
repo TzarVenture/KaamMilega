@@ -9,6 +9,7 @@ import (
 	"km-backend/internal/config"
 	"km-backend/internal/database"
 	"km-backend/internal/features/account"
+	"km-backend/internal/features/credential"
 	"km-backend/internal/features/app_waitlist"
 	"km-backend/internal/features/application"
 	"km-backend/internal/features/chat"
@@ -206,6 +207,7 @@ func main() {
 			testimonial.NewTestimonialRepository,
 			app_waitlist.NewRepository,
 			account.NewRepository,
+			credential.NewRepository,
 			push.NewRepository,
 			feed.NewFeedRepository,
 			analytics.NewRepository,
@@ -240,6 +242,7 @@ func main() {
 			instant_work.NewInstantWorkService,
 			testimonial.NewTestimonialService,
 			account.NewService,
+			credential.NewService,
 			jobalert.NewService,
 			feed.NewFeedService,
 			analytics.NewService,
@@ -272,6 +275,7 @@ func main() {
 			ads.NewController,
 			policies.NewController,
 			account.NewController,
+			credential.NewController,
 			feed.NewFeedController,
 
 			// routes
@@ -301,6 +305,7 @@ func main() {
 			AsRoute(ads.NewApi),
 			AsRoute(policies.NewApi),
 			AsRoute(account.NewApi),
+			AsRoute(credential.NewApi),
 			AsRoute(push.NewApi),
 			AsRoute(feed.NewFeedApi),
 		),

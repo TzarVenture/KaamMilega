@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowSquareOutIcon, BriefcaseIcon, CameraIcon, CaretDownIcon, CaretRightIcon, ChatCircleIcon, CheckCircleIcon, CheckIcon, CopyIcon, DiamondIcon, FolderIcon, GlobeIcon, GraduationCapIcon, PencilSimpleIcon, PlusIcon, TrashIcon, WrenchIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowSquareOutIcon, BriefcaseIcon, CameraIcon, CaretDownIcon, CaretRightIcon, ChatCircleIcon, CheckCircleIcon, CheckIcon, CopyIcon, DiamondIcon, FolderIcon, GlobeIcon, GraduationCapIcon, PencilSimpleIcon, PlusIcon, TrashIcon, WrenchIcon } from '@phosphor-icons/react';
 import InterestsSection from './InterestSection';
 import { useEffect, useState, useRef } from 'react';
 import api from '@/lib/axios';
@@ -27,6 +27,7 @@ import ProfileStrengthCard from './ProfileStrengthCard';
 import TopEmployersWidget from '@/components/profile/TopEmployersWidget';
 import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
 import ProfileViewers from '@/components/profile/ProfileViewers';
+import ProfileCredentials from '@/components/profile/ProfileCredentials';
 import UserAvatar from '@/components/ui/UserAvatar';
 
 const ProfilePage = () => {
@@ -1096,48 +1097,15 @@ const ProfilePage = () => {
                         </div>
                     </section>
 
-                    {/* Skills Section */}
-                    <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900">Skills</h2>
-                                <p className="text-xs text-gray-400 mt-0.5">Highlight your technical and soft competencies</p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <button
-                                    onClick={() => setModals((m) => ({ ...m, skill: true }))}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-km-heading bg-blue-50 hover:bg-blue-100 rounded-full border border-blue-200 transition-colors cursor-pointer"
-                                >
-                                    <PlusIcon weight="bold" size={15} /> Add Skill
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2.5">
-                            {user.skills && user.skills.length > 0 ? (
-                                user.skills.map((skill: string) => (
-                                    <div
-                                        key={skill}
-                                        className="group inline-flex items-center gap-2 px-3.5 py-1.5 bg-blue-50/60 border border-blue-200 rounded-xl text-xs font-bold text-km-heading shadow-xs hover:border-blue-300 transition-colors"
-                                    >
-                                        <CheckCircleIcon weight="bold" size={13} className="text-km-heading shrink-0" />
-                                        <span>{skill}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleDeleteSkill(skill)}
-                                            disabled={deletingSkill === skill}
-                                            title={`Remove ${skill}`}
-                                            className="text-gray-400 hover:text-red-600 transition-colors p-0.5 rounded cursor-pointer disabled:opacity-50 dark:hover:text-red-400"
-                                        >
-                                            <XIcon weight="bold" size={13} />
-                                        </button>
-                                    </div>
-                                ))
-                            ) : (
-                                <p className="text-gray-500 italic text-sm">No skills added yet.</p>
-                            )}
-                        </div>
-                    </section>
+                    {/* Skills (with endorsements) and certificates */}
+                    <ProfileCredentials
+                        userId={user.id || user._id}
+                        skills={user.skills || []}
+                        isOwner
+                        onAddSkill={() => setModals((m) => ({ ...m, skill: true }))}
+                        onRemoveSkill={handleDeleteSkill}
+                        removingSkill={deletingSkill}
+                    />
 
                     {/* Interests Section */}
                     <InterestsSection />
