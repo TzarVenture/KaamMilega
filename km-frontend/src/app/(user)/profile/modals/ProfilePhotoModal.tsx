@@ -1,8 +1,9 @@
 import React, { useState, useRef } from 'react';
 import ModalWrapper from '@/components/ui/ModalWrapper';
-import { CameraIcon, PencilSimpleIcon, TrashIcon } from '@phosphor-icons/react';
+import { CameraIcon, TrashIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import CustomImage from '@/components/ui/CustomImage';
+import ImageCropper from '@/components/ui/ImageCropper';
 import { notify } from "@/lib/notify";
 import { uploadFile, UPLOAD_LIMITS } from '@/lib/upload';
 
@@ -13,32 +14,50 @@ interface ProfilePhotoModalProps {
   onSuccess: (updatedUser: any) => void;
 }
 
+/** Larger files are refused before cropping, since the browser has to decode them */
+const MAX_SOURCE_BYTES = 15 * 1024 * 1024;
+
 const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhotoModalProps) => {
   const [loading, setLoading] = useState(false);
+  // The photo being cropped, before it is uploaded
+  const [picked, setPicked] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const close = () => {
+    if (loading) return;
+    setPicked(null);
+    onClose();
+  };
 
-    if (file.size > UPLOAD_LIMITS.avatar) {
-      notify.error("This photo is over 5 MB. Please choose a smaller one.");
-      e.target.value = '';
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      notify.error("Please choose a JPG, PNG or WebP photo.");
       return;
     }
+    if (file.size > MAX_SOURCE_BYTES) {
+      notify.error("This photo is over 15 MB. Please choose a smaller one.");
+      return;
+    }
+    setPicked(file);
+  };
 
+  const saveCropped = async (cropped: File) => {
+    if (cropped.size > UPLOAD_LIMITS.avatar) {
+      notify.error("This photo is still too large. Please choose a smaller one.");
+      return;
+    }
     setLoading(true);
     try {
-      // 1. Upload the file
-      const { url: newImageUrl } = await uploadFile(file, 'avatar');
-
-      // 2. Update user profile
+      const { url: newImageUrl } = await uploadFile(cropped, 'avatar');
       const userResponse = await api.patch('/user/profile', { profile_image: newImageUrl });
       onSuccess(userResponse);
+      setPicked(null);
       onClose();
       notify.success("Profile photo updated");
     } catch (error) {
-      console.error("Failed to upload/update profile photo:", error);
       notify.error(error, "Could not update your profile photo. Please try again.");
     } finally {
       setLoading(false);
@@ -46,7 +65,7 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete your profile photo?")) return;
+    if (!confirm("Remove your profile photo?")) return;
     setLoading(true);
     try {
       const response = await api.patch('/user/profile', { profile_image: "" });
@@ -54,7 +73,6 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
       onClose();
       notify.success("Profile photo removed");
     } catch (error) {
-      console.error("Failed to delete profile photo:", error);
       notify.error(error, "Could not remove your profile photo. Please try again.");
     } finally {
       setLoading(false);
@@ -62,67 +80,59 @@ const ProfilePhotoModal = ({ isOpen, onClose, imageUrl, onSuccess }: ProfilePhot
   };
 
   return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose} title="Profile Photo">
-      <div className="flex flex-col items-center justify-center py-4 relative">
-        {loading && (
-          <div className="absolute inset-0 bg-km-surface-card/50 z-10 flex items-center justify-center rounded-full">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-km-primary"></div>
-          </div>
-        )}
+    <ModalWrapper isOpen={isOpen} onClose={close} title={picked ? "Crop your photo" : "Profile photo"}>
+      <input
+        type="file"
+        ref={fileInputRef}
+        className="hidden"
+        accept="image/jpeg,image/png,image/webp"
+        onChange={handleFileChange}
+      />
 
-        {/* Profile Image Container */}
-        <div className="relative w-80 h-80 md:w-96 md:h-96 rounded-full overflow-hidden bg-[#071A4D] flex items-center justify-center shadow-inner">
-          {imageUrl ? (
-            <CustomImage
-              src={imageUrl}
-              alt="Profile"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            /* Placeholder Logo from your image */
-            <div className="relative flex items-center justify-center">
-              <div className="w-32 h-32 bg-linear-to-br from-blue-400 to-km-primary clip-path-triangle transform rotate-12 absolute -translate-x-4" />
-              <div className="w-24 h-24 bg-linear-to-br from-blue-300 to-blue-500 clip-path-triangle translate-x-6 translate-y-4" />
+      {picked ? (
+        <div className="py-2">
+          <p className="mb-4 text-sm text-km-text-secondary text-center">Drag to move the photo and use the slider to zoom.</p>
+          <ImageCropper file={picked} busy={loading} onCancel={() => setPicked(null)} onCrop={saveCropped} />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-4 relative">
+          {loading && (
+            <div className="absolute inset-0 bg-km-surface-card/50 z-10 flex items-center justify-center rounded-full">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-km-primary"></div>
             </div>
           )}
-        </div>
 
-        {/* Action Toolbar */}
-        <div className="w-full mt-12 flex items-center justify-between px-2">
-          <div className="flex gap-4">
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleFileChange}
-            />
-            {/* Edit Button - Trigger same file pick for now */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-3 border border-blue-200 rounded-full text-km-heading hover:bg-blue-50 transition-colors group"
-            >
-              <PencilSimpleIcon size={20} className="group-hover:scale-110 transition-transform" />
-            </button>
-
-            {/* Camera Button */}
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="p-3 border border-blue-200 rounded-full text-km-heading hover:bg-blue-50 transition-colors group"
-            >
-              <CameraIcon size={20} className="group-hover:scale-110 transition-transform" />
-            </button>
+          <div className="relative w-72 h-72 md:w-80 md:h-80 rounded-full overflow-hidden bg-[#071A4D] flex items-center justify-center shadow-inner">
+            {imageUrl ? (
+              <CustomImage src={imageUrl} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <CameraIcon size={64} className="text-white/60" aria-hidden="true" />
+            )}
           </div>
 
-          {/* Delete Button */}
-          <button
-            onClick={handleDelete}
-            className="p-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-red-50 hover:text-red-600 transition-all group dark:hover:text-red-400"
-          >
-            <TrashIcon size={20} className="group-hover:shake" />
-          </button>
+          <div className="w-full mt-10 flex items-center justify-between gap-3 px-2">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="btn-primary h-10 px-4 text-sm"
+            >
+              <CameraIcon size={18} aria-hidden="true" />
+              {imageUrl ? "Change photo" : "Add photo"}
+            </button>
+
+            {imageUrl && (
+              <button
+                type="button"
+                onClick={handleDelete}
+                aria-label="Remove photo"
+                className="p-3 bg-km-surface text-km-text-secondary rounded-xl hover:bg-red-50 hover:text-red-600 transition-colors dark:hover:bg-red-950/40 dark:hover:text-red-400"
+              >
+                <TrashIcon size={20} />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </ModalWrapper>
   );
 };
