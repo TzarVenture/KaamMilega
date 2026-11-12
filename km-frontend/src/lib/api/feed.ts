@@ -50,7 +50,10 @@ export const feedApi = {
   unsave: (id: string) => send<void>('delete', `/feed/${id}/save`),
 
   comments: (id: string, before?: string) => get<CommentPage>(`/feed/${id}/comments`, { before }),
-  addComment: (id: string, content: string) => send<FeedComment>('post', `/feed/${id}/comments`, { content }),
+  addComment: (id: string, content: string, parentId?: string) =>
+    send<FeedComment>('post', `/feed/${id}/comments`, { content, parent_id: parentId }),
+  replies: (id: string, commentId: string, after?: string) =>
+    get<CommentPage>(`/feed/${id}/comments/${commentId}/replies`, { after }),
   deleteComment: (id: string, commentId: string) => send<void>('delete', `/feed/${id}/comments/${commentId}`),
 
   report: (id: string, reason: ReportReason, details?: string) => send<void>('post', `/feed/${id}/report`, { reason, details }),

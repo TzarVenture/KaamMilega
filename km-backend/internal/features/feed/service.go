@@ -34,6 +34,7 @@ type FeedService interface {
 
 	AddComment(ctx context.Context, userID, postID primitive.ObjectID, req CommentRequest) (*CommentResponse, error)
 	ListComments(ctx context.Context, viewer *primitive.ObjectID, postID primitive.ObjectID, before *primitive.ObjectID, limit int) (*CommentListResponse, error)
+	ListReplies(ctx context.Context, viewer *primitive.ObjectID, postID, commentID primitive.ObjectID, after *primitive.ObjectID, limit int) (*CommentListResponse, error)
 	DeleteComment(ctx context.Context, userID primitive.ObjectID, isAdmin bool, postID, commentID primitive.ObjectID) error
 
 	Report(ctx context.Context, userID, postID primitive.ObjectID, req ReportRequest) error
@@ -389,8 +390,20 @@ func (s *feedService) AddComment(ctx context.Context, userID, postID primitive.O
 	if count >= MaxCommentsPerHour {
 		return nil, ErrCommentRateLimit
 	}
+	var parent *Comment
+	if req.ParentID != "" {
+		if parent, err = s.threadParent(ctx, postID, req.ParentID); err != nil {
+			return nil, err
+		}
+		if containsID(blocked, parent.AuthorID) {
+			return nil, ErrCommentNotFound
+		}
+	}
 
 	c := &Comment{ID: primitive.NewObjectIDFromTimestamp(now), PostID: postID, AuthorID: userID, Content: content, CreatedAt: now}
+	if parent != nil {
+		c.ParentID = &parent.ID
+	}
 	if err := s.repo.CreateComment(ctx, c); err != nil {
 		return nil, err
 	}
@@ -400,30 +413,71 @@ func (s *feedService) AddComment(ctx context.Context, userID, postID primitive.O
 	}
 	author := authors[userID]
 	if post.AuthorID != userID {
-		s.notifyComment(post, userID, author, content)
+		s.notifyComment(post, post.AuthorID, userID, author, content, parent != nil)
 	}
-	return &CommentResponse{
-		ID: c.ID.Hex(), PostID: postID.Hex(), Author: author, Content: c.Content, CanDelete: true, CreatedAt: c.CreatedAt,
-	}, nil
+	if parent != nil && parent.AuthorID != userID && parent.AuthorID != post.AuthorID {
+		s.notifyComment(post, parent.AuthorID, userID, author, content, true)
+	}
+	out := commentResponse(c, author, &userID, post.AuthorID)
+	return &out, nil
 }
 
-// notifyComment tells the post's author about a new comment, after the response
-func (s *feedService) notifyComment(post *Post, actorID primitive.ObjectID, actor AuthorResponse, content string) {
+// threadParent finds the comment a reply belongs under. A reply to a reply joins the same
+// thread, so threads stay one level deep.
+func (s *feedService) threadParent(ctx context.Context, postID primitive.ObjectID, rawID string) (*Comment, error) {
+	id, err := primitive.ObjectIDFromHex(rawID)
+	if err != nil {
+		return nil, ErrCommentNotFound
+	}
+	parent, err := s.repo.FindComment(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if parent != nil && parent.ParentID != nil {
+		if parent, err = s.repo.FindComment(ctx, *parent.ParentID); err != nil {
+			return nil, err
+		}
+	}
+	if parent == nil || parent.PostID != postID {
+		return nil, ErrCommentNotFound
+	}
+	return parent, nil
+}
+
+func commentResponse(c *Comment, author AuthorResponse, viewer *primitive.ObjectID, postAuthor primitive.ObjectID) CommentResponse {
+	out := CommentResponse{
+		ID: c.ID.Hex(), PostID: c.PostID.Hex(), Author: author, Content: c.Content,
+		RepliesCount: max(c.RepliesCount, 0), CreatedAt: c.CreatedAt,
+		CanDelete: viewer != nil && (*viewer == c.AuthorID || *viewer == postAuthor),
+	}
+	if c.ParentID != nil {
+		out.ParentID = c.ParentID.Hex()
+	}
+	return out
+}
+
+// notifyComment tells the post's author about a new comment, or a comment's author about a
+// reply, after the response
+func (s *feedService) notifyComment(post *Post, to, actorID primitive.ObjectID, actor AuthorResponse, content string, reply bool) {
 	if s.notify == nil {
 		return
+	}
+	title, verb := "New comment on your post", "commented"
+	if reply && to != post.AuthorID {
+		title, verb = "New reply to your comment", "replied"
 	}
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		_, err := s.notify.CreateNotification(ctx, notification.CreateNotificationRequest{
-			UserID:      post.AuthorID,
+			UserID:      to,
 			ActorID:     &actorID,
 			ActorName:   actor.Name,
 			ActorAvatar: actor.Avatar,
 			Type:        notification.TypeFeedComment,
 			Category:    notification.CategoryNetwork,
-			Title:       "New comment on your post",
-			Message:     fmt.Sprintf("%s commented: %s", actor.Name, snippet(content, 80)),
+			Title:       title,
+			Message:     fmt.Sprintf("%s %s: %s", actor.Name, verb, snippet(content, 80)),
 			Link:        "/feed/" + post.ID.Hex(),
 			Metadata:    map[string]interface{}{"post_id": post.ID.Hex()},
 		})
@@ -454,6 +508,42 @@ func (s *feedService) ListComments(ctx context.Context, viewer *primitive.Object
 		comments = comments[:want]
 		next = comments[want-1].ID.Hex()
 	}
+	return s.commentPage(ctx, viewer, post, comments, next)
+}
+
+// ListReplies: one comment's replies, oldest first
+func (s *feedService) ListReplies(ctx context.Context, viewer *primitive.ObjectID, postID, commentID primitive.ObjectID, after *primitive.ObjectID, limit int) (*CommentListResponse, error) {
+	post, err := s.activePost(ctx, postID)
+	if err != nil {
+		return nil, err
+	}
+	parent, err := s.repo.FindComment(ctx, commentID)
+	if err != nil {
+		return nil, err
+	}
+	if parent == nil || parent.PostID != postID {
+		return nil, ErrCommentNotFound
+	}
+	var hide []primitive.ObjectID
+	if viewer != nil {
+		if hide, err = s.repo.BlockedUserIDs(ctx, *viewer); err != nil {
+			return nil, err
+		}
+	}
+	want := pageSize(limit, DefaultCommentPage, MaxCommentPage)
+	replies, err := s.repo.ListReplies(ctx, commentID, after, want+1, hide)
+	if err != nil {
+		return nil, err
+	}
+	next := ""
+	if len(replies) > want {
+		replies = replies[:want]
+		next = replies[want-1].ID.Hex()
+	}
+	return s.commentPage(ctx, viewer, post, replies, next)
+}
+
+func (s *feedService) commentPage(ctx context.Context, viewer *primitive.ObjectID, post *Post, comments []Comment, next string) (*CommentListResponse, error) {
 	ids := make([]primitive.ObjectID, 0, len(comments))
 	for _, c := range comments {
 		ids = append(ids, c.AuthorID)
@@ -463,15 +553,12 @@ func (s *feedService) ListComments(ctx context.Context, viewer *primitive.Object
 		return nil, err
 	}
 	out := make([]CommentResponse, 0, len(comments))
-	for _, c := range comments {
-		a, ok := authors[c.AuthorID]
+	for i := range comments {
+		a, ok := authors[comments[i].AuthorID]
 		if !ok {
 			continue // the author's account is closed
 		}
-		out = append(out, CommentResponse{
-			ID: c.ID.Hex(), PostID: postID.Hex(), Author: a, Content: c.Content, CreatedAt: c.CreatedAt,
-			CanDelete: viewer != nil && (*viewer == c.AuthorID || *viewer == post.AuthorID),
-		})
+		out = append(out, commentResponse(&comments[i], a, viewer, post.AuthorID))
 	}
 	return &CommentListResponse{Comments: out, NextCursor: next}, nil
 }
@@ -746,6 +833,20 @@ func (s *feedService) responses(ctx context.Context, viewer *primitive.ObjectID,
 		postIDs = append(postIDs, p.ID)
 		authorIDs = append(authorIDs, p.AuthorID)
 	}
+	var hide []primitive.ObjectID
+	var err error
+	if viewer != nil {
+		if hide, err = s.repo.BlockedUserIDs(ctx, *viewer); err != nil {
+			return nil, err
+		}
+	}
+	latest, err := s.repo.LatestComments(ctx, postIDs, hide)
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range latest {
+		authorIDs = append(authorIDs, c.AuthorID)
+	}
 	authors, err := s.authors(ctx, authorIDs)
 	if err != nil {
 		return nil, err
@@ -775,7 +876,15 @@ func (s *feedService) responses(ctx context.Context, viewer *primitive.ObjectID,
 			n := max(p.Impressions, 0)
 			impressions = &n
 		}
+		var latestComment *CommentResponse
+		if c, ok := latest[p.ID]; ok {
+			if ca, ok := authors[c.AuthorID]; ok {
+				r := commentResponse(&c, ca, viewer, p.AuthorID)
+				latestComment = &r
+			}
+		}
 		out = append(out, PostResponse{
+			LatestComment:  latestComment,
 			ID:             p.ID.Hex(),
 			Author:         a,
 			Content:        p.Content,
