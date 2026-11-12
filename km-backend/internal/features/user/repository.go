@@ -30,6 +30,8 @@ type UserRepository interface {
 	UpdatePassword(ctx context.Context, userID string, passwordHash string) error
 	FindUserByID(ctx context.Context, id string) (*User, error)
 	FindUsersByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*User, error)
+	// LiftEndedSuspension makes a suspended account active again once its end date passed
+	LiftEndedSuspension(ctx context.Context, id primitive.ObjectID) error
 	DeleteUser(ctx context.Context, id string) error
 
 	SaveOTP(ctx context.Context, otp *OTP) error
@@ -215,6 +217,21 @@ func (r *UserRepositoryImpl) FindUserByID(ctx context.Context, id string) (*User
 	return &user, nil
 }
 
+func (r *UserRepositoryImpl) LiftEndedSuspension(ctx context.Context, id primitive.ObjectID) error {
+	res, err := r.userColl.UpdateOne(ctx, bson.M{
+		"_id": id, "account_status": AccountSuspended, "suspended_until": bson.M{"$lte": time.Now()},
+	}, bson.M{
+		"$set":   bson.M{"account_status": AccountActive, "updated_at": time.Now()},
+		"$unset": bson.M{"suspended_at": "", "suspended_until": "", "suspension_reason": "", "suspended_by": ""},
+	})
+	if err != nil || res.ModifiedCount == 0 {
+		return err
+	}
+	// Jobs were hidden with the account (see account.Suspend)
+	_, err = r.db.DB.Collection("jobs").UpdateMany(ctx, bson.M{"recruiter_id": id}, bson.M{"$unset": bson.M{"hidden_by_account": ""}})
+	return err
+}
+
 func (r *UserRepositoryImpl) FindUsersByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*User, error) {
 	result := make(map[primitive.ObjectID]*User)
 	if len(ids) == 0 {
@@ -233,6 +250,7 @@ func (r *UserRepositoryImpl) FindUsersByIDs(ctx context.Context, ids []primitive
 		"roles":               1,
 		"verification_status": 1,
 		"company_name":        1,
+		"company_logo":        1,
 		"account_status":      1,
 		"city":                1,
 		"expert_category":     1,
@@ -498,6 +516,9 @@ func (r *UserRepositoryImpl) FindUsers(ctx context.Context, filter UserFilter) (
 			{"name": regex},
 			{"headline": regex},
 			{"company_name": regex},
+			// Recruiters look for candidates by what they can do and the roles they have held
+			{"skills": regex},
+			{"experience.title": regex},
 		}
 		// Looking people up by phone number or email is an admin-only capability
 		if filter.AdminView {

@@ -27,7 +27,7 @@ function fitHeight(el: HTMLTextAreaElement) {
   el.style.overflowY = el.scrollHeight > 160 ? 'auto' : 'hidden';
 }
 
-/** A post's comments, newest first, with the box to add one */
+/** A post's comments, newest first, each with its replies, and the box to add one */
 export default function PostComments({ post, focusRequest, onCountChange, onSignIn }: PostCommentsProps) {
   const t = useTranslations('feed');
   const { user } = useFeedUser();
@@ -35,10 +35,10 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
   const [cursor, setCursor] = useState<string | undefined>();
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [loadingMore, setLoadingMore] = useState(false);
-  const [text, setText] = useState('');
-  const [sending, setSending] = useState(false);
   const [deleting, setDeleting] = useState<FeedComment | null>(null);
   const [busyDelete, setBusyDelete] = useState(false);
+  // Replies a thread has loaded, so deleting one can update that thread
+  const [removedReply, setRemovedReply] = useState<FeedComment | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const load = useCallback(async () => {
@@ -79,34 +79,21 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
     }
   };
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const content = text.trim();
-    if (!content || sending) return;
-    setSending(true);
-    try {
-      const created = await feedApi.addComment(post.id, content);
-      setComments((prev) => [created, ...prev]);
-      setText('');
-      if (inputRef.current) {
-        inputRef.current.style.height = '';
-        inputRef.current.style.overflowY = '';
-      }
-      onCountChange(1);
-    } catch (err) {
-      notify.error(err, t('commentFailed'));
-    } finally {
-      setSending(false);
-    }
-  };
-
   const confirmDelete = async () => {
     if (!deleting) return;
     setBusyDelete(true);
     try {
       await feedApi.deleteComment(post.id, deleting.id);
-      setComments((prev) => prev.filter((c) => c.id !== deleting.id));
-      onCountChange(-1);
+      if (deleting.parent_id) {
+        const parentId = deleting.parent_id;
+        setComments((prev) => prev.map((c) => (c.id === parentId ? { ...c, replies_count: Math.max(0, c.replies_count - 1) } : c)));
+        setRemovedReply(deleting);
+        onCountChange(-1);
+      } else {
+        setComments((prev) => prev.filter((c) => c.id !== deleting.id));
+        // Its replies go with it
+        onCountChange(-(1 + deleting.replies_count));
+      }
       setDeleting(null);
     } catch (err) {
       notify.error(err, t('deleteFailed'));
@@ -115,52 +102,20 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
     }
   };
 
-  const over = text.length > MAX_COMMENT_LENGTH;
-
   return (
     <div className="border-t border-km-border px-4 sm:px-5 py-4 space-y-4">
       {user ? (
-        <form onSubmit={submit} className="flex items-start gap-2.5">
-          <div className="w-9 h-9 rounded-full overflow-hidden bg-km-surface shrink-0 border border-km-border">
-            <UserAvatar src={user.profile_image || user.avatar} name={displayName(user)} />
-          </div>
-          <div className="flex-1 min-w-0">
-            <label htmlFor={`comment-${post.id}`} className="sr-only">{t('addComment')}</label>
-            <textarea
-              id={`comment-${post.id}`}
-              ref={inputRef}
-              rows={1}
-              value={text}
-              onChange={(e) => {
-                setText(e.target.value);
-                fitHeight(e.target);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void submit(e);
-              }}
-              placeholder={t('addComment')}
-              dir="auto"
-              className="block w-full resize-none overflow-hidden rounded-2xl border border-km-border bg-km-surface-card px-4 py-2.5 text-[15px] text-km-text-primary placeholder:text-km-text-muted outline-none focus:border-km-link focus:ring-4 focus:ring-[#DCE8FB] dark:focus:ring-[#16294F]"
-            />
-            {(text.trim() || sending) && (
-              <div className="mt-2 flex items-center justify-end gap-3">
-                {text.length > MAX_COMMENT_LENGTH - 200 && (
-                  <span className={`text-[13px] tabular-nums ${over ? 'text-red-600 dark:text-red-400' : 'text-km-text-secondary'}`}>
-                    {over ? t('charactersOver', { count: -(MAX_COMMENT_LENGTH - text.length) }) : t('charactersLeft', { count: MAX_COMMENT_LENGTH - text.length })}
-                  </span>
-                )}
-                <button
-                  type="submit"
-                  disabled={sending || over}
-                  className="btn-primary h-9 px-4 text-sm inline-flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
-                  {sending && <SpinnerGapIcon size={14} className="animate-spin" aria-hidden="true" />}
-                  {t('postComment')}
-                </button>
-              </div>
-            )}
-          </div>
-        </form>
+        <CommentForm
+          postId={post.id}
+          inputRef={inputRef}
+          placeholder={t('addComment')}
+          submitLabel={t('postComment')}
+          failedMessage={t('commentFailed')}
+          onPosted={(created) => {
+            setComments((prev) => [created, ...prev]);
+            onCountChange(1);
+          }}
+        />
       ) : (
         <button type="button" onClick={onSignIn} className="text-sm font-semibold text-km-link hover:underline cursor-pointer">
           {t('signInToComment')}
@@ -184,7 +139,18 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
       {comments.length > 0 && (
         <ul className="space-y-3">
           {comments.map((c) => (
-            <CommentItem key={c.id} comment={c} isPostAuthor={c.author.id === post.author.id} onDelete={() => setDeleting(c)} />
+            <CommentThread
+              key={c.id}
+              post={post}
+              comment={c}
+              removedReply={removedReply}
+              onDelete={setDeleting}
+              onSignIn={onSignIn}
+              onReplied={() => {
+                setComments((prev) => prev.map((p) => (p.id === c.id ? { ...p, replies_count: p.replies_count + 1 } : p)));
+                onCountChange(1);
+              }}
+            />
           ))}
         </ul>
       )}
@@ -204,7 +170,7 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
       <ConfirmDialog
         open={deleting !== null}
         title={t('deleteCommentTitle')}
-        description={t('deleteCommentBody')}
+        description={deleting && !deleting.parent_id && deleting.replies_count > 0 ? t('deleteThreadBody') : t('deleteCommentBody')}
         confirmLabel={t('delete')}
         busy={busyDelete}
         onConfirm={confirmDelete}
@@ -214,13 +180,224 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
   );
 }
 
-function CommentItem({ comment, isPostAuthor, onDelete }: { comment: FeedComment; isPostAuthor: boolean; onDelete: () => void }) {
+/** The box for a new comment or reply */
+function CommentForm({ postId, parentId, inputRef, placeholder, submitLabel, failedMessage, autoFocus, onPosted }: {
+  postId: string;
+  parentId?: string;
+  inputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  placeholder: string;
+  submitLabel: string;
+  failedMessage: string;
+  autoFocus?: boolean;
+  onPosted: (comment: FeedComment) => void;
+}) {
+  const t = useTranslations('feed');
+  const { user } = useFeedUser();
+  const ownRef = useRef<HTMLTextAreaElement>(null);
+  const ref = inputRef ?? ownRef;
+  const [text, setText] = useState('');
+  const [sending, setSending] = useState(false);
+  const over = text.length > MAX_COMMENT_LENGTH;
+  const small = Boolean(parentId);
+
+  useEffect(() => {
+    if (autoFocus) ref.current?.focus();
+  }, [autoFocus, ref]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const content = text.trim();
+    if (!content || sending || over) return;
+    setSending(true);
+    try {
+      const created = await feedApi.addComment(postId, content, parentId);
+      onPosted(created);
+      setText('');
+      if (ref.current) {
+        ref.current.style.height = '';
+        ref.current.style.overflowY = '';
+      }
+    } catch (err) {
+      notify.error(err, failedMessage);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (!user) return null;
+  const id = `comment-${postId}${parentId ? `-${parentId}` : ''}`;
+
+  return (
+    <form onSubmit={submit} className="flex items-start gap-2.5">
+      <div className={`${small ? 'w-7 h-7' : 'w-9 h-9'} rounded-full overflow-hidden bg-km-surface shrink-0 border border-km-border`}>
+        <UserAvatar src={user.profile_image || user.avatar} name={displayName(user)} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <label htmlFor={id} className="sr-only">{placeholder}</label>
+        <textarea
+          id={id}
+          ref={ref}
+          rows={1}
+          value={text}
+          onChange={(e) => {
+            setText(e.target.value);
+            fitHeight(e.target);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) void submit(e);
+          }}
+          placeholder={placeholder}
+          dir="auto"
+          className={`block w-full resize-none overflow-hidden rounded-2xl border border-km-border bg-km-surface-card px-4 ${small ? 'py-2 text-sm' : 'py-2.5 text-[15px]'} text-km-text-primary placeholder:text-km-text-muted outline-none focus:border-km-link focus:ring-4 focus:ring-[#DCE8FB] dark:focus:ring-[#16294F]`}
+        />
+        {(text.trim() || sending) && (
+          <div className="mt-2 flex items-center justify-end gap-3">
+            {text.length > MAX_COMMENT_LENGTH - 200 && (
+              <span className={`text-[13px] tabular-nums ${over ? 'text-red-600 dark:text-red-400' : 'text-km-text-secondary'}`}>
+                {over ? t('charactersOver', { count: -(MAX_COMMENT_LENGTH - text.length) }) : t('charactersLeft', { count: MAX_COMMENT_LENGTH - text.length })}
+              </span>
+            )}
+            <button
+              type="submit"
+              disabled={sending || over}
+              className="btn-primary h-9 px-4 text-sm inline-flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {sending && <SpinnerGapIcon size={14} className="animate-spin" aria-hidden="true" />}
+              {submitLabel}
+            </button>
+          </div>
+        )}
+      </div>
+    </form>
+  );
+}
+
+/** A top-level comment and its replies, which load when asked for */
+function CommentThread({ post, comment, removedReply, onDelete, onSignIn, onReplied }: {
+  post: FeedPost;
+  comment: FeedComment;
+  removedReply: FeedComment | null;
+  onDelete: (c: FeedComment) => void;
+  onSignIn: () => void;
+  onReplied: () => void;
+}) {
+  const t = useTranslations('feed');
+  const { user } = useFeedUser();
+  const [replies, setReplies] = useState<FeedComment[]>([]);
+  const [cursor, setCursor] = useState<string | undefined>();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [replying, setReplying] = useState(0);
+
+  useEffect(() => {
+    if (removedReply?.parent_id === comment.id) setReplies((prev) => prev.filter((r) => r.id !== removedReply.id));
+  }, [removedReply, comment.id]);
+
+  const loadReplies = async (after?: string) => {
+    setLoading(true);
+    try {
+      const page = await feedApi.replies(post.id, comment.id, after);
+      setReplies((prev) => [...prev, ...page.comments.filter((c) => !prev.some((p) => p.id === c.id))]);
+      setCursor(page.next_cursor);
+      setOpen(true);
+    } catch (err) {
+      notify.error(err, t('loadFailed'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startReply = () => {
+    if (!user) {
+      onSignIn();
+      return;
+    }
+    if (!open && comment.replies_count > 0 && replies.length === 0) void loadReplies();
+    setOpen(true);
+    setReplying((n) => n + 1);
+  };
+
+  // Replies posted here this session that the loaded pages don't include yet
+  const hidden = Math.max(0, comment.replies_count - replies.length);
+
+  return (
+    <li>
+      <CommentItem comment={comment} isPostAuthor={comment.author.id === post.author.id} onDelete={() => onDelete(comment)} onReply={startReply} />
+      {(comment.replies_count > 0 || replying > 0) && (
+        <div className="ml-[46px] mt-2 space-y-3">
+          {!open && comment.replies_count > 0 && (
+            <ToggleButton busy={loading} onClick={() => void loadReplies()}>
+              {t('viewReplies', { count: comment.replies_count })}
+            </ToggleButton>
+          )}
+          {open && (
+            <>
+              {replies.length > 0 && (
+                <ul className="space-y-3">
+                  {replies.map((r) => (
+                    <li key={r.id}>
+                      <CommentItem small comment={r} isPostAuthor={r.author.id === post.author.id} onDelete={() => onDelete(r)} onReply={startReply} />
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {cursor && hidden > 0 && (
+                <ToggleButton busy={loading} onClick={() => void loadReplies(cursor)}>{t('moreReplies')}</ToggleButton>
+              )}
+              {replying > 0 && (
+                <CommentForm
+                  key={replying}
+                  postId={post.id}
+                  parentId={comment.id}
+                  autoFocus
+                  placeholder={t('addReply')}
+                  submitLabel={t('postReply')}
+                  failedMessage={t('replyFailed')}
+                  onPosted={(created) => {
+                    setReplies((prev) => [...prev, created]);
+                    onReplied();
+                  }}
+                />
+              )}
+              {replies.length > 0 && (
+                <ToggleButton onClick={() => setOpen(false)}>{t('hideReplies')}</ToggleButton>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </li>
+  );
+}
+
+function ToggleButton({ busy, onClick, children }: { busy?: boolean; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={busy}
+      className="inline-flex items-center gap-2 text-[13px] font-semibold text-km-text-secondary hover:text-km-link cursor-pointer disabled:opacity-60"
+    >
+      {busy && <SpinnerGapIcon size={14} className="animate-spin" aria-hidden="true" />}
+      {children}
+    </button>
+  );
+}
+
+/** One comment or reply. Also shown under a post in the feed as its newest comment. */
+export function CommentItem({ comment, isPostAuthor, small = false, onDelete, onReply }: {
+  comment: FeedComment;
+  isPostAuthor: boolean;
+  small?: boolean;
+  onDelete?: () => void;
+  onReply?: () => void;
+}) {
   const t = useTranslations('feed');
   const time = useRelativeTime(comment.created_at);
   const profile = `/profile/${comment.author.id}`;
   return (
-    <li className="flex items-start gap-2.5">
-      <Link href={profile} className="w-9 h-9 rounded-full overflow-hidden bg-km-surface shrink-0 border border-km-border" tabIndex={-1} aria-hidden="true">
+    <div className="flex items-start gap-2.5">
+      <Link href={profile} className={`${small ? 'w-7 h-7' : 'w-9 h-9'} rounded-full overflow-hidden bg-km-surface shrink-0 border border-km-border`} tabIndex={-1} aria-hidden="true">
         <UserAvatar src={comment.author.avatar} name={comment.author.name} />
       </Link>
       <div className="flex-1 min-w-0">
@@ -242,12 +419,21 @@ function CommentItem({ comment, isPostAuthor, onDelete }: { comment: FeedComment
             <PostContent text={comment.content} />
           </div>
         </div>
-        {comment.can_delete && (
-          <button type="button" onClick={onDelete} className="mt-1 ml-3 text-[13px] font-semibold text-km-text-secondary hover:text-red-600 cursor-pointer">
-            {t('delete')}
-          </button>
+        {(onReply || (onDelete && comment.can_delete)) && (
+          <div className="mt-1 ml-3 flex items-center gap-4">
+            {onReply && (
+              <button type="button" onClick={onReply} className="text-[13px] font-semibold text-km-text-secondary hover:text-km-link cursor-pointer">
+                {t('reply')}
+              </button>
+            )}
+            {onDelete && comment.can_delete && (
+              <button type="button" onClick={onDelete} className="text-[13px] font-semibold text-km-text-secondary hover:text-red-600 cursor-pointer">
+                {t('delete')}
+              </button>
+            )}
+          </div>
         )}
       </div>
-    </li>
+    </div>
   );
 }

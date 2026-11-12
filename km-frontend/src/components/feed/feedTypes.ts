@@ -41,6 +41,8 @@ export interface FeedPost {
   reaction_counts: Partial<Record<ReactionType, number>>;
   reactions_total: number;
   comments_count: number;
+  /** The newest top-level comment, shown under the post */
+  latest_comment?: FeedComment;
   user_reaction?: ReactionType;
   is_saved: boolean;
   is_owner: boolean;
@@ -63,8 +65,11 @@ export interface FeedPage {
 export interface FeedComment {
   id: string;
   post_id: string;
+  /** Set on a reply: the comment it sits under */
+  parent_id?: string;
   author: FeedAuthor;
   content: string;
+  replies_count: number;
   can_delete: boolean;
   created_at: string;
 }

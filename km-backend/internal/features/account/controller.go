@@ -59,12 +59,52 @@ func fail(c *fiber.Ctx, err error) error {
 		return c.Status(fiber.StatusTooManyRequests).JSON(apperr.Body(err))
 	case errors.Is(err, ErrInvalidState):
 		return c.Status(fiber.StatusConflict).JSON(apperr.Body(err))
+	case errors.Is(err, ErrSuspendNotAllow):
+		return c.Status(fiber.StatusForbidden).JSON(apperr.Body(err))
+	case errors.Is(err, ErrSuspendReason), errors.Is(err, ErrSuspendDays):
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	case errors.Is(err, ErrReauthRequired), errors.Is(err, ErrInvalidCode), errors.Is(err, ErrIncorrectPassword),
 		errors.Is(err, ErrNoChannel), errors.Is(err, ErrConfirmPhrase), errors.Is(err, ErrAcknowledge):
 		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	default:
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Something went wrong. Please try again."})
 	}
+}
+
+// SuspendUser godoc
+// @Summary Suspend or ban a member (admin)
+// @Tags Admin
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Param body body SuspendRequest true "Reason, and days (0 = permanent ban)"
+// @Router /admin/users/{id}/suspend [post]
+func (ctrl *Controller) SuspendUser(c *fiber.Ctx) error {
+	adminID, err := currentUser(c)
+	if adminID == "" {
+		return err
+	}
+	var req SuspendRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
+	}
+	until, err := ctrl.service.Suspend(c.Context(), adminID, c.Params("id"), req)
+	if err != nil {
+		return fail(c, err)
+	}
+	return c.JSON(fiber.Map{"account_status": "suspended", "suspended_until": until})
+}
+
+// LiftUserSuspension godoc
+// @Summary Lift a member's suspension or ban (admin)
+// @Tags Admin
+// @Security BearerAuth
+// @Param id path string true "User ID"
+// @Router /admin/users/{id}/suspend [delete]
+func (ctrl *Controller) LiftUserSuspension(c *fiber.Ctx) error {
+	if err := ctrl.service.LiftSuspension(c.Context(), c.Params("id")); err != nil {
+		return fail(c, err)
+	}
+	return c.JSON(fiber.Map{"account_status": "active"})
 }
 
 // endSession clears the auth cookies after the account leaves the active state

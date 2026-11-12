@@ -112,7 +112,8 @@ type AccountNoticeParams struct {
 	ToEmail      string
 	UserName     string
 	Kind         string     // AccountNoticeDeactivated | ...DeletionScheduled | ...DeletionCancelled | ...Deleted
-	ScheduledFor *time.Time // deletion date (DeletionScheduled only)
+	ScheduledFor *time.Time // deletion date (DeletionScheduled), suspension end (Suspended; nil = permanent)
+	Reason       string     // why an admin suspended the account (Suspended only)
 }
 
 // JobAlertParams carries the jobs for one candidate's daily job-alert email.
@@ -137,6 +138,8 @@ const (
 	AccountNoticeDeletionScheduled = "deletion_scheduled"
 	AccountNoticeDeletionCancelled = "deletion_cancelled"
 	AccountNoticeDeleted           = "deleted"
+	AccountNoticeSuspended         = "suspended"
+	AccountNoticeSuspensionLifted  = "suspension_lifted"
 )
 
 // ─── SMTP Implementation ──────────────────────────────────────────────────────
@@ -323,6 +326,8 @@ func (m *smtpMailer) SendAccountNotice(p AccountNoticeParams) error {
 		AccountNoticeDeletionScheduled: "Your KaamMilega account is scheduled for deletion",
 		AccountNoticeDeletionCancelled: "Your KaamMilega account deletion was cancelled",
 		AccountNoticeDeleted:           "Your KaamMilega account has been deleted",
+		AccountNoticeSuspended:         "Your KaamMilega account is suspended",
+		AccountNoticeSuspensionLifted:  "Your KaamMilega account is active again",
 	}
 	subject, ok := subjects[p.Kind]
 	if !ok {
@@ -332,9 +337,20 @@ func (m *smtpMailer) SendAccountNotice(p AccountNoticeParams) error {
 	if p.ScheduledFor != nil {
 		data.Note = p.ScheduledFor.In(istLocation()).Format("2 January 2006")
 	}
+	if p.Kind == AccountNoticeSuspended {
+		until := "Permanent"
+		if p.ScheduledFor != nil {
+			until = p.ScheduledFor.In(istLocation()).Format("2 January 2006, 3:04 PM")
+		}
+		data.Rows = []tableRow{{Label: "Reason", Value: p.Reason}, {Label: "Until", Value: until, Bold: true}}
+	}
 	if p.Kind == AccountNoticeDeactivated || p.Kind == AccountNoticeDeletionScheduled {
 		data.CTAURL = "https://kaammilega.com/login"
 		data.CTALabel = "Sign in to restore your account"
+	}
+	if p.Kind == AccountNoticeSuspensionLifted {
+		data.CTAURL = "https://kaammilega.com/login"
+		data.CTALabel = "Sign in"
 	}
 	body, err := renderTemplate(m.templates, "account_notice", data)
 	if err != nil {

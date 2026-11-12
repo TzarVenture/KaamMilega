@@ -47,6 +47,10 @@ type FeedRepository interface {
 	CreateComment(ctx context.Context, c *Comment) error
 	FindComment(ctx context.Context, id primitive.ObjectID) (*Comment, error)
 	ListComments(ctx context.Context, postID primitive.ObjectID, before *primitive.ObjectID, limit int, hideAuthors []primitive.ObjectID) ([]Comment, error)
+	// ListReplies is oldest first, so a thread reads top to bottom
+	ListReplies(ctx context.Context, parentID primitive.ObjectID, after *primitive.ObjectID, limit int, hideAuthors []primitive.ObjectID) ([]Comment, error)
+	// LatestComments is the newest top-level comment on each post
+	LatestComments(ctx context.Context, postIDs []primitive.ObjectID, hideAuthors []primitive.ObjectID) (map[primitive.ObjectID]Comment, error)
 	DeleteComment(ctx context.Context, c *Comment) error
 	CountCommentsSince(ctx context.Context, authorID primitive.ObjectID, since time.Time) (int64, error)
 
@@ -109,6 +113,7 @@ func (r *feedRepository) ensureIndexes() {
 		{r.comments, []mongo.IndexModel{
 			{Keys: bson.D{{Key: "post_id", Value: 1}, {Key: "_id", Value: -1}}},
 			{Keys: bson.D{{Key: "author_id", Value: 1}, {Key: "created_at", Value: -1}}},
+			{Keys: bson.D{{Key: "parent_id", Value: 1}, {Key: "_id", Value: 1}}, Options: options.Index().SetSparse(true)},
 		}},
 		{r.reactions, []mongo.IndexModel{
 			{Keys: bson.D{{Key: "post_id", Value: 1}, {Key: "user_id", Value: 1}}, Options: unique()},
@@ -480,6 +485,11 @@ func (r *feedRepository) CreateComment(ctx context.Context, c *Comment) error {
 	if _, err := r.comments.InsertOne(ctx, c); err != nil {
 		return err
 	}
+	if c.ParentID != nil {
+		if _, err := r.comments.UpdateOne(ctx, bson.M{"_id": *c.ParentID}, bson.M{"$inc": bson.M{"replies_count": 1}}); err != nil {
+			return err
+		}
+	}
 	_, err := r.posts.UpdateOne(ctx, bson.M{"_id": c.PostID}, bson.M{"$inc": bson.M{"comments_count": 1}})
 	return err
 }
@@ -497,7 +507,7 @@ func (r *feedRepository) FindComment(ctx context.Context, id primitive.ObjectID)
 }
 
 func (r *feedRepository) ListComments(ctx context.Context, postID primitive.ObjectID, before *primitive.ObjectID, limit int, hideAuthors []primitive.ObjectID) ([]Comment, error) {
-	filter := bson.M{"post_id": postID}
+	filter := bson.M{"post_id": postID, "parent_id": bson.M{"$exists": false}}
 	if before != nil {
 		filter["_id"] = bson.M{"$lt": *before}
 	}
@@ -515,12 +525,73 @@ func (r *feedRepository) ListComments(ctx context.Context, postID primitive.Obje
 	return out, nil
 }
 
+func (r *feedRepository) ListReplies(ctx context.Context, parentID primitive.ObjectID, after *primitive.ObjectID, limit int, hideAuthors []primitive.ObjectID) ([]Comment, error) {
+	filter := bson.M{"parent_id": parentID}
+	if after != nil {
+		filter["_id"] = bson.M{"$gt": *after}
+	}
+	if len(hideAuthors) > 0 {
+		filter["author_id"] = bson.M{"$nin": hideAuthors}
+	}
+	cur, err := r.comments.Find(ctx, filter, options.Find().SetSort(bson.D{{Key: "_id", Value: 1}}).SetLimit(int64(limit)))
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Comment, 0, limit)
+	if err := cur.All(ctx, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (r *feedRepository) LatestComments(ctx context.Context, postIDs []primitive.ObjectID, hideAuthors []primitive.ObjectID) (map[primitive.ObjectID]Comment, error) {
+	out := map[primitive.ObjectID]Comment{}
+	if len(postIDs) == 0 {
+		return out, nil
+	}
+	match := bson.M{"post_id": bson.M{"$in": postIDs}, "parent_id": bson.M{"$exists": false}}
+	if len(hideAuthors) > 0 {
+		match["author_id"] = bson.M{"$nin": hideAuthors}
+	}
+	cur, err := r.comments.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$match", Value: match}},
+		{{Key: "$sort", Value: bson.D{{Key: "post_id", Value: 1}, {Key: "_id", Value: -1}}}},
+		{{Key: "$group", Value: bson.M{"_id": "$post_id", "doc": bson.M{"$first": "$$ROOT"}}}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var rows []struct {
+		Doc Comment `bson:"doc"`
+	}
+	if err := cur.All(ctx, &rows); err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		out[row.Doc.PostID] = row.Doc
+	}
+	return out, nil
+}
+
+// DeleteComment removes a comment; a top-level comment takes its replies with it
 func (r *feedRepository) DeleteComment(ctx context.Context, c *Comment) error {
 	res, err := r.comments.DeleteOne(ctx, bson.M{"_id": c.ID})
 	if err != nil || res.DeletedCount == 0 {
 		return err
 	}
-	_, err = r.posts.UpdateOne(ctx, bson.M{"_id": c.PostID}, bson.M{"$inc": bson.M{"comments_count": -1}})
+	removed := int64(1)
+	if c.ParentID != nil {
+		if _, err := r.comments.UpdateOne(ctx, bson.M{"_id": *c.ParentID}, bson.M{"$inc": bson.M{"replies_count": -1}}); err != nil {
+			return err
+		}
+	} else {
+		replies, err := r.comments.DeleteMany(ctx, bson.M{"parent_id": c.ID})
+		if err != nil {
+			return err
+		}
+		removed += replies.DeletedCount
+	}
+	_, err = r.posts.UpdateOne(ctx, bson.M{"_id": c.PostID}, bson.M{"$inc": bson.M{"comments_count": -removed}})
 	return err
 }
 

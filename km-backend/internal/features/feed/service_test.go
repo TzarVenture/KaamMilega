@@ -208,6 +208,9 @@ func (m *memRepo) ListSaves(context.Context, primitive.ObjectID, *primitive.Obje
 }
 func (m *memRepo) CreateComment(_ context.Context, c *Comment) error {
 	m.comments[c.ID] = c
+	if c.ParentID != nil {
+		m.comments[*c.ParentID].RepliesCount++
+	}
 	m.posts[c.PostID].CommentsCount++
 	return nil
 }
@@ -217,9 +220,41 @@ func (m *memRepo) FindComment(_ context.Context, id primitive.ObjectID) (*Commen
 func (m *memRepo) ListComments(context.Context, primitive.ObjectID, *primitive.ObjectID, int, []primitive.ObjectID) ([]Comment, error) {
 	return nil, nil
 }
+func (m *memRepo) ListReplies(_ context.Context, parent primitive.ObjectID, _ *primitive.ObjectID, _ int, _ []primitive.ObjectID) ([]Comment, error) {
+	var out []Comment
+	for _, c := range m.comments {
+		if c.ParentID != nil && *c.ParentID == parent {
+			out = append(out, *c)
+		}
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].ID.Hex() < out[j].ID.Hex() })
+	return out, nil
+}
+func (m *memRepo) LatestComments(_ context.Context, postIDs []primitive.ObjectID, hide []primitive.ObjectID) (map[primitive.ObjectID]Comment, error) {
+	out := map[primitive.ObjectID]Comment{}
+	for _, c := range m.comments {
+		if c.ParentID != nil || !containsID(postIDs, c.PostID) || containsID(hide, c.AuthorID) {
+			continue
+		}
+		if cur, ok := out[c.PostID]; !ok || c.ID.Hex() > cur.ID.Hex() {
+			out[c.PostID] = *c
+		}
+	}
+	return out, nil
+}
 func (m *memRepo) DeleteComment(_ context.Context, c *Comment) error {
 	delete(m.comments, c.ID)
 	m.posts[c.PostID].CommentsCount--
+	if c.ParentID != nil {
+		m.comments[*c.ParentID].RepliesCount--
+		return nil
+	}
+	for id, r := range m.comments {
+		if r.ParentID != nil && *r.ParentID == c.ID {
+			delete(m.comments, id)
+			m.posts[c.PostID].CommentsCount--
+		}
+	}
 	return nil
 }
 func (m *memRepo) CountCommentsSince(_ context.Context, a primitive.ObjectID, since time.Time) (int64, error) {
@@ -502,6 +537,53 @@ func TestCommentRules(t *testing.T) {
 	f.repo.blocks[carol] = []primitive.ObjectID{f.alice}
 	if _, err := f.svc.AddComment(ctx, carol, postID, CommentRequest{Content: "hi"}); !errors.Is(err, ErrPostNotFound) {
 		t.Fatalf("blocked member commented: %v", err)
+	}
+}
+
+func TestReplies(t *testing.T) {
+	f := newFixture()
+	ctx := context.Background()
+	p, _ := f.svc.CreatePost(ctx, f.alice, CreatePostRequest{Content: "news"})
+	postID := mustID(t, p.ID)
+	other, _ := f.svc.CreatePost(ctx, f.alice, CreatePostRequest{Content: "other"})
+
+	top, err := f.svc.AddComment(ctx, f.bob, postID, CommentRequest{Content: "Congrats"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	reply, err := f.svc.AddComment(ctx, f.alice, postID, CommentRequest{Content: "Thanks", ParentID: top.ID})
+	if err != nil || reply.ParentID != top.ID {
+		t.Fatalf("reply: %+v %v", reply, err)
+	}
+	// A reply to a reply joins the same thread
+	nested, err := f.svc.AddComment(ctx, f.bob, postID, CommentRequest{Content: "Welcome", ParentID: reply.ID})
+	if err != nil || nested.ParentID != top.ID {
+		t.Fatalf("nested reply: %+v %v", nested, err)
+	}
+	if _, err := f.svc.AddComment(ctx, f.bob, mustID(t, other.ID), CommentRequest{Content: "x", ParentID: top.ID}); !errors.Is(err, ErrCommentNotFound) {
+		t.Fatalf("replied across posts: %v", err)
+	}
+	topID := mustID(t, top.ID)
+	if n := f.repo.comments[topID].RepliesCount; n != 2 {
+		t.Fatalf("replies_count = %d", n)
+	}
+	page, err := f.svc.ListReplies(ctx, nil, postID, topID, nil, 0)
+	if err != nil || len(page.Comments) != 2 || page.Comments[0].Content != "Thanks" {
+		t.Fatalf("replies page: %+v %v", page, err)
+	}
+
+	// The feed shows the newest top-level comment, never a reply
+	got, err := f.svc.GetPost(ctx, nil, postID)
+	if err != nil || got.LatestComment == nil || got.LatestComment.ID != top.ID || got.LatestComment.RepliesCount != 2 {
+		t.Fatalf("latest comment: %+v %v", got.LatestComment, err)
+	}
+
+	// Deleting the top comment takes its replies with it
+	if err := f.svc.DeleteComment(ctx, f.bob, false, postID, topID); err != nil {
+		t.Fatal(err)
+	}
+	if n := f.repo.posts[postID].CommentsCount; n != 0 || len(f.repo.comments) != 0 {
+		t.Fatalf("after delete: count %d, left %d", n, len(f.repo.comments))
 	}
 }
 

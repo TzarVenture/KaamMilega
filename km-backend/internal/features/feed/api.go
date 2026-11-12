@@ -33,6 +33,7 @@ func (a *FeedApi) Setup(app *fiber.App) {
 	feed.Post("/impressions", optional, a.controller.RecordImpressions)
 	feed.Get("/:id", optional, visitor, a.controller.GetPost)
 	feed.Get("/:id/comments", optional, a.controller.ListComments)
+	feed.Get("/:id/comments/:commentId/replies", optional, a.controller.ListReplies)
 
 	feed.Post("/", auth, a.controller.CreatePost)
 	feed.Patch("/:id", auth, a.controller.UpdatePost)

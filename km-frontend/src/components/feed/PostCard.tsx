@@ -22,7 +22,7 @@ import { loginPathFor } from '@/lib/authPaths';
 import { notify } from '@/lib/notify';
 import { usePostImpression } from '@/lib/telemetry';
 import { ConfirmDialog } from './FeedDialog';
-import PostComments from './PostComments';
+import PostComments, { CommentItem } from './PostComments';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
 import { ReactionButton, ReactionSummary, withReaction } from './PostReactions';
@@ -299,6 +299,22 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
           <span>{t('share')}</span>
         </button>
       </div>
+
+      {/* Everyone sees the newest comment without opening the thread */}
+      {!showComments && post.latest_comment && (
+        <div className="border-t border-km-border px-4 sm:px-5 py-3 space-y-2">
+          <CommentItem
+            comment={post.latest_comment}
+            isPostAuthor={post.latest_comment.author.id === post.author.id}
+            onReply={openComments}
+          />
+          {(post.comments_count > 1 || post.latest_comment.replies_count > 0) && (
+            <button type="button" onClick={() => setShowComments(true)} className="ml-[46px] text-[13px] font-semibold text-km-text-secondary hover:text-km-link cursor-pointer">
+              {t('viewAllComments', { count: post.comments_count })}
+            </button>
+          )}
+        </div>
+      )}
 
       {showComments && (
         <PostComments

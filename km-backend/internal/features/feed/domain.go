@@ -129,11 +129,16 @@ type Post struct {
 }
 
 type Comment struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty"`
-	PostID    primitive.ObjectID `bson:"post_id"`
-	AuthorID  primitive.ObjectID `bson:"author_id"`
-	Content   string             `bson:"content"`
-	CreatedAt time.Time          `bson:"created_at"`
+	ID       primitive.ObjectID `bson:"_id,omitempty"`
+	PostID   primitive.ObjectID `bson:"post_id"`
+	AuthorID primitive.ObjectID `bson:"author_id"`
+	// ParentID is set on a reply. Replies are one level deep: a reply to a reply joins the
+	// same thread.
+	ParentID *primitive.ObjectID `bson:"parent_id,omitempty"`
+	// RepliesCount is kept on top-level comments
+	RepliesCount int       `bson:"replies_count,omitempty"`
+	Content      string    `bson:"content"`
+	CreatedAt    time.Time `bson:"created_at"`
 }
 
 type Reaction struct {
@@ -201,6 +206,8 @@ type ReactionRequest struct {
 
 type CommentRequest struct {
 	Content string `json:"content"`
+	// ParentID makes this a reply to that comment
+	ParentID string `json:"parent_id,omitempty"`
 }
 
 type ReportRequest struct {
@@ -231,9 +238,11 @@ type PostResponse struct {
 	ReactionCounts map[string]int `json:"reaction_counts"`
 	ReactionsTotal int            `json:"reactions_total"`
 	CommentsCount  int            `json:"comments_count"`
-	UserReaction   string         `json:"user_reaction,omitempty"`
-	IsSaved        bool           `json:"is_saved"`
-	IsOwner        bool           `json:"is_owner"`
+	// LatestComment is the newest top-level comment, shown under the post in the feed
+	LatestComment *CommentResponse `json:"latest_comment,omitempty"`
+	UserReaction  string           `json:"user_reaction,omitempty"`
+	IsSaved       bool             `json:"is_saved"`
+	IsOwner       bool             `json:"is_owner"`
 	// Impressions is only sent to the author, like the rest of their analytics
 	Impressions *int       `json:"impressions,omitempty"`
 	CreatedAt   time.Time  `json:"created_at"`
@@ -246,12 +255,14 @@ type ListResponse struct {
 }
 
 type CommentResponse struct {
-	ID        string         `json:"id"`
-	PostID    string         `json:"post_id"`
-	Author    AuthorResponse `json:"author"`
-	Content   string         `json:"content"`
-	CanDelete bool           `json:"can_delete"`
-	CreatedAt time.Time      `json:"created_at"`
+	ID           string         `json:"id"`
+	PostID       string         `json:"post_id"`
+	ParentID     string         `json:"parent_id,omitempty"`
+	Author       AuthorResponse `json:"author"`
+	Content      string         `json:"content"`
+	RepliesCount int            `json:"replies_count"`
+	CanDelete    bool           `json:"can_delete"`
+	CreatedAt    time.Time      `json:"created_at"`
 }
 
 type CommentListResponse struct {

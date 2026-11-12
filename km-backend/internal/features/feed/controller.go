@@ -411,6 +411,37 @@ func (ctrl *FeedController) ListComments(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
+// ListReplies godoc
+// @Summary A comment's replies, oldest first
+// @Tags feed
+// @Produce json
+// @Param id path string true "Post ID"
+// @Param commentId path string true "Comment ID"
+// @Param after query string false "Cursor from the previous page"
+// @Param limit query int false "Page size (max 50)"
+// @Success 200 {object} CommentListResponse
+// @Router /api/feed/{id}/comments/{commentId}/replies [get]
+func (ctrl *FeedController) ListReplies(c *fiber.Ctx) error {
+	postID, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	commentID, ok := pathID(c, "commentId")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(ErrCommentNotFound))
+	}
+	var after *primitive.ObjectID
+	if id, err := primitive.ObjectIDFromHex(strings.TrimSpace(c.Query("after"))); err == nil {
+		after = &id
+	}
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	res, err := ctrl.service.ListReplies(c.UserContext(), viewer(c), postID, commentID, after, limit)
+	if err != nil {
+		return fail(c, err)
+	}
+	return c.JSON(res)
+}
+
 // AddComment godoc
 // @Summary Comment on a post
 // @Tags feed

@@ -21,10 +21,12 @@ const (
 	AccountDeactivated     = "deactivated"
 	AccountPendingDeletion = "pending_deletion"
 	AccountDeleted         = "deleted"
+	// AccountSuspended is set by an admin. It ends at suspended_until; no end date is a ban.
+	AccountSuspended = "suspended"
 )
 
 // InactiveAccountStatuses are hidden from every listing, search and profile view
-var InactiveAccountStatuses = []string{AccountDeactivated, AccountPendingDeletion, AccountDeleted}
+var InactiveAccountStatuses = []string{AccountDeactivated, AccountPendingDeletion, AccountDeleted, AccountSuspended}
 
 // IsActiveAccount reports whether a stored account_status counts as active
 func IsActiveAccount(status string) bool {
@@ -106,13 +108,17 @@ type User struct {
 	// Identity and payout details of the Expert application (masked; see ExpertKYC)
 	ExpertKYC *ExpertKYC `bson:"expert_kyc,omitempty" json:"expert_kyc,omitempty"` // "pending", "approved", "rejected"
 
-
 	// Account lifecycle (see internal/features/account)
 	AccountStatus        string     `bson:"account_status,omitempty" json:"account_status,omitempty"`
 	DeactivatedAt        *time.Time `bson:"deactivated_at,omitempty" json:"deactivated_at,omitempty"`
 	DeletionRequestedAt  *time.Time `bson:"deletion_requested_at,omitempty" json:"deletion_requested_at,omitempty"`
 	DeletionScheduledFor *time.Time `bson:"deletion_scheduled_for,omitempty" json:"deletion_scheduled_for,omitempty"`
 	DeletedAt            *time.Time `bson:"deleted_at,omitempty" json:"-"`
+	// Set while an admin has suspended the account (account_status "suspended")
+	SuspendedAt      *time.Time         `bson:"suspended_at,omitempty" json:"suspended_at,omitempty"`
+	SuspendedUntil   *time.Time         `bson:"suspended_until,omitempty" json:"suspended_until,omitempty"` // nil = permanent ban
+	SuspensionReason string             `bson:"suspension_reason,omitempty" json:"suspension_reason,omitempty"`
+	SuspendedBy      primitive.ObjectID `bson:"suspended_by,omitempty" json:"-"`
 	// SessionVersion is embedded in every login token; incrementing it signs the user out everywhere
 	SessionVersion int `bson:"session_version,omitempty" json:"-"`
 	// JobAlertsLastRunAt is written by the job-alert worker. It must be part of this struct:
@@ -189,23 +195,23 @@ type VerifyOTPResponse struct {
 }
 
 type RegisterRequest struct {
-	Mobile           string   `json:"mobile"` // Should match token claim normally
-	Roles            []string `json:"roles"`
-	Name             string   `json:"name"`
-	Headline         string   `json:"headline"`
-	Skills           []string `json:"skills"`
-	Gender           string   `json:"gender"`
-	EducationLevel   string   `json:"education_level"`
-	WorkExperience   string   `json:"work_experience"`
-	City             string   `json:"city"`
-	JobCategories    []string `json:"job_categories"`
-	ExperienceDetail string   `json:"experience_detail"`
-	Email            string   `json:"email"`
-	Password         string   `json:"password,omitempty"`
-	IsEmailVerified  bool     `json:"is_email_verified"`
-	IsConsultant     bool     `json:"is_consultant"`
-	CompanyName      string   `json:"company_name,omitempty"`
-	CompanyWebsite   string   `json:"company_website,omitempty"`
+	Mobile           string     `json:"mobile"` // Should match token claim normally
+	Roles            []string   `json:"roles"`
+	Name             string     `json:"name"`
+	Headline         string     `json:"headline"`
+	Skills           []string   `json:"skills"`
+	Gender           string     `json:"gender"`
+	EducationLevel   string     `json:"education_level"`
+	WorkExperience   string     `json:"work_experience"`
+	City             string     `json:"city"`
+	JobCategories    []string   `json:"job_categories"`
+	ExperienceDetail string     `json:"experience_detail"`
+	Email            string     `json:"email"`
+	Password         string     `json:"password,omitempty"`
+	IsEmailVerified  bool       `json:"is_email_verified"`
+	IsConsultant     bool       `json:"is_consultant"`
+	CompanyName      string     `json:"company_name,omitempty"`
+	CompanyWebsite   string     `json:"company_website,omitempty"`
 	CompanyLogo      string     `json:"company_logo,omitempty"`
 	GST              string     `json:"gst,omitempty"`
 	Industry         string     `json:"industry,omitempty"`
@@ -340,7 +346,7 @@ type GlobalSearchResultItem struct {
 	Subtitle string `json:"subtitle"` // Headline, Industry, or Location
 	Badge    string `json:"badge"`    // "Candidate", "Recruiter", "Admin", "Active", etc.
 	Avatar   string `json:"avatar,omitempty"`
-	URL      string `json:"url"`      // Deep link into admin portal page
+	URL      string `json:"url"` // Deep link into admin portal page
 }
 
 type GlobalSearchResponse struct {
@@ -351,4 +357,3 @@ type GlobalSearchResponse struct {
 	Jobs      []GlobalSearchResultItem `json:"jobs"`
 	Events    []GlobalSearchResultItem `json:"events"`
 }
-
