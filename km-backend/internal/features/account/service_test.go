@@ -101,9 +101,20 @@ func (f *fakeRepo) Transition(_ context.Context, id primitive.ObjectID, from []s
 	if v, ok := set["deletion_scheduled_for"].(time.Time); ok {
 		u.DeletionScheduledFor = &v
 	}
+	if v, ok := set["suspended_until"].(time.Time); ok {
+		u.SuspendedUntil = &v
+	}
+	if v, ok := set["suspension_reason"].(string); ok {
+		u.SuspensionReason = v
+	}
 	for _, field := range unset {
-		if field == "deletion_scheduled_for" {
+		switch field {
+		case "deletion_scheduled_for":
 			u.DeletionScheduledFor = nil
+		case "suspended_until":
+			u.SuspendedUntil = nil
+		case "suspension_reason":
+			u.SuspensionReason = ""
 		}
 	}
 	if endSessions {
@@ -122,6 +133,15 @@ func (f *fakeRepo) DeletionChecks(context.Context, primitive.ObjectID, time.Time
 }
 func (f *fakeRepo) Export(context.Context, primitive.ObjectID) (map[string]interface{}, error) {
 	return map[string]interface{}{}, nil
+}
+func (f *fakeRepo) EndedSuspensions(_ context.Context, now time.Time, _ int64) ([]primitive.ObjectID, error) {
+	var out []primitive.ObjectID
+	for id, u := range f.users {
+		if u.AccountStatus == user.AccountSuspended && u.SuspendedUntil != nil && !u.SuspendedUntil.After(now) {
+			out = append(out, id)
+		}
+	}
+	return out, nil
 }
 func (f *fakeRepo) DueDeletions(_ context.Context, now time.Time, _ int64) ([]user.User, error) {
 	var out []user.User

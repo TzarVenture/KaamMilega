@@ -178,7 +178,7 @@ func (s *Service) Run(ctx context.Context) (int, error) {
 		"email":             bson.M{"$exists": true, "$ne": ""},
 		// Alerts default to on (the Settings default); only an explicit "off" opts out
 		"settings.email_job_alerts": bson.M{"$ne": false},
-		"account_status":            bson.M{"$nin": []string{"deactivated", "pending_deletion", "deleted"}},
+		"account_status":            bson.M{"$nin": []string{"deactivated", "pending_deletion", "deleted", "suspended"}},
 		"$or": []bson.M{
 			{"job_alerts_last_run_at": bson.M{"$exists": false}},
 			{"job_alerts_last_run_at": bson.M{"$lte": cutoff}},

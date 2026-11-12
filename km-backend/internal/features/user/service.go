@@ -357,6 +357,10 @@ func (s *UserServiceImpl) VerifyOTP(ctx context.Context, mobile, code string, ro
 		}
 	}
 
+	if err := s.checkSuspension(ctx, user); err != nil {
+		return nil, err
+	}
+
 	// 5. Generate Token
 	token, err := s.GenerateToken(user)
 	if err != nil {
@@ -531,6 +535,36 @@ func (s *UserServiceImpl) GetProfileCompletion(ctx context.Context, userID strin
 	}
 	completion := CalculateProfileCompletion(user)
 	return &completion, nil
+}
+
+// checkSuspension refuses sign-in while an admin suspension lasts, and lifts one whose end
+// date has passed (the account worker also lifts them, hourly)
+func (s *UserServiceImpl) checkSuspension(ctx context.Context, u *User) error {
+	if u.AccountStatus != AccountSuspended {
+		return nil
+	}
+	if u.SuspendedUntil != nil && !u.SuspendedUntil.After(time.Now()) {
+		if err := s.repo.LiftEndedSuspension(ctx, u.ID); err != nil {
+			return err
+		}
+		u.AccountStatus = AccountActive
+		u.SuspendedAt, u.SuspendedUntil, u.SuspensionReason = nil, nil, ""
+		return nil
+	}
+	return SuspendedError(u)
+}
+
+// SuspendedError tells a suspended member why they can't sign in and until when
+func SuspendedError(u *User) error {
+	msg := "Your account has been banned"
+	if u.SuspendedUntil != nil {
+		ist := time.FixedZone("IST", 5*60*60+30*60)
+		msg = "Your account is suspended until " + u.SuspendedUntil.In(ist).Format("2 Jan 2006, 3:04 PM")
+	}
+	if u.SuspensionReason != "" {
+		msg += ". Reason: " + u.SuspensionReason
+	}
+	return apperr.New("ACCOUNT_SUSPENDED", msg+". Think this is a mistake? Write to support@kaammilega.com.")
 }
 
 func (s *UserServiceImpl) GenerateToken(user *User) (string, error) {
@@ -1333,6 +1367,10 @@ func (s *UserServiceImpl) LoginWithPassword(ctx context.Context, req PasswordLog
 	// the candidate role; the recruiter role only comes with a company (see Register).
 	if req.Role == RoleUser && !slices.Contains(user.Roles, RoleUser) {
 		user.Roles = append(user.Roles, RoleUser)
+	}
+
+	if err := s.checkSuspension(ctx, user); err != nil {
+		return nil, err
 	}
 
 	// Update last active

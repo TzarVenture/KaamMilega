@@ -58,9 +58,13 @@ export function setErrorTranslator(next: ErrorTranslator | null) {
  * (it can carry details such as amounts). Other languages get the translation of a specific code,
  * else the caller's fallback (written for that screen), else the translation of the generic code.
  */
+const KEEP_SERVER_MESSAGE = new Set(['ACCOUNT_SUSPENDED']);
+
 function translatedText(err: unknown, fallback: string | undefined): string | undefined {
     const code = (err as { code?: unknown } | null)?.code;
     if (typeof code !== 'string' || !translator || translator.locale === 'en') return undefined;
+    // The server's message is the only place these details live (a suspension's reason and end date)
+    if (KEEP_SERVER_MESSAGE.has(code)) return undefined;
     if (!GENERIC_CODES.has(code)) {
         const specific = translator.translate(code);
         if (specific) return specific;

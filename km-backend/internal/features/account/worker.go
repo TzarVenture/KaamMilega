@@ -21,6 +21,11 @@ func RegisterDeletionWorker(lc fx.Lifecycle, svc *Service) {
 	run := func() {
 		runCtx, stop := context.WithTimeout(ctx, 10*time.Minute)
 		defer stop()
+		if n, err := svc.LiftEndedSuspensions(runCtx); err != nil {
+			log.Printf("[account] suspension worker: %v", err)
+		} else if n > 0 {
+			log.Printf("[account] suspension worker: %d suspension(s) ended", n)
+		}
 		n, err := svc.ProcessDueDeletions(runCtx)
 		if err != nil {
 			log.Printf("[account] deletion worker: %v", err)

@@ -33,6 +33,9 @@ func (u *User) PublicView() *User {
 	p.DeactivatedAt = nil
 	p.DeletionRequestedAt = nil
 	p.DeletionScheduledFor = nil
+	p.SuspendedAt = nil
+	p.SuspendedUntil = nil
+	p.SuspensionReason = ""
 	p.HasPassword = false
 
 	// Only the two settings the profile page needs for its robots tag

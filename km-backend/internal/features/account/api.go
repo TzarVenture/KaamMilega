@@ -2,6 +2,7 @@ package account
 
 import (
 	"km-backend/internal/config"
+	"km-backend/internal/features/user"
 	"km-backend/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -28,4 +29,8 @@ func (api *Api) Setup(app *fiber.App) {
 	g.Post("/deletion", api.controller.RequestDeletion)
 	g.Delete("/deletion", api.controller.CancelDeletion)
 	g.Get("/export", api.controller.Export)
+
+	admin := app.Group("/api/admin/users", middleware.AuthMiddleware(api.config.JWTSecret), middleware.RequireRole(user.RoleAdmin))
+	admin.Post("/:id/suspend", api.controller.SuspendUser)
+	admin.Delete("/:id/suspend", api.controller.LiftUserSuspension)
 }

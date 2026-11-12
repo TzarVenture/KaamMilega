@@ -329,6 +329,19 @@ const accountNoticeTmpl = `
 <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
   Your account deletion request was <strong>cancelled</strong>. Your account is active again and your profile and job posts are visible as before.
 </p>
+{{else if eq .Status "suspended"}}
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  Your KaamMilega account has been <strong>suspended</strong> for breaking our community rules. You have been signed out,
+  and your profile and job posts are hidden while the suspension lasts.
+</p>
+{{template "detail_table" .}}
+<p style="margin:16px 0 0;color:#374151;font-size:15px;line-height:1.65;">
+  Think this is a mistake? Reply to support@kaammilega.com and we will review it.
+</p>
+{{else if eq .Status "suspension_lifted"}}
+<p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
+  Your KaamMilega account is <strong>active again</strong>. Your profile and job posts are visible as before.
+</p>
 {{else if eq .Status "deleted"}}
 <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.65;">
   Your KaamMilega account has been <strong>permanently deleted</strong>. Your profile, photos and personal details have been erased.

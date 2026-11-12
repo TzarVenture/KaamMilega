@@ -3,12 +3,13 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { BuildingOfficeIcon, NotePencilIcon, ShieldIcon, UserIcon, UsersIcon } from '@phosphor-icons/react';
+import { ArrowCounterClockwiseIcon, BuildingOfficeIcon, NotePencilIcon, ProhibitIcon, ShieldIcon, UserIcon, UsersIcon } from '@phosphor-icons/react';
 import Pagination from '@/components/ui/Pagination';
-import { AdminPageHeader, AdminPanel, EmptyState, FilterTabs, SearchInput, SkeletonRows, StatCard, StatusBadge, btn, table, type BadgeTone } from '@/components/admin/ui';
+import { AdminPageHeader, AdminPanel, ConfirmDialog, EmptyState, FilterTabs, SearchInput, SkeletonRows, StatCard, StatusBadge, btn, table, type BadgeTone } from '@/components/admin/ui';
 import { notify } from "@/lib/notify";
 import UserProfileModal from '@/components/modals/admin/UserProfileModal';
 import UserRoleModal from '@/components/modals/admin/UserRoleModal';
+import SuspendUserModal from '@/components/modals/admin/SuspendUserModal';
 import api from '@/lib/axios';
 
 interface PlatformUser {
@@ -28,6 +29,28 @@ interface PlatformUser {
     lastActive: string;
     dateAdded: string;
     status: string;
+    /** active, deactivated, pending_deletion, suspended */
+    accountStatus: string;
+    suspendedUntil?: string | null;
+    suspensionReason?: string;
+}
+
+const dateIN = (iso: string) => new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+/** What an admin needs to know about an account that is not plainly active */
+function accountLabel(u: PlatformUser): { text: string; tone: BadgeTone } | null {
+    switch (u.accountStatus) {
+        case 'suspended':
+            return { text: u.suspendedUntil ? `Suspended until ${dateIN(u.suspendedUntil)}` : 'Banned', tone: 'red' };
+        case 'deactivated':
+            return { text: 'Deactivated', tone: 'neutral' };
+        case 'pending_deletion':
+            return { text: 'Deleting', tone: 'amber' };
+        case 'deleted':
+            return { text: 'Deleted', tone: 'neutral' };
+        default:
+            return null;
+    }
 }
 
 function UsersContent() {
@@ -51,6 +74,27 @@ function UsersContent() {
     const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'add' | 'edit'>('add');
     const [selectedUser, setSelectedUser] = useState<PlatformUser | null>(null);
+    const [suspendTarget, setSuspendTarget] = useState<PlatformUser | null>(null);
+    const [liftTarget, setLiftTarget] = useState<PlatformUser | null>(null);
+    const [lifting, setLifting] = useState(false);
+
+    const setAccount = (id: string, patch: Partial<PlatformUser>) =>
+        setUsers(prev => prev.map(u => (u.id === id ? { ...u, ...patch } : u)));
+
+    const liftSuspension = async () => {
+        if (!liftTarget) return;
+        setLifting(true);
+        try {
+            await api.delete(`/admin/users/${liftTarget.id}/suspend`);
+            setAccount(liftTarget.id, { accountStatus: 'active', suspendedUntil: null, suspensionReason: '' });
+            notify.success(`${liftTarget.name} can sign in again`);
+            setLiftTarget(null);
+        } catch (error) {
+            notify.error(error, "Couldn't lift the suspension");
+        } finally {
+            setLifting(false);
+        }
+    };
 
     const fetchUsers = async () => {
         setIsLoading(true);
@@ -84,7 +128,10 @@ function UsersContent() {
                     roles,
                     lastActive: u.otp_verified_at ? new Date(u.otp_verified_at).toLocaleDateString() : 'Never',
                     dateAdded: u.created_at ? new Date(u.created_at).toLocaleDateString() : 'Recent',
-                    status: u.otp_verified_at ? 'Active' : 'Unverified'
+                    status: u.otp_verified_at ? 'Active' : 'Unverified',
+                    accountStatus: u.account_status || 'active',
+                    suspendedUntil: u.suspended_until || null,
+                    suspensionReason: u.suspension_reason || '',
                 };
             });
             setUsers(mappedUsers);
@@ -102,7 +149,9 @@ function UsersContent() {
 
     // Filter users
     const filteredUsers = users.filter((u) => {
-        if (roleFilter !== 'all' && !u.roles.includes(roleFilter)) return false;
+        if (roleFilter === 'suspended') {
+            if (u.accountStatus !== 'suspended') return false;
+        } else if (roleFilter !== 'all' && !u.roles.includes(roleFilter)) return false;
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase();
         return (
@@ -222,6 +271,27 @@ function UsersContent() {
                 onSaveRoles={handleSaveRoles}
             />
 
+            <SuspendUserModal
+                user={suspendTarget}
+                onClose={() => setSuspendTarget(null)}
+                onDone={({ suspended_until, reason }) => {
+                    if (suspendTarget) setAccount(suspendTarget.id, { accountStatus: 'suspended', suspendedUntil: suspended_until, suspensionReason: reason });
+                    setSuspendTarget(null);
+                }}
+            />
+
+            {liftTarget && (
+                <ConfirmDialog
+                    title={`Lift the ${liftTarget.suspendedUntil ? 'suspension' : 'ban'} for ${liftTarget.name}?`}
+                    description="They can sign in again straight away, and their profile and job posts show again."
+                    confirmLabel="Lift"
+                    tone="primary"
+                    busy={lifting}
+                    onCancel={() => setLiftTarget(null)}
+                    onConfirm={liftSuspension}
+                />
+            )}
+
             <AdminPageHeader title="Users" description="Profiles, contact details and access roles" />
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -242,6 +312,7 @@ function UsersContent() {
                             { value: 'recruiter', label: 'Employers' },
                             { value: 'expert', label: 'Experts' },
                             { value: 'admin', label: 'Admins' },
+                            { value: 'suspended', label: 'Suspended' },
                         ]}
                     />
                     <SearchInput
@@ -277,6 +348,11 @@ function UsersContent() {
                                                 </span>
                                                 <div className="min-w-0">
                                                     <p className="font-medium text-km-heading truncate">{user.name}</p>
+                                                    {accountLabel(user) && (
+                                                        <div className="mt-1" title={user.suspensionReason || undefined}>
+                                                            <StatusBadge tone={accountLabel(user)!.tone} dot={false}>{accountLabel(user)!.text}</StatusBadge>
+                                                        </div>
+                                                    )}
                                                     <p className="text-xs text-km-text-secondary truncate max-w-[360px]">
                                                         {[user.email, user.mobile, user.city].filter(Boolean).join(' · ') || user.designation}
                                                     </p>
@@ -303,6 +379,17 @@ function UsersContent() {
                                                 <ShieldIcon size={16} aria-hidden="true" />
                                                 Roles
                                             </button>
+                                            {user.accountStatus === 'suspended' ? (
+                                                <button type="button" onClick={() => setLiftTarget(user)} className={`${btn.ghost} h-9 px-3`}>
+                                                    <ArrowCounterClockwiseIcon size={16} aria-hidden="true" />
+                                                    Lift
+                                                </button>
+                                            ) : !user.roles.includes('admin') && (user.accountStatus === 'active' || user.accountStatus === 'deactivated') && (
+                                                <button type="button" onClick={() => setSuspendTarget(user)} className={`${btn.ghost} h-9 px-3 text-red-600 hover:text-red-700`}>
+                                                    <ProhibitIcon size={16} aria-hidden="true" />
+                                                    Suspend
+                                                </button>
+                                            )}
                                             <button type="button" onClick={() => handleEditUser(user)} className={btn.icon} aria-label={`Edit ${user.name}`}>
                                                 <NotePencilIcon size={18} aria-hidden="true" />
                                             </button>

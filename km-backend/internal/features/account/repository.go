@@ -35,6 +35,8 @@ type Repository interface {
 	Export(ctx context.Context, userID primitive.ObjectID) (map[string]interface{}, error)
 
 	DueDeletions(ctx context.Context, now time.Time, limit int64) ([]user.User, error)
+	// EndedSuspensions lists suspended accounts whose end date has passed
+	EndedSuspensions(ctx context.Context, now time.Time, limit int64) ([]primitive.ObjectID, error)
 	// EraseRelatedData removes or anonymises everything outside the user document (idempotent)
 	EraseRelatedData(ctx context.Context, u *user.User, now time.Time) error
 	// AnonymiseUser finalises deletion; it only applies while the account is still pending_deletion
@@ -310,6 +312,27 @@ func (r *mongoRepository) DueDeletions(ctx context.Context, now time.Time, limit
 		return nil, err
 	}
 	return out, nil
+}
+
+func (r *mongoRepository) EndedSuspensions(ctx context.Context, now time.Time, limit int64) ([]primitive.ObjectID, error) {
+	cur, err := r.users.Find(ctx, bson.M{
+		"account_status":  user.AccountSuspended,
+		"suspended_until": bson.M{"$lte": now},
+	}, options.Find().SetLimit(limit).SetProjection(bson.M{"_id": 1}))
+	if err != nil {
+		return nil, err
+	}
+	var rows []struct {
+		ID primitive.ObjectID `bson:"_id"`
+	}
+	if err := cur.All(ctx, &rows); err != nil {
+		return nil, err
+	}
+	ids := make([]primitive.ObjectID, len(rows))
+	for i, r := range rows {
+		ids[i] = r.ID
+	}
+	return ids, nil
 }
 
 func (r *mongoRepository) EraseRelatedData(ctx context.Context, u *user.User, now time.Time) error {
