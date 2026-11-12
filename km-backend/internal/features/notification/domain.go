@@ -27,6 +27,8 @@ const (
 	TypeSystemAlert         = "system_alert"
 	TypeExpertApplication   = "expert_application"
 	TypeFeedComment         = "feed_comment"
+	TypeSkillEndorsement    = "skill_endorsement"
+	TypeCertificateReview   = "certificate_review"
 )
 
 // Notification represents an in-app notification document in MongoDB

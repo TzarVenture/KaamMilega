@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { SealCheckIcon, ArrowUpRightIcon, ArrowsClockwiseIcon, BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, CheckIcon, ChecksIcon, MagnifyingGlassIcon, SlidersHorizontalIcon, TrashIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
+import { CertificateIcon, SealCheckIcon, ArrowUpRightIcon, ArrowsClockwiseIcon, BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, CheckIcon, ChecksIcon, MagnifyingGlassIcon, SlidersHorizontalIcon, TrashIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
 import CustomImage from "@/components/ui/CustomImage";
 import PushPrompt from "@/components/km/PushPrompt";
 import { useNotifications, NotificationItem, sanitizeNotificationLink } from "@/lib/notifications";
@@ -186,6 +186,11 @@ export default function NotificationsPage() {
 
     // Category icon helper with solid fill
     const renderCategoryIcon = (category: string, type: string) => {
+        if (type === "certificate_review") {
+            return (
+                <CertificateIcon size={22} weight="duotone" className="text-km-link shrink-0" aria-hidden="true" />
+            );
+        }
         if (type === "expert_application") {
             return (
                 <SealCheckIcon size={22} weight="duotone" className="text-km-mentors shrink-0" aria-hidden="true" />

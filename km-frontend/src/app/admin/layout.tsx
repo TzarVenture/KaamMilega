@@ -19,6 +19,7 @@ import {
     FileXlsIcon,
     FlagIcon,
     GraduationCapIcon,
+    CertificateIcon,
     IdentificationBadgeIcon,
     ListIcon,
     MapPinIcon,
@@ -59,6 +60,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
             { name: 'Users', icon: UsersIcon, href: '/admin/users' },
             { name: 'Companies', icon: BuildingOfficeIcon, href: '/admin/companies' },
             { name: 'Expert requests', icon: IdentificationBadgeIcon, href: '/admin/expert-requests' },
+            { name: 'Certificates', icon: CertificateIcon, href: '/admin/certifications' },
         ],
     },
     {

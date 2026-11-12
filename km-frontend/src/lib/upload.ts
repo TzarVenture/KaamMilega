@@ -18,6 +18,7 @@ export type UploadKind =
     | "resume"
     | "company_document"
     | "expert_document"
+    | "certificate"
     | "chat";
 
 export interface UploadedFile {
@@ -41,6 +42,7 @@ export const UPLOAD_LIMITS: Record<UploadKind, number> = {
     resume: 5 << 20,
     company_document: 10 << 20,
     expert_document: 10 << 20,
+    certificate: 5 << 20,
     chat: 10 << 20,
 };
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowSquareOutIcon, BriefcaseIcon, ChatCircleIcon, CheckCircleIcon, DiamondIcon, GlobeIcon, GraduationCapIcon, LockIcon } from '@phosphor-icons/react';
+import { ArrowSquareOutIcon, BriefcaseIcon, ChatCircleIcon, DiamondIcon, GlobeIcon, GraduationCapIcon, LockIcon } from '@phosphor-icons/react';
 import InterestsSection from '../InterestSection';
 import { useEffect, useState } from 'react';
 import api from '@/lib/axios';
@@ -13,6 +13,7 @@ import UserAvatar from '@/components/ui/UserAvatar';
 import { errorText, notify } from "@/lib/notify";
 import { getCurrentUser } from "@/lib/auth";
 import { recordProfileView } from "@/lib/telemetry";
+import ProfileCredentials from "@/components/profile/ProfileCredentials";
 
 const OtherUserProfilePage = () => {
     const params = useParams();
@@ -485,25 +486,13 @@ const OtherUserProfilePage = () => {
                             </section>
                         )}
 
-                        {/* Skills Section */}
-                        <section className="bg-km-surface-card rounded-xl p-6 border border-gray-200 shadow-sm relative">
-                            <h2 className="text-xl font-bold mb-6 text-gray-900">Skills</h2>
-                            <div className="flex flex-wrap gap-2.5">
-                                {user.skills && user.skills.length > 0 ? (
-                                    user.skills.map((skill: string) => (
-                                        <div
-                                            key={skill}
-                                            className="flex items-center gap-2 px-3.5 py-1.5 bg-blue-50/60 border border-blue-200 rounded-xl text-xs font-bold text-km-heading shadow-xs"
-                                        >
-                                            <CheckCircleIcon weight="bold" size={13} className="text-km-heading" />
-                                            <span>{skill}</span>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-gray-500 italic text-sm">No skills added yet.</p>
-                                )}
-                            </div>
-                        </section>
+                        {/* Skills (with endorsements) and certificates */}
+                        <ProfileCredentials
+                            userId={user.id || user._id}
+                            skills={user.skills || []}
+                            isOwner={false}
+                            firstName={user.first_name || (user.name || '').split(' ')[0]}
+                        />
 
                         {/* Interest Section */}
                         <InterestsSection />

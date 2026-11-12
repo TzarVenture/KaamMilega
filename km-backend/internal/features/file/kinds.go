@@ -38,6 +38,8 @@ var kinds = map[string]Kind{
 	"resume":           {Visibility: storage.Private, Extensions: documentExts, MaxSize: 5 << 20},
 	"company_document": {Visibility: storage.Private, Extensions: idProofExts, MaxSize: MaxUploadSize},
 	"expert_document":  {Visibility: storage.Private, Extensions: idProofExts, MaxSize: MaxUploadSize},
+	// Proof of a certificate on a profile; only the member and admins open it
+	"certificate": {Visibility: storage.Private, Extensions: idProofExts, MaxSize: 5 << 20},
 	"chat": {Visibility: storage.Private, Extensions: []string{".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf", ".doc", ".docx", ".txt"},
 		MaxSize: MaxUploadSize},
 }
