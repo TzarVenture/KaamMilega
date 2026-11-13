@@ -87,7 +87,7 @@ export default function CareerPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-km-surface font-sans antialiased text-slate-800">
+    <main className="min-h-screen bg-km-surface font-sans antialiased text-km-text-primary">
       {/* Hero Section */}
       <PageHero
         kicker={{ label: <>We&apos;re Hiring Across Engineering, Product &amp; Growth</>, Icon: BriefcaseIcon, tone: 'events' }}
@@ -107,23 +107,23 @@ export default function CareerPage() {
 
 
       {/* Metrics Banner */}
-      <section className="py-10 bg-km-surface-card border-b border-slate-200 px-4 sm:px-6 lg:px-8">
+      <section className="py-10 bg-km-surface-card border-b border-km-border px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div>
             <p className="text-2xl sm:text-3xl font-black text-km-heading">500K+</p>
-            <p className="text-xs font-semibold text-slate-500 mt-1">Workers Empowered</p>
+            <p className="text-xs font-semibold text-km-text-secondary mt-1">Workers Empowered</p>
           </div>
           <div>
             <p className="text-2xl sm:text-3xl font-black text-[#FF6B00]">5,000+</p>
-            <p className="text-xs font-semibold text-slate-500 mt-1">Verified Employers</p>
+            <p className="text-xs font-semibold text-km-text-secondary mt-1">Verified Employers</p>
           </div>
           <div>
             <p className="text-2xl sm:text-3xl font-black text-km-link">100+</p>
-            <p className="text-xs font-semibold text-slate-500 mt-1">Indian Cities Covered</p>
+            <p className="text-xs font-semibold text-km-text-secondary mt-1">Indian Cities Covered</p>
           </div>
           <div>
             <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">0%</p>
-            <p className="text-xs font-semibold text-slate-500 mt-1">Worker Brokerage Taken</p>
+            <p className="text-xs font-semibold text-km-text-secondary mt-1">Worker Brokerage Taken</p>
           </div>
         </div>
       </section>
@@ -137,7 +137,7 @@ export default function CareerPage() {
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
             Life at KaamMilega™
           </h2>
-          <p className="text-sm sm:text-base text-slate-600 mt-2">
+          <p className="text-sm sm:text-base text-km-text-secondary mt-2">
             We take care of our people so they can do their most meaningful work.
           </p>
         </div>
@@ -148,7 +148,7 @@ export default function CareerPage() {
             return (
               <div
                 key={i}
-                className="bg-km-surface-card rounded-3xl p-6 sm:p-7 border border-slate-200/90 shadow-2xs hover:shadow-md transition-all group"
+                className="bg-km-surface-card rounded-3xl p-6 sm:p-7 border border-km-border shadow-2xs hover:shadow-md transition-all group"
               >
                 <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-km-link flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
                   <Icon size={22} />
@@ -156,7 +156,7 @@ export default function CareerPage() {
                 <h3 className="text-base sm:text-lg font-bold text-km-heading mb-2 leading-snug">
                   {p.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-km-text-secondary leading-relaxed">
                   {p.desc}
                 </p>
               </div>
@@ -166,7 +166,7 @@ export default function CareerPage() {
       </section>
 
       {/* Open Positions Section */}
-      <section id="openings" className="py-16 sm:py-20 bg-km-surface-card border-t border-slate-200 px-4 sm:px-6 lg:px-8">
+      <section id="openings" className="py-16 sm:py-20 bg-km-surface-card border-t border-km-border px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
@@ -175,7 +175,7 @@ export default function CareerPage() {
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
               Explore Our Open Roles
             </h2>
-            <p className="text-sm sm:text-base text-slate-600 mt-2">
+            <p className="text-sm sm:text-base text-km-text-secondary mt-2">
               Don’t see an exact match? Send your resume to <a href="mailto:careers@kaammilega.com" className="text-km-link font-semibold underline">careers@kaammilega.com</a>.
             </p>
           </div>
@@ -184,17 +184,17 @@ export default function CareerPage() {
             {openings.map((job, idx) => (
               <div
                 key={idx}
-                className="bg-km-surface hover:bg-blue-50/40 rounded-3xl p-6 sm:p-7 border border-slate-200/90 hover:border-[#0B5ED7]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 group"
+                className="bg-km-surface hover:bg-blue-50/40 rounded-3xl p-6 sm:p-7 border border-km-border hover:border-[#0B5ED7]/40 transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-6 group"
               >
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-2">
                     <span className="text-[11px] font-bold text-km-link bg-blue-100/70 px-2.5 py-0.5 rounded-full">
                       {job.dept}
                     </span>
-                    <span className="text-[11px] font-medium text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[11px] font-medium text-km-text-secondary bg-slate-200/70 px-2.5 py-0.5 rounded-full">
                       {job.type}
                     </span>
-                    <span className="text-[11px] font-medium text-slate-500 bg-slate-200/70 px-2.5 py-0.5 rounded-full">
+                    <span className="text-[11px] font-medium text-km-text-secondary bg-slate-200/70 px-2.5 py-0.5 rounded-full">
                       {job.exp}
                     </span>
                   </div>
@@ -203,13 +203,13 @@ export default function CareerPage() {
                     {job.title}
                   </h3>
 
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mb-3 max-w-3xl">
+                  <p className="text-xs sm:text-sm text-km-text-secondary leading-relaxed mb-3 max-w-3xl">
                     {job.desc}
                   </p>
 
-                  <div className="flex items-center gap-4 text-xs text-slate-500 font-medium">
+                  <div className="flex items-center gap-4 text-xs text-km-text-secondary font-medium">
                     <span className="flex items-center gap-1">
-                      <MapPinIcon weight="bold" size={13} className="text-slate-400" />
+                      <MapPinIcon weight="bold" size={13} className="text-km-text-muted" />
                       {job.location}
                     </span>
                   </div>

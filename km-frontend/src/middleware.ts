@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const SIGNED_IN_ONLY = ['/profile', '/courses', '/expert', '/user'];
+
 export function middleware(request: NextRequest) {
     const { pathname, searchParams } = request.nextUrl;
 
@@ -27,6 +29,12 @@ export function middleware(request: NextRequest) {
         const response = NextResponse.next();
         response.headers.set('x-user-role', roleCookie || 'guest');
         return response;
+    }
+
+    // Signed-in pages (the app/(user) group): no session cookie at all means the visitor isn't
+    // signed in, so send them to login before the page loads. The backend still checks every request.
+    if (!tokenCookie && !roleCookie && SIGNED_IN_ONLY.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+        return NextResponse.redirect(new URL('/login', request.url));
     }
 
     // 2. Strict Role Gating for Recruiter Portal

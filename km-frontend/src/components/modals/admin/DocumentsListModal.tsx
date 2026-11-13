@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { AdminModal, btn } from '@/components/admin/ui';
 import { BuildingOfficeIcon, CaretRightIcon, CheckCircleIcon, CircleNotchIcon, FileTextIcon, ShieldCheckIcon, XCircleIcon } from '@phosphor-icons/react';
+import { notify } from "@/lib/notify";
 
 interface DocumentsListModalProps {
     isOpen: boolean;
@@ -37,6 +38,7 @@ const DocumentsListModal = ({
             onClose();
         } catch (error) {
             console.error('Failed to update company verification status:', error);
+            notify.error(error, "The verification status couldn’t be updated.");
         } finally {
             setIsUpdating(false);
         }

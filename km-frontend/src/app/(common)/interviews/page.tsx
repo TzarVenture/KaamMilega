@@ -5,6 +5,7 @@ import api from "@/lib/axios";
 import { BuildingOfficeIcon, CalendarBlankIcon, CaretRightIcon, CircleNotchIcon, ClockIcon, MapPinIcon, PhoneIcon, VideoCameraIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { notify } from "@/lib/notify";
 
 export default function UserInterviewsPage() {
     const [interviews, setInterviews] = useState<any[]>([]);
@@ -17,6 +18,7 @@ export default function UserInterviewsPage() {
                 setInterviews(data);
             } catch (error) {
                 console.error("Failed to fetch interviews:", error);
+                notify.error(error, "Your interviews couldn’t be loaded.");
             } finally {
                 setLoading(false);
             }
@@ -37,15 +39,15 @@ export default function UserInterviewsPage() {
         <div className="bg-[#F8FAFC] min-h-screen pb-20 font-sans dark:bg-[#1D253D]">
             <div className="max-w-5xl mx-auto p-6 md:p-12">
                 <header className="mb-10">
-                    <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">My Interviews</h1>
-                    <p className="text-slate-500 font-medium text-xs sm:text-sm mt-1">Track your upcoming interviews with recruiters and verified employers.</p>
+                    <h1 className="text-3xl sm:text-4xl font-black text-km-heading tracking-tight">My Interviews</h1>
+                    <p className="text-km-text-secondary font-medium text-xs sm:text-sm mt-1">Track your upcoming interviews with recruiters and verified employers.</p>
                 </header>
 
                 {interviews.length === 0 ? (
-                    <div className="bg-km-surface-card p-12 sm:p-16 rounded-3xl border border-slate-200/80 text-center shadow-xs">
+                    <div className="bg-km-surface-card p-12 sm:p-16 rounded-3xl border border-km-border text-center shadow-xs">
                         <CalendarBlankIcon size={48} weight="duotone" className="text-km-heading mx-auto mb-6" aria-hidden="true" />
-                        <h2 className="text-xl font-black text-slate-900">No Scheduled Interviews</h2>
-                        <p className="text-slate-500 mt-2 max-w-sm mx-auto text-xs font-medium">
+                        <h2 className="text-xl font-black text-km-heading">No Scheduled Interviews</h2>
+                        <p className="text-km-text-secondary mt-2 max-w-sm mx-auto text-xs font-medium">
                             Apply to active job postings to get shortlisted and receive direct interview calls!
                         </p>
                         <Link
@@ -59,7 +61,7 @@ export default function UserInterviewsPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {interviews.map((inview) => (
-                            <div key={inview.id} className="bg-km-surface-card rounded-3xl border border-slate-200/80 overflow-hidden hover:shadow-lg transition-all group">
+                            <div key={inview.id} className="bg-km-surface-card rounded-3xl border border-km-border overflow-hidden hover:shadow-lg transition-all group">
                                 <div className="p-6 sm:p-8 space-y-6">
                                     {/* Header: Company & Job */}
                                     <div className="flex justify-between items-start">
@@ -68,8 +70,8 @@ export default function UserInterviewsPage() {
                                                 <BuildingOfficeIcon className="w-7 h-7 text-white" />
                                             </div>
                                             <div>
-                                                <h3 className="text-lg font-bold text-slate-900 leading-tight">{inview.job?.title}</h3>
-                                                <p className="text-slate-500 font-bold text-xs">{inview.job?.company}</p>
+                                                <h3 className="text-lg font-bold text-km-heading leading-tight">{inview.job?.title}</h3>
+                                                <p className="text-km-text-secondary font-bold text-xs">{inview.job?.company}</p>
                                             </div>
                                         </div>
                                         <div className={cn(
@@ -89,7 +91,7 @@ export default function UserInterviewsPage() {
                                                 <CalendarBlankIcon weight="bold" className="w-3.5 h-3.5" />
                                                 Date
                                             </p>
-                                            <p className="font-extrabold text-xs text-slate-900">
+                                            <p className="font-extrabold text-xs text-km-heading">
                                                 {new Date(inview.scheduled_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                             </p>
                                         </div>
@@ -98,7 +100,7 @@ export default function UserInterviewsPage() {
                                                 <ClockIcon weight="bold" className="w-3.5 h-3.5" />
                                                 Time
                                             </p>
-                                            <p className="font-extrabold text-xs text-slate-900">
+                                            <p className="font-extrabold text-xs text-km-heading">
                                                 {new Date(inview.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
@@ -107,14 +109,14 @@ export default function UserInterviewsPage() {
                                     {/* Location / Join Link */}
                                     <div className="space-y-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
+                                            <div className="w-10 h-10 bg-km-surface rounded-xl flex items-center justify-center border border-km-border-subtle">
                                                 {inview.type === 'Video' ? <VideoCameraIcon className="w-5 h-5 text-km-heading" /> :
                                                     inview.type === 'Phone' ? <PhoneIcon className="w-5 h-5 text-emerald-600 dark:text-emerald-400" /> :
                                                         <MapPinIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{inview.type} INTERVIEW</p>
-                                                <p className="text-xs font-bold text-slate-800">{inview.location}</p>
+                                                <p className="text-[10px] font-bold uppercase tracking-wider text-km-text-muted">{inview.type} INTERVIEW</p>
+                                                <p className="text-xs font-bold text-km-text-primary">{inview.location}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -122,7 +124,7 @@ export default function UserInterviewsPage() {
                                     {inview.notes && (
                                         <div className="bg-amber-50/40 p-4 rounded-2xl border border-amber-100">
                                             <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1">Notes from Recruiter</p>
-                                            <p className="text-xs text-slate-700 font-medium">"{inview.notes}"</p>
+                                            <p className="text-xs text-km-text-primary font-medium">"{inview.notes}"</p>
                                         </div>
                                     )}
 

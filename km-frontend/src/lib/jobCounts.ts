@@ -6,25 +6,28 @@ import api from '@/lib/axios';
 import { useFormat } from '@/i18n/useFormat';
 
 /**
- * Real open-job counts: GET /jobs?…&limit=1 returns the matching `total`. Cards show these instead
- * of invented totals; while loading, or with no matches, they say "Browse jobs".
+ * Real open-job counts for cards. Each query is "search=<word>" or "education=<level>"; all of them go
+ * in one GET /jobs/counts request. While loading, or with no matches, cards say "Browse jobs".
  */
 export function useJobCounts(queries: string[]): Record<string, number> {
     const [counts, setCounts] = useState<Record<string, number>>({});
-    const key = queries.join('\n');
+    const key = queries.join("\n");
     useEffect(() => {
         let alive = true;
-        Promise.all(
-            key.split('\n').map((q) =>
-                api
-                    .get(`/jobs?limit=1&${q}`)
-                    .then((res) => {
-                        const total = (res as unknown as { total?: unknown })?.total;
-                        return [q, typeof total === 'number' ? total : 0] as const;
-                    })
-                    .catch(() => [q, 0] as const),
-            ),
-        ).then((entries) => alive && setCounts(Object.fromEntries(entries)));
+        const list = key.split("\n").filter(Boolean);
+        api.get(`/jobs/counts?${list.join("&")}`)
+            .then((res) => {
+                const body = res as unknown as { search?: Record<string, number>; education?: Record<string, number> };
+                const out: Record<string, number> = {};
+                for (const q of list) {
+                    const at = q.indexOf("=");
+                    const kind = q.slice(0, at) as "search" | "education";
+                    const value = decodeURIComponent(q.slice(at + 1));
+                    out[q] = body?.[kind]?.[value] ?? 0;
+                }
+                if (alive) setCounts(out);
+            })
+            .catch(() => {}); // cards fall back to "Browse jobs"
         return () => {
             alive = false;
         };

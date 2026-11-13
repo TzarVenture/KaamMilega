@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useId } from 'react';
 import { useRouter } from 'next/navigation';
 import { BriefcaseIcon, BuildingOfficeIcon, CalendarBlankIcon, CircleNotchIcon, FileXlsIcon, FlagIcon, GraduationCapIcon, MagnifyingGlassIcon, MapPinIcon, QuestionIcon, QuotesIcon, ShieldCheckIcon, ShieldWarningIcon, SquaresFourIcon, UserIcon, UsersIcon, VideoCameraIcon, XIcon, ArrowRightIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
+import { notify } from "@/lib/notify";
 
 interface SearchResultItem {
     id: string;
@@ -98,6 +99,7 @@ export default function AdminGlobalSearch() {
                 setResults(res?.data || res || null);
             } catch (err) {
                 console.error('Global search error:', err);
+                notify.error(err, "Search didn’t work. Please try again.");
                 setResults(null);
             } finally {
                 setIsLoading(false);
@@ -122,6 +124,28 @@ export default function AdminGlobalSearch() {
         ...(results?.events || []).map(e => ({ title: e.title, url: e.url })),
         ...filteredPages.map(p => ({ title: p.name, url: p.href })),
     ];
+
+    // Position of each group in allSelectableItems, so every option knows its keyboard index
+    const listId = useId();
+    const offsets = {
+        user: 0,
+        company: results?.users?.length || 0,
+        job: (results?.users?.length || 0) + (results?.companies?.length || 0),
+        event: (results?.users?.length || 0) + (results?.companies?.length || 0) + (results?.jobs?.length || 0),
+        page: (results?.users?.length || 0) + (results?.companies?.length || 0) + (results?.jobs?.length || 0) + (results?.events?.length || 0),
+    };
+    const optionProps = (n: number) => ({
+        id: `${listId}-${n}`,
+        role: 'option' as const,
+        'aria-selected': n === selectedIndex,
+        'data-active': n === selectedIndex ? '' : undefined,
+        onMouseEnter: () => setSelectedIndex(n),
+    });
+
+    // Keep the highlighted option in view while arrowing through a long list
+    useEffect(() => {
+        if (selectedIndex >= 0) document.getElementById(`${listId}-${selectedIndex}`)?.scrollIntoView({ block: 'nearest' });
+    }, [selectedIndex, listId]);
 
     const handleSelect = useCallback((url: string) => {
         setIsOpen(false);
@@ -177,6 +201,11 @@ export default function AdminGlobalSearch() {
                     }}
                     onFocus={() => setIsOpen(true)}
                     onKeyDown={handleInputKeyDown}
+                    role="combobox"
+                    aria-expanded={isOpen}
+                    aria-controls={listId}
+                    aria-autocomplete="list"
+                    aria-activedescendant={isOpen && selectedIndex >= 0 ? `${listId}-${selectedIndex}` : undefined}
                     placeholder="Search users, companies, jobs"
                     aria-label="Search the admin panel"
                     className="w-full h-10 pl-10 pr-16 bg-km-surface border border-km-border rounded-xl text-sm outline-none focus:bg-km-surface-card focus:border-km-blue focus:ring-2 focus:ring-km-blue/15 transition-colors text-km-text-primary placeholder:text-km-text-muted"
@@ -215,7 +244,7 @@ export default function AdminGlobalSearch() {
                         className="absolute left-0 right-0 top-full mt-2 bg-km-surface-card rounded-2xl border border-km-border shadow-sm overflow-hidden z-50 max-h-[75vh] flex flex-col"
                     >
                         {/* Results Body */}
-                        <div className="overflow-y-auto p-2.5 space-y-3 divide-y divide-km-border">
+                        <div id={listId} role="listbox" aria-label="Search results" className="overflow-y-auto p-2.5 space-y-3 divide-y divide-km-border">
                             {/* ── CASE 1: SEARCH RESULTS ACROSS PLATFORM ── */}
                             {isSearching && hasResults && (
                                 <div className="space-y-3">
@@ -228,11 +257,12 @@ export default function AdminGlobalSearch() {
                                                     <span>Users &amp; Candidates ({results!.users.length})</span>
                                                 </span>
                                             </div>
-                                            {results!.users.map((user) => (
+                                            {results!.users.map((user, i) => (
                                                 <div
                                                     key={`user-${user.id}`}
                                                     onClick={() => handleSelect(user.url)}
-                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
+                                                    {...optionProps(offsets.user + i)}
+                                                    className="data-active:bg-km-surface flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                         <div className="w-8 h-8 rounded-xl bg-km-surface text-km-link font-bold text-xs flex items-center justify-center shrink-0 border border-km-border">
@@ -277,11 +307,12 @@ export default function AdminGlobalSearch() {
                                                     <span>Companies ({results!.companies.length})</span>
                                                 </span>
                                             </div>
-                                            {results!.companies.map((company) => (
+                                            {results!.companies.map((company, i) => (
                                                 <div
                                                     key={`comp-${company.id}`}
                                                     onClick={() => handleSelect(company.url)}
-                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
+                                                    {...optionProps(offsets.company + i)}
+                                                    className="data-active:bg-km-surface flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                         <div className="w-8 h-8 rounded-xl bg-km-surface text-km-link font-bold text-xs flex items-center justify-center shrink-0 border border-km-border">
@@ -320,11 +351,12 @@ export default function AdminGlobalSearch() {
                                                     <span>Job Vacancies ({results!.jobs.length})</span>
                                                 </span>
                                             </div>
-                                            {results!.jobs.map((job) => (
+                                            {results!.jobs.map((job, i) => (
                                                 <div
                                                     key={`job-${job.id}`}
                                                     onClick={() => handleSelect(job.url)}
-                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
+                                                    {...optionProps(offsets.job + i)}
+                                                    className="data-active:bg-km-surface flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                         <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0 border border-emerald-100">
@@ -363,11 +395,12 @@ export default function AdminGlobalSearch() {
                                                     <span>Events &amp; Workshops ({results!.events.length})</span>
                                                 </span>
                                             </div>
-                                            {results!.events.map((event) => (
+                                            {results!.events.map((event, i) => (
                                                 <div
                                                     key={`event-${event.id}`}
                                                     onClick={() => handleSelect(event.url)}
-                                                    className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
+                                                    {...optionProps(offsets.event + i)}
+                                                    className="data-active:bg-km-surface flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                                 >
                                                     <div className="flex items-center gap-2.5 min-w-0">
                                                         <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0 border border-amber-100">
@@ -418,11 +451,12 @@ export default function AdminGlobalSearch() {
                                         {!isSearching && <span className="text-xs lowercase opacity-75">jump to section</span>}
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-                                        {filteredPages.map((page) => (
+                                        {filteredPages.map((page, i) => (
                                             <div
                                                 key={page.href}
                                                 onClick={() => handleSelect(page.href)}
-                                                className="flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
+                                                {...optionProps(offsets.page + i)}
+                                                className="data-active:bg-km-surface flex items-center justify-between p-2 rounded-xl hover:bg-km-surface cursor-pointer transition-colors group"
                                             >
                                                 <div className="flex items-center gap-2.5 min-w-0">
                                                     <div className="w-7 h-7 rounded-lg bg-km-surface text-km-link flex items-center justify-center shrink-0 border border-km-border">

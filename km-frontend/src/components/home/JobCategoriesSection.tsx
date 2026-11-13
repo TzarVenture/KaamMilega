@@ -63,7 +63,7 @@ export default function JobCategoriesSection() {
     ];
 
     return (
-        <section className="py-8 sm:py-10 lg:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" aria-labelledby="categories-title">
+        <section id="job-categories" className="scroll-mt-24 py-8 sm:py-10 lg:py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto" aria-labelledby="categories-title">
             <SectionHeader id="categories-title" title={t('title')} description={tab === 'jobs' ? t('textJobs') : t('textGigs')} />
 
             <div role="tablist" aria-label={t('title')} className="mb-6 flex justify-center gap-2">

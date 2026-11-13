@@ -252,7 +252,7 @@ export default function SupportPage() {
           </div>
 
           {/* Right Column: FAQ Accordion */}
-          <div className="lg:col-span-7 space-y-4">
+          <div id="faqs" className="lg:col-span-7 space-y-4 scroll-mt-24">
             <div className="mb-6">
               <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
                 Self-Service Knowledgebase

@@ -2,25 +2,17 @@ import Link from 'next/link';
 
 interface Props {
     children: React.ReactNode;
-    href?: string;
-    onClick?: () => void;
+    href: string;
 }
 
-export default function FooterLink({ children, href, onClick }: Props) {
-    if (href) {
-        return (
-            <Link
-                href={href}
-                onClick={onClick}
-                className="block text-slate-300 text-sm cursor-pointer hover:text-white hover:translate-x-1 transition-all"
-            >
-                {children}
-            </Link>
-        );
-    }
+/** A footer link: light text on the navy footer, 44px tall on phones so it is easy to tap */
+export default function FooterLink({ children, href }: Props) {
     return (
-        <p onClick={onClick} className="text-slate-300 text-sm cursor-pointer hover:text-white hover:translate-x-1 transition-all">
+        <Link
+            href={href}
+            className="flex min-h-11 items-center text-sm text-white/75 hover:text-white hover:underline sm:min-h-0 sm:py-1.5 transition-colors"
+        >
             {children}
-        </p>
+        </Link>
     );
 }

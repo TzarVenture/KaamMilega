@@ -54,6 +54,7 @@ export default function ExpertMentorshipManagement() {
       }
     } catch (error) {
       console.error("Failed to fetch expert data", error);
+      notify.error(error, "Your sessions couldn’t be loaded.");
     } finally {
       setLoading(false);
     }
@@ -71,8 +72,8 @@ export default function ExpertMentorshipManagement() {
                 Expert Monetisation Portal
               </span>
             </div>
-            <h1 className="text-xl md:text-3xl font-black text-gray-900 mb-0.5 md:mb-1">Mentor Dashboard</h1>
-            <p className="text-[11px] md:text-sm text-gray-500 font-medium">Manage your booked sessions and track your payouts.</p>
+            <h1 className="text-xl md:text-3xl font-black text-km-heading mb-0.5 md:mb-1">Mentor Dashboard</h1>
+            <p className="text-[11px] md:text-sm text-km-text-secondary font-medium">Manage your booked sessions and track your payouts.</p>
           </div>
 
           {/* Quick Wallet Stats Widget */}
@@ -103,7 +104,7 @@ export default function ExpertMentorshipManagement() {
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 mb-5 md:mb-6 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="flex border-b border-km-border mb-5 md:mb-6 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
           {[
             { id: 'bookings', label: 'Booked Sessions', icon: <UserIcon weight="bold" size={14} />, count: bookings.length },
             { id: 'sessions', label: 'My Sessions', icon: <PlusIcon weight="bold" size={14} />, count: mentorships.length },
@@ -113,13 +114,13 @@ export default function ExpertMentorshipManagement() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-3 md:px-6 py-2.5 md:py-3 font-black transition-all relative text-xs md:text-sm whitespace-nowrap ${
-                activeTab === tab.id ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400 hover:text-gray-600'
+                activeTab === tab.id ? 'text-purple-600 dark:text-purple-400' : 'text-km-text-muted hover:text-km-text-secondary'
               }`}
             >
               {tab.icon} {tab.label}
               {tab.count !== undefined && (
                 <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
+                  activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-km-surface text-km-text-secondary'
                 }`}>
                   {tab.count}
                 </span>
@@ -150,10 +151,10 @@ export default function ExpertMentorshipManagement() {
 function SessionsList({ mentorships }: { mentorships: any[] }) {
   if (mentorships.length === 0) {
     return (
-      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
-        <PlusIcon size={28} weight="duotone" className="text-gray-300 mx-auto mb-4" aria-hidden="true" />
-        <h3 className="text-lg font-bold text-gray-800 mb-2">No Mentorship Sessions</h3>
-        <p className="text-xs md:text-sm text-gray-500 mb-6 md:mb-8 max-w-xs mx-auto">Create your first session to start helping others and growing your professional network.</p>
+      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-km-border">
+        <PlusIcon size={28} weight="duotone" className="text-km-text-muted mx-auto mb-4" aria-hidden="true" />
+        <h3 className="text-lg font-bold text-km-text-primary mb-2">No Mentorship Sessions</h3>
+        <p className="text-xs md:text-sm text-km-text-secondary mb-6 md:mb-8 max-w-xs mx-auto">Create your first session to start helping others and growing your professional network.</p>
         <button className="text-purple-600 text-xs md:text-sm font-bold border border-purple-200 px-5 py-2 rounded-full hover:bg-purple-50 dark:text-purple-400">Create Now</button>
       </div>
     );
@@ -162,20 +163,20 @@ function SessionsList({ mentorships }: { mentorships: any[] }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
       {mentorships.map((m, i) => (
-        <div key={m.id || i} className="bg-km-surface-card p-5 md:p-6 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:shadow-lg transition-all group">
+        <div key={m.id || i} className="bg-km-surface-card p-5 md:p-6 rounded-xl md:rounded-2xl border border-km-border-subtle shadow-sm hover:shadow-lg transition-all group">
           <div className="flex justify-between items-start mb-4">
             <div className="bg-purple-50 text-purple-600 text-[11px] font-semibold px-2.5 py-1 rounded-full dark:text-purple-400">{m.category}</div>
             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-blue-500 transition-colors dark:hover:text-blue-400"><NotePencilIcon weight="bold" size={14} /></button>
-              <button className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-red-500 transition-colors dark:hover:text-red-400"><TrashIcon weight="bold" size={14} /></button>
+              <button className="p-1.5 hover:bg-km-surface rounded-lg text-km-text-muted hover:text-blue-500 transition-colors dark:hover:text-blue-400"><NotePencilIcon weight="bold" size={14} /></button>
+              <button className="p-1.5 hover:bg-km-surface rounded-lg text-km-text-muted hover:text-red-500 transition-colors dark:hover:text-red-400"><TrashIcon weight="bold" size={14} /></button>
             </div>
           </div>
-          <h3 className="text-base md:text-lg font-bold text-gray-900 mb-3 md:mb-4">{m.title}</h3>
-          <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-gray-50">
-            <div className="flex items-center gap-1.5 text-gray-400 text-[10px] font-bold uppercase">
+          <h3 className="text-base md:text-lg font-bold text-km-heading mb-3 md:mb-4">{m.title}</h3>
+          <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-km-border-subtle">
+            <div className="flex items-center gap-1.5 text-km-text-muted text-[10px] font-bold uppercase">
               <ClockIcon weight="bold" size={12} /> {m.duration} Mins
             </div>
-            <div className="text-base md:text-lg font-black text-gray-900">₹{m.price}</div>
+            <div className="text-base md:text-lg font-black text-km-heading">₹{m.price}</div>
           </div>
         </div>
       ))}
@@ -229,10 +230,10 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
 
   if (bookings.length === 0) {
     return (
-      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-gray-200">
-        <UserIcon size={40} weight="duotone" className="text-gray-300 mx-auto mb-4 md:mb-6" aria-hidden="true" />
-        <h3 className="text-lg font-bold text-gray-800 mb-2">No Bookings Yet</h3>
-        <p className="text-xs md:text-sm text-gray-500 max-w-xs mx-auto">When candidates book sessions with you, they will appear here. Funds are held in Escrow until you complete the call.</p>
+      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-km-border">
+        <UserIcon size={40} weight="duotone" className="text-km-text-muted mx-auto mb-4 md:mb-6" aria-hidden="true" />
+        <h3 className="text-lg font-bold text-km-text-primary mb-2">No Bookings Yet</h3>
+        <p className="text-xs md:text-sm text-km-text-secondary max-w-xs mx-auto">When candidates book sessions with you, they will appear here. Funds are held in Escrow until you complete the call.</p>
       </div>
     );
   }
@@ -249,7 +250,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
         const isLoading = actionLoadingId === b.id;
 
         return (
-          <div key={b.id || i} className="bg-km-surface-card p-4 md:p-5 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm hover:border-purple-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div key={b.id || i} className="bg-km-surface-card p-4 md:p-5 rounded-xl md:rounded-2xl border border-km-border-subtle shadow-sm hover:border-purple-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
             
             {/* Left: Mentee & Session info */}
             <div className="flex gap-3.5 items-start">
@@ -265,24 +266,24 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                   {/* Status Pill */}
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
                     isCompleted ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                    isConfirmed ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                    isConfirmed ? 'bg-blue-50 text-km-link border border-blue-200' :
                     isPending ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                    'bg-gray-100 text-gray-600'
+                    'bg-km-surface text-km-text-secondary'
                   }`}>
                     {isAwaiting ? 'Waiting for mentee' : isReported ? 'Reported' : b.status}
                   </span>
                 </div>
 
-                <h4 className="font-bold text-gray-900 text-sm md:text-base">
+                <h4 className="font-bold text-km-heading text-sm md:text-base">
                   {b.mentee_name || 'Candidate Booking'}
                 </h4>
                 {b.mentee_email && (
-                  <p className="text-[11px] text-gray-500 font-medium">{b.mentee_email}</p>
+                  <p className="text-[11px] text-km-text-secondary font-medium">{b.mentee_email}</p>
                 )}
                 
-                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[11px] text-gray-500">
+                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[11px] text-km-text-secondary">
                   <span className="flex items-center gap-1 font-medium">
-                    <CalendarBlankIcon weight="bold" size={12} className="text-gray-400" />
+                    <CalendarBlankIcon weight="bold" size={12} className="text-km-text-muted" />
                     {new Date(b.scheduled_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                   </span>
                   
@@ -295,7 +296,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
             </div>
 
             {/* Right: Actions */}
-            <div className="flex flex-wrap items-center justify-between md:justify-end gap-2.5 pt-3 md:pt-0 border-t md:border-t-0 border-gray-100">
+            <div className="flex flex-wrap items-center justify-between md:justify-end gap-2.5 pt-3 md:pt-0 border-t md:border-t-0 border-km-border-subtle">
               
               {/* Meeting Link Button */}
               {b.meeting_link ? (
@@ -314,7 +315,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                       setMeetingModalBooking(b);
                       setMeetingUrlInput('');
                     }}
-                    className="text-gray-500 hover:text-purple-600 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-gray-50 border border-dashed border-gray-300 flex items-center gap-1 dark:hover:text-purple-400"
+                    className="text-km-text-secondary hover:text-purple-600 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-km-surface border border-dashed border-km-border flex items-center gap-1 dark:hover:text-purple-400"
                   >
                     <LinkSimpleIcon weight="bold" size={13} /> Add Meet Link
                   </button>
@@ -334,7 +335,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                   <button 
                     disabled={isLoading}
                     onClick={() => handleStatus(b, 'cancelled')}
-                    className="bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 dark:hover:text-red-400"
+                    className="bg-km-surface hover:bg-red-50 text-km-text-secondary hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 dark:hover:text-red-400"
                   >
                     <XIcon weight="bold" size={14} /> Decline
                   </button>
@@ -363,7 +364,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                         handleStatus(b, 'cancelled');
                       }
                     }}
-                    className="text-gray-400 hover:text-red-600 p-1.5 rounded-lg transition-colors dark:hover:text-red-400"
+                    className="text-km-text-muted hover:text-red-600 p-1.5 rounded-lg transition-colors dark:hover:text-red-400"
                     title="Cancel Session & Refund"
                   >
                     <XIcon weight="bold" size={16} />
@@ -371,8 +372,8 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                 </div>
               )}
 
-              {isAwaiting && <p className="text-xs text-gray-500">You'll be paid ₹{b.amount} when the mentee confirms, or after 24 hours.</p>}
-              {isReported && <p className="text-xs text-gray-500">Reported by the mentee. Payment is on hold while we review it.</p>}
+              {isAwaiting && <p className="text-xs text-km-text-secondary">You'll be paid ₹{b.amount} when the mentee confirms, or after 24 hours.</p>}
+              {isReported && <p className="text-xs text-km-text-secondary">Reported by the mentee. Payment is on hold while we review it.</p>}
 
               {isCompleted && (
                 <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 dark:text-emerald-400">
@@ -381,7 +382,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
               )}
 
               {isCancelled && (
-                <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2.5 py-1 rounded-lg">
+                <span className="text-xs font-bold text-km-text-muted bg-km-surface px-2.5 py-1 rounded-lg">
                   Refunded
                 </span>
               )}
@@ -397,19 +398,19 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-km-surface-card rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100"
+            className="bg-km-surface-card rounded-2xl max-w-md w-full p-6 shadow-2xl border border-km-border-subtle"
           >
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <VideoCameraIcon size={20} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
-                <h3 className="font-black text-gray-900 text-base">Add Meeting Link</h3>
+                <h3 className="font-black text-km-heading text-base">Add Meeting Link</h3>
               </div>
-              <button onClick={() => setMeetingModalBooking(null)} className="text-gray-400 hover:text-gray-600 p-1">
+              <button onClick={() => setMeetingModalBooking(null)} className="text-km-text-muted hover:text-km-text-secondary p-1">
                 <XIcon weight="bold" size={18} />
               </button>
             </div>
             
-            <p className="text-xs text-gray-500 mb-4 leading-relaxed">
+            <p className="text-xs text-km-text-secondary mb-4 leading-relaxed">
               Paste your Google Meet, Zoom, or Teams video call link. The mentee will see this link on their session card.
             </p>
 
@@ -418,13 +419,13 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
               placeholder="https://meet.google.com/abc-defg-hij" 
               value={meetingUrlInput}
               onChange={(e) => setMeetingUrlInput(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-600 mb-5 font-mono"
+              className="w-full bg-km-surface border border-km-border rounded-xl px-3.5 py-2.5 text-xs text-km-heading focus:outline-none focus:ring-2 focus:ring-purple-600 mb-5 font-mono"
             />
 
             <div className="flex justify-end gap-2">
               <button 
                 onClick={() => setMeetingModalBooking(null)}
-                className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-700"
+                className="px-4 py-2 text-xs font-bold text-km-text-secondary hover:text-km-text-primary"
               >
                 Cancel
               </button>
@@ -534,16 +535,16 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
   const activeCount = schedule.filter(s => s.isActive).length;
 
   return (
-    <div className="bg-km-surface-card p-5 md:p-8 rounded-xl md:rounded-2xl border border-gray-100 shadow-sm max-w-3xl">
+    <div className="bg-km-surface-card p-5 md:p-8 rounded-xl md:rounded-2xl border border-km-border-subtle shadow-sm max-w-3xl">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-lg md:text-xl font-black text-gray-900">Weekly Availability</h3>
+            <h3 className="text-lg md:text-xl font-black text-km-heading">Weekly Availability</h3>
             <span className="bg-purple-50 text-purple-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-purple-100">
               {activeCount} {activeCount === 1 ? 'Day' : 'Days'} Active
             </span>
           </div>
-          <p className="text-[10px] md:text-xs text-gray-500 font-medium mt-1">
+          <p className="text-[10px] md:text-xs text-km-text-secondary font-medium mt-1">
             Define your working days and call hours. Candidates can book 1-on-1 slots within these times.
           </p>
         </div>
@@ -563,42 +564,42 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
             className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 rounded-xl border transition-all ${
               item.isActive 
                 ? 'bg-purple-50/20 border-purple-100/60 shadow-2xs' 
-                : 'bg-gray-50/50 border-gray-100 opacity-60'
+                : 'bg-gray-50/50 border-km-border-subtle opacity-60'
             }`}
           >
             <div className="sm:w-32 flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${item.isActive ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-              <span className="font-bold text-gray-900 text-xs md:text-sm">{item.name}</span>
+              <span className="font-bold text-km-heading text-xs md:text-sm">{item.name}</span>
             </div>
 
             <div className="flex-1 flex items-center gap-2 md:gap-3">
-              <div className="flex items-center gap-1.5 bg-km-surface-card border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
-                <ClockIcon weight="bold" size={12} className="text-gray-400" />
+              <div className="flex items-center gap-1.5 bg-km-surface-card border border-km-border rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
+                <ClockIcon weight="bold" size={12} className="text-km-text-muted" />
                 <input 
                   type="time" 
                   value={item.startTime}
                   disabled={!item.isActive}
                   onChange={(e) => updateTime(item.dayOfWeek, 'startTime', e.target.value)}
-                  className="bg-transparent text-gray-900 text-[11px] md:text-xs font-semibold focus:outline-none disabled:text-gray-400" 
+                  className="bg-transparent text-km-heading text-[11px] md:text-xs font-semibold focus:outline-none disabled:text-km-text-muted" 
                 />
               </div>
 
-              <span className="text-gray-400 text-xs font-medium">to</span>
+              <span className="text-km-text-muted text-xs font-medium">to</span>
 
-              <div className="flex items-center gap-1.5 bg-km-surface-card border border-gray-200 rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
-                <ClockIcon weight="bold" size={12} className="text-gray-400" />
+              <div className="flex items-center gap-1.5 bg-km-surface-card border border-km-border rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
+                <ClockIcon weight="bold" size={12} className="text-km-text-muted" />
                 <input 
                   type="time" 
                   value={item.endTime}
                   disabled={!item.isActive}
                   onChange={(e) => updateTime(item.dayOfWeek, 'endTime', e.target.value)}
-                  className="bg-transparent text-gray-900 text-[11px] md:text-xs font-semibold focus:outline-none disabled:text-gray-400" 
+                  className="bg-transparent text-km-heading text-[11px] md:text-xs font-semibold focus:outline-none disabled:text-km-text-muted" 
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-              <span className={`text-[10px] font-black uppercase tracking-wider ${item.isActive ? 'text-purple-700' : 'text-gray-400'}`}>
+              <span className={`text-[10px] font-black uppercase tracking-wider ${item.isActive ? 'text-purple-700' : 'text-km-text-muted'}`}>
                 {item.isActive ? 'Available' : 'Off'}
               </span>
               
@@ -608,7 +609,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
                 aria-checked={item.isActive}
                 onClick={() => toggleDay(item.dayOfWeek)}
                 className={`w-11 h-6 rounded-full relative transition-colors duration-200 focus:outline-none p-0.5 cursor-pointer ${
-                  item.isActive ? 'bg-purple-600' : 'bg-gray-200 hover:bg-gray-300'
+                  item.isActive ? 'bg-purple-600' : 'bg-km-border-subtle hover:bg-gray-300'
                 }`}
               >
                 <div 
@@ -622,12 +623,12 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
         ))}
       </div>
 
-      <div className="mt-8 pt-4 border-t border-gray-100 flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3">
+      <div className="mt-8 pt-4 border-t border-km-border-subtle flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3">
         <button 
           type="button"
           onClick={handleDiscard}
           disabled={saving}
-          className="px-4 md:px-6 py-2.5 text-xs text-gray-500 font-bold hover:text-gray-700 hover:bg-gray-50 rounded-xl transition-all disabled:opacity-50 cursor-pointer"
+          className="px-4 md:px-6 py-2.5 text-xs text-km-text-secondary font-bold hover:text-km-text-primary hover:bg-km-surface rounded-xl transition-all disabled:opacity-50 cursor-pointer"
         >
           Discard Changes
         </button>

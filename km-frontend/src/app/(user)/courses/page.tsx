@@ -90,6 +90,7 @@ export default function CoursesExpertStudioPage() {
             setTotalCourses(res.total || (res.data ? res.data.length : 0));
         } catch (error: any) {
             console.error("Failed to load courses:", error);
+            notify.error(error, "Your courses couldn’t be loaded.");
         } finally {
             setLoadingCourses(false);
         }

@@ -318,7 +318,7 @@ export default function AboutPage() {
           <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
             Ready to Experience Zero Brokerage?
           </h3>
-          <p className="text-slate-300 text-sm sm:text-base max-w-lg mx-auto mb-6 leading-relaxed">
+          <p className="text-white/75 text-sm sm:text-base max-w-lg mx-auto mb-6 leading-relaxed">
             Whether you are looking for your next career move or hiring trusted talent for your company,
             Kaammilega connects you directly.
           </p>
@@ -334,13 +334,13 @@ export default function AboutPage() {
 
             <Link
               href="/recruiter/login"
-              className="px-6 py-3 bg-km-surface-card hover:bg-slate-100 text-km-heading font-semibold text-sm rounded-xl transition-all shadow-xs active:scale-95"
+              className="px-6 py-3 bg-km-surface-card hover:bg-km-surface text-km-heading font-semibold text-sm rounded-xl transition-all shadow-xs active:scale-95"
             >
               Post a Job as Employer
             </Link>
           </div>
 
-          <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-center gap-1 text-xs text-slate-400">
+          <div className="mt-6 pt-5 border-t border-white/10 flex items-center justify-center gap-1 text-xs text-white/60">
             <span>Have questions or need assistance?</span>
             <Link href="/support" className="text-orange-300 hover:text-white underline ml-1">
               Contact Support

@@ -86,6 +86,7 @@ export default function ExpertsPage() {
                 }
             } catch (err) {
                 console.error("Failed to fetch experts", err);
+                notify.error(err, "Experts couldn’t be loaded.");
             } finally {
                 setLoading(false);
             }

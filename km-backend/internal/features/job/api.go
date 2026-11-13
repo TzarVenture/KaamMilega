@@ -20,6 +20,8 @@ func (api *JobApi) Setup(app *fiber.App) {
 
 	// Public job search listing
 	app.Get("/api/jobs", api.controller.GetJobs)
+	// Open-job counts for the home page cards; registered before /api/jobs/:id so "counts" is not read as an ID
+	app.Get("/api/jobs/counts", api.controller.GetJobCounts)
 
 	// Protected recruiter routes (/api/jobs/my must be defined before /api/jobs/:id)
 	// Login is checked per route, not on the group: Fiber runs group middleware for every

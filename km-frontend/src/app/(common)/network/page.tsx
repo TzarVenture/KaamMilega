@@ -109,6 +109,7 @@ const NetworkPage = () => {
 
             } catch (error) {
                 console.error("Failed to load network data", error);
+                notify.error(error, "Your network couldn’t be loaded.");
             } finally {
                 setLoading(false);
             }
@@ -130,6 +131,7 @@ const NetworkPage = () => {
             }
         } catch (err) {
             console.error("Failed to filter suggestions", err);
+            notify.error(err, "Suggestions couldn’t be loaded.");
         } finally {
             setSuggestionsLoading(false);
         }
