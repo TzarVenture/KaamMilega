@@ -29,6 +29,8 @@ type FeedService interface {
 
 	React(ctx context.Context, userID, postID primitive.ObjectID, reaction string) (*ReactionResponse, error)
 	Unreact(ctx context.Context, userID, postID primitive.ObjectID) (*ReactionResponse, error)
+	// ListReactions is who reacted to a post, newest first; reactionType "" is every type
+	ListReactions(ctx context.Context, viewer *primitive.ObjectID, postID primitive.ObjectID, reactionType string, before *primitive.ObjectID, limit int) (*ReactorListResponse, error)
 	Save(ctx context.Context, userID, postID primitive.ObjectID) error
 	Unsave(ctx context.Context, userID, postID primitive.ObjectID) error
 
@@ -57,6 +59,7 @@ type authorLookup interface {
 
 type notifier interface {
 	CreateNotification(ctx context.Context, req notification.CreateNotificationRequest) (*notification.Notification, error)
+	CreateOrGroup(ctx context.Context, req notification.CreateNotificationRequest, groupKey string) (*notification.Notification, error)
 }
 
 // impressionRecorder is the part of analytics the feed needs
@@ -323,11 +326,17 @@ func (s *feedService) React(ctx context.Context, userID, postID primitive.Object
 	if !reactionTypes[reaction] {
 		return nil, ErrInvalidReaction
 	}
-	if _, err := s.activePost(ctx, postID); err != nil {
+	post, err := s.activePost(ctx, postID)
+	if err != nil {
 		return nil, err
 	}
-	if _, err := s.repo.SetReaction(ctx, postID, userID, reaction); err != nil {
+	old, err := s.repo.SetReaction(ctx, postID, userID, reaction)
+	if err != nil {
 		return nil, err
+	}
+	// A first reaction from someone else tells the author (changing one's reaction doesn't)
+	if old == "" && userID != post.AuthorID {
+		s.notifyReaction(post, userID, post.ReactionsTotal+1)
 	}
 	return s.reactionState(ctx, postID, reaction)
 }
@@ -487,6 +496,46 @@ func (s *feedService) notifyComment(post *Post, to, actorID primitive.ObjectID, 
 	}()
 }
 
+// notifyReaction tells a post's author someone reacted. Reactions on one post fold into a single
+// unread notification ("Asha and 4 others reacted to your post") instead of one each.
+func (s *feedService) notifyReaction(post *Post, actorID primitive.ObjectID, total int) {
+	if s.notify == nil {
+		return
+	}
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		people, err := s.authors(ctx, []primitive.ObjectID{actorID})
+		if err != nil {
+			return
+		}
+		actor, ok := people[actorID]
+		if !ok {
+			return
+		}
+		msg := actor.Name + " reacted to your post"
+		if others := total - 1; others == 1 {
+			msg = actor.Name + " and 1 other reacted to your post"
+		} else if others > 1 {
+			msg = fmt.Sprintf("%s and %d others reacted to your post", actor.Name, others)
+		}
+		if _, err := s.notify.CreateOrGroup(ctx, notification.CreateNotificationRequest{
+			UserID:      post.AuthorID,
+			ActorID:     &actorID,
+			ActorName:   actor.Name,
+			ActorAvatar: actor.Avatar,
+			Type:        notification.TypeFeedReaction,
+			Category:    notification.CategoryNetwork,
+			Title:       "Reactions on your post",
+			Message:     msg,
+			Link:        "/feed/" + post.ID.Hex(),
+			Metadata:    map[string]interface{}{"post_id": post.ID.Hex()},
+		}, "reaction:"+post.ID.Hex()); err != nil {
+			log.Printf("feed: reaction notification failed: %v", err)
+		}
+	}()
+}
+
 func (s *feedService) ListComments(ctx context.Context, viewer *primitive.ObjectID, postID primitive.ObjectID, before *primitive.ObjectID, limit int) (*CommentListResponse, error) {
 	post, err := s.activePost(ctx, postID)
 	if err != nil {
@@ -509,6 +558,49 @@ func (s *feedService) ListComments(ctx context.Context, viewer *primitive.Object
 		next = comments[want-1].ID.Hex()
 	}
 	return s.commentPage(ctx, viewer, post, comments, next)
+}
+
+func (s *feedService) ListReactions(ctx context.Context, viewer *primitive.ObjectID, postID primitive.ObjectID, reactionType string, before *primitive.ObjectID, limit int) (*ReactorListResponse, error) {
+	if reactionType != "" && !reactionTypes[reactionType] {
+		return nil, ErrInvalidReaction
+	}
+	if _, err := s.activePost(ctx, postID); err != nil {
+		return nil, err
+	}
+	var hide []primitive.ObjectID
+	var err error
+	if viewer != nil {
+		if hide, err = s.repo.BlockedUserIDs(ctx, *viewer); err != nil {
+			return nil, err
+		}
+	}
+	want := pageSize(limit, DefaultReactorPage, MaxCommentPage)
+	rs, err := s.repo.ListReactions(ctx, postID, reactionType, before, want+1, hide)
+	if err != nil {
+		return nil, err
+	}
+	next := ""
+	if len(rs) > want {
+		rs = rs[:want]
+		next = rs[want-1].ID.Hex()
+	}
+	ids := make([]primitive.ObjectID, 0, len(rs))
+	for _, x := range rs {
+		ids = append(ids, x.UserID)
+	}
+	people, err := s.authors(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]ReactorResponse, 0, len(rs))
+	for _, x := range rs {
+		p, ok := people[x.UserID]
+		if !ok {
+			continue // closed account
+		}
+		out = append(out, ReactorResponse{User: p, Type: x.Type, CreatedAt: x.CreatedAt})
+	}
+	return &ReactorListResponse{Reactions: out, NextCursor: next}, nil
 }
 
 // ListReplies: one comment's replies, oldest first

@@ -29,6 +29,10 @@ const (
 	TypeFeedComment         = "feed_comment"
 	TypeSkillEndorsement    = "skill_endorsement"
 	TypeCertificateReview   = "certificate_review"
+	TypeFeedReaction        = "feed_reaction"
+	TypeJobAlert            = "job_alert"
+	TypeReminder            = "reminder"
+	TypeAccount             = "account"
 )
 
 // Notification represents an in-app notification document in MongoDB
@@ -45,6 +49,9 @@ type Notification struct {
 	Link        string                 `bson:"link,omitempty" json:"link,omitempty"`
 	Metadata    map[string]interface{} `bson:"metadata,omitempty" json:"metadata,omitempty"`
 	IsRead      bool                   `bson:"is_read" json:"is_read"`
+	// IsSeen: the member opened the bell or the page since it arrived. The badge counts unread
+	// notifications not seen yet; each stays unread until opened.
+	IsSeen bool `bson:"is_seen" json:"is_seen"`
 	CreatedAt   time.Time              `bson:"created_at" json:"created_at"`
 	UpdatedAt   time.Time              `bson:"updated_at" json:"updated_at"`
 }
@@ -55,6 +62,10 @@ type NotificationFilter struct {
 	UnreadOnly bool
 	Limit      int
 	Offset     int
+	// Before and BeforeID page by the last item shown (newer arrivals don't shift the pages);
+	// Offset is ignored when they are set
+	Before   *time.Time
+	BeforeID *primitive.ObjectID
 }
 
 // CreateNotificationRequest carries payload to create and broadcast an in-app notification
@@ -78,8 +89,18 @@ type NotificationRepository interface {
 	FindRecentUnreadByActor(ctx context.Context, userID, actorID primitive.ObjectID, notifType string, since time.Time) (*Notification, error)
 	UpdateMessage(ctx context.Context, id primitive.ObjectID, message string, metadata map[string]interface{}) error
 	CountUnread(ctx context.Context, userID primitive.ObjectID) (int64, error)
+	CountUnseen(ctx context.Context, userID primitive.ObjectID) (int64, error)
+	// FindUnreadGroup is the unread notification already standing for this group, if any
+	FindUnreadGroup(ctx context.Context, userID primitive.ObjectID, groupKey string) (*Notification, error)
+	// Regroup refreshes a grouped notification with the newest activity and moves it to the top
+	Regroup(ctx context.Context, n *Notification) error
+	MarkAllSeen(ctx context.Context, userID primitive.ObjectID) error
+	CountUnreadByCategory(ctx context.Context, userID primitive.ObjectID) (map[string]int64, error)
 	MarkAsRead(ctx context.Context, id, userID primitive.ObjectID) error
 	MarkAllAsRead(ctx context.Context, userID primitive.ObjectID) error
+	// MarkChatRead marks the unread "new message" notifications of one conversation as read and
+	// returns their IDs
+	MarkChatRead(ctx context.Context, userID primitive.ObjectID, conversationID string) ([]primitive.ObjectID, error)
 	Delete(ctx context.Context, id, userID primitive.ObjectID) error
 }
 
@@ -87,9 +108,18 @@ type NotificationRepository interface {
 type NotificationService interface {
 	CreateNotification(ctx context.Context, req CreateNotificationRequest) (*Notification, error)
 	CreateOrDebounceChatNotification(ctx context.Context, req CreateNotificationRequest) (*Notification, error)
+	// CreateOrGroup folds repeated activity (reactions on one post) into the unread notification
+	// with the same group key, or creates it
+	CreateOrGroup(ctx context.Context, req CreateNotificationRequest, groupKey string) (*Notification, error)
 	GetNotifications(ctx context.Context, userID primitive.ObjectID, filter NotificationFilter) ([]Notification, int64, error)
 	GetUnreadCount(ctx context.Context, userID primitive.ObjectID) (int64, error)
+	GetUnseenCount(ctx context.Context, userID primitive.ObjectID) (int64, error)
+	// MarkAllSeen clears the badge (the bell or the page was opened); nothing becomes read
+	MarkAllSeen(ctx context.Context, userID primitive.ObjectID) error
+	GetUnreadByCategory(ctx context.Context, userID primitive.ObjectID) (map[string]int64, error)
 	MarkAsRead(ctx context.Context, id, userID primitive.ObjectID) error
 	MarkAllAsRead(ctx context.Context, userID primitive.ObjectID) error
+	// MarkChatRead clears a conversation's message notifications once the member has read it
+	MarkChatRead(ctx context.Context, userID primitive.ObjectID, conversationID string) error
 	DeleteNotification(ctx context.Context, id, userID primitive.ObjectID) error
 }

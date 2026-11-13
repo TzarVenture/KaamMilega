@@ -34,7 +34,7 @@
     "userTerms": "युजर नियम आणि अटी",
     "privacy": "प्रायव्हसी पॉलिसी",
     "employerTerms": "एम्प्लॉयर सेवा अटी",
-    "guidelines": "Connect Like You मार्गदर्शक तत्त्वे",
+    "guidelines": "समुदाय मार्गदर्शक तत्त्वे",
     "services": "सेवा",
     "byCategory": "कॅटेगरीनुसार नोकरी शोधा",
     "byCity": "शहरानुसार नोकरी शोधा",
@@ -1285,7 +1285,7 @@
     "postComment": "टिप्पणी करा",
     "signInToComment": "टिप्पणी करण्यासाठी साइन इन करा",
     "commentsFailed": "टिप्पण्या लोड झाल्या नाहीत.",
-    "commentFailed": "तुमची टिप्पणी पोस्ट झाली नाही. कृपया पुन्हा प्रयत्न करा.",
+    "commentFailed": "तुमची टिप्पणी पोस्ट झाली नाही. कृपया पुन्हा प्रयत्न करा.",
     "olderComments": "जुन्या टिप्पण्या पहा",
     "reply": "उत्तर द्या",
     "addReply": "उत्तर लिहा…",
@@ -1365,7 +1365,13 @@
     "trendingPosts": "{count, plural, one {{formatted} पोस्ट} other {{formatted} पोस्ट}}",
     "statsPeriod": "मागील 90 दिवस",
     "profileViewers": "प्रोफाइल पाहणारे",
-    "impressionsCount": "{count, plural, one {{formatted} इंप्रेशन} other {{formatted} इंप्रेशन्स}}"
+    "impressionsCount": "{count, plural, one {{formatted} इंप्रेशन} other {{formatted} इंप्रेशन्स}}",
+    "seeReactions": "{count, plural, one {{count} प्रतिक्रिया, कोणी दिली ते पाहा} other {{count} प्रतिक्रिया, कोणी दिल्या ते पाहा}}",
+    "reactionsAll": "सर्व",
+    "reactionsEmpty": "अद्याप कोणतीही प्रतिक्रिया नाही.",
+    "reactionsFailed": "प्रतिक्रिया लोड होऊ शकल्या नाहीत.",
+    "moreReactions": "आणखी पाहा",
+    "seeWhoReacted": "कोणी प्रतिक्रिया दिली ते पाहा"
   },
   "ads": {
     "label": "जाहिरात",

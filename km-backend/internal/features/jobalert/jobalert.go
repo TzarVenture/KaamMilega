@@ -61,10 +61,11 @@ type Service struct {
 	jobs   *mongo.Collection
 	mailer notification.Mailer
 	now    func() time.Time
+	notify notification.NotificationService
 }
 
-func NewService(db *database.MongodbDB, mailer notification.Mailer) *Service {
-	return &Service{users: db.DB.Collection("users"), jobs: db.DB.Collection("jobs"), mailer: mailer, now: time.Now}
+func NewService(db *database.MongodbDB, mailer notification.Mailer, notify notification.NotificationService) *Service {
+	return &Service{users: db.DB.Collection("users"), jobs: db.DB.Collection("jobs"), mailer: mailer, now: time.Now, notify: notify}
 }
 
 func ist() *time.Location {
@@ -223,6 +224,7 @@ func (s *Service) Run(ctx context.Context) (int, error) {
 				continue // retried next run
 			}
 			sent++
+			s.notifyMatches(ctx, c.ID, len(matches))
 		}
 		// Recorded even without matches so the next digest only looks at newer jobs
 		if _, err := s.users.UpdateOne(ctx, bson.M{"_id": c.ID}, bson.M{"$set": bson.M{"job_alerts_last_run_at": now}}); err != nil {
@@ -230,6 +232,23 @@ func (s *Service) Run(ctx context.Context) (int, error) {
 		}
 	}
 	return sent, nil
+}
+
+// notifyMatches puts the digest in the bell and on the phone, next to the email
+func (s *Service) notifyMatches(ctx context.Context, userID primitive.ObjectID, n int) {
+	if s.notify == nil {
+		return
+	}
+	msg := "1 new job matches your profile"
+	if n > 1 {
+		msg = fmt.Sprintf("%d new jobs match your profile", n)
+	}
+	if _, err := s.notify.CreateNotification(ctx, notification.CreateNotificationRequest{
+		UserID: userID, Type: notification.TypeJobAlert, Category: notification.CategoryJobs,
+		Title: "New jobs for you", Message: msg, Link: "/jobs",
+	}); err != nil {
+		log.Printf("[jobalert] notification for %s: %v", userID.Hex(), err)
+	}
 }
 
 func (s *Service) recentJobs(ctx context.Context, since time.Time) ([]jobDoc, error) {

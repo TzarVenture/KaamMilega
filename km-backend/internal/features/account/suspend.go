@@ -140,6 +140,26 @@ func (s *Service) LiftEndedSuspensions(ctx context.Context) (int, error) {
 }
 
 func (s *Service) notifySuspension(u *user.User, kind string, until *time.Time, reason string) {
+	// On their phone too (and in the bell once they can sign in again)
+	if s.notices != nil {
+		title, msg := "Your account is active again", "You can use KaamMilega as usual."
+		if kind == notification.AccountNoticeSuspended {
+			title, msg = "Your account is suspended", "Your account is suspended. Check your email for the reason."
+			if until != nil {
+				msg = "Your account is suspended until " + until.In(time.FixedZone("IST", 5*3600+1800)).Format("2 Jan 2006, 3:04 PM") + ". Check your email for the reason."
+			}
+		}
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if _, err := s.notices.CreateNotification(ctx, notification.CreateNotificationRequest{
+				UserID: u.ID, Type: notification.TypeAccount, Category: notification.CategorySystem,
+				Title: title, Message: msg, Link: "/settings",
+			}); err != nil {
+				log.Printf("[account] %s notification failed: %v", kind, err)
+			}
+		}()
+	}
 	if u.Email == "" || !u.IsEmailVerified {
 		return
 	}

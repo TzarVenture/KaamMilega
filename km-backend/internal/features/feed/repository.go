@@ -38,6 +38,8 @@ type FeedRepository interface {
 	// RemoveReaction deletes the member's reaction and returns it ("" if there was none)
 	RemoveReaction(ctx context.Context, postID, userID primitive.ObjectID) (string, error)
 	ViewerReactions(ctx context.Context, userID primitive.ObjectID, postIDs []primitive.ObjectID) (map[primitive.ObjectID]string, error)
+	// ListReactions is who reacted to a post, newest first, optionally one reaction type only
+	ListReactions(ctx context.Context, postID primitive.ObjectID, reactionType string, before *primitive.ObjectID, limit int, hideUsers []primitive.ObjectID) ([]Reaction, error)
 
 	SavePost(ctx context.Context, userID, postID primitive.ObjectID) error
 	UnsavePost(ctx context.Context, userID, postID primitive.ObjectID) error
@@ -118,6 +120,9 @@ func (r *feedRepository) ensureIndexes() {
 		{r.reactions, []mongo.IndexModel{
 			{Keys: bson.D{{Key: "post_id", Value: 1}, {Key: "user_id", Value: 1}}, Options: unique()},
 			{Keys: bson.D{{Key: "user_id", Value: 1}, {Key: "post_id", Value: 1}}},
+			// The "who reacted" list, all types or one
+			{Keys: bson.D{{Key: "post_id", Value: 1}, {Key: "_id", Value: -1}}},
+			{Keys: bson.D{{Key: "post_id", Value: 1}, {Key: "type", Value: 1}, {Key: "_id", Value: -1}}},
 		}},
 		{r.saves, []mongo.IndexModel{
 			{Keys: bson.D{{Key: "user_id", Value: 1}, {Key: "post_id", Value: 1}}, Options: unique()},
@@ -419,6 +424,28 @@ func (r *feedRepository) ViewerReactions(ctx context.Context, userID primitive.O
 	}
 	for _, x := range rs {
 		out[x.PostID] = x.Type
+	}
+	return out, nil
+}
+
+func (r *feedRepository) ListReactions(ctx context.Context, postID primitive.ObjectID, reactionType string, before *primitive.ObjectID, limit int, hideUsers []primitive.ObjectID) ([]Reaction, error) {
+	filter := bson.M{"post_id": postID}
+	if reactionType != "" {
+		filter["type"] = reactionType
+	}
+	if before != nil {
+		filter["_id"] = bson.M{"$lt": *before}
+	}
+	if len(hideUsers) > 0 {
+		filter["user_id"] = bson.M{"$nin": hideUsers}
+	}
+	cur, err := r.reactions.Find(ctx, filter, options.Find().SetSort(bson.D{{Key: "_id", Value: -1}}).SetLimit(int64(limit)))
+	if err != nil {
+		return nil, err
+	}
+	out := make([]Reaction, 0, limit)
+	if err := cur.All(ctx, &out); err != nil {
+		return nil, err
 	}
 	return out, nil
 }

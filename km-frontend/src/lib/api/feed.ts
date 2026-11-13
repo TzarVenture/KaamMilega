@@ -19,6 +19,13 @@ const get = <T>(url: string, params?: Record<string, string | number | undefined
 const send = <T>(method: 'post' | 'put' | 'patch' | 'delete', url: string, body?: unknown) =>
   (method === 'delete' ? api.delete(url) : api[method](url, body)) as unknown as Promise<T>;
 
+/** One person in a post's "who reacted" list */
+export interface Reactor {
+  user: FeedAuthor;
+  type: ReactionType;
+  created_at: string;
+}
+
 export interface ListParams {
   category?: PostCategory;
   tag?: string;
@@ -45,6 +52,8 @@ export const feedApi = {
   remove: (id: string) => send<void>('delete', `/feed/${id}`),
 
   react: (id: string, type: ReactionType) => send<ReactionState>('put', `/feed/${id}/reaction`, { type }),
+  reactions: (id: string, type?: ReactionType, before?: string) =>
+    get<{ reactions: Reactor[]; next_cursor?: string }>(`/feed/${id}/reactions`, { type, before }),
   unreact: (id: string) => send<ReactionState>('delete', `/feed/${id}/reaction`),
   save: (id: string) => send<void>('put', `/feed/${id}/save`),
   unsave: (id: string) => send<void>('delete', `/feed/${id}/save`),

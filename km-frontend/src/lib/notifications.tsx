@@ -20,8 +20,10 @@ export interface NotificationItem {
     title: string;
     message: string;
     link?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     metadata?: Record<string, any>;
     is_read: boolean;
+    is_seen?: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -55,27 +57,66 @@ export const sanitizeNotificationLink = (rawLink?: string, notifItem?: Partial<N
     return link;
 };
 
+/** Where to continue a list from: the last notification shown */
+export interface NotificationCursor {
+    before: string;
+    before_id: string;
+}
 
+export const cursorAfter = (items: NotificationItem[]): NotificationCursor | undefined => {
+    const last = items[items.length - 1];
+    return last ? { before: last.created_at, before_id: last.id } : undefined;
+};
+
+/** What happened to notifications, so a page that keeps its own list can follow along */
+export type NotificationEvent =
+    | { type: "new"; notification: NotificationItem }
+    | { type: "read"; id: string }
+    | { type: "all_read" }
+    | { type: "deleted"; id: string };
+
+/** How many recent notifications the bell keeps */
+const RECENT_LIMIT = 8;
 
 interface NotificationContextType {
     unreadCount: number;
+    /** The bell badge: unread notifications that arrived since the bell was last opened */
+    unseenCount: number;
+    /** Clears the badge (call when the bell or the page opens); items stay unread */
+    markAllSeen: () => void;
+    /** Unread per category (messages, jobs, network, system) */
+    unreadByCategory: Record<string, number>;
     chatUnreadCount: number;
+    /** The newest notifications (fetched for the bell, plus live arrivals), newest first */
     notifications: NotificationItem[];
     recentNotifications: NotificationItem[];
     loading: boolean;
     connected: boolean;
-    fetchNotifications: (category?: string, unreadOnly?: boolean, limit?: number, offset?: number) => Promise<{ notifications: NotificationItem[]; total: number }>;
+    /**
+     * One page of notifications. It doesn't touch the shared lists except that a first page of
+     * "all" refreshes the bell's recent list. Pass a cursor for the next page.
+     */
+    fetchNotifications: (
+        category?: string,
+        unreadOnly?: boolean,
+        limit?: number,
+        offset?: number,
+        cursor?: NotificationCursor,
+    ) => Promise<{ notifications: NotificationItem[]; total: number }>;
     markAsRead: (id: string) => Promise<void>;
     markAllAsRead: () => Promise<void>;
     deleteNotification: (id: string) => Promise<void>;
     refreshUnreadCount: () => Promise<void>;
     refreshChatUnreadCount: () => Promise<void>;
+    /** Follow new, read and deleted notifications; returns the unsubscribe */
+    subscribe: (listener: (e: NotificationEvent) => void) => () => void;
 }
 
 export const setActiveChatState = (convId: string | null, partnerId: string | null) => {
     if (typeof window !== "undefined") {
-        (window as any).__km_active_chat_conv_id = convId;
-        (window as any).__km_active_chat_sender_id = partnerId;
+        const w = window as unknown as Record<string, unknown>;
+        w.__km_active_chat_conv_id = convId;
+        w.__km_active_chat_sender_id = partnerId;
     }
 };
 
@@ -85,57 +126,96 @@ export const notifyChatUnreadChanged = (total?: number) => {
     }
 };
 
+/** The chat the member has open in this tab, if any */
+const isOpenChat = (n: NotificationItem): boolean => {
+    if (typeof window === "undefined" || !window.location.pathname.startsWith("/chat")) return false;
+    const w = window as unknown as Record<string, unknown>;
+    const convId = w.__km_active_chat_conv_id;
+    const partnerId = w.__km_active_chat_sender_id;
+    const meta = n.metadata ?? {};
+    return Boolean(
+        (convId && meta.conversation_id && String(meta.conversation_id) === String(convId)) ||
+            (partnerId && meta.sender_id && String(meta.sender_id) === String(partnerId)),
+    );
+};
+
+const withRead = (list: NotificationItem[], id: string) => list.map((n) => (n.id === id ? { ...n, is_read: true } : n));
+const without = (list: NotificationItem[], id: string) => list.filter((n) => n.id !== id);
+const prepend = (list: NotificationItem[], n: NotificationItem, cap?: number) => {
+    const next = [n, ...without(list, n.id)];
+    return cap ? next.slice(0, cap) : next;
+};
+
+// Reconnect waits: 1s, 2s, 4s… up to 30s, with some randomness so many tabs don't retry together
+const backoff = (attempt: number) => Math.min(30000, 1000 * 2 ** attempt) * (0.75 + Math.random() * 0.5);
+
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const router = useRouter();
     const [unreadCount, setUnreadCount] = useState<number>(0);
+    const [unseenCount, setUnseenCount] = useState<number>(0);
+    const unseenRef = useRef(0);
+    useEffect(() => {
+        unseenRef.current = unseenCount;
+    }, [unseenCount]);
+    const [unreadByCategory, setUnreadByCategory] = useState<Record<string, number>>({});
     const [chatUnreadCount, setChatUnreadCount] = useState<number>(0);
-    const [notifications, setNotifications] = useState<NotificationItem[]>([]);
     const [recentNotifications, setRecentNotifications] = useState<NotificationItem[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [connected, setConnected] = useState<boolean>(false);
     // Live notification alerts currently on screen (shown through the app toaster)
     const alertIdsRef = useRef<Set<string>>(new Set());
+    const listenersRef = useRef<Set<(e: NotificationEvent) => void>>(new Set());
+    const recentRef = useRef<NotificationItem[]>([]);
+    useEffect(() => {
+        recentRef.current = recentNotifications;
+    }, [recentNotifications]);
 
-    const wsRef = useRef<WebSocket | null>(null);
-    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const emit = useCallback((e: NotificationEvent) => {
+        listenersRef.current.forEach((l) => l(e));
+    }, []);
 
-    // Refresh unread count via REST
+    const subscribe = useCallback((listener: (e: NotificationEvent) => void) => {
+        listenersRef.current.add(listener);
+        return () => {
+            listenersRef.current.delete(listener);
+        };
+    }, []);
+
+    // Unread counts from the server (overall and per category)
     const refreshUnreadCount = useCallback(async () => {
         if (!isAuthenticated()) return;
         try {
-            const data: any = await api.get("/notifications/unread-count");
-            if (typeof data?.unread_count === "number") {
-                setUnreadCount(data.unread_count);
-            }
+            const data = (await api.get("/notifications/unread-count")) as { unread_count?: number; unseen_count?: number; by_category?: Record<string, number> } | null;
+            if (typeof data?.unread_count === "number") setUnreadCount(data.unread_count);
+            if (typeof data?.unseen_count === "number") setUnseenCount(data.unseen_count);
+            if (data?.by_category) setUnreadByCategory(data.by_category);
         } catch {
-            // Silently ignore if unauthenticated or network error
+            // Signed out or offline: the next poll or reconnect tries again
         }
     }, []);
 
-    // Refresh total unread chat messages for Navbar badge
+    // Total unread chat messages, for the navbar badge
     const refreshChatUnreadCount = useCallback(async () => {
         if (!isAuthenticated()) return;
         try {
-            const data: any = await api.get("/chats/unread-count");
-            if (typeof data?.unread_count === "number") {
-                setChatUnreadCount(data.unread_count);
-            }
+            const data = (await api.get("/chats/unread-count")) as { unread_count?: number } | null;
+            if (typeof data?.unread_count === "number") setChatUnreadCount(data.unread_count);
         } catch {
-            // Silently ignore if unauthenticated or network error
+            // As above
         }
     }, []);
 
-    // Listen for custom chat-unread sync events across tabs / components
+    // The chat screen reports its unread total after reading a conversation
     useEffect(() => {
-        refreshChatUnreadCount();
+        void refreshChatUnreadCount();
         const handleChatUnreadSync = (e: Event) => {
             const customEvent = e as CustomEvent<{ count?: number }>;
             if (typeof customEvent.detail?.count === "number") {
                 setChatUnreadCount(customEvent.detail.count);
             } else {
-                refreshChatUnreadCount();
+                void refreshChatUnreadCount();
             }
         };
         window.addEventListener("km:chat-unread-updated", handleChatUnreadSync);
@@ -144,91 +224,33 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         };
     }, [refreshChatUnreadCount]);
 
-
-    // Fetch notifications list
     const fetchNotifications = useCallback(
-        async (category = "all", unreadOnly = false, limit = 20, offset = 0) => {
+        async (category = "all", unreadOnly = false, limit = 20, offset = 0, cursor?: NotificationCursor) => {
             if (!isAuthenticated()) return { notifications: [], total: 0 };
-            setLoading(true);
+            const firstPage = !cursor && offset === 0;
+            if (firstPage) setLoading(true);
             try {
-                const params: Record<string, any> = { category, limit, offset };
+                const params: Record<string, string | number | boolean> = { category, limit };
+                if (cursor) {
+                    params.before = cursor.before;
+                    params.before_id = cursor.before_id;
+                } else {
+                    params.offset = offset;
+                }
                 if (unreadOnly) params.unread_only = true;
 
-                const data: any = await api.get("/notifications", { params });
+                const data = (await api.get("/notifications", { params })) as { notifications?: NotificationItem[]; total?: number } | null;
                 const items: NotificationItem[] = data?.notifications || [];
-                setNotifications(items);
 
-                // Update recent notifications cache if fetching main/all feed
-                if (category === "all" && offset === 0) {
-                    setRecentNotifications(items.slice(0, 8));
+                if (category === "all" && !unreadOnly && firstPage) {
+                    setRecentNotifications(items.slice(0, RECENT_LIMIT));
                 }
-
-                return { notifications: items, total: data?.total || items.length };
-            } catch (err) {
-                console.error("Failed to fetch notifications:", err);
-                return { notifications: [], total: 0 };
+                return { notifications: items, total: data?.total ?? items.length };
             } finally {
-                setLoading(false);
+                if (firstPage) setLoading(false);
             }
         },
-        []
-    );
-
-    // Mark single notification as read
-    const markAsRead = useCallback(async (id: string) => {
-        if (!id || typeof id !== "string") return;
-        try {
-            // Optimistic update
-            setNotifications((prev) =>
-                prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-            );
-            setRecentNotifications((prev) =>
-                prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-            );
-            setUnreadCount((prev) => Math.max(0, prev - 1));
-
-            await api.put(`/notifications/${id}/read`);
-        } catch (err) {
-            console.error("Failed to mark notification as read:", err);
-            refreshUnreadCount();
-        }
-    }, [refreshUnreadCount]);
-
-    // Mark all as read
-    const markAllAsRead = useCallback(async () => {
-        try {
-            // Optimistic update
-            setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-            setRecentNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-            setUnreadCount(0);
-
-            await api.put("/notifications/read-all");
-        } catch (err) {
-            console.error("Failed to mark all as read:", err);
-            notify.error(err, "Could not mark all notifications as read.");
-            refreshUnreadCount();
-        }
-    }, [refreshUnreadCount]);
-
-    // Delete notification
-    const deleteNotification = useCallback(
-        async (id: string) => {
-            try {
-                const target = notifications.find((n) => n.id === id);
-                setNotifications((prev) => prev.filter((n) => n.id !== id));
-                setRecentNotifications((prev) => prev.filter((n) => n.id !== id));
-                if (target && !target.is_read) {
-                    setUnreadCount((prev) => Math.max(0, prev - 1));
-                }
-
-                await api.delete(`/notifications/${id}`);
-            } catch (err) {
-                console.error("Failed to delete notification:", err);
-                notify.error(err, "Could not delete this notification.");
-                refreshUnreadCount();
-            }
-        },
-        [notifications, refreshUnreadCount]
+        [],
     );
 
     const dismissAlert = (id: string) => {
@@ -236,14 +258,68 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         alertIdsRef.current.delete(id);
     };
 
+    const markAsRead = useCallback(async (id: string) => {
+        if (!id) return;
+        const target = recentRef.current.find((n) => n.id === id);
+        // On screen at once; the server's answer (and the socket) settle the counts
+        setRecentNotifications((prev) => withRead(prev, id));
+        if (!target || !target.is_read) {
+            setUnreadCount((prev) => Math.max(0, prev - 1));
+            if (target?.category) {
+                setUnreadByCategory((prev) => ({ ...prev, [target.category]: Math.max(0, (prev[target.category] ?? 0) - 1) }));
+            }
+        }
+        emit({ type: "read", id });
+        try {
+            await api.put(`/notifications/${id}/read`);
+        } catch {
+            void refreshUnreadCount();
+        }
+    }, [emit, refreshUnreadCount]);
+
+    const markAllSeen = useCallback(() => {
+        if (unseenRef.current === 0) return;
+        setUnseenCount(0);
+        api.post("/notifications/seen").catch(() => {});
+    }, []);
+
+    const markAllAsRead = useCallback(async () => {
+        setRecentNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+        setUnreadCount(0);
+        setUnseenCount(0);
+        setUnreadByCategory({});
+        emit({ type: "all_read" });
+        try {
+            await api.put("/notifications/read-all");
+        } catch (err) {
+            notify.error(err, "Could not mark all notifications as read.");
+            void refreshUnreadCount();
+        }
+    }, [emit, refreshUnreadCount]);
+
+    const deleteNotification = useCallback(async (id: string) => {
+        setRecentNotifications((prev) => without(prev, id));
+        emit({ type: "deleted", id });
+        try {
+            await api.delete(`/notifications/${id}`);
+        } catch (err) {
+            notify.error(err, "Could not delete this notification.");
+        } finally {
+            // Whether it was unread is the server's call
+            void refreshUnreadCount();
+        }
+    }, [emit, refreshUnreadCount]);
+
     // Open a live alert: mark read and route to its (sanitised) link. Kept in a ref so the
     // WebSocket handler, created once, always calls the latest version.
     const openAlertRef = useRef<(n: NotificationItem) => void>(() => {});
-    openAlertRef.current = (n: NotificationItem) => {
-        alertIdsRef.current.delete(n.id);
-        if (!n.is_read) markAsRead(n.id);
-        router.push(sanitizeNotificationLink(n.link));
-    };
+    useEffect(() => {
+        openAlertRef.current = (n: NotificationItem) => {
+            alertIdsRef.current.delete(n.id);
+            if (!n.is_read) void markAsRead(n.id);
+            router.push(sanitizeNotificationLink(n.link, n));
+        };
+    }, [markAsRead, router]);
 
     const showAlert = (n: NotificationItem) => {
         const isMessage = n.category === "messages";
@@ -273,169 +349,194 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             onAction: () => openAlertRef.current(n),
         });
     };
+    const showAlertRef = useRef(showAlert);
+    useEffect(() => {
+        showAlertRef.current = showAlert;
+    });
 
-    // Establish persistent WebSocket connection for real-time alerts
+    // One live connection for the whole site
     useEffect(() => {
         if (typeof window === "undefined") return;
 
-        let isMounted = true;
+        let stopped = false;
+        let ws: WebSocket | null = null;
+        let attempt = 0;
+        let everConnected = false;
+        let retryTimer: ReturnType<typeof setTimeout> | null = null;
 
-        const connectWebSocket = () => {
-            if (!isAuthenticated()) return;
+        const catchUp = () => {
+            void refreshUnreadCount();
+            void refreshChatUnreadCount();
+            fetchNotifications("all", false, RECENT_LIMIT, 0).catch(() => {});
+        };
 
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-            const wsBase = apiUrl.replace(/^http/, "ws");
-            const token = localStorage.getItem("token") || "";
-            const wsEndpoint = `${wsBase}/api/ws/notifications${token ? `?token=${encodeURIComponent(token)}` : ""}`;
-
-            try {
-                const ws = new WebSocket(wsEndpoint);
-                wsRef.current = ws;
-
-                ws.onopen = () => {
-                    if (isMounted) setConnected(true);
-                };
-
-                ws.onmessage = (event) => {
-                    try {
-                        const payload = JSON.parse(event.data);
-                        if (!payload || !payload.type) return;
-
-                        if (payload.type === "INIT" && typeof payload.unread_count === "number") {
-                            setUnreadCount(payload.unread_count);
-                        } else if (payload.type === "NEW_NOTIFICATION" && payload.notification) {
-                            const newNotif: NotificationItem = payload.notification;
-
-                            // Active Chat Screen Suppression:
-                            const isChatRoute = typeof window !== "undefined" && window.location.pathname.startsWith("/chat");
-                            const activeChatConvId = typeof window !== "undefined" ? (window as any).__km_active_chat_conv_id : null;
-                            const activeChatSenderId = typeof window !== "undefined" ? (window as any).__km_active_chat_sender_id : null;
-
-                            const isWithActivePartner = Boolean(
-                                (activeChatConvId && newNotif.metadata?.conversation_id && String(newNotif.metadata.conversation_id) === String(activeChatConvId)) ||
-                                (activeChatSenderId && newNotif.metadata?.sender_id && String(newNotif.metadata.sender_id) === String(activeChatSenderId)) ||
-                                (newNotif.metadata?.sender_id && typeof window !== "undefined" && window.location.search.includes(String(newNotif.metadata.sender_id)))
-                            );
-
-                            const isCurrentlyChatting = isChatRoute && newNotif.type === "chat_message" && isWithActivePartner;
-
-                            if (isCurrentlyChatting) {
-                                // Active chat thread: auto-mark read silently on backend.
-                                // Do NOT play sound chime, do NOT show toast, do NOT increment bell count,
-                                // and do NOT clutter notifications list or bell dropdown.
-                                api.put(`/notifications/${newNotif.id}/read`).catch(() => {});
-                                return;
-                            }
-
-                            // If this is a chat message from another conversation:
-                            if (newNotif.type === "chat_message") {
-                                setChatUnreadCount((prev) => prev + 1);
-                                // If user is already on /chat screen, the in-app chat UI handles the sidebar indicator.
-                                // Suppress the floating toast alert to prevent obstructing the screen.
-                                if (isChatRoute) {
-                                    return;
-                                }
-                            }
-
-                            setNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)]);
-                            setRecentNotifications((prev) => [newNotif, ...prev.filter((n) => n.id !== newNotif.id)].slice(0, 6));
-
-                            if (typeof payload.unread_count === "number") {
-                                setUnreadCount(payload.unread_count);
-                            } else {
-                                setUnreadCount((prev) => prev + 1);
-                            }
-
-                            // 1. Audio chime on real-time notification (powered by uisfx)
-                            playNotificationSound();
-
-                            // 2. Alert through the app toaster (stacks with every other toast)
-                            showAlert(newNotif);
-                        }
- else if (payload.type === "NOTIFICATION_READ") {
-                            if (payload.notification_id) {
-                                setNotifications((prev) =>
-                                    prev.map((n) => (n.id === payload.notification_id ? { ...n, is_read: true } : n))
-                                );
-                                setRecentNotifications((prev) =>
-                                    prev.map((n) => (n.id === payload.notification_id ? { ...n, is_read: true } : n))
-                                );
-                                dismissAlert(payload.notification_id);
-                            }
-                            if (typeof payload.unread_count === "number") {
-                                setUnreadCount(payload.unread_count);
-                            }
-                        } else if (payload.type === "ALL_READ") {
-                            setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-                            setRecentNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-                            setUnreadCount(0);
-                            alertIdsRef.current.forEach((alertId) => notify.dismiss(`alert:${alertId}`));
-                            alertIdsRef.current.clear();
-                        } else if (payload.type === "NOTIFICATION_DELETED") {
-                            if (payload.notification_id) {
-                                setNotifications((prev) => prev.filter((n) => n.id !== payload.notification_id));
-                                setRecentNotifications((prev) => prev.filter((n) => n.id !== payload.notification_id));
-                                dismissAlert(payload.notification_id);
-                            }
-                            if (typeof payload.unread_count === "number") {
-                                setUnreadCount(payload.unread_count);
-                            }
-                        }
-                    } catch (e) {
-                        console.error("[NotificationWS] Error parsing payload:", e);
+        const handle = (payload: { type?: string; [k: string]: unknown }) => {
+            const unread = typeof payload.unread_count === "number" ? payload.unread_count : null;
+            // Every event carries the badge count
+            if (typeof payload.unseen_count === "number") setUnseenCount(payload.unseen_count);
+            switch (payload.type) {
+                case "ALL_SEEN":
+                    setRecentNotifications((prev) => prev.map((n) => ({ ...n, is_seen: true })));
+                    return;
+                case "INIT":
+                    if (unread !== null) setUnreadCount(unread);
+                    return;
+                case "NEW_NOTIFICATION": {
+                    const n = payload.notification as NotificationItem | undefined;
+                    if (!n) return;
+                    const isChat = n.type === "chat_message";
+                    // The open chat already shows the message (the server normally skips these)
+                    if (isChat && isOpenChat(n)) {
+                        api.put(`/notifications/${n.id}/read`).catch(() => {});
+                        return;
                     }
-                };
-
-                ws.onclose = () => {
-                    if (isMounted) {
-                        setConnected(false);
-                        // Reconnect after 3 seconds if still mounted and authenticated
-                        reconnectTimeoutRef.current = setTimeout(() => {
-                            if (isMounted && isAuthenticated()) {
-                                connectWebSocket();
-                            }
-                        }, 3000);
+                    if (isChat) setChatUnreadCount((prev) => prev + 1);
+                    // A chat notification that was updated (another message) moves back to the top
+                    const wasThere = recentRef.current.some((x) => x.id === n.id && !x.is_read);
+                    setRecentNotifications((prev) => prepend(prev, n, RECENT_LIMIT));
+                    if (unread !== null) setUnreadCount(unread);
+                    else if (!wasThere) setUnreadCount((prev) => prev + 1);
+                    if (!wasThere && n.category) {
+                        setUnreadByCategory((prev) => ({ ...prev, [n.category]: (prev[n.category] ?? 0) + 1 }));
                     }
-                };
+                    emit({ type: "new", notification: n });
 
-                ws.onerror = () => {
-                    ws.close();
-                };
-            } catch (err) {
-                console.error("[NotificationWS] Connection error:", err);
+                    // Sound and a toast only for someone looking at this tab; otherwise the
+                    // device's push notification does the job. The chat screen has its own.
+                    if (document.hidden || (isChat && window.location.pathname.startsWith("/chat"))) return;
+                    playNotificationSound();
+                    showAlertRef.current(n);
+                    return;
+                }
+                case "NOTIFICATION_READ": {
+                    const id = payload.notification_id as string | undefined;
+                    if (id) {
+                        const target = recentRef.current.find((x) => x.id === id);
+                        setRecentNotifications((prev) => withRead(prev, id));
+                        if (target && !target.is_read && target.category) {
+                            setUnreadByCategory((prev) => ({ ...prev, [target.category]: Math.max(0, (prev[target.category] ?? 0) - 1) }));
+                        }
+                        dismissAlert(id);
+                        emit({ type: "read", id });
+                    }
+                    if (unread !== null) setUnreadCount(unread);
+                    return;
+                }
+                case "ALL_READ":
+                    setRecentNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+                    setUnreadCount(0);
+                    setUnreadByCategory({});
+                    alertIdsRef.current.forEach((alertId) => notify.dismiss(`alert:${alertId}`));
+                    alertIdsRef.current.clear();
+                    emit({ type: "all_read" });
+                    return;
+                case "NOTIFICATION_DELETED": {
+                    const id = payload.notification_id as string | undefined;
+                    if (id) {
+                        setRecentNotifications((prev) => without(prev, id));
+                        dismissAlert(id);
+                        emit({ type: "deleted", id });
+                    }
+                    if (unread !== null) setUnreadCount(unread);
+                    // The category counts follow from the server
+                    void refreshUnreadCount();
+                    return;
+                }
             }
         };
 
-        // Initial fetch & connect
-        refreshUnreadCount();
-        fetchNotifications("all", false, 8, 0).catch(() => {});
-        connectWebSocket();
-
-        // Fallback polling every 45s
-        const pollInterval = setInterval(() => {
-            if (isAuthenticated()) {
-                refreshUnreadCount();
-                refreshChatUnreadCount();
+        const connect = () => {
+            if (stopped || !isAuthenticated()) return;
+            if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
+            if (retryTimer) {
+                clearTimeout(retryTimer);
+                retryTimer = null;
             }
-        }, 45000);
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+            const token = localStorage.getItem("token") || "";
+            const url = `${apiUrl.replace(/^http/, "ws")}/api/ws/notifications${token ? `?token=${encodeURIComponent(token)}` : ""}`;
+
+            let socket: WebSocket;
+            try {
+                socket = new WebSocket(url);
+            } catch {
+                scheduleRetry();
+                return;
+            }
+            ws = socket;
+            socket.onopen = () => {
+                attempt = 0;
+                setConnected(true);
+                // Anything that happened while we were away
+                if (everConnected) catchUp();
+                everConnected = true;
+            };
+            socket.onmessage = (event) => {
+                try {
+                    const payload = JSON.parse(event.data);
+                    if (payload && payload.type) handle(payload);
+                } catch {
+                    // Not one of ours
+                }
+            };
+            socket.onclose = () => {
+                if (ws === socket) ws = null;
+                setConnected(false);
+                scheduleRetry();
+            };
+            socket.onerror = () => socket.close();
+        };
+
+        const scheduleRetry = () => {
+            if (stopped || retryTimer) return;
+            retryTimer = setTimeout(() => {
+                retryTimer = null;
+                connect();
+            }, backoff(attempt++));
+        };
+
+        // Back online or back on the tab: reconnect now instead of waiting out the backoff
+        const reconnectNow = () => {
+            if (document.hidden) return;
+            attempt = 0;
+            connect();
+        };
+
+        catchUp();
+        connect();
+        window.addEventListener("online", reconnectNow);
+        document.addEventListener("visibilitychange", reconnectNow);
+
+        // Safety net for anything a dropped connection missed
+        const poll = setInterval(() => {
+            if (isAuthenticated() && !document.hidden) {
+                void refreshUnreadCount();
+                void refreshChatUnreadCount();
+            }
+        }, 60000);
 
         return () => {
-            isMounted = false;
-            clearInterval(pollInterval);
-            if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
-            if (wsRef.current) {
-                wsRef.current.close();
-                wsRef.current = null;
+            stopped = true;
+            clearInterval(poll);
+            if (retryTimer) clearTimeout(retryTimer);
+            window.removeEventListener("online", reconnectNow);
+            document.removeEventListener("visibilitychange", reconnectNow);
+            if (ws) {
+                ws.onclose = null;
+                ws.close();
             }
         };
-    }, [refreshUnreadCount, refreshChatUnreadCount]);
+    }, [refreshUnreadCount, refreshChatUnreadCount, fetchNotifications, emit]);
 
     return (
         <NotificationContext.Provider
             value={{
                 unreadCount,
+                unseenCount,
+                markAllSeen,
+                unreadByCategory,
                 chatUnreadCount,
-                notifications,
+                notifications: recentNotifications,
                 recentNotifications,
                 loading,
                 connected,
@@ -445,11 +546,10 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 deleteNotification,
                 refreshUnreadCount,
                 refreshChatUnreadCount,
+                subscribe,
             }}
         >
-
             {children}
-
         </NotificationContext.Provider>
     );
 };

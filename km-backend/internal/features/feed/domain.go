@@ -52,6 +52,7 @@ const (
 	MaxPageSize        = 30
 	DefaultCommentPage = 10
 	MaxCommentPage     = 50
+	DefaultReactorPage = 20
 
 	// Posting limits stop spam floods without getting in the way of real use
 	MaxPostsPerHour    = 10
@@ -263,6 +264,18 @@ type CommentResponse struct {
 	RepliesCount int            `json:"replies_count"`
 	CanDelete    bool           `json:"can_delete"`
 	CreatedAt    time.Time      `json:"created_at"`
+}
+
+// ReactorResponse is one person in a post's "who reacted" list
+type ReactorResponse struct {
+	User      AuthorResponse `json:"user"`
+	Type      string         `json:"type"`
+	CreatedAt time.Time      `json:"created_at"`
+}
+
+type ReactorListResponse struct {
+	Reactions  []ReactorResponse `json:"reactions"`
+	NextCursor string            `json:"next_cursor,omitempty"`
 }
 
 type CommentListResponse struct {

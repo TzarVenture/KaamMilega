@@ -191,7 +191,7 @@ func setup(t *testing.T) (*Service, *fakeRepo, *captureMailer, *user.User, *time
 	mailer := &captureMailer{}
 	u := &user.User{ID: primitive.NewObjectID(), Name: "Asha", Email: "asha@example.com", IsEmailVerified: true, Mobile: "9876543210"}
 	repo.users[u.ID] = u
-	svc := NewService(repo, mailer, noSMS{}, &config.Config{Environment: "production", FSPath: t.TempDir()})
+	svc := NewService(repo, mailer, noSMS{}, &config.Config{Environment: "production", FSPath: t.TempDir()}, nil)
 	now := time.Date(2026, 10, 21, 10, 0, 0, 0, time.UTC)
 	svc.now = func() time.Time { return now }
 	return svc, repo, mailer, u, &now

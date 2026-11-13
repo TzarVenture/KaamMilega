@@ -34,7 +34,7 @@
     "userTerms": "યુઝર નિયમો અને શરતો",
     "privacy": "પ્રાઇવસી પોલિસી",
     "employerTerms": "એમ્પ્લોયર સેવાની શરતો",
-    "guidelines": "Connect Like You માર્ગદર્શિકા",
+    "guidelines": "સમુદાય માર્ગદર્શિકા",
     "services": "સેવાઓ",
     "byCategory": "કેટેગરી પ્રમાણે નોકરી શોધો",
     "byCity": "શહેર પ્રમાણે નોકરી શોધો",
@@ -1285,7 +1285,7 @@
     "postComment": "ટિપ્પણી કરો",
     "signInToComment": "ટિપ્પણી કરવા સાઇન ઇન કરો",
     "commentsFailed": "ટિપ્પણીઓ લોડ થઈ શકી નહીં.",
-    "commentFailed": "તમારી ટિપ્પણી પોસ્ટ થઈ શકી નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.",
+    "commentFailed": "તમારી ટિપ્પણી પોસ્ટ થઈ શકી નહીં. કૃપા કરીને ફરી પ્રયાસ કરો.",
     "olderComments": "જૂની ટિપ્પણીઓ જુઓ",
     "reply": "જવાબ આપો",
     "addReply": "જવાબ લખો…",
@@ -1365,7 +1365,13 @@
     "trendingPosts": "{count, plural, one {{formatted} પોસ્ટ} other {{formatted} પોસ્ટ}}",
     "statsPeriod": "છેલ્લા 90 દિવસ",
     "profileViewers": "પ્રોફાઇલ જોનારા",
-    "impressionsCount": "{count, plural, one {{formatted} ઇમ્પ્રેશન} other {{formatted} ઇમ્પ્રેશન}}"
+    "impressionsCount": "{count, plural, one {{formatted} ઇમ્પ્રેશન} other {{formatted} ઇમ્પ્રેશન}}",
+    "seeReactions": "{count, plural, one {{count} પ્રતિક્રિયા, કોણે આપી તે જુઓ} other {{count} પ્રતિક્રિયાઓ, કોણે આપી તે જુઓ}}",
+    "reactionsAll": "બધી",
+    "reactionsEmpty": "હજી કોઈ પ્રતિક્રિયા નથી.",
+    "reactionsFailed": "પ્રતિક્રિયાઓ લોડ થઈ શકી નહીં.",
+    "moreReactions": "વધુ જુઓ",
+    "seeWhoReacted": "કોણે પ્રતિક્રિયા આપી તે જુઓ"
   },
   "ads": {
     "label": "જાહેરાત",

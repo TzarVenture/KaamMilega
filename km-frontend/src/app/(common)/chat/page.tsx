@@ -30,7 +30,7 @@ import InstantPassModal from "@/components/instant-milega/InstantPassModal";
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), {
   ssr: false,
   loading: () => (
-    <div className="w-[330px] h-[370px] flex items-center justify-center bg-km-surface-card rounded-2xl border border-slate-200 shadow-xl">
+    <div className="w-[330px] h-[370px] flex items-center justify-center bg-km-surface-card rounded-2xl border border-km-border shadow-xl">
       <CircleNotchIcon className="w-6 h-6 animate-spin text-km-heading" />
     </div>
   ),
@@ -271,6 +271,10 @@ function ChatView() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const myTypingDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
+  // Tells the server which conversation is on screen, so it skips notifications for it
+  const reportViewingRef = useRef<() => void>(() => {});
+  // A message arrived in the open chat while the tab was in the background
+  const unreadWhileHiddenRef = useRef(false);
 
   // Full-screen photo viewer
   const [viewer, setViewer] = useState<{ images: ChatAttachment[]; index: number } | null>(null);
@@ -629,7 +633,7 @@ function ChatView() {
       wsRef.current = ws;
 
       ws.onopen = () => {
-        // Keep-alive or re-sync
+        reportViewingRef.current();
       };
 
       ws.onmessage = (event) => {
@@ -673,9 +677,11 @@ function ChatView() {
                 return [...prev, newMsg];
               });
 
-              // If incoming message from other user in active chat, mark as read immediately
+              // From the other person in the open chat: read now if the tab is in front,
+              // otherwise once the member comes back to it
               if (newMsg.sender_id !== currentUser.id) {
-                markAsRead(currentActive);
+                if (document.hidden) unreadWhileHiddenRef.current = true;
+                else markAsRead(currentActive);
               }
             } else {
               // Message in an inactive chat: play soft audio chime (powered by uisfx)
@@ -959,6 +965,37 @@ function ChatView() {
       setActiveChatState(null, null);
     };
   }, [activeChat, currentUser]);
+
+  // The open conversation, for the server: "" when none, or when the tab is in the background
+  // (then new messages notify as usual)
+  useEffect(() => {
+    const chat = activeChat && !activeChat.id.startsWith("temp-") ? activeChat : null;
+    const send = (conversationId: string) => {
+      const ws = wsRef.current;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "VIEWING", conversation_id: conversationId }));
+      }
+    };
+    const report = () => send(chat && !document.hidden ? chat.id : "");
+    reportViewingRef.current = report;
+    report();
+
+    const onVisibility = () => {
+      report();
+      if (!document.hidden && chat && unreadWhileHiddenRef.current) {
+        unreadWhileHiddenRef.current = false;
+        markAsRead(chat);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      unreadWhileHiddenRef.current = false;
+      send("");
+    };
+    // markAsRead reads current state; the conversation is the trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeChat?.id]);
 
   // Check user block status when active chat changes (F59)
   const checkBlockStatus = async (otherUserId: string) => {
@@ -1653,7 +1690,7 @@ function ChatView() {
               disabled={isRefreshing}
               title="Refresh conversations"
               aria-label="Refresh conversations"
-              className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-km-surface active:bg-slate-200 active:scale-95 transition-all disabled:opacity-60"
+              className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-km-surface active:bg-km-border-subtle active:scale-95 transition-all disabled:opacity-60"
             >
               <ArrowsClockwiseIcon weight="bold"
                 size={18}
@@ -1836,7 +1873,7 @@ function ChatView() {
                             promptDeleteConversation(chat.id);
                           }}
                           title="Delete conversation"
-                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-red-600 rounded hover:bg-red-50 dark:hover:bg-[#271E35] transition-all dark:hover:text-red-400"
+                          className="hidden md:block opacity-0 group-hover:opacity-100 p-1 text-km-text-muted hover:text-red-600 rounded hover:bg-red-50 dark:hover:bg-[#271E35] transition-all dark:hover:text-red-400"
                         >
                           <TrashIcon weight="bold" size={13} />
                         </button>
@@ -1898,7 +1935,7 @@ function ChatView() {
                 {/* Mobile Back Button */}
                 <button
                   onClick={closeMobileChat}
-                  className="md:hidden p-2 -ml-1.5 rounded-xl text-km-heading hover:bg-km-surface active:bg-slate-200 transition-colors shrink-0 flex items-center justify-center"
+                  className="md:hidden p-2 -ml-1.5 rounded-xl text-km-heading hover:bg-km-surface active:bg-km-border-subtle transition-colors shrink-0 flex items-center justify-center"
                   aria-label="Back to messages"
                 >
                   <CaretLeftIcon size={22} />
@@ -1935,7 +1972,7 @@ function ChatView() {
                 {activePartner?.id && (
                   <Link
                     href={`/profile/${activePartner.id}`}
-                    className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold text-km-heading bg-km-surface hover:bg-slate-200 rounded-xl border border-km-border transition-colors shrink-0"
+                    className="flex items-center gap-1.5 p-2 sm:px-3 sm:py-1.5 text-xs font-semibold text-km-heading bg-km-surface hover:bg-km-border-subtle rounded-xl border border-km-border transition-colors shrink-0"
                     aria-label="View profile"
                   >
                     <UserIcon size={16} className="sm:hidden" aria-hidden="true" />
@@ -1947,7 +1984,7 @@ function ChatView() {
                 <div className="relative" ref={chatMenuRef}>
                   <button
                     onClick={() => setShowChatMenu(!showChatMenu)}
-                    className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-km-surface active:bg-slate-200 transition-colors shrink-0"
+                    className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-km-surface active:bg-km-border-subtle transition-colors shrink-0"
                     title="Chat options"
                     aria-label="Chat options"
                   >
@@ -1967,22 +2004,22 @@ function ChatView() {
                       ) : (
                         <button
                           onClick={promptBlockUser}
-                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 hover:bg-slate-50 transition-colors"
+                          className="w-full px-3 py-2 text-left flex items-center gap-2 text-km-text-primary hover:bg-km-surface transition-colors"
                         >
-                          <ProhibitIcon weight="bold" size={14} className="text-slate-500" />
+                          <ProhibitIcon weight="bold" size={14} className="text-km-text-secondary" />
                           <span>Block user</span>
                         </button>
                       )}
 
                       <button
                         onClick={openReportModal}
-                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-slate-700 hover:bg-slate-50 transition-colors"
+                        className="w-full px-3 py-2 text-left flex items-center gap-2 text-km-text-primary hover:bg-km-surface transition-colors"
                       >
                         <FlagIcon weight="bold" size={14} className="text-amber-500 dark:text-amber-400" />
                         <span>Report conversation</span>
                       </button>
 
-                      <div className="my-1 border-t border-slate-100" />
+                      <div className="my-1 border-t border-km-border-subtle" />
 
                       <button
                         onClick={() => promptDeleteConversation()}
@@ -2332,7 +2369,7 @@ function ChatView() {
                 onClick={scrollToBottom}
                 title="Scroll to latest messages"
                 aria-label="Scroll to latest messages"
-                className="absolute bottom-20 sm:bottom-24 right-4 sm:right-6 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-km-surface-card border border-km-border text-km-heading shadow-lg flex items-center justify-center hover:bg-slate-50 active:scale-90 transition-all animate-in fade-in zoom-in-75"
+                className="absolute bottom-20 sm:bottom-24 right-4 sm:right-6 z-20 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-km-surface-card border border-km-border text-km-heading shadow-lg flex items-center justify-center hover:bg-km-surface active:scale-90 transition-all animate-in fade-in zoom-in-75"
               >
                 <CaretDownIcon weight="bold" size={18} />
               </button>
@@ -2439,16 +2476,16 @@ function ChatView() {
 
               {/* Input Bar or Blocked Notice (F59) */}
               {activePartner?.unavailable ? (
-                <div role="status" className="flex items-center gap-2.5 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-600 shadow-xs">
-                  <ProhibitIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
+                <div role="status" className="flex items-center gap-2.5 p-3.5 bg-km-surface border border-km-border rounded-2xl text-xs sm:text-sm text-km-text-secondary shadow-xs">
+                  <ProhibitIcon weight="bold" size={17} className="text-km-text-muted shrink-0" />
                   <span className="font-medium">
                     This account is no longer active, so you can&apos;t reply. Your earlier messages stay here.
                   </span>
                 </div>
               ) : isBlockedByMe ? (
-                <div className="flex items-center justify-between gap-3 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-700 shadow-xs">
+                <div className="flex items-center justify-between gap-3 p-3.5 bg-km-surface border border-km-border rounded-2xl text-xs sm:text-sm text-km-text-primary shadow-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <ProhibitIcon weight="bold" size={17} className="text-slate-500 shrink-0" />
+                    <ProhibitIcon weight="bold" size={17} className="text-km-text-secondary shrink-0" />
                     <span className="truncate font-medium">
                       You have blocked this user.
                     </span>
@@ -2456,14 +2493,14 @@ function ChatView() {
                   <button
                     type="button"
                     onClick={promptUnblockUser}
-                    className="px-3.5 py-1.5 font-semibold text-xs text-km-heading bg-km-surface-card hover:bg-slate-50 rounded-xl border border-slate-300 transition-colors shrink-0 shadow-xs"
+                    className="px-3.5 py-1.5 font-semibold text-xs text-km-heading bg-km-surface-card hover:bg-km-surface rounded-xl border border-km-border transition-colors shrink-0 shadow-xs"
                   >
                     Unblock
                   </button>
                 </div>
               ) : isBlockedByOther ? (
-                <div className="flex items-center gap-2.5 p-3.5 bg-slate-100 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-600 shadow-xs">
-                  <ProhibitIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
+                <div className="flex items-center gap-2.5 p-3.5 bg-km-surface border border-km-border rounded-2xl text-xs sm:text-sm text-km-text-secondary shadow-xs">
+                  <ProhibitIcon weight="bold" size={17} className="text-km-text-muted shrink-0" />
                   <span className="font-medium">
                     You cannot send messages to this conversation right now.
                   </span>
@@ -2487,7 +2524,7 @@ function ChatView() {
                     onClick={() => fileInputRef.current?.click()}
                     title="Attach photos or files"
                     aria-label="Attach photos or files"
-                    className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-slate-200/60 active:bg-slate-200 transition-colors shrink-0 mb-0.5"
+                    className="p-2 rounded-xl text-km-text-secondary hover:text-km-heading hover:bg-slate-200/60 active:bg-km-border-subtle transition-colors shrink-0 mb-0.5"
                   >
                     <PaperclipIcon weight="bold" size={18} />
                   </button>
@@ -2500,7 +2537,7 @@ function ChatView() {
                     className={`p-2 rounded-xl transition-colors shrink-0 mb-0.5 ${
                       showEmojiPicker
                         ? "text-[#C2410C] bg-km-surface dark:text-[#FF9A4D]"
-                        : "text-km-text-secondary hover:text-km-heading hover:bg-slate-200/60 active:bg-slate-200"
+                        : "text-km-text-secondary hover:text-km-heading hover:bg-slate-200/60 active:bg-km-border-subtle"
                     }`}
                   >
                     <SmileyIcon size={19} />
@@ -2539,7 +2576,7 @@ function ChatView() {
                     className={`p-2.5 sm:p-2.5 rounded-xl transition-all shrink-0 mb-0.5 flex items-center justify-center active:scale-95 ${
                       inputText.trim() || pendingAttachments.length > 0
                         ? "bg-[#071A4D] text-white hover:bg-[#0B1F52] shadow-sm cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
-                        : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                        : "bg-km-border-subtle text-km-text-muted cursor-not-allowed"
                     }`}
                   >
                     <PaperPlaneRightIcon weight="bold" size={18} />
@@ -2592,7 +2629,7 @@ function ChatView() {
                   confirmModal.type === "unblock"
                     ? "text-emerald-600 dark:text-emerald-400"
                     : confirmModal.type === "block"
-                      ? "text-slate-700"
+                      ? "text-km-text-primary"
                       : "text-red-600 dark:text-red-400"
                 }`}
               >
@@ -2683,7 +2720,7 @@ function ChatView() {
                 onClick={() =>
                   setReportModal((prev) => ({ ...prev, isOpen: false }))
                 }
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                className="p-1 rounded-lg text-km-text-muted hover:text-km-text-secondary hover:bg-km-surface transition-colors"
               >
                 <XIcon weight="bold" size={18} />
               </button>
@@ -2691,7 +2728,7 @@ function ChatView() {
 
             <div className="space-y-3 pt-1">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
                   Why are you reporting this conversation?
                 </label>
                 <select
@@ -2702,7 +2739,7 @@ function ChatView() {
                       reason: e.target.value,
                     }))
                   }
-                  className="w-full text-xs sm:text-sm bg-km-surface border border-km-border rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all dark:focus:border-km-link"
+                  className="w-full text-xs sm:text-sm bg-km-surface border border-km-border rounded-xl px-3 py-2 text-km-text-primary focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card transition-all dark:focus:border-km-link"
                 >
                   <option value="Spam or unwanted advertising">
                     Spam or unwanted advertising
@@ -2724,9 +2761,9 @@ function ChatView() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                <label className="block text-xs font-semibold text-km-text-primary mb-1.5">
                   Additional details{" "}
-                  <span className="font-normal text-slate-400">(optional)</span>
+                  <span className="font-normal text-km-text-muted">(optional)</span>
                 </label>
                 <textarea
                   rows={3}
@@ -2738,11 +2775,11 @@ function ChatView() {
                     }))
                   }
                   placeholder="Tell us what happened so our team can review this properly..."
-                  className="w-full text-xs sm:text-sm bg-km-surface border border-km-border rounded-xl p-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card resize-none transition-all dark:focus:border-km-link"
+                  className="w-full text-xs sm:text-sm bg-km-surface border border-km-border rounded-xl p-3 text-km-text-primary placeholder-slate-400 focus:outline-none focus:border-[#071A4D] focus:bg-km-surface-card resize-none transition-all dark:focus:border-km-link"
                 />
               </div>
 
-              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer hover:bg-slate-100/70 transition-colors">
+              <label className="flex items-start gap-2.5 p-2.5 rounded-xl bg-km-surface border border-km-border cursor-pointer hover:bg-slate-100/70 transition-colors">
                 <input
                   type="checkbox"
                   checked={reportModal.blockAlso}
@@ -2752,10 +2789,10 @@ function ChatView() {
                       blockAlso: e.target.checked,
                     }))
                   }
-                  className="mt-0.5 rounded border-slate-300 text-km-heading focus:ring-[#071A4D] dark:focus:ring-km-link"
+                  className="mt-0.5 rounded border-km-border text-km-heading focus:ring-[#071A4D] dark:focus:ring-km-link"
                 />
-                <span className="text-xs text-slate-600 leading-snug">
-                  <strong className="text-slate-800 block">
+                <span className="text-xs text-km-text-secondary leading-snug">
+                  <strong className="text-km-text-primary block">
                     Also block this user
                   </strong>
                   They will not be able to message you again on KaamMilega.
