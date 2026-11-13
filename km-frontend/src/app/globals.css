@@ -957,3 +957,12 @@ html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-b
 @media (prefers-reduced-motion: reduce) {
   .km-press:active, .km-press-card:active { transform: none; }
 }
+
+/* Phone dock (MobileDock): every page keep their last content clear of it; fixed bottom UI
+   (chat composer, prompts) reads --km-dock-h to sit above it. 0 on tablets and up. */
+@media (max-width: 767.98px) {
+  html.km-has-dock { --km-dock-h: calc(4rem + env(safe-area-inset-bottom)); }
+  html.km-has-dock body { padding-bottom: var(--km-dock-h); }
+}
+/* With viewport-fit=cover, keep content out from under a landscape notch */
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }

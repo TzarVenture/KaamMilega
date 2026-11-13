@@ -1656,7 +1656,7 @@ function ChatView() {
   };
 
   return (
-    <div className="flex h-[calc(100dvh-64px)] bg-km-surface overflow-hidden relative font-sans w-full">
+    <div className="flex h-[calc(100dvh-64px-var(--km-dock-h,0px))] bg-km-surface overflow-hidden relative font-sans w-full">
       {/* ── SIDEBAR / CONVERSATION LIST ── */}
       <aside
         className={`
@@ -2846,7 +2846,7 @@ function ChatView() {
 // Fallback skeleton while Suspense resolves useSearchParams
 function ChatLoadingFallback() {
   return (
-    <div className="flex h-[calc(100dvh-64px)] items-center justify-center bg-km-surface">
+    <div className="flex h-[calc(100dvh-64px-var(--km-dock-h,0px))] items-center justify-center bg-km-surface">
       <div className="text-center space-y-3">
         <CircleNotchIcon size={32} className="animate-spin text-km-heading mx-auto" />
         <p className="text-sm font-semibold text-km-heading">

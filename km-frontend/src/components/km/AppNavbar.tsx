@@ -3,6 +3,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from './Navbar';
 import GuestNavbar from './GuestNavbar';
+import MobileDock from './MobileDock';
 import api from '@/lib/axios';
 import { isAuthenticated, clearSession } from '@/lib/auth';
 import { ACCOUNT_RESTORE_PATH, needsAccountRestore } from '@/lib/account';
@@ -62,7 +63,12 @@ function AppNavbarContent() {
     // 1. Initial render: false (matches server) -> GuestNavbar
     // 2. Effect: Token found -> true -> Navbar (Optimistic)
     // 3. API Fail: -> false -> GuestNavbar (Correction)
-    return isLoggedIn ? <Navbar user={user} /> : <GuestNavbar />;
+    return (
+        <>
+            {isLoggedIn ? <Navbar user={user} /> : <GuestNavbar />}
+            <MobileDock isLoggedIn={isLoggedIn} user={user} />
+        </>
+    );
 }
 
 export default function AppNavbar() {

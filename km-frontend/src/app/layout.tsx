@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
@@ -48,6 +48,13 @@ const notoSansDevanagari = localFont({
   preload: false,
   fallback: ["Nirmala UI", "Mangal", "sans-serif"],
 });
+
+// viewport-fit=cover makes env(safe-area-inset-*) real, so the phone dock clears the home indicator
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://kaammilega.com'),

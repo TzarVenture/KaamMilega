@@ -153,4 +153,16 @@ export const NotificationsNavIcon: NavIcon = (p) => (
 );
 
 /** InstantMilega™ keeps its animated gradient bolt; this adapter gives it the NavIcon shape */
+export const ProfileNavIcon: NavIcon = (p) => (
+    <Base {...p}>
+        {(a) => (
+            <>
+                <circle cx="12" cy="12" r="8.5" />
+                <circle className={a} stroke="none" cx="12" cy="10" r="2.7" />
+                <path d="M7.4 17.4c1.1-1.6 2.7-2.4 4.6-2.4s3.5.8 4.6 2.4" />
+            </>
+        )}
+    </Base>
+);
+
 export const InstantNavIcon: NavIcon = ({ size, className }) => <AnimatedBoltIcon size={size} className={className} />;
