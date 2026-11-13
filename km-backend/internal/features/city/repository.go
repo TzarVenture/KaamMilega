@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
@@ -79,9 +80,9 @@ func (r *CityRepositoryImpl) FindCities(ctx context.Context, filter CityFilter) 
 	if filter.Search != "" {
 		trimmedSearch := strings.TrimSpace(filter.Search)
 		matchStage["$or"] = []bson.M{
-			{"name": bson.M{"$regex": trimmedSearch, "$options": "i"}},
-			{"state": bson.M{"$regex": trimmedSearch, "$options": "i"}},
-			{"country": bson.M{"$regex": trimmedSearch, "$options": "i"}},
+			{"name": bson.M{"$regex": regexp.QuoteMeta(trimmedSearch), "$options": "i"}},
+			{"state": bson.M{"$regex": regexp.QuoteMeta(trimmedSearch), "$options": "i"}},
+			{"country": bson.M{"$regex": regexp.QuoteMeta(trimmedSearch), "$options": "i"}},
 		}
 	}
 

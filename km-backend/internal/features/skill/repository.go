@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"regexp"
 	"strings"
 	"time"
 
@@ -63,7 +64,7 @@ func (r *SkillRepositoryImpl) CreateSkill(ctx context.Context, skill *Skill) (*S
 func (r *SkillRepositoryImpl) GetSkills(ctx context.Context, query string, category string, limit int64) ([]Skill, error) {
 	filter := bson.M{}
 	if query != "" {
-		filter["name"] = bson.M{"$regex": query, "$options": "i"}
+		filter["name"] = bson.M{"$regex": regexp.QuoteMeta(query), "$options": "i"}
 	}
 	if category != "" && category != "All" {
 		filter["category"] = category

@@ -3,6 +3,7 @@ package course
 import (
 	"context"
 	"errors"
+	"regexp"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -78,7 +79,7 @@ func (r *CourseRepositoryImpl) Find(ctx context.Context, filter CourseFilter) ([
 	}
 
 	if filter.Search != "" {
-		regexPattern := primitive.Regex{Pattern: filter.Search, Options: "i"}
+		regexPattern := primitive.Regex{Pattern: regexp.QuoteMeta(filter.Search), Options: "i"}
 		bsonFilter["$or"] = []bson.M{
 			{"title": regexPattern},
 			{"description": regexPattern},
@@ -88,7 +89,7 @@ func (r *CourseRepositoryImpl) Find(ctx context.Context, filter CourseFilter) ([
 	}
 
 	if filter.Category != "" {
-		bsonFilter["category"] = primitive.Regex{Pattern: filter.Category, Options: "i"}
+		bsonFilter["category"] = primitive.Regex{Pattern: regexp.QuoteMeta(filter.Category), Options: "i"}
 	}
 
 	if filter.ExpertID != "" {
