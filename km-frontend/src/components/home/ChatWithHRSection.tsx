@@ -28,11 +28,11 @@ export default function ChatWithHRSection() {
                             ))}
                         </ul>
                         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                            <Link href="/jobs" className="inline-flex items-center justify-center gap-2 rounded-xl bg-km-primary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-km-primary-dark">
+                            <Link href="/jobs" className="km-press inline-flex items-center justify-center gap-2 rounded-xl bg-km-primary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-km-primary-dark">
                                 {t('findJobs')}
                                 <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
                             </Link>
-                            <Link href="/chat" className="inline-flex items-center justify-center rounded-xl border border-km-border px-6 py-3 text-sm font-semibold text-km-heading transition-colors hover:bg-km-surface">
+                            <Link href="/chat" className="km-press inline-flex items-center justify-center rounded-xl border border-km-border px-6 py-3 text-sm font-semibold text-km-heading transition-colors hover:bg-km-surface">
                                 {t('openChats')}
                             </Link>
                         </div>

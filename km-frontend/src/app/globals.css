@@ -943,3 +943,17 @@ html [data-sonner-toaster] [data-sonner-toast][data-styled="true"] [data-close-b
 @media (prefers-reduced-motion: reduce) {
   .km-sheet-in { animation: none; }
 }
+
+/* Tap feedback. Phones have no hover (Tailwind's hover: only fires on devices that can hover),
+   so buttons and cards answer the press itself - a quick shrink that springs back on release. */
+.km-press, .km-press-card {
+  transition-property: color, background-color, border-color, box-shadow, transform;
+  transition-duration: 150ms;
+  transition-timing-function: cubic-bezier(0.2, 0, 0, 1);
+  -webkit-tap-highlight-color: transparent;
+}
+.km-press:active { transform: scale(0.96); }
+.km-press-card:active { transform: scale(0.98); }
+@media (prefers-reduced-motion: reduce) {
+  .km-press:active, .km-press-card:active { transform: none; }
+}

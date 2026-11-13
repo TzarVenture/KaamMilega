@@ -65,10 +65,10 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
         return (
             <Link
                 href={searchHref}
-                className="group/card bg-km-surface-card rounded-2xl border border-km-border p-5 flex flex-col hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+                className="km-press-card group/card bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 flex items-center gap-3 sm:flex-col sm:items-stretch sm:gap-0 hover:border-[#0B5ED7]/40 hover:shadow-md"
             >
-                <div className="flex items-center gap-4">
-                    {logoTile('w-14 h-14', 24)}
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
+                    {logoTile('w-12 h-12 sm:w-14 sm:h-14', 22)}
                     <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                             <h3 className="text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors truncate">
@@ -79,11 +79,17 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                         <p className="mt-0.5 text-sm text-km-text-secondary truncate">
                             {[company.category, company.location].filter(Boolean).join(' · ')}
                         </p>
+                        {company.jobCount > 0 && (
+                            <p className="sm:hidden mt-0.5 text-sm font-medium tabular-nums text-[#16A34A]">
+                                {tc('openJobs', { count: company.jobCount, n: number(company.jobCount) })}
+                            </p>
+                        )}
                     </div>
                 </div>
 
-                <div className="mt-5 pt-4 border-t border-km-border-subtle flex items-center justify-between text-sm">
-                    <span className="font-medium text-[#16A34A]">
+                <CaretRightIcon weight="bold" size={16} className="sm:hidden shrink-0 text-km-heading" aria-hidden="true" />
+                <div className="hidden sm:flex mt-5 pt-4 border-t border-km-border-subtle items-center justify-between text-sm">
+                    <span className="font-medium tabular-nums text-[#16A34A]">
                         {company.jobCount > 0 ? tc('openJobs', { count: company.jobCount, n: number(company.jobCount) }) : ''}
                     </span>
                     <span className="inline-flex items-center gap-1 font-semibold text-km-heading">

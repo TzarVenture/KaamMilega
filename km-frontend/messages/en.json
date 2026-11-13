@@ -489,52 +489,47 @@
       "text": "Everything you need to hire, work, and grow your career in one place.",
       "jobs": {
         "title": "Jobs & Recruitment",
-        "text": "Full-time and part-time openings with direct hiring manager contact.",
-        "action": "Explore Jobs",
-        "provider": "Post a Job"
+        "text": "Apply and talk to the hiring manager directly.",
+        "action": "Explore Jobs"
       },
       "instant": {
         "title": "InstantMilega™",
-        "text": "Fast local help and on-demand shifts with verified start and finish codes.",
-        "action": "Find Instant Gigs",
-        "provider": "Book Staff"
+        "text": "On-demand local shifts with start and finish codes.",
+        "action": "Find Instant Gigs"
       },
       "skills": {
         "title": "Skills Marketplace",
-        "text": "Practical courses and certifications to build skills and boost earnings.",
-        "action": "Browse Courses",
-        "provider": "Accredited Tests"
+        "text": "Short courses and certificates to earn more.",
+        "action": "Browse Courses"
       },
       "experts": {
         "title": "Experts & Mentors",
-        "text": "One-on-one guidance, interview practice, and advice from industry professionals.",
-        "action": "Book Mentor",
-        "provider": "Become Mentor"
+        "text": "1-on-1 career advice and mock interviews.",
+        "action": "Book Mentor"
       },
       "services": {
         "title": "Services Marketplace",
-        "text": "Direct project contracts and trade services for businesses and individuals.",
-        "action": "Explore Services",
-        "provider": "List Service"
+        "text": "Trade and project work for businesses.",
+        "action": "Explore Services"
       },
       "p2p": {
         "title": "Peer-to-Peer",
-        "text": "Network with people in your trade, share opportunities, and stay connected.",
-        "action": "Join Network",
-        "provider": "Create Post"
+        "text": "Connect and share leads with people in your trade.",
+        "action": "Join Network"
       },
       "events": {
         "title": "Events & Community",
-        "text": "Hiring drives, industry workshops, and community skill sessions.",
-        "action": "View Events",
-        "provider": "Host Drive"
+        "text": "Hiring drives, workshops and skill sessions.",
+        "action": "View Events"
       }
     },
     "hubs": {
       "title": "Find jobs by top hubs",
       "text": "Verified jobs and on-demand work in India's biggest employment hubs.",
       "more": "More employment hubs and regional zones ({n})",
-      "viewAll": "View all locations"
+      "viewAll": "View all locations",
+      "seeMore": "See {n} more",
+      "seeLess": "Show less"
     },
     "trust": {
       "region": "Why KaamMilega",

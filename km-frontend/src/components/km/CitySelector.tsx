@@ -107,7 +107,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
                         <MapPinIcon weight="bold" size={17} className="text-km-text-muted shrink-0" />
-                        <span className="text-xs sm:text-sm font-semibold text-km-text-primary truncate">
+                        <span className="text-sm font-semibold text-km-text-primary truncate">
                             {displayLabel}
                         </span>
                     </div>

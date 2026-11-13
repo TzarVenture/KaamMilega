@@ -51,8 +51,9 @@ export default function CandidateProgressCard({ userName }: CandidateProgressCar
         };
     }, []);
 
-    // Render nothing until the backend score is known, so the card never shows a guessed number
-    if (!completion) return null;
+    // Render nothing until the backend score is known, so the card never shows a guessed number,
+    // and nothing once the profile is complete
+    if (!completion || completion.score >= 100) return null;
     return <ProgressCardView completion={completion} userName={userName} />;
 }
 

@@ -203,7 +203,7 @@ export default function LandingPage() {
       <HeroSection cities={cities} stats={stats} />
       <SuccessTicker />
       {isLoggedIn && currentUser && !['recruiter', 'admin'].includes(getCurrentPortalRole()) && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-6 pb-2">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 pt-6 pb-2 empty:hidden">
           <CandidateProgressCard userName={currentUser?.name} />
         </section>
       )}
@@ -250,6 +250,8 @@ export default function LandingPage() {
 const SECTION = 'py-8 sm:py-10 lg:py-12';
 const CONTAINER = 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8';
 
+const OTHER_HUBS_PREVIEW = 6;
+
 const LocationSection = ({ cities }: { cities: any[] }) => {
   const t = useTranslations('home.hubs');
   const th = useTranslations('hubs');
@@ -295,6 +297,9 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
 
   const displayFeatured = featuredHubs.length > 0 ? featuredHubs : resolvedHubs;
   const displayOther = featuredHubs.length > 0 ? otherHubs : [];
+  // Other cities stay collapsed to one short row until asked for
+  const [showAllOther, setShowAllOther] = useState(false);
+  const visibleOther = showAllOther ? displayOther : displayOther.slice(0, OTHER_HUBS_PREVIEW);
 
   return (
     <section className={SECTION} aria-labelledby="hubs-title">
@@ -305,7 +310,7 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
           description={t('text')}
         />
 
-        <div className="bg-km-surface-card rounded-3xl border border-km-border p-4 sm:p-6 lg:p-8">
+        <div className="bg-km-surface-card rounded-3xl border border-km-border p-3 sm:p-6 lg:p-8">
           {/* Auto-scrolling row of city cards (pauses on hover/touch) */}
           <div className="overflow-hidden">
             <div className="animate-km-marquee hover:[animation-play-state:paused] active:[animation-play-state:paused] py-1">
@@ -319,9 +324,9 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
                   href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
                   aria-hidden={idx >= displayFeatured.length || undefined}
                   tabIndex={idx >= displayFeatured.length ? -1 : undefined}
-                  className="shrink-0 mr-5 w-56 sm:w-64 bg-km-surface-card rounded-2xl border border-km-border overflow-hidden group/card hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+                  className="km-press-card shrink-0 mr-3 sm:mr-5 w-44 sm:w-64 bg-km-surface-card rounded-2xl border border-km-border overflow-hidden group/card hover:border-[#0B5ED7]/40 hover:shadow-md"
                 >
-                  <div className="relative h-32 sm:h-36 overflow-hidden bg-[#0B1F52] dark:bg-km-primary-dark">
+                  <div className="relative h-24 sm:h-36 overflow-hidden bg-[#0B1F52] dark:bg-km-primary-dark">
                     <img
                       src={hub.image}
                       alt=""
@@ -333,12 +338,12 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
                       {landmark}
                     </span>
                   </div>
-                  <div className="p-4 text-center">
+                  <div className="p-3 sm:p-4 text-center">
                     <h3 className="text-base sm:text-lg font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
                       {hub.name}
                     </h3>
-                    <p className="mt-0.5 text-sm text-km-text-secondary">{openingsLabel(hub.jobsCount)}</p>
-                    <p className="mt-3 pt-3 border-t border-km-border-subtle text-xs text-km-text-secondary truncate">{sector}</p>
+                    <p className={`${hub.jobsCount ? 'block' : 'hidden sm:block'} mt-0.5 text-sm tabular-nums text-km-text-secondary`}>{openingsLabel(hub.jobsCount)}</p>
+                    <p className="mt-2 pt-2 sm:mt-3 sm:pt-3 border-t border-km-border-subtle text-xs text-km-text-secondary truncate">{sector}</p>
                   </div>
                 </Link>
                 );
@@ -359,15 +364,26 @@ const LocationSection = ({ cities }: { cities: any[] }) => {
                 </Link>
               </div>
               <div className="flex flex-wrap gap-2">
-                {displayOther.map((hub) => (
+                {visibleOther.map((hub) => (
                   <Link
                     key={hub.id || hub.name}
                     href={`/jobs?city=${encodeURIComponent(hub.id || hub.name)}`}
-                    className="px-3.5 py-1.5 rounded-full bg-km-surface border border-km-border-subtle text-sm text-km-text-primary hover:border-[#0B5ED7]/40 hover:text-km-heading transition-colors"
+                    className="km-press px-3.5 py-1.5 rounded-full bg-km-surface border border-km-border-subtle text-sm text-km-text-primary hover:border-[#0B5ED7]/40 hover:text-km-heading"
                   >
                     {hub.name}
                   </Link>
                 ))}
+                {displayOther.length > OTHER_HUBS_PREVIEW && (
+                  <button
+                    type="button"
+                    aria-expanded={showAllOther}
+                    onClick={() => setShowAllOther((v) => !v)}
+                    className="km-press inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full border border-km-primary text-sm font-semibold text-km-heading hover:bg-km-surface cursor-pointer"
+                  >
+                    {showAllOther ? t('seeLess') : t('seeMore', { n: number(displayOther.length - OTHER_HUBS_PREVIEW) })}
+                    <CaretDownIcon size={14} weight="bold" className={`transition-transform ${showAllOther ? 'rotate-180' : ''}`} aria-hidden="true" />
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -402,7 +418,7 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
           <rect width="100%" height="100%" fill="url(#km-trust-grid)" />
         </svg>
 
-        <div className="relative p-8 sm:p-10 lg:p-12">
+        <div className="relative p-6 sm:p-10 lg:p-12">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="max-w-2xl">
               <p className="text-sm font-medium text-[#FF8A00]">
@@ -421,27 +437,27 @@ const TrustCard = ({ isLoggedIn, user }: { isLoggedIn?: boolean; user?: any }) =
             <div className="flex flex-col sm:flex-row gap-3 shrink-0">
               <Link
                 href={isLoggedIn ? "/jobs" : "/register"}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-km-accent hover:bg-km-accent-light text-white text-sm font-semibold transition-colors"
+                className="km-press inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-km-accent hover:bg-km-accent-light text-white text-sm font-semibold transition-colors"
               >
                 {isLoggedIn ? t('matched') : t('register')}
                 <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
               </Link>
               <Link
                 href={isLoggedIn ? "/applications" : "/jobs"}
-                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/25 hover:bg-white/10 text-white text-sm font-semibold transition-colors"
+                className="km-press inline-flex items-center justify-center px-6 py-3 rounded-xl border border-white/25 hover:bg-white/10 text-white text-sm font-semibold transition-colors"
               >
                 {isLoggedIn ? t('applications') : t('browse')}
               </Link>
             </div>
           </div>
 
-          <ul className="mt-10 pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-6">
+          <ul className="mt-8 pt-6 sm:mt-10 sm:pt-8 border-t border-white/10 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-6 gap-y-4 sm:gap-y-6">
             {TRUST_FEATURES.map(({ Icon, key }) => (
-              <li key={key} className="flex items-start gap-3">
-                <Icon size={24} weight="duotone" className="text-[#8DB8F5] shrink-0 -mt-0.5" aria-hidden="true" />
+              <li key={key} className="flex items-center sm:items-start gap-3">
+                <Icon size={24} weight="duotone" className="text-[#8DB8F5] shrink-0 sm:-mt-0.5" aria-hidden="true" />
                 <div>
                   <p className="text-sm font-semibold">{t(`${key}.title`)}</p>
-                  <p className="mt-0.5 text-xs text-white/65 leading-relaxed">{t(`${key}.text`)}</p>
+                  <p className="hidden sm:block mt-0.5 text-xs text-white/65 leading-relaxed">{t(`${key}.text`)}</p>
                 </div>
               </li>
             ))}
@@ -468,7 +484,7 @@ const FeaturedCompanies = ({ companies }: { companies: HiringCompany[] }) => {
           action={{ href: '/jobs', label: t('action') }}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
           {companies.map((co, i) => (
             <CompanyCard key={co.name || i} company={co} variant="expanded" />
           ))}
@@ -508,13 +524,13 @@ const QualificationSearch = () => {
           <Link
             key={label}
             href={`/jobs?qualification=${encodeURIComponent(label)}`}
-            className="group/card bg-km-surface-card rounded-2xl border border-km-border p-5 hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+            className="km-press-card group/card bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 hover:border-[#0B5ED7]/40 hover:shadow-md"
           >
-            <Art className="h-16 w-auto -ml-3" />
-            <h3 className="mt-4 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
+            <Art className="h-12 sm:h-16 w-auto -ml-3" />
+            <h3 className="mt-2 sm:mt-4 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
               {t(key)}
             </h3>
-            <p className="mt-0.5 text-sm text-km-text-secondary">
+            <p className={`${counts[`education=${encodeURIComponent(education)}`] ? 'block' : 'hidden sm:block'} mt-0.5 text-sm tabular-nums text-km-text-secondary`}>
               {openingsLabel(counts[`education=${encodeURIComponent(education)}`])}
             </p>
           </Link>
@@ -551,9 +567,9 @@ const JobTypeSection = () => {
           <Link
             key={label}
             href={`/jobs?job_type=${encodeURIComponent(label)}`}
-            className="group/card flex lg:flex-col items-start gap-4 lg:gap-0 bg-km-surface-card rounded-2xl border border-km-border p-5 hover:border-[#0B5ED7]/40 hover:shadow-md transition-all"
+            className="km-press-card group/card flex lg:flex-col items-center sm:items-start gap-3 sm:gap-4 lg:gap-0 bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 hover:border-[#0B5ED7]/40 hover:shadow-md"
           >
-            <Art className="h-14 lg:h-16 w-auto shrink-0 -ml-3" />
+            <Art className="h-12 sm:h-14 lg:h-16 w-auto shrink-0 -ml-3" />
             <div className="lg:mt-4 min-w-0">
               <h3 className="flex items-center gap-1 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
                 {t(`${key}.title`)}
@@ -581,7 +597,7 @@ const DiversityBanner = () => {
   const hasVideo = KAAMMILEGA_INTRO_VIDEO_ID.length > 0;
 
   const learnMoreClass =
-    "mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-km-surface-card text-km-heading hover:bg-km-surface text-sm font-semibold transition-colors cursor-pointer";
+    "km-press mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-km-surface-card text-km-heading hover:bg-km-surface text-sm font-semibold transition-colors cursor-pointer";
 
   return (
     <section className={SECTION} aria-labelledby="about-km-title">
@@ -927,7 +943,7 @@ const LearnSection = () => {
           {/* Fixed Green Button as per Project Color Rules */}
           <Link
             href="/resources"
-            className="w-full py-3 px-5 bg-km-skills hover:bg-[#15803D] active:scale-[0.98] text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer mt-auto"
+            className="w-full py-3 px-5 km-press bg-km-skills hover:bg-[#15803D] text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer mt-auto"
           >
             <span>{t('allResources')}</span>
             <ArrowUpRightIcon weight="bold" size={16} />
@@ -1150,7 +1166,7 @@ const WalletBanner = () => {
   return (
   <section className={SECTION} aria-labelledby="wallet-title">
     <div className={CONTAINER}>
-      <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-orange-500 via-orange-600 to-amber-700 text-white px-6 py-8 sm:px-10 sm:py-10 lg:px-12">
+      <div className="km-on-dark relative overflow-hidden rounded-3xl bg-linear-to-r from-orange-500 via-orange-600 to-amber-700 text-white px-6 py-8 sm:px-10 sm:py-10 lg:px-12">
         {/* Background mark, kept away from the copy */}
         <div className="absolute right-8 lg:right-12 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-4 opacity-15 pointer-events-none select-none" aria-hidden="true">
           <WalletIcon size={120} className="text-white hidden lg:block" />
@@ -1166,7 +1182,7 @@ const WalletBanner = () => {
           </p>
           <Link
             href="/wallet"
-            className="mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-km-surface-card text-orange-700 hover:bg-orange-50 text-sm font-semibold shadow-md transition-colors"
+            className="km-press mt-6 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-km-surface-card text-orange-700 hover:bg-orange-50 text-sm font-semibold shadow-md transition-colors"
           >
             <WalletIcon size={18} weight="bold" aria-hidden="true" />
             {t('open')}
@@ -1393,7 +1409,7 @@ function CompactTestimonialCard({
 
           {/* Candidate Review */}
           {story.review && (
-            <p className="text-xs text-slate-700 italic leading-relaxed mt-2 break-words font-normal">
+            <p className="text-xs text-slate-700 leading-relaxed mt-2 break-words font-normal">
               &ldquo;{story.review}&rdquo;
             </p>
           )}
@@ -1448,7 +1464,7 @@ const PremiumServicesBanner = () => {
                 <Link
                   key={service}
                   href="/resources/premium"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-km-border text-sm font-medium text-km-text-primary hover:border-[#0B5ED7]/40 hover:text-km-heading transition-colors"
+                  className="km-press inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-km-border text-sm font-medium text-km-text-primary hover:border-[#0B5ED7]/40 hover:text-km-heading transition-colors"
                 >
                   {t(service)}
                   <CaretRightIcon size={14} weight="bold" className="text-km-heading" aria-hidden="true" />
@@ -1459,7 +1475,7 @@ const PremiumServicesBanner = () => {
 
           <Link
             href="/resources/premium"
-            className="shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-sm font-semibold transition-colors dark:bg-km-primary dark:hover:bg-km-primary-dark"
+            className="km-press shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-sm font-semibold transition-colors dark:bg-km-primary dark:hover:bg-km-primary-dark"
           >
             {tc('learnMore')}
             <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />
