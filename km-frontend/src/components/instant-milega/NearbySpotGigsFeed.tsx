@@ -81,6 +81,7 @@ export default function NearbySpotGigsFeed({
             }
         } catch (e) {
             console.error('[InstantMilega] Error fetching gigs feed:', e);
+            notify.error(e, "Nearby jobs couldn’t be loaded.");
         } finally {
             if (!isSilent) setLoading(false);
         }

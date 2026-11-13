@@ -10,8 +10,9 @@ import (
 // Hub maintains the set of active clients, supports multi-tab/device connections per user,
 // and broadcasts messages, read receipts, and typing indicators concurrently and safely.
 type Hub struct {
-	// Registered clients: map of UserID -> set of active *websocket.Conn
-	clients map[string]map[*websocket.Conn]bool
+	// Registered clients: UserID -> each open connection -> the conversation that screen is
+	// showing ("" when none, or the tab is in the background)
+	clients map[string]map[*websocket.Conn]string
 	mu      sync.RWMutex
 	// Connection write mutex to avoid concurrent websocket write panics
 	writeMu sync.Mutex
@@ -19,7 +20,7 @@ type Hub struct {
 
 func NewHub() *Hub {
 	return &Hub{
-		clients: make(map[string]map[*websocket.Conn]bool),
+		clients: make(map[string]map[*websocket.Conn]string),
 	}
 }
 
@@ -29,9 +30,36 @@ func (h *Hub) Register(userID string, conn *websocket.Conn) {
 	defer h.mu.Unlock()
 
 	if _, exists := h.clients[userID]; !exists {
-		h.clients[userID] = make(map[*websocket.Conn]bool)
+		h.clients[userID] = make(map[*websocket.Conn]string)
 	}
-	h.clients[userID][conn] = true
+	h.clients[userID][conn] = ""
+}
+
+// SetViewing records which conversation a connection has on screen ("" for none)
+func (h *Hub) SetViewing(userID string, conn *websocket.Conn, conversationID string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if conns, ok := h.clients[userID]; ok {
+		if _, ok := conns[conn]; ok {
+			conns[conn] = conversationID
+		}
+	}
+}
+
+// IsViewing reports whether any of the user's screens is showing this conversation right now,
+// so a new message there needs no notification
+func (h *Hub) IsViewing(userID, conversationID string) bool {
+	if conversationID == "" {
+		return false
+	}
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	for _, viewing := range h.clients[userID] {
+		if viewing == conversationID {
+			return true
+		}
+	}
+	return false
 }
 
 // Unregister removes a specific connection for a user

@@ -6,6 +6,7 @@ import { ArrowLeftIcon, CalendarBlankIcon, DotsThreeIcon, MagnifyingGlassIcon, T
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/axios';
+import { notify } from "@/lib/notify";
 
 export interface Event {
     id: string;
@@ -109,6 +110,7 @@ export default function EventsPage() {
             setTotalEvents(res.total || 0);
         } catch (error) {
             console.error("Failed to fetch events", error);
+            notify.error(error, "Events couldn’t be loaded.");
         } finally {
             setIsLoading(false);
         }

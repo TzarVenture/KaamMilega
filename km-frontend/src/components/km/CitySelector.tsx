@@ -5,6 +5,7 @@ import { CaretDownIcon, CircleNotchIcon, MagnifyingGlassIcon, MapPinIcon } from 
 import api from '@/lib/axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslations } from 'next-intl';
+import { notify } from "@/lib/notify";
 
 interface City {
     id?: string;
@@ -37,6 +38,7 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                 setFetchedCities(citiesData);
             } catch (error) {
                 console.error('Failed to fetch cities:', error);
+                notify.error(error, "Cities couldn’t be loaded.");
             } finally {
                 setIsLoading(false);
             }
@@ -51,8 +53,17 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
                 setIsOpen(false);
             }
         };
+        const handleKey = (event: KeyboardEvent) => {
+            if (event.key !== 'Escape' || !dropdownRef.current?.contains(document.activeElement)) return;
+            setIsOpen(false);
+            dropdownRef.current.querySelector<HTMLButtonElement>('button[aria-haspopup]')?.focus();
+        };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+        document.addEventListener('keydown', handleKey);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener('keydown', handleKey);
+        };
     }, []);
 
     // Deduplicate cities by lowercase trimmed name and sort alphabetically
@@ -87,72 +98,82 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
         const displayLabel = !selectedCity || selectedCity === 'All' ? t('allIndia') : selectedCity;
         return (
             <div className="relative w-full sm:w-48" ref={dropdownRef}>
-                <div
+                <button
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={isOpen}
                     onClick={() => setIsOpen(!isOpen)}
-                    className={`flex items-center justify-between h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 hover:bg-km-surface-card hover:border-km-primary transition-all cursor-pointer ${isOpen ? 'bg-km-surface-card border-km-primary ring-1 ring-km-primary' : ''}`}
+                    className={`w-full text-left flex items-center justify-between h-12 bg-slate-50/70 border border-km-border rounded-xl px-3.5 hover:bg-km-surface-card hover:border-km-primary transition-all cursor-pointer ${isOpen ? 'bg-km-surface-card border-km-primary ring-1 ring-km-primary' : ''}`}
                 >
                     <div className="flex items-center gap-2 overflow-hidden">
-                        <MapPinIcon weight="bold" size={17} className="text-slate-400 shrink-0" />
-                        <span className="text-xs sm:text-sm font-semibold text-slate-800 truncate">
+                        <MapPinIcon weight="bold" size={17} className="text-km-text-muted shrink-0" />
+                        <span className="text-xs sm:text-sm font-semibold text-km-text-primary truncate">
                             {displayLabel}
                         </span>
                     </div>
-                    <CaretDownIcon weight="bold" size={16} className={`text-slate-500 shrink-0 ml-1.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
-                </div>
+                    <CaretDownIcon weight="bold" size={16} className={`text-km-text-secondary shrink-0 ml-1.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
 
                 <AnimatePresence>
                     {isOpen && (
                         <motion.div
+                            style={{ transformOrigin: "top left" }}
                             initial={{ opacity: 0, y: 8, scale: 0.98 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 8, scale: 0.98 }}
                             transition={{ duration: 0.15 }}
-                            className="absolute top-full left-0 mt-2 w-64 sm:w-72 bg-km-surface-card border border-slate-200 rounded-2xl shadow-xl z-50 overflow-hidden"
+                            className="absolute top-full left-0 mt-2 w-64 sm:w-72 bg-km-surface-card border border-km-border rounded-2xl shadow-xl z-50 overflow-hidden"
                         >
-                            <div className="p-3 border-b border-slate-100 bg-slate-50/50">
+                            <div className="p-3 border-b border-km-border-subtle bg-slate-50/50">
                                 <div className="relative">
-                                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-km-text-muted" size={14} />
                                     <input
                                         type="text"
                                         placeholder={t('search')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-9 pr-3 py-2 bg-km-surface-card border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-km-primary focus:border-km-primary"
+                                        className="w-full pl-9 pr-3 py-2 bg-km-surface-card border border-km-border rounded-xl text-xs text-km-text-primary placeholder:text-km-text-muted focus:outline-none focus:ring-1 focus:ring-km-primary focus:border-km-primary"
                                         autoFocus
                                     />
                                 </div>
                             </div>
 
-                            <div className="max-h-64 overflow-y-auto py-1.5 px-1.5">
-                                <div
+                            <div role="listbox" aria-label={t('label')} className="max-h-64 overflow-y-auto py-1.5 px-1.5">
+                                <button
+                                    type="button"
+                                    role="option"
+                                    aria-selected={!selectedCity || selectedCity === 'All'}
                                     onClick={() => handleSelect('')}
-                                    className={`px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${!selectedCity || selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-slate-700 hover:bg-slate-50'}`}
+                                    className={`w-full text-left px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${!selectedCity || selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-km-text-primary hover:bg-km-surface'}`}
                                 >
                                     <span>{t('allIndia')}</span>
                                     {(!selectedCity || selectedCity === 'All') && (
                                         <span className="text-[10px] font-bold text-km-heading bg-blue-100/70 px-2 py-0.5 rounded-md">Selected</span>
                                     )}
-                                </div>
+                                </button>
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-4">
                                         <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-heading" />
                                     </div>
                                 ) : (
                                     displayCities.map(city => (
-                                        <div
+                                        <button
                                             key={city.id || city.name}
+                                            type="button"
+                                            role="option"
+                                            aria-selected={selectedCity === city.name}
                                             onClick={() => handleSelect(city.name)}
-                                            className={`px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-slate-700 hover:bg-slate-50'}`}
+                                            className={`w-full text-left px-3 py-2 text-xs sm:text-sm rounded-xl cursor-pointer transition-colors font-medium flex items-center justify-between ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-km-text-primary hover:bg-km-surface'}`}
                                         >
                                             <span>{city.name}</span>
                                             {selectedCity === city.name && (
                                                 <span className="text-[10px] font-bold text-km-heading bg-blue-100/70 px-2 py-0.5 rounded-md">Selected</span>
                                             )}
-                                        </div>
+                                        </button>
                                     ))
                                 )}
                                 {!isLoading && displayCities.length === 0 && (
-                                    <div className="px-3 py-4 text-center text-xs text-slate-400">
+                                    <div className="px-3 py-4 text-center text-xs text-km-text-muted">
                                         {t('none')}
                                     </div>
                                 )}
@@ -168,62 +189,72 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
     if (variant === 'guest') {
         return (
             <div className="relative" ref={dropdownRef}>
-                <div
+                <button
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={isOpen}
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 rounded-full cursor-pointer transition-colors min-w-35"
+                    className="w-full text-left flex items-center gap-2 px-4 py-2 hover:bg-km-surface rounded-full cursor-pointer transition-colors min-w-35"
                 >
-                    <MapPinIcon weight="bold" size={18} className="text-gray-500" />
-                    <span className="text-sm text-gray-400">{t('label')}:</span>
-                    <span className="text-sm font-semibold text-gray-800">{!selectedCity || selectedCity === 'All' ? t('all') : selectedCity}</span>
-                    <CaretDownIcon weight="bold" size={16} className={`text-gray-500 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                </div>
+                    <MapPinIcon weight="bold" size={18} className="text-km-text-secondary" />
+                    <span className="text-sm text-km-text-muted">{t('label')}:</span>
+                    <span className="text-sm font-semibold text-km-text-primary">{!selectedCity || selectedCity === 'All' ? t('all') : selectedCity}</span>
+                    <CaretDownIcon weight="bold" size={16} className={`text-km-text-secondary ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
 
                 <AnimatePresence>
                     {isOpen && (
                         <motion.div
+                            style={{ transformOrigin: "top left" }}
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
-                            className="absolute top-full left-0 mt-2 w-64 bg-km-surface-card border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
+                            className="absolute top-full left-0 mt-2 w-64 bg-km-surface-card border border-km-border-subtle rounded-2xl shadow-xl z-50 overflow-hidden"
                         >
-                            <div className="p-3 border-b border-gray-50">
+                            <div className="p-3 border-b border-km-border-subtle">
                                 <div className="relative">
-                                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                                    <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-km-text-muted" size={14} />
                                     <input
                                         type="text"
                                         placeholder={t('search')}
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-km-primary"
+                                        className="w-full pl-9 pr-3 py-2 bg-km-surface border border-km-border-subtle rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-km-primary"
                                         autoFocus
                                     />
                                 </div>
                             </div>
 
-                            <div className="max-h-60 overflow-y-auto py-2 px-1">
-                                <div
+                            <div role="listbox" aria-label={t('label')} className="max-h-60 overflow-y-auto py-2 px-1">
+                                <button
+                                    type="button"
+                                    role="option"
+                                    aria-selected={selectedCity === 'All'}
                                     onClick={() => handleSelect('All')}
-                                    className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-km-text-primary hover:bg-km-surface'}`}
                                 >
                                     {t('allCities')}
-                                </div>
+                                </button>
                                 {isLoading ? (
                                     <div className="flex items-center justify-center py-4">
                                         <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-heading" />
                                     </div>
                                 ) : (
                                     displayCities.map(city => (
-                                        <div
+                                        <button
                                             key={city.id || city.name}
+                                            type="button"
+                                            role="option"
+                                            aria-selected={selectedCity === city.name}
                                             onClick={() => handleSelect(city.name)}
-                                            className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                            className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-km-text-primary hover:bg-km-surface'}`}
                                         >
                                             {city.name}
-                                        </div>
+                                        </button>
                                     ))
                                 )}
                                 {!isLoading && displayCities.length === 0 && (
-                                    <div className="px-3 py-4 text-center text-xs text-gray-400">
+                                    <div className="px-3 py-4 text-center text-xs text-km-text-muted">
                                         {t('none')}
                                     </div>
                                 )}
@@ -238,61 +269,71 @@ const CitySelector = ({ selectedCity, onCityChange, variant = 'navbar', cities: 
     // --- Standard Navbar Variant ---
     return (
         <div className="relative" ref={dropdownRef}>
-            <div
+            <button
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded={isOpen}
                 onClick={() => setIsOpen(!isOpen)}
-                className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-full border border-gray-100 min-w-35 cursor-pointer"
+                className="w-full text-left flex items-center gap-2 bg-km-surface px-3 py-2 rounded-full border border-km-border-subtle min-w-35 cursor-pointer"
             >
-                <MapPinIcon weight="bold" size={16} className="text-gray-500" />
-                <span className="text-sm font-medium text-gray-700">{t('label')}: <span className="font-bold">{!selectedCity || selectedCity === 'All' ? t('all') : selectedCity}</span></span>
-                <CaretDownIcon weight="bold" size={16} className={`ml-auto text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-            </div>
+                <MapPinIcon weight="bold" size={16} className="text-km-text-secondary" />
+                <span className="text-sm font-medium text-km-text-primary">{t('label')}: <span className="font-bold">{!selectedCity || selectedCity === 'All' ? t('all') : selectedCity}</span></span>
+                <CaretDownIcon weight="bold" size={16} className={`ml-auto text-km-text-secondary transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
 
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
+                        style={{ transformOrigin: "top left" }}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
-                        className="absolute top-full left-0 mt-2 w-64 bg-km-surface-card border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden"
+                        className="absolute top-full left-0 mt-2 w-64 bg-km-surface-card border border-km-border-subtle rounded-2xl shadow-xl z-50 overflow-hidden"
                     >
-                        <div className="p-3 border-b border-gray-50">
+                        <div className="p-3 border-b border-km-border-subtle">
                             <div className="relative">
-                                <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                                <MagnifyingGlassIcon weight="bold" className="absolute left-3 top-1/2 -translate-y-1/2 text-km-text-muted" size={14} />
                                 <input
                                     type="text"
                                     placeholder={t('search')}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-9 pr-3 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-km-primary"
+                                    className="w-full pl-9 pr-3 py-2 bg-km-surface border border-km-border-subtle rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-km-primary"
                                     autoFocus
                                 />
                             </div>
                         </div>
 
-                        <div className="max-h-60 overflow-y-auto py-2 px-1">
-                            <div
+                        <div role="listbox" aria-label={t('label')} className="max-h-60 overflow-y-auto py-2 px-1">
+                            <button
+                                type="button"
+                                role="option"
+                                aria-selected={selectedCity === 'All'}
                                 onClick={() => handleSelect('All')}
-                                className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === 'All' ? 'bg-blue-50 text-km-heading font-bold' : 'text-km-text-primary hover:bg-km-surface'}`}
                             >
                                 {t('allCities')}
-                            </div>
+                            </button>
                             {isLoading ? (
                                 <div className="flex items-center justify-center py-4">
                                     <CircleNotchIcon weight="bold" size={18} className="animate-spin text-km-heading" />
                                 </div>
                             ) : (
                                 displayCities.map(city => (
-                                    <div
+                                    <button
                                         key={city.id || city.name}
+                                        type="button"
+                                        role="option"
+                                        aria-selected={selectedCity === city.name}
                                         onClick={() => handleSelect(city.name)}
-                                        className={`px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                        className={`w-full text-left px-3 py-2 text-sm rounded-lg cursor-pointer transition-colors ${selectedCity === city.name ? 'bg-blue-50 text-km-heading font-bold' : 'text-km-text-primary hover:bg-km-surface'}`}
                                     >
                                         {city.name}
-                                    </div>
+                                    </button>
                                 ))
                             )}
                             {!isLoading && displayCities.length === 0 && (
-                                <div className="px-3 py-4 text-center text-xs text-gray-400">
+                                <div className="px-3 py-4 text-center text-xs text-km-text-muted">
                                     {t('none')}
                                 </div>
                             )}

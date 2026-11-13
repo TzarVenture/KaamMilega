@@ -75,6 +75,7 @@ const AddCompanyModal = ({ isOpen, onClose, onSuccess }: AddCompanyModalProps) =
             setExistingUsers(mapped);
         } catch (err) {
             console.error('Failed to load existing users:', err);
+            notify.error(err, "Members couldn’t be loaded.");
         } finally {
             setLoadingUsers(false);
         }

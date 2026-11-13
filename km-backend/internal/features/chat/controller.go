@@ -97,8 +97,9 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 	c.hub.Send(req.ReceiverID.Hex(), wsPayload)
 	c.hub.Send(senderID.Hex(), wsPayload)
 
-	// Trigger real-time in-app notification for receiver
-	if c.notifService != nil {
+	// Notify the receiver, unless they have this conversation on screen right now (they see the
+	// message arrive, and their screen marks it read)
+	if c.notifService != nil && !c.hub.IsViewing(req.ReceiverID.Hex(), msg.ConversationID.Hex()) {
 		go func() {
 			senderName := "Someone"
 			senderAvatar := ""
@@ -187,6 +188,12 @@ func (c *Controller) MarkAsRead(ctx *fiber.Ctx) error {
 	if err := c.service.MarkConversationAsRead(ctx.Context(), conversationID, userID); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
+	// Reading the chat also clears its "new message" notifications
+	if c.notifService != nil {
+		if err := c.notifService.MarkChatRead(ctx.Context(), userID, conversationID.Hex()); err != nil {
+			log.Printf("[Chat] clearing message notifications: %v", err)
+		}
+	}
 
 	otherIDStr := ctx.Query("other_id")
 	if otherIDStr != "" {
@@ -238,6 +245,12 @@ func (c *Controller) WebSocketHandler(ctx *websocket.Conn) {
 				log.Println("[ChatWS] ws error:", err)
 			}
 			break
+		}
+
+		// The chat screen says which conversation it shows ("" when it closes or goes to the background)
+		if incoming.Type == "VIEWING" {
+			c.hub.SetViewing(userID, ctx, incoming.ConversationID)
+			continue
 		}
 
 		if incoming.Type == "TYPING" && incoming.ReceiverID != "" {

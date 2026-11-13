@@ -4,6 +4,7 @@ import { ChatCircleIcon, MapPinIcon } from '@phosphor-icons/react';
 import { useCompany } from "../CompanyContext";
 import api from '@/lib/axios';
 import Link from 'next/link';
+import { notify } from "@/lib/notify";
 
 interface Person {
     id: string;
@@ -36,6 +37,7 @@ const PeopleSection: React.FC = () => {
                 setPeople(peopleList);
             } catch (error) {
                 console.error("Failed to fetch people", error);
+                notify.error(error, "This company’s people couldn’t be loaded.");
                 // Could not fetch people, show empty or mock for presentation if needed
             } finally {
                 setLoading(false);

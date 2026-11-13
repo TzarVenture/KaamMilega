@@ -34,7 +34,7 @@
     "userTerms": "User terms and conditions",
     "privacy": "Privacy policy",
     "employerTerms": "Employer terms of service",
-    "guidelines": "Connect Like You guidelines",
+    "guidelines": "Community guidelines",
     "services": "Services",
     "byCategory": "Job search by category",
     "byCity": "Job search by city",
@@ -1285,7 +1285,7 @@
     "postComment": "Comment",
     "signInToComment": "Sign in to comment",
     "commentsFailed": "Comments couldn’t be loaded.",
-    "commentFailed": "Your comment couldn’t be posted. Please try again.",
+    "commentFailed": "Your comment couldn’t be posted. Please try again.",
     "olderComments": "Show older comments",
     "reply": "Reply",
     "addReply": "Add a reply…",
@@ -1365,7 +1365,13 @@
     "trendingPosts": "{count, plural, one {{formatted} post} other {{formatted} posts}}",
     "statsPeriod": "Past 90 days",
     "profileViewers": "Profile viewers",
-    "impressionsCount": "{count, plural, one {{formatted} impression} other {{formatted} impressions}}"
+    "impressionsCount": "{count, plural, one {{formatted} impression} other {{formatted} impressions}}",
+    "seeReactions": "{count, plural, one {{count} reaction, see who reacted} other {{count} reactions, see who reacted}}",
+    "reactionsAll": "All",
+    "reactionsEmpty": "No reactions yet.",
+    "reactionsFailed": "The reactions couldn’t be loaded.",
+    "moreReactions": "Show more",
+    "seeWhoReacted": "See who reacted"
   },
   "ads": {
     "label": "Advertisement",

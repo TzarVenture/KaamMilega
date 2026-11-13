@@ -305,7 +305,7 @@ const EventDetailsPage = () => {
                     />
                 ) : (
                     <div className="w-full h-full bg-[#071A4D] flex items-center justify-center dark:bg-km-primary">
-                        <div className="w-20 h-20 rounded-2xl bg-[#0B1F52] flex items-center justify-center text-[#F59E0B]">
+                        <div className="w-20 h-20 rounded-2xl bg-[#0B1F52] flex items-center justify-center text-km-events">
                             <CalendarBlankIcon size={40} />
                         </div>
                     </div>
@@ -335,7 +335,7 @@ const EventDetailsPage = () => {
                             </span>
                             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md ${
                                 isPaid
-                                    ? 'bg-[#FF6B00] text-white'
+                                    ? 'bg-km-accent text-white'
                                     : 'bg-[#071A4D] text-white dark:bg-km-primary'
                             }`}>
                                 {isPaid ? `Paid Masterclass • ₹${event.price}` : 'Free Entry Pass'}
@@ -493,7 +493,7 @@ const EventDetailsPage = () => {
                             <div className="flex items-center justify-between mb-5 pb-3 border-b border-km-border">
                                 <h3 className="text-base font-bold text-km-text-primary">Workshop Pass</h3>
                                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
-                                    isPaid ? 'bg-[#FF6B00] text-white' : 'bg-[#071A4D] text-white dark:bg-km-primary'
+                                    isPaid ? 'bg-km-accent text-white' : 'bg-[#071A4D] text-white dark:bg-km-primary'
                                 }`}>
                                     {isPaid ? `₹${event.price}` : 'Free Entry'}
                                 </span>
@@ -502,7 +502,7 @@ const EventDetailsPage = () => {
                             {/* Meta Info */}
                             <div className="space-y-3.5 mb-6">
                                 <div className="flex items-center gap-3">
-                                    <CalendarBlankIcon size={24} weight="duotone" className="text-[#F59E0B] shrink-0" aria-hidden="true" />
+                                    <CalendarBlankIcon size={24} weight="duotone" className="text-km-events shrink-0" aria-hidden="true" />
                                     <div>
                                         <p className="text-[10px] font-semibold text-km-text-secondary uppercase tracking-wider">Date</p>
                                         <p className="text-sm font-bold text-km-text-primary">{event.date}</p>
@@ -516,7 +516,7 @@ const EventDetailsPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <VideoCameraIcon size={24} weight="duotone" className="text-[#FF6B00] shrink-0" aria-hidden="true" />
+                                    <VideoCameraIcon size={24} weight="duotone" className="text-km-accent shrink-0" aria-hidden="true" />
                                     <div>
                                         <p className="text-[10px] font-semibold text-km-text-secondary uppercase tracking-wider">Format</p>
                                         <p className="text-sm font-bold text-km-text-primary">
@@ -529,7 +529,7 @@ const EventDetailsPage = () => {
                             {/* Participant / Seat count (Clickable for Attendee Modal) */}
                             <div 
                                 onClick={() => setIsAttendeeModalOpen(true)}
-                                className="bg-km-surface hover:bg-blue-50/70 border border-km-border hover:border-[#0B5ED7]/40 rounded-xl py-3 px-4 mb-5 text-center transition-all cursor-pointer group shadow-2xs"
+                                className="bg-km-surface hover:bg-blue-50/70 border border-km-border hover:border-km-blue/40 rounded-xl py-3 px-4 mb-5 text-center transition-all cursor-pointer group shadow-2xs"
                                 title="Click to view confirmed attendees"
                             >
                                 <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-km-text-primary group-hover:text-km-link transition-colors flex-wrap">
@@ -619,14 +619,14 @@ const EventDetailsPage = () => {
                             {/* Modal Header */}
                             <div className="flex justify-between items-center px-5 py-3.5 border-b border-km-border shrink-0 bg-km-surface-card">
                                 <div className="flex items-center gap-2">
-                                    <TicketIcon size={20} className="text-[#F59E0B]" aria-hidden="true" />
+                                    <TicketIcon size={20} className="text-km-events" aria-hidden="true" />
                                     <h3 className="text-base font-bold text-km-text-primary">Workshop Pass Checkout</h3>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={() => !paymentProcessing && setCheckoutModalOpen(false)}
                                     disabled={paymentProcessing}
-                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-[#293147]"
+                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-km-border flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-[#293147]"
                                 >
                                     <XIcon weight="bold" size={16} />
                                 </button>
@@ -657,7 +657,7 @@ const EventDetailsPage = () => {
                                             placeholder="Full Name"
                                             value={attendeeName}
                                             onChange={(e) => setAttendeeName(e.target.value)}
-                                            className="w-full text-xs font-medium bg-km-surface-card border border-km-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                            className="w-full text-xs font-medium bg-km-surface-card border border-km-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-km-blue focus:ring-2 focus:ring-km-blue/10"
                                         />
                                     </div>
                                     <div>
@@ -666,7 +666,7 @@ const EventDetailsPage = () => {
                                             placeholder="Email Address"
                                             value={attendeeEmail}
                                             onChange={(e) => setAttendeeEmail(e.target.value)}
-                                            className="w-full text-xs font-medium bg-km-surface-card border border-km-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                            className="w-full text-xs font-medium bg-km-surface-card border border-km-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-km-blue focus:ring-2 focus:ring-km-blue/10"
                                         />
                                     </div>
                                     <div>
@@ -675,7 +675,7 @@ const EventDetailsPage = () => {
                                             placeholder="Phone Number (optional)"
                                             value={attendeePhone}
                                             onChange={(e) => setAttendeePhone(e.target.value)}
-                                            className="w-full text-xs font-medium bg-km-surface-card border border-km-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
+                                            className="w-full text-xs font-medium bg-km-surface-card border border-km-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-km-blue focus:ring-2 focus:ring-km-blue/10"
                                         />
                                     </div>
                                 </div>
@@ -758,12 +758,12 @@ const EventDetailsPage = () => {
                             {/* Modal Action Bar */}
                             <div className="flex justify-between items-center px-5 py-3 border-b border-km-border bg-km-surface-card">
                                 <span className="text-xs font-bold text-km-text-primary flex items-center gap-1.5 uppercase tracking-wider">
-                                    <TicketIcon weight="bold" size={14} className="text-[#FF6B00]" /> Digital Workshop Pass
+                                    <TicketIcon weight="bold" size={14} className="text-km-accent" /> Digital Workshop Pass
                                 </span>
                                 <button
                                     type="button"
                                     onClick={() => setTicketModalOpen(false)}
-                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-[#D9E0EA] flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-[#293147]"
+                                    className="w-8 h-8 rounded-full bg-km-surface hover:bg-km-border flex items-center justify-center text-km-text-secondary transition-colors cursor-pointer dark:hover:bg-[#293147]"
                                 >
                                     <XIcon weight="bold" size={16} />
                                 </button>
@@ -795,7 +795,7 @@ const EventDetailsPage = () => {
                                 {/* Event Schedule Strip */}
                                 <div className="grid grid-cols-2 gap-2 p-3 bg-km-surface rounded-xl mb-3 text-xs border border-km-border">
                                     <div className="flex items-center gap-2">
-                                        <CalendarBlankIcon weight="bold" size={16} className="text-[#F59E0B] shrink-0" aria-hidden="true" />
+                                        <CalendarBlankIcon weight="bold" size={16} className="text-km-events shrink-0" aria-hidden="true" />
                                         <div className="min-w-0">
                                             <span className="text-[9px] font-semibold text-km-text-secondary block uppercase">Date</span>
                                             <span className="font-bold text-[11px] text-km-text-primary truncate block">

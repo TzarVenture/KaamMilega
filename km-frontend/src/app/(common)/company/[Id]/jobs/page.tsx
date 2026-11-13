@@ -5,6 +5,7 @@ import api from '@/lib/axios'; // Adjust path if needed
 import { ChatCircleIcon, CheckCircleIcon, MapPinIcon, PhoneIcon } from '@phosphor-icons/react';
 
 import Link from 'next/link';
+import { notify } from "@/lib/notify";
 
 interface Job {
     id: string;
@@ -44,6 +45,7 @@ const JobsSection: React.FC = () => {
                 setJobs(jobList);
             } catch (error) {
                 console.error("Failed to fetch jobs", error);
+                notify.error(error, "This company’s jobs couldn’t be loaded.");
 
                 // Fallback: If API fails, maybe try searching by name?
                 // Or just show nothing/error

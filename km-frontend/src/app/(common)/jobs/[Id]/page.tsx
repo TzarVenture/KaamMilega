@@ -262,7 +262,7 @@ const JobDetailPage = () => {
                                 <span className="text-white font-semibold text-sm">{job.company}</span>
                                 <span className="w-1 h-1 rounded-full bg-white/40" />
                                 <span className="flex items-center gap-1">
-                                    <MapPinIcon weight="bold" size={13} className="text-km-link fill-[#0B5ED7] dark:fill-blue-400" />
+                                    <MapPinIcon weight="bold" size={13} className="text-km-link fill-km-blue dark:fill-blue-400" />
                                     <span>
                                         {job.location ? `${job.location}, ` : ''}
                                         {job.city_name || 'All India'}
@@ -333,7 +333,7 @@ const JobDetailPage = () => {
                             <ChatWithHRButton
                                 recruiterId={job.recruiter_id}
                                 jobTitle={job.title}
-                                className="h-11 px-4 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer border bg-[#0B5ED7] hover:bg-[#094bb3] text-white border-transparent"
+                                className="h-11 px-4 rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer border bg-km-blue hover:bg-[#094bb3] text-white border-transparent"
                             />
 
                             {/* Bookmark Button */}
@@ -348,7 +348,7 @@ const JobDetailPage = () => {
                                 }`}
                             >
                                 {isBookmarked ? (
-                                    <BookmarkSimpleIcon weight="fill" size={16} className="fill-[#0B5ED7] text-km-link dark:fill-blue-400" />
+                                    <BookmarkSimpleIcon weight="fill" size={16} className="fill-km-blue text-km-link dark:fill-blue-400" />
                                 ) : (
                                     <BookmarkSimpleIcon weight="fill" size={16} className="fill-white/10 text-white/90" />
                                 )}
@@ -376,7 +376,7 @@ const JobDetailPage = () => {
                         {/* Job Specifications Card */}
                         <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
                             <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
-                                <BriefcaseIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
+                                <BriefcaseIcon weight="bold" size={16} className="text-km-link fill-km-blue/20 dark:fill-blue-400" />
                                 <span>Role Overview & Specifications</span>
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -418,7 +418,7 @@ const JobDetailPage = () => {
                         {/* Description Card */}
                         <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
                             <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
-                                <FileTextIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
+                                <FileTextIcon weight="bold" size={16} className="text-km-link fill-km-blue/20 dark:fill-blue-400" />
                                 <span>Detailed Job Description</span>
                             </h2>
                             <div className="text-sm text-km-text-primary leading-relaxed whitespace-pre-wrap font-normal">
@@ -430,7 +430,7 @@ const JobDetailPage = () => {
                         {job.requirements && job.requirements.length > 0 && (
                             <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-xs">
                                 <h2 className="text-base font-bold text-km-text-primary mb-4 pb-3 border-b border-km-border flex items-center gap-2">
-                                    <MedalIcon weight="bold" size={16} className="text-km-link fill-[#0B5ED7]/20 dark:fill-blue-400" />
+                                    <MedalIcon weight="bold" size={16} className="text-km-link fill-km-blue/20 dark:fill-blue-400" />
                                     <span>Key Requirements & Skills</span>
                                 </h2>
                                 <div className="flex flex-wrap gap-2">
@@ -439,7 +439,7 @@ const JobDetailPage = () => {
                                             key={skill}
                                             className="px-3 py-1.5 bg-km-surface border border-km-border text-km-heading rounded-xl text-xs font-medium flex items-center gap-1.5"
                                         >
-                                            <CheckCircleIcon weight="bold" size={13} className="fill-[#0B5ED7] text-white dark:fill-blue-400" />
+                                            <CheckCircleIcon weight="bold" size={13} className="fill-km-blue text-white dark:fill-blue-400" />
                                             <span>{skill}</span>
                                         </span>
                                     ))}
@@ -535,7 +535,7 @@ const JobDetailPage = () => {
                                 <div className="flex items-center gap-3">
                                     {job.company_logo ? (
                                         // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={job.company_logo} alt="" className="w-10 h-10 rounded-xl object-cover border border-km-border shrink-0 bg-white" />
+                                        <img src={job.company_logo} alt="" className="w-10 h-10 rounded-xl object-cover border border-km-border shrink-0 bg-km-surface-card" />
                                     ) : (
                                         <div className="w-10 h-10 rounded-xl bg-[#071A4D] text-white font-bold text-sm flex items-center justify-center shrink-0 border border-[#0B1F52] dark:bg-km-primary dark:border-km-link">
                                             {job.company ? job.company.charAt(0).toUpperCase() : 'C'}
@@ -682,7 +682,7 @@ const JobDetailPage = () => {
                                     {!resumeFile ? (
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
-                                            className="border-2 border-dashed border-km-border hover:border-[#0B5ED7] hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group dark:hover:bg-[#172A50]"
+                                            className="border-2 border-dashed border-km-border hover:border-km-blue hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group dark:hover:bg-[#172A50]"
                                         >
                                             <CloudArrowUpIcon size={20} className="text-km-link mx-auto mb-1.5" aria-hidden="true" />
                                             <p className="text-xs font-semibold text-km-text-primary">
@@ -726,7 +726,7 @@ const JobDetailPage = () => {
                                         <span className="text-[11px] text-km-text-secondary">{coverLetter.length}/500</span>
                                     </div>
                                     <textarea
-                                        className="w-full bg-km-surface border border-km-border rounded-xl p-3 min-h-22 outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all font-medium text-xs text-km-text-primary placeholder:text-km-text-secondary/70 resize-none"
+                                        className="w-full bg-km-surface border border-km-border rounded-xl p-3 min-h-22 outline-hidden focus:border-km-blue focus:ring-2 focus:ring-km-blue/10 transition-all font-medium text-xs text-km-text-primary placeholder:text-km-text-secondary/70 resize-none"
                                         placeholder="Add relevant experience, key certifications, or immediate availability..."
                                         value={coverLetter}
                                         onChange={(e) => setCoverLetter(e.target.value.slice(0, 500))}

@@ -1,611 +1,430 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CertificateIcon, SealCheckIcon, ArrowUpRightIcon, ArrowsClockwiseIcon, BellIcon, BriefcaseIcon, CalendarBlankIcon, ChatIcon, CheckIcon, ChecksIcon, MagnifyingGlassIcon, SlidersHorizontalIcon, TrashIcon, UsersIcon, XIcon } from '@phosphor-icons/react';
+import {
+    BellIcon,
+    BriefcaseIcon,
+    AlarmIcon,
+    CalendarBlankIcon,
+    CertificateIcon,
+    ChatIcon,
+    CheckIcon,
+    ChecksIcon,
+    GearSixIcon,
+    HeartIcon,
+    MagnifyingGlassIcon,
+    SealCheckIcon,
+    ShieldWarningIcon,
+    SpinnerGapIcon,
+    TrashIcon,
+    UsersIcon,
+    XIcon,
+    type Icon,
+} from "@phosphor-icons/react";
 import CustomImage from "@/components/ui/CustomImage";
 import PushPrompt from "@/components/km/PushPrompt";
-import { useNotifications, NotificationItem, sanitizeNotificationLink } from "@/lib/notifications";
-import AdSlot from '@/components/ads/AdSlot';
+import { cursorAfter, useNotifications, type NotificationItem, sanitizeNotificationLink } from "@/lib/notifications";
+import AdSlot from "@/components/ads/AdSlot";
 
-const CATEGORIES = [
+const CATEGORIES: { id: string; label: string; icon: Icon }[] = [
     { id: "all", label: "All", icon: BellIcon },
-    { id: "messages", label: "Messages & Chat", icon: ChatIcon },
-    { id: "jobs", label: "Jobs & Applications", icon: BriefcaseIcon },
-    { id: "network", label: "Network & Invites", icon: UsersIcon },
-    { id: "system", label: "System & Alerts", icon: BellIcon },
-] as const;
+    { id: "messages", label: "Messages", icon: ChatIcon },
+    { id: "jobs", label: "Jobs and applications", icon: BriefcaseIcon },
+    { id: "network", label: "Network", icon: UsersIcon },
+    { id: "system", label: "Account and updates", icon: BellIcon },
+];
 
 const PAGE_SIZE = 20;
 
+/** "now", "5m", "3h", "2d", then a date */
+function shortTime(dateStr: string): string {
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return "";
+    const sec = Math.floor((Date.now() - date.getTime()) / 1000);
+    if (sec < 60) return "now";
+    const min = Math.floor(sec / 60);
+    if (min < 60) return `${min}m`;
+    const hr = Math.floor(min / 60);
+    if (hr < 24) return `${hr}h`;
+    const day = Math.floor(hr / 24);
+    if (day < 7) return `${day}d`;
+    return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
+}
+
+function typeIcon(item: NotificationItem): { Icon: Icon; color: string } {
+    if (item.type === "certificate_review") return { Icon: CertificateIcon, color: "text-km-link" };
+    if (item.type === "expert_application") return { Icon: SealCheckIcon, color: "text-km-mentors" };
+    if (item.type === "interview_scheduled") return { Icon: CalendarBlankIcon, color: "text-km-jobs" };
+    if (item.type === "feed_reaction") return { Icon: HeartIcon, color: "text-km-services" };
+    if (item.type === "job_alert") return { Icon: BriefcaseIcon, color: "text-km-jobs" };
+    if (item.type === "reminder") return { Icon: AlarmIcon, color: "text-km-events" };
+    if (item.type === "account") return { Icon: ShieldWarningIcon, color: "text-km-heading" };
+    if (item.category === "messages") return { Icon: ChatIcon, color: "text-km-link" };
+    if (item.category === "jobs") return { Icon: BriefcaseIcon, color: "text-km-jobs" };
+    if (item.category === "network") return { Icon: UsersIcon, color: "text-km-link" };
+    return { Icon: BellIcon, color: "text-km-text-secondary" };
+}
+
+function targetOf(item: NotificationItem): string | null {
+    if (item.type === "connection_accepted") {
+        const id = item.actor_id || item.metadata?.accepted_by;
+        if (id) return `/profile/${id}`;
+    }
+    return item.link ? sanitizeNotificationLink(item.link, item) : null;
+}
+
+/** Does a live notification belong in the list as it's filtered now? */
+function fits(item: NotificationItem, category: string, unreadOnly: boolean) {
+    return (category === "all" || item.category === category) && (!unreadOnly || !item.is_read);
+}
+
 export default function NotificationsPage() {
     const router = useRouter();
-    const {
-        unreadCount,
-        notifications: contextNotifications,
-        fetchNotifications,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-    } = useNotifications();
+    const { unreadCount, unseenCount, markAllSeen, unreadByCategory, fetchNotifications, markAsRead, markAllAsRead, deleteNotification, subscribe } =
+        useNotifications();
 
-    const [selectedCategory, setSelectedCategory] = useState<string>("all");
-    const [unreadOnly, setUnreadOnly] = useState<boolean>(false);
-    const [searchQuery, setSearchQuery] = useState<string>("");
-    const [feedItems, setFeedItems] = useState<NotificationItem[]>([]);
-    const [totalCount, setTotalCount] = useState<number>(0);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [loadingMore, setLoadingMore] = useState<boolean>(false);
+    const [category, setCategory] = useState("all");
+    const [unreadOnly, setUnreadOnly] = useState(false);
+    const [query, setQuery] = useState("");
+    const [items, setItems] = useState<NotificationItem[]>([]);
+    const [total, setTotal] = useState(0);
+    const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+    const [loadingMore, setLoadingMore] = useState(false);
+    // Ignores an answer for a filter that has since changed
+    const requestRef = useRef(0);
 
-    // Initial fetch when category or unread filter changes
-    useEffect(() => {
-        let isMounted = true;
-        setLoading(true);
-
-        fetchNotifications(selectedCategory, unreadOnly, PAGE_SIZE, 0)
+    const loadFirst = useCallback(() => {
+        const req = ++requestRef.current;
+        fetchNotifications(category, unreadOnly, PAGE_SIZE, 0)
             .then((res) => {
-                if (isMounted) {
-                    setFeedItems(res.notifications);
-                    setTotalCount(res.total);
-                }
+                if (req !== requestRef.current) return;
+                setItems(res.notifications);
+                setTotal(res.total);
+                setStatus("ready");
             })
             .catch(() => {
-                if (isMounted) {
-                    setFeedItems([]);
-                    setTotalCount(0);
-                }
-            })
-            .finally(() => {
-                if (isMounted) setLoading(false);
+                if (req === requestRef.current) setStatus("error");
             });
+    }, [category, unreadOnly, fetchNotifications]);
 
-        return () => {
-            isMounted = false;
-        };
-    }, [selectedCategory, unreadOnly, fetchNotifications]);
-
-    // Handle real-time incoming notification from context
     useEffect(() => {
-        if (contextNotifications.length > 0 && selectedCategory === "all" && !unreadOnly) {
-            setFeedItems((prev) => {
-                const map = new Map<string, NotificationItem>();
-                // Context items first (newest)
-                contextNotifications.forEach((n) => map.set(n.id, n));
-                // Then previous loaded items
-                prev.forEach((n) => {
-                    if (!map.has(n.id)) {
-                        map.set(n.id, n);
-                    }
-                });
-                return Array.from(map.values());
-            });
-        }
-    }, [contextNotifications, selectedCategory, unreadOnly]);
+        loadFirst();
+    }, [loadFirst]);
 
-    // Load More pagination
-    const handleLoadMore = useCallback(async () => {
-        if (loadingMore || feedItems.length >= totalCount) return;
+    // Being on this page counts as having seen what arrives, so the bell badge stays clear
+    useEffect(() => {
+        if (unseenCount > 0) markAllSeen();
+    }, [unseenCount, markAllSeen]);
+
+    const pickCategory = (id: string) => {
+        if (id === category) return;
+        setStatus("loading");
+        setItems([]);
+        setCategory(id);
+    };
+    const toggleUnread = () => {
+        setStatus("loading");
+        setItems([]);
+        setUnreadOnly((v) => !v);
+    };
+
+    // Live changes from any tab or device
+    useEffect(
+        () =>
+            subscribe((e) => {
+                if (e.type === "new") {
+                    if (!fits(e.notification, category, unreadOnly)) return;
+                    setItems((prev) => {
+                        const known = prev.some((n) => n.id === e.notification.id);
+                        if (!known) setTotal((t) => t + 1);
+                        return [e.notification, ...prev.filter((n) => n.id !== e.notification.id)];
+                    });
+                } else if (e.type === "read") {
+                    setItems((prev) => prev.map((n) => (n.id === e.id ? { ...n, is_read: true } : n)));
+                } else if (e.type === "all_read") {
+                    setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
+                } else if (e.type === "deleted") {
+                    setItems((prev) => {
+                        if (prev.some((n) => n.id === e.id)) setTotal((t) => Math.max(0, t - 1));
+                        return prev.filter((n) => n.id !== e.id);
+                    });
+                }
+            }),
+        [subscribe, category, unreadOnly],
+    );
+
+    const loadMore = async () => {
+        const cursor = cursorAfter(items);
+        if (loadingMore || !cursor) return;
         setLoadingMore(true);
+        const req = requestRef.current;
         try {
-            const nextOffset = feedItems.length;
-            const res = await fetchNotifications(selectedCategory, unreadOnly, PAGE_SIZE, nextOffset);
-            setFeedItems((prev) => {
-                const map = new Map<string, NotificationItem>();
-                prev.forEach((item) => map.set(item.id, item));
-                res.notifications.forEach((item) => map.set(item.id, item));
-                return Array.from(map.values());
-            });
-            setTotalCount(res.total);
-        } catch (err) {
-            console.error("Failed to load more notifications:", err);
+            const res = await fetchNotifications(category, unreadOnly, PAGE_SIZE, 0, cursor);
+            if (req !== requestRef.current) return;
+            // Older items go below; anything already shown stays where it is
+            setItems((prev) => [...prev, ...res.notifications.filter((n) => !prev.some((p) => p.id === n.id))]);
+            setTotal(res.total);
+        } catch {
+            // The button stays for another try
         } finally {
             setLoadingMore(false);
         }
-    }, [loadingMore, feedItems.length, totalCount, selectedCategory, unreadOnly, fetchNotifications]);
+    };
 
-    // Client-side Keyword Search filter (by actor name, title, message, company, or job title)
-    const filteredFeedItems = useMemo(() => {
-        if (!searchQuery.trim()) return feedItems;
-        const q = searchQuery.toLowerCase().trim();
-        return feedItems.filter((item) => {
-            const name = (item.actor_name || "").toLowerCase();
-            const title = (item.title || "").toLowerCase();
-            const msg = (item.message || "").toLowerCase();
-            const company = String(item.metadata?.company_name || item.metadata?.company || "").toLowerCase();
-            const jobTitle = String(item.metadata?.job_title || "").toLowerCase();
-            return name.includes(q) || title.includes(q) || msg.includes(q) || company.includes(q) || jobTitle.includes(q);
-        });
-    }, [feedItems, searchQuery]);
+    const open = (item: NotificationItem) => {
+        if (!item.is_read) void markAsRead(item.id);
+        const to = targetOf(item);
+        if (to) router.push(to);
+    };
 
-    // Group filtered items by timeline: Today, Yesterday, Earlier
-    const groupedNotifications = useMemo(() => {
-        const today: NotificationItem[] = [];
-        const yesterday: NotificationItem[] = [];
-        const earlier: NotificationItem[] = [];
+    const shown = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        if (!q) return items;
+        return items.filter((n) =>
+            [n.actor_name, n.title, n.message, n.metadata?.company_name, n.metadata?.company, n.metadata?.job_title]
+                .some((v) => String(v ?? "").toLowerCase().includes(q)),
+        );
+    }, [items, query]);
 
+    const groups = useMemo(() => {
         const now = new Date();
-        const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        const startOfYesterday = startOfToday - 86400000;
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        const yesterday = today - 86400000;
+        const out: { label: string; items: NotificationItem[] }[] = [
+            { label: "Today", items: [] },
+            { label: "Yesterday", items: [] },
+            { label: "Earlier", items: [] },
+        ];
+        for (const n of shown) {
+            const t = new Date(n.created_at).getTime();
+            out[t >= today ? 0 : t >= yesterday ? 1 : 2].items.push(n);
+        }
+        return out.filter((g) => g.items.length > 0);
+    }, [shown]);
 
-        for (const item of filteredFeedItems) {
-            const itemTime = new Date(item.created_at).getTime();
-            if (itemTime >= startOfToday) {
-                today.push(item);
-            } else if (itemTime >= startOfYesterday) {
-                yesterday.push(item);
-            } else {
-                earlier.push(item);
-            }
-        }
+    const countFor = (id: string) => (id === "all" ? unreadCount : unreadByCategory[id] ?? 0);
+    const hasMore = items.length < total;
+    const currentLabel = CATEGORIES.find((c) => c.id === category)?.label ?? "Notifications";
 
-        return { today, yesterday, earlier };
-    }, [filteredFeedItems]);
-
-    // Calculate unread counts per category from current context
-    const categoryUnreadCounts = useMemo(() => {
-        const counts: Record<string, number> = {
-            all: unreadCount,
-            messages: 0,
-            jobs: 0,
-            network: 0,
-            system: 0,
-        };
-
-        for (const n of contextNotifications) {
-            if (!n.is_read) {
-                if (n.category && counts[n.category] !== undefined) {
-                    counts[n.category]++;
-                }
-            }
-        }
-
-        return counts;
-    }, [unreadCount, contextNotifications]);
-
-    // Format relative time helper
-    const formatTime = (dateStr: string) => {
-        if (!dateStr) return "";
-        try {
-            const now = new Date();
-            const date = new Date(dateStr);
-            const diffSec = Math.floor((now.getTime() - date.getTime()) / 1000);
-            if (diffSec < 60) return "just now";
-            const diffMin = Math.floor(diffSec / 60);
-            if (diffMin < 60) return `${diffMin}m`;
-            const diffHr = Math.floor(diffMin / 60);
-            if (diffHr < 24) return `${diffHr}h`;
-            const diffDay = Math.floor(diffHr / 24);
-            if (diffDay === 1) return "1d";
-            if (diffDay < 7) return `${diffDay}d`;
-            return date.toLocaleDateString("en-IN", { month: "short", day: "numeric" });
-        } catch {
-            return "";
-        }
-    };
-
-    // Category icon helper with solid fill
-    const renderCategoryIcon = (category: string, type: string) => {
-        if (type === "certificate_review") {
-            return (
-                <CertificateIcon size={22} weight="duotone" className="text-km-link shrink-0" aria-hidden="true" />
-            );
-        }
-        if (type === "expert_application") {
-            return (
-                <SealCheckIcon size={22} weight="duotone" className="text-km-mentors shrink-0" aria-hidden="true" />
-            );
-        }
-        if (type === "interview_scheduled") {
-            return (
-                <CalendarBlankIcon size={22} weight="duotone" className="text-indigo-700 shrink-0" aria-hidden="true" />
-            );
-        }
-        if (category === "messages") {
-            return (
-                <ChatIcon size={22} weight="duotone" className="text-blue-700 shrink-0" aria-hidden="true" />
-            );
-        }
-        if (category === "jobs") {
-            return (
-                <BriefcaseIcon size={22} weight="duotone" className="text-amber-700 shrink-0" aria-hidden="true" />
-            );
-        }
-        if (category === "network") {
-            return (
-                <UsersIcon size={22} weight="duotone" className="text-emerald-700 shrink-0" aria-hidden="true" />
-            );
-        }
+    const row = (item: NotificationItem) => {
+        const { Icon, color } = typeIcon(item);
+        const unread = !item.is_read;
         return (
-            <BellIcon size={22} weight="duotone" className="text-slate-700 shrink-0" aria-hidden="true" />
-        );
-    };
-
-
-
-    // Action button label helper
-    const getActionLabel = (item: NotificationItem) => {
-        if (item.category === "messages") return "Reply";
-        if (item.type === "application_received") return "Review";
-        if (item.type === "application_status") return "View";
-        if (item.type === "interview_scheduled") return "View";
-        if (item.type === "expert_application") return "View";
-        if (item.type === "connection_request") return "View";
-        if (item.type === "connection_accepted") return "Profile";
-        if (item.link) return "Open";
-        return null;
-    };
-
-    const handleActionClick = (e: React.MouseEvent, item: NotificationItem) => {
-        e.stopPropagation();
-        if (!item.is_read) {
-            markAsRead(item.id);
-            setFeedItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n)));
-        }
-        if (item.type === "connection_accepted") {
-            const targetId = item.actor_id || item.metadata?.accepted_by;
-            if (targetId) {
-                router.push(`/profile/${targetId}`);
-                return;
-            }
-        }
-        if (item.link) {
-            router.push(sanitizeNotificationLink(item.link, item));
-        }
-    };
-
-    const handleCardClick = (item: NotificationItem) => {
-        if (!item.is_read) {
-            markAsRead(item.id);
-            setFeedItems((prev) => prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n)));
-        }
-        if (item.type === "connection_accepted") {
-            const targetId = item.actor_id || item.metadata?.accepted_by;
-            if (targetId) {
-                router.push(`/profile/${targetId}`);
-                return;
-            }
-        }
-        if (item.link) {
-            router.push(sanitizeNotificationLink(item.link, item));
-        }
-    };
-
-    const handleDelete = (e: React.MouseEvent, id: string) => {
-        e.stopPropagation();
-        deleteNotification(id);
-        setFeedItems((prev) => prev.filter((n) => n.id !== id));
-        setTotalCount((prev) => Math.max(0, prev - 1));
-    };
-
-    const handleMarkSingleRead = (e: React.MouseEvent, id: string) => {
-        e.stopPropagation();
-        markAsRead(id);
-        setFeedItems((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
-    };
-
-    const handleMarkAllRead = async () => {
-        await markAllAsRead();
-        setFeedItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    };
-
-    // Compact Notification Row (~58px–64px height)
-    const renderNotificationRow = (item: NotificationItem) => {
-        const actionLabel = getActionLabel(item);
-
-        return (
-            <div
-                key={item.id}
-                onClick={() => handleCardClick(item)}
-                className={`px-4 py-3 sm:px-5 sm:py-3.5 flex items-center gap-3.5 transition-colors cursor-pointer group hover:bg-slate-50 relative ${
-                    !item.is_read ? "bg-blue-50/40" : "bg-km-surface-card"
-                }`}
-            >
-                {/* 1. Compact Avatar / Icon (36px) */}
-                <div className="relative shrink-0">
-                    {item.actor_avatar ? (
-                        <div className="w-9 h-9 rounded-full overflow-hidden bg-slate-100 border border-slate-200">
-                            <CustomImage src={item.actor_avatar} alt={item.actor_name || "User"} className="w-full h-full object-cover" />
-                        </div>
-                    ) : (
-                        renderCategoryIcon(item.category, item.type)
-                    )}
-                </div>
-
-                {/* 2. Inline Sentence Flow */}
-                <div className="flex-1 min-w-0 pr-2">
-                    <p className="text-xs sm:text-sm text-slate-700 leading-snug line-clamp-2">
-                        <span className={`mr-1.5 ${!item.is_read ? "font-bold text-slate-900" : "font-semibold text-slate-800"}`}>
-                            {item.actor_name || item.title}
+            <li key={item.id} className={`group relative flex items-start gap-3 px-4 sm:px-5 py-3 ${unread ? "bg-km-surface" : ""}`}>
+                <button
+                    type="button"
+                    onClick={() => open(item)}
+                    className="flex flex-1 min-w-0 items-start gap-3 text-left cursor-pointer"
+                >
+                    <span className="shrink-0">
+                        {item.actor_avatar ? (
+                            <span className="block w-10 h-10 rounded-full overflow-hidden bg-km-surface border border-km-border">
+                                <CustomImage src={item.actor_avatar} alt="" className="w-full h-full object-cover" />
+                            </span>
+                        ) : (
+                            <span className="flex w-10 h-10 items-center justify-center rounded-full bg-km-surface border border-km-border">
+                                <Icon size={20} className={color} aria-hidden="true" />
+                            </span>
+                        )}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                        <span className="block text-sm leading-snug text-km-text-primary line-clamp-3">
+                            <span className={`${unread ? "font-semibold text-km-heading" : "font-medium"}`}>{item.actor_name || item.title}</span>{" "}
+                            <span className={unread ? "" : "text-km-text-secondary"}>{item.message}</span>
                         </span>
-                        <span className={!item.is_read ? "text-slate-800 font-medium" : "text-slate-600"}>
-                            {item.message}
-                        </span>
-                        <span className="inline-block mx-1.5 text-slate-300">·</span>
-                        <span className="text-[11px] text-slate-400 font-normal shrink-0">
-                            {formatTime(item.created_at)}
-                        </span>
-                    </p>
-                </div>
-
-                {/* 3. Trailing Quick Action & Controls */}
-                <div className="flex items-center gap-2 shrink-0">
-                    {actionLabel && (
+                        <time dateTime={item.created_at} className="mt-0.5 block text-[13px] text-km-text-secondary tabular-nums">
+                            {shortTime(item.created_at)}
+                        </time>
+                    </span>
+                    {unread && <span className="mt-2 w-2 h-2 shrink-0 rounded-full bg-km-link" aria-label="Unread" />}
+                </button>
+                <span className="flex shrink-0 items-center">
+                    {unread && (
                         <button
-                            onClick={(e) => handleActionClick(e, item)}
-                            className="hidden sm:inline-flex items-center px-3 py-1 rounded-lg text-xs font-bold text-km-heading hover:text-km-primary-dark bg-blue-50/90 hover:bg-blue-100 border border-blue-200 transition-colors cursor-pointer dark:hover:text-km-link"
-                        >
-                            {actionLabel}
-                        </button>
-                    )}
-
-                    {!item.is_read && (
-                        <button
-                            onClick={(e) => handleMarkSingleRead(e, item.id)}
+                            type="button"
+                            onClick={() => void markAsRead(item.id)}
+                            aria-label="Mark as read"
                             title="Mark as read"
-                            className="p-1.5 text-slate-400 hover:text-km-heading hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="flex w-9 h-9 items-center justify-center rounded-full text-km-text-secondary hover:text-km-heading hover:bg-km-surface-card cursor-pointer"
                         >
-                            <CheckIcon weight="bold" size={14} />
+                            <CheckIcon size={16} weight="bold" />
                         </button>
                     )}
-
                     <button
-                        onClick={(e) => handleDelete(e, item.id)}
-                        title="Delete notification"
-                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100 dark:hover:text-red-400"
+                        type="button"
+                        onClick={() => void deleteNotification(item.id)}
+                        aria-label="Delete notification"
+                        title="Delete"
+                        className="flex w-9 h-9 items-center justify-center rounded-full text-km-text-secondary hover:text-red-600 hover:bg-km-surface-card cursor-pointer sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100 dark:hover:text-red-400"
                     >
-                        <TrashIcon weight="bold" size={14} />
+                        <TrashIcon size={16} />
                     </button>
-
-                    {/* Unread Indicator Dot */}
-                    {!item.is_read ? (
-                        <span className="w-2 h-2 rounded-full bg-km-primary shrink-0" />
-                    ) : (
-                        <span className="w-2 h-2 shrink-0" />
-                    )}
-                </div>
-            </div>
+                </span>
+            </li>
         );
     };
-
-    const hasMore = feedItems.length < totalCount;
 
     return (
-        <div className="min-h-screen bg-km-surface py-6 px-4 sm:px-6 lg:px-8 font-sans">
+        <div className="min-h-screen bg-km-surface py-6 px-4 sm:px-6 lg:px-8">
             <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-
-                {/* LEFT SIDEBAR: Categories & Settings Navigation */}
-                <aside className="lg:col-span-3 space-y-4">
-                    {/* Management Card */}
-                    <div className="bg-km-surface-card rounded-2xl p-4 border border-slate-200 shadow-xs">
-                        <div className="flex items-center justify-between mb-3 px-1">
-                            <h2 className="text-sm font-bold text-slate-900">Notifications</h2>
-                            {unreadCount > 0 && (
-                                <span className="bg-red-50 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full border border-red-100 dark:text-red-400">
-                                    {unreadCount} unread
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Category Navigation with Dynamic Count Badges */}
-                        <div className="space-y-1">
-                            {CATEGORIES.map((cat) => {
-                                const Icon = cat.icon;
-                                const isActive = selectedCategory === cat.id;
-                                const count = categoryUnreadCounts[cat.id] || 0;
-
+                <aside className="lg:col-span-3">
+                    <div className="km-card p-3 lg:sticky lg:top-20">
+                        <nav aria-label="Notification types" className="flex lg:flex-col gap-1 overflow-x-auto -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                            {CATEGORIES.map(({ id, label, icon: CatIcon }) => {
+                                const active = category === id;
+                                const count = countFor(id);
                                 return (
                                     <button
-                                        key={cat.id}
-                                        onClick={() => setSelectedCategory(cat.id)}
-                                        className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                                            isActive
-                                                ? "bg-km-primary text-white shadow-xs"
-                                                : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                                        key={id}
+                                        type="button"
+                                        onClick={() => pickCategory(id)}
+                                        aria-pressed={active}
+                                        className={`flex shrink-0 items-center justify-between gap-3 min-h-11 px-3 rounded-xl text-sm font-medium cursor-pointer whitespace-nowrap ${
+                                            active ? "bg-km-surface text-km-heading font-semibold" : "text-km-text-secondary hover:text-km-heading hover:bg-km-surface"
                                         }`}
                                     >
-                                        <div className="flex items-center gap-2.5">
-                                            <Icon size={15} weight={isActive ? "fill" : "regular"} className={isActive ? "text-white" : "text-slate-500"} aria-hidden="true" />
-                                            <span>{cat.label}</span>
-                                        </div>
+                                        <span className="flex items-center gap-2.5">
+                                            <CatIcon size={18} weight={active ? "fill" : "regular"} aria-hidden="true" />
+                                            {label}
+                                        </span>
                                         {count > 0 && (
-                                            <span
-                                                className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                                                    isActive ? "bg-white/20 text-white" : "bg-red-50 text-red-600 dark:text-red-400"
-                                                }`}
-                                            >
-                                                {count}
+                                            <span className="min-w-5 px-1.5 rounded-full bg-km-link text-white text-xs font-semibold leading-5 text-center tabular-nums">
+                                                {count > 99 ? "99+" : count}
+                                                <span className="sr-only"> unread</span>
                                             </span>
                                         )}
                                     </button>
                                 );
                             })}
+                        </nav>
+                        <div className="hidden lg:block mt-2 pt-2 border-t border-km-border">
+                            <Link
+                                href="/settings?tab=notifications"
+                                className="flex items-center gap-2.5 min-h-11 px-3 rounded-xl text-sm font-medium text-km-text-secondary hover:text-km-heading hover:bg-km-surface"
+                            >
+                                <GearSixIcon size={18} aria-hidden="true" />
+                                Notification settings
+                            </Link>
                         </div>
-
-                        <hr className="my-3 border-slate-100" />
-
-                        {/* Direct link to real Settings page */}
-                        <Link
-                            href="/settings?tab=notifications"
-                            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
-                        >
-                            <div className="flex items-center gap-2">
-                                <SlidersHorizontalIcon weight="bold" size={14} className="text-slate-600" />
-                                <span>Notification Settings</span>
-                            </div>
-                            <ArrowUpRightIcon weight="bold" size={13} className="text-slate-400" />
-                        </Link>
-                    </div>
-
-                    {/* Unread Filter Switch Card */}
-                    <div className="bg-km-surface-card rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between">
-                        <div>
-                            <p className="text-xs font-bold text-slate-900">Unread only</p>
-                            <p className="text-[11px] text-slate-500">Filter pending alerts</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={unreadOnly}
-                                onChange={(e) => setUnreadOnly(e.target.checked)}
-                                className="sr-only peer"
-                            />
-                            <div className="w-10 h-5.5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-km-surface-card after:border-slate-300 after:border after:rounded-full after:h-4.5 after:w-4.5 after:transition-all peer-checked:bg-km-primary dark:peer-checked:after:border-km-surface-card"></div>
-                        </label>
                     </div>
                 </aside>
 
-                {/* CENTER FEED: Compact High-Density List */}
                 <main className="lg:col-span-6 space-y-4">
                     <PushPrompt />
-                    {/* Header Bar */}
-                    <div className="bg-km-surface-card rounded-2xl px-5 py-3.5 border border-slate-200 shadow-xs flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <h1 className="text-base font-bold text-slate-900">
-                                {CATEGORIES.find((c) => c.id === selectedCategory)?.label || "Notifications"}
+                    <section className="km-card overflow-hidden" aria-labelledby="notifications-title">
+                        <header className="flex flex-wrap items-center justify-between gap-3 px-4 sm:px-5 pt-4 pb-3 border-b border-km-border">
+                            <h1 id="notifications-title" className="text-lg font-semibold text-km-heading text-balance">
+                                {currentLabel}
                             </h1>
-                            <span className="text-xs font-semibold text-slate-400">
-                                ({searchQuery ? `${filteredFeedItems.length} of ${totalCount}` : totalCount})
-                            </span>
-                        </div>
-
-                        {unreadCount > 0 && (
-                            <button
-                                onClick={handleMarkAllRead}
-                                className="inline-flex items-center gap-1.5 text-xs font-bold text-km-heading hover:text-km-primary-dark transition-colors cursor-pointer dark:hover:text-km-link"
-                            >
-                                <ChecksIcon weight="bold" size={15} />
-                                <span>Mark all as read</span>
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Optional Keyword Search Input (filter by user name, company, or message) */}
-                    <div className="bg-km-surface-card rounded-2xl p-2.5 sm:px-4 sm:py-3 border border-slate-200 shadow-xs flex items-center gap-2.5">
-                        <MagnifyingGlassIcon weight="bold" size={16} className="text-slate-400 shrink-0" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Filter by name, company, or keyword (e.g. Google, Rohan)..."
-                            className="w-full text-xs sm:text-sm bg-transparent border-none outline-none text-slate-800 placeholder-slate-400"
-                        />
-                        {searchQuery && (
-                            <button
-                                type="button"
-                                onClick={() => setSearchQuery("")}
-                                className="text-slate-400 hover:text-slate-600 p-1 rounded-md hover:bg-slate-100 transition-colors shrink-0"
-                                aria-label="Clear search"
-                            >
-                                <XIcon weight="bold" size={14} />
-                            </button>
-                        )}
-                    </div>
-
-                    {/* Feed Content */}
-                    <div className="bg-km-surface-card rounded-2xl border border-slate-200 shadow-xs overflow-hidden divide-y divide-slate-100">
-                        {loading ? (
-                            <div className="p-12 text-center text-slate-400">
-                                <div className="w-7 h-7 border-2 border-km-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-                                <p className="text-xs font-medium text-slate-500">Loading notifications...</p>
+                            <div className="flex items-center gap-4">
+                                <label className="flex items-center gap-2 text-sm text-km-text-secondary cursor-pointer">
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={unreadOnly}
+                                        onClick={toggleUnread}
+                                        className={`relative w-9 h-5 rounded-full cursor-pointer ${unreadOnly ? "bg-km-link" : "bg-km-border"}`}
+                                    >
+                                        <span
+                                            className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-xs transition-transform ${unreadOnly ? "translate-x-4" : ""}`}
+                                        />
+                                    </button>
+                                    Unread only
+                                </label>
+                                {unreadCount > 0 && (
+                                    <button
+                                        type="button"
+                                        onClick={() => void markAllAsRead()}
+                                        className="inline-flex items-center gap-1.5 min-h-9 text-sm font-semibold text-km-link hover:underline cursor-pointer"
+                                    >
+                                        <ChecksIcon size={16} aria-hidden="true" />
+                                        Mark all as read
+                                    </button>
+                                )}
                             </div>
-                        ) : filteredFeedItems.length === 0 ? (
-                            <div className="p-12 text-center text-slate-400">
-                                <div className="w-11 h-11 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-2 text-slate-400">
-                                    {searchQuery ? <MagnifyingGlassIcon size={20} className="text-slate-400" /> : <BellIcon weight="fill" size={20} className="fill-slate-400 text-slate-400" />}
-                                </div>
-                                <h3 className="text-sm font-bold text-slate-800">
-                                    {searchQuery ? "No matching notifications" : "You're all caught up!"}
-                                </h3>
-                                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-                                    {searchQuery
-                                        ? `No notifications found matching "${searchQuery}". Check the spelling or clear the search filter.`
-                                        : unreadOnly
-                                        ? "No unread notifications in this category. Switch off the unread filter to see past activity."
-                                        : "No notifications found in this category yet. When updates arrive, they will appear here."}
+                        </header>
+
+                        {items.length > 3 && (
+                            <div className="px-4 sm:px-5 py-2 border-b border-km-border">
+                                <label className="flex items-center gap-2.5">
+                                    <MagnifyingGlassIcon size={16} className="text-km-text-secondary shrink-0" aria-hidden="true" />
+                                    <span className="sr-only">Filter notifications</span>
+                                    <input
+                                        type="search"
+                                        value={query}
+                                        onChange={(e) => setQuery(e.target.value)}
+                                        placeholder="Filter by name or keyword"
+                                        className="w-full h-9 bg-transparent text-sm text-km-text-primary placeholder:text-km-text-muted outline-none"
+                                    />
+                                    {query && (
+                                        <button type="button" onClick={() => setQuery("")} aria-label="Clear filter" className="p-1.5 rounded-full text-km-text-secondary hover:text-km-heading cursor-pointer">
+                                            <XIcon size={14} />
+                                        </button>
+                                    )}
+                                </label>
+                            </div>
+                        )}
+
+                        {status === "loading" ? (
+                            <div className="flex justify-center py-12" role="status" aria-label="Loading notifications">
+                                <SpinnerGapIcon size={24} className="animate-spin text-km-text-secondary" />
+                            </div>
+                        ) : status === "error" ? (
+                            <p className="px-5 py-10 text-center text-sm text-km-text-secondary">
+                                Notifications couldn’t be loaded.{" "}
+                                <button type="button" onClick={() => { setStatus("loading"); loadFirst(); }} className="font-semibold text-km-link hover:underline cursor-pointer">
+                                    Try again
+                                </button>
+                            </p>
+                        ) : shown.length === 0 ? (
+                            <div className="px-5 py-12 text-center">
+                                <BellIcon size={28} className="mx-auto text-km-text-secondary" aria-hidden="true" />
+                                <p className="mt-2 text-sm font-semibold text-km-heading">
+                                    {query ? "Nothing matches that filter" : unreadOnly ? "No unread notifications" : "No notifications yet"}
                                 </p>
-                                {searchQuery ? (
+                                {(query || unreadOnly) && (
                                     <button
-                                        onClick={() => setSearchQuery("")}
-                                        className="mt-3 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                                        type="button"
+                                        onClick={() => (query ? setQuery("") : toggleUnread())}
+                                        className="mt-2 text-sm font-semibold text-km-link hover:underline cursor-pointer"
                                     >
-                                        Clear Search
+                                        {query ? "Clear filter" : "Show all"}
                                     </button>
-                                ) : unreadOnly ? (
-                                    <button
-                                        onClick={() => setUnreadOnly(false)}
-                                        className="mt-3 px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                                    >
-                                        View All
-                                    </button>
-                                ) : null}
+                                )}
                             </div>
                         ) : (
-                            <div>
-                                {/* Today Group */}
-                                {groupedNotifications.today.length > 0 && (
-                                    <div className="divide-y divide-slate-100">
-                                        <div className="px-5 py-2 bg-slate-50/70 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                            Today
-                                        </div>
-                                        {groupedNotifications.today.map(renderNotificationRow)}
+                            <>
+                                {groups.map((g) => (
+                                    <div key={g.label}>
+                                        <h2 className="px-4 sm:px-5 pt-3 pb-1 text-[13px] font-semibold text-km-text-secondary">{g.label}</h2>
+                                        <ul className="divide-y divide-km-border">{g.items.map(row)}</ul>
                                     </div>
-                                )}
-
-                                {/* Yesterday Group */}
-                                {groupedNotifications.yesterday.length > 0 && (
-                                    <div className="divide-y divide-slate-100">
-                                        <div className="px-5 py-2 bg-slate-50/70 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                            Yesterday
-                                        </div>
-                                        {groupedNotifications.yesterday.map(renderNotificationRow)}
-                                    </div>
-                                )}
-
-                                {/* Earlier Group */}
-                                {groupedNotifications.earlier.length > 0 && (
-                                    <div className="divide-y divide-slate-100">
-                                        <div className="px-5 py-2 bg-slate-50/70 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                                            Earlier
-                                        </div>
-                                        {groupedNotifications.earlier.map(renderNotificationRow)}
-                                    </div>
-                                )}
-
-                                {/* Pagination / Load More (hidden if searching locally) */}
-                                {hasMore && !searchQuery && (
-                                    <div className="p-3 text-center border-t border-slate-100 bg-slate-50/50">
+                                ))}
+                                {hasMore && !query && (
+                                    <div className="border-t border-km-border">
                                         <button
-                                            onClick={handleLoadMore}
+                                            type="button"
+                                            onClick={() => void loadMore()}
                                             disabled={loadingMore}
-                                            className="px-5 py-2 text-xs font-bold text-km-heading hover:text-km-primary-dark hover:bg-blue-50 border border-blue-200 rounded-xl transition-all cursor-pointer inline-flex items-center gap-2 dark:hover:text-km-link"
+                                            className="w-full min-h-12 inline-flex items-center justify-center gap-2 text-sm font-semibold text-km-link hover:bg-km-surface cursor-pointer disabled:opacity-60"
                                         >
-                                            {loadingMore ? (
-                                                <>
-                                                    <div className="w-3.5 h-3.5 border-2 border-km-primary border-t-transparent rounded-full animate-spin" />
-                                                    <span>Loading...</span>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <ArrowsClockwiseIcon weight="bold" size={13} />
-                                                    <span>Load more notifications ({totalCount - feedItems.length} remaining)</span>
-                                                </>
-                                            )}
+                                            {loadingMore && <SpinnerGapIcon size={16} className="animate-spin" aria-hidden="true" />}
+                                            Show older notifications
                                         </button>
                                     </div>
                                 )}
-                            </div>
+                            </>
                         )}
-                    </div>
+                    </section>
                 </main>
 
-                {/* Right column: an ad, which stays in view */}
                 <div className="lg:col-span-3">
                     <div className="sticky top-20">
                         <AdSlot placement="notifications_sidebar" />
                     </div>
                 </div>
-
             </div>
         </div>
     );

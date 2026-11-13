@@ -26,6 +26,7 @@ import PostComments, { CommentItem } from './PostComments';
 import PostContent from './PostContent';
 import PostMedia from './PostMedia';
 import { ReactionButton, ReactionSummary, withReaction } from './PostReactions';
+import ReactionsDialog from './ReactionsDialog';
 import ReportPostDialog from './ReportPostDialog';
 import type { FeedPost, ReactionType } from './feedTypes';
 import { compactNumber, useFeedUser, useRelativeTime } from './feedUtils';
@@ -60,6 +61,8 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
   const [showComments, setShowComments] = useState(commentsOpen);
   // Each tap on Comment asks the comment box for focus again
   const [focusRequest, setFocusRequest] = useState(0);
+  const [showReactions, setShowReactions] = useState(false);
+  const [replyRequest, setReplyRequest] = useState<{ commentId: string; n: number } | undefined>();
   const [menuOpen, setMenuOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -167,6 +170,13 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
     if (user) setFocusRequest((n) => n + 1);
   };
 
+  // Reply on the preview comment opens the thread with that comment's reply box
+  const replyToLatest = (c: { id: string; parent_id?: string | null }) => {
+    if (!user) return signIn();
+    setShowComments(true);
+    setReplyRequest((r) => ({ commentId: c.parent_id || c.id, n: (r?.n ?? 0) + 1 }));
+  };
+
   const profile = `/profile/${post.author.id}`;
   const roleLabel = post.author.role === 'recruiter' ? t('role.recruiter') : post.author.role === 'expert' ? t('role.expert') : null;
   const menuItem = 'w-full flex items-center gap-3 px-4 py-2.5 text-[15px] text-km-text-primary hover:bg-km-surface cursor-pointer';
@@ -179,7 +189,7 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
         </Link>
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1 min-w-0">
-            <Link id={`post-${post.id}-author`} href={profile} className="truncate text-[15px] font-semibold text-km-heading hover:text-km-link hover:underline">
+            <Link id={`post-${post.id}-author`} href={profile} className="truncate py-2.5 -my-2.5 text-[15px] font-semibold text-km-heading hover:text-km-link hover:underline">
               {post.author.name}
             </Link>
             {post.author.is_verified && <SealCheckIcon size={16} weight="fill" className="text-km-link shrink-0" aria-label={t('verified')} />}
@@ -187,7 +197,7 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
           </p>
           {post.author.headline && <p className="truncate text-[13px] text-km-text-secondary">{post.author.headline}</p>}
           <p className="flex flex-wrap items-center gap-x-1 text-[12px] text-km-text-secondary">
-            <Link href={`/feed/${post.id}`} className="hover:underline">
+            <Link href={`/feed/${post.id}`} className="relative hit-44 hover:underline">
               <time dateTime={post.created_at} title={time.full}>{time.label}</time>
             </Link>
             {post.category !== 'general' && <span>· {t(`category.${post.category}`)}</span>}
@@ -273,13 +283,20 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
       {post.impressions !== undefined && (
         <p className="flex items-center gap-1.5 px-4 sm:px-5 pt-3 text-[13px] text-km-text-secondary">
           <ChartBarIcon size={16} aria-hidden="true" />
-          {t('impressionsCount', { count: post.impressions, formatted: compactNumber(post.impressions, locale) })}
+          {post.reactions_total > 0 ? (
+            // The author's way into who engaged with the post
+            <button type="button" onClick={() => setShowReactions(true)} title={t('seeWhoReacted')} className="relative hit-44 tabular-nums hover:text-km-link hover:underline cursor-pointer">
+              {t('impressionsCount', { count: post.impressions, formatted: compactNumber(post.impressions, locale) })}
+            </button>
+          ) : (
+            <span className="tabular-nums">{t('impressionsCount', { count: post.impressions, formatted: compactNumber(post.impressions, locale) })}</span>
+          )}
         </p>
       )}
 
       {(post.reactions_total > 0 || post.comments_count > 0) && (
         <div className="flex items-center justify-between gap-3 px-4 sm:px-5 pt-3 text-[13px] text-km-text-secondary">
-          <ReactionSummary post={post} />
+          <ReactionSummary post={post} onOpen={() => setShowReactions(true)} />
           {post.comments_count > 0 && (
             <button type="button" onClick={() => setShowComments((s) => !s)} className="ml-auto hover:text-km-link hover:underline cursor-pointer">
               {t('commentsCount', { count: post.comments_count, formatted: compactNumber(post.comments_count, locale) })}
@@ -306,7 +323,7 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
           <CommentItem
             comment={post.latest_comment}
             isPostAuthor={post.latest_comment.author.id === post.author.id}
-            onReply={openComments}
+            onReply={() => replyToLatest(post.latest_comment!)}
           />
           {(post.comments_count > 1 || post.latest_comment.replies_count > 0) && (
             <button type="button" onClick={() => setShowComments(true)} className="ml-[46px] text-[13px] font-semibold text-km-text-secondary hover:text-km-link cursor-pointer">
@@ -320,11 +337,13 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
         <PostComments
           post={post}
           focusRequest={focusRequest}
+          replyRequest={replyRequest}
           onSignIn={signIn}
           onCountChange={(d) => onUpdate(post.id, (p) => ({ ...p, comments_count: Math.max(0, p.comments_count + d) }))}
         />
       )}
 
+      {showReactions && <ReactionsDialog post={post} onClose={() => setShowReactions(false)} />}
       <ReportPostDialog postId={post.id} open={reporting} onClose={() => setReporting(false)} onReported={() => onRemove(post.id)} />
       <ConfirmDialog
         open={confirmDelete}

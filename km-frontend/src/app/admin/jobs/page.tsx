@@ -148,6 +148,7 @@ function JobsContent() {
             setCandidates(enriched);
         } catch (err) {
             console.error('Failed to load applications:', err);
+            notify.error(err, "Applications couldn’t be loaded.");
             setCandidates([]);
         } finally {
             setIsLoadingCandidates(false);

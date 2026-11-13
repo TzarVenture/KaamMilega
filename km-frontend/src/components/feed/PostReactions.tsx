@@ -29,15 +29,20 @@ export function withReaction(p: FeedPost, next?: ReactionType): FeedPost {
 }
 
 /** Up to three reaction icons, most used first, and the total */
-export function ReactionSummary({ post }: { post: FeedPost }) {
+export function ReactionSummary({ post, onOpen }: { post: FeedPost; onOpen?: () => void }) {
   const t = useTranslations('feed');
   const locale = useLocale();
   if (post.reactions_total <= 0) return null;
   const top = REACTIONS.filter((r) => (post.reaction_counts[r] ?? 0) > 0)
     .sort((a, b) => (post.reaction_counts[b] ?? 0) - (post.reaction_counts[a] ?? 0))
     .slice(0, 3);
+  const Tag = onOpen ? 'button' : 'span';
   return (
-    <span className="inline-flex items-center gap-1.5" aria-label={t('reactionsCount', { count: post.reactions_total })}>
+    <Tag
+      {...(onOpen ? { type: 'button' as const, onClick: onOpen } : {})}
+      className={`inline-flex items-center gap-1.5 ${onOpen ? 'relative hit-44 min-h-6 hover:text-km-link hover:underline cursor-pointer' : ''}`}
+      aria-label={t(onOpen ? 'seeReactions' : 'reactionsCount', { count: post.reactions_total })}
+    >
       <span className="inline-flex items-center gap-0.5" aria-hidden="true">
         {top.map((r) => {
           const { Icon, color } = REACTION_STYLE[r];
@@ -45,7 +50,7 @@ export function ReactionSummary({ post }: { post: FeedPost }) {
         })}
       </span>
       <span className="tabular-nums" aria-hidden="true">{compactNumber(post.reactions_total, locale)}</span>
-    </span>
+    </Tag>
   );
 }
 

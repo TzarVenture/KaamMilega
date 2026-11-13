@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 	"errors"
+	"regexp"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ type JobRepository interface {
 	Create(ctx context.Context, job *Job) (*Job, error)
 	FindByID(ctx context.Context, id string) (*Job, error)
 	FindAll(ctx context.Context, filter JobFilter) ([]Job, int64, error)
+	Count(ctx context.Context, filter JobFilter) (int64, error)
 	FindByRecruiter(ctx context.Context, recruiterID string) ([]Job, error)
 	Update(ctx context.Context, id string, job *Job) (*Job, error)
 	Delete(ctx context.Context, id string) error
@@ -62,67 +64,13 @@ func (r *JobRepositoryImpl) FindByID(ctx context.Context, id string) (*Job, erro
 	return &job, nil
 }
 
-func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Job, int64, error) {
-	bsonFilter := bson.M{}
-
-	// Filter logic
-	if filter.Search != "" {
-		regex := bson.M{"$regex": filter.Search, "$options": "i"}
-		bsonFilter["$or"] = []bson.M{
-			{"title": regex},
-			{"description": regex},
-			{"company": regex},
-			{"location": regex},
-			{"city_name": regex},
-		}
-	}
-
-	if len(filter.CityIDs) > 0 {
-		var oids []primitive.ObjectID
-		var names []string
-		for _, id := range filter.CityIDs {
-			if oid, err := primitive.ObjectIDFromHex(id); err == nil {
-				oids = append(oids, oid)
-			} else {
-				names = append(names, id)
-			}
-		}
-
-		cityConditions := []bson.M{}
-		if len(oids) > 0 {
-			cityConditions = append(cityConditions, bson.M{"city_id": bson.M{"$in": oids}})
-		}
-		if len(names) > 0 {
-			// Case-insensitive match for names requires regex ORs if we want strict robust
-			// For simplicity in list, we can use $in with exact match or regex for each
-			// Using regex for each name to be safe
-			orNames := []bson.M{}
-			for _, n := range names {
-				orNames = append(orNames, bson.M{"city_name": bson.M{"$regex": n, "$options": "i"}})
-			}
-			cityConditions = append(cityConditions, bson.M{"$or": orNames})
-		}
-
-		if len(cityConditions) > 0 {
-			if len(cityConditions) == 1 {
-				// Merge into top level if possible, but be careful with existing $or from Search
-				// To avoid conflict with Search $or, uses $and implicitly by adding to bsonFilter
-				// But bsonFilter keys overwrite? "city_id" is unique key. "$or" might conflict.
-				// If Search used $or, we can't use another $or at top level easily in simple map.
-				// We should ideally use $and: [ {search_or}, {city_or} ]
-				// Refactoring to use $and list for safety
-
-				// Let's restart logic below to allow multiple complex conditions using $and
-			}
-		}
-	}
-
-	// Reset bsonFilter to use $and for safety with multiple complex conditions
+// listFilter turns the public job-list filters into a Mongo query. Every condition goes in one $and list.
+func listFilter(filter JobFilter) bson.M {
 	andConditions := []bson.M{}
 
 	// Search
 	if filter.Search != "" {
-		regex := bson.M{"$regex": filter.Search, "$options": "i"}
+		regex := bson.M{"$regex": regexp.QuoteMeta(filter.Search), "$options": "i"}
 		andConditions = append(andConditions, bson.M{"$or": []bson.M{
 			{"title": regex},
 			{"description": regex},
@@ -150,8 +98,8 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 			cityOr = append(cityOr, bson.M{"city_id": bson.M{"$in": oids}})
 		}
 		for _, n := range names {
-			cityOr = append(cityOr, bson.M{"city_name": bson.M{"$regex": n, "$options": "i"}})
-			cityOr = append(cityOr, bson.M{"location": bson.M{"$regex": n, "$options": "i"}})
+			cityOr = append(cityOr, bson.M{"city_name": bson.M{"$regex": regexp.QuoteMeta(n), "$options": "i"}})
+			cityOr = append(cityOr, bson.M{"location": bson.M{"$regex": regexp.QuoteMeta(n), "$options": "i"}})
 		}
 
 		if len(cityOr) > 0 {
@@ -163,7 +111,7 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 	if len(filter.JobTypes) > 0 {
 		jobTypeOr := []bson.M{}
 		for _, jt := range filter.JobTypes {
-			jobTypeOr = append(jobTypeOr, bson.M{"job_type": bson.M{"$regex": jt, "$options": "i"}})
+			jobTypeOr = append(jobTypeOr, bson.M{"job_type": bson.M{"$regex": regexp.QuoteMeta(jt), "$options": "i"}})
 		}
 		if len(jobTypeOr) > 0 {
 			andConditions = append(andConditions, bson.M{"$or": jobTypeOr})
@@ -174,7 +122,7 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 	if len(filter.Genders) > 0 {
 		gendersOr := []bson.M{}
 		for _, g := range filter.Genders {
-			gendersOr = append(gendersOr, bson.M{"gender": bson.M{"$regex": g, "$options": "i"}})
+			gendersOr = append(gendersOr, bson.M{"gender": bson.M{"$regex": regexp.QuoteMeta(g), "$options": "i"}})
 		}
 		if len(gendersOr) > 0 {
 			andConditions = append(andConditions, bson.M{"$or": gendersOr})
@@ -185,7 +133,15 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 	if len(filter.Education) > 0 {
 		eduOr := []bson.M{}
 		for _, e := range filter.Education {
-			eduOr = append(eduOr, bson.M{"education": bson.M{"$regex": e, "$options": "i"}})
+			e = strings.TrimSpace(e)
+			pattern := regexp.QuoteMeta(e)
+			if strings.HasPrefix(e, "^") { // "^graduation": starts with, so "post graduation" is left out
+				pattern = "^" + regexp.QuoteMeta(strings.TrimSpace(e[1:]))
+			}
+			if pattern == "" || pattern == "^" {
+				continue
+			}
+			eduOr = append(eduOr, bson.M{"education": bson.M{"$regex": pattern, "$options": "i"}})
 		}
 		if len(eduOr) > 0 {
 			andConditions = append(andConditions, bson.M{"$or": eduOr})
@@ -212,9 +168,16 @@ func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Jo
 		andConditions = append(andConditions, bson.M{"experience_min": bson.M{"$lte": *filter.ExperienceMax}})
 	}
 
-	if len(andConditions) > 0 {
-		bsonFilter["$and"] = andConditions
-	}
+	return bson.M{"$and": andConditions}
+}
+
+// Count returns how many listed jobs match the filter
+func (r *JobRepositoryImpl) Count(ctx context.Context, filter JobFilter) (int64, error) {
+	return r.jobColl.CountDocuments(ctx, listFilter(filter))
+}
+
+func (r *JobRepositoryImpl) FindAll(ctx context.Context, filter JobFilter) ([]Job, int64, error) {
+	bsonFilter := listFilter(filter)
 
 	// Always sort by created_at desc
 	opts := options.Find().SetSort(bson.M{"created_at": -1})

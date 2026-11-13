@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import { NotificationProvider } from "@/lib/notifications";
+import RoleCookieKeeper from "@/components/auth/RoleCookieKeeper";
 import AppToaster from "@/components/km/AppToaster";
 import PushSync from "@/components/km/PushSync";
 import PushInvite from "@/components/km/PushInvite";
@@ -101,6 +102,7 @@ export default async function RootLayout({
           </NotificationProvider>
           <AppToaster />
           <PushSync />
+          <RoleCookieKeeper />
           <PushInvite />
           {FEATURES.I18N && <AccountLocaleSync />}
           {FEATURES.I18N && <ErrorTranslator />}

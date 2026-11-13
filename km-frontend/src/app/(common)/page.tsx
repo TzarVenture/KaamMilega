@@ -484,7 +484,7 @@ const QUALIFICATIONS = [
   { key: "below10", label: "Below 10th", education: "below 10th", Art: BelowTenthArt },
   { key: "tenth", label: "10th Pass", education: "10th", Art: TenthPassArt },
   { key: "twelfth", label: "12th Pass", education: "12th", Art: TwelfthPassArt },
-  { key: "diploma", label: "Diploma / ITI", education: "diploma|iti", Art: DiplomaItiArt },
+  { key: "diploma", label: "Diploma / ITI", education: "diploma,iti", Art: DiplomaItiArt },
   { key: "graduate", label: "Graduate", education: "^graduation", Art: GraduateArt },
   { key: "postGraduate", label: "Post Graduate", education: "post graduation", Art: PostGraduateArt },
 ];

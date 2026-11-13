@@ -11,11 +11,14 @@ import { ConfirmDialog } from './FeedDialog';
 import PostContent from './PostContent';
 import { MAX_COMMENT_LENGTH, type FeedComment, type FeedPost } from './feedTypes';
 import { displayName, useFeedUser, useRelativeTime } from './feedUtils';
+import type { StoredUser } from '@/lib/auth';
 
 interface PostCommentsProps {
   post: FeedPost;
   /** Goes up each time the member asks to write a comment */
   focusRequest: number;
+  /** Opens the reply box of this comment (the preview's Reply); n goes up each time */
+  replyRequest?: { commentId: string; n: number };
   onCountChange: (delta: number) => void;
   onSignIn: () => void;
 }
@@ -28,7 +31,7 @@ function fitHeight(el: HTMLTextAreaElement) {
 }
 
 /** A post's comments, newest first, each with its replies, and the box to add one */
-export default function PostComments({ post, focusRequest, onCountChange, onSignIn }: PostCommentsProps) {
+export default function PostComments({ post, focusRequest, replyRequest, onCountChange, onSignIn }: PostCommentsProps) {
   const t = useTranslations('feed');
   const { user } = useFeedUser();
   const [comments, setComments] = useState<FeedComment[]>([]);
@@ -106,6 +109,7 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
     <div className="border-t border-km-border px-4 sm:px-5 py-4 space-y-4">
       {user ? (
         <CommentForm
+          user={user}
           postId={post.id}
           inputRef={inputRef}
           placeholder={t('addComment')}
@@ -143,6 +147,8 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
               key={c.id}
               post={post}
               comment={c}
+              user={user}
+              replyRequest={replyRequest?.commentId === c.id ? replyRequest.n : 0}
               removedReply={removedReply}
               onDelete={setDeleting}
               onSignIn={onSignIn}
@@ -181,18 +187,21 @@ export default function PostComments({ post, focusRequest, onCountChange, onSign
 }
 
 /** The box for a new comment or reply */
-function CommentForm({ postId, parentId, inputRef, placeholder, submitLabel, failedMessage, autoFocus, onPosted }: {
+function CommentForm({ user, postId, parentId, inputRef, placeholder, submitLabel, failedMessage, focusRequest = 0, prefill, onPosted }: {
+  user: StoredUser;
   postId: string;
   parentId?: string;
   inputRef?: React.RefObject<HTMLTextAreaElement | null>;
   placeholder: string;
   submitLabel: string;
   failedMessage: string;
-  autoFocus?: boolean;
+  /** Goes up each time the member presses Reply: focuses the box (no remount, so typed text stays) */
+  focusRequest?: number;
+  /** Starts an empty box with this text, e.g. "@Name " when replying to a reply */
+  prefill?: string;
   onPosted: (comment: FeedComment) => void;
 }) {
   const t = useTranslations('feed');
-  const { user } = useFeedUser();
   const ownRef = useRef<HTMLTextAreaElement>(null);
   const ref = inputRef ?? ownRef;
   const [text, setText] = useState('');
@@ -201,8 +210,18 @@ function CommentForm({ postId, parentId, inputRef, placeholder, submitLabel, fai
   const small = Boolean(parentId);
 
   useEffect(() => {
-    if (autoFocus) ref.current?.focus();
-  }, [autoFocus, ref]);
+    const el = ref.current;
+    if (!focusRequest || !el) return;
+    if (prefill) {
+      setText((current) => (current.trim() ? current : prefill));
+    }
+    el.focus({ preventScroll: true });
+    el.scrollIntoView({ block: 'nearest' });
+    // Caret after any prefilled text
+    requestAnimationFrame(() => el.setSelectionRange(el.value.length, el.value.length));
+    // prefill is read only when a new request comes in
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusRequest, ref]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -224,7 +243,6 @@ function CommentForm({ postId, parentId, inputRef, placeholder, submitLabel, fai
     }
   };
 
-  if (!user) return null;
   const id = `comment-${postId}${parentId ? `-${parentId}` : ''}`;
 
   return (
@@ -273,21 +291,24 @@ function CommentForm({ postId, parentId, inputRef, placeholder, submitLabel, fai
 }
 
 /** A top-level comment and its replies, which load when asked for */
-function CommentThread({ post, comment, removedReply, onDelete, onSignIn, onReplied }: {
+function CommentThread({ user, post, comment, replyRequest, removedReply, onDelete, onSignIn, onReplied }: {
+  user: StoredUser | null;
   post: FeedPost;
   comment: FeedComment;
+  /** Non-zero and rising when the post's preview asked to reply to this comment */
+  replyRequest: number;
   removedReply: FeedComment | null;
   onDelete: (c: FeedComment) => void;
   onSignIn: () => void;
   onReplied: () => void;
 }) {
   const t = useTranslations('feed');
-  const { user } = useFeedUser();
   const [replies, setReplies] = useState<FeedComment[]>([]);
   const [cursor, setCursor] = useState<string | undefined>();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [replying, setReplying] = useState(0);
+  const [mention, setMention] = useState('');
 
   useEffect(() => {
     if (removedReply?.parent_id === comment.id) setReplies((prev) => prev.filter((r) => r.id !== removedReply.id));
@@ -307,22 +328,33 @@ function CommentThread({ post, comment, removedReply, onDelete, onSignIn, onRepl
     }
   };
 
-  const startReply = () => {
+  // Replying to a reply starts with @their name, so it's clear who it answers
+  const startReply = (to?: FeedComment) => {
     if (!user) {
       onSignIn();
       return;
     }
     if (!open && comment.replies_count > 0 && replies.length === 0) void loadReplies();
     setOpen(true);
+    setMention(to && to.author.id !== (user.id || user._id) ? `@${to.author.name} ` : '');
     setReplying((n) => n + 1);
   };
+
+  const handledRequest = useRef(0);
+  useEffect(() => {
+    if (!replyRequest || replyRequest === handledRequest.current) return;
+    handledRequest.current = replyRequest;
+    startReply();
+    // startReply reads the latest state on each render; the request number is the trigger
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [replyRequest]);
 
   // Replies posted here this session that the loaded pages don't include yet
   const hidden = Math.max(0, comment.replies_count - replies.length);
 
   return (
     <li>
-      <CommentItem comment={comment} isPostAuthor={comment.author.id === post.author.id} onDelete={() => onDelete(comment)} onReply={startReply} />
+      <CommentItem comment={comment} isPostAuthor={comment.author.id === post.author.id} onDelete={() => onDelete(comment)} onReply={() => startReply()} />
       {(comment.replies_count > 0 || replying > 0) && (
         <div className="ml-[46px] mt-2 space-y-3">
           {!open && comment.replies_count > 0 && (
@@ -336,7 +368,7 @@ function CommentThread({ post, comment, removedReply, onDelete, onSignIn, onRepl
                 <ul className="space-y-3">
                   {replies.map((r) => (
                     <li key={r.id}>
-                      <CommentItem small comment={r} isPostAuthor={r.author.id === post.author.id} onDelete={() => onDelete(r)} onReply={startReply} />
+                      <CommentItem small comment={r} isPostAuthor={r.author.id === post.author.id} onDelete={() => onDelete(r)} onReply={() => startReply(r)} />
                     </li>
                   ))}
                 </ul>
@@ -344,12 +376,13 @@ function CommentThread({ post, comment, removedReply, onDelete, onSignIn, onRepl
               {cursor && hidden > 0 && (
                 <ToggleButton busy={loading} onClick={() => void loadReplies(cursor)}>{t('moreReplies')}</ToggleButton>
               )}
-              {replying > 0 && (
+              {replying > 0 && user && (
                 <CommentForm
-                  key={replying}
+                  user={user}
                   postId={post.id}
                   parentId={comment.id}
-                  autoFocus
+                  focusRequest={replying}
+                  prefill={mention}
                   placeholder={t('addReply')}
                   submitLabel={t('postReply')}
                   failedMessage={t('replyFailed')}

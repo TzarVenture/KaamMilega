@@ -280,6 +280,23 @@ body {
   font-family: var(--font-poppins), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Readable text: headings break evenly, paragraphs avoid a lone last word, and figures in tables and times line up. In the base layer so a utility class on the element still wins. */
+@layer base {
+  h1, h2, h3, h4 { text-wrap: balance; }
+  p, li, blockquote, figcaption { text-wrap: pretty; }
+  table, time, kbd, output { font-variant-numeric: tabular-nums; }
+}
+
+/* hit-44: grows a small link or button's tap area to at least 44px without moving anything.
+   The element needs a position (add `relative`) and must not clip overflow. */
+@utility hit-44 {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: min(0px, calc((100% - 44px) / 2));
+  }
+}
+
 /* Base utility classes for consistent UI */
 .btn-primary {
   background-color: var(--km-primary);

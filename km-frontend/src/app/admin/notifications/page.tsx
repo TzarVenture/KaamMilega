@@ -7,6 +7,7 @@ import CustomImage from '@/components/ui/CustomImage';
 import Pagination from '@/components/ui/Pagination';
 import { useNotifications, NotificationItem, sanitizeNotificationLink } from '@/lib/notifications';
 import { AdminPageHeader, AdminPanel, EmptyState, FilterTabs, SearchInput, SkeletonRows, btn, cx } from '@/components/admin/ui';
+import { notify } from "@/lib/notify";
 
 const CATEGORIES = [
     { id: 'all', label: 'All', icon: BellIcon },
@@ -79,6 +80,7 @@ export default function AdminNotificationsPage() {
             setFeedItems(systemOnly);
         } catch (err) {
             console.error('Failed to load admin notifications:', err);
+            notify.error(err, "Notifications couldn’t be loaded.");
             setFeedItems([]);
         } finally {
             setLoading(false);

@@ -32,6 +32,7 @@ func (a *FeedApi) Setup(app *fiber.App) {
 	feed.Get("/trending", a.controller.Trending)
 	feed.Post("/impressions", optional, a.controller.RecordImpressions)
 	feed.Get("/:id", optional, visitor, a.controller.GetPost)
+	feed.Get("/:id/reactions", optional, a.controller.ListReactions)
 	feed.Get("/:id/comments", optional, a.controller.ListComments)
 	feed.Get("/:id/comments/:commentId/replies", optional, a.controller.ListReplies)
 

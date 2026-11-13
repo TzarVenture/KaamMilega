@@ -31,10 +31,12 @@ type Service struct {
 	sms    sms.SMSService
 	cfg    *config.Config
 	now    func() time.Time
+	// In-app and push notices (suspension); nil in tests
+	notices notification.NotificationService
 }
 
-func NewService(repo Repository, mailer notification.Mailer, smsService sms.SMSService, cfg *config.Config) *Service {
-	return &Service{repo: repo, mailer: mailer, sms: smsService, cfg: cfg, now: time.Now}
+func NewService(repo Repository, mailer notification.Mailer, smsService sms.SMSService, cfg *config.Config, notify notification.NotificationService) *Service {
+	return &Service{repo: repo, mailer: mailer, sms: smsService, cfg: cfg, now: time.Now, notices: notify}
 }
 
 func (s *Service) loadUser(ctx context.Context, userID string) (*user.User, primitive.ObjectID, error) {

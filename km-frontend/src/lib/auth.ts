@@ -48,6 +48,21 @@ export function saveSession(user: StoredUser, activeRole?: string) {
 }
 
 /**
+ * Re-saves the km_user_role cookie on each visit while a login is stored. The login itself renews
+ * while in use, but this cookie was only written at sign-in and ran out after 30 days; the server
+ * redirect in middleware.ts relies on it.
+ */
+export function refreshRoleCookie() {
+    if (typeof window === "undefined") return;
+    const user = getCurrentUser();
+    if (!user) return;
+    const roles = Array.isArray(user.roles) ? user.roles : (user.role ? [user.role] : ["user"]);
+    const current = getCurrentPortalRole();
+    const role = current && roles.includes(current) ? current : roles[0] || "user";
+    document.cookie = `km_user_role=${role}; Path=/; Max-Age=2592000; SameSite=Lax`;
+}
+
+/**
  * Clears session credentials locally and on the server via /api/auth/logout.
  */
 export async function clearSession() {

@@ -34,7 +34,7 @@
     "userTerms": "यूज़र नियम और शर्तें",
     "privacy": "प्राइवेसी पॉलिसी",
     "employerTerms": "एम्प्लॉयर सेवा की शर्तें",
-    "guidelines": "Connect Like You दिशानिर्देश",
+    "guidelines": "सामुदायिक दिशानिर्देश",
     "services": "सेवाएँ",
     "byCategory": "कैटेगरी से नौकरी खोजें",
     "byCity": "शहर से नौकरी खोजें",
@@ -1285,7 +1285,7 @@
     "postComment": "टिप्पणी करें",
     "signInToComment": "टिप्पणी करने के लिए साइन इन करें",
     "commentsFailed": "टिप्पणियां लोड नहीं हो सकीं।",
-    "commentFailed": "आपकी टिप्पणी पोस्ट नहीं हो सकी। कृपया फिर से कोशिश करें।",
+    "commentFailed": "आपकी टिप्पणी पोस्ट नहीं हो सकी। कृपया फिर से कोशिश करें।",
     "olderComments": "पुरानी टिप्पणियां देखें",
     "reply": "जवाब दें",
     "addReply": "जवाब लिखें…",
@@ -1365,7 +1365,13 @@
     "trendingPosts": "{count, plural, one {{formatted} पोस्ट} other {{formatted} पोस्ट}}",
     "statsPeriod": "पिछले 90 दिन",
     "profileViewers": "प्रोफ़ाइल देखने वाले",
-    "impressionsCount": "{count, plural, one {{formatted} इंप्रेशन} other {{formatted} इंप्रेशन}}"
+    "impressionsCount": "{count, plural, one {{formatted} इंप्रेशन} other {{formatted} इंप्रेशन}}",
+    "seeReactions": "{count, plural, one {{count} प्रतिक्रिया, देखें किसने दी} other {{count} प्रतिक्रियाएँ, देखें किसने दीं}}",
+    "reactionsAll": "सभी",
+    "reactionsEmpty": "अभी कोई प्रतिक्रिया नहीं।",
+    "reactionsFailed": "प्रतिक्रियाएँ लोड नहीं हो सकीं।",
+    "moreReactions": "और देखें",
+    "seeWhoReacted": "देखें किसने प्रतिक्रिया दी"
   },
   "ads": {
     "label": "विज्ञापन",

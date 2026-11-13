@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { AdminModal, btn } from '@/components/admin/ui';
 import { CheckIcon, CircleNotchIcon, GraduationCapIcon, ShieldIcon, UserIcon } from '@phosphor-icons/react';
+import { notify } from "@/lib/notify";
 
 interface UserRoleModalProps {
     isOpen: boolean;
@@ -73,6 +74,7 @@ const UserRoleModal = ({ isOpen, onClose, user, onSaveRoles }: UserRoleModalProp
             onClose();
         } catch (error) {
             console.error('Failed to update roles:', error);
+            notify.error(error, "The roles couldn’t be saved.");
         } finally {
             setIsSaving(false);
         }

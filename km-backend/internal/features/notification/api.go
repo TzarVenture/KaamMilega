@@ -21,6 +21,7 @@ func (a *NotificationApi) Setup(app *fiber.App) {
 
 	group.Get("/", a.controller.GetNotifications)
 	group.Get("/unread-count", a.controller.GetUnreadCount)
+	group.Post("/seen", a.controller.MarkAllSeen)
 	group.Put("/read-all", a.controller.MarkAllAsRead)
 	group.Post("/read-all", a.controller.MarkAllAsRead)
 	group.Patch("/read-all", a.controller.MarkAllAsRead)

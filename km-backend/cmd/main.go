@@ -9,11 +9,11 @@ import (
 	"km-backend/internal/config"
 	"km-backend/internal/database"
 	"km-backend/internal/features/account"
-	"km-backend/internal/features/credential"
 	"km-backend/internal/features/app_waitlist"
 	"km-backend/internal/features/application"
 	"km-backend/internal/features/chat"
 	"km-backend/internal/features/city"
+	"km-backend/internal/features/credential"
 	"km-backend/internal/features/instant_work"
 	"km-backend/internal/features/interview"
 	"km-backend/internal/features/mentorship"
@@ -33,6 +33,7 @@ import (
 	"km-backend/internal/features/jobalert"
 	"km-backend/internal/features/payment"
 	"km-backend/internal/features/question"
+	"km-backend/internal/features/reminder"
 	"km-backend/internal/features/setting"
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
@@ -56,7 +57,8 @@ import (
 )
 
 // NewFiberServer creates a new Fiber app instance
-func NewFiberServer() *fiber.App {
+func NewFiberServer(cfg *config.Config) *fiber.App {
+	production := cfg.Environment == "production"
 	app := fiber.New(fiber.Config{
 		DisableStartupMessage: true,
 		// Above file.MaxUploadSize (10 MB) so oversized uploads get a clear 413 from the handler
@@ -70,12 +72,22 @@ func NewFiberServer() *fiber.App {
 			if _, ok := body["code"]; !ok {
 				body["code"] = apperr.StatusCode(code)
 			}
+			// Server faults stay in the log; the person sees a plain message
+			if code >= 500 && apperr.CodeOf(err) == "" {
+				log.Printf("error: %s %s: %v", c.Method(), c.Path(), err)
+				body["error"] = apperr.ServerErrorMessage
+			}
 			return c.Status(code).JSON(body)
 		},
 	})
 
-	// Use custom CORS middleware
-	app.Use(middleware.CORSMiddleware())
+	// Order matters: crash safety first, then the log, then the checks that can turn a request away
+	app.Use(middleware.Recover())
+	app.Use(middleware.RequestLog())
+	app.Use(middleware.SecurityHeaders(production))
+	app.Use(middleware.CORSMiddleware(production))
+	app.Use(middleware.ClampPageSize())
+	app.Use(middleware.RateLimits(cfg.JWTSecret))
 	// Every JSON error response carries a "code" the website translates (internal/common/apperr)
 	app.Use(apperr.Codes())
 
@@ -244,6 +256,7 @@ func main() {
 			account.NewService,
 			credential.NewService,
 			jobalert.NewService,
+			reminder.NewService,
 			feed.NewFeedService,
 			analytics.NewService,
 			ads.NewService,
@@ -326,6 +339,8 @@ func main() {
 			mentorship.RegisterReleaseWorker,
 			// Daily job-alert emails (settings.email_job_alerts)
 			jobalert.RegisterWorker,
+			// Session, event and pass reminders
+			reminder.RegisterWorker,
 			// Register Routes & Start
 			RegisterAllRoutesWithAnnotation,
 			StartServer,

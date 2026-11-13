@@ -389,6 +389,29 @@ func (ctrl *FeedController) Unsave(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusNoContent)
 }
 
+// ListReactions godoc
+// @Summary Who reacted to a post, newest first
+// @Tags feed
+// @Produce json
+// @Param id path string true "Post ID"
+// @Param type query string false "Only this reaction (like, celebrate, support, insightful)"
+// @Param before query string false "Cursor from the previous page"
+// @Param limit query int false "Page size (max 50)"
+// @Success 200 {object} ReactorListResponse
+// @Router /api/feed/{id}/reactions [get]
+func (ctrl *FeedController) ListReactions(c *fiber.Ctx) error {
+	id, ok := pathID(c, "id")
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(errInvalidID))
+	}
+	limit, _ := strconv.Atoi(c.Query("limit"))
+	res, err := ctrl.service.ListReactions(c.UserContext(), viewer(c), id, strings.TrimSpace(c.Query("type")), cursor(c), limit)
+	if err != nil {
+		return fail(c, err)
+	}
+	return c.JSON(res)
+}
+
 // ListComments godoc
 // @Summary A post's comments, newest first
 // @Tags feed

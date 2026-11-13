@@ -65,7 +65,7 @@ func (s *notificationService) CreateOrDebounceChatNotification(ctx context.Conte
 			existing.CreatedAt = time.Now()
 
 			unreadCount, _ := s.repo.CountUnread(ctx, req.UserID)
-			s.hub.Send(req.UserID.Hex(), map[string]interface{}{
+			s.send(ctx, req.UserID.Hex(), map[string]interface{}{
 				"type":         "NEW_NOTIFICATION",
 				"notification": existing,
 				"unread_count": unreadCount,
@@ -119,7 +119,7 @@ func (s *notificationService) CreateNotification(ctx context.Context, req Create
 	}
 
 	// Dispatch real-time WebSocket event
-	s.hub.Send(req.UserID.Hex(), map[string]interface{}{
+	s.send(ctx, req.UserID.Hex(), map[string]interface{}{
 		"type":         "NEW_NOTIFICATION",
 		"notification": created,
 		"unread_count": unreadCount,
@@ -131,12 +131,64 @@ func (s *notificationService) CreateNotification(ctx context.Context, req Create
 	return created, nil
 }
 
+// send delivers a live event with the current badge count added
+func (s *notificationService) send(ctx context.Context, userHex string, payload map[string]interface{}) {
+	if id, err := primitive.ObjectIDFromHex(userHex); err == nil {
+		if n, err := s.repo.CountUnseen(ctx, id); err == nil {
+			payload["unseen_count"] = n
+		}
+	}
+	s.hub.Send(userHex, payload)
+}
+
+func (s *notificationService) GetUnseenCount(ctx context.Context, userID primitive.ObjectID) (int64, error) {
+	return s.repo.CountUnseen(ctx, userID)
+}
+
+func (s *notificationService) MarkAllSeen(ctx context.Context, userID primitive.ObjectID) error {
+	if err := s.repo.MarkAllSeen(ctx, userID); err != nil {
+		return err
+	}
+	// Every open tab and the app clear their badge
+	s.send(ctx, userID.Hex(), map[string]interface{}{"type": "ALL_SEEN"})
+	return nil
+}
+
+func (s *notificationService) CreateOrGroup(ctx context.Context, req CreateNotificationRequest, groupKey string) (*Notification, error) {
+	if req.Metadata == nil {
+		req.Metadata = map[string]interface{}{}
+	}
+	req.Metadata["group_key"] = groupKey
+	existing, err := s.repo.FindUnreadGroup(ctx, req.UserID, groupKey)
+	if err != nil || existing == nil {
+		return s.CreateNotification(ctx, req)
+	}
+	existing.ActorID, existing.ActorName, existing.ActorAvatar = req.ActorID, req.ActorName, req.ActorAvatar
+	existing.Title, existing.Message, existing.Metadata = req.Title, req.Message, req.Metadata
+	if err := s.repo.Regroup(ctx, existing); err != nil {
+		return nil, err
+	}
+	unreadCount, _ := s.repo.CountUnread(ctx, req.UserID)
+	s.send(ctx, req.UserID.Hex(), map[string]interface{}{
+		"type":         "NEW_NOTIFICATION",
+		"notification": existing,
+		"unread_count": unreadCount,
+	})
+	// Same notification ID, so the phone replaces its alert instead of adding another
+	dispatchPush(existing)
+	return existing, nil
+}
+
 func (s *notificationService) GetNotifications(ctx context.Context, userID primitive.ObjectID, filter NotificationFilter) ([]Notification, int64, error) {
 	return s.repo.Find(ctx, userID, filter)
 }
 
 func (s *notificationService) GetUnreadCount(ctx context.Context, userID primitive.ObjectID) (int64, error) {
 	return s.repo.CountUnread(ctx, userID)
+}
+
+func (s *notificationService) GetUnreadByCategory(ctx context.Context, userID primitive.ObjectID) (map[string]int64, error) {
+	return s.repo.CountUnreadByCategory(ctx, userID)
 }
 
 func (s *notificationService) MarkAsRead(ctx context.Context, id, userID primitive.ObjectID) error {
@@ -149,7 +201,7 @@ func (s *notificationService) MarkAsRead(ctx context.Context, id, userID primiti
 		log.Printf("[NotificationService] Failed to count unread: %v", countErr)
 	}
 
-	s.hub.Send(userID.Hex(), map[string]interface{}{
+	s.send(ctx, userID.Hex(), map[string]interface{}{
 		"type":            "NOTIFICATION_READ",
 		"notification_id": id.Hex(),
 		"unread_count":    unreadCount,
@@ -163,11 +215,31 @@ func (s *notificationService) MarkAllAsRead(ctx context.Context, userID primitiv
 		return err
 	}
 
-	s.hub.Send(userID.Hex(), map[string]interface{}{
+	s.send(ctx, userID.Hex(), map[string]interface{}{
 		"type":         "ALL_READ",
 		"unread_count": 0,
 	})
 
+	return nil
+}
+
+func (s *notificationService) MarkChatRead(ctx context.Context, userID primitive.ObjectID, conversationID string) error {
+	ids, err := s.repo.MarkChatRead(ctx, userID, conversationID)
+	if err != nil || len(ids) == 0 {
+		return err
+	}
+	unreadCount, countErr := s.repo.CountUnread(ctx, userID)
+	if countErr != nil {
+		log.Printf("[NotificationService] Failed to count unread: %v", countErr)
+	}
+	// The same event as reading one by hand, so every open tab and the app update their badge
+	for _, id := range ids {
+		s.send(ctx, userID.Hex(), map[string]interface{}{
+			"type":            "NOTIFICATION_READ",
+			"notification_id": id.Hex(),
+			"unread_count":    unreadCount,
+		})
+	}
 	return nil
 }
 
@@ -181,7 +253,7 @@ func (s *notificationService) DeleteNotification(ctx context.Context, id, userID
 		log.Printf("[NotificationService] Failed to count unread: %v", countErr)
 	}
 
-	s.hub.Send(userID.Hex(), map[string]interface{}{
+	s.send(ctx, userID.Hex(), map[string]interface{}{
 		"type":            "NOTIFICATION_DELETED",
 		"notification_id": id.Hex(),
 		"unread_count":    unreadCount,

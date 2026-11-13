@@ -70,6 +70,8 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const {
     unreadCount,
+    unseenCount,
+    markAllSeen,
     chatUnreadCount,
     recentNotifications,
     fetchNotifications,
@@ -288,16 +290,18 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   setNotifDropdownOpen(nextState);
                   if (nextState) {
                     fetchNotifications("all", false, 8, 0).catch(() => {});
+                    // Opening the bell clears its badge; the items stay unread until opened
+                    markAllSeen();
                   }
                 }}
                 className={navItemClass(pathname === "/notifications" || notifDropdownOpen)}
-                aria-label="Notifications"
+                aria-label={unseenCount > 0 ? "Notifications, " + unseenCount + " new" : "Notifications"}
               >
                 <span className="relative">
                   <NotificationsNavIcon size={22} active={pathname === "/notifications" || notifDropdownOpen} />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-white dark:border-km-surface-card">
-                      {unreadCount > 99 ? "99+" : unreadCount}
+                  {unseenCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 min-w-[17px] h-[17px] px-1 bg-red-600 text-white text-[10px] font-semibold rounded-full flex items-center justify-center border border-white tabular-nums dark:border-km-surface-card" aria-hidden="true">
+                      {unseenCount > 99 ? "99+" : unseenCount}
                     </span>
                   )}
                 </span>
@@ -672,17 +676,17 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
           <div className="relative flex items-center justify-center">
             <Link
               href="/notifications"
-              className="p-1 block relative"
+              className="p-1 block relative hit-44"
               aria-label="Notifications"
             >
               <NotificationsNavIcon
                 size={22}
                 active={pathname === "/notifications"}
-                className={unreadCount > 0 ? "text-km-heading" : "text-gray-600"}
+                className={unseenCount > 0 ? "text-km-heading" : "text-gray-600"}
               />
-              {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center border border-white shadow-2xs dark:border-km-surface-card">
-                  {unreadCount > 99 ? "99+" : unreadCount}
+              {unseenCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 bg-red-600 text-white text-[10px] font-semibold rounded-full flex items-center justify-center border border-white tabular-nums dark:border-km-surface-card" aria-hidden="true">
+                  {unseenCount > 99 ? "99+" : unseenCount}
                 </span>
               )}
             </Link>

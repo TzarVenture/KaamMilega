@@ -6,10 +6,12 @@ import (
 	"slices"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"km-backend/internal/features/analytics"
+	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -183,6 +185,19 @@ func (m *memRepo) ViewerReactions(_ context.Context, u primitive.ObjectID, ids [
 		if r, ok := m.reactions[[2]primitive.ObjectID{id, u}]; ok {
 			out[id] = r
 		}
+	}
+	return out, nil
+}
+func (m *memRepo) ListReactions(_ context.Context, p primitive.ObjectID, t string, _ *primitive.ObjectID, limit int, hide []primitive.ObjectID) ([]Reaction, error) {
+	out := []Reaction{}
+	for k, r := range m.reactions {
+		if k[0] != p || (t != "" && r != t) || slices.Contains(hide, k[1]) {
+			continue
+		}
+		out = append(out, Reaction{ID: primitive.NewObjectID(), PostID: p, UserID: k[1], Type: r})
+	}
+	if len(out) > limit {
+		out = out[:limit]
 	}
 	return out, nil
 }
@@ -807,5 +822,83 @@ func TestReportsHidePostAndModeratorDecides(t *testing.T) {
 	}
 	if _, err := f.svc.GetPost(ctx, &f.bob, id); !errors.Is(err, ErrPostNotFound) {
 		t.Fatalf("removed post still opens: %v", err)
+	}
+}
+
+func TestListReactions(t *testing.T) {
+	f := newFixture()
+	ctx := context.Background()
+	p, _ := f.svc.CreatePost(ctx, f.alice, CreatePostRequest{Content: "news"})
+	id := mustID(t, p.ID)
+	carol := primitive.NewObjectID()
+	f.users[carol] = &user.User{ID: carol, Name: "Carol"}
+	f.svc.React(ctx, f.bob, id, "like")
+	f.svc.React(ctx, carol, id, "celebrate")
+
+	all, err := f.svc.ListReactions(ctx, nil, id, "", nil, 0)
+	if err != nil || len(all.Reactions) != 2 {
+		t.Fatalf("everyone: %+v %v", all, err)
+	}
+	likes, _ := f.svc.ListReactions(ctx, nil, id, "like", nil, 0)
+	if len(likes.Reactions) != 1 || likes.Reactions[0].User.Name != "Bob" || likes.Reactions[0].Type != "like" {
+		t.Fatalf("likes only: %+v", likes)
+	}
+	if _, err := f.svc.ListReactions(ctx, nil, id, "love", nil, 0); !errors.Is(err, ErrInvalidReaction) {
+		t.Fatalf("unknown type: %v", err)
+	}
+	// Someone the viewer blocked doesn't show
+	f.repo.blocks[f.alice] = []primitive.ObjectID{carol}
+	mine, _ := f.svc.ListReactions(ctx, &f.alice, id, "", nil, 0)
+	if len(mine.Reactions) != 1 || mine.Reactions[0].User.Name != "Bob" {
+		t.Fatalf("blocked member listed: %+v", mine)
+	}
+	if _, err := f.svc.ListReactions(ctx, nil, primitive.NewObjectID(), "", nil, 0); !errors.Is(err, ErrPostNotFound) {
+		t.Fatalf("missing post: %v", err)
+	}
+}
+
+type memNotify struct {
+	mu      sync.Mutex
+	grouped []notification.CreateNotificationRequest
+}
+
+func (m *memNotify) CreateNotification(context.Context, notification.CreateNotificationRequest) (*notification.Notification, error) {
+	return &notification.Notification{}, nil
+}
+func (m *memNotify) CreateOrGroup(_ context.Context, r notification.CreateNotificationRequest, key string) (*notification.Notification, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	r.Metadata["group_key"] = key
+	m.grouped = append(m.grouped, r)
+	return &notification.Notification{}, nil
+}
+func (m *memNotify) sent() []notification.CreateNotificationRequest {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return append([]notification.CreateNotificationRequest(nil), m.grouped...)
+}
+
+func TestReactionNotifiesAuthor(t *testing.T) {
+	f := newFixture()
+	n := &memNotify{}
+	f.svc.notify = n
+	ctx := context.Background()
+	p, _ := f.svc.CreatePost(ctx, f.alice, CreatePostRequest{Content: "news"})
+	id := mustID(t, p.ID)
+
+	f.svc.React(ctx, f.alice, id, "like")    // her own post: nothing
+	f.svc.React(ctx, f.bob, id, "like")      // Bob: one notification
+	f.svc.React(ctx, f.bob, id, "celebrate") // a change of reaction: nothing new
+	deadline := time.Now().Add(2 * time.Second)
+	for len(n.sent()) < 1 && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+	}
+	time.Sleep(50 * time.Millisecond)
+	got := n.sent()
+	if len(got) != 1 {
+		t.Fatalf("notifications: %d, want 1", len(got))
+	}
+	if got[0].UserID != f.alice || got[0].Metadata["group_key"] != "reaction:"+p.ID || got[0].Message != "Bob and 1 other reacted to your post" {
+		t.Fatalf("notification %+v", got[0])
 	}
 }

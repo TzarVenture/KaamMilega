@@ -90,6 +90,7 @@ function CompaniesContent() {
             setTotalCompaniesCount(res?.total ?? null);
         } catch (error) {
             console.error("Failed to fetch companies", error);
+            notify.error(error, "Companies couldn’t be loaded.");
         } finally {
             setLoading(false);
         }

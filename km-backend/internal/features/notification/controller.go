@@ -3,14 +3,15 @@ package notification
 import (
 	"context"
 	"log"
+	"time"
 
 	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
-	"km-backend/internal/middleware"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"km-backend/internal/middleware"
 )
 
 type NotificationController struct {
@@ -50,6 +51,15 @@ func (c *NotificationController) GetNotifications(ctx *fiber.Ctx) error {
 		Limit:      ctx.QueryInt("limit", 20),
 		Offset:     ctx.QueryInt("offset", 0),
 	}
+	// Cursor paging: the created_at and id of the last notification shown
+	if raw := ctx.Query("before"); raw != "" {
+		if t, err := time.Parse(time.RFC3339Nano, raw); err == nil {
+			filter.Before = &t
+			if id, err := primitive.ObjectIDFromHex(ctx.Query("before_id")); err == nil {
+				filter.BeforeID = &id
+			}
+		}
+	}
 
 	notifications, total, err := c.service.GetNotifications(ctx.Context(), userID, filter)
 	if err != nil {
@@ -80,10 +90,35 @@ func (c *NotificationController) GetUnreadCount(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
+	byCategory, err := c.service.GetUnreadByCategory(ctx.Context(), userID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+	}
+
+	unseen, err := c.service.GetUnseenCount(ctx.Context(), userID)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+	}
 
 	return ctx.JSON(fiber.Map{
 		"unread_count": count,
+		// For the bell badge: unread and not seen since the bell was last opened
+		"unseen_count": unseen,
+		// Unread per category, for the counts beside each filter
+		"by_category": byCategory,
 	})
+}
+
+// MarkAllSeen clears the bell badge when the member opens the bell or the page.
+func (c *NotificationController) MarkAllSeen(ctx *fiber.Ctx) error {
+	userID, err := primitive.ObjectIDFromHex(userIDOf(ctx))
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
+	}
+	if err := c.service.MarkAllSeen(ctx.Context(), userID); err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+	}
+	return ctx.SendStatus(fiber.StatusNoContent)
 }
 
 // MarkAsRead marks a single notification as read.
@@ -183,9 +218,11 @@ func (c *NotificationController) WebSocketHandler(conn *websocket.Conn) {
 	// Send initial state with unread count
 	if userOID, err := primitive.ObjectIDFromHex(userID); err == nil {
 		unreadCount, _ := c.service.GetUnreadCount(context.Background(), userOID)
+		unseenCount, _ := c.service.GetUnseenCount(context.Background(), userOID)
 		_ = conn.WriteJSON(fiber.Map{
 			"type":         "INIT",
 			"unread_count": unreadCount,
+			"unseen_count": unseenCount,
 		})
 	}
 
@@ -201,4 +238,9 @@ func (c *NotificationController) WebSocketHandler(conn *websocket.Conn) {
 			break
 		}
 	}
+}
+
+func userIDOf(ctx *fiber.Ctx) string {
+	s, _ := ctx.Locals("user_id").(string)
+	return s
 }

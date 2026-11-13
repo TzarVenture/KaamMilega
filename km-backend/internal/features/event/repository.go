@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"regexp"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -49,7 +50,7 @@ func (r *EventRepositoryImpl) CreateEvent(ctx context.Context, e *Event) (*Event
 func (r *EventRepositoryImpl) GetEvents(ctx context.Context, filter EventFilter) ([]Event, int64, error) {
 	bsonFilter := bson.M{}
 	if filter.Search != "" {
-		regex := bson.M{"$regex": filter.Search, "$options": "i"}
+		regex := bson.M{"$regex": regexp.QuoteMeta(filter.Search), "$options": "i"}
 		bsonFilter["$or"] = []bson.M{
 			{"title": regex},
 			{"organizer": regex},
@@ -58,7 +59,7 @@ func (r *EventRepositoryImpl) GetEvents(ctx context.Context, filter EventFilter)
 	}
 
 	if filter.Location != "" {
-		bsonFilter["location"] = bson.M{"$regex": filter.Location, "$options": "i"}
+		bsonFilter["location"] = bson.M{"$regex": regexp.QuoteMeta(filter.Location), "$options": "i"}
 	}
 
 	if filter.IsPaid != nil {
@@ -94,7 +95,7 @@ func (r *EventRepositoryImpl) GetEvents(ctx context.Context, filter EventFilter)
 	if err := cursor.All(ctx, &events); err != nil {
 		return nil, 0, err
 	}
-	
+
 	if events == nil {
 		events = []Event{}
 	}
@@ -122,8 +123,8 @@ func (r *EventRepositoryImpl) RegisterUser(ctx context.Context, eventID, userID 
 
 func (r *EventRepositoryImpl) DecrementAvailableSeats(ctx context.Context, eventID primitive.ObjectID) error {
 	filter := bson.M{
-		"_id": eventID,
-		"capacity": bson.M{"$gt": 0},
+		"_id":             eventID,
+		"capacity":        bson.M{"$gt": 0},
 		"available_seats": bson.M{"$gt": 0},
 	}
 	update := bson.M{
@@ -344,7 +345,7 @@ func (r *EventRepositoryImpl) AdminGetAllEvents(ctx context.Context, search stri
 
 	filter := bson.M{}
 	if search != "" {
-		regex := bson.M{"$regex": search, "$options": "i"}
+		regex := bson.M{"$regex": regexp.QuoteMeta(search), "$options": "i"}
 		filter["$or"] = []bson.M{
 			{"title": regex},
 			{"organizer": regex},
@@ -377,7 +378,7 @@ func (r *EventRepositoryImpl) AdminGetAllEvents(ctx context.Context, search stri
 	adminItems := make([]AdminEventItem, 0, len(events))
 	for _, ev := range events {
 		item := AdminEventItem{
-			Event:              ev,
+			Event:             ev,
 			TotalParticipants: len(ev.Participants),
 		}
 
@@ -530,7 +531,6 @@ func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID prim
 
 	return nil
 }
-
 
 // RevokeTicket cancels a refunded ticket, removes the attendee and returns their seat
 func (r *EventRepositoryImpl) RevokeTicket(ctx context.Context, eventID, userID primitive.ObjectID, razorpayOrderID string) error {

@@ -8,6 +8,7 @@ import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
 import AdSlot from '@/components/ads/AdSlot';
+import { notify } from "@/lib/notify";
 
 /** The grid shows one sponsored row, after this many experts (a full row at 1, 2 or 3 columns) */
 const GRID_AD_AFTER = 6;
@@ -59,6 +60,7 @@ export default function MentorshipPage() {
       setMentorships(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch mentorships", error);
+      notify.error(error, "Mentors couldn’t be loaded.");
       setMentorships([]);
     } finally {
       setLoading(false);

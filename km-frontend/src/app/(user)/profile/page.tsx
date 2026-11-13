@@ -212,6 +212,7 @@ const ProfilePage = () => {
                 setUser(response);
             } catch (error) {
                 console.error('Failed to fetch profile:', error);
+                notify.error(error, "Your profile couldn’t be loaded.");
             } finally {
                 setLoading(false);
             }

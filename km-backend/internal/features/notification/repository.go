@@ -39,6 +39,14 @@ func NewNotificationRepository(db *database.MongodbDB) NotificationRepository {
 					{Key: "is_read", Value: 1},
 				},
 			},
+			// One category's list
+			{
+				Keys: bson.D{
+					{Key: "user_id", Value: 1},
+					{Key: "category", Value: 1},
+					{Key: "created_at", Value: -1},
+				},
+			},
 			{
 				Keys: bson.D{
 					{Key: "created_at", Value: 1},
@@ -84,9 +92,19 @@ func (r *notificationRepository) Find(ctx context.Context, userID primitive.Obje
 		query["is_read"] = false
 	}
 
+	// The total is for the whole filter, not what's left after the cursor
 	total, err := r.collection.CountDocuments(ctx, query)
 	if err != nil {
 		return nil, 0, err
+	}
+	if filter.Before != nil {
+		older := bson.M{"created_at": bson.M{"$lt": *filter.Before}}
+		if filter.BeforeID != nil {
+			query["$or"] = bson.A{older, bson.M{"created_at": *filter.Before, "_id": bson.M{"$lt": *filter.BeforeID}}}
+		} else {
+			query["created_at"] = bson.M{"$lt": *filter.Before}
+		}
+		filter.Offset = 0
 	}
 
 	limit := int64(filter.Limit)
@@ -102,7 +120,7 @@ func (r *notificationRepository) Find(ctx context.Context, userID primitive.Obje
 	}
 
 	findOptions := options.Find().
-		SetSort(bson.D{{Key: "created_at", Value: -1}}).
+		SetSort(bson.D{{Key: "created_at", Value: -1}, {Key: "_id", Value: -1}}).
 		SetLimit(limit).
 		SetSkip(offset)
 
@@ -124,12 +142,68 @@ func (r *notificationRepository) Find(ctx context.Context, userID primitive.Obje
 	return notifications, total, nil
 }
 
+// Older notifications have no is_seen field, so "not true" rather than false
+func (r *notificationRepository) FindUnreadGroup(ctx context.Context, userID primitive.ObjectID, groupKey string) (*Notification, error) {
+	var n Notification
+	err := r.collection.FindOne(ctx, bson.M{"user_id": userID, "is_read": false, "metadata.group_key": groupKey}).Decode(&n)
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &n, nil
+}
+
+func (r *notificationRepository) Regroup(ctx context.Context, n *Notification) error {
+	now := time.Now()
+	n.CreatedAt, n.UpdatedAt, n.IsSeen = now, now, false
+	_, err := r.collection.UpdateOne(ctx, bson.M{"_id": n.ID}, bson.M{"$set": bson.M{
+		"actor_id": n.ActorID, "actor_name": n.ActorName, "actor_avatar": n.ActorAvatar,
+		"title": n.Title, "message": n.Message, "metadata": n.Metadata,
+		"is_seen": false, "created_at": now, "updated_at": now,
+	}})
+	return err
+}
+
+func (r *notificationRepository) CountUnseen(ctx context.Context, userID primitive.ObjectID) (int64, error) {
+	return r.collection.CountDocuments(ctx, bson.M{"user_id": userID, "is_read": false, "is_seen": bson.M{"$ne": true}})
+}
+
+func (r *notificationRepository) MarkAllSeen(ctx context.Context, userID primitive.ObjectID) error {
+	_, err := r.collection.UpdateMany(ctx, bson.M{"user_id": userID, "is_read": false, "is_seen": bson.M{"$ne": true}},
+		bson.M{"$set": bson.M{"is_seen": true}})
+	return err
+}
+
 func (r *notificationRepository) CountUnread(ctx context.Context, userID primitive.ObjectID) (int64, error) {
 	query := bson.M{
 		"user_id": userID,
 		"is_read": false,
 	}
 	return r.collection.CountDocuments(ctx, query)
+}
+
+func (r *notificationRepository) CountUnreadByCategory(ctx context.Context, userID primitive.ObjectID) (map[string]int64, error) {
+	cur, err := r.collection.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"user_id": userID, "is_read": false}}},
+		{{Key: "$group", Value: bson.M{"_id": "$category", "n": bson.M{"$sum": 1}}}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	var rows []struct {
+		Category string `bson:"_id"`
+		N        int64  `bson:"n"`
+	}
+	if err := cur.All(ctx, &rows); err != nil {
+		return nil, err
+	}
+	out := make(map[string]int64, len(rows))
+	for _, row := range rows {
+		out[row.Category] = row.N
+	}
+	return out, nil
 }
 
 func (r *notificationRepository) MarkAsRead(ctx context.Context, id, userID primitive.ObjectID) error {
@@ -140,6 +214,7 @@ func (r *notificationRepository) MarkAsRead(ctx context.Context, id, userID prim
 	update := bson.M{
 		"$set": bson.M{
 			"is_read":    true,
+			"is_seen":    true,
 			"updated_at": time.Now(),
 		},
 	}
@@ -155,11 +230,41 @@ func (r *notificationRepository) MarkAllAsRead(ctx context.Context, userID primi
 	update := bson.M{
 		"$set": bson.M{
 			"is_read":    true,
+			"is_seen":    true,
 			"updated_at": time.Now(),
 		},
 	}
 	_, err := r.collection.UpdateMany(ctx, filter, update)
 	return err
+}
+
+func (r *notificationRepository) MarkChatRead(ctx context.Context, userID primitive.ObjectID, conversationID string) ([]primitive.ObjectID, error) {
+	filter := bson.M{
+		"user_id":                  userID,
+		"type":                     TypeChatMessage,
+		"is_read":                  false,
+		"metadata.conversation_id": conversationID,
+	}
+	cur, err := r.collection.Find(ctx, filter, options.Find().SetProjection(bson.M{"_id": 1}))
+	if err != nil {
+		return nil, err
+	}
+	var found []bson.M
+	if err := cur.All(ctx, &found); err != nil {
+		return nil, err
+	}
+	ids := make([]primitive.ObjectID, 0, len(found))
+	for _, f := range found {
+		if id, ok := f["_id"].(primitive.ObjectID); ok {
+			ids = append(ids, id)
+		}
+	}
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	_, err = r.collection.UpdateMany(ctx, bson.M{"_id": bson.M{"$in": ids}, "user_id": userID},
+		bson.M{"$set": bson.M{"is_read": true, "is_seen": true, "updated_at": time.Now()}})
+	return ids, err
 }
 
 func (r *notificationRepository) Delete(ctx context.Context, id, userID primitive.ObjectID) error {
@@ -197,6 +302,7 @@ func (r *notificationRepository) UpdateMessage(ctx context.Context, id primitive
 		"$set": bson.M{
 			"message":    message,
 			"metadata":   metadata,
+			"is_seen":    false,
 			"created_at": time.Now(),
 			"updated_at": time.Now(),
 		},

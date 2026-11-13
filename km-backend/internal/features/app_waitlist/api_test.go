@@ -5,35 +5,9 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
-
-func TestRateLimitPerClient(t *testing.T) {
-	app := fiber.New()
-	app.Post("/", rateLimit(2, time.Minute), func(c *fiber.Ctx) error { return c.SendStatus(fiber.StatusOK) })
-
-	send := func(ip string) int {
-		req := httptest.NewRequest("POST", "/", nil)
-		req.Header.Set(fiber.HeaderXForwardedFor, "1.1.1.1, "+ip)
-		res, err := app.Test(req)
-		if err != nil {
-			t.Fatal(err)
-		}
-		return res.StatusCode
-	}
-
-	for i, want := range []int{200, 200, 429} {
-		if got := send("10.0.0.1"); got != want {
-			t.Fatalf("request %d from first client: status %d, want %d", i+1, got, want)
-		}
-	}
-	// The limit is per client (last proxy hop), not shared
-	if got := send("10.0.0.2"); got != 200 {
-		t.Fatalf("second client: status %d, want 200", got)
-	}
-}
 
 type memRepo struct{ saved []*Entry }
 

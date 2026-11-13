@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"log"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -49,6 +50,9 @@ func Body(err error) fiber.Map {
 	}
 	return fiber.Map{"error": err.Error()}
 }
+
+// ServerErrorMessage replaces the text of server faults that have no specific code
+const ServerErrorMessage = "Something went wrong on our side. Please try again."
 
 // StatusCode is the generic code for an HTTP error status.
 func StatusCode(status int) string {
@@ -97,13 +101,22 @@ func Codes() fiber.Handler {
 		if dec.Decode(&body) != nil {
 			return nil
 		}
-		if _, ok := body["error"]; !ok {
+		msg, ok := body["error"]
+		if !ok {
 			return nil
 		}
-		if _, ok := body["code"]; ok {
+		code, hasCode := body["code"].(string)
+		// A server fault without its own code can carry database or library details: log those
+		// and show a plain message instead
+		if status >= 500 && (!hasCode || code == "SERVER_ERROR") {
+			log.Printf("error: %s %s (%d): %v", c.Method(), c.Path(), status, msg)
+			body["error"] = ServerErrorMessage
+			body["code"] = StatusCode(status)
+		} else if hasCode {
 			return nil
+		} else {
+			body["code"] = StatusCode(status)
 		}
-		body["code"] = StatusCode(status)
 		out, err := json.Marshal(body)
 		if err != nil {
 			return nil

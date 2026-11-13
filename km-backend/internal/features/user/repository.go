@@ -528,7 +528,7 @@ func (r *UserRepositoryImpl) FindUsers(ctx context.Context, filter UserFilter) (
 	}
 
 	if filter.CompanyName != "" {
-		andConditions = append(andConditions, bson.M{"company_name": bson.M{"$regex": filter.CompanyName, "$options": "i"}})
+		andConditions = append(andConditions, bson.M{"company_name": bson.M{"$regex": regexp.QuoteMeta(filter.CompanyName), "$options": "i"}})
 	}
 
 	if filter.VerificationStatus != "" {
@@ -1455,7 +1455,6 @@ func (r *UserRepositoryImpl) GlobalSearch(ctx context.Context, q string) (*Globa
 	res.Total = len(res.Users) + len(res.Companies) + len(res.Jobs) + len(res.Events)
 	return res, nil
 }
-
 
 // OwnsPrivateFile reports whether ref (/api/files/{id}) is a private upload of this kind by the user
 func (r *UserRepositoryImpl) OwnsPrivateFile(ctx context.Context, userID, ref, kind string) (bool, error) {
