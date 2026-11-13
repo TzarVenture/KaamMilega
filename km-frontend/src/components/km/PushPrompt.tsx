@@ -58,7 +58,7 @@ export default function PushPrompt({ variant = 'inline', onClose }: { variant?: 
             aria-label="Turn on notifications"
             className={
                 floating
-                    ? 'fixed z-60 inset-x-3 bottom-3 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px] bg-km-surface-raised rounded-2xl border border-km-border shadow-[0_18px_44px_-16px_rgba(7,26,77,0.45)] p-4 pr-11 flex items-start gap-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4 animate-in fade-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none'
+                    ? 'fixed z-60 inset-x-3 bottom-[calc(0.75rem+var(--km-dock-h,0px))] sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[380px] bg-km-surface-raised rounded-2xl border border-km-border shadow-[0_18px_44px_-16px_rgba(7,26,77,0.45)] p-4 pr-11 flex items-start gap-3 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pb-4 animate-in fade-in slide-in-from-bottom-4 duration-300 motion-reduce:animate-none'
                     : 'relative bg-km-surface-card rounded-2xl border border-km-border shadow-xs p-4 pr-11 flex items-start gap-3'
             }
         >
