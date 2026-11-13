@@ -19,11 +19,9 @@ import { useInViewOnce } from '@/lib/useInViewOnce';
 import { useReplayOnHover } from '@/lib/useReplayOnHover';
 
 interface ServiceDefinition {
-    /** home.services.<key>.{title,text,action,provider} in the messages */
+    /** home.services.<key>.{title,text,action} in the messages */
     key: 'jobs' | 'instant' | 'skills' | 'experts' | 'services' | 'p2p' | 'events';
     href: string;
-    /** Second link for the other side of the service (employers, mentors…), when there is one */
-    providerHref?: string;
     Art: React.ComponentType<{ className?: string }>;
     tintHex: string;
     borderColor: string;
@@ -31,22 +29,21 @@ interface ServiceDefinition {
 
 // The client's seven services, in the client's order
 const ALL_SERVICES: ServiceDefinition[] = [
-    { key: 'jobs', href: '/jobs', providerHref: '/recruiter/login', Art: JobsServiceArt, tintHex: '#EAF1FC', borderColor: 'hover:border-[#0B5ED7]/40' },
-    { key: 'instant', href: '/instant-milega', providerHref: '/instant-milega?mode=hire', Art: InstantServiceArt, tintHex: '#FFF1E6', borderColor: 'hover:border-[#FF6B00]/40' },
-    { key: 'skills', href: '/resources', providerHref: '/resources', Art: SkillsServiceArt, tintHex: '#E8F6ED', borderColor: 'hover:border-[#16A34A]/40' },
-    { key: 'experts', href: '/mentorship', providerHref: '/mentorship', Art: MentorsServiceArt, tintHex: '#F2EDFE', borderColor: 'hover:border-[#7C3AED]/40' },
-    { key: 'services', href: '/jobs?type=service', providerHref: '/jobs/create', Art: ServicesServiceArt, tintHex: '#FDEDED', borderColor: 'hover:border-[#EF4444]/40' },
-    { key: 'p2p', href: '/network', providerHref: '/network', Art: PeerServiceArt, tintHex: '#E4F5F2', borderColor: 'hover:border-[#0F9D8A]/40' },
-    { key: 'events', href: '/events', providerHref: '/events', Art: EventsServiceArt, tintHex: '#FEF5E2', borderColor: 'hover:border-[#F59E0B]/40' },
+    { key: 'jobs', href: '/jobs', Art: JobsServiceArt, tintHex: '#EAF1FC', borderColor: 'hover:border-[#0B5ED7]/40' },
+    { key: 'instant', href: '/instant-milega', Art: InstantServiceArt, tintHex: '#FFF1E6', borderColor: 'hover:border-[#FF6B00]/40' },
+    { key: 'skills', href: '/resources', Art: SkillsServiceArt, tintHex: '#E8F6ED', borderColor: 'hover:border-[#16A34A]/40' },
+    { key: 'experts', href: '/mentorship', Art: MentorsServiceArt, tintHex: '#F2EDFE', borderColor: 'hover:border-[#7C3AED]/40' },
+    { key: 'services', href: '/jobs?type=service', Art: ServicesServiceArt, tintHex: '#FDEDED', borderColor: 'hover:border-[#EF4444]/40' },
+    { key: 'p2p', href: '/network', Art: PeerServiceArt, tintHex: '#E4F5F2', borderColor: 'hover:border-[#0F9D8A]/40' },
+    { key: 'events', href: '/events', Art: EventsServiceArt, tintHex: '#FEF5E2', borderColor: 'hover:border-[#F59E0B]/40' },
 ];
 
-function ServiceBanner({ Art, tintHex, children }: Pick<ServiceDefinition, 'Art' | 'tintHex'> & { children: React.ReactNode }) {
+function ServiceBanner({ Art, tintHex }: Pick<ServiceDefinition, 'Art' | 'tintHex'>) {
     const { ref, inView } = useInViewOnce<HTMLDivElement>();
     useReplayOnHover(ref, inView, '.group');
     return (
-        <div ref={ref} data-inview={inView} className="km-on-light relative h-32 rounded-xl overflow-hidden dark:brightness-90" style={{ backgroundColor: tintHex }}>
+        <div ref={ref} data-inview={inView} className="km-on-light relative h-20 w-20 shrink-0 rounded-xl overflow-hidden dark:brightness-90 sm:h-32 sm:w-auto" style={{ backgroundColor: tintHex }}>
             <Art className="absolute inset-0 w-full h-full transition-transform duration-300 group-hover:-translate-y-1" />
-            {children}
         </div>
     );
 }
@@ -64,49 +61,32 @@ export default function SevenServicesSection() {
                 />
 
                 {/* Services Cards */}
-                <div className="flex flex-wrap justify-center gap-6">
-                    {services.map((service, idx) => (
-                        <div
+                <div className="flex flex-wrap justify-center gap-3 sm:gap-6">
+                    {services.map((service) => (
+                        <Link
                             key={service.key}
-                            className={`group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] bg-km-surface-card rounded-2xl border border-km-border p-3 flex flex-col transition-all duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
+                            href={service.href}
+                            className={`group relative w-full sm:w-[calc(50%-12px)] md:w-[calc(33.333%-16px)] lg:w-[calc(25%-18px)] bg-km-surface-card rounded-2xl border border-km-border p-3 flex flex-row gap-3 sm:flex-col sm:gap-0 km-press-card duration-200 shadow-2xs hover:shadow-lg ${service.borderColor}`}
                         >
                             {/* Illustrated banner on a soft tint of the service colour; its art animates in view and on card hover */}
-                            <ServiceBanner Art={service.Art} tintHex={service.tintHex}>
-                                <span className="absolute top-2.5 right-2.5 text-xs font-semibold tabular-nums text-slate-500 bg-km-surface-card/80 px-2 py-0.5 rounded-full">
-                                    {String(idx + 1).padStart(2, '0')}
-                                </span>
-                            </ServiceBanner>
+                            <ServiceBanner Art={service.Art} tintHex={service.tintHex} />
 
-                            <div className="px-3 pt-5 pb-2 flex flex-col flex-1">
-                                <h3 className="text-lg font-bold text-km-text-primary group-hover:text-km-heading transition-colors mb-2 leading-snug">
+                            <div className="min-w-0 sm:px-3 sm:pt-5 sm:pb-2 flex flex-col flex-1">
+                                <h3 className="text-base sm:text-lg font-bold text-km-text-primary group-hover:text-km-heading transition-colors mb-1 sm:mb-2 leading-snug">
                                     {t(`${service.key}.title`)}
                                 </h3>
                                 <p className="text-sm text-km-text-secondary leading-relaxed">{t(`${service.key}.text`)}</p>
 
-                                <div className="mt-auto pt-5">
-                                    <div className="pt-4 border-t border-km-border/60 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
-                                        <Link
-                                            href={service.href}
-                                            className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-km-heading hover:text-km-primary-dark transition-colors dark:hover:text-km-link"
-                                        >
-                                            <span>{t(`${service.key}.action`)}</span>
-                                            <ArrowRightIcon weight="bold"
-                                                size={16}
-                                                className="transition-transform group-hover:translate-x-1 shrink-0"
-                                            />
-                                        </Link>
-                                        {service.providerHref && (
-                                            <Link
-                                                href={service.providerHref}
-                                                className="whitespace-nowrap text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
-                                            >
-                                                {t(`${service.key}.provider`)}
-                                            </Link>
-                                        )}
+                                <div className="mt-auto pt-2 sm:pt-5">
+                                    <div className="sm:pt-4 sm:border-t border-km-border/60">
+                                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-sm font-bold text-km-heading group-hover:text-km-primary-dark transition-colors dark:group-hover:text-km-link">
+                                            {t(`${service.key}.action`)}
+                                            <ArrowRightIcon weight="bold" size={16} className="transition-transform group-hover:translate-x-1 shrink-0" aria-hidden="true" />
+                                        </span>
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
             </div>

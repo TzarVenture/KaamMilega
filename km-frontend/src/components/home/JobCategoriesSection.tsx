@@ -74,7 +74,7 @@ export default function JobCategoriesSection() {
                         role="tab"
                         aria-selected={tab === item.value}
                         onClick={() => setTab(item.value)}
-                        className={`h-10 rounded-xl border px-5 text-sm font-semibold transition-colors ${
+                        className={`km-press h-10 rounded-xl border px-5 text-sm font-semibold ${
                             tab === item.value
                                 ? 'border-km-primary bg-km-primary text-white'
                                 : 'border-km-border bg-km-surface-card text-km-text-secondary hover:text-km-heading'
@@ -91,12 +91,12 @@ export default function JobCategoriesSection() {
                         <Link
                             key={key}
                             href={`/jobs?q=${encodeURIComponent(q)}`}
-                            className="flex items-center gap-3 rounded-2xl border border-km-border bg-km-surface-card p-4 transition-colors hover:border-km-link"
+                            className="km-press-card flex items-center gap-3 rounded-2xl border border-km-border bg-km-surface-card p-3 sm:p-4 transition-colors hover:border-km-link"
                         >
                             <CategoryIcon size={28} className="shrink-0 text-km-link" aria-hidden="true" />
                             <span className="min-w-0">
                                 <span className="block text-[15px] font-semibold leading-snug text-km-heading">{t(`job.${key}`)}</span>
-                                <span className="block text-sm text-km-text-secondary">{openingsLabel(counts[`search=${encodeURIComponent(q)}`])}</span>
+                                <span className={`${counts[`search=${encodeURIComponent(q)}`] ? 'block' : 'hidden sm:block'} text-sm tabular-nums text-km-text-secondary`}>{openingsLabel(counts[`search=${encodeURIComponent(q)}`])}</span>
                             </span>
                         </Link>
                     ))}
@@ -104,7 +104,7 @@ export default function JobCategoriesSection() {
             ) : (
                 <div role="tabpanel" className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5 sm:gap-6">
                     {GIG_TRADES.map((trade) => (
-                        <Link key={trade.key} href={gigHref(trade.q)}>
+                        <Link key={trade.key} href={gigHref(trade.q)} className="km-press-card block rounded-2xl">
                             <div className="km-on-dark relative h-48 sm:h-56 rounded-2xl overflow-hidden group border border-slate-200/90 shadow-2xs">
                                 <Image src={trade.img} alt={tr(trade.key)} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw" className="object-cover object-top" />
                                 <div className="absolute inset-0 bg-linear-to-t from-[#020617]/90 via-[#020617]/30 to-transparent z-10" />
@@ -121,7 +121,7 @@ export default function JobCategoriesSection() {
             <div className="text-center mt-8 sm:mt-10">
                 <Link
                     href={tab === 'jobs' || !FEATURES.INSTANT_MILEGA ? '/jobs' : '/instant-milega'}
-                    className="inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-km-primary text-km-heading hover:bg-km-primary hover:text-white text-sm font-semibold transition-colors"
+                    className="km-press inline-flex items-center gap-2 px-6 py-3 rounded-xl border border-km-primary text-km-heading hover:bg-km-primary hover:text-white text-sm font-semibold transition-colors"
                 >
                     {tab === 'jobs' || !FEATURES.INSTANT_MILEGA ? t('viewJobs') : t('viewGigs')}
                     <ArrowRightIcon size={16} weight="bold" aria-hidden="true" />

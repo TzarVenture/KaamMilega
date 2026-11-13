@@ -20,30 +20,18 @@ interface HeroSectionProps {
 
 type Tab = 'jobs' | 'instant' | 'skills' | 'mentors';
 
-// Label key in home.hero.tags, and the English term that is searched (job data is in English)
-const POPULAR_SEARCHES: [string, string][] = [
-    ['fresher', 'Fresher Jobs'],
-    ['wfh', 'Work From Home'],
-    ['delivery', 'Delivery Partner'],
-    ['electrician', 'Electrician'],
-    ['plumber', 'Plumber'],
-    ['warehouse', 'Warehouse'],
-    ['retail', 'Retail'],
-    ['support', 'Customer Support'],
-];
-
 const TAB_CLASS = (active: boolean) =>
-    `flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-t-xl sm:rounded-t-2xl font-bold text-sm transition-all shrink-0 cursor-pointer ${
+    `km-press flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2.5 sm:py-3 rounded-t-xl sm:rounded-t-2xl font-bold text-[13px] sm:text-sm shrink-0 cursor-pointer ${
         active
             ? 'bg-km-accent text-white shadow-md'
             : 'bg-km-surface-card/70 hover:bg-km-surface-card text-slate-700 border border-b-0 border-slate-200/80 hover:text-km-heading'
     }`;
 
 const FIELD_CLASS =
-    'flex-1 flex items-center h-12 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all';
+    'w-full sm:w-auto sm:flex-1 flex items-center h-12 shrink-0 bg-slate-50/70 border border-slate-200 rounded-xl px-3.5 focus-within:bg-km-surface-card focus-within:border-km-primary focus-within:ring-2 focus-within:ring-km-primary/10 transition-all';
 const INPUT_CLASS = 'w-full bg-transparent text-sm font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none';
 const SUBMIT_CLASS =
-    'bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 h-12 rounded-xl transition-all shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95';
+    'km-press bg-km-accent hover:bg-km-accent-light text-white text-sm font-bold px-7 sm:px-8 h-12 rounded-xl shadow-md shadow-orange-500/20 shrink-0 flex items-center justify-center gap-1.5 cursor-pointer';
 
 export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
     const t = useTranslations('home.hero');
@@ -107,7 +95,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
 
                         <div>
                             {/* Tabs */}
-                            <div role="tablist" className="flex items-end gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none">
+                            <div role="tablist" className="flex items-end gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none [mask-image:linear-gradient(to_right,#000_88%,transparent)] sm:[mask-image:none]">
                                 {tabs.map(({ id, label, Icon: TabIcon }) => (
                                     <button
                                         key={id}
@@ -166,7 +154,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                             </Link>
                                             <Link
                                                 href="/instant-milega?mode=work"
-                                                className="h-12 px-6 rounded-xl border border-km-primary text-km-heading text-sm font-bold flex items-center justify-center hover:bg-km-surface transition-colors"
+                                                className="km-press h-12 px-6 rounded-xl border border-km-primary text-km-heading text-sm font-bold flex items-center justify-center hover:bg-km-surface transition-colors"
                                             >
                                                 {t('instantWork')}
                                             </Link>
@@ -227,26 +215,12 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
                                 )}
                             </div>
                         </div>
-
-                        {/* Popular searches */}
-                        <div className="mt-4 flex flex-wrap items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-500">{t('popular')}</span>
-                            {POPULAR_SEARCHES.map(([key, query]) => (
-                                <Link
-                                    key={key}
-                                    href={`/jobs?q=${encodeURIComponent(query)}`}
-                                    className="text-sm font-medium text-slate-600 bg-km-surface-card/80 hover:bg-km-surface-card hover:text-km-heading hover:border-km-primary px-3 py-1 rounded-full border border-slate-200/80 transition-all shadow-2xs"
-                                >
-                                    {t(`tags.${key}`)}
-                                </Link>
-                            ))}
-                        </div>
                     </div>
 
                     {/* Right: person with the KaamMilega K art */}
-                    <div className="lg:col-span-5 relative flex items-end justify-center min-h-50 sm:min-h-75 lg:min-h-115">
+                    <div className="lg:col-span-5 relative flex items-end justify-center min-h-52 sm:min-h-75 lg:min-h-115">
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
-                            <div className="relative w-[70%] sm:w-[80%] lg:w-[95%] aspect-square max-w-120 translate-x-2 sm:translate-x-4 opacity-90">
+                            <div className="relative w-[52%] sm:w-[80%] lg:w-[95%] aspect-square max-w-120 translate-x-2 sm:translate-x-4 opacity-90">
                                 <Image src="/kaammilega-logo-icon.png" alt="" fill priority className="object-contain" />
                             </div>
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-100/30 rounded-full blur-3xl pointer-events-none" />
