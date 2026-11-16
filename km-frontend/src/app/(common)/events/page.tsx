@@ -115,7 +115,11 @@ const PublicEventsPage = () => {
         };
     }, [locationFilter]);
 
+    // Only the newest request may update the list, so a slow older answer can't overwrite a newer filter
+    const requestIdRef = useRef(0);
+
     const fetchEvents = useCallback(async (pageNum: number, currentSearch: string, currentLocation: string, currentSort: string, currentPricing: string) => {
+        const requestId = ++requestIdRef.current;
         try {
             setLoading(true);
             let url = `/events?page=${pageNum}&limit=9`;
@@ -126,6 +130,7 @@ const PublicEventsPage = () => {
             if (currentPricing === 'paid') url += `&is_paid=true`;
 
             const res: any = await api.get(url);
+            if (requestId !== requestIdRef.current) return;
             const newEvents = res.data || [];
             if (pageNum === 1) {
                 setEvents(newEvents);
@@ -135,9 +140,9 @@ const PublicEventsPage = () => {
             setTotal(res.total || 0);
             setHasMore(newEvents.length === 9);
         } catch (error: any) {
-            notify.error(error, "Failed to load workshops");
+            if (requestId === requestIdRef.current) notify.error(error, "Failed to load workshops");
         } finally {
-            setLoading(false);
+            if (requestId === requestIdRef.current) setLoading(false);
         }
     }, []);
 
