@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { AdminModal, btn, cx, field } from '@/components/admin/ui';
 import api from '@/lib/axios';
 import { notify } from '@/lib/notify';
@@ -23,10 +23,15 @@ export default function SuspendUserModal({ user, onClose, onDone }: {
     const [reason, setReason] = useState('');
     const [days, setDays] = useState(7);
     const [busy, setBusy] = useState(false);
-    const tooShort = reason.trim().length < MIN_REASON;
+    // Shown once they try to submit without enough reason, instead of a silently disabled button
+    const [showReasonError, setShowReasonError] = useState(false);
+    const reasonRef = useRef<HTMLTextAreaElement>(null);
+    const reasonLength = reason.trim().length;
+    const tooShort = reasonLength < MIN_REASON;
 
     const close = () => {
         if (busy) return;
+        setShowReasonError(false);
         setReason('');
         setDays(7);
         onClose();
@@ -34,7 +39,12 @@ export default function SuspendUserModal({ user, onClose, onDone }: {
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!user || tooShort) return;
+        if (!user) return;
+        if (tooShort) {
+            setShowReasonError(true);
+            reasonRef.current?.focus();
+            return;
+        }
         setBusy(true);
         try {
             const res = (await api.post(`/admin/users/${user.id}/suspend`, { reason: reason.trim(), days })) as { suspended_until: string | null };
@@ -81,17 +91,24 @@ export default function SuspendUserModal({ user, onClose, onDone }: {
                         id="suspend-reason"
                         rows={3}
                         maxLength={500}
+                        ref={reasonRef}
                         value={reason}
                         onChange={(e) => setReason(e.target.value)}
                         placeholder="For example: posted fake job offers asking for money"
-                        className={field.textarea}
+                        aria-invalid={showReasonError && tooShort}
+                        aria-describedby="suspend-reason-hint"
+                        className={cx(field.textarea, showReasonError && tooShort && 'border-red-500 focus:border-red-500')}
                     />
-                    <p className={field.hint}>At least {MIN_REASON} characters. Keep it factual.</p>
+                    <p id="suspend-reason-hint" className={cx(field.hint, showReasonError && tooShort && 'text-red-600 dark:text-red-400')}>
+                        {tooShort
+                            ? `Write at least ${MIN_REASON} characters (${MIN_REASON - reasonLength} more). Keep it factual.`
+                            : 'Keep it factual.'}
+                    </p>
                 </div>
 
                 <div className="flex justify-end gap-2 pt-1">
                     <button type="button" onClick={close} disabled={busy} className={btn.secondary}>Cancel</button>
-                    <button type="submit" disabled={busy || tooShort} className={cx(btn.danger, 'disabled:opacity-50 disabled:cursor-not-allowed')}>
+                    <button type="submit" disabled={busy} className={cx(btn.danger, 'disabled:opacity-50 disabled:cursor-not-allowed')}>
                         {busy ? 'Suspending…' : days ? 'Suspend account' : 'Ban account'}
                     </button>
                 </div>
