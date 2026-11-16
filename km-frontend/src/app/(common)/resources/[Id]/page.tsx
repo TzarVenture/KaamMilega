@@ -1,0 +1,210 @@
+// pages/resources/[id].tsx
+import React from 'react';
+import { BookmarkSimpleIcon, CaretDownIcon, ChatCircleIcon, DotsThreeVerticalIcon, FlagIcon, PlayIcon, StarHalfIcon, StarIcon, ThumbsUpIcon } from '@phosphor-icons/react/ssr';
+import AdSlot from '@/components/ads/AdSlot';
+
+const ResourceDetailsPage = () => {
+    return (
+        <div className="max-w-7xl mx-auto p-6 flex flex-col lg:flex-row gap-8 bg-slate-50 min-h-screen">
+
+            {/* Left Sidebar: Curriculum/Content */}
+            <div className="hidden lg:block w-72 space-y-4">
+                <div className="bg-km-surface-card rounded-2xl p-6 shadow-sm border border-slate-100">
+                    <h2 className="text-xl font-bold text-slate-900 mb-6">Content</h2>
+                    <div className="space-y-2">
+                        <AccordionItem title="Introduction" active subtitle="Lorem Ipsum Dolor Sit Amet Sed Id Diam Consectetur." />
+                        <AccordionItem title="1. Understanding Learning" />
+                        <AccordionItem title="2. Your Learning Self-Inventory" />
+                        <AccordionItem title="3. Your Learning Self-Inventory" />
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 space-y-8">
+                {/* Video Player Section */}
+                <div className="bg-km-surface-card rounded-4xl overflow-hidden shadow-sm border border-slate-100">
+                    <div className="aspect-video bg-linear-to-br from-slate-200 to-slate-400 relative group cursor-pointer">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-20 h-20 bg-km-surface-card/90 rounded-full flex items-center justify-center shadow-2xl transform group-hover:scale-110 transition-transform">
+                                <PlayIcon weight="fill" className="text-slate-400 fill-slate-400 ml-1" size={32} />
+                            </div>
+                        </div>
+                        <button className="absolute top-6 right-6 p-3 bg-km-surface-card rounded-xl text-km-text-primary shadow-sm hover:bg-km-surface">
+                            <BookmarkSimpleIcon size={20} />
+                        </button>
+                    </div>
+
+                    {/* Video Tabs & Info */}
+                    <div className="p-8">
+                        <div className="flex border-b border-slate-100 mb-8">
+                            <button className="px-8 py-3 text-km-heading font-bold border-b-2 border-km-primary">Overview</button>
+                            <button className="px-8 py-3 text-slate-400 font-bold hover:text-slate-600 transition-colors">Q&A</button>
+                        </div>
+
+                        {/* Instructor Section */}
+                        <div className="space-y-6">
+                            <h3 className="text-2xl font-bold text-slate-900">Instructor</h3>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-16 h-16 rounded-full bg-km-primary-dark relative flex items-center justify-center shadow-inner">
+                                        <div className="absolute bottom-1 right-1 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full dark:border-km-surface-card" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-lg font-bold">Expert Name</h4>
+                                        <p className="text-sm text-slate-500 italic">Expert Designation</p>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3">
+                                    <button className="flex items-center gap-2 px-6 py-2.5 border border-km-primary rounded-xl text-km-heading font-bold hover:bg-blue-50 transition">
+                                        <ChatCircleIcon weight="bold" size={18} /> Chat
+                                    </button>
+                                    <button className="px-8 py-2.5 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-md shadow-blue-900/10">
+                                        Follow
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <div className="space-y-4">
+                                <h3 className="text-2xl font-bold text-slate-900">Video Description</h3>
+                                <p className="text-slate-600 leading-relaxed">
+                                    Lorem ipsum dolor sit amet consectetur. Enim dictumst commodo diam arcu massa dui amet neque. Gravida sed euismod arcu nulla massa. Sed egestas mattis aliquam lacus interdum sit...
+                                </p>
+                            </div>
+
+                            {/* Skills & Learners */}
+                            <div className="flex flex-col md:flex-row gap-12 pt-4">
+                                <div className="space-y-3">
+                                    <h4 className="font-bold text-slate-900">Skill Covered</h4>
+                                    <span className="inline-block px-4 py-1.5 border border-slate-200 rounded-xl text-xs text-slate-600 font-medium bg-slate-50">Longlife Learning</span>
+                                </div>
+                                <div className="space-y-3">
+                                    <h4 className="font-bold text-slate-900">Learners</h4>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex -space-x-2">
+                                            {[1, 2, 3].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-300 dark:border-km-surface-card" />)}
+                                        </div>
+                                        <span className="text-xs text-slate-400 font-medium">90 people interested in this</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Reviews Section */}
+                            <div className="pt-12 space-y-8">
+                                <h3 className="text-2xl font-bold text-slate-900">Learner Reviews</h3>
+                                <div className="flex flex-col md:flex-row gap-12 items-center bg-slate-50 p-8 rounded-3xl border border-slate-100">
+                                    <div className="text-center">
+                                        <div className="text-6xl font-black text-km-heading">4.2</div>
+                                        <div className="text-slate-500 font-bold mt-2">Out Of 5</div>
+                                        <div className="flex gap-1 justify-center mt-3 text-amber-400">
+                                            <StarIcon weight="fill" size={20} />
+                                            <StarIcon weight="fill" size={20} />
+                                            <StarIcon weight="fill" size={20} />
+                                            <StarIcon weight="fill" size={20} />
+                                            <StarHalfIcon weight="fill" size={20} />
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 w-full space-y-2">
+                                        <RatingBar label="5 Star" percent={75} />
+                                        <RatingBar label="4 Star" percent={20} />
+                                        <RatingBar label="3 Star" percent={4} />
+                                        <RatingBar label="2 Star" percent={1} />
+                                        <RatingBar label="1 Star" percent={1} />
+                                    </div>
+                                </div>
+
+                                {/* Individual Review Card */}
+                                <div className="bg-km-surface-card border border-slate-100 rounded-4xl p-8 space-y-6">
+                                    <div className="flex justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-full bg-km-primary-dark" />
+                                            <div>
+                                                <h4 className="font-bold">Person Name</h4>
+                                                <p className="text-xs text-slate-500 italic">Person Designation</p>
+                                            </div>
+                                        </div>
+                                        <button className="text-slate-400 hover:text-slate-600"><DotsThreeVerticalIcon size={20} /></button>
+                                    </div>
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex gap-1 text-amber-400">
+                                                {[1, 2, 3, 4].map(i => <StarIcon weight="fill" key={i} size={16} />)}
+                                                <StarHalfIcon weight="fill" size={16} />
+                                            </div>
+                                            <span className="text-xs text-slate-400">October 11, 2023</span>
+                                        </div>
+                                        <p className="text-slate-600 text-sm leading-relaxed">
+                                            Lorem ipsum dolor sit amet consectetur. Enim dictumst commodo diam arcu massa dui amet neque. Gravida sed euismod arcu nulla massa.
+                                        </p>
+                                        <div className="flex gap-6 pt-2">
+                                            <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-km-heading">
+                                                <ThumbsUpIcon weight="bold" size={16} /> Like
+                                            </button>
+                                            <button className="flex items-center gap-2 text-xs text-slate-500 font-bold hover:text-rose-500 dark:hover:text-rose-400">
+                                                <FlagIcon weight="bold" size={16} /> Report
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Sidebar: Related Content */}
+            <div className="w-full lg:w-80 space-y-6">
+                <div className="bg-km-surface-card rounded-3xl p-6 shadow-sm border border-slate-100">
+                    <h2 className="text-lg font-bold text-slate-800 mb-6">Related Videos</h2>
+                    <div className="space-y-6">
+                        {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="flex gap-3 group cursor-pointer">
+                                <div className="w-24 h-16 bg-slate-200 rounded-lg shrink-0 relative overflow-hidden">
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <PlayIcon weight="fill" size={16} className="text-white fill-white" />
+                                    </div>
+                                </div>
+                                <div className="flex-1">
+                                    <h4 className="text-xs font-bold text-slate-800 leading-snug line-clamp-2">Lorem Ipsum Video Title Display Here</h4>
+                                    <div className="flex items-center justify-between mt-1">
+                                        <span className="text-[10px] text-slate-400">10K Viewers</span>
+                                        <BookmarkSimpleIcon weight="bold" size={12} className="text-km-heading" />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        <button className="w-full text-center text-km-heading font-bold text-sm pt-2 hover:underline">Show All</button>
+                    </div>
+                </div>
+
+                <AdSlot placement="resource_detail_sidebar" />
+            </div>
+        </div>
+    );
+};
+
+export default ResourceDetailsPage;
+
+const AccordionItem = ({ title, subtitle, active = false }: any) => (
+    <div className={`p-4 rounded-xl border transition-all cursor-pointer ${active ? 'bg-blue-50 border-blue-100' : 'bg-km-surface-card border-transparent hover:bg-slate-50'}`}>
+        <div className="flex items-center justify-between">
+            <span className={`text-sm font-bold ${active ? 'text-km-heading' : 'text-slate-800'}`}>{title}</span>
+            <CaretDownIcon weight="bold" size={16} className={active ? 'text-km-heading' : 'text-slate-400'} />
+        </div>
+        {subtitle && <p className="text-[10px] text-km-heading/70 mt-2 font-medium leading-relaxed">{subtitle}</p>}
+    </div>
+);
+
+const RatingBar = ({ label, percent }: { label: string, percent: number }) => (
+    <div className="flex items-center gap-4 group">
+        <span className="text-xs font-bold text-gray-500 w-12">{label}</span>
+        <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div
+                className="h-full bg-yellow-400 rounded-full transition-all duration-1000"
+                style={{ width: `${percent}%` }}
+            />
+        </div>
+        <span className="text-xs font-bold text-gray-400 w-8">{percent}%</span>
+    </div>
+);

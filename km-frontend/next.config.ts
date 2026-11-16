@@ -36,9 +36,6 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
-      // The old resources pages were a mock-up; courses are the real library
-      { source: "/resources", destination: "/courses", permanent: false },
-      { source: "/resources/:path*", destination: "/courses", permanent: false },
       {
         source: "/candidate/applications",
         destination: "/applications",

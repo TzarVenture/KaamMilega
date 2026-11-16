@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRightIcon, BookOpenIcon, CalendarBlankIcon, CalendarIcon, CaretLeftIcon, ChatCircleIcon, CheckCircleIcon, CheckIcon, ClockIcon, LightningIcon, LockIcon, MedalIcon, ShieldCheckIcon, StarIcon, UsersIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowRightIcon, BookOpenIcon, CalendarBlankIcon, CalendarIcon, CaretLeftIcon, CheckCircleIcon, CheckIcon, ClockIcon, LightningIcon, LockIcon, MedalIcon, ShieldCheckIcon, StarIcon, UsersIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
@@ -314,18 +314,17 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                    <span className="bg-blue-50 text-km-heading text-[11px] md:text-xs font-semibold px-3.5 py-1.5 rounded-full border border-blue-100">
                      {mentorship.category || "Mentorship"}
                    </span>
-                   <div className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 dark:text-amber-400">
-                     <StarIcon weight="fill" size={13} className="fill-amber-400 text-amber-400" />
-                     <span className="text-xs font-bold text-amber-800">
-                       {reviewsSummary?.total_reviews > 0 ? (
-                        `${reviewsSummary.average_rating.toFixed(1)} (${reviewsSummary.total_reviews} ${reviewsSummary.total_reviews === 1 ? 'review' : 'reviews'})`
-                      ) : mentorship.rating ? (
-                        `${mentorship.rating} (${mentorship.reviews || 0} reviews)`
-                      ) : (
-                        "5.0 (New Mentor)"
-                      )}
+                   {reviewsSummary?.total_reviews > 0 ? (
+                     <span className="flex items-center gap-1 text-xs font-semibold text-km-text-primary">
+                       <StarIcon weight="fill" size={13} className="text-[#F59E0B]" />
+                       {reviewsSummary.average_rating.toFixed(1)}
+                       <span className="font-normal text-km-text-secondary">
+                         ({reviewsSummary.total_reviews} {reviewsSummary.total_reviews === 1 ? 'review' : 'reviews'})
+                       </span>
                      </span>
-                   </div>
+                   ) : (
+                     <span className="text-xs font-medium text-km-text-secondary">New mentor</span>
+                   )}
                 </div>
 
                 <h1 className="text-2xl md:text-4xl font-bold text-km-heading mb-4 md:mb-6 leading-tight">
@@ -334,8 +333,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
                 <div className="flex flex-wrap gap-4 md:gap-8 pt-2 border-t border-km-border-subtle">
                     <InfoItem icon={<ClockIcon weight="bold" className="text-km-heading" size={18} />} label="Duration" value={`${mentorship.duration || 45} Mins`} />
-                    <InfoItem icon={<UsersIcon weight="bold" className="text-emerald-600 dark:text-emerald-400" size={18} />} label="Session Format" value="1-on-1 Dedicated" />
-                    <InfoItem icon={<ChatCircleIcon weight="bold" className="text-orange-500 dark:text-orange-400" size={18} />} label="Languages" value="Hindi / English" />
+                    <InfoItem icon={<UsersIcon weight="bold" className="text-emerald-600 dark:text-emerald-400" size={18} />} label="Format" value="1-on-1 video call" />
                 </div>
             </div>
 
@@ -346,31 +344,15 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                   <span>About this Mentorship Session</span>
                </h2>
                <div className="text-km-text-secondary text-sm md:text-base leading-relaxed space-y-4">
-                  <p>{mentorship.description}</p>
-                  
-                  <h4 className="text-km-heading font-bold pt-4">Key Takeaways from this session:</h4>
-                  <ul className="space-y-3">
-                     {[
-                        "Personalized career roadmap and tailored action items",
-                        "Tactical industry insights and direct feedback on your profile",
-                        "Practical interview questions and proven answer frameworks",
-                        "Direct 1-on-1 Q&A addressing your specific career hurdles"
-                     ].map((item, i) => (
-                        <li key={i} className="flex gap-2.5 items-start text-xs md:text-sm text-km-text-primary">
-                           <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5 dark:text-emerald-400" />
-                           <span>{item}</span>
-                        </li>
-                     ))}
-                  </ul>
+                  <p className="whitespace-pre-line">{mentorship.description}</p>
                </div>
             </div>
 
             {/* Meet Your Mentor Card */}
-            <div className="bg-linear-to-br from-[#020617] via-[#071A4D] to-[#0B5ED7] text-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xl shadow-blue-950/20 relative overflow-hidden">
-                
+            <div className="bg-[#071A4D] text-white rounded-2xl p-6 md:p-8 border border-[#0B1F52] relative overflow-hidden">
                 <h2 className="text-lg md:text-xl font-bold mb-6 text-white flex items-center gap-2">
                    <MedalIcon weight="bold" size={18} className="text-orange-400" />
-                   <span>Meet Your Mentor</span>
+                   <span>Your mentor</span>
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-5 md:gap-6 items-start relative z-10">
                     <div className="w-18 h-18 md:w-22 md:h-22 rounded-2xl bg-[#0B1F52] border-2 border-[#1E3A8A] flex items-center justify-center overflow-hidden shrink-0 shadow-md">
@@ -389,21 +371,22 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                             <CheckIcon weight="bold" size={10} />
                           </span>
                         </div>
-                        <p className="text-blue-200 text-xs md:text-sm font-semibold">
-                          {expert?.headline || "Verified Industry Professional & Career Mentor"}
-                        </p>
-                        <p className="text-white/75 text-xs md:text-sm leading-relaxed max-w-2xl">
-                          {expert?.bio || "An experienced professional committed to guiding candidates, sharing practical insights, and helping you achieve your career aspirations."}
-                        </p>
-                        <div className="flex flex-wrap gap-2 pt-2">
+                        {expert?.headline && (
+                          <p className="text-blue-100 text-sm font-medium">{expert.headline}</p>
+                        )}
+                        {expert?.bio && (
+                          <p className="text-white/80 text-sm leading-relaxed max-w-2xl">{expert.bio}</p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-4 pt-2">
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300">
                                 <ShieldCheckIcon weight="bold" size={13} />
-                                <span>Verified Expert</span>
+                                <span>Approved expert</span>
                             </span>
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-300">
-                                <StarIcon weight="fill" size={13} className="fill-amber-300" />
-                                <span>Top Rated Mentor</span>
-                            </span>
+                            {expert?.id && (
+                              <Link href={`/profile/${expert.id}`} className="text-xs font-semibold text-white hover:underline">
+                                View profile
+                              </Link>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -460,7 +443,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     const key = `${stars}_star` as keyof RatingDistribution;
                     const count = reviewsSummary?.distribution?.[key] || 0;
                     const total = reviewsSummary?.total_reviews || 0;
-                    const percent = total > 0 ? Math.round((count / total) * 100) : (stars === 5 ? 100 : 0);
+                    const percent = total > 0 ? Math.round((count / total) * 100) : 0;
 
                     return (
                       <div key={stars} className="flex items-center gap-3 text-xs">
@@ -603,19 +586,17 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     </div>
                     {/* Trust Rating Pill */}
                     <div className="flex items-center gap-2 mt-2">
-                      <div className="flex items-center gap-1 text-amber-500 text-xs font-bold dark:text-amber-400">
-                        <StarIcon weight="fill" size={12} className="fill-amber-400 text-amber-400" />
-                        <span>
-                          {reviewsSummary?.total_reviews > 0 
-                            ? `${reviewsSummary.average_rating.toFixed(1)} (${reviewsSummary.total_reviews} reviews)`
-                            : (mentorship?.rating ? `${mentorship.rating} rating` : "Top Rated")}
+                      {reviewsSummary?.total_reviews > 0 ? (
+                        <span className="flex items-center gap-1 text-xs font-semibold text-km-text-primary">
+                          <StarIcon weight="fill" size={12} className="text-[#F59E0B]" />
+                          {reviewsSummary.average_rating.toFixed(1)}
+                          <span className="font-normal text-km-text-secondary">({reviewsSummary.total_reviews} reviews)</span>
                         </span>
-                      </div>
-                      <span className="text-km-text-muted">•</span>
-                      <span className="text-emerald-600 text-xs font-semibold flex items-center gap-0.5 dark:text-emerald-400">
-                        <ShieldCheckIcon weight="bold" size={12} />
-                        <span>Verified Call</span>
-                      </span>
+                      ) : (
+                        <span className="text-xs text-km-text-secondary">New mentor</span>
+                      )}
+                      <span className="text-km-text-muted">·</span>
+                      <span className="text-xs text-km-text-secondary">Video call</span>
                     </div>
                 </div>
 

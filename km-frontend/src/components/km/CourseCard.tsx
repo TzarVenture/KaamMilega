@@ -118,10 +118,12 @@ export default function CourseCard({
                     <div>
                         {/* Views Count */}
                         <div className="flex items-center justify-end mb-1">
-                            <span className="text-[11px] font-semibold text-km-heading flex items-center gap-1">
+                            {(course.views || 0) > 0 && (
+                            <span className="text-[11px] font-medium text-km-text-secondary flex items-center gap-1">
                                 <EyeIcon weight="bold" size={11} className="text-km-link" />
-                                {formattedViews}
+                                {formattedViews.replace(" Viewers", " views")}
                             </span>
+                        )}
                         </div>
 
                         {/* Title (Clickable) */}
@@ -137,7 +139,7 @@ export default function CourseCard({
                     <div className="flex items-center justify-between pt-1 border-t border-km-border/60 text-[11px] text-km-text-secondary">
                         <span className="flex items-center gap-1 font-medium text-km-text-primary">
                             <ClockIcon weight="bold" size={11} className="text-km-link" />
-                            {course.duration || "30 Min"}
+                            {course.duration || "Video"}
                         </span>
                     </div>
                 </div>
@@ -175,9 +177,11 @@ export default function CourseCard({
                 )}
 
                 {/* Duration Badge on bottom-right of thumbnail */}
-                <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D]/80 text-white text-[10px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 dark:bg-km-primary">
-                    <ClockIcon weight="bold" size={11} /> {course.duration || "30 Min"}
-                </span>
+                {course.duration && (
+                    <span className="absolute bottom-2.5 right-2.5 bg-[#071A4D] text-white text-[11px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 dark:bg-km-primary">
+                        <ClockIcon weight="bold" size={11} /> {course.duration}
+                    </span>
+                )}
 
                 {/* Minimalist Play Icon in Center */}
                 <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
@@ -243,15 +247,10 @@ export default function CourseCard({
                 </div>
 
                 {/* ─── 3. Metadata Grid ─── */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-y-2.5 gap-x-4 pt-3.5 mt-4 border-t border-km-border">
-                    {/* (A) Video Duration (Replaced Watch Video area) */}
-                    <div className="flex items-center gap-1.5 text-xs text-km-text-secondary">
-                        <ClockIcon weight="bold" size={14} className="text-km-link shrink-0" />
-                        <span>Duration: <strong className="text-km-text-primary">{course.duration || "30 Min"}</strong></span>
-                    </div>
-
-                    {/* (B) Real Expert Name with Link to Profile */}
-                    <div className="flex items-center gap-1.5 text-xs text-km-text-secondary truncate">
+                {/* Duration is on the thumbnail; views only once there are some */}
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-3.5 mt-4 border-t border-km-border">
+                    {/* Expert name with link to profile */}
+                    <div className="flex items-center gap-1.5 text-xs text-km-text-secondary min-w-0 max-w-full">
                         <Link
                             href={expertProfileUrl}
                             onClick={(e) => e.stopPropagation()}
@@ -275,11 +274,12 @@ export default function CourseCard({
                         </Link>
                     </div>
 
-                    {/* (C) Live Viewers Count */}
-                    <div className="flex items-center gap-1.5 text-xs text-km-heading font-bold">
-                        <EyeIcon weight="bold" size={14} className="text-km-link shrink-0" />
-                        <span>{formattedViews}</span>
-                    </div>
+                    {(course.views || 0) > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-km-text-secondary">
+                            <EyeIcon weight="bold" size={14} className="text-km-link shrink-0" />
+                            <span>{formattedViews.replace(" Viewers", " views")}</span>
+                        </div>
+                    )}
 
                     {/* (D) Release Date */}
                     <div className="flex items-center gap-1.5 text-xs text-km-text-secondary">

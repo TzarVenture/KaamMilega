@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, LockIcon, PrinterIcon, QrCodeIcon, ShieldCheckIcon, TicketIcon, UsersIcon, VideoCameraIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowLeftIcon, ArrowRightIcon, ArrowSquareOutIcon, CalendarBlankIcon, CheckCircleIcon, ClockIcon, LockIcon, MapPinIcon, PrinterIcon, QrCodeIcon, ShieldCheckIcon, TicketIcon, UsersIcon, VideoCameraIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '@/lib/axios';
 import { isAuthenticated } from '@/lib/auth';
@@ -248,7 +248,7 @@ const EventDetailsPage = () => {
                 attendee_phone: attendeePhone,
             });
 
-            notify.success("Workshop pass booked successfully using Wallet balance!");
+            notify.success("Pass booked using your wallet balance");
             setIsRegistered(true);
             setTicket(res.ticket);
             setCheckoutModalOpen(false);
@@ -288,27 +288,28 @@ const EventDetailsPage = () => {
 
     // Meeting link resolution (if event.location contains meet/zoom or is online)
     const isOnlineSession = !event.location || event.location.toLowerCase().includes('online') || event.location.toLowerCase().includes('zoom') || event.location.toLowerCase().includes('meet') || event.location.startsWith('http');
-    const meetingUrl = event.location?.startsWith('http') 
-        ? event.location 
-        : `https://meet.google.com/new`;
+    // Only a real link from the host. (meet.google.com/new would open an empty meeting of the user's own.)
+    const meetingUrl = event.location?.startsWith('http') ? event.location : null;
+    const mapsUrl = !isOnlineSession && event.location
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`
+        : null;
+    const eventDate = (() => {
+        const d = new Date(event.date);
+        return isNaN(d.getTime()) ? event.date : d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+    })();
 
     return (
         <div className="bg-km-surface min-h-screen pb-20 font-sans">
 
             {/* ─── Hero Banner with Master Deep Navy ─── */}
-            <div className="relative h-60 sm:h-72 lg:h-80 w-full bg-[#071A4D] overflow-hidden border-b border-[#0B1F52] dark:border-km-link">
-                {event.image_url ? (
+            {/* Short navy band when there is no event picture, so the details start near the top */}
+            <div className={`relative w-full bg-[#071A4D] overflow-hidden border-b border-[#0B1F52] ${event.image_url ? 'h-60 sm:h-72 lg:h-80' : 'h-40'}`}>
+                {event.image_url && (
                     <img
                         src={event.image_url}
                         alt={event.title}
                         className="w-full h-full object-cover opacity-35"
                     />
-                ) : (
-                    <div className="w-full h-full bg-[#071A4D] flex items-center justify-center dark:bg-km-primary">
-                        <div className="w-20 h-20 rounded-2xl bg-[#0B1F52] flex items-center justify-center text-km-events">
-                            <CalendarBlankIcon size={40} />
-                        </div>
-                    </div>
                 )}
                 
                 {/* Back to Events Nav Button */}
@@ -317,7 +318,7 @@ const EventDetailsPage = () => {
                         href="/events"
                         className="inline-flex items-center gap-2 border border-white/30 text-white hover:bg-white/10 hover:border-white text-xs font-semibold px-3.5 py-2 rounded-xl transition-all"
                     >
-                        <ArrowLeftIcon weight="bold" size={15} /> Back to Workshops
+                        <ArrowLeftIcon weight="bold" size={15} /> All events
                     </Link>
                 </div>
             </div>
@@ -331,14 +332,14 @@ const EventDetailsPage = () => {
                         {/* Event Tags */}
                         <div className="flex flex-wrap items-center gap-2.5 mb-3.5">
                             <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-[#332E2D]">
-                                {event.category || 'Skill Workshop'}
+                                {event.category || 'Event'}
                             </span>
                             <span className={`text-xs font-semibold px-2.5 py-0.5 rounded-md ${
                                 isPaid
                                     ? 'bg-km-accent text-white'
                                     : 'bg-[#071A4D] text-white dark:bg-km-primary'
                             }`}>
-                                {isPaid ? `Paid Masterclass • ₹${event.price}` : 'Free Entry Pass'}
+                                {isPaid ? `₹${event.price}` : 'Free'}
                             </span>
                             {isOnlineSession && (
                                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
@@ -353,118 +354,71 @@ const EventDetailsPage = () => {
                         </h1>
 
                         <p className="text-sm text-km-text-secondary font-normal mb-6">
-                            Conducted by <span className="font-semibold text-km-text-primary">{event.organizer}</span>
-                            <span className="text-km-link ml-2 text-xs font-medium">• Verified Expert Practitioner</span>
+                            Hosted by <span className="font-semibold text-km-text-primary">{event.organizer}</span>
                         </p>
 
                         {/* Description */}
-                        <div className="border-t border-km-border pt-6">
-                            <h3 className="text-base font-bold text-km-text-primary mb-3">About this Masterclass</h3>
-                            <p className="text-sm text-km-text-secondary leading-relaxed whitespace-pre-line font-normal">
-                                {event.description || "Join this expert-led masterclass to acquire practical skills, trade techniques, and career insights. Interactive Q&A will be conducted at the end of the session."}
-                            </p>
-                        </div>
+                        {event.description && (
+                            <div className="border-t border-km-border pt-6">
+                                <h3 className="text-base font-bold text-km-text-primary mb-3">About this event</h3>
+                                <p className="text-sm text-km-text-secondary leading-relaxed whitespace-pre-line">
+                                    {event.description}
+                                </p>
+                            </div>
+                        )}
                     </div>
 
-                    {/* ── Live Session & Meeting Link Section (Google Meet / Zoom) ── */}
+                    {/* ── How to attend: joining link (online) or venue (in person) ── */}
                     {isRegistered ? (
-                        <div className="bg-km-surface-card rounded-2xl p-6 sm:p-7 border-2 border-[#10B981]/40 shadow-xs space-y-4">
+                        <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs space-y-4">
                             <div className="flex items-center justify-between flex-wrap gap-2">
-                                <div className="flex items-center gap-2.5 text-emerald-700 font-bold text-sm">
-                                    <VideoCameraIcon size={20} className="text-emerald-600 shrink-0 dark:text-emerald-400" aria-hidden="true" />
-                                    <span>Live Video Conference & Room Access</span>
-                                </div>
-                                <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full inline-flex items-center gap-1">
-                                    <CheckCircleIcon weight="bold" size={12} /> Entry Pass Active
+                                <h3 className="text-base font-bold text-km-text-primary">How to attend</h3>
+                                <span className="text-xs font-semibold text-[#15803D] bg-km-surface border border-km-border px-2.5 py-0.5 rounded-md inline-flex items-center gap-1 dark:text-emerald-400">
+                                    <CheckCircleIcon weight="bold" size={13} /> You&apos;re registered
                                 </span>
                             </div>
 
-                            <p className="text-xs text-km-text-secondary leading-relaxed">
-                                Your pass has been issued. Use the secure meeting link below to join the live video session at the scheduled date and time:
-                            </p>
-
                             <div className="p-4 bg-km-surface rounded-xl border border-km-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-3 min-w-0">
-                                    <VideoCameraIcon size={24} weight="duotone" className="text-km-link shrink-0" aria-hidden="true" />
+                                    {isOnlineSession
+                                        ? <VideoCameraIcon size={24} weight="duotone" className="text-km-link shrink-0" aria-hidden="true" />
+                                        : <MapPinIcon size={24} weight="duotone" className="text-km-events shrink-0" aria-hidden="true" />}
                                     <div className="min-w-0">
-                                        <p className="text-xs font-bold text-km-text-primary truncate">
-                                            {isOnlineSession ? "Interactive Google Meet / Zoom Room" : event.location}
+                                        <p className="text-sm font-semibold text-km-text-primary truncate">
+                                            {isOnlineSession ? (meetingUrl ? 'Online meeting' : event.location || 'Online') : event.location}
                                         </p>
-                                        <p className="text-[11px] text-km-text-secondary truncate">
-                                            Ticket Pass ID: <span className="font-mono font-semibold text-km-heading">{ticket?.ticket_number || "CONFIRMED"}</span>
+                                        <p className="text-xs text-km-text-secondary truncate">
+                                            Pass ID <span className="font-mono font-semibold text-km-heading">{ticket?.ticket_number || 'Confirmed'}</span>
                                         </p>
                                     </div>
                                 </div>
 
-                                <a
-                                    href={meetingUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="btn-accent text-xs px-4 py-2.5 shrink-0 inline-flex items-center gap-1.5 shadow-xs"
-                                >
-                                    <VideoCameraIcon weight="bold" size={14} />
-                                    <span>Join Meeting Room</span>
-                                    <ArrowSquareOutIcon weight="bold" size={12} />
-                                </a>
+                                {meetingUrl ? (
+                                    <a href={meetingUrl} target="_blank" rel="noopener noreferrer" className="btn-accent text-xs px-4 py-2.5 shrink-0 inline-flex items-center gap-1.5">
+                                        Join meeting <ArrowSquareOutIcon weight="bold" size={12} />
+                                    </a>
+                                ) : mapsUrl ? (
+                                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="btn-outline text-xs px-4 py-2.5 shrink-0 inline-flex items-center gap-1.5">
+                                        Open in Maps <ArrowSquareOutIcon weight="bold" size={12} />
+                                    </a>
+                                ) : null}
                             </div>
 
-                            <p className="text-[11px] text-km-text-secondary">
-                                Note: Please join 5 minutes before scheduled start ({event.time || "scheduled time"}). The expert host admits participants with verified ticket pass numbers.
+                            <p className="text-xs text-km-text-secondary">
+                                {isOnlineSession && !meetingUrl
+                                    ? `The host will send the joining link before ${event.time || 'the start time'}. Watch your notifications and chat.`
+                                    : `Please arrive 10 minutes before ${event.time || 'the start time'} and keep your pass ID handy.`}
                             </p>
                         </div>
-                    ) : (
-                        <div className="bg-[#FFFBEB] rounded-2xl p-5 sm:p-6 border border-[#FDE68A] shadow-xs dark:bg-[#332E2D]">
-                            <div className="flex items-start gap-3.5">
-                                <LockIcon size={22} className="text-[#B45309] shrink-0 mt-0.5 dark:text-orange-400" aria-hidden="true" />
-                                <div className="flex-1">
-                                    <h4 className="text-sm font-bold text-km-text-primary">Live Session Meeting Room (Google Meet / Zoom)</h4>
-                                    <p className="text-xs text-km-text-secondary mt-1 leading-relaxed">
-                                        The direct video conference link, meeting ID, and workshop handouts unlock automatically for your account once you reserve a pass for this session.
-                                    </p>
-                                    <div className="mt-3 flex items-center gap-2">
-                                        <span className="text-[11px] font-semibold text-[#B45309] bg-km-surface-card border border-[#FDE68A] px-2.5 py-1 rounded-lg dark:text-orange-400">
-                                            Locked for Registered Learners
-                                        </span>
-                                    </div>
-                                </div>
+                    ) : isOnlineSession ? (
+                        <div className="bg-km-surface-card rounded-2xl p-5 border border-km-border shadow-xs flex items-start gap-3.5">
+                            <LockIcon size={22} className="text-km-events shrink-0 mt-0.5" aria-hidden="true" />
+                            <div>
+                                <h4 className="text-sm font-bold text-km-text-primary">Joining link</h4>
+                                <p className="text-xs text-km-text-secondary mt-1">Shown here once you register.</p>
                             </div>
                         </div>
-                    )}
-
-                    {/* What You'll Learn / Inclusions Grid */}
-                    <div className="bg-km-surface-card rounded-2xl p-6 sm:p-7 border border-km-border shadow-xs">
-                        <h3 className="text-base font-bold text-km-text-primary mb-4">Workshop Deliverables</h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs text-km-text-secondary">
-                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-km-surface border border-km-border/70">
-                                <CheckIcon weight="bold" size={16} className="text-[#10B981] shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="font-semibold text-km-text-primary">Direct Live Interaction</p>
-                                    <p className="text-[11px] text-km-text-secondary mt-0.5">Interactive Q&A with real-time feedback from the expert.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-km-surface border border-km-border/70">
-                                <CheckIcon weight="bold" size={16} className="text-[#10B981] shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="font-semibold text-km-text-primary">Verified Skill Takeaways</p>
-                                    <p className="text-[11px] text-km-text-secondary mt-0.5">Practical knowledge you can immediately apply to jobs.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-km-surface border border-km-border/70">
-                                <CheckIcon weight="bold" size={16} className="text-[#10B981] shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="font-semibold text-km-text-primary">Digital Boarding Pass</p>
-                                    <p className="text-[11px] text-km-text-secondary mt-0.5">Unique QR-verified pass stored inside your account.</p>
-                                </div>
-                            </div>
-                            <div className="flex items-start gap-2.5 p-3 rounded-xl bg-km-surface border border-km-border/70">
-                                <CheckIcon weight="bold" size={16} className="text-[#10B981] shrink-0 mt-0.5" />
-                                <div>
-                                    <p className="font-semibold text-km-text-primary">Direct Mentorship Connect</p>
-                                    <p className="text-[11px] text-km-text-secondary mt-0.5">Opportunity to book follow-up 1-on-1 expert sessions.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    ) : null}
 
                     {/* Host Sessions Banner (Callout for Practitioners) */}
                     <div className="bg-km-surface-card rounded-2xl p-6 border border-km-border shadow-xs">
@@ -491,11 +445,11 @@ const EventDetailsPage = () => {
                     <div className="lg:sticky lg:top-24 space-y-5">
                         <div className="km-card p-6 shadow-sm">
                             <div className="flex items-center justify-between mb-5 pb-3 border-b border-km-border">
-                                <h3 className="text-base font-bold text-km-text-primary">Workshop Pass</h3>
+                                <h3 className="text-base font-bold text-km-text-primary">Your pass</h3>
                                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-md ${
                                     isPaid ? 'bg-km-accent text-white' : 'bg-[#071A4D] text-white dark:bg-km-primary'
                                 }`}>
-                                    {isPaid ? `₹${event.price}` : 'Free Entry'}
+                                    {isPaid ? `₹${event.price}` : 'Free'}
                                 </span>
                             </div>
 
@@ -505,7 +459,7 @@ const EventDetailsPage = () => {
                                     <CalendarBlankIcon size={24} weight="duotone" className="text-km-events shrink-0" aria-hidden="true" />
                                     <div>
                                         <p className="text-xs font-semibold text-km-text-secondary">Date</p>
-                                        <p className="text-sm font-bold text-km-text-primary">{event.date}</p>
+                                        <p className="text-sm font-bold text-km-text-primary">{eventDate}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
@@ -516,11 +470,13 @@ const EventDetailsPage = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <VideoCameraIcon size={24} weight="duotone" className="text-km-accent shrink-0" aria-hidden="true" />
-                                    <div>
-                                        <p className="text-xs font-semibold text-km-text-secondary">Format</p>
+                                    {isOnlineSession
+                                        ? <VideoCameraIcon size={24} weight="duotone" className="text-km-accent shrink-0" aria-hidden="true" />
+                                        : <MapPinIcon size={24} weight="duotone" className="text-km-accent shrink-0" aria-hidden="true" />}
+                                    <div className="min-w-0">
+                                        <p className="text-xs font-semibold text-km-text-secondary">{isOnlineSession ? 'Online' : 'Venue'}</p>
                                         <p className="text-sm font-bold text-km-text-primary">
-                                            {isOnlineSession ? "Online (Google Meet / Zoom)" : event.location}
+                                            {event.location || 'Online'}
                                         </p>
                                     </div>
                                 </div>
@@ -535,7 +491,7 @@ const EventDetailsPage = () => {
                                 <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-km-text-primary group-hover:text-km-link transition-colors flex-wrap">
                                     <UsersIcon weight="bold" size={14} className="text-km-heading group-hover:scale-110 transition-transform" />
                                     <span className="text-km-heading font-bold">{participantCount}</span> 
-                                    <span>{participantCount === 1 ? 'learner has' : 'learners have'} registered</span>
+                                    <span>{participantCount === 1 ? 'person has' : 'people have'} registered</span>
                                     <span className="text-[10px] text-km-heading bg-km-surface-card border border-km-border px-2 py-0.5 rounded-full font-bold ml-1 transition-all">
                                         View All
                                     </span>
@@ -551,7 +507,7 @@ const EventDetailsPage = () => {
                             {isRegistered ? (
                                 <div className="space-y-3">
                                     <div className="w-full py-2.5 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl font-bold text-xs flex items-center justify-center gap-2">
-                                        <CheckCircleIcon weight="bold" size={16} /> You're Registered!
+                                        <CheckCircleIcon weight="bold" size={16} /> You&apos;re registered
                                     </div>
                                     <button
                                         type="button"
@@ -564,7 +520,7 @@ const EventDetailsPage = () => {
                                         <QrCodeIcon weight="bold" size={16} />
                                         <span>View Digital Pass & QR</span>
                                     </button>
-                                    {isOnlineSession && (
+                                    {meetingUrl && (
                                         <a
                                             href={meetingUrl}
                                             target="_blank"
@@ -579,7 +535,7 @@ const EventDetailsPage = () => {
                             ) : isPaid ? (
                                 isSoldOut ? (
                                     <button disabled className="w-full py-3.5 bg-[#E5ECF5] text-km-text-secondary rounded-xl font-bold text-sm cursor-not-allowed dark:bg-[#1D253D]">
-                                        Workshop Full
+                                        Event full
                                     </button>
                                 ) : (
                                     <button
@@ -598,7 +554,7 @@ const EventDetailsPage = () => {
                                     disabled={registering || isSoldOut}
                                     className="btn-primary w-full py-3.5 text-sm shadow-md cursor-pointer disabled:opacity-60"
                                 >
-                                    {registering ? "Reserving Pass..." : isSoldOut ? "Workshop Full" : "Register for Workshop (Free)"}
+                                    {registering ? "Reserving Pass..." : isSoldOut ? "Event full" : "Register for free"}
                                 </button>
                             )}
                         </div>
@@ -620,7 +576,7 @@ const EventDetailsPage = () => {
                             <div className="flex justify-between items-center px-5 py-3.5 border-b border-km-border shrink-0 bg-km-surface-card">
                                 <div className="flex items-center gap-2">
                                     <TicketIcon size={20} className="text-km-events" aria-hidden="true" />
-                                    <h3 className="text-base font-bold text-km-text-primary">Workshop Pass Checkout</h3>
+                                    <h3 className="text-base font-bold text-km-text-primary">Checkout</h3>
                                 </div>
                                 <button
                                     type="button"
@@ -638,14 +594,14 @@ const EventDetailsPage = () => {
                                 <div className="bg-km-surface border border-km-border rounded-2xl p-4">
                                     <h4 className="font-bold text-sm text-km-text-primary mb-1">{event.title}</h4>
                                     <div className="flex justify-between items-center text-xs text-km-text-secondary mb-2">
-                                        <span>{event.date} • {event.time}</span>
+                                        <span>{eventDate}{event.time ? ` · ${event.time}` : ""}</span>
                                         <span className="text-base font-bold text-km-heading font-mono">
                                             ₹{event.price}
                                         </span>
                                     </div>
-                                    <div className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200/60 rounded-lg p-2 font-medium">
-                                        ✓ Includes live Google Meet / Zoom link and verified entry boarding pass
-                                    </div>
+                                    <p className="text-xs text-km-text-secondary">
+                                        {isOnlineSession ? 'Includes your pass; the joining link appears on this page.' : 'Includes your entry pass for the venue.'}
+                                    </p>
                                 </div>
 
                                 {/* Attendee Info Form */}
@@ -758,7 +714,7 @@ const EventDetailsPage = () => {
                             {/* Modal Action Bar */}
                             <div className="flex justify-between items-center px-5 py-3 border-b border-km-border bg-km-surface-card">
                                 <span className="text-xs font-bold text-km-text-primary flex items-center gap-1.5">
-                                    <TicketIcon weight="bold" size={14} className="text-km-accent" /> Digital Workshop Pass
+                                    <TicketIcon weight="bold" size={14} className="text-km-accent" /> Your event pass
                                 </span>
                                 <button
                                     type="button"
@@ -817,7 +773,7 @@ const EventDetailsPage = () => {
                                         <div className="min-w-0 flex-1">
                                             <span className="text-xs font-semibold text-km-text-secondary block">Room / Location</span>
                                             <span className="font-semibold text-[11px] text-km-text-primary truncate block">
-                                                {isOnlineSession ? "Online Video Room (Google Meet / Zoom)" : (ticket.event_location || event.location)}
+                                                {ticket.event_location || event.location || "Online"}
                                             </span>
                                         </div>
                                     </div>

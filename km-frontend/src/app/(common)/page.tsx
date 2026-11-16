@@ -844,7 +844,7 @@ const LearnSection = () => {
       >
         {/* Main Video (Left Side): thumbnail with a centred play button, opens Resources */}
         <Link
-          href="/courses"
+          href="/resources"
           className="block w-full md:flex-1 aspect-video bg-km-ink rounded-2xl relative group cursor-pointer overflow-hidden border border-km-border"
           title={t('exploreCourse', { title: activeVideo.title })}
         >
@@ -942,7 +942,7 @@ const LearnSection = () => {
 
           {/* Fixed Green Button as per Project Color Rules */}
           <Link
-            href="/courses"
+            href="/resources"
             className="w-full py-3 px-5 km-press bg-km-skills hover:bg-[#15803D] text-white rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer mt-auto"
           >
             <span>{t('allResources')}</span>
@@ -1463,7 +1463,7 @@ const PremiumServicesBanner = () => {
               {PREMIUM_SERVICES.map((service) => (
                 <Link
                   key={service}
-                  href="/mentorship"
+                  href="/resources/premium"
                   className="km-press inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-km-border text-sm font-medium text-km-text-primary hover:border-[#0B5ED7]/40 hover:text-km-heading transition-colors"
                 >
                   {t(service)}
@@ -1474,7 +1474,7 @@ const PremiumServicesBanner = () => {
           </div>
 
           <Link
-            href="/mentorship"
+            href="/resources/premium"
             className="km-press shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#071A4D] hover:bg-[#0B1F52] text-white text-sm font-semibold transition-colors dark:bg-km-primary dark:hover:bg-km-primary-dark"
           >
             {tc('learnMore')}
