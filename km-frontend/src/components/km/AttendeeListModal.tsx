@@ -135,7 +135,7 @@ export default function AttendeeListModal({
                         </span>
                     </div>
 
-                    <h2 className="text-lg md:text-xl font-black text-slate-900 line-clamp-1">
+                    <h2 className="text-lg md:text-xl font-bold text-slate-900 line-clamp-1">
                         {eventTitle || "Event Attendees"}
                     </h2>
                     <p className="text-xs text-slate-500 font-medium mt-0.5">
@@ -229,12 +229,12 @@ export default function AttendeeListModal({
                                                 {attendee.name || "Member"}
                                             </h4>
                                             {attendee.payment_type === "paid" ? (
-                                                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                                                <span className="inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.2 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
                                                     <TicketIcon weight="bold" size={9} />
                                                     <span>Ticket</span>
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-0.5 text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                <span className="inline-flex items-center gap-0.5 text-[11px] font-bold px-1.5 py-0.2 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
                                                     <CheckCircleIcon weight="bold" size={9} />
                                                     <span>Pass</span>
                                                 </span>

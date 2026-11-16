@@ -481,6 +481,9 @@ func (r *EventRepositoryImpl) AdminUpdateEvent(ctx context.Context, eventID prim
 	if req.Location != "" {
 		update["location"] = req.Location
 	}
+	if req.MeetingLink != nil {
+		update["meeting_link"] = *req.MeetingLink
+	}
 	if req.ImageURL != "" {
 		update["image_url"] = req.ImageURL
 	}

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, use, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRightIcon, BookOpenIcon, CalendarBlankIcon, CalendarIcon, CaretLeftIcon, ChatCircleIcon, CheckCircleIcon, CheckIcon, ClockIcon, LightningIcon, LockIcon, MedalIcon, ShieldCheckIcon, StarIcon, UsersIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowRightIcon, BookOpenIcon, CalendarBlankIcon, CalendarIcon, CaretLeftIcon, CheckCircleIcon, CheckIcon, ClockIcon, LightningIcon, LockIcon, MedalIcon, ShieldCheckIcon, StarIcon, UsersIcon, WalletIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
@@ -289,7 +289,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   const currentDayAvail = getDayAvailability(selectedDate);
   const expertNameClean = (expert?.name || "Industry Expert").replace(/\s*\.+$/, "");
   const expertInitial = (expertNameClean[0] || "E").toUpperCase();
-  const sessionPrice = mentorship.price || 499;
+  const sessionPrice = Number(mentorship.price) || 0;
   const mainBal = walletData?.main_balance || 0;
   const hasSufficientWallet = mainBal >= sessionPrice;
 
@@ -314,28 +314,26 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                    <span className="bg-blue-50 text-km-heading text-[11px] md:text-xs font-semibold px-3.5 py-1.5 rounded-full border border-blue-100">
                      {mentorship.category || "Mentorship"}
                    </span>
-                   <div className="flex items-center gap-1.5 text-amber-500 bg-amber-50 px-3 py-1 rounded-full border border-amber-100 dark:text-amber-400">
-                     <StarIcon weight="fill" size={13} className="fill-amber-400 text-amber-400" />
-                     <span className="text-xs font-bold text-amber-800">
-                       {reviewsSummary?.total_reviews > 0 ? (
-                        `${reviewsSummary.average_rating.toFixed(1)} (${reviewsSummary.total_reviews} ${reviewsSummary.total_reviews === 1 ? 'review' : 'reviews'})`
-                      ) : mentorship.rating ? (
-                        `${mentorship.rating} (${mentorship.reviews || 0} reviews)`
-                      ) : (
-                        "5.0 (New Mentor)"
-                      )}
+                   {reviewsSummary?.total_reviews > 0 ? (
+                     <span className="flex items-center gap-1 text-xs font-semibold text-km-text-primary">
+                       <StarIcon weight="fill" size={13} className="text-[#F59E0B]" />
+                       {reviewsSummary.average_rating.toFixed(1)}
+                       <span className="font-normal text-km-text-secondary">
+                         ({reviewsSummary.total_reviews} {reviewsSummary.total_reviews === 1 ? 'review' : 'reviews'})
+                       </span>
                      </span>
-                   </div>
+                   ) : (
+                     <span className="text-xs font-medium text-km-text-secondary">New mentor</span>
+                   )}
                 </div>
 
-                <h1 className="text-2xl md:text-4xl font-black text-km-heading mb-4 md:mb-6 leading-tight">
+                <h1 className="text-2xl md:text-4xl font-bold text-km-heading mb-4 md:mb-6 leading-tight">
                   {mentorship.title}
                 </h1>
 
                 <div className="flex flex-wrap gap-4 md:gap-8 pt-2 border-t border-km-border-subtle">
                     <InfoItem icon={<ClockIcon weight="bold" className="text-km-heading" size={18} />} label="Duration" value={`${mentorship.duration || 45} Mins`} />
-                    <InfoItem icon={<UsersIcon weight="bold" className="text-emerald-600 dark:text-emerald-400" size={18} />} label="Session Format" value="1-on-1 Dedicated" />
-                    <InfoItem icon={<ChatCircleIcon weight="bold" className="text-orange-500 dark:text-orange-400" size={18} />} label="Languages" value="Hindi / English" />
+                    <InfoItem icon={<UsersIcon weight="bold" className="text-emerald-600 dark:text-emerald-400" size={18} />} label="Format" value="1-on-1 video call" />
                 </div>
             </div>
 
@@ -346,64 +344,49 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                   <span>About this Mentorship Session</span>
                </h2>
                <div className="text-km-text-secondary text-sm md:text-base leading-relaxed space-y-4">
-                  <p>{mentorship.description}</p>
-                  
-                  <h4 className="text-km-heading font-bold pt-4">Key Takeaways from this session:</h4>
-                  <ul className="space-y-3">
-                     {[
-                        "Personalized career roadmap and tailored action items",
-                        "Tactical industry insights and direct feedback on your profile",
-                        "Practical interview questions and proven answer frameworks",
-                        "Direct 1-on-1 Q&A addressing your specific career hurdles"
-                     ].map((item, i) => (
-                        <li key={i} className="flex gap-2.5 items-start text-xs md:text-sm text-km-text-primary">
-                           <CheckCircleIcon weight="bold" size={16} className="text-emerald-500 shrink-0 mt-0.5 dark:text-emerald-400" />
-                           <span>{item}</span>
-                        </li>
-                     ))}
-                  </ul>
+                  <p className="whitespace-pre-line">{mentorship.description}</p>
                </div>
             </div>
 
             {/* Meet Your Mentor Card */}
-            <div className="bg-linear-to-br from-[#020617] via-[#071A4D] to-[#0B5ED7] text-white rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xl shadow-blue-950/20 relative overflow-hidden">
-                
+            <div className="bg-[#071A4D] text-white rounded-2xl p-6 md:p-8 border border-[#0B1F52] relative overflow-hidden">
                 <h2 className="text-lg md:text-xl font-bold mb-6 text-white flex items-center gap-2">
                    <MedalIcon weight="bold" size={18} className="text-orange-400" />
-                   <span>Meet Your Mentor</span>
+                   <span>Your mentor</span>
                 </h2>
                 <div className="flex flex-col sm:flex-row gap-5 md:gap-6 items-start relative z-10">
                     <div className="w-18 h-18 md:w-22 md:h-22 rounded-2xl bg-[#0B1F52] border-2 border-[#1E3A8A] flex items-center justify-center overflow-hidden shrink-0 shadow-md">
                        {expert?.profile_image ? (
                            <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
                        ) : (
-                           <div className="w-full h-full bg-km-primary flex items-center justify-center text-2xl font-black text-white">
+                           <div className="w-full h-full bg-km-primary flex items-center justify-center text-2xl font-bold text-white">
                              {expertInitial}
                            </div>
                        )}
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-lg md:text-xl font-extrabold text-white">{expertNameClean}</h3>
+                          <h3 className="text-lg md:text-xl font-bold text-white">{expertNameClean}</h3>
                           <span className="p-0.5 rounded-full bg-emerald-500 text-white">
                             <CheckIcon weight="bold" size={10} />
                           </span>
                         </div>
-                        <p className="text-blue-200 text-xs md:text-sm font-semibold">
-                          {expert?.headline || "Verified Industry Professional & Career Mentor"}
-                        </p>
-                        <p className="text-white/75 text-xs md:text-sm leading-relaxed max-w-2xl">
-                          {expert?.bio || "An experienced professional committed to guiding candidates, sharing practical insights, and helping you achieve your career aspirations."}
-                        </p>
-                        <div className="flex flex-wrap gap-2 pt-2">
+                        {expert?.headline && (
+                          <p className="text-blue-100 text-sm font-medium">{expert.headline}</p>
+                        )}
+                        {expert?.bio && (
+                          <p className="text-white/80 text-sm leading-relaxed max-w-2xl">{expert.bio}</p>
+                        )}
+                        <div className="flex flex-wrap items-center gap-4 pt-2">
                             <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-300">
                                 <ShieldCheckIcon weight="bold" size={13} />
-                                <span>Verified Expert</span>
+                                <span>Approved expert</span>
                             </span>
-                            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-300">
-                                <StarIcon weight="fill" size={13} className="fill-amber-300" />
-                                <span>Top Rated Mentor</span>
-                            </span>
+                            {expert?.id && (
+                              <Link href={`/profile/${expert.id}`} className="text-xs font-semibold text-white hover:underline">
+                                View profile
+                              </Link>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -413,7 +396,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             <div className="bg-km-surface-card rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xs border border-km-border">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-km-border-subtle">
                 <div>
-                  <h2 className="text-lg md:text-xl font-black text-km-heading flex items-center gap-2">
+                  <h2 className="text-lg md:text-xl font-bold text-km-heading flex items-center gap-2">
                     <StarIcon weight="fill" size={20} className="fill-amber-400 text-amber-400" />
                     <span>Candidate Ratings & Reviews</span>
                   </h2>
@@ -424,17 +407,17 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
                 {/* Overall score badge */}
                 <div className="flex items-center gap-3 bg-amber-50/80 border border-amber-200/70 px-4 py-2.5 rounded-2xl shrink-0">
-                  <div className="text-2xl font-black text-amber-900 font-mono">
+                  <div className="text-2xl font-bold text-amber-900 font-mono">
                     {reviewsSummary?.total_reviews > 0 
                       ? reviewsSummary.average_rating.toFixed(1)
-                      : (mentorship?.rating ? Number(mentorship.rating).toFixed(1) : "5.0")}
+                      : "New"}
                   </div>
                   <div>
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((s) => {
                         const currentScore = reviewsSummary?.total_reviews > 0
                           ? reviewsSummary.average_rating
-                          : (mentorship?.rating || 5);
+                          : 0;
                         return (
                           <StarIcon weight="fill"
                             key={s}
@@ -447,7 +430,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     <span className="text-[11px] font-bold text-amber-800 block mt-0.5">
                       {reviewsSummary?.total_reviews 
                         ? `${reviewsSummary.total_reviews} verified ${reviewsSummary.total_reviews === 1 ? 'review' : 'reviews'}`
-                        : (mentorship?.reviews ? `${mentorship.reviews} reviews` : "Verified Mentor")}
+                        : "No reviews yet"}
                     </span>
                   </div>
                 </div>
@@ -460,7 +443,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     const key = `${stars}_star` as keyof RatingDistribution;
                     const count = reviewsSummary?.distribution?.[key] || 0;
                     const total = reviewsSummary?.total_reviews || 0;
-                    const percent = total > 0 ? Math.round((count / total) * 100) : (stars === 5 ? 100 : 0);
+                    const percent = total > 0 ? Math.round((count / total) * 100) : 0;
 
                     return (
                       <div key={stars} className="flex items-center gap-3 text-xs">
@@ -590,11 +573,11 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             <div className="bg-km-surface-card rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-lg shadow-slate-200/50 border border-km-border lg:sticky lg:top-8">
                 {/* Session Fee Header */}
                 <div className="mb-6 pb-5 border-b border-km-border-subtle">
-                    <span className="text-[11px] font-bold text-km-text-muted uppercase tracking-wider block mb-1">
+                    <span className="text-[11px] font-bold text-km-text-muted block mb-1">
                       Session Fee
                     </span>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl md:text-4xl font-black text-km-heading font-mono">
+                        <span className="text-3xl md:text-4xl font-bold text-km-heading font-mono">
                           ₹{sessionPrice}
                         </span>
                         <span className="text-km-text-muted font-semibold text-xs md:text-sm">
@@ -603,19 +586,17 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     </div>
                     {/* Trust Rating Pill */}
                     <div className="flex items-center gap-2 mt-2">
-                      <div className="flex items-center gap-1 text-amber-500 text-xs font-bold dark:text-amber-400">
-                        <StarIcon weight="fill" size={12} className="fill-amber-400 text-amber-400" />
-                        <span>
-                          {reviewsSummary?.total_reviews > 0 
-                            ? `${reviewsSummary.average_rating.toFixed(1)} (${reviewsSummary.total_reviews} reviews)`
-                            : (mentorship?.rating ? `${mentorship.rating} rating` : "Top Rated")}
+                      {reviewsSummary?.total_reviews > 0 ? (
+                        <span className="flex items-center gap-1 text-xs font-semibold text-km-text-primary">
+                          <StarIcon weight="fill" size={12} className="text-[#F59E0B]" />
+                          {reviewsSummary.average_rating.toFixed(1)}
+                          <span className="font-normal text-km-text-secondary">({reviewsSummary.total_reviews} reviews)</span>
                         </span>
-                      </div>
-                      <span className="text-km-text-muted">•</span>
-                      <span className="text-emerald-600 text-xs font-semibold flex items-center gap-0.5 dark:text-emerald-400">
-                        <ShieldCheckIcon weight="bold" size={12} />
-                        <span>Verified Call</span>
-                      </span>
+                      ) : (
+                        <span className="text-xs text-km-text-secondary">New mentor</span>
+                      )}
+                      <span className="text-km-text-muted">·</span>
+                      <span className="text-xs text-km-text-secondary">Video call</span>
                     </div>
                 </div>
 
@@ -623,7 +604,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     {/* Select Date */}
                     <div>
                         <div className="flex items-center justify-between mb-3">
-                          <label className="text-xs font-bold text-km-heading uppercase flex items-center gap-1.5">
+                          <label className="text-xs font-bold text-km-heading flex items-center gap-1.5">
                              <CalendarIcon weight="bold" size={15} className="text-km-heading" />
                              <span>Select Date</span>
                           </label>
@@ -650,14 +631,14 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                                                 : 'bg-slate-100/50 border-km-border-subtle text-km-text-muted opacity-60'
                                         }`}
                                     >
-                                        <span className="text-[9px] font-bold uppercase tracking-wider">
+                                        <span className="text-xs font-bold">
                                           {i === 0 ? "Today" : d.toLocaleDateString('en-US', { weekday: 'short' })}
                                         </span>
-                                        <span className="text-base font-black mt-0.5">
+                                        <span className="text-base font-bold mt-0.5">
                                           {d.getDate()}
                                         </span>
                                         {!isAvail && (
-                                          <span className="text-[8px] font-semibold text-rose-400 mt-0.5">Off</span>
+                                          <span className="text-[11px] font-semibold text-rose-400 mt-0.5">Off</span>
                                         )}
                                     </button>
                                 );
@@ -667,7 +648,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
                     {/* Time Slot Display based on Expert's Own Timing */}
                     <div>
-                        <label className="text-xs font-bold text-km-heading uppercase mb-2 flex items-center gap-1.5">
+                        <label className="text-xs font-bold text-km-heading mb-2 flex items-center gap-1.5">
                            <ClockIcon weight="bold" size={15} className="text-km-heading" />
                            <span>Expert's Available Time</span>
                         </label>
@@ -705,7 +686,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
                     {/* Notes Field */}
                     <div>
-                        <label className="text-xs font-bold text-km-heading uppercase mb-1.5 block">
+                        <label className="text-xs font-bold text-km-heading mb-1.5 block">
                            Topics to Discuss <span className="text-km-text-muted font-medium">(Optional)</span>
                         </label>
                         <textarea 
@@ -791,8 +772,8 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-[10px] font-bold text-km-text-muted uppercase block">Total Fee</span>
-                      <span className="text-2xl font-black text-km-heading font-mono">₹{sessionPrice}</span>
+                      <span className="text-xs font-bold text-km-text-muted block">Total Fee</span>
+                      <span className="text-2xl font-bold text-km-heading font-mono">₹{sessionPrice}</span>
                     </div>
                   </div>
 
@@ -903,7 +884,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                 Booking Confirmed
               </span>
 
-              <h3 className="text-xl md:text-2xl font-black text-km-heading mt-3 mb-1">
+              <h3 className="text-xl md:text-2xl font-bold text-km-heading mt-3 mb-1">
                 Mentorship Scheduled!
               </h3>
               <p className="text-xs text-km-text-secondary font-medium mb-6">
@@ -970,7 +951,7 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode, label: string
         {icon}
       </span>
       <div>
-        <p className="text-[9px] text-km-text-muted font-bold uppercase tracking-wider">{label}</p>
+        <p className="text-xs text-km-text-muted font-bold">{label}</p>
         <p className="text-xs font-bold text-km-heading">{value}</p>
       </div>
     </div>

@@ -772,7 +772,7 @@ const JobsPageContent = () => {
                             <div>
                                 <h2 className="text-sm sm:text-base font-bold text-km-text-primary flex items-center gap-2">
                                     <span>Showing</span>
-                                    <span className="text-km-link font-extrabold">{loading ? '...' : totalJobs} Positions</span>
+                                    <span className="text-km-link font-bold">{loading ? '...' : totalJobs} Positions</span>
                                 </h2>
                                 {(searchTerm || cityFilter !== 'All') && (
                                     <p className="text-xs text-km-text-secondary font-medium mt-0.5">

@@ -12,7 +12,6 @@ import {
     ShieldCheckIcon, 
     ThumbsUpIcon,
     MegaphoneIcon,
-    SparkleIcon
 } from "@phosphor-icons/react";
 import api from "@/lib/axios";
 import { notify } from "@/lib/notify";

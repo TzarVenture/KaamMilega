@@ -3,8 +3,8 @@
  * so add the full URL (https://...) once each page is live.
  */
 export const SOCIAL_LINKS = {
-    instagram: "",
-    facebook: "",
-    linkedin: "",
+    instagram: "https://www.instagram.com/kaammilega.in",
+    facebook: "https://www.facebook.com/share/19qV63PDGb/",
+    linkedin: "https://www.linkedin.com/company/kaammilega/",
     youtube: "",
 } as const;

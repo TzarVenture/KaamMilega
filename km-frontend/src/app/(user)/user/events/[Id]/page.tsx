@@ -32,7 +32,7 @@ const EventDetailsPage = () => {
                     {/* Event Brief Info */}
                     <div className="p-8 space-y-6">
                         <div className="space-y-2">
-                            <h1 className="text-4xl font-black text-gray-900 leading-tight">
+                            <h1 className="text-4xl font-bold text-gray-900 leading-tight">
                                 Lorem Ipsum Event Name Display Here
                             </h1>
                             <p className="text-gray-500 font-medium">
@@ -44,7 +44,7 @@ const EventDetailsPage = () => {
                             <div className="flex items-center gap-3">
                                 <CalendarBlankIcon size={24} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                 <div>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Date & Time</p>
+                                    <p className="text-xs text-gray-400 font-bold">Date & Time</p>
                                     <p className="text-sm font-bold text-gray-800">Thu, Oct 12, 2023, 8:30 PM</p>
                                 </div>
                             </div>
@@ -52,7 +52,7 @@ const EventDetailsPage = () => {
                             <div className="flex items-center gap-3">
                                 <VideoCameraIcon size={24} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                 <div>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Event Format</p>
+                                    <p className="text-xs text-gray-400 font-bold">Event Format</p>
                                     <p className="text-sm font-bold text-gray-800">Online Event</p>
                                 </div>
                             </div>
@@ -60,7 +60,7 @@ const EventDetailsPage = () => {
                             <div className="flex items-center gap-3">
                                 <UsersIcon size={24} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
                                 <div>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Attendance</p>
+                                    <p className="text-xs text-gray-400 font-bold">Attendance</p>
                                     <p className="text-sm font-bold text-gray-800">18,000+ Attendees</p>
                                 </div>
                             </div>

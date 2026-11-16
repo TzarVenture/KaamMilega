@@ -177,7 +177,7 @@ export default function ManageCoursesPage() {
                 <div className="max-w-md w-full bg-km-surface-card rounded-3xl p-8 border border-km-border shadow-lg text-center space-y-5">
                     <GraduationCapIcon size={36} weight="duotone" className="text-[#7C3AED] mx-auto dark:text-violet-400" aria-hidden="true" />
                     <div className="space-y-2">
-                        <h2 className="text-2xl font-black text-km-heading">
+                        <h2 className="text-2xl font-bold text-km-heading">
                             Expert Portal Only
                         </h2>
                         <p className="text-sm text-km-text-secondary leading-relaxed">
@@ -279,7 +279,7 @@ export default function ManageCoursesPage() {
                                 >
                                     <div>
                                         {/* Thumbnail Box */}
-                                        <div className="relative w-full h-44 bg-slate-100 overflow-hidden">
+                                        <div className="relative w-full h-44 bg-km-surface overflow-hidden">
                                             <img
                                                 src={course.thumbnail_url || getYouTubeThumbnail(course.youtube_video_id)}
                                                 alt={course.title}

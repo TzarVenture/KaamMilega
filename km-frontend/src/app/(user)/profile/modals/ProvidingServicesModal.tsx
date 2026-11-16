@@ -125,7 +125,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                     <div className="flex items-center gap-2.5">
                         <WrenchIcon size={22} className="text-km-accent" aria-hidden="true" />
                         <div>
-                            <h3 className="text-base font-black text-slate-900">Providing Services</h3>
+                            <h3 className="text-base font-bold text-slate-900">Providing Services</h3>
                             <p className="text-xs text-slate-500 font-medium">Showcase direct trades and services you deliver to clients</p>
                         </div>
                     </div>
@@ -142,7 +142,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
                 <form onSubmit={handleSave} className="p-6 overflow-y-auto space-y-6 flex-1">
                     {/* Services Offered */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
                             Services You Offer
                         </label>
                         <div className="flex gap-2 mb-2.5">
@@ -189,7 +189,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
 
                         {/* Suggested Services */}
                         <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase mr-1">Suggestions:</span>
+                            <span className="text-xs text-slate-400 font-bold mr-1">Suggestions:</span>
                             {COMMON_SERVICES.filter((s) => !services.includes(s)).slice(0, 4).map((s) => (
                                 <button
                                     key={s}
@@ -205,7 +205,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
 
                     {/* Hourly Rate / Starting Fee */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
                             Starting / Hourly Rate (Optional)
                         </label>
                         <div className="relative max-w-xs">
@@ -229,7 +229,7 @@ export const ProvidingServicesModal: React.FC<Props> = ({
 
                     {/* Service Description */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
                             Service Details & Scope
                         </label>
                         <textarea

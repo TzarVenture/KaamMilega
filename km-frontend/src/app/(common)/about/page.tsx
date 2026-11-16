@@ -35,25 +35,25 @@ export default function AboutPage() {
       <section className="-mt-6 sm:-mt-8 lg:-mt-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(7,26,77,0.04)] text-center">
-            <p className="text-2xl sm:text-3xl font-black text-km-heading tracking-tight">100%</p>
+            <p className="text-2xl sm:text-3xl font-bold text-km-heading tracking-tight">100%</p>
             <p className="text-xs sm:text-sm font-bold text-km-text-primary mt-0.5">Zero Brokerage</p>
             <p className="text-[11px] text-km-text-secondary mt-0.5">No agency commission cuts</p>
           </div>
 
           <div className="bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(7,26,77,0.04)] text-center">
-            <p className="text-2xl sm:text-3xl font-black text-[#FF6B00] tracking-tight">5,000+</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[#FF6B00] tracking-tight">5,000+</p>
             <p className="text-xs sm:text-sm font-bold text-km-text-primary mt-0.5">Hiring Employers</p>
             <p className="text-[11px] text-km-text-secondary mt-0.5">Verified company entities</p>
           </div>
 
           <div className="bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(7,26,77,0.04)] text-center">
-            <p className="text-2xl sm:text-3xl font-black text-km-heading tracking-tight">15,000+</p>
+            <p className="text-2xl sm:text-3xl font-bold text-km-heading tracking-tight">15,000+</p>
             <p className="text-xs sm:text-sm font-bold text-km-text-primary mt-0.5">Active Openings</p>
             <p className="text-[11px] text-km-text-secondary mt-0.5">Full-time, part-time &amp; gigs</p>
           </div>
 
           <div className="bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 shadow-[0_1px_3px_0_rgba(7,26,77,0.04)] text-center">
-            <p className="text-2xl sm:text-3xl font-black text-km-heading tracking-tight">28 States</p>
+            <p className="text-2xl sm:text-3xl font-bold text-km-heading tracking-tight">28 States</p>
             <p className="text-xs sm:text-sm font-bold text-km-text-primary mt-0.5">Pan-India Reach</p>
             <p className="text-[11px] text-km-text-secondary mt-0.5">From metros to rural hubs</p>
           </div>
@@ -64,10 +64,10 @@ export default function AboutPage() {
       <section className="py-14 sm:py-18 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 items-center">
           <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-km-link block mb-1">
+            <span className="text-xs font-bold text-km-link block mb-1">
               Why We Started
             </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-km-text-primary tracking-tight leading-snug mb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary tracking-tight leading-snug mb-4">
               Fixing India&apos;s Broken Hiring Pipeline
             </h2>
             <p className="text-sm sm:text-base text-km-text-secondary leading-relaxed mb-4">
@@ -116,7 +116,7 @@ export default function AboutPage() {
       <section className="py-14 sm:py-18 bg-km-surface-card border-y border-km-border px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-km-text-primary tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary tracking-tight">
               The Principles That Guide Us
             </h2>
             <p className="text-sm sm:text-base text-km-text-secondary mt-2">
@@ -183,7 +183,7 @@ export default function AboutPage() {
       {/* ── 5. HOW IT WORKS (FOR CANDIDATES & FOR RECRUITERS) ── */}
       <section className="py-14 sm:py-18 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto">
         <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-km-text-primary tracking-tight">
+          <h2 className="text-2xl sm:text-3xl font-bold text-km-text-primary tracking-tight">
             How Kaammilega Works
           </h2>
           <p className="text-sm sm:text-base text-km-text-secondary mt-2">
@@ -194,7 +194,7 @@ export default function AboutPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
           {/* Candidates Column */}
           <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-[0_1px_3px_0_rgba(7,26,77,0.04)]">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#FF6B00] mb-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-[#FF6B00] mb-3">
               <UsersIcon weight="bold" size={16} />
               <span>For Jobseekers &amp; Technicians</span>
             </div>
@@ -253,7 +253,7 @@ export default function AboutPage() {
 
           {/* Recruiters Column */}
           <div className="bg-km-surface-card rounded-2xl border border-km-border p-6 sm:p-7 shadow-[0_1px_3px_0_rgba(7,26,77,0.04)]">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-km-link mb-3">
+            <div className="flex items-center gap-2 text-xs font-bold text-km-link mb-3">
               <BuildingOfficeIcon weight="bold" size={16} />
               <span>For Employers &amp; Companies</span>
             </div>
@@ -315,7 +315,7 @@ export default function AboutPage() {
       {/* ── 6. CLEAN, FOCUSED CTA BANNER ── */}
       <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
         <div className="p-8 sm:p-12 rounded-3xl bg-[#071A4D] text-white shadow-sm dark:ring-1 dark:ring-inset dark:ring-white/10">
-          <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
+          <h3 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
             Ready to Experience Zero Brokerage?
           </h3>
           <p className="text-white/75 text-sm sm:text-base max-w-lg mx-auto mb-6 leading-relaxed">

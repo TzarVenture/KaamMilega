@@ -209,7 +209,7 @@ export default function CandidateDetailDrawer({
                         {/* Candidate Skills */}
                         {candidate?.skills && candidate.skills.length > 0 && (
                             <div className="pt-2 border-t border-km-border/60">
-                                <p className="text-[11px] font-semibold uppercase tracking-wider text-km-text-secondary mb-2">
+                                <p className="text-[11px] font-semibold text-km-text-secondary mb-2">
                                     Candidate Skills
                                 </p>
                                 <div className="flex flex-wrap gap-1.5">
@@ -251,7 +251,7 @@ export default function CandidateDetailDrawer({
 
                     {/* Unabridged Cover Letter */}
                     <div className="space-y-2">
-                        <h4 className="text-xs font-bold text-km-text-primary font-poppins uppercase tracking-wider">
+                        <h4 className="text-xs font-bold text-km-text-primary font-poppins">
                             Cover Letter / Candidate Note
                         </h4>
                         {application.cover_letter ? (
@@ -267,7 +267,7 @@ export default function CandidateDetailDrawer({
 
                     {/* Resume Document */}
                     <div className="space-y-2">
-                        <h4 className="text-xs font-bold text-km-text-primary font-poppins uppercase tracking-wider">
+                        <h4 className="text-xs font-bold text-km-text-primary font-poppins">
                             Submitted Resume / CV
                         </h4>
                         {application.resume_url ? (

@@ -39,20 +39,20 @@ export default function UserInterviewsPage() {
         <div className="bg-[#F8FAFC] min-h-screen pb-20 font-sans dark:bg-[#1D253D]">
             <div className="max-w-5xl mx-auto p-6 md:p-12">
                 <header className="mb-10">
-                    <h1 className="text-3xl sm:text-4xl font-black text-km-heading tracking-tight">My Interviews</h1>
+                    <h1 className="text-3xl sm:text-4xl font-bold text-km-heading tracking-tight">My Interviews</h1>
                     <p className="text-km-text-secondary font-medium text-xs sm:text-sm mt-1">Track your upcoming interviews with recruiters and verified employers.</p>
                 </header>
 
                 {interviews.length === 0 ? (
                     <div className="bg-km-surface-card p-12 sm:p-16 rounded-3xl border border-km-border text-center shadow-xs">
                         <CalendarBlankIcon size={48} weight="duotone" className="text-km-heading mx-auto mb-6" aria-hidden="true" />
-                        <h2 className="text-xl font-black text-km-heading">No Scheduled Interviews</h2>
+                        <h2 className="text-xl font-bold text-km-heading">No Scheduled Interviews</h2>
                         <p className="text-km-text-secondary mt-2 max-w-sm mx-auto text-xs font-medium">
                             Apply to active job postings to get shortlisted and receive direct interview calls!
                         </p>
                         <Link
                             href="/jobs"
-                            className="mt-8 inline-flex items-center gap-2 px-8 py-3.5 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-900/10"
+                            className="mt-8 inline-flex items-center gap-2 px-8 py-3.5 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl font-bold text-xs transition-all shadow-md shadow-blue-900/10"
                         >
                             Find Active Jobs
                             <CaretRightIcon weight="bold" className="w-4 h-4" />
@@ -75,7 +75,7 @@ export default function UserInterviewsPage() {
                                             </div>
                                         </div>
                                         <div className={cn(
-                                            "px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border",
+                                            "px-3.5 py-1 rounded-full text-xs font-bold border",
                                             inview.status === 'Scheduled' ? "bg-amber-50 text-amber-700 border-amber-200" :
                                                 inview.status === 'Completed' ? "bg-emerald-50 text-emerald-700 border-emerald-200" :
                                                     "bg-rose-50 text-rose-700 border-rose-200"
@@ -87,20 +87,20 @@ export default function UserInterviewsPage() {
                                     {/* Timing Section */}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-km-heading mb-1 flex items-center gap-1.5">
+                                            <p className="text-xs font-bold text-km-heading mb-1 flex items-center gap-1.5">
                                                 <CalendarBlankIcon weight="bold" className="w-3.5 h-3.5" />
                                                 Date
                                             </p>
-                                            <p className="font-extrabold text-xs text-km-heading">
+                                            <p className="font-bold text-xs text-km-heading">
                                                 {new Date(inview.scheduled_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
                                             </p>
                                         </div>
                                         <div className="bg-blue-50/50 p-3.5 rounded-2xl border border-blue-100">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-km-heading mb-1 flex items-center gap-1.5">
+                                            <p className="text-xs font-bold text-km-heading mb-1 flex items-center gap-1.5">
                                                 <ClockIcon weight="bold" className="w-3.5 h-3.5" />
                                                 Time
                                             </p>
-                                            <p className="font-extrabold text-xs text-km-heading">
+                                            <p className="font-bold text-xs text-km-heading">
                                                 {new Date(inview.scheduled_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
@@ -115,7 +115,7 @@ export default function UserInterviewsPage() {
                                                         <MapPinIcon className="w-5 h-5 text-amber-600 dark:text-amber-400" />}
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-bold uppercase tracking-wider text-km-text-muted">{inview.type} INTERVIEW</p>
+                                                <p className="text-xs font-bold text-km-text-muted">{inview.type} interview</p>
                                                 <p className="text-xs font-bold text-km-text-primary">{inview.location}</p>
                                             </div>
                                         </div>
@@ -123,7 +123,7 @@ export default function UserInterviewsPage() {
 
                                     {inview.notes && (
                                         <div className="bg-amber-50/40 p-4 rounded-2xl border border-amber-100">
-                                            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider mb-1">Notes from Recruiter</p>
+                                            <p className="text-xs font-bold text-amber-700 mb-1">Notes from Recruiter</p>
                                             <p className="text-xs text-km-text-primary font-medium">"{inview.notes}"</p>
                                         </div>
                                     )}

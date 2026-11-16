@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"km-backend/internal/common/apperr"
+	"net/url"
+	"strings"
 	"time"
 
 	"km-backend/internal/config"
@@ -176,7 +178,27 @@ func (s *EventServiceImpl) GetEventTicket(ctx context.Context, userID string, ev
 	if err != nil {
 		return nil, errors.New("invalid event id")
 	}
-	return s.repo.GetTicketByEventAndUser(ctx, evID, uID)
+	ticket, err := s.repo.GetTicketByEventAndUser(ctx, evID, uID)
+	if err != nil || ticket == nil {
+		return ticket, err
+	}
+	// The joining link is only ever handed out with a ticket
+	if ev, evErr := s.repo.GetEventByID(ctx, evID); evErr == nil && ev != nil {
+		ticket.MeetingLink = ev.MeetingLink
+	}
+	return ticket, nil
+}
+
+// validateMeetingLink accepts an empty link or a full https:// URL
+func validateMeetingLink(link string) error {
+	if link == "" {
+		return nil
+	}
+	u, err := url.Parse(strings.TrimSpace(link))
+	if err != nil || u.Scheme != "https" || u.Host == "" {
+		return errors.New("meeting link must be a full https:// link, for example https://meet.google.com/abc-defg-hij")
+	}
+	return nil
 }
 
 // GetEventAttendees retrieves the attendee list for an event modal (F64)
@@ -225,6 +247,9 @@ func (s *EventServiceImpl) AdminCreateEvent(ctx context.Context, e *Event) (*Eve
 	if e.Title == "" {
 		return nil, errors.New("event title is required")
 	}
+	if err := validateMeetingLink(e.MeetingLink); err != nil {
+		return nil, err
+	}
 	if e.Organizer == "" {
 		e.Organizer = "KaamMilega Official"
 	}
@@ -235,6 +260,13 @@ func (s *EventServiceImpl) AdminUpdateEvent(ctx context.Context, eventID string,
 	evID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
 		return nil, errors.New("invalid event id")
+	}
+	if req.MeetingLink != nil {
+		trimmed := strings.TrimSpace(*req.MeetingLink)
+		if err := validateMeetingLink(trimmed); err != nil {
+			return nil, err
+		}
+		req.MeetingLink = &trimmed
 	}
 	return s.repo.AdminUpdateEvent(ctx, evID, req)
 }

@@ -1469,3 +1469,14 @@ func (r *UserRepositoryImpl) OwnsPrivateFile(ctx context.Context, userID, ref, k
 	n, err := r.db.DB.Collection("files").CountDocuments(ctx, bson.M{"_id": fid, "uploaded_by": uid, "kind": kind, "visibility": "private"})
 	return n > 0, err
 }
+
+// CountConnections counts accepted connections in either direction (the live number, never a stored counter)
+func (r *UserRepositoryImpl) CountConnections(ctx context.Context, userID primitive.ObjectID) (int64, error) {
+	return r.db.DB.Collection("network_connections").CountDocuments(ctx, bson.M{
+		"status": "accepted",
+		"$or": []bson.M{
+			{"sender_id": userID},
+			{"receiver_id": userID},
+		},
+	})
+}

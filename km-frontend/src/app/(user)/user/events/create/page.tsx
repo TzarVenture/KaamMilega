@@ -21,6 +21,7 @@ export default function CreateEventPage() {
         date: "",
         time: "",
         location: "",
+        meeting_link: "",
         image_url: "",
     });
 
@@ -65,7 +66,7 @@ export default function CreateEventPage() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col pt-12 pb-24 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+                <h2 className="mt-6 text-3xl font-bold text-gray-900">
                     Create New Event
                 </h2>
                 <p className="mt-2 text-sm text-gray-600">
@@ -153,6 +154,22 @@ export default function CreateEventPage() {
                                 className="appearance-none block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                             />
                         </div>
+                        <div>
+                            <label htmlFor="meeting_link" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-km-text-primary">Meeting link (online events)</label>
+                            <input
+                                id="meeting_link"
+                                name="meeting_link"
+                                type="url"
+                                inputMode="url"
+                                pattern="https://.*"
+                                value={formData.meeting_link}
+                                onChange={handleChange}
+                                placeholder="https://meet.google.com/abc-defg-hij"
+                                className="appearance-none block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                            />
+                            <p className="mt-1 text-xs text-km-text-secondary">Only people who register can see this link.</p>
+                        </div>
+
 
                         <div>
                             <span className="block text-sm font-semibold text-gray-700 mb-1">Banner Image (Optional)</span>

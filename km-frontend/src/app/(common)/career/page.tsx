@@ -110,19 +110,19 @@ export default function CareerPage() {
       <section className="py-10 bg-km-surface-card border-b border-km-border px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div>
-            <p className="text-2xl sm:text-3xl font-black text-km-heading">500K+</p>
+            <p className="text-2xl sm:text-3xl font-bold text-km-heading">500K+</p>
             <p className="text-xs font-semibold text-km-text-secondary mt-1">Workers Empowered</p>
           </div>
           <div>
-            <p className="text-2xl sm:text-3xl font-black text-[#FF6B00]">5,000+</p>
+            <p className="text-2xl sm:text-3xl font-bold text-[#FF6B00]">5,000+</p>
             <p className="text-xs font-semibold text-km-text-secondary mt-1">Verified Employers</p>
           </div>
           <div>
-            <p className="text-2xl sm:text-3xl font-black text-km-link">100+</p>
+            <p className="text-2xl sm:text-3xl font-bold text-km-link">100+</p>
             <p className="text-xs font-semibold text-km-text-secondary mt-1">Indian Cities Covered</p>
           </div>
           <div>
-            <p className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">0%</p>
+            <p className="text-2xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400">0%</p>
             <p className="text-xs font-semibold text-km-text-secondary mt-1">Worker Brokerage Taken</p>
           </div>
         </div>
@@ -134,7 +134,7 @@ export default function CareerPage() {
           <span className="block text-[13px] font-semibold text-km-link">
             Why KaamMilega™
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-km-heading tracking-tight mt-3">
             Life at KaamMilega™
           </h2>
           <p className="text-sm sm:text-base text-km-text-secondary mt-2">
@@ -172,7 +172,7 @@ export default function CareerPage() {
             <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
               Current Openings
             </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-km-heading tracking-tight mt-3">
               Explore Our Open Roles
             </h2>
             <p className="text-sm sm:text-base text-km-text-secondary mt-2">
@@ -234,7 +234,7 @@ export default function CareerPage() {
           <div className="w-14 h-14 rounded-full bg-[#0B1F52] flex items-center justify-center mx-auto mb-4 text-white">
             <EnvelopeSimpleIcon size={24} />
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold mb-3">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-3">
             Don&apos;t See Your Role Listed?
           </h2>
           <p className="text-sm sm:text-base text-slate-200 max-w-xl mx-auto mb-6">

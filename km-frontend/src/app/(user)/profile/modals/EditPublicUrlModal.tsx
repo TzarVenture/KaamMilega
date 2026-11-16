@@ -153,7 +153,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                     <div className="flex items-center gap-2.5">
                         <GlobeIcon size={22} className="text-km-heading" aria-hidden="true" />
                         <div>
-                            <h3 className="text-base font-black text-slate-900">Edit Custom URL</h3>
+                            <h3 className="text-base font-bold text-slate-900">Edit Custom URL</h3>
                             <p className="text-xs text-slate-500 font-medium">Personalize your public profile link</p>
                         </div>
                     </div>
@@ -169,7 +169,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                 {/* Form */}
                 <form onSubmit={handleSave} className="p-6 space-y-5">
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
                             Public Profile Link
                         </label>
                         
@@ -212,7 +212,7 @@ export const EditPublicUrlModal: React.FC<Props> = ({
                     {/* Preview Box */}
                     <div className="p-3.5 rounded-2xl bg-blue-50/60 border border-blue-100/80 flex items-center justify-between">
                         <div className="min-w-0 pr-2">
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-blue-900/70">Your Public URL</p>
+                            <p className="text-xs font-bold text-blue-900/70">Your Public URL</p>
                             <p className="text-xs font-bold text-km-heading truncate mt-0.5">
                                 kaammilega.com/profile/{username.trim() || 'your-name'}
                             </p>

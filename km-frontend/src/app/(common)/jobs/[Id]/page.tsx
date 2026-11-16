@@ -254,7 +254,7 @@ const JobDetailPage = () => {
                                 </p>
                             )}
 
-                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-[1.2]">
+                            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight leading-[1.2]">
                                 {job.title}
                             </h1>
 
@@ -474,7 +474,7 @@ const JobDetailPage = () => {
                                 <span className="text-xs font-semibold text-km-text-secondary">
                                     Salary
                                 </span>
-                                <div className="text-2xl font-extrabold text-km-text-primary mt-0.5">
+                                <div className="text-2xl font-bold text-km-text-primary mt-0.5">
                                     {salaryText(job.salary_min, job.salary_max)}
                                 </div>
                                 <span className="text-xs text-km-text-secondary">Direct recruitment with zero agency deductions</span>
@@ -626,7 +626,7 @@ const JobDetailPage = () => {
 
                             {/* Modal Header */}
                             <div className="mb-5 pr-8">
-                                <h2 className="text-xl font-extrabold text-km-text-primary tracking-tight">Apply for Position</h2>
+                                <h2 className="text-xl font-bold text-km-text-primary tracking-tight">Apply for Position</h2>
                                 <p className="text-km-text-secondary text-xs mt-0.5">
                                     <span className="font-semibold text-km-text-primary">{job.title}</span> • {job.company}
                                 </p>

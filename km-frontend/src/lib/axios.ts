@@ -9,6 +9,8 @@ const api = axios.create({
         "Content-Type": "application/json",
     },
     withCredentials: true,
+    // A stalled request fails after 20s instead of leaving the page on "Loading" for ever
+    timeout: 20000,
 });
 
 // Request Interceptor: Attach Token (keeps backwards compatibility for stored tokens)
@@ -19,6 +21,10 @@ api.interceptors.request.use(
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
             }
+        }
+        // File uploads can take longer than 20s on a slow connection
+        if (typeof FormData !== "undefined" && config.data instanceof FormData && config.timeout === 20000) {
+            config.timeout = 0;
         }
         return config;
     },
@@ -73,6 +79,8 @@ api.interceptors.response.use(
 
             // Keep the HTTP status (and API error code) so callers can tell auth failures from other errors
             return Promise.reject(Object.assign(new Error(message), { status: error.response.status, code: errorData?.code }));
+        } else if (error.code === "ECONNABORTED") {
+            return Promise.reject(Object.assign(new Error("The server is taking too long. Please try again."), { code: "TIMEOUT" }));
         } else if (error.request) {
             // Network error
             return Promise.reject(Object.assign(new Error("Network Error. Please check your connection."), { code: "NETWORK_ERROR" }));

@@ -118,7 +118,7 @@ export default function SavedJobsPage() {
                         <Link href="/jobs" className="inline-flex items-center gap-1.5 text-xs font-semibold text-km-link hover:underline mb-2">
                             <ArrowLeftIcon weight="bold" size={14} /> Back to All Jobs
                         </Link>
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-km-text-primary tracking-tight flex items-center gap-3">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-km-text-primary tracking-tight flex items-center gap-3">
                             <BookmarkSimpleIcon weight="fill" className="w-7 h-7 text-km-link" />
                             <span>Saved Jobs</span>
                         </h1>

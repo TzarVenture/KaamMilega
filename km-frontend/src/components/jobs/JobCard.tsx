@@ -64,6 +64,8 @@ export default function JobCard({ job, hasApplied, isBookmarked, onToggleBookmar
     const exp = experienceTag(job.experience_min);
     // Read the clock once per card, not on every render
     const [now] = useState(Date.now);
+    // A missing or deleted logo file falls back to the company initial instead of a broken image
+    const [logoFailed, setLogoFailed] = useState(false);
     const isNew = now - new Date(job.created_at).getTime() < 2 * DAY;
     const meta = [postedText(job.created_at, now), applicantText(job.applicant_count)].filter(Boolean);
 
@@ -78,10 +80,10 @@ export default function JobCard({ job, hasApplied, isBookmarked, onToggleBookmar
     return (
         <article className="relative bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 hover:border-km-link/40 transition-colors">
             <div className="flex items-start gap-3.5">
-                {job.company_logo ? (
+                {job.company_logo && !logoFailed ? (
                     // Recruiter uploads come from our own storage; next/image would need every host configured
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={job.company_logo} alt="" className="w-12 h-12 rounded-xl object-cover border border-km-border shrink-0 bg-white" loading="lazy" />
+                    <img src={job.company_logo} alt="" onError={() => setLogoFailed(true)} className="w-12 h-12 rounded-xl object-cover border border-km-border shrink-0 bg-white" loading="lazy" />
                 ) : (
                     <div className="w-12 h-12 rounded-xl bg-[#071A4D] text-white font-bold text-lg flex items-center justify-center shrink-0 dark:bg-km-primary" aria-hidden="true">
                         {(job.company || 'C').charAt(0).toUpperCase()}

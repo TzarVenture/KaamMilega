@@ -335,7 +335,7 @@ const ProfilePage = () => {
                                     Contact Info
                                 </button>
                                 <span>•</span>
-                                <span className="text-km-heading font-semibold">{user?.connections_count || 0} Connections</span>
+                                <span className="text-km-heading font-semibold">{user?.connections_count || 0} {user?.connections_count === 1 ? "connection" : "connections"}</span>
                             </p>
 
                             {/* Portfolio / Website Link */}
@@ -406,7 +406,7 @@ const ProfilePage = () => {
 
                                     {showOpenToMenu && (
                                         <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-km-surface-card border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-150">
-                                            <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                            <div className="px-4 py-1.5 text-xs font-bold text-gray-400">
                                                 Career & Service Status
                                             </div>
                                             <div className="py-1">
@@ -464,7 +464,7 @@ const ProfilePage = () => {
 
                                     {showAddSectionMenu && (
                                         <div className="absolute left-0 mt-2 w-72 sm:w-80 bg-km-surface-card border border-gray-200 rounded-2xl shadow-2xl z-50 py-2 divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-150">
-                                            <div className="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                            <div className="px-4 py-1.5 text-xs font-bold text-gray-400">
                                                 Add / Update Profile Details
                                             </div>
                                             <div className="py-1">
@@ -674,7 +674,7 @@ const ProfilePage = () => {
                                                         <p className="font-bold text-sm text-slate-900">Providing services</p>
                                                     </div>
                                                     {user.providing_services.hourly_rate ? (
-                                                        <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-100 text-orange-900">
+                                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-900">
                                                             ₹{user.providing_services.hourly_rate} / hr
                                                         </span>
                                                     ) : null}

@@ -115,7 +115,11 @@ const PublicEventsPage = () => {
         };
     }, [locationFilter]);
 
+    // Only the newest request may update the list, so a slow older answer can't overwrite a newer filter
+    const requestIdRef = useRef(0);
+
     const fetchEvents = useCallback(async (pageNum: number, currentSearch: string, currentLocation: string, currentSort: string, currentPricing: string) => {
+        const requestId = ++requestIdRef.current;
         try {
             setLoading(true);
             let url = `/events?page=${pageNum}&limit=9`;
@@ -126,6 +130,7 @@ const PublicEventsPage = () => {
             if (currentPricing === 'paid') url += `&is_paid=true`;
 
             const res: any = await api.get(url);
+            if (requestId !== requestIdRef.current) return;
             const newEvents = res.data || [];
             if (pageNum === 1) {
                 setEvents(newEvents);
@@ -135,9 +140,9 @@ const PublicEventsPage = () => {
             setTotal(res.total || 0);
             setHasMore(newEvents.length === 9);
         } catch (error: any) {
-            notify.error(error, "Failed to load workshops");
+            if (requestId === requestIdRef.current) notify.error(error, "Failed to load workshops");
         } finally {
-            setLoading(false);
+            if (requestId === requestIdRef.current) setLoading(false);
         }
     }, []);
 
@@ -340,99 +345,96 @@ const PublicEventsPage = () => {
                     ) : (
                         events.map((event, idx) => {
                             const isPaid = event.is_paid && (event.price || 0) > 0;
-                            const priceText = isPaid ? `₹${event.price}` : 'Free Entry';
+                            const d = event.date ? new Date(event.date) : null;
+                            const validDate = d !== null && !isNaN(d.getTime());
+                            const registered = event.participants?.length || 0;
+                            const seatsLeft = event.capacity && event.capacity > 0 ? (event.available_seats ?? event.capacity) : null;
+                            const isOnline = /online|zoom|meet/i.test(event.location || '');
+                            const startOfToday = new Date(); startOfToday.setHours(0, 0, 0, 0);
+                            const isPast = validDate && d !== null && d < startOfToday;
 
                             return (
                                 <React.Fragment key={event.id || idx}>
-                                <Link
-                                    href={`/events/${event.id}`}
-                                    className="km-card flex flex-col group overflow-hidden"
-                                >
-                                    {/* Card Image Area */}
-                                    <div className="h-48 bg-km-surface relative overflow-hidden border-b border-km-border">
+                                <Link href={`/events/${event.id}`} className={`km-card flex flex-col group overflow-hidden ${isPast ? 'opacity-75' : ''}`}>
+                                    <div className="h-32 overflow-hidden border-b border-km-border bg-linear-to-br from-[#071A4D] to-[#0B5ED7] flex items-center justify-center">
                                         {event.image_url ? (
-                                            <img
-                                                src={event.image_url}
-                                                alt={event.title}
-                                                className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-300"
-                                            />
+                                            <img src={event.image_url} alt="" className="w-full h-full object-cover" />
                                         ) : (
-                                            <div className="w-full h-full flex flex-col items-center justify-center text-km-text-secondary p-4 bg-km-surface">
-                                                <CalendarBlankIcon size={28} weight="duotone" className="text-[#F59E0B] mb-2" aria-hidden="true" />
-                                                <span className="text-[11px] font-semibold text-km-text-secondary">Skill Masterclass</span>
-                                            </div>
+                                            <CalendarBlankIcon size={36} weight="duotone" className="text-[#FCD34D]" aria-hidden="true" />
                                         )}
-
-                                        {/* Location Badge */}
-                                        <span className="absolute top-3 left-3 bg-[#111827]/85 text-white text-[11px] font-medium px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-2xs">
-                                            <MapPinIcon weight="bold" size={11} className="text-[#FF6B00]" /> {event.location || 'Online Meet / Zoom'}
-                                        </span>
-
-                                        {/* Pricing Badge */}
-                                        <span className={`absolute bottom-3 right-3 text-white text-xs font-semibold px-2.5 py-1 rounded-lg shadow-xs flex items-center gap-1 ${
-                                            isPaid ? 'bg-[#FF6B00]' : 'bg-[#071A4D] dark:bg-km-primary'
-                                        }`}>
-                                            {isPaid && <TicketIcon weight="bold" size={12} />}
-                                            {priceText}
-                                        </span>
                                     </div>
 
-                                    {/* Card Content Area */}
                                     <div className="p-5 flex flex-col flex-1">
-                                        {/* Category Badge */}
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-[11px] font-semibold text-[#B45309] bg-[#FFFBEB] border border-[#FDE68A] px-2.5 py-0.5 rounded-md dark:text-orange-400 dark:bg-[#332E2D]">
-                                                {event.category || 'Live Workshop'}
-                                            </span>
-                                        </div>
-
-                                        {/* Event Title */}
-                                        <h3 className="font-bold text-km-text-primary text-base leading-snug line-clamp-2 group-hover:text-km-link transition-colors mb-1.5">
-                                            {event.title}
-                                        </h3>
-
-                                        {/* Organizer / Expert */}
-                                        <p className="text-xs text-km-text-secondary font-normal mb-3">
-                                            Hosted by <span className="font-medium text-km-text-primary">{event.organizer}</span>
-                                        </p>
-
-                                        {/* Date & Time */}
-                                        <div className="flex items-center gap-2 text-xs text-km-text-secondary mb-3">
-                                            <CalendarBlankIcon weight="bold" size={13} className="text-[#F59E0B] shrink-0" />
-                                            <span>{formatDate(event.date)}</span>
-                                            {event.time && <span>• {event.time}</span>}
-                                        </div>
-
-                                        {/* Available seats if capacity configured */}
-                                        {event.capacity && event.capacity > 0 ? (
-                                            <div className="mb-3 text-[11px] text-km-text-secondary flex items-center justify-between">
-                                                <span>Seats left: <strong className="text-km-text-primary">{event.available_seats ?? event.capacity}</strong></span>
-                                                <span className="text-km-text-secondary">Capacity: {event.capacity}</span>
+                                        <div className="flex items-start gap-4 mb-4">
+                                            {/* Date tile */}
+                                            <div className="w-14 shrink-0 rounded-xl border border-km-border bg-km-surface text-center py-2">
+                                                <span className="block text-xs font-semibold text-[#B45309] dark:text-amber-300">
+                                                    {validDate && d ? d.toLocaleDateString('en-IN', { month: 'short' }) : 'Date'}
+                                                </span>
+                                                <span className="block text-xl font-bold text-km-text-primary leading-tight">
+                                                    {validDate && d ? d.getDate() : '–'}
+                                                </span>
                                             </div>
-                                        ) : null}
+                                            <div className="min-w-0 flex-1">
+                                                <div className="flex items-center justify-between gap-2 mb-1.5">
+                                                    <span className="text-xs font-semibold text-[#B45309] dark:text-amber-300 truncate">
+                                                        {event.category || 'Workshop'}
+                                                    </span>
+                                                    {isPast ? (
+                                                        <span className="shrink-0 text-xs font-semibold px-2 py-0.5 rounded-md bg-km-surface text-km-text-secondary border border-km-border">
+                                                            Ended
+                                                        </span>
+                                                    ) : (
+                                                        <span className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-md ${isPaid ? 'bg-[#FF6B00] text-white' : 'bg-km-surface text-[#15803D] border border-km-border dark:text-emerald-400'}`}>
+                                                            {isPaid ? `₹${event.price}` : 'Free'}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <h3 className="font-bold text-km-text-primary text-base leading-snug line-clamp-2 group-hover:text-km-link transition-colors">
+                                                    {event.title}
+                                                </h3>
+                                            </div>
+                                        </div>
 
-                                        {/* Card Footer */}
-                                        <div className="mt-auto pt-3.5 border-t border-km-border flex items-center justify-between">
-                                            <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    setAttendeeModalEvent({
-                                                        id: event.id,
-                                                        title: event.title,
-                                                        total: event.participants?.length || 0
-                                                    });
-                                                }}
-                                                className="flex items-center gap-1.5 text-xs font-semibold text-km-text-secondary hover:text-km-heading hover:bg-km-surface px-2 py-1 rounded-lg transition-colors cursor-pointer"
-                                                title="View registered participants"
-                                            >
-                                                <UsersIcon weight="bold" size={13} className="text-km-heading" />
-                                                <span>{event.participants?.length || 0} registered</span>
-                                            </button>
+                                        <div className="space-y-1.5 text-xs text-km-text-secondary mb-4">
+                                            <p className="flex items-center gap-2">
+                                                <ClockIcon weight="bold" size={14} className="text-[#F59E0B] shrink-0" />
+                                                {validDate && d ? d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }) : formatDate(event.date)}
+                                                {event.time && ` · ${event.time}`}
+                                            </p>
+                                            <p className="flex items-center gap-2 min-w-0">
+                                                {isOnline
+                                                    ? <VideoCameraIcon weight="bold" size={14} className="text-[#F59E0B] shrink-0" />
+                                                    : <MapPinIcon weight="bold" size={14} className="text-[#F59E0B] shrink-0" />}
+                                                <span className="truncate">{event.location || 'Online'}</span>
+                                            </p>
+                                            <p className="truncate">
+                                                Hosted by <span className="font-medium text-km-text-primary">{event.organizer}</span>
+                                            </p>
+                                        </div>
 
+                                        <div className="mt-auto pt-3.5 border-t border-km-border flex items-center justify-between gap-2">
+                                            {registered > 0 ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        setAttendeeModalEvent({ id: event.id, title: event.title, total: registered });
+                                                    }}
+                                                    className="flex items-center gap-1.5 text-xs font-medium text-km-text-secondary hover:text-km-text-primary cursor-pointer"
+                                                >
+                                                    <UsersIcon weight="bold" size={14} />
+                                                    {registered} going{seatsLeft !== null && ` · ${seatsLeft} seats left`}
+                                                </button>
+                                            ) : (
+                                                <span className="flex items-center gap-1.5 text-xs text-km-text-secondary">
+                                                    <UsersIcon weight="bold" size={14} />
+                                                    {seatsLeft !== null ? `${seatsLeft} seats` : 'Open to all'}
+                                                </span>
+                                            )}
                                             <span className="text-xs font-semibold text-km-heading group-hover:text-km-link flex items-center gap-1 transition-colors">
-                                                View Session <ArrowRightIcon weight="bold" size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                                                View event <ArrowRightIcon weight="bold" size={13} />
                                             </span>
                                         </div>
                                     </div>

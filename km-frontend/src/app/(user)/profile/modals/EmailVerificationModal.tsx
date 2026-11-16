@@ -130,7 +130,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                             Verify your email address to receive live job alerts and recruiter messages directly to your inbox.
                         </p>
                         <div>
-                            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                            <label className="block text-xs font-bold text-slate-700 mb-2">
                                 Email Address *
                             </label>
                             <div className="relative">
@@ -167,7 +167,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                     <div className="space-y-4 text-center">
                         <CheckCircleIcon size={24} weight="duotone" className="text-km-heading mx-auto" aria-hidden="true" />
                         <p className="text-xs font-bold text-slate-600">
-                            Enter the 4-digit code sent to <span className="text-km-heading font-extrabold">{email}</span>
+                            Enter the 4-digit code sent to <span className="text-km-heading font-bold">{email}</span>
                         </p>
 
                         <OtpInput value={otp} onChange={(val) => { setError(null); setOtp(val); }} />
@@ -178,7 +178,7 @@ export default function EmailVerificationModal({ isOpen, onClose, currentEmail =
                                 type="button"
                                 disabled={resendTimer > 0 || sending}
                                 onClick={handleResendOtp}
-                                className="text-km-heading font-extrabold disabled:text-slate-400 hover:underline cursor-pointer"
+                                className="text-km-heading font-bold disabled:text-slate-400 hover:underline cursor-pointer"
                             >
                                 {resendTimer > 0 ? `Resend Code in 00:${resendTimer.toString().padStart(2, '0')}` : "Resend Code"}
                             </button>

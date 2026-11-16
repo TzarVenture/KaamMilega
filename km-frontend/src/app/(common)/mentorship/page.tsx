@@ -115,21 +115,21 @@ export default function MentorshipPage() {
       >
         {/* Search Bar + Become a Mentor CTA */}
         <div className="flex flex-col sm:flex-row gap-3 max-w-xl">
-          <div className="flex-1 flex items-center bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-slate-200 focus-within:ring-2 focus-within:ring-[#0B5ED7]/20 transition-all shadow-xs">
-            <MagnifyingGlassIcon weight="bold" size={17} className="text-slate-400 mr-2.5 shrink-0" />
+          <div className="flex-1 flex items-center bg-km-surface-card rounded-xl px-3.5 py-2.5 border border-km-border focus-within:ring-2 focus-within:ring-[#0B5ED7]/20 transition-all shadow-xs">
+            <MagnifyingGlassIcon weight="bold" size={17} className="text-km-text-secondary mr-2.5 shrink-0" />
             <input
               type="text"
               placeholder="Search by mentor name, trade, or skill..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none font-medium"
+              className="w-full bg-transparent text-sm text-km-text-primary placeholder:text-km-text-secondary focus:outline-none font-medium"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
                 aria-label="Clear search"
-                className="text-slate-400 hover:text-slate-600 p-0.5 rounded-full"
+                className="text-km-text-secondary hover:text-slate-600 p-0.5 rounded-full"
               >
                 <XIcon weight="bold" size={14} />
               </button>
@@ -147,7 +147,7 @@ export default function MentorshipPage() {
 
       {/* Category Tabs */}
       <section className="max-w-7xl mx-auto px-6 -mt-7 relative z-20">
-        <div className="bg-km-surface-card p-2 rounded-2xl md:rounded-3xl shadow-md shadow-slate-200/50 border border-slate-100 flex items-center gap-2 overflow-x-auto scrollbar-hide">
+        <div className="bg-km-surface-card p-2 rounded-2xl md:rounded-2xl shadow-md shadow-slate-200/50 border border-km-border flex items-center gap-2 overflow-x-auto scrollbar-hide">
           {categories.map((cat) => (
             <button
               key={cat}
@@ -155,7 +155,7 @@ export default function MentorshipPage() {
               className={`px-5 py-2.5 rounded-xl font-bold text-xs md:text-sm whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat 
                   ? 'bg-km-primary text-white shadow-xs' 
-                  : 'text-slate-600 hover:bg-slate-50'
+                  : 'text-slate-600 hover:bg-km-surface'
               }`}
             >
               {cat}
@@ -178,12 +178,12 @@ export default function MentorshipPage() {
                   <span className="text-[11px] font-semibold text-orange-700 bg-orange-100 px-2 py-0.5 rounded-md border border-orange-200/50">
                     Upcoming Call
                   </span>
-                  <span className="text-xs md:text-sm font-bold text-slate-900 line-clamp-1">
+                  <span className="text-xs md:text-sm font-bold text-km-text-primary line-clamp-1">
                     {nextUpcomingSession.mentorship_title || "1-on-1 Mentorship Call"}
                   </span>
                 </div>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Mentor: <span className="font-bold text-slate-800">{nextUpcomingSession.expert_name || "Verified Mentor"}</span> • {formatDate(nextUpcomingSession.scheduled_at)} at {formatTime(nextUpcomingSession.scheduled_at)}
+                  Mentor: <span className="font-bold text-km-text-primary">{nextUpcomingSession.expert_name || "Verified Mentor"}</span> • {formatDate(nextUpcomingSession.scheduled_at)} at {formatTime(nextUpcomingSession.scheduled_at)}
                 </p>
               </div>
             </div>
@@ -200,24 +200,24 @@ export default function MentorshipPage() {
         {/* Section Header with "My Booked Sessions" Button on the right */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8 md:mb-10">
           <div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900">Featured Mentorships</h2>
-            <p className="text-xs md:text-sm text-slate-500 font-medium tracking-tight mt-1">
+            <h2 className="text-2xl md:text-3xl font-bold text-km-text-primary">Featured Mentorships</h2>
+            <p className="text-xs md:text-sm text-km-text-secondarymt-1">
               Top-rated experts ready to guide your career forward
             </p>
           </div>
 
           <Link
             href="/mentorship/my-sessions"
-            className="inline-flex items-center gap-2 bg-km-surface-card hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 bg-km-surface-card hover:bg-km-surface text-km-text-primary border border-km-border px-4 py-2.5 rounded-xl font-bold text-xs transition-all shadow-2xs active:scale-95 cursor-pointer"
           >
             <CalendarBlankIcon weight="bold" size={14} className="text-[#1a2b8c] dark:text-blue-400" />
             <span>My Booked Sessions</span>
             {myBookingsCount > 0 && (
-              <span className="px-2 py-0.5 text-[10px] font-black rounded-full bg-orange-500 text-white">
+              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-orange-500 text-white">
                 {myBookingsCount}
               </span>
             )}
-            <ArrowRightIcon weight="bold" size={13} className="text-slate-400" />
+            <ArrowRightIcon weight="bold" size={13} className="text-km-text-secondary" />
           </Link>
         </div>
 
@@ -225,7 +225,7 @@ export default function MentorshipPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <div key={i} className="bg-km-surface-card rounded-3xl h-95 animate-pulse border border-slate-100" />
+              <div key={i} className="bg-km-surface-card rounded-2xl h-95 animate-pulse border border-km-border" />
             ))}
           </div>
         ) : filteredMentorships.length > 0 ? (
@@ -238,19 +238,19 @@ export default function MentorshipPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-16 bg-km-surface-card rounded-3xl border border-dashed border-slate-200 p-8">
-            <BookOpenIcon size={36} weight="duotone" className="text-slate-400 mx-auto mb-4" aria-hidden="true" />
-            <h3 className="text-lg font-bold text-slate-800 mb-1">No Mentorships Found</h3>
-            <p className="text-xs text-slate-500 max-w-xs mx-auto">Try adjusting your category filter or search query to find what you are looking for.</p>
+          <div className="text-center py-16 bg-km-surface-card rounded-2xl border border-dashed border-km-border p-8">
+            <BookOpenIcon size={36} weight="duotone" className="text-km-text-secondary mx-auto mb-4" aria-hidden="true" />
+            <h3 className="text-lg font-bold text-km-text-primary mb-1">No Mentorships Found</h3>
+            <p className="text-xs text-km-text-secondary max-w-xs mx-auto">Try adjusting your category filter or search query to find what you are looking for.</p>
           </div>
         )}
       </section>
 
       {/* Benefits Section */}
       <section className="max-w-7xl mx-auto px-6 pb-12">
-        <div className="bg-slate-50 rounded-3xl p-8 md:p-12 border border-slate-200/80 flex flex-col md:flex-row items-center gap-10">
+        <div className="bg-km-surface-card rounded-2xl p-8 md:p-12 border border-km-border flex flex-col md:flex-row items-center gap-10">
             <div className="md:w-1/2">
-                <h2 className="text-2xl md:text-4xl font-black text-slate-900 mb-6 leading-tight">
+                <h2 className="text-2xl md:text-4xl font-bold text-km-text-primary mb-6 leading-tight">
                     Why Choose <span className="text-km-heading">KaamMilega Mentors?</span>
                 </h2>
                 <div className="space-y-4">
@@ -272,10 +272,10 @@ export default function MentorshipPage() {
                 </div>
             </div>
             <div className="md:w-1/2 flex justify-center">
-                <div className="bg-km-surface-card rounded-3xl p-8 border border-slate-200 shadow-sm max-w-sm w-full space-y-4 text-center">
+                <div className="bg-km-surface-card rounded-2xl p-8 border border-km-border shadow-sm max-w-sm w-full space-y-4 text-center">
                     <UsersIcon size={36} weight="duotone" className="text-km-heading mx-auto" aria-hidden="true" />
-                    <h3 className="text-lg font-bold text-slate-900">Are You an Industry Expert?</h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                    <h3 className="text-lg font-bold text-km-text-primary">Are You an Industry Expert?</h3>
+                    <p className="text-xs text-km-text-secondary leading-relaxed">
                       Share your knowledge, mentor aspiring candidates, and earn by hosting 1-on-1 sessions.
                     </p>
                     <Link
@@ -296,69 +296,70 @@ function MentorshipCard({ data, index }: { data: any, index: number }) {
   const { mentorship, expert } = data;
   const expertNameClean = (expert?.name || "Industry Expert").replace(/\s*\.+$/, "");
   const expertInitial = (expertNameClean[0] || "E").toUpperCase();
-  
+  const reviews = Number(mentorship?.reviews || 0);
+  const href = `/mentorship/${mentorship?.id}`;
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08 }}
-      className="bg-km-surface-card rounded-3xl overflow-hidden shadow-xs border border-slate-200/80 flex flex-col group hover:shadow-xl hover:border-blue-200 transition-all duration-300 hover:-translate-y-1.5"
+      transition={{ delay: Math.min(index, 6) * 0.05 }}
+      className="km-card flex flex-col group overflow-hidden"
     >
-      <div className="p-6 md:p-7 pb-4 flex-1 flex flex-col">
-        <div className="flex justify-between items-start mb-4">
-          <div className="w-12 h-12 md:w-14 md:h-14 bg-blue-50 rounded-2xl flex items-center justify-center overflow-hidden border border-blue-100 shadow-2xs">
-             {expert?.profile_image ? (
-               <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
-             ) : (
-               <span className="text-km-heading font-black text-lg md:text-xl">{expertInitial}</span>
-             )}
+      <Link href={href} className="p-5 flex-1 flex flex-col">
+        <div className="flex justify-between items-start gap-3 mb-4">
+          <div className="w-12 h-12 bg-km-surface rounded-xl flex items-center justify-center overflow-hidden border border-km-border shrink-0">
+            {expert?.profile_image ? (
+              <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-[#7C3AED] font-bold text-lg dark:text-violet-300">{expertInitial}</span>
+            )}
           </div>
           <div className="flex flex-col items-end gap-1.5">
-            <span className="bg-blue-50 text-km-heading text-[11px] font-semibold px-2.5 py-1 rounded-full border border-blue-100">
+            <span className="text-[11px] font-semibold text-[#6D28D9] bg-[#F5F3FF] border border-[#DDD6FE] px-2.5 py-0.5 rounded-md dark:text-violet-300 dark:bg-km-surface dark:border-km-border">
               {mentorship?.category || "Mentorship"}
             </span>
-            <div className="flex items-center gap-1 bg-amber-50 border border-amber-200/60 px-2 py-0.5 rounded-full text-[10px] font-bold text-amber-800">
-              <StarIcon weight="fill" size={11} className="fill-amber-400 text-amber-400" />
-              <span>{mentorship?.rating ? Number(mentorship.rating).toFixed(1) : '5.0'}</span>
-              <span className="text-amber-600 font-medium dark:text-amber-400">({mentorship?.reviews || 0})</span>
-            </div>
+            {reviews > 0 ? (
+              <span className="flex items-center gap-1 text-xs font-semibold text-km-text-primary">
+                <StarIcon weight="fill" size={12} className="text-[#F59E0B]" />
+                {Number(mentorship.rating || 0).toFixed(1)}
+                <span className="font-normal text-km-text-secondary">({reviews})</span>
+              </span>
+            ) : (
+              <span className="text-xs font-medium text-km-text-secondary">New mentor</span>
+            )}
           </div>
         </div>
- 
-        <Link href={`/mentorship/${mentorship?.id}`}>
-          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-1.5 group-hover:text-km-heading transition-colors line-clamp-2 min-h-11">
-            {mentorship?.title}
-          </h3>
-        </Link>
-        <p className="text-slate-500 text-xs font-medium mb-4 line-clamp-1">
-          By {expertNameClean} • {expert?.headline || "Verified Mentor"}
+
+        <h3 className="text-base font-bold text-km-text-primary leading-snug mb-1.5 group-hover:text-km-link transition-colors line-clamp-2">
+          {mentorship?.title}
+        </h3>
+        <p className="text-xs text-km-text-secondary mb-4 line-clamp-1">
+          By <span className="font-medium text-km-text-primary">{expertNameClean}</span>{expert?.headline ? ` · ${expert.headline}` : ""}
         </p>
- 
-        <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100 mt-auto">
-          <div className="flex items-center gap-1.5 text-slate-500">
-            <ClockIcon weight="bold" size={14} className="text-km-heading" />
-            <span className="text-xs font-semibold">{mentorship?.duration || 45} Mins</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-slate-500">
-            <UsersIcon weight="bold" size={14} className="text-emerald-600 dark:text-emerald-400" />
-            <span className="text-xs font-semibold">1-on-1 Session</span>
-          </div>
+
+        <div className="flex items-center gap-4 pt-3 border-t border-km-border mt-auto text-xs text-km-text-secondary">
+          <span className="flex items-center gap-1.5">
+            <ClockIcon weight="bold" size={14} className="text-[#7C3AED] dark:text-violet-300" />
+            {mentorship?.duration || 30} min
+          </span>
+          <span className="flex items-center gap-1.5">
+            <UsersIcon weight="bold" size={14} className="text-[#7C3AED] dark:text-violet-300" />
+            1-on-1 video call
+          </span>
         </div>
-      </div>
- 
-      <div className="p-5 md:p-6 pt-4 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between">
+      </Link>
+
+      <div className="px-5 py-4 border-t border-km-border flex items-center justify-between">
         <div>
-          <span className="text-[10px] text-slate-400 font-bold uppercase block mb-0.5">Session Fee</span>
-          <span className="text-xl md:text-2xl font-black text-slate-900 font-mono">₹{mentorship?.price || 499}</span>
+          <span className="text-xs text-km-text-secondary block">Session fee</span>
+          <span className="text-lg font-bold text-km-text-primary">
+            {mentorship?.price ? `₹${mentorship.price}` : "Free"}
+          </span>
         </div>
-        <Link href={`/mentorship/${mentorship?.id}`}>
-          <button 
-            type="button"
-            className="bg-km-primary hover:bg-km-primary-dark text-white px-4 md:px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-xs active:scale-95 flex items-center gap-1.5 cursor-pointer"
-          >
-            <span>Book Session</span> 
-            <CaretRightIcon weight="bold" size={14} />
-          </button>
+        <Link href={href} className="btn-primary text-xs px-4 py-2.5 inline-flex items-center gap-1.5">
+          Book session
+          <CaretRightIcon weight="bold" size={13} />
         </Link>
       </div>
     </motion.div>
@@ -372,8 +373,8 @@ function BenefitItem({ icon, title, desc }: { icon: React.ReactNode, title: stri
                 {icon}
             </span>
             <div>
-                <h4 className="font-bold text-slate-900 text-sm mb-0.5">{title}</h4>
-                <p className="text-xs text-slate-500 font-medium leading-relaxed">{desc}</p>
+                <h4 className="font-bold text-km-text-primary text-sm mb-0.5">{title}</h4>
+                <p className="text-xs text-km-text-secondary font-medium leading-relaxed">{desc}</p>
             </div>
         </div>
     );

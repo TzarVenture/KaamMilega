@@ -126,6 +126,8 @@ type User struct {
 	JobAlertsLastRunAt *time.Time `bson:"job_alerts_last_run_at,omitempty" json:"-"`
 	// HasPassword is computed for the owner's own profile response (never stored)
 	HasPassword bool `bson:"-" json:"has_password"`
+	// ConnectionsCount is counted live for profile responses (never stored)
+	ConnectionsCount int64 `bson:"-" json:"connections_count"`
 }
 
 type Education struct {
