@@ -21,6 +21,7 @@ export default function CreateEventPage() {
         date: "",
         time: "",
         location: "",
+        meeting_link: "",
         image_url: "",
     });
 
@@ -153,6 +154,22 @@ export default function CreateEventPage() {
                                 className="appearance-none block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
                             />
                         </div>
+                        <div>
+                            <label htmlFor="meeting_link" className="block text-sm font-semibold text-gray-700 mb-1 dark:text-km-text-primary">Meeting link (online events)</label>
+                            <input
+                                id="meeting_link"
+                                name="meeting_link"
+                                type="url"
+                                inputMode="url"
+                                pattern="https://.*"
+                                value={formData.meeting_link}
+                                onChange={handleChange}
+                                placeholder="https://meet.google.com/abc-defg-hij"
+                                className="appearance-none block w-full px-4 py-2.5 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm"
+                            />
+                            <p className="mt-1 text-xs text-km-text-secondary">Only people who register can see this link.</p>
+                        </div>
+
 
                         <div>
                             <span className="block text-sm font-semibold text-gray-700 mb-1">Banner Image (Optional)</span>

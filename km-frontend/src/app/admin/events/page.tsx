@@ -16,6 +16,7 @@ interface AdminEventItem {
     date: string;
     time: string;
     location: string;
+    meeting_link?: string;
     image_url?: string;
     category?: string;
     is_paid?: boolean;
@@ -90,6 +91,7 @@ export default function AdminEventsPage() {
         date: '',
         time: '',
         location: '',
+        meeting_link: '',
         image_url: '',
         category: 'Skill Workshop',
         is_paid: false,
@@ -165,6 +167,7 @@ export default function AdminEventsPage() {
             date: '',
             time: '10:00 AM - 12:00 PM',
             location: 'Online (Zoom / Meet)',
+            meeting_link: '',
             image_url: '',
             category: 'Skill Workshop',
             is_paid: false,
@@ -185,6 +188,7 @@ export default function AdminEventsPage() {
             date: ev.date || '',
             time: ev.time || '',
             location: ev.location || '',
+            meeting_link: ev.meeting_link || '',
             image_url: ev.image_url || '',
             category: ev.category || 'Skill Workshop',
             is_paid: !!ev.is_paid,
@@ -582,15 +586,29 @@ export default function AdminEventsPage() {
 
                                 <div>
                                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                                        Location / platform link
+                                        Location
                                     </label>
                                     <input
                                         type="text"
-                                        placeholder="e.g. Online (Zoom Link provided on ticket) or Mumbai Center"
+                                        placeholder="e.g. Online (Zoom) or Mumbai Center"
                                         value={formData.location}
                                         onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                         className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
                                     />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        Meeting link (online events)
+                                    </label>
+                                    <input
+                                        type="url"
+                                        placeholder="https://meet.google.com/abc-defg-hij"
+                                        value={formData.meeting_link}
+                                        onChange={(e) => setFormData({ ...formData, meeting_link: e.target.value })}
+                                        className="w-full px-3.5 py-2 text-xs sm:text-sm bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-km-blue/20 outline-none text-slate-900"
+                                    />
+                                    <p className="mt-1 text-xs text-slate-500">Shown only to people who register.</p>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

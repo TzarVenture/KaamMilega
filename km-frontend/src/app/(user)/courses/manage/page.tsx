@@ -279,7 +279,7 @@ export default function ManageCoursesPage() {
                                 >
                                     <div>
                                         {/* Thumbnail Box */}
-                                        <div className="relative w-full h-44 bg-slate-100 overflow-hidden">
+                                        <div className="relative w-full h-44 bg-km-surface overflow-hidden">
                                             <img
                                                 src={course.thumbnail_url || getYouTubeThumbnail(course.youtube_video_id)}
                                                 alt={course.title}

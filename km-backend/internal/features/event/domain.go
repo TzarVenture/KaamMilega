@@ -18,6 +18,9 @@ type Event struct {
 	Date           string               `bson:"date" json:"date"`
 	Time           string               `bson:"time" json:"time"`
 	Location       string               `bson:"location" json:"location"`
+	// MeetingLink is the Zoom/Meet URL for online events. Only the host, admins and registered
+	// attendees (via their ticket) ever receive it; public event responses clear it.
+	MeetingLink    string               `bson:"meeting_link,omitempty" json:"meeting_link,omitempty"`
 	ImageURL       string               `bson:"image_url,omitempty" json:"image_url,omitempty"`
 	Category       string               `bson:"category,omitempty" json:"category,omitempty"`
 	IsPaid         bool                 `bson:"is_paid" json:"is_paid"`
@@ -49,6 +52,7 @@ type EventTicket struct {
 	EventDate         string             `bson:"event_date,omitempty" json:"event_date,omitempty"`
 	EventTime         string             `bson:"event_time,omitempty" json:"event_time,omitempty"`
 	EventLocation     string             `bson:"event_location,omitempty" json:"event_location,omitempty"`
+	MeetingLink       string             `bson:"-" json:"meeting_link,omitempty"` // filled from the event when read
 	CreatedAt         time.Time          `bson:"created_at" json:"created_at"`
 }
 
@@ -147,6 +151,7 @@ type AdminUpdateEventRequest struct {
 	Date           string  `json:"date"`
 	Time           string  `json:"time"`
 	Location       string  `json:"location"`
+	MeetingLink    *string `json:"meeting_link"`
 	ImageURL       string  `json:"image_url"`
 	Category       string  `json:"category"`
 	IsPaid         *bool   `json:"is_paid"`

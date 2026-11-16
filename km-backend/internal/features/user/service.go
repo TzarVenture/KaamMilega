@@ -522,6 +522,14 @@ func (s *UserServiceImpl) GetProfile(ctx context.Context, userID string) (*User,
 		_, _ = s.repo.UpdateUser(ctx, user)
 	}
 	user.HasPassword = user.Password != ""
+	// Optional on the repository so test doubles need not implement it
+	if cc, ok := s.repo.(interface {
+		CountConnections(context.Context, primitive.ObjectID) (int64, error)
+	}); ok {
+		if n, err := cc.CountConnections(ctx, user.ID); err == nil {
+			user.ConnectionsCount = n
+		}
+	}
 	return user, nil
 }
 

@@ -21,6 +21,9 @@ func (ctrl *EventController) CreateEvent(c *fiber.Ctx) error {
 	if err := c.BodyParser(&e); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
+	if err := validateMeetingLink(e.MeetingLink); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
 
 	if userID, ok := c.Locals("user_id").(string); ok && userID != "" {
 		if uID, err := primitive.ObjectIDFromHex(userID); err == nil {
@@ -63,6 +66,10 @@ func (ctrl *EventController) GetEvents(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
+	viewer, _ := c.Locals("user_id").(string)
+	for i := range events {
+		hideMeetingLink(&events[i], viewer)
+	}
 
 	return c.JSON(fiber.Map{
 		"data":  events,
@@ -78,7 +85,18 @@ func (ctrl *EventController) GetEventByID(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "Event not found"})
 	}
+	viewer, _ := c.Locals("user_id").(string)
+	hideMeetingLink(event, viewer)
 	return c.JSON(event)
+}
+
+// hideMeetingLink clears the joining link unless the viewer is the host.
+// Registered attendees get it with their ticket (GET /events/:id/ticket).
+func hideMeetingLink(e *Event, viewerID string) {
+	if e == nil || (viewerID != "" && !e.OrganizerID.IsZero() && e.OrganizerID.Hex() == viewerID) {
+		return
+	}
+	e.MeetingLink = ""
 }
 
 func (ctrl *EventController) RegisterUser(c *fiber.Ctx) error {

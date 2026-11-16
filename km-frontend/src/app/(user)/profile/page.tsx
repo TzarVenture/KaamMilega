@@ -335,7 +335,7 @@ const ProfilePage = () => {
                                     Contact Info
                                 </button>
                                 <span>•</span>
-                                <span className="text-km-heading font-semibold">{user?.connections_count || 0} Connections</span>
+                                <span className="text-km-heading font-semibold">{user?.connections_count || 0} {user?.connections_count === 1 ? "connection" : "connections"}</span>
                             </p>
 
                             {/* Portfolio / Website Link */}

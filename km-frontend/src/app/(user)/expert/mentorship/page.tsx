@@ -564,7 +564,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
             className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 rounded-xl border transition-all ${
               item.isActive 
                 ? 'bg-purple-50/20 border-purple-100/60 shadow-2xs' 
-                : 'bg-gray-50/50 border-km-border-subtle opacity-60'
+                : 'bg-km-surface border-km-border-subtle opacity-60'
             }`}
           >
             <div className="sm:w-32 flex items-center gap-2">

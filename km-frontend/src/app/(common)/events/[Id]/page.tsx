@@ -47,6 +47,7 @@ interface EventTicket {
     event_date: string;
     event_time: string;
     event_location: string;
+    meeting_link?: string;
     created_at: string;
 }
 
@@ -288,8 +289,8 @@ const EventDetailsPage = () => {
 
     // Meeting link resolution (if event.location contains meet/zoom or is online)
     const isOnlineSession = !event.location || event.location.toLowerCase().includes('online') || event.location.toLowerCase().includes('zoom') || event.location.toLowerCase().includes('meet') || event.location.startsWith('http');
-    // Only a real link from the host. (meet.google.com/new would open an empty meeting of the user's own.)
-    const meetingUrl = event.location?.startsWith('http') ? event.location : null;
+    // The host's joining link comes only with the user's ticket (never a made-up meet.google.com/new)
+    const meetingUrl = ticket?.meeting_link || (event.location?.startsWith('https://') ? event.location : null);
     const mapsUrl = !isOnlineSession && event.location
         ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`
         : null;
