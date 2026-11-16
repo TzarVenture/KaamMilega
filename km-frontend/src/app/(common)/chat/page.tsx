@@ -2282,7 +2282,7 @@ function ChatView() {
                                     {photoOnly && (
                                       // Liquid-glass time chip on the photo (approved exception to the
                                       // no-glass rule)
-                                      <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-black/25 px-2 py-1 backdrop-blur-md backdrop-saturate-150">
+                                      <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-black/55 px-2 py-1">
                                         {meta}
                                       </span>
                                     )}

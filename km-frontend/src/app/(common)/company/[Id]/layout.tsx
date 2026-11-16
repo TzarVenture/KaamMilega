@@ -71,7 +71,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                         <div className="pt-16 px-8 pb-8">
                             <div className="flex flex-col gap-1">
                                 <h1 className="text-2xl font-bold text-gray-900">{company.name}</h1>
-                                <p className="text-xs font-bold text-gray-400 tracking-widest uppercase">
+                                <p className="text-xs font-bold text-gray-400">
                                     {company.industry || "Industry N/A"}
                                 </p>
                                 <p className="text-sm text-gray-600 mt-1 font-medium">

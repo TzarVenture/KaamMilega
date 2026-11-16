@@ -15,7 +15,7 @@ const FeedSection: React.FC = () => {
                         {company?.logo ? (
                             <img src={company.logo} alt={company?.name} className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-white text-2xl uppercase font-black">{company?.name?.charAt(0) || 'C'}</span>
+                            <span className="text-white text-2xl uppercase font-bold">{company?.name?.charAt(0) || 'C'}</span>
                         )}
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">{company?.name || "Company Name"}</h2>

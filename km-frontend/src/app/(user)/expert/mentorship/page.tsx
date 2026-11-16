@@ -72,7 +72,7 @@ export default function ExpertMentorshipManagement() {
                 Expert Monetisation Portal
               </span>
             </div>
-            <h1 className="text-xl md:text-3xl font-black text-km-heading mb-0.5 md:mb-1">Mentor Dashboard</h1>
+            <h1 className="text-xl md:text-3xl font-bold text-km-heading mb-0.5 md:mb-1">Mentor Dashboard</h1>
             <p className="text-[11px] md:text-sm text-km-text-secondary font-medium">Manage your booked sessions and track your payouts.</p>
           </div>
 
@@ -113,7 +113,7 @@ export default function ExpertMentorshipManagement() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-3 md:px-6 py-2.5 md:py-3 font-black transition-all relative text-xs md:text-sm whitespace-nowrap ${
+              className={`flex items-center gap-2 px-3 md:px-6 py-2.5 md:py-3 font-bold transition-all relative text-xs md:text-sm whitespace-nowrap ${
                 activeTab === tab.id ? 'text-purple-600 dark:text-purple-400' : 'text-km-text-muted hover:text-km-text-secondary'
               }`}
             >
@@ -173,10 +173,10 @@ function SessionsList({ mentorships }: { mentorships: any[] }) {
           </div>
           <h3 className="text-base md:text-lg font-bold text-km-heading mb-3 md:mb-4">{m.title}</h3>
           <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-km-border-subtle">
-            <div className="flex items-center gap-1.5 text-km-text-muted text-[10px] font-bold uppercase">
+            <div className="flex items-center gap-1.5 text-km-text-muted text-xs font-bold">
               <ClockIcon weight="bold" size={12} /> {m.duration} Mins
             </div>
-            <div className="text-base md:text-lg font-black text-km-heading">₹{m.price}</div>
+            <div className="text-base md:text-lg font-bold text-km-heading">₹{m.price}</div>
           </div>
         </div>
       ))}
@@ -254,7 +254,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
             
             {/* Left: Mentee & Session info */}
             <div className="flex gap-3.5 items-start">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 font-black text-sm dark:text-purple-400">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm dark:text-purple-400">
                 {b.mentee_name ? b.mentee_name.charAt(0).toUpperCase() : <UserIcon size={20} />}
               </div>
               <div className="min-w-0">
@@ -264,7 +264,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                   </span>
                   
                   {/* Status Pill */}
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
                     isCompleted ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
                     isConfirmed ? 'bg-blue-50 text-km-link border border-blue-200' :
                     isPending ? 'bg-amber-50 text-amber-700 border border-amber-200' :
@@ -347,7 +347,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
                   <button 
                     disabled={isLoading}
                     onClick={() => handleStatus(b, 'completed')}
-                    className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3.5 py-1.5 rounded-lg text-xs font-black flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
+                    className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
                   >
                     {isLoading ? (
                       <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -403,7 +403,7 @@ function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () =>
             <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-2">
                 <VideoCameraIcon size={20} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
-                <h3 className="font-black text-km-heading text-base">Add Meeting Link</h3>
+                <h3 className="font-bold text-km-heading text-base">Add Meeting Link</h3>
               </div>
               <button onClick={() => setMeetingModalBooking(null)} className="text-km-text-muted hover:text-km-text-secondary p-1">
                 <XIcon weight="bold" size={18} />
@@ -539,7 +539,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-lg md:text-xl font-black text-km-heading">Weekly Availability</h3>
+            <h3 className="text-lg md:text-xl font-bold text-km-heading">Weekly Availability</h3>
             <span className="bg-purple-50 text-purple-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-purple-100">
               {activeCount} {activeCount === 1 ? 'Day' : 'Days'} Active
             </span>
@@ -599,7 +599,7 @@ function AvailabilityManager({ availability, onSaved }: { availability: any[]; o
             </div>
 
             <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-              <span className={`text-[10px] font-black uppercase tracking-wider ${item.isActive ? 'text-purple-700' : 'text-km-text-muted'}`}>
+              <span className={`text-xs font-bold ${item.isActive ? 'text-purple-700' : 'text-km-text-muted'}`}>
                 {item.isActive ? 'Available' : 'Off'}
               </span>
               

@@ -142,23 +142,23 @@ export default function JobDetailsPage() {
 
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-km-surface rounded-xl border border-km-border/60">
                             <div>
-                                <p className="text-[10px] text-km-text-secondary font-semibold uppercase tracking-wider mb-0.5">Salary</p>
+                                <p className="text-xs text-km-text-secondary font-semibold mb-0.5">Salary</p>
                                 <p className="text-xs font-bold text-km-text-primary">
                                     {job.salary_min && job.salary_max ? `₹${job.salary_min} – ₹${job.salary_max}` : "Not Disclosed"}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-[10px] text-km-text-secondary font-semibold uppercase tracking-wider mb-0.5">Location</p>
+                                <p className="text-xs text-km-text-secondary font-semibold mb-0.5">Location</p>
                                 <p className="text-xs font-semibold text-km-text-primary">{job.city_name || job.location || "Anywhere"}</p>
                             </div>
                             <div>
-                                <p className="text-[10px] text-km-text-secondary font-semibold uppercase tracking-wider mb-0.5">Experience</p>
+                                <p className="text-xs text-km-text-secondary font-semibold mb-0.5">Experience</p>
                                 <p className="text-xs font-semibold text-km-text-primary">
                                     {job.experience_min ?? 0} – {job.experience_max ?? 0} Yrs
                                 </p>
                             </div>
                             <div>
-                                <p className="text-[10px] text-km-text-secondary font-semibold uppercase tracking-wider mb-0.5">Type</p>
+                                <p className="text-xs text-km-text-secondary font-semibold mb-0.5">Type</p>
                                 <p className="text-xs font-semibold text-km-text-primary">{job.job_type || "Full-time"}</p>
                             </div>
                         </div>
@@ -229,14 +229,14 @@ export default function JobDetailsPage() {
                             <div className="flex items-center gap-2.5">
                                 <CalendarBlankIcon size={16} weight="regular" className="text-km-text-secondary" aria-hidden="true" />
                                 <div>
-                                    <p className="text-[10px] uppercase font-semibold text-km-text-secondary">Posted On</p>
+                                    <p className="text-xs font-semibold text-km-text-secondary">Posted On</p>
                                     <p className="text-xs font-medium text-km-text-primary">{new Date(job.created_at).toLocaleDateString(undefined, { dateStyle: "medium" })}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2.5">
                                 <ClockIcon size={16} weight="regular" className="text-km-text-secondary" aria-hidden="true" />
                                 <div>
-                                    <p className="text-[10px] uppercase font-semibold text-km-text-secondary">Last Updated</p>
+                                    <p className="text-xs font-semibold text-km-text-secondary">Last Updated</p>
                                     <p className="text-xs font-medium text-km-text-primary">{new Date(job.updated_at).toLocaleDateString(undefined, { dateStyle: "medium" })}</p>
                                 </div>
                             </div>

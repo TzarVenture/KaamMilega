@@ -148,7 +148,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                     <div className="flex items-center gap-2.5">
                         <BriefcaseIcon size={22} className="text-km-heading" aria-hidden="true" />
                         <div>
-                            <h3 className="text-base font-black text-slate-900">Open To Work</h3>
+                            <h3 className="text-base font-bold text-slate-900">Open To Work</h3>
                             <p className="text-xs text-slate-500 font-medium">Show recruiters the opportunities you are seeking</p>
                         </div>
                     </div>
@@ -165,7 +165,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                 <form onSubmit={handleSave} className="p-6 overflow-y-auto space-y-6 flex-1">
                     {/* Job Titles */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
                             Job Titles
                         </label>
                         <div className="flex gap-2 mb-2.5">
@@ -212,7 +212,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
 
                         {/* Suggested Titles */}
                         <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                            <span className="text-[10px] text-slate-400 font-bold uppercase mr-1">Suggestions:</span>
+                            <span className="text-xs text-slate-400 font-bold mr-1">Suggestions:</span>
                             {COMMON_TITLES.filter((t) => !titles.includes(t)).slice(0, 4).map((t) => (
                                 <button
                                     key={t}
@@ -228,7 +228,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
 
                     {/* Job Types */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
                             Job Types
                         </label>
                         <div className="flex flex-wrap gap-2">
@@ -255,7 +255,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
 
                     {/* Target Locations */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
                             Preferred Locations
                         </label>
                         <div className="flex gap-2 mb-2">
@@ -302,7 +302,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
 
                     {/* Visibility Preference */}
                     <div>
-                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">
+                        <label className="block text-xs font-bold text-slate-700 mb-2">
                             Visibility Scope
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -314,7 +314,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-black text-slate-900">All Members</span>
+                                    <span className="text-xs font-bold text-slate-900">All Members</span>
                                     <input
                                         type="radio"
                                         name="visibility"
@@ -337,7 +337,7 @@ export const OpenToWorkModal: React.FC<Props> = ({
                                 }`}
                             >
                                 <div className="flex items-center justify-between mb-1.5">
-                                    <span className="text-xs font-black text-slate-900">Recruiters Only</span>
+                                    <span className="text-xs font-bold text-slate-900">Recruiters Only</span>
                                     <input
                                         type="radio"
                                         name="visibility"

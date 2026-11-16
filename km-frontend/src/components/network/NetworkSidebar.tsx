@@ -207,7 +207,7 @@ export const NetworkSidebar: React.FC = () => {
       <div className="hidden lg:block bg-[#071A4D] border border-slate-700/60 rounded-2xl p-5 text-white shadow-sm dark:bg-km-primary">
         <div className="flex items-center gap-2 mb-3">
           <MedalIcon size={16} weight="bold" className="text-amber-300" aria-hidden="true" />
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-300">
+          <span className="text-[11px] font-bold text-slate-300">
             Expert Network
           </span>
         </div>

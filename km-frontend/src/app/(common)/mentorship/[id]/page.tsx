@@ -289,7 +289,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
   const currentDayAvail = getDayAvailability(selectedDate);
   const expertNameClean = (expert?.name || "Industry Expert").replace(/\s*\.+$/, "");
   const expertInitial = (expertNameClean[0] || "E").toUpperCase();
-  const sessionPrice = mentorship.price || 499;
+  const sessionPrice = Number(mentorship.price) || 0;
   const mainBal = walletData?.main_balance || 0;
   const hasSufficientWallet = mainBal >= sessionPrice;
 
@@ -328,7 +328,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                    </div>
                 </div>
 
-                <h1 className="text-2xl md:text-4xl font-black text-km-heading mb-4 md:mb-6 leading-tight">
+                <h1 className="text-2xl md:text-4xl font-bold text-km-heading mb-4 md:mb-6 leading-tight">
                   {mentorship.title}
                 </h1>
 
@@ -377,14 +377,14 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                        {expert?.profile_image ? (
                            <img src={expert.profile_image} alt={expertNameClean} className="w-full h-full object-cover" />
                        ) : (
-                           <div className="w-full h-full bg-km-primary flex items-center justify-center text-2xl font-black text-white">
+                           <div className="w-full h-full bg-km-primary flex items-center justify-center text-2xl font-bold text-white">
                              {expertInitial}
                            </div>
                        )}
                     </div>
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
-                          <h3 className="text-lg md:text-xl font-extrabold text-white">{expertNameClean}</h3>
+                          <h3 className="text-lg md:text-xl font-bold text-white">{expertNameClean}</h3>
                           <span className="p-0.5 rounded-full bg-emerald-500 text-white">
                             <CheckIcon weight="bold" size={10} />
                           </span>
@@ -413,7 +413,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             <div className="bg-km-surface-card rounded-2xl md:rounded-3xl p-6 md:p-10 shadow-xs border border-km-border">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-km-border-subtle">
                 <div>
-                  <h2 className="text-lg md:text-xl font-black text-km-heading flex items-center gap-2">
+                  <h2 className="text-lg md:text-xl font-bold text-km-heading flex items-center gap-2">
                     <StarIcon weight="fill" size={20} className="fill-amber-400 text-amber-400" />
                     <span>Candidate Ratings & Reviews</span>
                   </h2>
@@ -424,17 +424,17 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
                 {/* Overall score badge */}
                 <div className="flex items-center gap-3 bg-amber-50/80 border border-amber-200/70 px-4 py-2.5 rounded-2xl shrink-0">
-                  <div className="text-2xl font-black text-amber-900 font-mono">
+                  <div className="text-2xl font-bold text-amber-900 font-mono">
                     {reviewsSummary?.total_reviews > 0 
                       ? reviewsSummary.average_rating.toFixed(1)
-                      : (mentorship?.rating ? Number(mentorship.rating).toFixed(1) : "5.0")}
+                      : "New"}
                   </div>
                   <div>
                     <div className="flex items-center gap-0.5">
                       {[1, 2, 3, 4, 5].map((s) => {
                         const currentScore = reviewsSummary?.total_reviews > 0
                           ? reviewsSummary.average_rating
-                          : (mentorship?.rating || 5);
+                          : 0;
                         return (
                           <StarIcon weight="fill"
                             key={s}
@@ -447,7 +447,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     <span className="text-[11px] font-bold text-amber-800 block mt-0.5">
                       {reviewsSummary?.total_reviews 
                         ? `${reviewsSummary.total_reviews} verified ${reviewsSummary.total_reviews === 1 ? 'review' : 'reviews'}`
-                        : (mentorship?.reviews ? `${mentorship.reviews} reviews` : "Verified Mentor")}
+                        : "No reviews yet"}
                     </span>
                   </div>
                 </div>
@@ -590,11 +590,11 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
             <div className="bg-km-surface-card rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-lg shadow-slate-200/50 border border-km-border lg:sticky lg:top-8">
                 {/* Session Fee Header */}
                 <div className="mb-6 pb-5 border-b border-km-border-subtle">
-                    <span className="text-[11px] font-bold text-km-text-muted uppercase tracking-wider block mb-1">
+                    <span className="text-[11px] font-bold text-km-text-muted block mb-1">
                       Session Fee
                     </span>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-3xl md:text-4xl font-black text-km-heading font-mono">
+                        <span className="text-3xl md:text-4xl font-bold text-km-heading font-mono">
                           ₹{sessionPrice}
                         </span>
                         <span className="text-km-text-muted font-semibold text-xs md:text-sm">
@@ -623,7 +623,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                     {/* Select Date */}
                     <div>
                         <div className="flex items-center justify-between mb-3">
-                          <label className="text-xs font-bold text-km-heading uppercase flex items-center gap-1.5">
+                          <label className="text-xs font-bold text-km-heading flex items-center gap-1.5">
                              <CalendarIcon weight="bold" size={15} className="text-km-heading" />
                              <span>Select Date</span>
                           </label>
@@ -650,14 +650,14 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                                                 : 'bg-slate-100/50 border-km-border-subtle text-km-text-muted opacity-60'
                                         }`}
                                     >
-                                        <span className="text-[9px] font-bold uppercase tracking-wider">
+                                        <span className="text-xs font-bold">
                                           {i === 0 ? "Today" : d.toLocaleDateString('en-US', { weekday: 'short' })}
                                         </span>
-                                        <span className="text-base font-black mt-0.5">
+                                        <span className="text-base font-bold mt-0.5">
                                           {d.getDate()}
                                         </span>
                                         {!isAvail && (
-                                          <span className="text-[8px] font-semibold text-rose-400 mt-0.5">Off</span>
+                                          <span className="text-[11px] font-semibold text-rose-400 mt-0.5">Off</span>
                                         )}
                                     </button>
                                 );
@@ -667,7 +667,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
                     {/* Time Slot Display based on Expert's Own Timing */}
                     <div>
-                        <label className="text-xs font-bold text-km-heading uppercase mb-2 flex items-center gap-1.5">
+                        <label className="text-xs font-bold text-km-heading mb-2 flex items-center gap-1.5">
                            <ClockIcon weight="bold" size={15} className="text-km-heading" />
                            <span>Expert's Available Time</span>
                         </label>
@@ -705,7 +705,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
 
                     {/* Notes Field */}
                     <div>
-                        <label className="text-xs font-bold text-km-heading uppercase mb-1.5 block">
+                        <label className="text-xs font-bold text-km-heading mb-1.5 block">
                            Topics to Discuss <span className="text-km-text-muted font-medium">(Optional)</span>
                         </label>
                         <textarea 
@@ -791,8 +791,8 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                       </p>
                     </div>
                     <div className="text-right shrink-0">
-                      <span className="text-[10px] font-bold text-km-text-muted uppercase block">Total Fee</span>
-                      <span className="text-2xl font-black text-km-heading font-mono">₹{sessionPrice}</span>
+                      <span className="text-xs font-bold text-km-text-muted block">Total Fee</span>
+                      <span className="text-2xl font-bold text-km-heading font-mono">₹{sessionPrice}</span>
                     </div>
                   </div>
 
@@ -903,7 +903,7 @@ export default function MentorshipDetailPage({ params }: { params: Promise<{ id:
                 Booking Confirmed
               </span>
 
-              <h3 className="text-xl md:text-2xl font-black text-km-heading mt-3 mb-1">
+              <h3 className="text-xl md:text-2xl font-bold text-km-heading mt-3 mb-1">
                 Mentorship Scheduled!
               </h3>
               <p className="text-xs text-km-text-secondary font-medium mb-6">
@@ -970,7 +970,7 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode, label: string
         {icon}
       </span>
       <div>
-        <p className="text-[9px] text-km-text-muted font-bold uppercase tracking-wider">{label}</p>
+        <p className="text-xs text-km-text-muted font-bold">{label}</p>
         <p className="text-xs font-bold text-km-heading">{value}</p>
       </div>
     </div>

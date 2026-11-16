@@ -305,7 +305,7 @@ const OtherUserProfilePage = () => {
                                                             <p className="font-bold text-sm text-slate-900">Providing services</p>
                                                         </div>
                                                         {user.providing_services.hourly_rate ? (
-                                                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-orange-100 text-orange-900">
+                                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-900">
                                                                 ₹{user.providing_services.hourly_rate} / hr
                                                             </span>
                                                         ) : null}

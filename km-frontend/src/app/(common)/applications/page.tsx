@@ -246,7 +246,7 @@ export default function ApplicationsPage() {
                             <div className="space-y-10">
                                 {/* Job Header */}
                                 <div className="space-y-3">
-                                    <h1 className="text-2xl sm:text-3xl font-black text-slate-900">
+                                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">
                                         {selectedApp?.job?.title || "Position Closed / Removed"}
                                         {selectedApp?.job?.location ? ` | ${selectedApp.job.location}` : ""}
                                     </h1>
@@ -291,7 +291,7 @@ export default function ApplicationsPage() {
 
                                 {/* Status Stepper */}
                                 <div className="space-y-8">
-                                    <h2 className="text-xl font-black text-slate-900">Application Status</h2>
+                                    <h2 className="text-xl font-bold text-slate-900">Application Status</h2>
                                     <div className="relative pt-4 px-4">
                                         {/* Background Trace */}
                                         <div className="absolute top-4.5 left-[5%] right-[5%] h-1 bg-slate-100 rounded-full" />
@@ -328,7 +328,7 @@ export default function ApplicationsPage() {
                                                                             : "bg-km-surface-card border-slate-200 ring-transparent"
                                                                     )} />
                                                                     <span className={cn(
-                                                                        "mt-4 text-[11px] font-black uppercase tracking-wider text-center max-w-25",
+                                                                        "mt-4 text-[11px] font-bold text-center max-w-25",
                                                                         isActive ? "text-km-heading font-bold" : "text-slate-400"
                                                                     )}>
                                                                         {step.label}
@@ -348,7 +348,7 @@ export default function ApplicationsPage() {
                                 {/* Matching Criteria */}
                                 <div className="space-y-6">
                                     <div className="space-y-1">
-                                        <h2 className="text-xl font-black text-slate-900">What may work for you?</h2>
+                                        <h2 className="text-xl font-bold text-slate-900">What may work for you?</h2>
                                         <p className="text-slate-500 font-medium">Following criteria suggests how well you match with the job.</p>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">

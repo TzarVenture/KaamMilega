@@ -57,7 +57,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                     <div className="flex items-center gap-2.5">
                         <span className={`w-2.5 h-2.5 rounded-full ${isFinished ? 'bg-[#F59E0B]' : 'bg-[#16A34A]'}`} />
                         <div>
-                            <span className="text-xs font-bold uppercase tracking-wider text-km-text-secondary block">
+                            <span className="text-xs font-bold text-km-text-secondary block">
                                 {isFinished ? 'Shift Completed · Payment Pending' : 'Active Shift Assigned'}
                             </span>
                             <h3 className="text-lg font-bold text-km-heading mt-0.5">
@@ -135,7 +135,7 @@ export default function ActiveGigCard({ job, onStatusChange }: ActiveGigCardProp
                     {/* Right: Payment & Completion Action */}
                     <div className="md:col-span-4 flex flex-col justify-between p-4 rounded-xl bg-km-surface border border-km-border">
                         <div>
-                            <span className="text-[11px] font-semibold text-km-text-secondary uppercase block">Agreed Pay</span>
+                            <span className="text-[11px] font-semibold text-km-text-secondary block">Agreed Pay</span>
                             <div className="flex items-baseline gap-1 mt-0.5">
                                 <span className="text-2xl font-bold text-km-heading">₹{job.pay_rate}</span>
                                 <span className="text-xs text-km-text-secondary">

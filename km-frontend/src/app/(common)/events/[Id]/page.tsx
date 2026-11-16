@@ -348,7 +348,7 @@ const EventDetailsPage = () => {
                         </div>
 
                         {/* Title */}
-                        <h1 className="text-2xl sm:text-3xl font-extrabold text-km-text-primary mb-2 leading-snug">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-km-text-primary mb-2 leading-snug">
                             {event.title}
                         </h1>
 
@@ -504,21 +504,21 @@ const EventDetailsPage = () => {
                                 <div className="flex items-center gap-3">
                                     <CalendarBlankIcon size={24} weight="duotone" className="text-km-events shrink-0" aria-hidden="true" />
                                     <div>
-                                        <p className="text-[10px] font-semibold text-km-text-secondary uppercase tracking-wider">Date</p>
+                                        <p className="text-xs font-semibold text-km-text-secondary">Date</p>
                                         <p className="text-sm font-bold text-km-text-primary">{event.date}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <ClockIcon size={24} weight="duotone" className="text-km-heading shrink-0" aria-hidden="true" />
                                     <div>
-                                        <p className="text-[10px] font-semibold text-km-text-secondary uppercase tracking-wider">Time</p>
+                                        <p className="text-xs font-semibold text-km-text-secondary">Time</p>
                                         <p className="text-sm font-bold text-km-text-primary">{event.time || 'TBA'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <VideoCameraIcon size={24} weight="duotone" className="text-km-accent shrink-0" aria-hidden="true" />
                                     <div>
-                                        <p className="text-[10px] font-semibold text-km-text-secondary uppercase tracking-wider">Format</p>
+                                        <p className="text-xs font-semibold text-km-text-secondary">Format</p>
                                         <p className="text-sm font-bold text-km-text-primary">
                                             {isOnlineSession ? "Online (Google Meet / Zoom)" : event.location}
                                         </p>
@@ -757,7 +757,7 @@ const EventDetailsPage = () => {
                         >
                             {/* Modal Action Bar */}
                             <div className="flex justify-between items-center px-5 py-3 border-b border-km-border bg-km-surface-card">
-                                <span className="text-xs font-bold text-km-text-primary flex items-center gap-1.5 uppercase tracking-wider">
+                                <span className="text-xs font-bold text-km-text-primary flex items-center gap-1.5">
                                     <TicketIcon weight="bold" size={14} className="text-km-accent" /> Digital Workshop Pass
                                 </span>
                                 <button
@@ -785,8 +785,8 @@ const EventDetailsPage = () => {
                                         </p>
                                     </div>
                                     <div className="text-right shrink-0 bg-km-surface border border-km-border rounded-xl px-2.5 py-1.5">
-                                        <span className="text-[9px] font-semibold text-km-text-secondary uppercase tracking-wider block">Pass Type</span>
-                                        <span className="text-xs font-bold text-km-heading uppercase">
+                                        <span className="text-xs font-semibold text-km-text-secondary block">Pass Type</span>
+                                        <span className="text-xs font-bold text-km-heading">
                                             {ticket.amount > 0 ? `₹${ticket.amount}` : 'Free Entry'}
                                         </span>
                                     </div>
@@ -797,7 +797,7 @@ const EventDetailsPage = () => {
                                     <div className="flex items-center gap-2">
                                         <CalendarBlankIcon weight="bold" size={16} className="text-km-events shrink-0" aria-hidden="true" />
                                         <div className="min-w-0">
-                                            <span className="text-[9px] font-semibold text-km-text-secondary block uppercase">Date</span>
+                                            <span className="text-xs font-semibold text-km-text-secondary block">Date</span>
                                             <span className="font-bold text-[11px] text-km-text-primary truncate block">
                                                 {ticket.event_date || event.date}
                                             </span>
@@ -806,7 +806,7 @@ const EventDetailsPage = () => {
                                     <div className="flex items-center gap-2">
                                         <ClockIcon weight="bold" size={16} className="text-km-heading shrink-0" aria-hidden="true" />
                                         <div className="min-w-0">
-                                            <span className="text-[9px] font-semibold text-km-text-secondary block uppercase">Time</span>
+                                            <span className="text-xs font-semibold text-km-text-secondary block">Time</span>
                                             <span className="font-bold text-[11px] text-km-text-primary truncate block">
                                                 {ticket.event_time || event.time || 'TBA'}
                                             </span>
@@ -815,7 +815,7 @@ const EventDetailsPage = () => {
                                     <div className="col-span-2 pt-2 border-t border-km-border flex items-center gap-2">
                                         <VideoCameraIcon weight="bold" size={16} className="text-emerald-700 shrink-0" aria-hidden="true" />
                                         <div className="min-w-0 flex-1">
-                                            <span className="text-[9px] font-semibold text-km-text-secondary block uppercase">Room / Location</span>
+                                            <span className="text-xs font-semibold text-km-text-secondary block">Room / Location</span>
                                             <span className="font-semibold text-[11px] text-km-text-primary truncate block">
                                                 {isOnlineSession ? "Online Video Room (Google Meet / Zoom)" : (ticket.event_location || event.location)}
                                             </span>
@@ -834,15 +834,15 @@ const EventDetailsPage = () => {
                                 <div className="flex items-center justify-between gap-3 pt-1">
                                     <div className="space-y-1.5 min-w-0 flex-1 text-left">
                                         <div>
-                                            <span className="text-[9px] font-semibold text-km-text-secondary uppercase tracking-wider block">Attendee</span>
+                                            <span className="text-xs font-semibold text-km-text-secondary block">Attendee</span>
                                             <span className="font-bold text-xs text-km-text-primary truncate block">{ticket.attendee_name}</span>
                                         </div>
                                         <div>
-                                            <span className="text-[9px] font-semibold text-km-text-secondary uppercase tracking-wider block">Email</span>
+                                            <span className="text-xs font-semibold text-km-text-secondary block">Email</span>
                                             <span className="font-medium text-[11px] text-km-text-secondary truncate block">{ticket.attendee_email}</span>
                                         </div>
                                         <div>
-                                            <span className="text-[9px] font-semibold text-km-text-secondary uppercase tracking-wider block">Pass ID</span>
+                                            <span className="text-xs font-semibold text-km-text-secondary block">Pass ID</span>
                                             <span className="font-mono font-bold text-[11px] text-km-heading bg-km-surface px-2 py-0.5 rounded border border-km-border inline-block">
                                                 {ticket.ticket_number}
                                             </span>
@@ -854,7 +854,7 @@ const EventDetailsPage = () => {
                                         <div className="w-20 h-20 bg-[#071A4D] p-1.5 rounded-lg flex items-center justify-center text-white dark:bg-km-primary">
                                             <QrCodeIcon size={64} className="text-white" />
                                         </div>
-                                        <span className="text-[8px] font-bold uppercase text-km-text-secondary tracking-wider mt-1">
+                                        <span className="text-xs font-bold text-km-text-secondary mt-1">
                                             Pass Verification
                                         </span>
                                     </div>

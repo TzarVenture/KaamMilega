@@ -65,7 +65,7 @@ export default function CreateEventPage() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col pt-12 pb-24 sm:px-6 lg:px-8">
             <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center">
-                <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+                <h2 className="mt-6 text-3xl font-bold text-gray-900">
                     Create New Event
                 </h2>
                 <p className="mt-2 text-sm text-gray-600">

@@ -120,7 +120,7 @@ export default function HowWeWorkPage() {
           <span className="block text-[13px] font-semibold text-km-link">
             For Jobseekers
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-km-heading tracking-tight mt-3">
             Your Fast Track to a Verified Job
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-2">
@@ -138,7 +138,7 @@ export default function HowWeWorkPage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <span className="text-2xl font-black text-slate-300 group-hover:text-km-link transition-colors">
+                    <span className="text-2xl font-bold text-slate-300 group-hover:text-km-link transition-colors">
                       {s.step}
                     </span>
                     <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center ${s.color}`}>
@@ -164,7 +164,7 @@ export default function HowWeWorkPage() {
           <span className="block text-[13px] font-semibold text-[#C2410C] dark:text-orange-400">
             For Employers &amp; HRs
           </span>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-km-heading tracking-tight mt-3">
             Hiring Built for Speed, Scale &amp; Integrity
           </h2>
           <p className="text-sm sm:text-base text-slate-600 mt-2">
@@ -182,7 +182,7 @@ export default function HowWeWorkPage() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-5">
-                    <span className="text-2xl font-black text-slate-300 group-hover:text-[#FF6B00] transition-colors">
+                    <span className="text-2xl font-bold text-slate-300 group-hover:text-[#FF6B00] transition-colors">
                       {s.step}
                     </span>
                     <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center ${s.color}`}>
@@ -209,7 +209,7 @@ export default function HowWeWorkPage() {
             <span className="block text-[13px] font-semibold text-emerald-700 dark:text-emerald-400">
               Platform Integrity
             </span>
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-km-heading tracking-tight mt-3">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-km-heading tracking-tight mt-3">
               The 4 Pillars of Trust on KaamMilega™
             </h2>
           </div>
@@ -237,7 +237,7 @@ export default function HowWeWorkPage() {
       {/* CTA Footer Banner */}
       <section className="py-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
         <div className="bg-gradient-to-r from-[#071A4D] via-[#0B1F52] to-[#0B5ED7] rounded-3xl p-8 sm:p-12 text-white shadow-xl">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold mb-4">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4">
             Ready to Experience the Direct Hiring Revolution?
           </h2>
           <p className="text-sm sm:text-base text-slate-200 max-w-xl mx-auto mb-8">

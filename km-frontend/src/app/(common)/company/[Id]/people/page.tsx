@@ -57,7 +57,7 @@ const PeopleSection: React.FC = () => {
                         {company?.logo ? (
                             <img src={company.logo} alt={company?.name} className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-white text-2xl uppercase font-black">{company?.name?.charAt(0) || 'C'}</span>
+                            <span className="text-white text-2xl uppercase font-bold">{company?.name?.charAt(0) || 'C'}</span>
                         )}
                     </div>
                     <h2 className="text-xl font-bold text-gray-900">{company?.name || "Company Name"}</h2>
@@ -102,13 +102,13 @@ const PersonCard = ({ person }: { person: Person }) => (
                 {person.avatar ? (
                     <img src={person.avatar} alt={person.name} className="w-full h-full object-cover" />
                 ) : (
-                    <span className="text-white text-2xl uppercase font-black">{person.name.charAt(0)}</span>
+                    <span className="text-white text-2xl uppercase font-bold">{person.name.charAt(0)}</span>
                 )}
             </div>
         </div>
 
         <h3 className="font-bold text-gray-900 text-sm text-center truncate w-full">{person.name}</h3>
-        <p className="text-[10px] text-gray-400 uppercase mb-2 text-center w-full truncate font-semibold">{person.designation || 'Member'}</p>
+        <p className="text-xs text-gray-400 mb-2 text-center w-full truncate font-semibold">{person.designation || 'Member'}</p>
 
         <div className="flex items-center text-gray-500 text-[10px] mb-1 font-medium">
             <MapPinIcon weight="bold" size={10} className="mr-1 text-km-heading" />
