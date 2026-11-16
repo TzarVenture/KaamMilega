@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	common_api "km-backend/internal/common/api"
@@ -183,6 +184,8 @@ func main() {
 			// Initialize Database
 			database.NewDatabase,
 			database.NewTransactor,
+			// Supabase Postgres, next to MongoDB while data moves over (off when DATABASE_URI is empty)
+			database.NewPostgres,
 			payment.NewGateway,
 			payment.NewRepository,
 			payment.NewService,
@@ -326,6 +329,8 @@ func main() {
 			return &fxevent.ZapLogger{Logger: log}
 		}),
 		fx.Invoke(
+			// GET /health for uptime monitors (MongoDB and Postgres)
+			RegisterHealth,
 			// Every authenticated request checks the session version and account status
 			func(repo user.UserRepository, cfg *config.Config) {
 				middleware.SetSessionLoader(user.NewSessionLoader(repo))
@@ -352,4 +357,32 @@ func main() {
 	)
 
 	app.Run()
+}
+
+// RegisterHealth adds GET /health: a quick check of both databases for uptime monitors.
+// It only says ok / down / off, never connection details.
+func RegisterHealth(app *fiber.App, mongo *database.MongodbDB, pg *database.PostgresDB) {
+	app.Get("/health", func(c *fiber.Ctx) error {
+		ctx, cancel := context.WithTimeout(c.Context(), 3*time.Second)
+		defer cancel()
+
+		mongoStatus := "ok"
+		if err := mongo.Client.Ping(ctx, nil); err != nil {
+			mongoStatus = "down"
+		}
+		pgStatus := "off"
+		if pg.Enabled() {
+			pgStatus = "ok"
+			if err := pg.Ping(ctx); err != nil {
+				pgStatus = "down"
+			}
+		}
+
+		// MongoDB still serves every request, so only it decides the overall status for now
+		code, status := fiber.StatusOK, "ok"
+		if mongoStatus != "ok" {
+			code, status = fiber.StatusServiceUnavailable, "degraded"
+		}
+		return c.Status(code).JSON(fiber.Map{"status": status, "mongo": mongoStatus, "postgres": pgStatus})
+	})
 }
