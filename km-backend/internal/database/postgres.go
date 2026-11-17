@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"net/url"
 	"strings"
 	"time"
@@ -58,8 +59,16 @@ func NewPostgres(lc fx.Lifecycle, cfg *config.Config) (*PostgresDB, error) {
 	if cfg.Environment == "production" {
 		logLevel = logger.Error
 	}
+	// A query is "slow" past 1s. Each query from a laptop crosses the internet to Mumbai (~80ms,
+	// more when a connection is reopened), so GORM's 200ms default flagged normal queries.
+	gormLog := logger.New(log.New(os.Stdout, "\r\n", log.LstdFlags), logger.Config{
+		SlowThreshold:             time.Second,
+		LogLevel:                  logLevel,
+		IgnoreRecordNotFoundError: true,
+		Colorful:                  true,
+	})
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logLevel),
+		Logger: gormLog,
 		// Store times in UTC; Indian time is applied when showing them
 		NowFunc: func() time.Time { return time.Now().UTC() },
 	})
