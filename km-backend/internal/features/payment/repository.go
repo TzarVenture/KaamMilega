@@ -252,11 +252,6 @@ func (r *pgRepository) SumPaidSince(ctx context.Context, userID primitive.Object
 	return total, err
 }
 
-// escapeLike makes a search term match literally in a LIKE pattern.
-func escapeLike(s string) string {
-	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(s)
-}
-
 func (r *pgRepository) AdminList(ctx context.Context, query AdminOrderQuery) ([]Order, int64, error) {
 	q := r.conn(ctx).Table("payment_orders")
 	if query.Status != "" {
@@ -266,7 +261,7 @@ func (r *pgRepository) AdminList(ctx context.Context, query AdminOrderQuery) ([]
 		q = q.Where("purpose = ?", string(query.Purpose))
 	}
 	if query.Search != "" {
-		prefix := escapeLike(query.Search) + "%"
+		prefix := database.EscapeLike(query.Search) + "%"
 		q = q.Where("(razorpay_order_id LIKE ? OR razorpay_payment_id LIKE ?)", prefix, prefix)
 	}
 	var total int64

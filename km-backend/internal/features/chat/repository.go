@@ -2,7 +2,6 @@ package chat
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"km-backend/internal/database"
 	"regexp"
@@ -12,13 +11,16 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/gorm"
 )
 
 type repository struct {
 	db *database.MongodbDB
+	// pg is Postgres, where InstantPasses live
+	pg *gorm.DB
 }
 
-func NewRepository(db *database.MongodbDB) ChatRepository {
+func NewRepository(db *database.MongodbDB, pg *database.PostgresDB) ChatRepository {
 	go func() {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
@@ -27,7 +29,7 @@ func NewRepository(db *database.MongodbDB) ChatRepository {
 			{Keys: bson.D{{Key: "started_by", Value: 1}, {Key: "created_at", Value: -1}}, Options: options.Index().SetSparse(true)},
 		})
 	}()
-	return &repository{db: db}
+	return &repository{db: db, pg: pg.DB}
 }
 
 func (r *repository) CreateConversation(ctx context.Context, participants []primitive.ObjectID) (*Conversation, error) {
@@ -460,23 +462,18 @@ func (r *repository) ResolveChatReport(ctx context.Context, id primitive.ObjectI
 }
 
 // ActivePass reports whether the user has a ₹99 pass that hasn't expired or been refunded,
-// and its gig credits left. Used-up credits don't end the chat unlock.
+// and its gig credits left. Used-up credits don't end the chat unlock. Passes live in Postgres.
 func (r *repository) ActivePass(ctx context.Context, userID primitive.ObjectID) (bool, int, error) {
-	var pass struct {
-		QuotaRemaining int `bson:"quota_remaining"`
-	}
-	err := r.db.DB.Collection("instant_passes").FindOne(ctx, bson.M{
-		"user_id":         userID,
-		"has_active_pass": true,
-		"expires_at":      bson.M{"$gt": time.Now()},
-	}).Decode(&pass)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return false, 0, nil
-	}
+	var rows []struct{ QuotaRemaining int }
+	err := r.pg.WithContext(ctx).Raw(`SELECT quota_remaining FROM instant_passes
+		WHERE user_id = ? AND has_active_pass AND expires_at > now()`, userID.Hex()).Scan(&rows).Error
 	if err != nil {
 		return false, 0, err
 	}
-	return true, pass.QuotaRemaining, nil
+	if len(rows) == 0 {
+		return false, 0, nil
+	}
+	return true, rows[0].QuotaRemaining, nil
 }
 
 // CountConversationsStartedSince counts the chats the user opened since the given time

@@ -2,7 +2,10 @@ package account
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"km-backend/internal/database"
@@ -13,6 +16,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/gorm"
 )
 
 type Repository interface {
@@ -55,9 +59,12 @@ type mongoRepository struct {
 	db    *mongo.Database
 	users *mongo.Collection
 	codes *mongo.Collection
+	// The money and purchase tables (wallet, bookings, subscriptions) live in Postgres
+	pg *gorm.DB
+	tx *database.PgTransactor
 }
 
-func NewRepository(db *database.MongodbDB) Repository {
+func NewRepository(db *database.MongodbDB, pg *database.PostgresDB, tx *database.PgTransactor) Repository {
 	codes := db.DB.Collection("account_action_codes")
 	// Expired codes are removed by MongoDB itself
 	_, _ = codes.Indexes().CreateMany(context.Background(), []mongo.IndexModel{
@@ -68,7 +75,7 @@ func NewRepository(db *database.MongodbDB) Repository {
 	_, _ = users.Indexes().CreateOne(context.Background(), mongo.IndexModel{
 		Keys: bson.D{{Key: "account_status", Value: 1}, {Key: "deletion_scheduled_for", Value: 1}},
 	})
-	return &mongoRepository{db: db.DB, users: users, codes: codes}
+	return &mongoRepository{db: db.DB, users: users, codes: codes, pg: pg.DB, tx: tx}
 }
 
 func (r *mongoRepository) FindUser(ctx context.Context, id primitive.ObjectID) (*user.User, error) {
@@ -186,50 +193,46 @@ func (r *mongoRepository) SaveFeedback(ctx context.Context, action, reason, feed
 func (r *mongoRepository) DeletionChecks(ctx context.Context, userID primitive.ObjectID, now time.Time) (*deletionChecks, error) {
 	checks := &deletionChecks{}
 
-	var w walletState
-	err := r.db.Collection("wallets").FindOne(ctx, bson.M{"user_id": userID}).Decode(&w)
-	switch {
-	case err == nil:
-		checks.Wallet = &w
-	case !errors.Is(err, mongo.ErrNoDocuments):
-		return nil, err
-	}
+	uid := userID.Hex()
 
-	// Money still moving to the user. Pending top-ups (abandoned checkouts) don't count, or a
-	// closed payment window could block deletion forever.
-	if checks.PendingTransactions, err = r.db.Collection("wallet_transactions").CountDocuments(ctx, bson.M{
-		"user_id":  userID,
-		"status":   "pending",
-		"category": bson.M{"$in": []string{"withdrawal", "session_payout", "gig_payout", "refund"}},
-	}); err != nil {
+	// One query, so every money fact comes from the same moment
+	var row struct {
+		HasWallet           bool
+		MainPaise           int64
+		EarningsPaise       int64
+		LockedPaise         int64
+		BonusPaise          int64
+		PendingTransactions int64
+		OpenDisputes        int64
+		UpcomingSessions    int64
+		SubscriptionEndsAt  *time.Time
+	}
+	// Pending money still moving to the user counts; pending top-ups (abandoned checkouts) don't,
+	// or a closed payment window could block deletion forever. Sessions count as mentee or as the
+	// expert while they are still to happen (or awaiting confirmation).
+	err := r.pg.WithContext(ctx).Raw(`SELECT
+			w.id IS NOT NULL AS has_wallet,
+			coalesce(w.main_paise, 0) AS main_paise, coalesce(w.earnings_paise, 0) AS earnings_paise,
+			coalesce(w.locked_paise, 0) AS locked_paise, coalesce(w.bonus_paise, 0) AS bonus_paise,
+			(SELECT count(*) FROM wallet_transactions WHERE user_id = @uid AND status = 'pending'
+				AND category IN ('withdrawal', 'session_payout', 'gig_payout', 'refund')) AS pending_transactions,
+			(SELECT count(*) FROM wallet_disputes WHERE user_id = @uid AND status IN ('pending', 'under_review')) AS open_disputes,
+			(SELECT count(*) FROM mentorship_bookings WHERE (user_id = @uid OR expert_id = @uid)
+				AND status IN ('pending', 'confirmed') AND scheduled_at >= @since) AS upcoming_sessions,
+			(SELECT max(expires_at) FROM expert_subscriptions WHERE user_id = @uid AND status = 'active'
+				AND expires_at > @now) AS subscription_ends_at
+		FROM (SELECT 1) one LEFT JOIN wallets w ON w.user_id = @uid`,
+		sql.Named("uid", uid), sql.Named("since", now.Add(-2*time.Hour)), sql.Named("now", now)).Scan(&row).Error
+	if err != nil {
 		return nil, err
 	}
-	if checks.OpenDisputes, err = r.db.Collection("wallet_disputes").CountDocuments(ctx,
-		bson.M{"user_id": userID, "status": bson.M{"$in": []string{"pending", "under_review"}}}); err != nil {
-		return nil, err
+	if row.HasWallet {
+		checks.Wallet = &walletState{MainPaise: row.MainPaise, EarningsPaise: row.EarningsPaise, LockedPaise: row.LockedPaise, BonusPaise: row.BonusPaise}
 	}
-	// Sessions as mentee or as the expert that are still to happen (or awaiting confirmation)
-	if checks.UpcomingSessions, err = r.db.Collection("mentorship_bookings").CountDocuments(ctx, bson.M{
-		"$or":          []bson.M{{"user_id": userID}, {"expert_id": userID}},
-		"status":       bson.M{"$in": []string{"pending", "confirmed"}},
-		"scheduled_at": bson.M{"$gte": now.Add(-2 * time.Hour)},
-	}); err != nil {
-		return nil, err
-	}
-
-	var sub struct {
-		ExpiresAt time.Time `bson:"expires_at"`
-	}
-	err = r.db.Collection("expert_subscriptions").FindOne(ctx,
-		bson.M{"user_id": userID, "status": "active", "expires_at": bson.M{"$gt": now}},
-		options.FindOne().SetSort(bson.D{{Key: "expires_at", Value: -1}}),
-	).Decode(&sub)
-	switch {
-	case err == nil:
-		checks.SubscriptionEndsAt = &sub.ExpiresAt
-	case !errors.Is(err, mongo.ErrNoDocuments):
-		return nil, err
-	}
+	checks.PendingTransactions = row.PendingTransactions
+	checks.OpenDisputes = row.OpenDisputes
+	checks.UpcomingSessions = row.UpcomingSessions
+	checks.SubscriptionEndsAt = row.SubscriptionEndsAt
 
 	if checks.OpenJobs, err = r.db.Collection("jobs").CountDocuments(ctx, bson.M{
 		"recruiter_id": userID,
@@ -275,11 +278,6 @@ func (r *mongoRepository) Export(ctx context.Context, userID primitive.ObjectID)
 		{"job_applications", "applications", bson.M{"candidate_id": userID}, nil},
 		{"jobs_posted", "jobs", bson.M{"recruiter_id": userID}, nil},
 		{"connections", "network_connections", bson.M{"$or": []bson.M{{"sender_id": userID}, {"receiver_id": userID}}}, nil},
-		{"wallet", "wallets", bson.M{"user_id": userID}, nil},
-		{"wallet_transactions", "wallet_transactions", bson.M{"user_id": userID}, nil},
-		{"wallet_disputes", "wallet_disputes", bson.M{"user_id": userID}, nil},
-		{"mentorship_bookings", "mentorship_bookings", bson.M{"$or": []bson.M{{"user_id": userID}, {"expert_id": userID}}}, nil},
-		{"subscriptions", "expert_subscriptions", bson.M{"user_id": userID}, nil},
 		{"notifications", "notifications", bson.M{"user_id": userID}, nil},
 	}
 
@@ -294,7 +292,41 @@ func (r *mongoRepository) Export(ctx context.Context, userID primitive.ObjectID)
 		}
 		data[s.key] = docs
 	}
+
+	// Money records, from Postgres. Amounts are in paise, as stored.
+	uid := userID.Hex()
+	pgSections := []struct{ key, table, where string }{
+		{"wallet", "wallets", "user_id = @uid"},
+		{"wallet_transactions", "wallet_transactions", "user_id = @uid"},
+		{"wallet_disputes", "wallet_disputes", "user_id = @uid"},
+		{"mentorship_bookings", "mentorship_bookings", "user_id = @uid OR expert_id = @uid"},
+		{"subscriptions", "expert_subscriptions", "user_id = @uid"},
+	}
+	for _, s := range pgSections {
+		rows, err := r.pgRows(ctx, s.table, s.where, uid)
+		if err != nil {
+			return nil, err
+		}
+		data[s.key] = rows
+	}
 	return data, nil
+}
+
+// pgRows returns a user's rows of one table as JSON objects, newest first. table and where are
+// fixed strings from this file, never user input; the user id is a bound parameter.
+func (r *mongoRepository) pgRows(ctx context.Context, table, where, uid string) ([]map[string]interface{}, error) {
+	var raw string
+	err := r.pg.WithContext(ctx).Raw(`SELECT coalesce(json_agg(t), '[]')::text FROM (
+			SELECT * FROM `+table+` WHERE `+where+` ORDER BY created_at DESC LIMIT 5000) t`,
+		sql.Named("uid", uid)).Row().Scan(&raw)
+	if err != nil {
+		return nil, fmt.Errorf("exporting %s: %w", table, err)
+	}
+	out := []map[string]interface{}{}
+	if err := json.Unmarshal([]byte(raw), &out); err != nil {
+		return nil, fmt.Errorf("exporting %s: %w", table, err)
+	}
+	return out, nil
 }
 
 // ─── Final deletion ─────────────────────────────────────────────────────────────
@@ -388,30 +420,9 @@ func (r *mongoRepository) EraseRelatedData(ctx context.Context, u *user.User, no
 				bson.M{"$set": bson.M{"status": "Closed", "hidden_by_account": true}})
 			return err
 		},
-		// Expert offerings stop
-		func() error {
-			_, err := r.db.Collection("mentorships").UpdateMany(ctx, bson.M{"expert_id": id}, bson.M{"$set": bson.M{"status": "inactive"}})
-			return err
-		},
-		func() error {
-			_, err := r.db.Collection("expert_availability").DeleteMany(ctx, bson.M{"expert_id": id})
-			return err
-		},
-		func() error {
-			_, err := r.db.Collection("expert_subscriptions").UpdateMany(ctx, bson.M{"user_id": id, "status": "active"},
-				bson.M{"$set": bson.M{"status": "cancelled", "updated_at": now}})
-			return err
-		},
-		// Financial records are retained (accounting law) but detached from personal details
-		func() error {
-			_, err := r.db.Collection("wallets").UpdateMany(ctx, bson.M{"user_id": id}, bson.M{"$set": bson.M{"status": "closed", "updated_at": now}})
-			return err
-		},
-		func() error {
-			_, err := r.db.Collection("wallet_disputes").UpdateMany(ctx, bson.M{"user_id": id},
-				bson.M{"$set": bson.M{"user_name": "Deleted user"}, "$unset": bson.M{"user_email": ""}})
-			return err
-		},
+		// Expert offerings stop, plans end, and money records are kept (accounting law) but
+		// detached from personal details. All in Postgres, as one transaction.
+		func() error { return r.erasePurchaseData(ctx, id.Hex()) },
 		// Sign-in codes tied to the old contact details
 		func() error {
 			or := []bson.M{}
@@ -435,6 +446,28 @@ func (r *mongoRepository) EraseRelatedData(ctx context.Context, u *user.User, no
 		}
 	}
 	return nil
+}
+
+// erasePurchaseData winds down a deleted member's Postgres records. It is safe to run again.
+// updated_at is set by the tables' triggers.
+func (r *mongoRepository) erasePurchaseData(ctx context.Context, uid string) error {
+	return r.tx.Run(ctx, func(ctx context.Context) error {
+		db := database.Conn(ctx, r.pg)
+		steps := []struct{ sql string }{
+			{`UPDATE mentorships SET status = 'inactive' WHERE expert_id = @uid AND status <> 'inactive'`},
+			{`DELETE FROM expert_availability WHERE expert_id = @uid`},
+			{`UPDATE expert_subscriptions SET status = 'cancelled' WHERE user_id = @uid AND status = 'active'`},
+			{`UPDATE wallets SET status = 'closed' WHERE user_id = @uid AND status <> 'closed'`},
+			{`UPDATE wallet_disputes SET user_name = 'Deleted user', user_email = ''
+				WHERE user_id = @uid AND (user_name <> 'Deleted user' OR user_email <> '')`},
+		}
+		for _, s := range steps {
+			if err := db.Exec(s.sql, sql.Named("uid", uid)).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }
 
 // eraseFeedData removes a member's feed activity. Counts on other members' posts are lowered

@@ -191,11 +191,6 @@ func nullable(s string) *string {
 	return &s
 }
 
-// contains is a case-insensitive "contains this text" pattern for ILIKE
-func contains(s string) string {
-	return "%" + strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(s) + "%"
-}
-
 // ---------------------------------------------------------------------------------------------
 // Events
 // ---------------------------------------------------------------------------------------------
@@ -241,12 +236,12 @@ func (r *EventRepositoryImpl) GetEvents(ctx context.Context, filter EventFilter)
 	args := []interface{}{}
 	if filter.Search != "" {
 		where = append(where, "(e.title ILIKE ? OR e.organizer ILIKE ? OR e.category ILIKE ?)")
-		p := contains(filter.Search)
+		p := database.LikeContains(filter.Search)
 		args = append(args, p, p, p)
 	}
 	if filter.Location != "" {
 		where = append(where, "e.location ILIKE ?")
-		args = append(args, contains(filter.Location))
+		args = append(args, database.LikeContains(filter.Location))
 	}
 	if filter.IsPaid != nil {
 		where = append(where, "e.is_paid = ?")
@@ -558,7 +553,7 @@ func (r *EventRepositoryImpl) AdminGetAllEvents(ctx context.Context, search stri
 	args := []interface{}{}
 	if search != "" {
 		cond += ` AND (e.title ILIKE ? OR e.organizer ILIKE ? OR e.category ILIKE ? OR e.location ILIKE ?)`
-		p := contains(search)
+		p := database.LikeContains(search)
 		args = append(args, p, p, p, p)
 	}
 
