@@ -252,12 +252,6 @@ func evaluate(c *deletionChecks) ([]Blocker, []Warning) {
 			ActionLabel: "View sessions", ActionURL: "/mentorship/my-sessions",
 		})
 	}
-	if c.SubscriptionEndsAt != nil {
-		warnings = append(warnings, Warning{
-			Code: "subscription", Title: "Your subscription will be cancelled",
-			Detail: "Your Expert plan (valid until " + c.SubscriptionEndsAt.Format("2 Jan 2006") + ") ends with your account. Unused time isn't refunded.",
-		})
-	}
 	if c.OpenJobs > 0 {
 		warnings = append(warnings, Warning{
 			Code: "open_jobs", Title: "Your job posts will close",

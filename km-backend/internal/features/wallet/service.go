@@ -678,7 +678,7 @@ func disputeRefusal(tx *WalletTransaction, now time.Time) error {
 		return ErrDisputeNotEligible
 	}
 	switch tx.Category {
-	case CategoryEventTicket, CategoryPassPurchase, CategorySubscription:
+	case CategoryEventTicket, CategoryPassPurchase:
 	default:
 		return ErrDisputeNotEligible
 	}

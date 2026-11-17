@@ -38,7 +38,6 @@ import (
 	"km-backend/internal/features/setting"
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
-	"km-backend/internal/features/subscription"
 	"km-backend/internal/features/system"
 	"km-backend/internal/features/testimonial"
 	"km-backend/internal/features/user"
@@ -216,7 +215,6 @@ func main() {
 			event.NewEventRepository,
 			mentorship.NewMentorshipRepository,
 			course.NewCourseRepository,
-			subscription.NewSubscriptionRepository,
 			instant_work.NewInstantWorkRepository,
 			notification.NewNotificationRepository,
 			notification.NewNotificationHub,
@@ -254,7 +252,6 @@ func main() {
 			question.NewQuestionService,
 			mentorship.NewMentorshipService,
 			course.NewCourseService,
-			subscription.NewSubscriptionService,
 			instant_work.NewInstantWorkService,
 			testimonial.NewTestimonialService,
 			account.NewService,
@@ -284,7 +281,6 @@ func main() {
 			event.NewEventController,
 			mentorship.NewMentorshipController,
 			course.NewCourseController,
-			subscription.NewSubscriptionController,
 			instant_work.NewInstantWorkController,
 			notification.NewNotificationController,
 			testimonial.NewTestimonialController,
@@ -314,7 +310,6 @@ func main() {
 			AsRoute(event.NewEventApi),
 			AsRoute(mentorship.NewMentorshipApi),
 			AsRoute(course.NewCourseApi),
-			AsRoute(subscription.NewSubscriptionApi),
 			AsRoute(instant_work.NewInstantWorkApi),
 			AsRoute(notification.NewNotificationApi),
 			AsRoute(testimonial.NewTestimonialApi),

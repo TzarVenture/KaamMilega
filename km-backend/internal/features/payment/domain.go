@@ -21,7 +21,6 @@ const (
 	PurposeWalletTopup       Purpose = "wallet_topup"
 	PurposeEventTicket       Purpose = "event_ticket"
 	PurposeMentorshipBooking Purpose = "mentorship_booking"
-	PurposeSubscription      Purpose = "subscription"
 	PurposeInstantPass       Purpose = "instant_pass"
 )
 

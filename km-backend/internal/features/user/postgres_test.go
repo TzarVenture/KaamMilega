@@ -81,7 +81,7 @@ func TestPGRevenueIsWhatThePlatformKeeps(t *testing.T) {
 	r, pg := newPGUserRepo(t)
 	uid := seedLedger(t, pg) // a ₹199.50 top-up (not revenue) and a ₹99 pass from the wallet (revenue)
 	pgExec(t, pg, `INSERT INTO payment_orders (id, razorpay_order_id, razorpay_payment_id, user_id, purpose, amount_paise, status, refund_paise) VALUES
-		(?, 'o1', 'p1', ?, 'subscription', 49900, 'paid', 0),          -- card plan: revenue
+		(?, 'o1', 'p1', ?, 'instant_pass', 9900, 'paid', 0),           -- card pass: revenue
 		(?, 'o2', 'p2', ?, 'event_ticket', 20000, 'refunded', 20000),  -- refunded in full: nothing
 		(?, 'o3', 'p3', ?, 'event_ticket', 30000, 'refund_due', 10000),-- part refund owed: 200
 		(?, 'o4', 'p4', ?, 'wallet_topup', 50000, 'paid', 0),          -- user's own money: nothing
@@ -97,8 +97,8 @@ func TestPGRevenueIsWhatThePlatformKeeps(t *testing.T) {
 		}
 		return stats["revenue"]
 	}
-	if got := revenue(); got != 99.0+499.0+200.0 {
-		t.Fatalf("revenue = %v, want 798", got)
+	if got := revenue(); got != 99.0+99.0+200.0 {
+		t.Fatalf("revenue = %v, want 398", got)
 	}
 
 	// An approved dispute gives the wallet pass money back
@@ -107,8 +107,8 @@ func TestPGRevenueIsWhatThePlatformKeeps(t *testing.T) {
 	pgExec(t, pg, `INSERT INTO wallet_disputes (id, user_id, transaction_id, reference_id, amount_paise, refund_paise, target_balance,
 		category, reason, description, status) VALUES (?, ?, ?, 'r2', 9900, 9900, 'main', 'pass_purchase', 'technical_failure', 'x', 'approved')`,
 		oidHex(), uid, passTx)
-	if got := revenue(); got != 499.0+200.0 {
-		t.Fatalf("revenue after refund = %v, want 699", got)
+	if got := revenue(); got != 99.0+200.0 {
+		t.Fatalf("revenue after refund = %v, want 299", got)
 	}
 }
 

@@ -55,7 +55,7 @@ func run(t *testing.T, pg *database.PostgresDB, sql string, args ...interface{})
 
 func newHex() string { return primitive.NewObjectID().Hex() }
 
-// seedMember gives a user a wallet, ledger rows, a dispute, bookings and a plan
+// seedMember gives a user a wallet, ledger rows, a dispute and bookings
 func seedMember(t *testing.T, pg *database.PostgresDB, uid string, now time.Time) {
 	t.Helper()
 	wallet := newHex()
@@ -80,8 +80,6 @@ func seedMember(t *testing.T, pg *database.PostgresDB, uid string, now time.Time
 		newHex(), mentorship, uid, newHex(), now.Add(48*time.Hour), // as the expert, still to come
 		newHex(), mentorship, uid, newHex(), now.Add(-5*time.Hour), // long past
 		newHex(), mentorship, uid, newHex(), now.Add(72*time.Hour)) // already settled
-	run(t, pg, `INSERT INTO expert_subscriptions (id, user_id, plan_type, amount_paise, payment_method, payment_status, status, starts_at, expires_at)
-		VALUES (?, ?, 'monthly', 49900, 'wallet', 'paid', 'active', ?, ?)`, newHex(), uid, now.Add(-24*time.Hour), now.Add(29*24*time.Hour))
 }
 
 func TestPGDeletionChecksReadTheMoneyTables(t *testing.T) {
@@ -100,16 +98,13 @@ func TestPGDeletionChecksReadTheMoneyTables(t *testing.T) {
 	if c.PendingTransactions != 1 || c.OpenDisputes != 1 || c.UpcomingSessions != 1 {
 		t.Fatalf("pending = %d, disputes = %d, sessions = %d", c.PendingTransactions, c.OpenDisputes, c.UpcomingSessions)
 	}
-	if c.SubscriptionEndsAt == nil || c.SubscriptionEndsAt.Sub(now.Add(29*24*time.Hour)).Abs() > time.Second {
-		t.Fatalf("subscription ends %v", c.SubscriptionEndsAt)
-	}
 
 	// Someone with no money records has nothing blocking
 	empty, err := r.DeletionChecks(context.Background(), primitive.NewObjectID(), now)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if empty.Wallet != nil || empty.PendingTransactions != 0 || empty.OpenDisputes != 0 || empty.UpcomingSessions != 0 || empty.SubscriptionEndsAt != nil {
+	if empty.Wallet != nil || empty.PendingTransactions != 0 || empty.OpenDisputes != 0 || empty.UpcomingSessions != 0 {
 		t.Fatalf("empty = %+v", empty)
 	}
 }
@@ -130,7 +125,6 @@ func TestPGErasureWindsDownAndKeepsMoneyRecords(t *testing.T) {
 	var got struct {
 		Mentorship   string
 		Availability int64
-		Plan         string
 		Wallet       string
 		DisputeName  string
 		DisputeEmail string
@@ -139,7 +133,6 @@ func TestPGErasureWindsDownAndKeepsMoneyRecords(t *testing.T) {
 	if err := pg.DB.Raw(`SELECT
 			(SELECT status FROM mentorships WHERE expert_id = @u) AS mentorship,
 			(SELECT count(*) FROM expert_availability WHERE expert_id = @u) AS availability,
-			(SELECT status FROM expert_subscriptions WHERE user_id = @u) AS plan,
 			(SELECT status FROM wallets WHERE user_id = @u) AS wallet,
 			(SELECT user_name FROM wallet_disputes WHERE user_id = @u) AS dispute_name,
 			(SELECT user_email FROM wallet_disputes WHERE user_id = @u) AS dispute_email,
@@ -150,12 +143,11 @@ func TestPGErasureWindsDownAndKeepsMoneyRecords(t *testing.T) {
 	want := struct {
 		Mentorship   string
 		Availability int64
-		Plan         string
 		Wallet       string
 		DisputeName  string
 		DisputeEmail string
 		Ledger       int64
-	}{"inactive", 0, "cancelled", "closed", "Deleted user", "", 3}
+	}{"inactive", 0, "closed", "Deleted user", "", 3}
 	if got != want {
 		t.Fatalf("after erasure got %+v, want %+v", got, want)
 	}

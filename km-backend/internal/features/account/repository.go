@@ -59,7 +59,7 @@ type mongoRepository struct {
 	db    *mongo.Database
 	users *mongo.Collection
 	codes *mongo.Collection
-	// The money and purchase tables (wallet, bookings, subscriptions) live in Postgres
+	// The money and purchase tables (wallet, bookings) live in Postgres
 	pg *gorm.DB
 	tx *database.PgTransactor
 }
@@ -205,7 +205,6 @@ func (r *mongoRepository) DeletionChecks(ctx context.Context, userID primitive.O
 		PendingTransactions int64
 		OpenDisputes        int64
 		UpcomingSessions    int64
-		SubscriptionEndsAt  *time.Time
 	}
 	// Pending money still moving to the user counts; pending top-ups (abandoned checkouts) don't,
 	// or a closed payment window could block deletion forever. Sessions count as mentee or as the
@@ -218,11 +217,9 @@ func (r *mongoRepository) DeletionChecks(ctx context.Context, userID primitive.O
 				AND category IN ('withdrawal', 'session_payout', 'gig_payout', 'refund')) AS pending_transactions,
 			(SELECT count(*) FROM wallet_disputes WHERE user_id = @uid AND status IN ('pending', 'under_review')) AS open_disputes,
 			(SELECT count(*) FROM mentorship_bookings WHERE (user_id = @uid OR expert_id = @uid)
-				AND status IN ('pending', 'confirmed') AND scheduled_at >= @since) AS upcoming_sessions,
-			(SELECT max(expires_at) FROM expert_subscriptions WHERE user_id = @uid AND status = 'active'
-				AND expires_at > @now) AS subscription_ends_at
+				AND status IN ('pending', 'confirmed') AND scheduled_at >= @since) AS upcoming_sessions
 		FROM (SELECT 1) one LEFT JOIN wallets w ON w.user_id = @uid`,
-		sql.Named("uid", uid), sql.Named("since", now.Add(-2*time.Hour)), sql.Named("now", now)).Scan(&row).Error
+		sql.Named("uid", uid), sql.Named("since", now.Add(-2*time.Hour))).Scan(&row).Error
 	if err != nil {
 		return nil, err
 	}
@@ -232,7 +229,6 @@ func (r *mongoRepository) DeletionChecks(ctx context.Context, userID primitive.O
 	checks.PendingTransactions = row.PendingTransactions
 	checks.OpenDisputes = row.OpenDisputes
 	checks.UpcomingSessions = row.UpcomingSessions
-	checks.SubscriptionEndsAt = row.SubscriptionEndsAt
 
 	if checks.OpenJobs, err = r.db.Collection("jobs").CountDocuments(ctx, bson.M{
 		"recruiter_id": userID,
@@ -300,7 +296,6 @@ func (r *mongoRepository) Export(ctx context.Context, userID primitive.ObjectID)
 		{"wallet_transactions", "wallet_transactions", "user_id = @uid"},
 		{"wallet_disputes", "wallet_disputes", "user_id = @uid"},
 		{"mentorship_bookings", "mentorship_bookings", "user_id = @uid OR expert_id = @uid"},
-		{"subscriptions", "expert_subscriptions", "user_id = @uid"},
 	}
 	for _, s := range pgSections {
 		rows, err := r.pgRows(ctx, s.table, s.where, uid)
@@ -456,7 +451,6 @@ func (r *mongoRepository) erasePurchaseData(ctx context.Context, uid string) err
 		steps := []struct{ sql string }{
 			{`UPDATE mentorships SET status = 'inactive' WHERE expert_id = @uid AND status <> 'inactive'`},
 			{`DELETE FROM expert_availability WHERE expert_id = @uid`},
-			{`UPDATE expert_subscriptions SET status = 'cancelled' WHERE user_id = @uid AND status = 'active'`},
 			{`UPDATE wallets SET status = 'closed' WHERE user_id = @uid AND status <> 'closed'`},
 			{`UPDATE wallet_disputes SET user_name = 'Deleted user', user_email = ''
 				WHERE user_id = @uid AND (user_name <> 'Deleted user' OR user_email <> '')`},

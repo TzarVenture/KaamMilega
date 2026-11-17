@@ -35,7 +35,6 @@ const PURPOSE: Record<string, string> = {
     wallet_topup: 'Wallet top-up',
     event_ticket: 'Event ticket',
     mentorship_booking: 'Session',
-    subscription: 'Subscription',
     instant_pass: 'InstantPass',
 };
 

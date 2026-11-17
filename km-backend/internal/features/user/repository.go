@@ -671,7 +671,7 @@ func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]i
 		Disputes     int64
 		RevenuePaise int64
 	}
-	// Revenue is what the platform keeps: InstantPasses, Expert plans and event tickets, paid by
+	// Revenue is what the platform keeps: InstantPasses and event tickets, paid by
 	// card or from the wallet, less refunds. Wallet top-ups are the user's own money, and session
 	// fees go to the expert, so neither counts. A purchase is either a card order or a wallet
 	// debit, never both, so nothing is counted twice.
@@ -679,11 +679,11 @@ func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]i
 			(SELECT count(*) FROM instant_jobs) AS active_gigs,
 			(SELECT count(*) FROM wallet_disputes) AS disputes,
 			  (SELECT coalesce(sum(amount_paise - refund_paise), 0) FROM payment_orders
-				WHERE purpose IN ('instant_pass', 'subscription', 'event_ticket') AND status IN ('paid', 'refund_due', 'refunded'))
+				WHERE purpose IN ('instant_pass', 'event_ticket') AND status IN ('paid', 'refund_due', 'refunded'))
 			+ (SELECT coalesce(sum(amount_paise), 0) FROM wallet_transactions
-				WHERE type = 'debit' AND status = 'completed' AND category IN ('pass_purchase', 'subscription', 'event_ticket'))
+				WHERE type = 'debit' AND status = 'completed' AND category IN ('pass_purchase', 'event_ticket'))
 			- (SELECT coalesce(sum(refund_paise), 0) FROM wallet_disputes
-				WHERE status = 'approved' AND category IN ('pass_purchase', 'subscription', 'event_ticket'))
+				WHERE status = 'approved' AND category IN ('pass_purchase', 'event_ticket'))
 			AS revenue_paise`).
 		Scan(&totals).Error; err != nil {
 		log.Printf("[platform stats] reading Postgres totals failed: %v", err)
