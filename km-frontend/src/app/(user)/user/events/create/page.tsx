@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CalendarPlusIcon, ImageIcon, InfoIcon, MapPinIcon, TrashIcon, VideoCameraIcon } from "@phosphor-icons/react";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
+import { useIsExpert } from "@/lib/useIsExpert";
 import { notify } from "@/lib/notify";
 import { uploadFile, UPLOAD_LIMITS } from "@/lib/upload";
 import { EmptyState, btn, cx, field } from "@/components/admin/ui";
@@ -23,7 +24,7 @@ function todayIST(): string {
 export default function CreateEventPage() {
     const router = useRouter();
     const imageInputRef = useRef<HTMLInputElement>(null);
-    const [canHost, setCanHost] = useState<boolean | null>(null);
+    const canHost = useIsExpert(true);
     const [online, setOnline] = useState(true);
     const [form, setForm] = useState({
         title: "",
@@ -41,12 +42,10 @@ export default function CreateEventPage() {
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
 
-    // Roles and the name live in localStorage, so read them after mount
+    // The host name defaults to the signed-in user's name, read after mount (it lives in localStorage)
     useEffect(() => {
-        const user = getCurrentUser();
-        const roles = Array.isArray(user?.roles) ? user.roles : user?.role ? [user.role] : [];
-        setCanHost(roles.includes("expert") || roles.includes("admin"));
-        if (user?.name) setForm((f) => (f.organizer ? f : { ...f, organizer: user.name as string }));
+        const name = getCurrentUser()?.name;
+        if (name) setForm((f) => (f.organizer ? f : { ...f, organizer: name }));
     }, []);
 
     const set = (key: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>

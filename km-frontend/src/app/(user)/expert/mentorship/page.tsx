@@ -8,7 +8,7 @@ import {
 } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { inr } from '@/lib/money';
-import { getCurrentUser } from '@/lib/auth';
+import { useIsExpert } from '@/lib/useIsExpert';
 import { notify } from '@/lib/notify';
 import { AdminModal, ConfirmDialog, EmptyState, StatusBadge, btn, cx, field } from '@/components/admin/ui';
 import { BOOKING_STATUS, SESSION_CATEGORIES, SESSION_DURATIONS, SESSION_LIMITS, price, sessionTime, sortBookings } from '@/lib/mentorship';
@@ -58,7 +58,7 @@ const TABS: { id: Tab; label: string; Icon: typeof UserIcon }[] = [
 ];
 
 export default function ExpertMentorshipManagement() {
-  const [isExpert, setIsExpert] = useState<boolean | null>(null);
+  const isExpert = useIsExpert(true);
   const [tab, setTab] = useState<Tab>('bookings');
   const [sessions, setSessions] = useState<Session[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -67,13 +67,6 @@ export default function ExpertMentorshipManagement() {
   const [loading, setLoading] = useState(true);
   // null = closed, 'new' = create, a session = edit
   const [editing, setEditing] = useState<Session | 'new' | null>(null);
-
-  // Roles live in localStorage, so read them after mount (the server render has no user)
-  useEffect(() => {
-    const user = getCurrentUser();
-    const roles = Array.isArray(user?.roles) ? user.roles : user?.role ? [user.role] : [];
-    setIsExpert(roles.includes('expert') || roles.includes('admin'));
-  }, []);
 
   const loadSessions = useCallback(async () => {
     const res = await api.get<unknown, Session[] | null>('/mentorships/expert/my');
@@ -97,17 +90,25 @@ export default function ExpertMentorshipManagement() {
 
   // Everything loads once, together, so every tab count is right from the start
   useEffect(() => {
-    if (!isExpert) {
-      if (isExpert === false) setLoading(false);
-      return;
-    }
-    Promise.allSettled([loadSessions(), loadBookings(), loadHours(), loadWallet()]).then((results) => {
-      if (results.slice(0, 3).some((r) => r.status === 'rejected')) {
-        notify.error((results.find((r) => r.status === 'rejected') as PromiseRejectedResult).reason, 'Some of your dashboard couldn’t be loaded. Refresh to try again.');
-      }
+    if (!isExpert) return;
+    let live = true;
+    Promise.allSettled([
+      api.get<unknown, Session[] | null>('/mentorships/expert/my'),
+      api.get<unknown, Booking[] | null>('/mentorships/bookings/expert'),
+      api.get<unknown, Slot[] | null>('/mentorships/availability'),
+      api.get<unknown, WalletSummary>('/wallet/balance'),
+    ]).then(([s, b, h, w]) => {
+      if (!live) return;
+      if (s.status === 'fulfilled') setSessions(s.value || []);
+      if (b.status === 'fulfilled') setBookings(b.value || []);
+      if (h.status === 'fulfilled') setHours((h.value || []).filter((slot) => slot.is_active !== false));
+      if (w.status === 'fulfilled') setWallet(w.value);
+      const failed = [s, b, h].find((r) => r.status === 'rejected');
+      if (failed) notify.error((failed as PromiseRejectedResult).reason, 'Some of your dashboard couldn’t be loaded. Refresh to try again.');
       setLoading(false);
     });
-  }, [isExpert, loadSessions, loadBookings, loadHours, loadWallet]);
+    return () => { live = false; };
+  }, [isExpert]);
 
   const toDo = bookings.filter((b) => b.status === 'confirmed').length;
   const activeSessions = sessions.filter((s) => s.status === 'active').length;
