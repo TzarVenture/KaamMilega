@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -56,4 +57,14 @@ func SyncIndexes(ctx context.Context, coll *mongo.Collection, models []mongo.Ind
 	if _, err := coll.Indexes().CreateMany(ctx, models); err != nil {
 		log.Printf("indexes: creating on %s: %v", coll.Name(), err)
 	}
+}
+
+// SyncIndexesInBackground runs SyncIndexes without holding up startup. Failures are logged and
+// the app keeps running: a missing index makes queries slower, never wrong.
+func SyncIndexesInBackground(coll *mongo.Collection, models []mongo.IndexModel, obsolete ...bson.D) {
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		SyncIndexes(ctx, coll, models, obsolete...)
+	}()
 }

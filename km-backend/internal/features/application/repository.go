@@ -31,9 +31,17 @@ type ApplicationRepositoryImpl struct {
 }
 
 func NewApplicationRepository(db *database.MongodbDB) ApplicationRepository {
+	apps := db.DB.Collection("applications")
+	database.SyncIndexesInBackground(apps, []mongo.IndexModel{
+		// One application per person per job, even if Apply is pressed twice at once
+		{Keys: bson.D{{Key: "candidate_id", Value: 1}, {Key: "job_id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "candidate_id", Value: 1}, {Key: "created_at", Value: -1}}},
+		{Keys: bson.D{{Key: "job_id", Value: 1}, {Key: "created_at", Value: -1}}},
+		{Keys: bson.D{{Key: "recruiter_id", Value: 1}, {Key: "created_at", Value: -1}}},
+	})
 	return &ApplicationRepositoryImpl{
 		db:      db,
-		appColl: db.DB.Collection("applications"),
+		appColl: apps,
 	}
 }
 
@@ -41,6 +49,9 @@ func (r *ApplicationRepositoryImpl) Create(ctx context.Context, app *Application
 	app.CreatedAt = time.Now()
 	app.UpdatedAt = time.Now()
 	res, err := r.appColl.InsertOne(ctx, app)
+	if mongo.IsDuplicateKeyError(err) {
+		return nil, ErrAlreadyApplied
+	}
 	if err != nil {
 		return nil, err
 	}

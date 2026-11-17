@@ -77,16 +77,13 @@ type UserRepositoryImpl struct {
 
 func NewUserRepository(db *database.MongodbDB, pg *database.PostgresDB) UserRepository {
 	userColl := db.DB.Collection("users")
-	// Ensure unique sparse index on username
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		opts := options.Index().SetUnique(true).SetSparse(true)
-		_, _ = userColl.Indexes().CreateOne(ctx, mongo.IndexModel{
-			Keys:    bson.M{"username": 1},
-			Options: opts,
-		})
-	}()
+	// One account per username, email and mobile number. Emails are stored lower-case. Accounts
+	// without an email or mobile (empty or removed on deletion) are left out of those two.
+	database.SyncIndexesInBackground(userColl, []mongo.IndexModel{
+		{Keys: bson.D{{Key: "username", Value: 1}}, Options: options.Index().SetUnique(true).SetSparse(true)},
+		{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.M{"email": bson.M{"$gt": ""}})},
+		{Keys: bson.D{{Key: "mobile", Value: 1}}, Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.M{"mobile": bson.M{"$gt": ""}})},
+	})
 
 	otpColl := db.DB.Collection("otps")
 	go func() {
@@ -285,6 +282,9 @@ func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *User) (*User,
 		user.Settings = DefaultUserSettings()
 	}
 	res, err := r.userColl.InsertOne(ctx, user)
+	if mongo.IsDuplicateKeyError(err) {
+		return nil, ErrAccountExists
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -299,6 +299,10 @@ func sessionVersionFilter(version int) bson.M {
 	}
 	return bson.M{"session_version": version}
 }
+
+// ErrAccountExists: another account already has this email, mobile number or username (two sign-ups
+// racing each other; the services check first, the unique indexes make sure)
+var ErrAccountExists = apperr.New("ACCOUNT_EXISTS", "an account with this email or mobile number already exists")
 
 // ErrStaleUser is returned when the user changed account state (deactivated, deletion requested,
 // signed out everywhere) after this copy was read. Replacing it would silently undo that change.

@@ -20,9 +20,19 @@ type MongoDBRepository struct {
 }
 
 func NewNetworkRepository(db *database.MongodbDB) NetworkRepository {
+	connections := db.DB.Collection("network_connections")
+	database.SyncIndexesInBackground(connections, []mongo.IndexModel{
+		// One request per sender and receiver, even if Connect is pressed twice at once
+		{Keys: bson.D{{Key: "sender_id", Value: 1}, {Key: "receiver_id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "receiver_id", Value: 1}, {Key: "status", Value: 1}}},
+	})
+	database.SyncIndexesInBackground(db.DB.Collection("network_dismissed_suggestions"), []mongo.IndexModel{
+		{Keys: bson.D{{Key: "user_id", Value: 1}}},
+		{Keys: bson.D{{Key: "dismissed_user_id", Value: 1}}},
+	})
 	return &MongoDBRepository{
 		db:            db,
-		collection:    db.DB.Collection("network_connections"),
+		collection:    connections,
 		usersColl:     db.DB.Collection("users"),
 		dismissedColl: db.DB.Collection("network_dismissed_suggestions"),
 		blocksColl:    db.DB.Collection("user_blocks"),
@@ -33,6 +43,9 @@ func (r *MongoDBRepository) CreateInvitation(ctx context.Context, invitation *Co
 	invitation.CreatedAt = time.Now()
 	invitation.UpdatedAt = time.Now()
 	_, err := r.collection.InsertOne(ctx, invitation)
+	if mongo.IsDuplicateKeyError(err) {
+		return ErrInvitationExists
+	}
 	return err
 }
 

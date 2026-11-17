@@ -23,6 +23,10 @@ type FileRepositoryImpl struct {
 }
 
 func NewFileRepository(mongodb *database.MongodbDB) FileRepository {
+	database.SyncIndexesInBackground(mongodb.DB.Collection("files"), []mongo.IndexModel{
+		{Keys: bson.D{{Key: "module_name", Value: 1}, {Key: "record_id", Value: 1}}}, // files attached to a record
+		{Keys: bson.D{{Key: "url", Value: 1}}},                                          // account deletion finds files by link
+	})
 	return &FileRepositoryImpl{
 		db: mongodb,
 	}

@@ -21,14 +21,24 @@ type repository struct {
 }
 
 func NewRepository(db *database.MongodbDB, pg *database.PostgresDB) ChatRepository {
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
+	database.SyncIndexesInBackground(db.DB.Collection("conversations"), []mongo.IndexModel{
 		// Counts the new chats a user started today, for the free daily limit
-		database.SyncIndexes(ctx, db.DB.Collection("conversations"), []mongo.IndexModel{
-			{Keys: bson.D{{Key: "started_by", Value: 1}, {Key: "created_at", Value: -1}}, Options: options.Index().SetSparse(true)},
-		})
-	}()
+		{Keys: bson.D{{Key: "started_by", Value: 1}, {Key: "created_at", Value: -1}}, Options: options.Index().SetSparse(true)},
+		{Keys: bson.D{{Key: "participants", Value: 1}, {Key: "updated_at", Value: -1}}}, // a user's chat list
+	})
+	database.SyncIndexesInBackground(db.DB.Collection("messages"), []mongo.IndexModel{
+		{Keys: bson.D{{Key: "conversation_id", Value: 1}, {Key: "created_at", Value: -1}}}, // a chat's messages, newest first
+		{Keys: bson.D{{Key: "conversation_id", Value: 1}, {Key: "is_read", Value: 1}}},    // unread counts
+		{Keys: bson.D{{Key: "reply_to.id", Value: 1}}, Options: options.Index().SetSparse(true)},
+	})
+	database.SyncIndexesInBackground(db.DB.Collection("user_blocks"), []mongo.IndexModel{
+		{Keys: bson.D{{Key: "user_id", Value: 1}, {Key: "blocked_user_id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "blocked_user_id", Value: 1}}},
+	})
+	database.SyncIndexesInBackground(db.DB.Collection("chat_reports"), []mongo.IndexModel{
+		{Keys: bson.D{{Key: "created_at", Value: -1}}},
+		{Keys: bson.D{{Key: "status", Value: 1}, {Key: "created_at", Value: -1}}},
+	})
 	return &repository{db: db, pg: pg.DB}
 }
 
@@ -327,6 +337,9 @@ func (r *repository) BlockUser(ctx context.Context, userID, blockedUserID primit
 		CreatedAt:     time.Now(),
 	}
 	_, err = r.db.DB.Collection("user_blocks").InsertOne(ctx, block)
+	if mongo.IsDuplicateKeyError(err) {
+		return nil // blocked by a request that arrived at the same moment
+	}
 	return err
 }
 
