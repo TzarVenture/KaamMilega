@@ -87,6 +87,9 @@ func NewMentorshipService(
 }
 
 func (s *MentorshipServiceImpl) CreateMentorship(ctx context.Context, expertID string, req CreateMentorshipRequest) (*Mentorship, error) {
+	if err := cleanSession(&req); err != nil {
+		return nil, err
+	}
 	eid, _ := primitive.ObjectIDFromHex(expertID)
 	m := &Mentorship{
 		ExpertID:    eid,
@@ -157,12 +160,12 @@ func (s *MentorshipServiceImpl) GetMentorshipsByExpert(ctx context.Context, expe
 }
 
 func (s *MentorshipServiceImpl) UpdateMentorship(ctx context.Context, expertID string, id string, req CreateMentorshipRequest) (*Mentorship, error) {
-	m, err := s.repo.GetMentorshipByID(ctx, id)
-	if err != nil || m == nil {
+	if err := cleanSession(&req); err != nil {
 		return nil, err
 	}
-	if m.ExpertID.Hex() != expertID {
-		return nil, errors.New("unauthorized")
+	m, err := s.ownSession(ctx, expertID, id)
+	if err != nil {
+		return nil, err
 	}
 
 	m.Title = req.Title
@@ -170,19 +173,42 @@ func (s *MentorshipServiceImpl) UpdateMentorship(ctx context.Context, expertID s
 	m.Category = req.Category
 	m.Duration = req.Duration
 	m.Price = req.Price
+	if req.Status != "" {
+		m.Status = req.Status
+	}
 
 	return s.repo.UpdateMentorship(ctx, id, m)
 }
 
+// DeleteMentorship removes a session from the expert's list. A session with bookings still in
+// progress stays, because those mentees paid for it and the payout depends on it.
 func (s *MentorshipServiceImpl) DeleteMentorship(ctx context.Context, expertID string, id string) error {
-	m, err := s.repo.GetMentorshipByID(ctx, id)
-	if err != nil || m == nil {
+	m, err := s.ownSession(ctx, expertID, id)
+	if err != nil {
 		return err
 	}
-	if m.ExpertID.Hex() != expertID {
-		return errors.New("unauthorized")
+	bookings, err := s.repo.ListBookingsByExpert(ctx, expertID)
+	if err != nil {
+		return err
+	}
+	for _, b := range bookings {
+		if b.MentorshipID == m.ID && openBooking(b.Status) {
+			return ErrSessionHasBooked
+		}
 	}
 	return s.repo.DeleteMentorship(ctx, id)
+}
+
+// ownSession loads a session and checks it belongs to this expert
+func (s *MentorshipServiceImpl) ownSession(ctx context.Context, expertID, id string) (*Mentorship, error) {
+	m, err := s.repo.GetMentorshipByID(ctx, id)
+	if err != nil || m == nil {
+		return nil, ErrMentorshipGone
+	}
+	if m.ExpertID.Hex() != expertID {
+		return nil, ErrNotYourSession
+	}
+	return m, nil
 }
 
 func (s *MentorshipServiceImpl) BookSession(ctx context.Context, userID string, req BookMentorshipRequest) (*Booking, error) {

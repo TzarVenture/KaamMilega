@@ -31,7 +31,8 @@ func (a *EventApi) Setup(app *fiber.App) {
 	protected.Get("/my/tickets", jwtAuth, a.ctrl.GetMyTickets)
 
 	// Protected event creation & checkout routes
-	protected.Post("/", jwtAuth, a.ctrl.CreateEvent)
+	// Expert Portal: approved Experts (and admins) host free events
+	protected.Post("/", jwtAuth, middleware.RequireRole("expert", "admin"), a.ctrl.CreateEvent)
 	protected.Post("/:id/register", jwtAuth, a.ctrl.RegisterUser)
 	protected.Post("/:id/create-order", jwtAuth, a.ctrl.CreateEventOrder)
 	protected.Post("/:id/verify-payment", jwtAuth, a.ctrl.VerifyEventPayment)

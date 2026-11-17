@@ -111,7 +111,20 @@ type CreateMentorshipRequest struct {
 	Category    string  `json:"category" validate:"required"`
 	Duration    int     `json:"duration" validate:"required"`
 	Price       float64 `json:"price" validate:"required"`
+	// Status pauses or resumes a session on edit ("active" or "inactive"); empty keeps it as is
+	Status string `json:"status,omitempty"`
 }
+
+// Limits on a session an expert publishes. Price is in rupees: a session needs one to be booked,
+// and the cap stops a typo (an extra zero) from going live.
+const (
+	MinSessionMinutes = 15
+	MaxSessionMinutes = 240
+	MinSessionPrice   = 1
+	MaxSessionPrice   = 100000
+	MaxTitleLength    = 100
+	MaxDetailsLength  = 2000
+)
 
 type BookMentorshipRequest struct {
 	MentorshipID string    `json:"mentorship_id" validate:"required"`
