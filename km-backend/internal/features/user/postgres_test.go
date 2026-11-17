@@ -77,16 +77,38 @@ func seedLedger(t *testing.T, pg *database.PostgresDB) string {
 	return uid
 }
 
-func TestPGPlatformStatsCountsPostgres(t *testing.T) {
+func TestPGRevenueIsWhatThePlatformKeeps(t *testing.T) {
 	r, pg := newPGUserRepo(t)
-	seedLedger(t, pg)
-	stats, err := r.GetPlatformStats(context.Background())
-	if err != nil {
-		t.Fatal(err)
+	uid := seedLedger(t, pg) // a ₹199.50 top-up (not revenue) and a ₹99 pass from the wallet (revenue)
+	pgExec(t, pg, `INSERT INTO payment_orders (id, razorpay_order_id, razorpay_payment_id, user_id, purpose, amount_paise, status, refund_paise) VALUES
+		(?, 'o1', 'p1', ?, 'subscription', 49900, 'paid', 0),          -- card plan: revenue
+		(?, 'o2', 'p2', ?, 'event_ticket', 20000, 'refunded', 20000),  -- refunded in full: nothing
+		(?, 'o3', 'p3', ?, 'event_ticket', 30000, 'refund_due', 10000),-- part refund owed: 200
+		(?, 'o4', 'p4', ?, 'wallet_topup', 50000, 'paid', 0),          -- user's own money: nothing
+		(?, 'o5', 'p5', ?, 'mentorship_booking', 80000, 'paid', 0),    -- goes to the expert: nothing
+		(?, 'o6', NULL, ?, 'instant_pass', 9900, 'created', 0)          -- never paid: nothing`,
+		oidHex(), uid, oidHex(), uid, oidHex(), uid, oidHex(), uid, oidHex(), uid, oidHex(), uid)
+
+	revenue := func() interface{} {
+		t.Helper()
+		stats, err := r.GetPlatformStats(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+		return stats["revenue"]
 	}
-	// Completed entries only: 199.50 + 99.00
-	if stats["revenue"] != 298.5 || stats["disputes"] != int64(0) || stats["active_gigs"] != int64(0) {
-		t.Fatalf("stats = %v", stats)
+	if got := revenue(); got != 99.0+499.0+200.0 {
+		t.Fatalf("revenue = %v, want 798", got)
+	}
+
+	// An approved dispute gives the wallet pass money back
+	var passTx string
+	pg.DB.Raw(`SELECT id FROM wallet_transactions WHERE reference_id = 'r2'`).Scan(&passTx)
+	pgExec(t, pg, `INSERT INTO wallet_disputes (id, user_id, transaction_id, reference_id, amount_paise, refund_paise, target_balance,
+		category, reason, description, status) VALUES (?, ?, ?, 'r2', 9900, 9900, 'main', 'pass_purchase', 'technical_failure', 'x', 'approved')`,
+		oidHex(), uid, passTx)
+	if got := revenue(); got != 499.0+200.0 {
+		t.Fatalf("revenue after refund = %v, want 699", got)
 	}
 }
 

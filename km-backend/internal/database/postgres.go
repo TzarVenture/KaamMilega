@@ -137,3 +137,7 @@ func withSSL(uri string) (string, error) {
 	u.RawQuery = q.Encode()
 	return u.String(), nil
 }
+
+// PostgresDSN is the connection string the server uses (encrypted, app schema), for tools that
+// connect outside the app such as cmd/copy-to-postgres
+func PostgresDSN(uri string) (string, error) { return withSSL(uri) }

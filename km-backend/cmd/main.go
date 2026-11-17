@@ -371,17 +371,14 @@ func RegisterHealth(app *fiber.App, mongo *database.MongodbDB, pg *database.Post
 		if err := mongo.Client.Ping(ctx, nil); err != nil {
 			mongoStatus = "down"
 		}
-		pgStatus := "off"
-		if pg.Enabled() {
-			pgStatus = "ok"
-			if err := pg.Ping(ctx); err != nil {
-				pgStatus = "down"
-			}
+		pgStatus := "ok"
+		if err := pg.Ping(ctx); err != nil {
+			pgStatus = "down"
 		}
 
-		// MongoDB still serves every request, so only it decides the overall status for now
+		// Both are required: MongoDB holds users, chat and the feed; Postgres holds every payment
 		code, status := fiber.StatusOK, "ok"
-		if mongoStatus != "ok" {
+		if mongoStatus != "ok" || pgStatus != "ok" {
 			code, status = fiber.StatusServiceUnavailable, "degraded"
 		}
 		return c.Status(code).JSON(fiber.Map{"status": status, "mongo": mongoStatus, "postgres": pgStatus})
