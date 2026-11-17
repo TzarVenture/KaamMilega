@@ -12,7 +12,6 @@ import {
   CheckIcon,
   ClockIcon,
   FileArrowUpIcon,
-  FileTextIcon,
   IdentificationCardIcon,
   LockKeyIcon,
   MedalIcon,
@@ -29,11 +28,12 @@ import InstantPassModal from "@/components/instant-milega/InstantPassModal";
 
 /**
  * Becoming an Expert (client Q&A Q8–Q12): at least 2 years of experience, the ₹99 pass,
- * Aadhaar + PAN + payout details, then our team reviews the application the same day.
+ * PAN + payout details, then our team reviews the application the same day. Aadhaar is not
+ * collected (client answer Q51, Nov 2026: "PAN and bank check only").
  */
 
 interface ExpertKYC {
-  aadhaar_last4: string;
+  aadhaar_last4?: string; // only on applications sent before Aadhaar stopped being collected
   pan_masked: string;
   payout_method: "bank" | "upi";
   account_holder: string;
@@ -70,24 +70,8 @@ const LABEL = "block text-sm font-semibold text-km-heading mb-1.5";
 const HINT = "mt-1.5 text-xs text-km-text-secondary";
 
 const digits = (v: string, max: number) => v.replace(/\D/g, "").slice(0, max);
-const groupAadhaar = (v: string) => v.replace(/(\d{4})(?=\d)/g, "$1 ");
-// Verhoeff checksum, the same rule UIDAI and the backend use, so typos are caught on this step
-const VERHOEFF_D = [
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2, 3, 4, 0, 6, 7, 8, 9, 5], [2, 3, 4, 0, 1, 7, 8, 9, 5, 6],
-  [3, 4, 0, 1, 2, 8, 9, 5, 6, 7], [4, 0, 1, 2, 3, 9, 5, 6, 7, 8], [5, 9, 8, 7, 6, 0, 4, 3, 2, 1],
-  [6, 5, 9, 8, 7, 1, 0, 4, 3, 2], [7, 6, 5, 9, 8, 2, 1, 0, 4, 3], [8, 7, 6, 5, 9, 3, 2, 1, 0, 4],
-  [9, 8, 7, 6, 5, 4, 3, 2, 1, 0],
-];
-const VERHOEFF_P = [
-  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 5, 7, 6, 2, 8, 3, 0, 9, 4], [5, 8, 0, 3, 7, 9, 6, 1, 4, 2],
-  [8, 9, 1, 6, 0, 4, 3, 5, 2, 7], [9, 4, 5, 3, 1, 2, 6, 8, 7, 0], [4, 2, 8, 6, 5, 7, 3, 9, 0, 1],
-  [2, 7, 9, 3, 8, 0, 6, 4, 1, 5], [7, 0, 4, 6, 9, 1, 3, 2, 5, 8],
-];
-const validAadhaar = (v: string) =>
-  /^[2-9]\d{11}$/.test(v) &&
-  v.split("").reverse().reduce((c, ch, i) => VERHOEFF_D[c][VERHOEFF_P[i % 8][Number(ch)]], 0) === 0;
 // Server codes that belong to the Identity step
-const IDENTITY_CODES = ["AADHAAR_INVALID", "PAN_INVALID", "KYC_DOCUMENT_REQUIRED"];
+const IDENTITY_CODES = ["PAN_INVALID", "KYC_DOCUMENT_REQUIRED"];
 const formatSize = (b: number) => (b < 1024 * 1024 ? `${Math.max(1, Math.round(b / 1024))} KB` : `${(b / 1024 / 1024).toFixed(1)} MB`);
 
 export default function ExpertApplyPage() {
@@ -103,9 +87,7 @@ export default function ExpertApplyPage() {
   const [category, setCategory] = useState("");
   const [bio, setBio] = useState("");
   const [price, setPrice] = useState("");
-  const [aadhaar, setAadhaar] = useState("");
   const [pan, setPan] = useState("");
-  const [aadhaarDoc, setAadhaarDoc] = useState<UploadedDoc | null>(null);
   const [panDoc, setPanDoc] = useState<UploadedDoc | null>(null);
   const [payoutMethod, setPayoutMethod] = useState<"bank" | "upi">("bank");
   const [holder, setHolder] = useState("");
@@ -152,10 +134,8 @@ export default function ExpertApplyPage() {
       if (!p || p < 99 || p > 50000) return "Set a session price between ₹99 and ₹50,000.";
     }
     if (s === 2) {
-      if (aadhaar.length !== 12) return "Enter your 12-digit Aadhaar number.";
-      if (!validAadhaar(aadhaar)) return "This Aadhaar number isn't valid. Please check it.";
       if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan)) return "Enter a valid PAN, like ABCDE1234F.";
-      if (!aadhaarDoc || !panDoc) return "Upload both your Aadhaar and PAN card.";
+      if (!panDoc) return "Upload a photo of your PAN card.";
     }
     if (s === 3) {
       if (!holder.trim()) return "Enter the account holder's name.";
@@ -192,9 +172,7 @@ export default function ExpertApplyPage() {
         expert_category: category,
         expert_bio: bio.trim(),
         expert_pricing: Number(price),
-        aadhaar_number: aadhaar,
         pan_number: pan,
-        aadhaar_doc_url: aadhaarDoc?.url,
         pan_doc_url: panDoc?.url,
         payout_method: payoutMethod,
         account_holder: holder.trim(),
@@ -204,7 +182,6 @@ export default function ExpertApplyPage() {
         upi_id: payoutMethod === "upi" ? upi.trim() : "",
       });
       // Identity numbers are not kept in the browser after submitting
-      setAadhaar("");
       setPan("");
       setAccount("");
       setConfirmAccount("");
@@ -306,9 +283,8 @@ export default function ExpertApplyPage() {
                     </div>
                     <div className="mt-6 rounded-2xl bg-km-surface p-4">
                       <p className="text-sm font-semibold text-km-heading">Keep these ready</p>
-                      <ul className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm text-km-text-secondary">
-                        <li className="flex items-center gap-2"><IdentificationCardIcon size={18} className="text-km-mentors shrink-0" aria-hidden="true" />Aadhaar card</li>
-                        <li className="flex items-center gap-2"><FileTextIcon size={18} className="text-km-mentors shrink-0" aria-hidden="true" />PAN card</li>
+                      <ul className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-km-text-secondary">
+                        <li className="flex items-center gap-2"><IdentificationCardIcon size={18} className="text-km-mentors shrink-0" aria-hidden="true" />PAN card</li>
                         <li className="flex items-center gap-2"><BankIcon size={18} className="text-km-mentors shrink-0" aria-hidden="true" />Bank or UPI details</li>
                       </ul>
                     </div>
@@ -365,19 +341,7 @@ export default function ExpertApplyPage() {
                       <h2 className="text-lg font-bold text-km-heading">Verify your identity</h2>
                       <p className="mt-1 text-sm text-km-text-secondary">Only our verification team sees your documents.</p>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="aadhaar" className={LABEL}>Aadhaar number</label>
-                        <input
-                          id="aadhaar"
-                          inputMode="numeric"
-                          autoComplete="off"
-                          value={groupAadhaar(aadhaar)}
-                          onChange={(e) => setAadhaar(digits(e.target.value, 12))}
-                          placeholder="1234 5678 9012"
-                          className={`${INPUT} tracking-wider`}
-                        />
-                      </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:items-start">
                       <div>
                         <label htmlFor="pan" className={LABEL}>PAN</label>
                         <input
@@ -387,11 +351,10 @@ export default function ExpertApplyPage() {
                           onChange={(e) => setPan(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 10))}
                           placeholder="ABCDE1234F"
                           className={`${INPUT} tracking-wider`}
+                          aria-describedby="pan-hint"
                         />
+                        <p id="pan-hint" className={HINT}>We use your PAN and payout account to verify you. We don’t ask for Aadhaar.</p>
                       </div>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <DocUpload label="Aadhaar card" value={aadhaarDoc} onChange={setAadhaarDoc} />
                       <DocUpload label="PAN card" value={panDoc} onChange={setPanDoc} />
                     </div>
                     <PrivacyNote />
@@ -645,8 +608,8 @@ function PrivacyNote() {
     <p className="flex items-start gap-2.5 rounded-2xl bg-km-surface p-4 text-sm text-km-text-secondary">
       <LockKeyIcon size={18} className="mt-0.5 shrink-0 text-km-heading" aria-hidden="true" />
       <span>
-        Documents are stored privately and opened only by our verification team. We keep just the last 4 digits of your
-        Aadhaar and PAN numbers.
+        Your PAN card is stored privately and opened only by our verification team. We keep your PAN number masked, never in
+        full.
       </span>
     </p>
   );
@@ -717,10 +680,10 @@ function Summary({ app }: { app: ApplicationStatus }) {
   const rows: [string, string][] = [
     ["Expertise", app.expert_category || "-"],
     ["Session price", app.expert_pricing ? `₹${app.expert_pricing}` : "-"],
-    ["Aadhaar", `XXXX XXXX ${kyc.aadhaar_last4}`],
+    ...(kyc.aadhaar_last4 ? [["Aadhaar", `XXXX XXXX ${kyc.aadhaar_last4}`] as [string, string]] : []),
     ["PAN", kyc.pan_masked],
     ["Payouts", kyc.payout_method === "bank" ? `Bank account ending ${kyc.account_last4} (${kyc.ifsc})` : `UPI ${kyc.upi_id}`],
-    ["Submitted", new Date(kyc.submitted_at).toLocaleString()],
+    ["Submitted", new Date(kyc.submitted_at).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })],
   ];
   return (
     <dl className="mt-5 divide-y divide-km-border rounded-2xl border border-km-border">

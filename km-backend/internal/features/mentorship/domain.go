@@ -3,6 +3,8 @@ package mentorship
 import (
 	"time"
 
+	"km-backend/internal/features/user"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -115,13 +117,13 @@ type CreateMentorshipRequest struct {
 	Status string `json:"status,omitempty"`
 }
 
-// Limits on a session an expert publishes. Price is in rupees: a session needs one to be booked,
-// and the cap stops a typo (an extra zero) from going live.
+// Limits on a session an expert publishes. Price is in rupees, the same range as the price an
+// Expert gives when applying; the cap also stops a typo (an extra zero) from going live.
 const (
 	MinSessionMinutes = 15
 	MaxSessionMinutes = 240
-	MinSessionPrice   = 1
-	MaxSessionPrice   = 100000
+	MinSessionPrice   = user.MinExpertSessionPrice
+	MaxSessionPrice   = user.MaxExpertSessionPrice
 	MaxTitleLength    = 100
 	MaxDetailsLength  = 2000
 )

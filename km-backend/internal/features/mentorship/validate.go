@@ -15,7 +15,7 @@ var (
 	ErrSessionTitle     = apperr.New("MENTORSHIP_TITLE_INVALID", fmt.Sprintf("give the session a title of up to %d characters", MaxTitleLength))
 	ErrSessionDetails   = apperr.New("MENTORSHIP_DETAILS_INVALID", fmt.Sprintf("add a category and a description of up to %d characters", MaxDetailsLength))
 	ErrSessionDuration  = apperr.New("MENTORSHIP_DURATION_INVALID", fmt.Sprintf("a session lasts between %d and %d minutes", MinSessionMinutes, MaxSessionMinutes))
-	ErrSessionPrice     = apperr.New("MENTORSHIP_PRICE_RANGE", "set a price between ₹1 and ₹1,00,000")
+	ErrSessionPrice     = apperr.New("MENTORSHIP_PRICE_RANGE", "set a price between ₹99 and ₹50,000")
 	ErrSessionStatus    = apperr.New("MENTORSHIP_STATE_INVALID", "a session can only be active or paused")
 	ErrNotYourSession   = apperr.New("MENTORSHIP_FORBIDDEN", "this session isn't yours")
 	ErrSessionHasBooked = apperr.New("MENTORSHIP_HAS_BOOKINGS", "this session has bookings that aren't finished. Complete or cancel them first, or pause the session instead")

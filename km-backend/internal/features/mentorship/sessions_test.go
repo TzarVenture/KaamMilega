@@ -35,6 +35,7 @@ func TestSessionFieldsAreChecked(t *testing.T) {
 		"free":           {func(r *CreateMentorshipRequest) { r.Price = 0 }, ErrSessionPrice},
 		"negative price": {func(r *CreateMentorshipRequest) { r.Price = -100 }, ErrSessionPrice},
 		"extra zero":     {func(r *CreateMentorshipRequest) { r.Price = 1000000 }, ErrSessionPrice},
+		"under ₹99":      {func(r *CreateMentorshipRequest) { r.Price = 50 }, ErrSessionPrice},
 		"unknown status": {func(r *CreateMentorshipRequest) { r.Status = "deleted" }, ErrSessionStatus},
 	}
 	for name, c := range cases {

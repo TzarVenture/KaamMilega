@@ -13,12 +13,12 @@ export const SESSION_CATEGORIES = [
 /** Session lengths offered in the form (the server accepts 15 to 240 minutes) */
 export const SESSION_DURATIONS = [15, 30, 45, 60, 90, 120];
 
-/** The same limits the server checks (km-backend mentorship/domain.go) */
+/** The same limits the server checks (km-backend mentorship/domain.go; the price range matches the Expert application) */
 export const SESSION_LIMITS = {
     title: 100,
     description: 2000,
-    minPrice: 1,
-    maxPrice: 100000,
+    minPrice: 99,
+    maxPrice: 50000,
 };
 
 /** How a booking reads to the mentor: a label, a badge colour and what happens next */
