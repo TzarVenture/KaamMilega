@@ -3,6 +3,7 @@ package subscription
 import (
 	"context"
 	"errors"
+	"log"
 	"time"
 
 	"km-backend/internal/config"
@@ -47,8 +48,9 @@ func NewSubscriptionService(
 		tx:            tx,
 	}
 	payments.Register(payment.PurposeSubscription, payment.Handlers{
-		Fulfill: s.fulfillSubscription,
-		Revoke:  s.revokeSubscription,
+		Fulfill:   s.fulfillSubscription,
+		AfterPaid: s.afterSubscriptionPaid,
+		Revoke:    s.revokeSubscription,
 	})
 	return s
 }
@@ -106,6 +108,11 @@ func (s *SubscriptionServiceImpl) GetMySubscription(ctx context.Context, userID 
 		}, nil
 	}
 
+	// The expert role is granted after the purchase commits; if that failed, repair it here
+	if err := s.grantExpertRole(ctx, userID); err != nil {
+		log.Printf("[subscription] user %s: granting expert role failed: %v", userID, err)
+	}
+
 	daysRemaining := int(time.Until(sub.ExpiresAt).Hours() / 24)
 	if daysRemaining < 0 {
 		daysRemaining = 0
@@ -147,6 +154,9 @@ func (s *SubscriptionServiceImpl) grantExpertRole(ctx context.Context, userID st
 			hasExpertRole = true
 			break
 		}
+	}
+	if hasExpertRole && u.ExpertApprovalStatus == "approved" && u.IsConsultant {
+		return nil // Already granted: no write
 	}
 	if !hasExpertRole {
 		u.Roles = append(u.Roles, user.RoleExpert)

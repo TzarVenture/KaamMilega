@@ -392,3 +392,8 @@ func TestAdminRefundEndsTheSubscription(t *testing.T) {
 		t.Fatalf("status = %s", sub.Status)
 	}
 }
+
+// LockUser has nothing to lock in memory; the Postgres tests cover the real lock
+func (m *mockSubscriptionRepo) LockUser(ctx context.Context, userID primitive.ObjectID) error {
+	return nil
+}

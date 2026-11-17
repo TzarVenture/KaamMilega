@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"km-backend/internal/common/apperr"
@@ -17,6 +18,8 @@ import (
 var (
 	ErrInvalidPlan    = apperr.New("SUBSCRIPTION_PLAN_INVALID", "choose a monthly or yearly plan")
 	ErrJustSubscribed = apperr.New("SUBSCRIPTION_JUST_PURCHASED", "this plan was purchased just now")
+
+	errNoTransaction = errors.New("subscription: a purchase must run inside a transaction")
 )
 
 // A second purchase this soon after the last one is a double click, not a renewal
@@ -49,6 +52,11 @@ func parseUser(userID string) (primitive.ObjectID, error) {
 // activate writes the subscription and grants the expert role. A renewal adds to the time left
 // instead of throwing it away.
 func (s *SubscriptionServiceImpl) activate(ctx context.Context, uid primitive.ObjectID, planType string, terms planTerms, method, orderID, paymentID string) (*ExpertSubscription, error) {
+	// Two purchases for one user at the same moment wait for each other, so the second one sees
+	// the first and is caught as a double click below
+	if err := s.repo.LockUser(ctx, uid); err != nil {
+		return nil, err
+	}
 	now := time.Now()
 	startsAt := now
 	active, err := s.repo.GetActiveSubscription(ctx, uid.Hex())
@@ -79,10 +87,22 @@ func (s *SubscriptionServiceImpl) activate(ctx context.Context, uid primitive.Ob
 	if err != nil {
 		return nil, fmt.Errorf("saving subscription: %w", err)
 	}
-	if err := s.grantExpertRole(ctx, uid.Hex()); err != nil {
-		return nil, fmt.Errorf("granting expert role: %w", err)
-	}
 	return created, nil
+}
+
+// afterActivation grants the expert role once the plan is safely saved. The role lives on the
+// MongoDB user, outside the Postgres transaction, so it is never granted for a purchase that
+// rolled back. If this fails, GetMySubscription grants it on the expert's next visit.
+func (s *SubscriptionServiceImpl) afterActivation(userID primitive.ObjectID) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+	if err := s.grantExpertRole(ctx, userID.Hex()); err != nil {
+		log.Printf("[subscription] user %s: granting expert role failed, will retry on next status check: %v", userID.Hex(), err)
+	}
+}
+
+func (s *SubscriptionServiceImpl) afterSubscriptionPaid(order *payment.Order) {
+	s.afterActivation(order.UserID)
 }
 
 // CreateOrder opens a checkout for a plan at the server's price
@@ -200,5 +220,6 @@ func (s *SubscriptionServiceImpl) SubscribeWithWallet(ctx context.Context, userI
 	if err != nil {
 		return nil, nil, err
 	}
+	s.afterActivation(uid)
 	return created, summary, nil
 }
