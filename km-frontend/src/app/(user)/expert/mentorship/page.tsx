@@ -1,654 +1,809 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowSquareOutIcon, CalendarBlankIcon, CheckCircleIcon, CheckIcon, ClockIcon, LinkSimpleIcon, NotePencilIcon, PlusIcon, ShieldCheckIcon, TrashIcon, UserIcon, VideoCameraIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+import {
+  ArrowSquareOutIcon, CalendarBlankIcon, ChalkboardTeacherIcon, CheckCircleIcon, CheckIcon, ClockIcon,
+  LinkSimpleIcon, PauseIcon, PencilSimpleIcon, PlayIcon, PlusIcon, TrashIcon, UserIcon, UsersThreeIcon,
+  VideoCameraIcon, WalletIcon,
+} from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { inr } from '@/lib/money';
-import { btn } from '@/components/admin/ui';
-import Link from 'next/link';
-import { notify, errorText } from "@/lib/notify";
+import { getCurrentUser } from '@/lib/auth';
+import { notify } from '@/lib/notify';
+import { AdminModal, ConfirmDialog, EmptyState, StatusBadge, btn, cx, field } from '@/components/admin/ui';
+import { BOOKING_STATUS, SESSION_CATEGORIES, SESSION_DURATIONS, SESSION_LIMITS, price, sessionTime, sortBookings } from '@/lib/mentorship';
 
 interface WalletSummary {
-  wallet_id: string;
-  total_balance: number;
   withdrawable_balance: number;
-  main_balance: number;
-  earnings_balance: number;
   locked_balance: number;
 }
 
+interface Session {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  duration: number;
+  price: number;
+  status: string;
+  rating?: number;
+  reviews?: number;
+}
+
+interface Booking {
+  id: string;
+  mentorship_title?: string;
+  mentee_name?: string;
+  mentee_email?: string;
+  scheduled_at: string;
+  status: string;
+  amount: number;
+  meeting_link?: string;
+  notes?: string;
+}
+
+interface Slot {
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_active?: boolean;
+}
+
+type Tab = 'bookings' | 'sessions' | 'hours';
+
+const TABS: { id: Tab; label: string; Icon: typeof UserIcon }[] = [
+  { id: 'bookings', label: 'Bookings', Icon: UsersThreeIcon },
+  { id: 'sessions', label: 'My sessions', Icon: ChalkboardTeacherIcon },
+  { id: 'hours', label: 'Weekly hours', Icon: CalendarBlankIcon },
+];
+
 export default function ExpertMentorshipManagement() {
-  const [activeTab, setActiveTab] = useState<'sessions' | 'bookings' | 'availability'>('bookings');
-  const [mentorships, setMentorships] = useState<any[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [availability, setAvailability] = useState<any[]>([]);
+  const [isExpert, setIsExpert] = useState<boolean | null>(null);
+  const [tab, setTab] = useState<Tab>('bookings');
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [hours, setHours] = useState<Slot[]>([]);
   const [wallet, setWallet] = useState<WalletSummary | null>(null);
   const [loading, setLoading] = useState(true);
+  // null = closed, 'new' = create, a session = edit
+  const [editing, setEditing] = useState<Session | 'new' | null>(null);
 
+  // Roles live in localStorage, so read them after mount (the server render has no user)
   useEffect(() => {
-    fetchData();
-    fetchWallet();
-  }, [activeTab]);
+    const user = getCurrentUser();
+    const roles = Array.isArray(user?.roles) ? user.roles : user?.role ? [user.role] : [];
+    setIsExpert(roles.includes('expert') || roles.includes('admin'));
+  }, []);
 
-  const fetchWallet = async () => {
+  const loadSessions = useCallback(async () => {
+    const res = await api.get<unknown, Session[] | null>('/mentorships/expert/my');
+    setSessions(res || []);
+  }, []);
+  const loadBookings = useCallback(async () => {
+    const res = await api.get<unknown, Booking[] | null>('/mentorships/bookings/expert');
+    setBookings(res || []);
+  }, []);
+  const loadHours = useCallback(async () => {
+    const res = await api.get<unknown, Slot[] | null>('/mentorships/availability');
+    setHours((res || []).filter((s) => s.is_active !== false));
+  }, []);
+  const loadWallet = useCallback(async () => {
     try {
-      const res: any = await api.get('/wallet/balance');
-      setWallet(res);
-    } catch (e) {
-      console.warn("Could not load wallet stats", e);
+      setWallet(await api.get<unknown, WalletSummary>('/wallet/balance'));
+    } catch {
+      // The money summary is extra; the dashboard works without it
     }
-  };
+  }, []);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      if (activeTab === 'sessions') {
-        const res: any = await api.get('/mentorships/expert/my');
-        setMentorships(res || []);
-      } else if (activeTab === 'bookings') {
-        const res: any = await api.get('/mentorships/bookings/expert');
-        setBookings(res || []);
-      } else if (activeTab === 'availability') {
-        const res: any = await api.get('/mentorships/availability');
-        setAvailability(res || []);
+  // Everything loads once, together, so every tab count is right from the start
+  useEffect(() => {
+    if (!isExpert) {
+      if (isExpert === false) setLoading(false);
+      return;
+    }
+    Promise.allSettled([loadSessions(), loadBookings(), loadHours(), loadWallet()]).then((results) => {
+      if (results.slice(0, 3).some((r) => r.status === 'rejected')) {
+        notify.error((results.find((r) => r.status === 'rejected') as PromiseRejectedResult).reason, 'Some of your dashboard couldn’t be loaded. Refresh to try again.');
       }
-    } catch (error) {
-      console.error("Failed to fetch expert data", error);
-      notify.error(error, "Your sessions couldn’t be loaded.");
-    } finally {
       setLoading(false);
-    }
-  };
+    });
+  }, [isExpert, loadSessions, loadBookings, loadHours, loadWallet]);
+
+  const toDo = bookings.filter((b) => b.status === 'confirmed').length;
+  const activeSessions = sessions.filter((s) => s.status === 'active').length;
+  const counts: Record<Tab, number | undefined> = { bookings: bookings.length, sessions: sessions.length, hours: undefined };
+
+  if (isExpert === false) {
+    return (
+      <main className="min-h-screen bg-km-surface pb-20">
+        <div className="max-w-3xl mx-auto px-4 pt-16">
+          <div className="km-card">
+            <EmptyState
+              icon={ChalkboardTeacherIcon}
+              title="This dashboard is for approved Experts"
+              description="Apply as an Expert to publish paid sessions. Our team reviews applications the same day."
+              action={<Link href="/expert/apply" className={btn.primary}>Apply as an Expert</Link>}
+            />
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-[#fafafa] pb-20 dark:bg-[#1D253D]">
+    <main className="min-h-screen bg-km-surface pb-20">
       <div className="max-w-7xl mx-auto px-4 md:px-6 pt-6 md:pt-8">
-        
-        {/* Header with Quick Wallet & Payout Stats */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 md:mb-8">
+        <header className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4 mb-6">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="bg-purple-100 text-purple-700 text-[11px] font-semibold px-2 py-0.5 rounded-full">
-                Expert Monetisation Portal
-              </span>
-            </div>
-            <h1 className="text-xl md:text-3xl font-bold text-km-heading mb-0.5 md:mb-1">Mentor Dashboard</h1>
-            <p className="text-[11px] md:text-sm text-km-text-secondary font-medium">Manage your booked sessions and track your payouts.</p>
+            <p className="flex items-center gap-2 text-[13px] font-semibold text-km-mentors-text mb-1.5">
+              <ChalkboardTeacherIcon size={16} weight="bold" aria-hidden="true" />
+              Expert Portal
+            </p>
+            <h1 className="text-2xl md:text-3xl font-bold text-km-heading">Mentor dashboard</h1>
+            <p className="mt-1 text-sm text-km-text-secondary">Publish sessions, run your calls and get paid after each one.</p>
           </div>
 
-          {/* Quick Wallet Stats Widget */}
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             {wallet && (
               <dl className="flex items-center gap-6 bg-km-surface-card border border-km-border rounded-xl px-4 py-2">
                 <div>
-                  <dt className="text-sm text-km-text-secondary">Earnings</dt>
-                  <dd className="text-lg font-semibold text-km-heading font-inter tabular-nums">{inr(wallet.withdrawable_balance)}</dd>
+                  <dt className="text-xs text-km-text-secondary">Earnings</dt>
+                  <dd className="text-base font-semibold text-km-heading tabular-nums">{inr(wallet.withdrawable_balance)}</dd>
                 </div>
                 <div>
-                  <dt className="text-sm text-km-text-secondary">On hold</dt>
-                  <dd className="text-lg font-semibold text-km-heading font-inter tabular-nums">{inr(wallet.locked_balance)}</dd>
+                  <dt className="text-xs text-km-text-secondary">On hold</dt>
+                  <dd className="text-base font-semibold text-km-heading tabular-nums">{inr(wallet.locked_balance)}</dd>
                 </div>
               </dl>
             )}
-
             <Link href="/wallet" className={btn.secondary}>
               <WalletIcon size={16} aria-hidden="true" /> Wallet
             </Link>
-
-            {activeTab === 'sessions' && (
-              <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 md:px-5 py-2.5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2 text-xs md:text-sm">
-                <PlusIcon weight="bold" size={16} /> Create Session
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex border-b border-km-border mb-5 md:mb-6 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
-          {[
-            { id: 'bookings', label: 'Booked Sessions', icon: <UserIcon weight="bold" size={14} />, count: bookings.length },
-            { id: 'sessions', label: 'My Sessions', icon: <PlusIcon weight="bold" size={14} />, count: mentorships.length },
-            { id: 'availability', label: 'Availability Hours', icon: <CalendarBlankIcon weight="bold" size={14} /> }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-3 md:px-6 py-2.5 md:py-3 font-bold transition-all relative text-xs md:text-sm whitespace-nowrap ${
-                activeTab === tab.id ? 'text-purple-600 dark:text-purple-400' : 'text-km-text-muted hover:text-km-text-secondary'
-              }`}
-            >
-              {tab.icon} {tab.label}
-              {tab.count !== undefined && (
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  activeTab === tab.id ? 'bg-purple-100 text-purple-700' : 'bg-km-surface text-km-text-secondary'
-                }`}>
-                  {tab.count}
-                </span>
-              )}
-              {activeTab === tab.id && (
-                <motion.div layoutId="tab-underline" className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 rounded-full" />
-              )}
+            <button type="button" onClick={() => setEditing('new')} className={btn.primary}>
+              <PlusIcon size={16} weight="bold" aria-hidden="true" /> New session
             </button>
-          ))}
+          </div>
+        </header>
+
+        {!loading && (hours.length === 0 || activeSessions === 0) && (
+          <SetupSteps hasHours={hours.length > 0} hasSession={activeSessions > 0} onHours={() => setTab('hours')} onSession={() => setEditing('new')} />
+        )}
+
+        <div role="tablist" aria-label="Mentor dashboard" className="flex border-b border-km-border mb-6 overflow-x-auto scrollbar-hide -mx-4 px-4 md:mx-0 md:px-0">
+          {TABS.map(({ id, label, Icon }) => {
+            const selected = tab === id;
+            return (
+              <button
+                key={id}
+                id={`tab-${id}`}
+                role="tab"
+                type="button"
+                aria-selected={selected}
+                aria-controls={`panel-${id}`}
+                onClick={() => setTab(id)}
+                className={cx(
+                  'relative flex items-center gap-2 px-4 md:px-5 py-3 text-sm font-semibold whitespace-nowrap transition-colors border-b-2 -mb-px',
+                  selected ? 'text-km-mentors-text border-km-mentors' : 'text-km-text-secondary border-transparent hover:text-km-heading',
+                )}
+              >
+                <Icon size={16} weight="bold" aria-hidden="true" />
+                {label}
+                {!loading && counts[id] !== undefined && (
+                  <span className="text-xs tabular-nums text-km-text-secondary">({counts[id]})</span>
+                )}
+                {id === 'bookings' && toDo > 0 && <span className="sr-only">, {toDo} to run</span>}
+              </button>
+            );
+          })}
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="w-10 h-10 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : (
-          <div className="min-h-[400px]">
-            {activeTab === 'bookings' && <BookingsList bookings={bookings} onUpdate={() => { fetchData(); fetchWallet(); }} />}
-            {activeTab === 'sessions' && <SessionsList mentorships={mentorships} />}
-            {activeTab === 'availability' && <AvailabilityManager availability={availability} onSaved={fetchData} />}
-          </div>
-        )}
+        <section id={`panel-${tab}`} role="tabpanel" aria-labelledby={`tab-${tab}`} className="min-h-[360px]">
+          {loading ? (
+            <div className="flex items-center justify-center py-20" role="status">
+              <div className="w-9 h-9 border-2 border-km-mentors border-t-transparent rounded-full animate-spin" aria-hidden="true" />
+              <span className="sr-only">Loading your dashboard</span>
+            </div>
+          ) : tab === 'bookings' ? (
+            <BookingsList bookings={bookings} onChange={() => { loadBookings(); loadWallet(); }} />
+          ) : tab === 'sessions' ? (
+            <SessionsList sessions={sessions} onNew={() => setEditing('new')} onEdit={setEditing} onChange={loadSessions} />
+          ) : (
+            <WeeklyHours saved={hours} onSaved={loadHours} />
+          )}
+        </section>
       </div>
+
+      {editing && (
+        <SessionForm
+          session={editing === 'new' ? null : editing}
+          onClose={() => setEditing(null)}
+          onSaved={() => { setEditing(null); loadSessions(); setTab('sessions'); }}
+        />
+      )}
     </main>
   );
 }
 
-function SessionsList({ mentorships }: { mentorships: any[] }) {
-  if (mentorships.length === 0) {
-    return (
-      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-km-border">
-        <PlusIcon size={28} weight="duotone" className="text-km-text-muted mx-auto mb-4" aria-hidden="true" />
-        <h3 className="text-lg font-bold text-km-text-primary mb-2">No Mentorship Sessions</h3>
-        <p className="text-xs md:text-sm text-km-text-secondary mb-6 md:mb-8 max-w-xs mx-auto">Create your first session to start helping others and growing your professional network.</p>
-        <button className="text-purple-600 text-xs md:text-sm font-bold border border-purple-200 px-5 py-2 rounded-full hover:bg-purple-50 dark:text-purple-400">Create Now</button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-      {mentorships.map((m, i) => (
-        <div key={m.id || i} className="bg-km-surface-card p-5 md:p-6 rounded-xl md:rounded-2xl border border-km-border-subtle shadow-sm hover:shadow-lg transition-all group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="bg-purple-50 text-purple-600 text-[11px] font-semibold px-2.5 py-1 rounded-full dark:text-purple-400">{m.category}</div>
-            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button className="p-1.5 hover:bg-km-surface rounded-lg text-km-text-muted hover:text-blue-500 transition-colors dark:hover:text-blue-400"><NotePencilIcon weight="bold" size={14} /></button>
-              <button className="p-1.5 hover:bg-km-surface rounded-lg text-km-text-muted hover:text-red-500 transition-colors dark:hover:text-red-400"><TrashIcon weight="bold" size={14} /></button>
-            </div>
-          </div>
-          <h3 className="text-base md:text-lg font-bold text-km-heading mb-3 md:mb-4">{m.title}</h3>
-          <div className="flex items-center justify-between pt-3 md:pt-4 border-t border-km-border-subtle">
-            <div className="flex items-center gap-1.5 text-km-text-muted text-xs font-bold">
-              <ClockIcon weight="bold" size={12} /> {m.duration} Mins
-            </div>
-            <div className="text-base md:text-lg font-bold text-km-heading">₹{m.price}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function BookingsList({ bookings, onUpdate }: { bookings: any[], onUpdate: () => void }) {
-  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
-  const [meetingModalBooking, setMeetingModalBooking] = useState<any | null>(null);
-  const [meetingUrlInput, setMeetingUrlInput] = useState('');
-  const [isSavingMeeting, setIsSavingMeeting] = useState(false);
-
-  const handleStatus = async (booking: any, status: string) => {
-    try {
-      setActionLoadingId(booking.id);
-      await api.patch(`/mentorships/bookings/${booking.id}/status?status=${status}`);
-      if (status === 'completed') {
-        notify.success("Session marked done. You're paid when the mentee confirms, or automatically after 24 hours.");
-      } else if (status === 'confirmed') {
-        notify.success("Session confirmed! Candidate has been notified.");
-      } else if (status === 'cancelled') {
-        notify.info("Session cancelled. The candidate is being refunded.");
-      }
-      onUpdate();
-    } catch (e: any) {
-      const msg = errorText(e, "Status update failed");
-      notify.error(`Error: ${msg}`);
-      console.error("Status update failed", e);
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleSaveMeetingLink = async () => {
-    if (!meetingModalBooking) return;
-    try {
-      setIsSavingMeeting(true);
-      await api.patch(`/mentorships/bookings/${meetingModalBooking.id}/meeting-link`, {
-        meeting_link: meetingUrlInput.trim()
-      });
-      notify.success("Meeting link updated successfully!");
-      setMeetingModalBooking(null);
-      onUpdate();
-    } catch (e: any) {
-      notify.error("Failed to update meeting link");
-    } finally {
-      setIsSavingMeeting(false);
-    }
-  };
-
-  if (bookings.length === 0) {
-    return (
-      <div className="bg-km-surface-card p-12 md:p-20 text-center rounded-2xl md:rounded-[32px] border border-dashed border-km-border">
-        <UserIcon size={40} weight="duotone" className="text-km-text-muted mx-auto mb-4 md:mb-6" aria-hidden="true" />
-        <h3 className="text-lg font-bold text-km-text-primary mb-2">No Bookings Yet</h3>
-        <p className="text-xs md:text-sm text-km-text-secondary max-w-xs mx-auto">When candidates book sessions with you, they will appear here. Funds are held in Escrow until you complete the call.</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {bookings.map((b, i) => {
-        const isCompleted = b.status === 'completed';
-        const isConfirmed = b.status === 'confirmed';
-        const isPending = b.status === 'pending';
-        const isCancelled = b.status === 'cancelled';
-        const isAwaiting = b.status === 'awaiting_confirmation';
-        const isReported = b.status === 'reported';
-        const isLoading = actionLoadingId === b.id;
-
-        return (
-          <div key={b.id || i} className="bg-km-surface-card p-4 md:p-5 rounded-xl md:rounded-2xl border border-km-border-subtle shadow-sm hover:border-purple-100 transition-all flex flex-col md:flex-row md:items-center justify-between gap-4">
-            
-            {/* Left: Mentee & Session info */}
-            <div className="flex gap-3.5 items-start">
-              <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center shrink-0 font-bold text-sm dark:text-purple-400">
-                {b.mentee_name ? b.mentee_name.charAt(0).toUpperCase() : <UserIcon size={20} />}
-              </div>
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
-                    {b.mentorship_title || '1-on-1 Mentorship'}
-                  </span>
-                  
-                  {/* Status Pill */}
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                    isCompleted ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                    isConfirmed ? 'bg-blue-50 text-km-link border border-blue-200' :
-                    isPending ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                    'bg-km-surface text-km-text-secondary'
-                  }`}>
-                    {isAwaiting ? 'Waiting for mentee' : isReported ? 'Reported' : b.status}
-                  </span>
-                </div>
-
-                <h4 className="font-bold text-km-heading text-sm md:text-base">
-                  {b.mentee_name || 'Candidate Booking'}
-                </h4>
-                {b.mentee_email && (
-                  <p className="text-[11px] text-km-text-secondary font-medium">{b.mentee_email}</p>
-                )}
-                
-                <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[11px] text-km-text-secondary">
-                  <span className="flex items-center gap-1 font-medium">
-                    <CalendarBlankIcon weight="bold" size={12} className="text-km-text-muted" />
-                    {new Date(b.scheduled_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
-                  </span>
-                  
-                  <span className="flex items-center gap-1 font-bold text-emerald-600 dark:text-emerald-400">
-                    <ShieldCheckIcon weight="bold" size={13} />
-                    ₹{b.amount || 0} {isCompleted ? 'Credited to Earnings' : 'Held in Escrow'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Actions */}
-            <div className="flex flex-wrap items-center justify-between md:justify-end gap-2.5 pt-3 md:pt-0 border-t md:border-t-0 border-km-border-subtle">
-              
-              {/* Meeting Link Button */}
-              {b.meeting_link ? (
-                <a 
-                  href={b.meeting_link.startsWith('http') ? b.meeting_link : `https://${b.meeting_link}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border border-purple-200"
-                >
-                  <VideoCameraIcon weight="bold" size={13} /> Join Meeting <ArrowSquareOutIcon weight="bold" size={11} />
-                </a>
-              ) : (
-                isConfirmed && (
-                  <button
-                    onClick={() => {
-                      setMeetingModalBooking(b);
-                      setMeetingUrlInput('');
-                    }}
-                    className="text-km-text-secondary hover:text-purple-600 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-km-surface border border-dashed border-km-border flex items-center gap-1 dark:hover:text-purple-400"
-                  >
-                    <LinkSimpleIcon weight="bold" size={13} /> Add Meet Link
-                  </button>
-                )
-              )}
-
-              {/* Status Actions */}
-              {isPending && (
-                <div className="flex gap-2">
-                  <button 
-                    disabled={isLoading}
-                    onClick={() => handleStatus(b, 'confirmed')}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all shadow-sm disabled:opacity-50"
-                  >
-                    <CheckIcon weight="bold" size={14} /> Accept
-                  </button>
-                  <button 
-                    disabled={isLoading}
-                    onClick={() => handleStatus(b, 'cancelled')}
-                    className="bg-km-surface hover:bg-red-50 text-km-text-secondary hover:text-red-600 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 dark:hover:text-red-400"
-                  >
-                    <XIcon weight="bold" size={14} /> Decline
-                  </button>
-                </div>
-              )}
-
-              {isConfirmed && (
-                <div className="flex items-center gap-2">
-                  <button 
-                    disabled={isLoading}
-                    onClick={() => handleStatus(b, 'completed')}
-                    className="bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all shadow-md shadow-emerald-600/20 disabled:opacity-50"
-                  >
-                    {isLoading ? (
-                      <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <CheckCircleIcon weight="bold" size={14} />
-                    )}
-                    Mark session done
-                  </button>
-                  
-                  <button 
-                    disabled={isLoading}
-                    onClick={() => {
-                      if (confirm("Are you sure you want to cancel? The mentee will be refunded automatically.")) {
-                        handleStatus(b, 'cancelled');
-                      }
-                    }}
-                    className="text-km-text-muted hover:text-red-600 p-1.5 rounded-lg transition-colors dark:hover:text-red-400"
-                    title="Cancel Session & Refund"
-                  >
-                    <XIcon weight="bold" size={16} />
-                  </button>
-                </div>
-              )}
-
-              {isAwaiting && <p className="text-xs text-km-text-secondary">You'll be paid ₹{b.amount} when the mentee confirms, or after 24 hours.</p>}
-              {isReported && <p className="text-xs text-km-text-secondary">Reported by the mentee. Payment is on hold while we review it.</p>}
-
-              {isCompleted && (
-                <div className="flex items-center gap-1.5 text-emerald-600 text-xs font-bold bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 dark:text-emerald-400">
-                  <CheckCircleIcon weight="bold" size={14} /> ₹{b.amount} Released to Earnings
-                </div>
-              )}
-
-              {isCancelled && (
-                <span className="text-xs font-bold text-km-text-muted bg-km-surface px-2.5 py-1 rounded-lg">
-                  Refunded
-                </span>
-              )}
-
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Meeting Link Modal */}
-      {meetingModalBooking && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-km-surface-card rounded-2xl max-w-md w-full p-6 shadow-2xl border border-km-border-subtle"
-          >
-            <div className="flex justify-between items-center mb-4">
-              <div className="flex items-center gap-2">
-                <VideoCameraIcon size={20} className="text-purple-600 dark:text-purple-400" aria-hidden="true" />
-                <h3 className="font-bold text-km-heading text-base">Add Meeting Link</h3>
-              </div>
-              <button onClick={() => setMeetingModalBooking(null)} className="text-km-text-muted hover:text-km-text-secondary p-1">
-                <XIcon weight="bold" size={18} />
-              </button>
-            </div>
-            
-            <p className="text-xs text-km-text-secondary mb-4 leading-relaxed">
-              Paste your Google Meet, Zoom, or Teams video call link. The mentee will see this link on their session card.
-            </p>
-
-            <input 
-              type="url" 
-              placeholder="https://meet.google.com/abc-defg-hij" 
-              value={meetingUrlInput}
-              onChange={(e) => setMeetingUrlInput(e.target.value)}
-              className="w-full bg-km-surface border border-km-border rounded-xl px-3.5 py-2.5 text-xs text-km-heading focus:outline-none focus:ring-2 focus:ring-purple-600 mb-5 font-mono"
-            />
-
-            <div className="flex justify-end gap-2">
-              <button 
-                onClick={() => setMeetingModalBooking(null)}
-                className="px-4 py-2 text-xs font-bold text-km-text-secondary hover:text-km-text-primary"
-              >
-                Cancel
-              </button>
-              <button 
-                disabled={isSavingMeeting || !meetingUrlInput.trim()}
-                onClick={handleSaveMeetingLink}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md disabled:opacity-50"
-              >
-                {isSavingMeeting ? "Saving..." : "Save Link"}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function AvailabilityManager({ availability, onSaved }: { availability: any[]; onSaved?: () => void }) {
-  const DAYS = [
-    { dayOfWeek: 1, name: "Monday" },
-    { dayOfWeek: 2, name: "Tuesday" },
-    { dayOfWeek: 3, name: "Wednesday" },
-    { dayOfWeek: 4, name: "Thursday" },
-    { dayOfWeek: 5, name: "Friday" },
-    { dayOfWeek: 6, name: "Saturday" },
-    { dayOfWeek: 0, name: "Sunday" },
+/** The two things a new Expert sets up before anyone can book them */
+function SetupSteps({ hasHours, hasSession, onHours, onSession }: {
+  hasHours: boolean; hasSession: boolean; onHours: () => void; onSession: () => void;
+}) {
+  const steps = [
+    { done: hasHours, title: 'Set your weekly hours', text: 'Mentees can only pick times inside them.', action: 'Set hours', onClick: onHours },
+    { done: hasSession, title: 'Publish a session', text: 'Give it a title, a length and a price.', action: 'New session', onClick: onSession },
+    { done: false, title: 'Run the call and get paid', text: 'Mark it done after the call. You’re paid once the mentee confirms.' },
   ];
+  return (
+    <section aria-labelledby="setup-title" className="km-card p-5 md:p-6 mb-6">
+      <h2 id="setup-title" className="text-base font-semibold text-km-heading">Get ready for your first booking</h2>
+      <ol className="mt-4 grid gap-4 md:grid-cols-3">
+        {steps.map((s, i) => (
+          <li key={s.title} className="flex gap-3">
+            <span
+              className={cx(
+                'w-8 h-8 shrink-0 rounded-xl flex items-center justify-center text-sm font-semibold',
+                s.done ? 'bg-emerald-600 text-white' : 'bg-km-surface text-km-mentors-text',
+              )}
+              aria-hidden="true"
+            >
+              {s.done ? <CheckIcon size={16} weight="bold" /> : i + 1}
+            </span>
+            <div className="min-w-0">
+              <p className={cx('text-sm font-semibold', s.done ? 'text-km-text-secondary line-through' : 'text-km-heading')}>
+                {s.title}
+                {s.done && <span className="sr-only"> (done)</span>}
+              </p>
+              <p className="text-xs text-km-text-secondary mt-0.5">{s.text}</p>
+              {!s.done && s.action && (
+                <button type="button" onClick={s.onClick} className="mt-2 text-sm font-semibold text-km-link hover:underline">
+                  {s.action}
+                </button>
+              )}
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
 
-  const buildInitialState = () => {
-    return DAYS.map(d => {
-      const existing = (availability || []).find(a => a.day_of_week === d.dayOfWeek && (a.is_active === undefined || a.is_active === true));
-      return {
-        dayOfWeek: d.dayOfWeek,
-        name: d.name,
-        isActive: !!existing,
-        startTime: existing?.start_time || "09:00",
-        endTime: existing?.end_time || "17:00",
-      };
-    });
-  };
+/* ------------------------------------------------------------------------------------------------ */
+/* Sessions                                                                                          */
+/* ------------------------------------------------------------------------------------------------ */
 
-  const [schedule, setSchedule] = useState(buildInitialState);
-  const [saving, setSaving] = useState(false);
+function SessionsList({ sessions, onNew, onEdit, onChange }: {
+  sessions: Session[]; onNew: () => void; onEdit: (s: Session) => void; onChange: () => void;
+}) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<Session | null>(null);
 
-  useEffect(() => {
-    setSchedule(buildInitialState());
-  }, [availability]);
-
-  const toggleDay = (dayOfWeek: number) => {
-    setSchedule(prev => prev.map(d => d.dayOfWeek === dayOfWeek ? { ...d, isActive: !d.isActive } : d));
-  };
-
-  const updateTime = (dayOfWeek: number, field: 'startTime' | 'endTime', value: string) => {
-    setSchedule(prev => prev.map(d => d.dayOfWeek === dayOfWeek ? { ...d, [field]: value } : d));
-  };
-
-  const handleSave = async () => {
+  const togglePause = async (s: Session) => {
+    const next = s.status === 'active' ? 'inactive' : 'active';
+    setBusyId(s.id);
     try {
-      setSaving(true);
-      const activeDays = schedule.filter(d => d.isActive);
-      if (activeDays.length === 0) {
-        notify.warning("Please enable at least one day of availability.");
-        setSaving(false);
-        return;
-      }
-      
-      for (const d of activeDays) {
-        if (d.startTime >= d.endTime) {
-          notify.error(`${d.name}: End time must be after start time.`);
-          setSaving(false);
-          return;
-        }
-      }
+      await api.patch(`/mentorships/${s.id}`, { title: s.title, description: s.description, category: s.category, duration: s.duration, price: s.price, status: next });
+      notify.success(next === 'active' ? 'Session is live again.' : 'Session paused. Mentees can’t book it until you resume it.');
+      onChange();
+    } catch (e) {
+      notify.error(e, 'The session couldn’t be updated.');
+    } finally {
+      setBusyId(null);
+    }
+  };
 
-      const payload = activeDays.map(d => ({
-        day_of_week: d.dayOfWeek,
-        start_time: d.startTime,
-        end_time: d.endTime,
-      }));
+  const remove = async () => {
+    if (!deleting) return;
+    setBusyId(deleting.id);
+    try {
+      await api.delete(`/mentorships/${deleting.id}`);
+      notify.success('Session deleted.');
+      setDeleting(null);
+      onChange();
+    } catch (e) {
+      notify.error(e, 'The session couldn’t be deleted.');
+      setDeleting(null);
+    } finally {
+      setBusyId(null);
+    }
+  };
 
-      await api.put('/mentorships/availability', payload);
-      notify.success("Availability updated successfully!");
-      if (onSaved) onSaved();
-    } catch (err: any) {
-      console.error("Failed to update availability", err);
-      notify.error(err, "Failed to update availability");
+  if (sessions.length === 0) {
+    return (
+      <div className="km-card">
+        <EmptyState
+          icon={ChalkboardTeacherIcon}
+          title="No sessions yet"
+          description="Publish a session so mentees can find and book you, for example a 30-minute resume review."
+          action={<button type="button" onClick={onNew} className={btn.primary}><PlusIcon size={16} weight="bold" aria-hidden="true" /> New session</button>}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {sessions.map((s) => {
+          const live = s.status === 'active';
+          const busy = busyId === s.id;
+          return (
+            <li key={s.id} className="km-card p-5 flex flex-col">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-km-mentors-text truncate">{s.category}</p>
+                <StatusBadge tone={live ? 'green' : 'neutral'}>{live ? 'Live' : 'Paused'}</StatusBadge>
+              </div>
+              <h3 className="mt-2 text-base font-semibold text-km-heading">{s.title}</h3>
+              {s.description && <p className="mt-1 text-sm text-km-text-secondary line-clamp-2">{s.description}</p>}
+              <div className="mt-auto pt-4 flex items-center justify-between text-sm">
+                <span className="flex items-center gap-1.5 text-km-text-secondary">
+                  <ClockIcon size={16} aria-hidden="true" /> {s.duration} min
+                </span>
+                <span className="font-semibold text-km-heading tabular-nums">{price(s.price)}</span>
+              </div>
+              <div className="mt-4 pt-3 border-t border-km-border-subtle flex items-center gap-1">
+                <button type="button" onClick={() => onEdit(s)} disabled={busy} className={btn.ghost}>
+                  <PencilSimpleIcon size={16} aria-hidden="true" /> Edit
+                </button>
+                <button type="button" onClick={() => togglePause(s)} disabled={busy} className={btn.ghost}>
+                  {live ? <PauseIcon size={16} aria-hidden="true" /> : <PlayIcon size={16} aria-hidden="true" />}
+                  {live ? 'Pause' : 'Resume'}
+                </button>
+                <button type="button" onClick={() => setDeleting(s)} disabled={busy} className={cx(btn.ghost, 'ml-auto hover:text-red-600')} aria-label={`Delete ${s.title}`}>
+                  <TrashIcon size={16} aria-hidden="true" />
+                </button>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {deleting && (
+        <ConfirmDialog
+          title="Delete this session?"
+          description={<>“{deleting.title}” will no longer be listed. Bookings already finished stay in your history. To stop new bookings for a while, pause it instead.</>}
+          confirmLabel="Delete session"
+          busy={busyId === deleting.id}
+          onCancel={() => setDeleting(null)}
+          onConfirm={remove}
+        />
+      )}
+    </>
+  );
+}
+
+function SessionForm({ session, onClose, onSaved }: { session: Session | null; onClose: () => void; onSaved: () => void }) {
+  const [title, setTitle] = useState(session?.title ?? '');
+  const [category, setCategory] = useState(session?.category ?? '');
+  const [description, setDescription] = useState(session?.description ?? '');
+  const [duration, setDuration] = useState(session?.duration ?? 30);
+  const [priceText, setPriceText] = useState(session ? String(session.price) : "");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  // An older session may use a category or length that's no longer in the list; keep it selectable
+  const categories = useMemo(() => (category && !SESSION_CATEGORIES.includes(category) ? [category, ...SESSION_CATEGORIES] : SESSION_CATEGORIES), [category]);
+  const durations = useMemo(() => (SESSION_DURATIONS.includes(duration) ? SESSION_DURATIONS : [...SESSION_DURATIONS, duration].sort((a, b) => a - b)), [duration]);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = Number(priceText);
+    if (!title.trim() || !category || !description.trim()) {
+      setError('Fill in the title, category and description.');
+      return;
+    }
+    if (!Number.isFinite(amount) || amount < SESSION_LIMITS.minPrice || amount > SESSION_LIMITS.maxPrice) {
+      setError(`Set a price between ${price(SESSION_LIMITS.minPrice)} and ${price(SESSION_LIMITS.maxPrice)}.`);
+      return;
+    }
+    setError('');
+    setSaving(true);
+    const body = { title: title.trim(), category, description: description.trim(), duration, price: amount };
+    try {
+      if (session) {
+        await api.patch(`/mentorships/${session.id}`, { ...body, status: session.status });
+        notify.success('Session updated.');
+      } else {
+        await api.post('/mentorships/', body);
+        notify.success('Session published. Mentees can book it now.');
+      }
+      onSaved();
+    } catch (err) {
+      notify.error(err, 'The session couldn’t be saved.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDiscard = () => {
-    setSchedule(buildInitialState());
-    notify.info("Changes reverted to saved schedule.");
+  return (
+    <AdminModal isOpen onClose={() => !saving && onClose()} title={session ? 'Edit session' : 'New session'}>
+      <form onSubmit={submit} noValidate className="space-y-4">
+        <div>
+          <label htmlFor="session-title" className={field.label}>Title</label>
+          <input
+            id="session-title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            maxLength={SESSION_LIMITS.title}
+            placeholder="Resume review for freshers"
+            className={field.input}
+            required
+            autoFocus
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="session-category" className={field.label}>Category</label>
+            <select id="session-category" value={category} onChange={(e) => setCategory(e.target.value)} className={field.input} required>
+              <option value="" disabled>Choose a category</option>
+              {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="session-duration" className={field.label}>Length</label>
+            <select id="session-duration" value={duration} onChange={(e) => setDuration(Number(e.target.value))} className={field.input}>
+              {durations.map((d) => <option key={d} value={d}>{d} minutes</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="session-description" className={field.label}>What the mentee gets</label>
+          <textarea
+            id="session-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={SESSION_LIMITS.description}
+            rows={4}
+            placeholder="We go through your resume line by line and fix what recruiters skip."
+            className={field.textarea}
+            aria-describedby="session-description-count"
+            required
+          />
+          <p id="session-description-count" className={field.hint}>{description.length} / {SESSION_LIMITS.description.toLocaleString('en-IN')} characters</p>
+        </div>
+
+        <div>
+          <label htmlFor="session-price" className={field.label}>Price (₹)</label>
+          <input
+            id="session-price"
+            type="number"
+            inputMode="numeric"
+            min={SESSION_LIMITS.minPrice}
+            max={SESSION_LIMITS.maxPrice}
+            step="1"
+            value={priceText}
+            onChange={(e) => setPriceText(e.target.value)}
+            placeholder="499"
+            className={field.input}
+            aria-describedby="session-price-hint"
+            required
+          />
+          <p id="session-price-hint" className={field.hint}>The mentee pays this when booking. It’s held until the session is done, then paid to your earnings.</p>
+        </div>
+
+        {error && <p role="alert" className={field.error}>{error}</p>}
+
+        <div className="flex justify-end gap-2 pt-2">
+          <button type="button" onClick={onClose} disabled={saving} className={btn.secondary}>Cancel</button>
+          <button type="submit" disabled={saving} className={btn.primary}>
+            {saving ? 'Saving…' : session ? 'Save changes' : 'Publish session'}
+          </button>
+        </div>
+      </form>
+    </AdminModal>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Bookings                                                                                          */
+/* ------------------------------------------------------------------------------------------------ */
+
+function BookingsList({ bookings, onChange }: { bookings: Booking[]; onChange: () => void }) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState<Booking | null>(null);
+  const [linkFor, setLinkFor] = useState<Booking | null>(null);
+  const sorted = useMemo(() => sortBookings(bookings), [bookings]);
+
+  const setStatus = async (b: Booking, status: 'completed' | 'cancelled') => {
+    setBusyId(b.id);
+    try {
+      await api.patch(`/mentorships/bookings/${b.id}/status?status=${status}`);
+      if (status === 'completed') {
+        notify.success('Marked as done. You’re paid when the mentee confirms, or automatically after 24 hours.');
+      } else {
+        notify.info('Session cancelled. The mentee is being refunded.');
+      }
+      onChange();
+    } catch (e) {
+      notify.error(e, 'The booking couldn’t be updated.');
+    } finally {
+      setBusyId(null);
+      setCancelling(null);
+    }
   };
 
-  const setWeekdayPreset = () => {
-    setSchedule(prev => prev.map(d => ({
-      ...d,
-      isActive: d.dayOfWeek >= 1 && d.dayOfWeek <= 5,
-      startTime: "09:00",
-      endTime: "17:00",
-    })));
-  };
-
-  const activeCount = schedule.filter(s => s.isActive).length;
+  if (bookings.length === 0) {
+    return (
+      <div className="km-card">
+        <EmptyState
+          icon={UsersThreeIcon}
+          title="No bookings yet"
+          description="When a mentee books one of your sessions it shows up here. Their payment is held until the session is done."
+        />
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-km-surface-card p-5 md:p-8 rounded-xl md:rounded-2xl border border-km-border-subtle shadow-sm max-w-3xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+    <>
+      <ul className="space-y-3">
+        {sorted.map((b) => {
+          const info = BOOKING_STATUS[b.status] ?? { label: b.status, tone: 'neutral' as const };
+          const busy = busyId === b.id;
+          const started = new Date(b.scheduled_at).getTime() <= Date.now();
+          const canCancel = b.status === 'pending' || b.status === 'confirmed';
+          return (
+            <li key={b.id} className="km-card p-4 md:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex gap-3.5 items-start min-w-0">
+                <div className="w-10 h-10 bg-km-surface text-km-mentors-text rounded-xl flex items-center justify-center shrink-0 font-semibold" aria-hidden="true">
+                  {b.mentee_name ? b.mentee_name.charAt(0).toUpperCase() : <UserIcon size={20} />}
+                </div>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-km-heading">{b.mentee_name || 'Mentee'}</h3>
+                    <StatusBadge tone={info.tone}>{info.label}</StatusBadge>
+                  </div>
+                  <p className="text-sm text-km-text-secondary truncate">{b.mentorship_title || 'Mentorship session'}</p>
+                  <p className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-km-text-secondary">
+                    <span className="flex items-center gap-1.5">
+                      <CalendarBlankIcon size={16} aria-hidden="true" />
+                      <time dateTime={b.scheduled_at}>{sessionTime(b.scheduled_at)}</time>
+                    </span>
+                    <span className="font-semibold text-km-heading tabular-nums">{price(b.amount)}</span>
+                  </p>
+                  {b.notes && <p className="mt-1.5 text-sm text-km-text-secondary"><span className="font-medium text-km-heading">Note: </span>{b.notes}</p>}
+                  {info.next && (
+                    <p className="mt-1.5 text-xs text-km-text-secondary">
+                      {info.next}
+                      {b.status === 'confirmed' && !started && ' You can mark it done once it starts.'}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 md:justify-end shrink-0">
+                {b.status === 'confirmed' && (
+                  b.meeting_link ? (
+                    <>
+                      <a href={b.meeting_link} target="_blank" rel="noopener noreferrer" className={btn.secondary}>
+                        <VideoCameraIcon size={16} aria-hidden="true" /> Join call <ArrowSquareOutIcon size={14} aria-hidden="true" />
+                      </a>
+                      <button type="button" onClick={() => setLinkFor(b)} className={btn.ghost}>Change link</button>
+                    </>
+                  ) : (
+                    <button type="button" onClick={() => setLinkFor(b)} className={btn.secondary}>
+                      <LinkSimpleIcon size={16} aria-hidden="true" /> Add meeting link
+                    </button>
+                  )
+                )}
+
+                {b.status === 'confirmed' && (
+                  <button
+                    type="button"
+                    onClick={() => setStatus(b, 'completed')}
+                    disabled={busy || !started}
+                    className={btn.primary}
+                  >
+                    <CheckCircleIcon size={16} weight="bold" aria-hidden="true" /> Mark as done
+                  </button>
+                )}
+
+                {canCancel && (
+                  <button type="button" onClick={() => setCancelling(b)} disabled={busy} className={cx(btn.ghost, 'hover:text-red-600')}>
+                    {b.status === 'pending' ? 'Decline' : 'Cancel'}
+                  </button>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      {cancelling && (
+        <ConfirmDialog
+          title={cancelling.status === 'pending' ? 'Decline this request?' : 'Cancel this session?'}
+          description={cancelling.status === 'pending'
+            ? 'The mentee is told you can’t take this request.'
+            : <>The mentee gets a full refund of {price(cancelling.amount)} and you won’t be paid for this session.</>}
+          confirmLabel={cancelling.status === 'pending' ? 'Decline' : 'Cancel session'}
+          busy={busyId === cancelling.id}
+          onCancel={() => setCancelling(null)}
+          onConfirm={() => setStatus(cancelling, 'cancelled')}
+        />
+      )}
+
+      {linkFor && <MeetingLinkForm booking={linkFor} onClose={() => setLinkFor(null)} onSaved={() => { setLinkFor(null); onChange(); }} />}
+    </>
+  );
+}
+
+function MeetingLinkForm({ booking, onClose, onSaved }: { booking: Booking; onClose: () => void; onSaved: () => void }) {
+  const [link, setLink] = useState(booking.meeting_link ?? '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = link.trim();
+    if (!/^https:\/\/\S+\.\S+/.test(value)) {
+      setError('Paste the full link, starting with https://');
+      return;
+    }
+    setSaving(true);
+    try {
+      await api.patch(`/mentorships/bookings/${booking.id}/meeting-link`, { meeting_link: value });
+      notify.success('Meeting link saved. The mentee can see it now.');
+      onSaved();
+    } catch (err) {
+      notify.error(err, 'The meeting link couldn’t be saved.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <AdminModal isOpen onClose={() => !saving && onClose()} title="Meeting link">
+      <form onSubmit={submit} noValidate className="space-y-4">
+        <p className="text-sm text-km-text-secondary">
+          For your session with {booking.mentee_name || 'the mentee'} on {sessionTime(booking.scheduled_at)}. Only the mentee sees this link.
+        </p>
         <div>
-          <div className="flex items-center gap-2">
-            <h3 className="text-lg md:text-xl font-bold text-km-heading">Weekly Availability</h3>
-            <span className="bg-purple-50 text-purple-700 text-[11px] font-semibold px-2.5 py-0.5 rounded-full border border-purple-100">
-              {activeCount} {activeCount === 1 ? 'Day' : 'Days'} Active
-            </span>
-          </div>
-          <p className="text-[10px] md:text-xs text-km-text-secondary font-medium mt-1">
-            Define your working days and call hours. Candidates can book 1-on-1 slots within these times.
-          </p>
+          <label htmlFor="meeting-link" className={field.label}>Google Meet, Zoom or Teams link</label>
+          <input
+            id="meeting-link"
+            type="url"
+            inputMode="url"
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            placeholder="https://meet.google.com/abc-defg-hij"
+            className={field.input}
+            aria-invalid={!!error}
+            aria-describedby={error ? 'meeting-link-error' : undefined}
+            autoFocus
+          />
+          {error && <p id="meeting-link-error" role="alert" className={field.error}>{error}</p>}
+        </div>
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} disabled={saving} className={btn.secondary}>Cancel</button>
+          <button type="submit" disabled={saving || !link.trim()} className={btn.primary}>{saving ? 'Saving…' : 'Save link'}</button>
+        </div>
+      </form>
+    </AdminModal>
+  );
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+/* Weekly hours                                                                                      */
+/* ------------------------------------------------------------------------------------------------ */
+
+const DAYS = [
+  { day: 1, name: 'Monday' },
+  { day: 2, name: 'Tuesday' },
+  { day: 3, name: 'Wednesday' },
+  { day: 4, name: 'Thursday' },
+  { day: 5, name: 'Friday' },
+  { day: 6, name: 'Saturday' },
+  { day: 0, name: 'Sunday' },
+];
+
+function WeeklyHours({ saved, onSaved }: { saved: Slot[]; onSaved: () => void }) {
+  const fromSaved = useCallback(() => DAYS.map(({ day, name }) => {
+    const slot = saved.find((s) => s.day_of_week === day);
+    return { day, name, on: !!slot, start: slot?.start_time || '09:00', end: slot?.end_time || '17:00' };
+  }), [saved]);
+
+  const [week, setWeek] = useState(fromSaved);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => { setWeek(fromSaved()); }, [fromSaved]);
+
+  const update = (day: number, change: Partial<(typeof week)[number]>) =>
+    setWeek((prev) => prev.map((d) => (d.day === day ? { ...d, ...change } : d)));
+
+  const dirty = JSON.stringify(week) !== JSON.stringify(fromSaved());
+  const onDays = week.filter((d) => d.on);
+
+  const save = async () => {
+    if (onDays.length === 0) {
+      setError('Turn on at least one day.');
+      return;
+    }
+    const bad = onDays.find((d) => d.start >= d.end);
+    if (bad) {
+      setError(`${bad.name}: the end time must be after the start time.`);
+      return;
+    }
+    setError('');
+    setSaving(true);
+    try {
+      await api.put('/mentorships/availability', onDays.map((d) => ({ day_of_week: d.day, start_time: d.start, end_time: d.end })));
+      notify.success('Weekly hours saved.');
+      onSaved();
+    } catch (e) {
+      notify.error(e, 'Your hours couldn’t be saved.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="km-card p-5 md:p-6 max-w-3xl">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-5">
+        <div>
+          <h2 className="text-lg font-semibold text-km-heading">Weekly hours</h2>
+          <p className="text-sm text-km-text-secondary mt-1">Mentees can book you only inside these times. Times are in IST.</p>
         </div>
         <button
           type="button"
-          onClick={setWeekdayPreset}
-          className="text-[11px] font-bold text-purple-600 hover:text-purple-800 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition-all self-start sm:self-auto cursor-pointer dark:text-purple-400"
+          onClick={() => setWeek((prev) => prev.map((d) => ({ ...d, on: d.day >= 1 && d.day <= 5, start: '09:00', end: '17:00' })))}
+          className={cx(btn.secondary, 'self-start shrink-0')}
         >
-          Preset: Mon - Fri (9-5)
+          Weekdays, 9 to 5
         </button>
       </div>
 
-      <div className="space-y-3 md:space-y-4">
-        {schedule.map((item) => (
-          <div 
-            key={item.dayOfWeek} 
-            className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3 rounded-xl border transition-all ${
-              item.isActive 
-                ? 'bg-purple-50/20 border-purple-100/60 shadow-2xs' 
-                : 'bg-km-surface border-km-border-subtle opacity-60'
-            }`}
-          >
-            <div className="sm:w-32 flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${item.isActive ? 'bg-emerald-500' : 'bg-gray-300'}`} />
-              <span className="font-bold text-km-heading text-xs md:text-sm">{item.name}</span>
-            </div>
-
-            <div className="flex-1 flex items-center gap-2 md:gap-3">
-              <div className="flex items-center gap-1.5 bg-km-surface-card border border-km-border rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
-                <ClockIcon weight="bold" size={12} className="text-km-text-muted" />
-                <input 
-                  type="time" 
-                  value={item.startTime}
-                  disabled={!item.isActive}
-                  onChange={(e) => updateTime(item.dayOfWeek, 'startTime', e.target.value)}
-                  className="bg-transparent text-km-heading text-[11px] md:text-xs font-semibold focus:outline-none disabled:text-km-text-muted" 
-                />
-              </div>
-
-              <span className="text-km-text-muted text-xs font-medium">to</span>
-
-              <div className="flex items-center gap-1.5 bg-km-surface-card border border-km-border rounded-lg px-2.5 py-1.5 focus-within:ring-2 focus-within:ring-purple-500 focus-within:border-transparent transition-all shadow-2xs">
-                <ClockIcon weight="bold" size={12} className="text-km-text-muted" />
-                <input 
-                  type="time" 
-                  value={item.endTime}
-                  disabled={!item.isActive}
-                  onChange={(e) => updateTime(item.dayOfWeek, 'endTime', e.target.value)}
-                  className="bg-transparent text-km-heading text-[11px] md:text-xs font-semibold focus:outline-none disabled:text-km-text-muted" 
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
-              <span className={`text-xs font-bold ${item.isActive ? 'text-purple-700' : 'text-km-text-muted'}`}>
-                {item.isActive ? 'Available' : 'Off'}
-              </span>
-              
+      <ul className="divide-y divide-km-border-subtle">
+        {week.map((d) => (
+          <li key={d.day} className="flex flex-col sm:flex-row sm:items-center gap-3 py-3">
+            <div className="sm:w-40 flex items-center gap-3">
               <button
                 type="button"
                 role="switch"
-                aria-checked={item.isActive}
-                onClick={() => toggleDay(item.dayOfWeek)}
-                className={`w-11 h-6 rounded-full relative transition-colors duration-200 focus:outline-none p-0.5 cursor-pointer ${
-                  item.isActive ? 'bg-purple-600' : 'bg-km-border-subtle hover:bg-gray-300'
-                }`}
+                aria-checked={d.on}
+                aria-label={`Available on ${d.name}`}
+                onClick={() => update(d.day, { on: !d.on })}
+                className={cx('w-11 h-6 rounded-full p-0.5 transition-colors shrink-0', d.on ? 'bg-km-mentors' : 'bg-km-border')}
               >
-                <div 
-                  className={`w-5 h-5 bg-km-surface-card rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
-                    item.isActive ? 'translate-x-5' : 'translate-x-0'
-                  }`} 
-                />
+                <span className={cx('block w-5 h-5 bg-white rounded-full shadow-sm transition-transform', d.on ? 'translate-x-5' : 'translate-x-0')} />
               </button>
+              <span className={cx('text-sm font-semibold', d.on ? 'text-km-heading' : 'text-km-text-secondary')}>{d.name}</span>
             </div>
-          </div>
-        ))}
-      </div>
 
-      <div className="mt-8 pt-4 border-t border-km-border-subtle flex flex-col-reverse sm:flex-row justify-end gap-2 md:gap-3">
-        <button 
-          type="button"
-          onClick={handleDiscard}
-          disabled={saving}
-          className="px-4 md:px-6 py-2.5 text-xs text-km-text-secondary font-bold hover:text-km-text-primary hover:bg-km-surface rounded-xl transition-all disabled:opacity-50 cursor-pointer"
-        >
-          Discard Changes
+            {d.on ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="time"
+                  value={d.start}
+                  onChange={(e) => update(d.day, { start: e.target.value })}
+                  aria-label={`${d.name} start time`}
+                  className={cx(field.input, 'w-32')}
+                />
+                <span className="text-sm text-km-text-secondary">to</span>
+                <input
+                  type="time"
+                  value={d.end}
+                  onChange={(e) => update(d.day, { end: e.target.value })}
+                  aria-label={`${d.name} end time`}
+                  className={cx(field.input, 'w-32')}
+                />
+              </div>
+            ) : (
+              <span className="text-sm text-km-text-secondary">Not available</span>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {error && <p role="alert" className={cx(field.error, 'mt-3')}>{error}</p>}
+
+      <div className="mt-5 pt-4 border-t border-km-border-subtle flex flex-col-reverse sm:flex-row justify-end gap-2">
+        <button type="button" onClick={() => { setWeek(fromSaved()); setError(''); }} disabled={saving || !dirty} className={btn.ghost}>
+          Undo changes
         </button>
-        <button 
-          type="button"
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-6 md:px-8 py-2.5 rounded-xl font-bold transition-all shadow-md shadow-purple-600/20 active:scale-95 text-xs flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
-        >
-          {saving ? (
-            <>
-              <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <CheckIcon weight="bold" size={14} />
-              <span>Save Availability</span>
-            </>
-          )}
+        <button type="button" onClick={save} disabled={saving || !dirty} className={btn.primary}>
+          <CheckIcon size={16} weight="bold" aria-hidden="true" /> {saving ? 'Saving…' : 'Save hours'}
         </button>
       </div>
     </div>

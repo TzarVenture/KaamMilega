@@ -9,19 +9,12 @@ import { isAuthenticated } from '@/lib/auth';
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
 import AdSlot from '@/components/ads/AdSlot';
 import { notify } from "@/lib/notify";
+import { SESSION_CATEGORIES } from "@/lib/mentorship";
 
 /** The grid shows one sponsored row, after this many experts (a full row at 1, 2 or 3 columns) */
 const GRID_AD_AFTER = 6;
 
-const categories = [
-  "All",
-  "Interview Prep",
-  "Career Guidance",
-  "Technical Skills",
-  "Soft Skills",
-  "Resume Review",
-  "Entrepreneurship"
-];
+const categories = ["All", ...SESSION_CATEGORIES];
 
 export default function MentorshipPage() {
   const [mentorships, setMentorships] = useState<any[]>([]);
