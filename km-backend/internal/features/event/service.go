@@ -7,7 +7,6 @@ import (
 	"km-backend/internal/common/apperr"
 	"net/url"
 	"strings"
-	"time"
 
 	"km-backend/internal/config"
 	"km-backend/internal/features/payment"
@@ -97,7 +96,7 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 	// Check if already registered
 	for _, p := range ev.Participants {
 		if p == uID {
-			return apperr.New("EVENT_ALREADY_REGISTERED", "you are already registered for this event")
+			return ErrAlreadyRegistered
 		}
 	}
 
@@ -111,10 +110,13 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 		attendeeEmail = u.Email
 	}
 
-	ticketNumber := fmt.Sprintf("TKT-EVT-%06d", time.Now().Unix()%1000000)
+	// Built from the ticket's own id, so it is unique (the time-based number could repeat)
+	ticketID := primitive.NewObjectID()
+	ticketNumber := "TKT-EVT-" + strings.ToUpper(ticketID.Hex()[18:])
 	qrData := fmt.Sprintf("KM:EVENT:%s:%s:%s", ev.ID.Hex(), uID.Hex(), ticketNumber)
 
 	ticket := &EventTicket{
+		ID:            ticketID,
 		TicketNumber:  ticketNumber,
 		EventID:       evID,
 		UserID:        uID,
@@ -131,14 +133,25 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 		EventLocation: ev.Location,
 	}
 
-	_, _ = s.repo.CreateTicket(ctx, ticket)
-
-	if err := s.repo.RegisterUser(ctx, evID, uID); err != nil {
+	// The seat, the ticket and the registration are saved together or not at all
+	err = s.tx.Run(ctx, func(ctx context.Context) error {
+		if ev.Capacity > 0 {
+			if err := s.repo.DecrementAvailableSeats(ctx, evID); err != nil {
+				return err
+			}
+		}
+		if _, err := s.repo.CreateTicket(ctx, ticket); err != nil {
+			return err
+		}
+		return s.repo.RegisterUser(ctx, evID, uID)
+	})
+	switch {
+	case errors.Is(err, ErrEventSoldOut):
+		return errors.New("registration closed: this event has reached maximum capacity")
+	case errors.Is(err, ErrEventTicketTaken):
+		return ErrAlreadyRegistered
+	case err != nil:
 		return err
-	}
-
-	if ev.Capacity > 0 {
-		_ = s.repo.DecrementAvailableSeats(ctx, evID)
 	}
 
 	if s.notifService != nil {
