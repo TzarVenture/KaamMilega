@@ -2,16 +2,15 @@ package payment
 
 import (
 	"context"
-	"errors"
-	"regexp"
+	"encoding/json"
+	"fmt"
+	"strings"
 	"time"
 
 	"km-backend/internal/database"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/gorm"
 )
 
 // Repository stores payment orders. Every status change is conditional on the current status,
@@ -34,189 +33,257 @@ type Repository interface {
 	AdminList(ctx context.Context, query AdminOrderQuery) ([]Order, int64, error)
 }
 
-type mongoRepository struct {
-	orders *mongo.Collection
+type pgRepository struct {
+	db *gorm.DB
 }
 
-// NewRepository creates the payment order store and its indexes.
-func NewRepository(db *database.MongodbDB) Repository {
-	orders := db.DB.Collection("payment_orders")
-
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-		database.SyncIndexes(ctx, orders, []mongo.IndexModel{
-			{Keys: bson.D{{Key: "razorpay_order_id", Value: 1}}, Options: options.Index().SetUnique(true)},
-			{Keys: bson.D{{Key: "razorpay_payment_id", Value: 1}}, Options: options.Index().SetUnique(true).SetSparse(true)},
-			{Keys: bson.D{{Key: "status", Value: 1}, {Key: "created_at", Value: 1}}},
-			{Keys: bson.D{{Key: "user_id", Value: 1}, {Key: "purpose", Value: 1}, {Key: "paid_at", Value: -1}}},
-		})
-	}()
-
-	return &mongoRepository{orders: orders}
+// NewRepository creates the payment order store (Postgres table payment_orders).
+func NewRepository(pg *database.PostgresDB) Repository {
+	return &pgRepository{db: pg.DB}
 }
 
-func (r *mongoRepository) Insert(ctx context.Context, order *Order) error {
-	res, err := r.orders.InsertOne(ctx, order)
-	if err != nil {
-		return err
+func (r *pgRepository) conn(ctx context.Context) *gorm.DB { return database.Conn(ctx, r.db) }
+
+type orderRow struct {
+	ID                string
+	RazorpayOrderID   string
+	RazorpayPaymentID *string
+	UserID            string
+	Purpose           string
+	AmountPaise       int64
+	Currency          string
+	TargetID          *string
+	Details           []byte
+	Description       *string
+	Status            string
+	LastFailure       *string
+	RefundPaise       int64
+	RefundReason      *string
+	RefundID          *string
+	RefundError       *string
+	PaidAt            *time.Time
+	RefundedAt        *time.Time
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+}
+
+const orderColumns = `id, razorpay_order_id, razorpay_payment_id, user_id, purpose, amount_paise, currency, target_id,
+	details, description, status, last_failure, refund_paise, refund_reason, refund_id, refund_error, paid_at, refunded_at,
+	created_at, updated_at`
+
+func str(s *string) string {
+	if s == nil {
+		return ""
 	}
-	if id, ok := res.InsertedID.(primitive.ObjectID); ok {
-		order.ID = id
-	}
-	return nil
+	return *s
 }
 
-func (r *mongoRepository) findOne(ctx context.Context, filter bson.M) (*Order, error) {
-	var order Order
-	err := r.orders.FindOne(ctx, filter).Decode(&order)
-	if errors.Is(err, mongo.ErrNoDocuments) {
+func null(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+func (o orderRow) toDomain() (Order, error) {
+	out := Order{
+		ID:                database.OID(o.ID),
+		RazorpayOrderID:   o.RazorpayOrderID,
+		RazorpayPaymentID: str(o.RazorpayPaymentID),
+		UserID:            database.OID(o.UserID),
+		Purpose:           Purpose(o.Purpose),
+		AmountPaise:       o.AmountPaise,
+		Currency:          strings.TrimSpace(o.Currency),
+		TargetID:          str(o.TargetID),
+		Description:       str(o.Description),
+		Status:            Status(o.Status),
+		LastFailure:       str(o.LastFailure),
+		RefundPaise:       o.RefundPaise,
+		RefundReason:      str(o.RefundReason),
+		RefundID:          str(o.RefundID),
+		RefundError:       str(o.RefundError),
+		PaidAt:            o.PaidAt,
+		RefundedAt:        o.RefundedAt,
+		CreatedAt:         o.CreatedAt,
+		UpdatedAt:         o.UpdatedAt,
+	}
+	if len(o.Details) > 0 {
+		if err := json.Unmarshal(o.Details, &out.Details); err != nil {
+			return out, fmt.Errorf("reading order details: %w", err)
+		}
+	}
+	return out, nil
+}
+
+func toOrders(rows []orderRow) ([]Order, error) {
+	out := make([]Order, 0, len(rows))
+	for _, row := range rows {
+		o, err := row.toDomain()
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, o)
+	}
+	return out, nil
+}
+
+func (r *pgRepository) Insert(ctx context.Context, order *Order) error {
+	if order.ID.IsZero() {
+		order.ID = primitive.NewObjectID()
+	}
+	var details []byte
+	if len(order.Details) > 0 {
+		var err error
+		if details, err = json.Marshal(order.Details); err != nil {
+			return err
+		}
+	}
+	return r.conn(ctx).Exec(`INSERT INTO payment_orders
+		(id, razorpay_order_id, user_id, purpose, amount_paise, currency, target_id, details, description, status, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		order.ID.Hex(), order.RazorpayOrderID, order.UserID.Hex(), string(order.Purpose), order.AmountPaise,
+		order.Currency, null(order.TargetID), details, null(order.Description), string(order.Status),
+		order.CreatedAt, order.UpdatedAt).Error
+}
+
+func (r *pgRepository) findOne(ctx context.Context, column, value string) (*Order, error) {
+	var rows []orderRow
+	if err := r.conn(ctx).Raw(`SELECT `+orderColumns+` FROM payment_orders WHERE `+column+` = ?`, value).Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
 		return nil, nil
 	}
+	o, err := rows[0].toDomain()
 	if err != nil {
 		return nil, err
 	}
-	return &order, nil
+	return &o, nil
 }
 
-func (r *mongoRepository) FindByID(ctx context.Context, id primitive.ObjectID) (*Order, error) {
-	return r.findOne(ctx, bson.M{"_id": id})
+func (r *pgRepository) FindByID(ctx context.Context, id primitive.ObjectID) (*Order, error) {
+	return r.findOne(ctx, "id", id.Hex())
 }
 
-func (r *mongoRepository) FindByRazorpayOrderID(ctx context.Context, razorpayOrderID string) (*Order, error) {
-	return r.findOne(ctx, bson.M{"razorpay_order_id": razorpayOrderID})
+func (r *pgRepository) FindByRazorpayOrderID(ctx context.Context, razorpayOrderID string) (*Order, error) {
+	return r.findOne(ctx, "razorpay_order_id", razorpayOrderID)
 }
 
-func (r *mongoRepository) FindByRazorpayPaymentID(ctx context.Context, razorpayPaymentID string) (*Order, error) {
-	return r.findOne(ctx, bson.M{"razorpay_payment_id": razorpayPaymentID})
+func (r *pgRepository) FindByRazorpayPaymentID(ctx context.Context, razorpayPaymentID string) (*Order, error) {
+	return r.findOne(ctx, "razorpay_payment_id", razorpayPaymentID)
+}
+
+func statusList(list []Status) []string {
+	out := make([]string, len(list))
+	for i, s := range list {
+		out[i] = string(s)
+	}
+	return out
 }
 
 // changed runs a conditional update and reports whether it applied.
-func (r *mongoRepository) changed(ctx context.Context, filter, set bson.M) (bool, error) {
-	res, err := r.orders.UpdateOne(ctx, filter, bson.M{"$set": set})
-	if err != nil {
-		return false, err
-	}
-	return res.ModifiedCount == 1, nil
+func (r *pgRepository) changed(ctx context.Context, id primitive.ObjectID, from []Status, set map[string]interface{}) (bool, error) {
+	res := r.conn(ctx).Table("payment_orders").Where("id = ? AND status IN ?", id.Hex(), statusList(from)).Updates(set)
+	return res.RowsAffected == 1, res.Error
 }
 
 // ClaimPaid accepts an expired order too: a late payment is still money received.
-func (r *mongoRepository) ClaimPaid(ctx context.Context, id primitive.ObjectID, paymentID string, now time.Time) (bool, error) {
-	return r.changed(ctx,
-		bson.M{"_id": id, "status": bson.M{"$in": []Status{StatusCreated, StatusExpired}}},
-		bson.M{"status": StatusPaid, "razorpay_payment_id": paymentID, "paid_at": now, "updated_at": now},
-	)
+func (r *pgRepository) ClaimPaid(ctx context.Context, id primitive.ObjectID, paymentID string, now time.Time) (bool, error) {
+	return r.changed(ctx, id, []Status{StatusCreated, StatusExpired},
+		map[string]interface{}{"status": string(StatusPaid), "razorpay_payment_id": paymentID, "paid_at": now})
 }
 
-func (r *mongoRepository) MarkRefundDue(ctx context.Context, id primitive.ObjectID, from []Status, paymentID string, paise int64, reason string, now time.Time) (bool, error) {
-	return r.changed(ctx,
-		bson.M{"_id": id, "status": bson.M{"$in": from}},
-		bson.M{"status": StatusRefundDue, "razorpay_payment_id": paymentID, "refund_paise": paise, "refund_reason": reason, "updated_at": now},
-	)
+func (r *pgRepository) MarkRefundDue(ctx context.Context, id primitive.ObjectID, from []Status, paymentID string, paise int64, reason string, now time.Time) (bool, error) {
+	return r.changed(ctx, id, from, map[string]interface{}{
+		"status": string(StatusRefundDue), "razorpay_payment_id": null(paymentID), "refund_paise": paise, "refund_reason": null(reason),
+	})
 }
 
-func (r *mongoRepository) MarkRefunded(ctx context.Context, id primitive.ObjectID, refundID string, now time.Time) (bool, error) {
-	set := bson.M{"status": StatusRefunded, "refunded_at": now, "updated_at": now, "refund_error": ""}
+func (r *pgRepository) MarkRefunded(ctx context.Context, id primitive.ObjectID, refundID string, now time.Time) (bool, error) {
+	set := map[string]interface{}{"status": string(StatusRefunded), "refunded_at": now, "refund_error": nil}
 	if refundID != "" {
 		set["refund_id"] = refundID
 	}
-	return r.changed(ctx, bson.M{"_id": id, "status": StatusRefundDue}, set)
+	return r.changed(ctx, id, []Status{StatusRefundDue}, set)
 }
 
-func (r *mongoRepository) ReopenRefund(ctx context.Context, id primitive.ObjectID, message string) error {
-	_, err := r.orders.UpdateOne(ctx, bson.M{"_id": id, "status": StatusRefunded}, bson.M{
-		"$set":   bson.M{"status": StatusRefundDue, "refund_error": message, "updated_at": time.Now()},
-		"$unset": bson.M{"refund_id": "", "refunded_at": ""},
+func (r *pgRepository) ReopenRefund(ctx context.Context, id primitive.ObjectID, message string) error {
+	_, err := r.changed(ctx, id, []Status{StatusRefunded}, map[string]interface{}{
+		"status": string(StatusRefundDue), "refund_error": null(message), "refund_id": nil, "refunded_at": nil,
 	})
 	return err
 }
 
-func (r *mongoRepository) SetRefundError(ctx context.Context, id primitive.ObjectID, message string) error {
-	_, err := r.orders.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"refund_error": message, "updated_at": time.Now()}})
-	return err
+func (r *pgRepository) SetRefundError(ctx context.Context, id primitive.ObjectID, message string) error {
+	return r.conn(ctx).Exec(`UPDATE payment_orders SET refund_error = ? WHERE id = ?`, null(message), id.Hex()).Error
 }
 
-func (r *mongoRepository) SetLastFailure(ctx context.Context, id primitive.ObjectID, message string) error {
-	_, err := r.orders.UpdateOne(ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"last_failure": message, "updated_at": time.Now()}})
-	return err
+func (r *pgRepository) SetLastFailure(ctx context.Context, id primitive.ObjectID, message string) error {
+	return r.conn(ctx).Exec(`UPDATE payment_orders SET last_failure = ? WHERE id = ?`, null(message), id.Hex()).Error
 }
 
-func (r *mongoRepository) list(ctx context.Context, filter bson.M, opts *options.FindOptions) ([]Order, error) {
-	cursor, err := r.orders.Find(ctx, filter, opts)
-	if err != nil {
+func (r *pgRepository) list(ctx context.Context, query string, args ...interface{}) ([]Order, error) {
+	var rows []orderRow
+	if err := r.conn(ctx).Raw(`SELECT `+orderColumns+` FROM payment_orders `+query, args...).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
-	orders := []Order{}
-	if err := cursor.All(ctx, &orders); err != nil {
-		return nil, err
-	}
-	return orders, nil
+	return toOrders(rows)
 }
 
-func (r *mongoRepository) ListCreatedBefore(ctx context.Context, before time.Time, limit int64) ([]Order, error) {
-	return r.list(ctx,
-		bson.M{"status": StatusCreated, "created_at": bson.M{"$lte": before}},
-		options.Find().SetSort(bson.D{{Key: "created_at", Value: 1}}).SetLimit(limit),
-	)
+func (r *pgRepository) ListCreatedBefore(ctx context.Context, before time.Time, limit int64) ([]Order, error) {
+	return r.list(ctx, `WHERE status = 'created' AND created_at <= ? ORDER BY created_at LIMIT ?`, before, limit)
 }
 
-func (r *mongoRepository) ListRefundDue(ctx context.Context, limit int64) ([]Order, error) {
-	return r.list(ctx,
-		bson.M{"status": StatusRefundDue},
-		options.Find().SetSort(bson.D{{Key: "updated_at", Value: 1}}).SetLimit(limit),
-	)
+func (r *pgRepository) ListRefundDue(ctx context.Context, limit int64) ([]Order, error) {
+	return r.list(ctx, `WHERE status = 'refund_due' ORDER BY updated_at LIMIT ?`, limit)
 }
 
-func (r *mongoRepository) MarkExpired(ctx context.Context, id primitive.ObjectID, now time.Time) error {
-	_, err := r.changed(ctx, bson.M{"_id": id, "status": StatusCreated}, bson.M{"status": StatusExpired, "updated_at": now})
+func (r *pgRepository) MarkExpired(ctx context.Context, id primitive.ObjectID, now time.Time) error {
+	_, err := r.changed(ctx, id, []Status{StatusCreated}, map[string]interface{}{"status": string(StatusExpired)})
 	return err
 }
 
 // SumPaidSince adds up what a user has successfully paid for a purpose since a moment in time.
-func (r *mongoRepository) SumPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) (int64, error) {
-	cursor, err := r.orders.Aggregate(ctx, mongo.Pipeline{
-		{{Key: "$match", Value: bson.M{"user_id": userID, "purpose": purpose, "status": StatusPaid, "paid_at": bson.M{"$gte": since}}}},
-		{{Key: "$group", Value: bson.M{"_id": nil, "total": bson.M{"$sum": "$amount_paise"}}}},
-	})
-	if err != nil {
-		return 0, err
-	}
-	defer cursor.Close(ctx)
-	var rows []struct {
-		Total int64 `bson:"total"`
-	}
-	if err := cursor.All(ctx, &rows); err != nil {
-		return 0, err
-	}
-	if len(rows) == 0 {
-		return 0, nil
-	}
-	return rows[0].Total, nil
+func (r *pgRepository) SumPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) (int64, error) {
+	var total int64
+	err := r.conn(ctx).Raw(`SELECT COALESCE(sum(amount_paise), 0) FROM payment_orders
+		WHERE user_id = ? AND purpose = ? AND status = 'paid' AND paid_at >= ?`,
+		userID.Hex(), string(purpose), since).Scan(&total).Error
+	return total, err
 }
 
-func (r *mongoRepository) AdminList(ctx context.Context, query AdminOrderQuery) ([]Order, int64, error) {
-	filter := bson.M{}
+// escapeLike makes a search term match literally in a LIKE pattern.
+func escapeLike(s string) string {
+	return strings.NewReplacer(`\`, `\\`, `%`, `\%`, `_`, `\_`).Replace(s)
+}
+
+func (r *pgRepository) AdminList(ctx context.Context, query AdminOrderQuery) ([]Order, int64, error) {
+	q := r.conn(ctx).Table("payment_orders")
 	if query.Status != "" {
-		filter["status"] = query.Status
+		q = q.Where("status = ?", string(query.Status))
 	}
 	if query.Purpose != "" {
-		filter["purpose"] = query.Purpose
+		q = q.Where("purpose = ?", string(query.Purpose))
 	}
 	if query.Search != "" {
-		pattern := primitive.Regex{Pattern: "^" + regexp.QuoteMeta(query.Search), Options: ""}
-		filter["$or"] = []bson.M{{"razorpay_order_id": pattern}, {"razorpay_payment_id": pattern}}
+		prefix := escapeLike(query.Search) + "%"
+		q = q.Where("(razorpay_order_id LIKE ? OR razorpay_payment_id LIKE ?)", prefix, prefix)
 	}
-	total, err := r.orders.CountDocuments(ctx, filter)
-	if err != nil {
+	var total int64
+	if err := q.Session(&gorm.Session{}).Count(&total).Error; err != nil {
 		return nil, 0, err
 	}
-	orders, err := r.list(ctx, filter, options.Find().
-		SetSort(bson.D{{Key: "created_at", Value: -1}}).
-		SetSkip(int64((query.Page-1)*query.Limit)).
-		SetLimit(int64(query.Limit)))
-	if err != nil {
+	page, limit := query.Page, query.Limit
+	if page < 1 {
+		page = 1
+	}
+	if limit < 1 || limit > 100 {
+		limit = 20
+	}
+	var rows []orderRow
+	if err := q.Select(orderColumns).Order("created_at DESC, id DESC").Limit(limit).Offset((page - 1) * limit).Scan(&rows).Error; err != nil {
 		return nil, 0, err
 	}
-	return orders, total, nil
+	orders, err := toOrders(rows)
+	return orders, total, err
 }

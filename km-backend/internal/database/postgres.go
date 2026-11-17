@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"strings"
@@ -16,9 +17,9 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// PostgresDB is the Supabase Postgres connection, used next to MongoDB while data moves over.
-// DB is nil when DATABASE_URI is not set or the database could not be reached at startup;
-// nothing depends on Postgres yet, so the API keeps running on MongoDB in that case.
+// PostgresDB is the Supabase Postgres connection. It holds money and everything money buys;
+// MongoDB keeps users, chat, feed, notifications and analytics. The server does not start
+// without it.
 type PostgresDB struct {
 	DB *gorm.DB
 }
@@ -44,15 +45,13 @@ const keepAliveEvery = 6 * time.Hour
 // NewPostgres opens the Supabase Postgres connection through GORM
 func NewPostgres(lc fx.Lifecycle, cfg *config.Config) (*PostgresDB, error) {
 	if strings.TrimSpace(cfg.PostgresURI) == "" {
-		log.Println("Postgres: DATABASE_URI not set, running on MongoDB only")
-		return &PostgresDB{}, nil
+		return nil, errors.New("postgres: DATABASE_URI is not set (wallet, payments and purchases need it)")
 	}
 
 	dsn, err := withSSL(cfg.PostgresURI)
 	if err != nil {
 		// Never log the DSN itself: it contains the password
-		log.Println("Postgres: DATABASE_URI is not a valid connection string, running on MongoDB only")
-		return &PostgresDB{}, nil
+		return nil, errors.New("postgres: DATABASE_URI is not a valid connection string")
 	}
 
 	logLevel := logger.Warn
@@ -65,8 +64,7 @@ func NewPostgres(lc fx.Lifecycle, cfg *config.Config) (*PostgresDB, error) {
 		NowFunc: func() time.Time { return time.Now().UTC() },
 	})
 	if err != nil {
-		log.Printf("Postgres: could not open the connection (%v), running on MongoDB only", err)
-		return &PostgresDB{}, nil
+		return nil, fmt.Errorf("postgres: could not open the connection: %w", err)
 	}
 
 	sqlDB, err := db.DB()
@@ -84,9 +82,8 @@ func NewPostgres(lc fx.Lifecycle, cfg *config.Config) (*PostgresDB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := pg.Ping(ctx); err != nil {
-		log.Printf("Postgres: not reachable at startup (%v), running on MongoDB only", err)
 		_ = sqlDB.Close()
-		return &PostgresDB{}, nil
+		return nil, fmt.Errorf("postgres: not reachable at startup: %w", err)
 	}
 	log.Println("Connected to Postgres!")
 
@@ -122,7 +119,7 @@ func (p *PostgresDB) keepAlive(stop <-chan struct{}) {
 	}
 }
 
-// withSSL makes sure the connection is encrypted: it adds sslmode=require when no sslmode is set
+// withSSL makes sure the connection is encrypted (sslmode=require unless set) and sets the schema search path
 func withSSL(uri string) (string, error) {
 	u, err := url.Parse(strings.TrimSpace(uri))
 	if err != nil || (u.Scheme != "postgres" && u.Scheme != "postgresql") || u.Host == "" {
@@ -131,7 +128,12 @@ func withSSL(uri string) (string, error) {
 	q := u.Query()
 	if q.Get("sslmode") == "" {
 		q.Set("sslmode", "require")
-		u.RawQuery = q.Encode()
 	}
+	// Queries name tables without a schema; they live in "app" (PostGIS types in "extensions").
+	// Tests point this at a throwaway schema instead.
+	if q.Get("search_path") == "" {
+		q.Set("search_path", "app,extensions")
+	}
+	u.RawQuery = q.Encode()
 	return u.String(), nil
 }

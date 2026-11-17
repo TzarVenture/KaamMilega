@@ -183,8 +183,9 @@ func main() {
 
 			// Initialize Database
 			database.NewDatabase,
-			database.NewTransactor,
-			// Supabase Postgres, next to MongoDB while data moves over (off when DATABASE_URI is empty)
+			// Supabase Postgres holds money and purchases; every purchase is one Postgres transaction
+			database.NewPgTransactor,
+			func(t *database.PgTransactor) database.Transactor { return t },
 			database.NewPostgres,
 			payment.NewGateway,
 			payment.NewRepository,
