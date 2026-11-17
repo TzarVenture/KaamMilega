@@ -11,6 +11,10 @@ services:
     # which is never committed
     env_file:
       - .env
+    environment:
+      # A container always runs in production mode (secure cookies, no test shortcuts), even
+      # if the .env next to it was copied from a development machine
+      - ENVIRONMENT=production
     volumes:
       - km-statics:/root/static/uploads
 

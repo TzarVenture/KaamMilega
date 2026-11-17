@@ -304,6 +304,9 @@ func sessionVersionFilter(version int) bson.M {
 // racing each other; the services check first, the unique indexes make sure)
 var ErrAccountExists = apperr.New("ACCOUNT_EXISTS", "an account with this email or mobile number already exists")
 
+// ErrContactTaken: the email, mobile number or username being saved belongs to another account
+var ErrContactTaken = apperr.New("CONTACT_TAKEN", "this email, mobile number or username is already linked to another account")
+
 // ErrStaleUser is returned when the user changed account state (deactivated, deletion requested,
 // signed out everywhere) after this copy was read. Replacing it would silently undo that change.
 var ErrStaleUser = apperr.New("ACCOUNT_CHANGED", "your account changed in another session; please reload and try again")
@@ -314,6 +317,10 @@ func (r *UserRepositoryImpl) UpdateUser(ctx context.Context, user *User) (*User,
 	// lifecycle transition bumps it, so a stale copy can never revert one
 	filter := bson.M{"$and": []bson.M{{"_id": user.ID}, sessionVersionFilter(user.SessionVersion)}}
 	res, err := r.userColl.ReplaceOne(ctx, filter, user)
+	if mongo.IsDuplicateKeyError(err) {
+		// Paths such as the profile mobile field and the company profile don't check first
+		return nil, ErrContactTaken
+	}
 	if err != nil {
 		return nil, err
 	}
