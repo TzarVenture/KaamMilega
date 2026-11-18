@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"km-backend/internal/config"
 
@@ -92,6 +93,34 @@ func TestSessionWithOpenBookingsCanNotBeDeleted(t *testing.T) {
 	b.Status = BookingCompleted
 	if err := f.svc.DeleteMentorship(f.ctx, f.expert.Hex(), m.ID.Hex()); err != nil {
 		t.Fatalf("delete once every booking is finished: %v", err)
+	}
+}
+
+// A paused session drops out of the list, and a saved link to it can't be used to book it
+func TestPausedSessionCanNotBeBooked(t *testing.T) {
+	f := newFixture()
+	m, _ := f.svc.CreateMentorship(f.ctx, f.expert.Hex(), validSession())
+	paused := validSession()
+	paused.Status = "inactive"
+	if _, err := f.svc.UpdateMentorship(f.ctx, f.expert.Hex(), m.ID.Hex(), paused); err != nil {
+		t.Fatal(err)
+	}
+
+	when := time.Now().Add(time.Hour)
+	if _, err := f.svc.CreateBookingOrder(f.ctx, f.mentee.Hex(), CreateMentorshipOrderRequest{MentorshipID: m.ID.Hex(), ScheduledAt: when}); !errors.Is(err, ErrSessionPaused) {
+		t.Fatalf("card checkout of a paused session: %v", err)
+	}
+	if _, _, err := f.svc.BookWithWallet(f.ctx, f.mentee.Hex(), BookWithWalletRequest{MentorshipID: m.ID.Hex(), ScheduledAt: when}); !errors.Is(err, ErrSessionPaused) {
+		t.Fatalf("wallet booking of a paused session: %v", err)
+	}
+
+	resumed := validSession()
+	resumed.Status = "active"
+	if _, err := f.svc.UpdateMentorship(f.ctx, f.expert.Hex(), m.ID.Hex(), resumed); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.svc.CreateBookingOrder(f.ctx, f.mentee.Hex(), CreateMentorshipOrderRequest{MentorshipID: m.ID.Hex(), ScheduledAt: when}); err != nil {
+		t.Fatalf("checkout after resuming: %v", err)
 	}
 }
 

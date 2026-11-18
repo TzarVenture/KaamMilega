@@ -36,6 +36,7 @@ var (
 	ErrSessionNotDue    = apperr.New("MENTORSHIP_SESSION_NOT_DUE", "a session can only be marked done after its start time")
 	ErrReasonRequired   = apperr.New("MENTORSHIP_REPORT_REASON_REQUIRED", "tell us what went wrong")
 	ErrInvalidBookState = apperr.New("MENTORSHIP_STATUS_INVALID", "that status can't be set on a session")
+	ErrSessionPaused    = apperr.New("MENTORSHIP_PAUSED", "this session isn't taking bookings right now")
 )
 
 // bookable loads a mentorship and checks this user can buy it for this time.
@@ -43,6 +44,10 @@ func (s *MentorshipServiceImpl) bookable(ctx context.Context, uid primitive.Obje
 	m, err := s.repo.GetMentorshipByID(ctx, mentorshipID)
 	if err != nil || m == nil {
 		return nil, ErrMentorshipGone
+	}
+	// A paused session is hidden from the list, and its old links must not take bookings either
+	if m.Status != "active" {
+		return nil, ErrSessionPaused
 	}
 	if money.ToPaise(m.Price) <= 0 {
 		return nil, ErrNotBookable

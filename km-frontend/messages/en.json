@@ -942,6 +942,7 @@
     "MENTORSHIP_STATE_INVALID": "A session can only be active or paused.",
     "MENTORSHIP_FORBIDDEN": "This session isn't yours.",
     "MENTORSHIP_HAS_BOOKINGS": "This session has bookings that aren't finished. Complete or cancel them first, or pause the session instead.",
+    "MENTORSHIP_PAUSED": "This session isn't taking bookings right now.",
     "EVENT_FIELDS_REQUIRED": "Fill in the title, host name, description, date, time and location.",
     "EVENT_TEXT_TOO_LONG": "The title can be up to 120 characters and the description up to 3,000.",
     "EVENT_DATE_INVALID": "Choose a date and time that haven't passed yet.",
