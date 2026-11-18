@@ -2,45 +2,229 @@ package event
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
+	"strings"
 	"time"
+
+	"km-backend/internal/common/apperr"
+	"km-backend/internal/common/money"
+	"km-backend/internal/database"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"km-backend/internal/database"
+	"gorm.io/gorm"
 )
 
+var (
+	errEventMissing = errors.New("event not found")
+	// ErrAlreadyRegistered is a second registration for the same event
+	ErrAlreadyRegistered = apperr.New("EVENT_ALREADY_REGISTERED", "you are already registered for this event")
+	// ErrSeatsAboveCapacity is an admin edit that would leave more free seats than the event has
+	ErrSeatsAboveCapacity = apperr.New("EVENT_SEATS_INVALID", "available seats can't be more than the capacity")
+)
+
+// EventRepositoryImpl keeps events and tickets in Postgres. Attendee profiles are read from the
+// MongoDB users collection.
 type EventRepositoryImpl struct {
-	db         *database.MongodbDB
-	collection *mongo.Collection
-	ticketColl *mongo.Collection
+	pg    *gorm.DB
+	users *mongo.Collection
 }
 
-func NewEventRepository(db *database.MongodbDB) EventRepository {
-	return &EventRepositoryImpl{
-		db:         db,
-		collection: db.DB.Collection("events"),
-		ticketColl: db.DB.Collection("event_tickets"),
+func NewEventRepository(pg *database.PostgresDB, db *database.MongodbDB) EventRepository {
+	return &EventRepositoryImpl{pg: pg.DB, users: db.DB.Collection("users")}
+}
+
+func (r *EventRepositoryImpl) conn(ctx context.Context) *gorm.DB { return database.Conn(ctx, r.pg) }
+
+// ---------------------------------------------------------------------------------------------
+// Rows
+// ---------------------------------------------------------------------------------------------
+
+type eventRow struct {
+	ID             string
+	Title          string
+	Organizer      string
+	OrganizerID    *string
+	Description    string
+	Date           string
+	Time           string
+	Location       string
+	MeetingLink    *string
+	ImageURL       *string
+	Category       *string
+	IsPaid         bool
+	PricePaise     int64
+	Currency       string
+	Capacity       int
+	AvailableSeats int
+	Participants   string // JSON array of user ids, oldest registration first
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+}
+
+// eventSelect reads an event with its participant list
+const eventSelect = `SELECT e.id, e.title, e.organizer, e.organizer_id, e.description, e.date, e.time, e.location,
+	e.meeting_link, e.image_url, e.category, e.is_paid, e.price_paise, e.currency, e.capacity, e.available_seats,
+	COALESCE((SELECT json_agg(p.user_id ORDER BY p.created_at, p.user_id) FROM event_participants p WHERE p.event_id = e.id), '[]')::text AS participants,
+	e.created_at, e.updated_at
+	FROM events e`
+
+func (e eventRow) toDomain() (Event, error) {
+	out := Event{
+		ID:             database.OID(e.ID),
+		Title:          e.Title,
+		Organizer:      e.Organizer,
+		Description:    e.Description,
+		Date:           e.Date,
+		Time:           e.Time,
+		Location:       e.Location,
+		MeetingLink:    deref(e.MeetingLink),
+		ImageURL:       deref(e.ImageURL),
+		Category:       deref(e.Category),
+		IsPaid:         e.IsPaid,
+		Price:          money.ToRupees(e.PricePaise),
+		Currency:       strings.TrimSpace(e.Currency),
+		Capacity:       e.Capacity,
+		AvailableSeats: e.AvailableSeats,
+		Participants:   []primitive.ObjectID{},
+		CreatedAt:      e.CreatedAt,
+		UpdatedAt:      e.UpdatedAt,
+	}
+	if e.OrganizerID != nil {
+		out.OrganizerID = database.OID(*e.OrganizerID)
+	}
+	var ids []string
+	if err := json.Unmarshal([]byte(e.Participants), &ids); err != nil {
+		return out, fmt.Errorf("reading participants: %w", err)
+	}
+	for _, id := range ids {
+		out.Participants = append(out.Participants, database.OID(id))
+	}
+	return out, nil
+}
+
+func toEvents(rows []eventRow) ([]Event, error) {
+	out := make([]Event, 0, len(rows))
+	for _, row := range rows {
+		ev, err := row.toDomain()
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, ev)
+	}
+	return out, nil
+}
+
+type ticketRow struct {
+	ID                string
+	TicketNumber      string
+	EventID           string
+	UserID            string
+	AttendeeName      string
+	AttendeeEmail     string
+	AttendeePhone     *string
+	AmountPaise       int64
+	PaymentStatus     string
+	PaymentMethod     string
+	RazorpayOrderID   *string
+	RazorpayPaymentID *string
+	Status            string
+	QRCodeData        string `gorm:"column:qr_code_data"`
+	EventTitle        *string
+	EventDate         *string
+	EventTime         *string
+	EventLocation     *string
+	CreatedAt         time.Time
+}
+
+const ticketColumns = `id, ticket_number, event_id, user_id, attendee_name, attendee_email, attendee_phone, amount_paise,
+	payment_status, payment_method, razorpay_order_id, razorpay_payment_id, status, qr_code_data, event_title, event_date,
+	event_time, event_location, created_at`
+
+func (t ticketRow) toDomain() EventTicket {
+	return EventTicket{
+		ID:                database.OID(t.ID),
+		TicketNumber:      t.TicketNumber,
+		EventID:           database.OID(t.EventID),
+		UserID:            database.OID(t.UserID),
+		AttendeeName:      t.AttendeeName,
+		AttendeeEmail:     t.AttendeeEmail,
+		AttendeePhone:     deref(t.AttendeePhone),
+		Amount:            money.ToRupees(t.AmountPaise),
+		PaymentStatus:     t.PaymentStatus,
+		PaymentMethod:     t.PaymentMethod,
+		RazorpayOrderID:   deref(t.RazorpayOrderID),
+		RazorpayPaymentID: deref(t.RazorpayPaymentID),
+		Status:            t.Status,
+		QRCodeData:        t.QRCodeData,
+		EventTitle:        deref(t.EventTitle),
+		EventDate:         deref(t.EventDate),
+		EventTime:         deref(t.EventTime),
+		EventLocation:     deref(t.EventLocation),
+		CreatedAt:         t.CreatedAt,
 	}
 }
 
+func toTickets(rows []ticketRow) []EventTicket {
+	out := make([]EventTicket, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, row.toDomain())
+	}
+	return out
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func nullable(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+// ---------------------------------------------------------------------------------------------
+// Events
+// ---------------------------------------------------------------------------------------------
+
 func (r *EventRepositoryImpl) CreateEvent(ctx context.Context, e *Event) (*Event, error) {
-	e.CreatedAt = time.Now()
-	e.UpdatedAt = time.Now()
 	if e.ID.IsZero() {
 		e.ID = primitive.NewObjectID()
 	}
 	if e.Capacity > 0 && e.AvailableSeats == 0 {
 		e.AvailableSeats = e.Capacity
 	}
+	if e.Currency == "" {
+		e.Currency = "INR"
+	}
 	if e.Participants == nil {
 		e.Participants = []primitive.ObjectID{}
 	}
-	_, err := r.collection.InsertOne(ctx, e)
+	var organizer *string
+	if !e.OrganizerID.IsZero() {
+		hex := e.OrganizerID.Hex()
+		organizer = &hex
+	}
+	now := time.Now()
+	e.CreatedAt, e.UpdatedAt = now, now
+	err := r.conn(ctx).Exec(`INSERT INTO events
+		(id, title, organizer, organizer_id, description, date, time, location, meeting_link, image_url, category,
+		 is_paid, price_paise, currency, capacity, available_seats, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		e.ID.Hex(), e.Title, e.Organizer, organizer, e.Description, e.Date, e.Time, e.Location,
+		nullable(e.MeetingLink), nullable(e.ImageURL), nullable(e.Category), e.IsPaid, money.ToPaise(e.Price),
+		e.Currency, e.Capacity, e.AvailableSeats, now, now).Error
+	if database.PgErrCode(err) == database.PgCheckViolation {
+		return nil, ErrSeatsAboveCapacity
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -48,174 +232,168 @@ func (r *EventRepositoryImpl) CreateEvent(ctx context.Context, e *Event) (*Event
 }
 
 func (r *EventRepositoryImpl) GetEvents(ctx context.Context, filter EventFilter) ([]Event, int64, error) {
-	bsonFilter := bson.M{}
+	where := []string{"e.deleted_at IS NULL"}
+	args := []interface{}{}
 	if filter.Search != "" {
-		regex := bson.M{"$regex": regexp.QuoteMeta(filter.Search), "$options": "i"}
-		bsonFilter["$or"] = []bson.M{
-			{"title": regex},
-			{"organizer": regex},
-			{"category": regex},
-		}
+		where = append(where, "(e.title ILIKE ? OR e.organizer ILIKE ? OR e.category ILIKE ?)")
+		p := database.LikeContains(filter.Search)
+		args = append(args, p, p, p)
 	}
-
 	if filter.Location != "" {
-		bsonFilter["location"] = bson.M{"$regex": regexp.QuoteMeta(filter.Location), "$options": "i"}
+		where = append(where, "e.location ILIKE ?")
+		args = append(args, database.LikeContains(filter.Location))
 	}
-
 	if filter.IsPaid != nil {
-		bsonFilter["is_paid"] = *filter.IsPaid
+		where = append(where, "e.is_paid = ?")
+		args = append(args, *filter.IsPaid)
+	}
+	cond := " WHERE " + strings.Join(where, " AND ")
+
+	var total int64
+	if err := r.conn(ctx).Raw(`SELECT count(*) FROM events e`+cond, args...).Scan(&total).Error; err != nil {
+		return nil, 0, err
 	}
 
-	opts := options.Find()
+	// Dates are stored as entered, so "Upcoming" sorts them as text, as before
+	order := ` ORDER BY e.created_at DESC, e.id DESC`
 	if filter.Sort == "Upcoming" {
-		opts.SetSort(bson.M{"date": 1})
-	} else {
-		opts.SetSort(bson.M{"created_at": -1})
+		order = ` ORDER BY e.date COLLATE "C", e.id`
 	}
-
-	total, err := r.collection.CountDocuments(ctx, bsonFilter)
-	if err != nil {
-		return nil, 0, err
-	}
-
+	page := ""
 	if filter.Limit > 0 {
-		opts.SetLimit(int64(filter.Limit))
+		offset := 0
 		if filter.Page > 1 {
-			opts.SetSkip(int64((filter.Page - 1) * filter.Limit))
+			offset = (filter.Page - 1) * filter.Limit
 		}
+		page = fmt.Sprintf(" LIMIT %d OFFSET %d", filter.Limit, offset)
 	}
 
-	cursor, err := r.collection.Find(ctx, bsonFilter, opts)
-	if err != nil {
+	var rows []eventRow
+	if err := r.conn(ctx).Raw(eventSelect+cond+order+page, args...).Scan(&rows).Error; err != nil {
 		return nil, 0, err
 	}
-	defer cursor.Close(ctx)
-
-	var events []Event
-	if err := cursor.All(ctx, &events); err != nil {
-		return nil, 0, err
-	}
-
-	if events == nil {
-		events = []Event{}
-	}
-
-	return events, total, nil
+	events, err := toEvents(rows)
+	return events, total, err
 }
 
+// GetEventByID returns a live (not deleted) event, or an error when there is none
 func (r *EventRepositoryImpl) GetEventByID(ctx context.Context, id primitive.ObjectID) (*Event, error) {
-	var e Event
-	err := r.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&e)
+	var rows []eventRow
+	if err := r.conn(ctx).Raw(eventSelect+` WHERE e.id = ? AND e.deleted_at IS NULL`, id.Hex()).Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return nil, errEventMissing
+	}
+	ev, err := rows[0].toDomain()
 	if err != nil {
 		return nil, err
 	}
-	return &e, nil
+	return &ev, nil
 }
 
+// RegisterUser adds the user to the event's participants. Registering twice is a no-op here; the
+// ticket's unique rule is what rejects a second registration.
 func (r *EventRepositoryImpl) RegisterUser(ctx context.Context, eventID, userID primitive.ObjectID) error {
-	_, err := r.collection.UpdateOne(
-		ctx,
-		bson.M{"_id": eventID},
-		bson.M{"$addToSet": bson.M{"participants": userID}},
-	)
-	return err
+	return r.conn(ctx).Exec(`INSERT INTO event_participants (event_id, user_id) VALUES (?, ?) ON CONFLICT DO NOTHING`,
+		eventID.Hex(), userID.Hex()).Error
 }
 
+// DecrementAvailableSeats claims one seat. The update is atomic, so two buyers can't both take
+// the last one.
 func (r *EventRepositoryImpl) DecrementAvailableSeats(ctx context.Context, eventID primitive.ObjectID) error {
-	filter := bson.M{
-		"_id":             eventID,
-		"capacity":        bson.M{"$gt": 0},
-		"available_seats": bson.M{"$gt": 0},
+	res := r.conn(ctx).Exec(`UPDATE events SET available_seats = available_seats - 1
+		WHERE id = ? AND deleted_at IS NULL AND capacity > 0 AND available_seats > 0`, eventID.Hex())
+	if res.Error != nil {
+		return res.Error
 	}
-	update := bson.M{
-		"$inc": bson.M{"available_seats": -1},
-	}
-	res, err := r.collection.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return err
-	}
-	if res.MatchedCount == 0 {
+	if res.RowsAffected == 0 {
 		return ErrEventSoldOut
 	}
 	return nil
 }
 
-func (r *EventRepositoryImpl) CreateTicket(ctx context.Context, ticket *EventTicket) (*EventTicket, error) {
-	ticket.CreatedAt = time.Now()
-	if ticket.ID.IsZero() {
-		ticket.ID = primitive.NewObjectID()
+// ---------------------------------------------------------------------------------------------
+// Tickets
+// ---------------------------------------------------------------------------------------------
+
+// CreateTicket saves a ticket. One confirmed ticket per person per event is a database rule.
+func (r *EventRepositoryImpl) CreateTicket(ctx context.Context, t *EventTicket) (*EventTicket, error) {
+	if t.ID.IsZero() {
+		t.ID = primitive.NewObjectID()
 	}
-	_, err := r.ticketColl.InsertOne(ctx, ticket)
+	t.CreatedAt = time.Now()
+	err := r.conn(ctx).Exec(`INSERT INTO event_tickets
+		(id, ticket_number, event_id, user_id, attendee_name, attendee_email, attendee_phone, amount_paise, payment_status,
+		 payment_method, razorpay_order_id, razorpay_payment_id, status, qr_code_data, event_title, event_date, event_time,
+		 event_location, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		t.ID.Hex(), t.TicketNumber, t.EventID.Hex(), t.UserID.Hex(), t.AttendeeName, t.AttendeeEmail,
+		nullable(t.AttendeePhone), money.ToPaise(t.Amount), t.PaymentStatus, t.PaymentMethod, nullable(t.RazorpayOrderID),
+		nullable(t.RazorpayPaymentID), t.Status, t.QRCodeData, nullable(t.EventTitle), nullable(t.EventDate),
+		nullable(t.EventTime), nullable(t.EventLocation), t.CreatedAt, t.CreatedAt).Error
+	if database.PgConstraint(err) == "event_tickets_one_confirmed_idx" {
+		return nil, ErrEventTicketTaken
+	}
 	if err != nil {
 		return nil, err
 	}
-	return ticket, nil
+	return t, nil
+}
+
+func (r *EventRepositoryImpl) tickets(ctx context.Context, where string, args ...interface{}) ([]EventTicket, error) {
+	var rows []ticketRow
+	if err := r.conn(ctx).Raw(`SELECT `+ticketColumns+` FROM event_tickets WHERE `+where, args...).Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	return toTickets(rows), nil
 }
 
 func (r *EventRepositoryImpl) GetTicketByID(ctx context.Context, id primitive.ObjectID) (*EventTicket, error) {
-	var t EventTicket
-	err := r.ticketColl.FindOne(ctx, bson.M{"_id": id}).Decode(&t)
+	list, err := r.tickets(ctx, `id = ?`, id.Hex())
 	if err != nil {
 		return nil, err
 	}
-	return &t, nil
+	if len(list) == 0 {
+		return nil, errors.New("ticket not found")
+	}
+	return &list[0], nil
 }
 
 func (r *EventRepositoryImpl) GetTicketByEventAndUser(ctx context.Context, eventID, userID primitive.ObjectID) (*EventTicket, error) {
-	var t EventTicket
-	err := r.ticketColl.FindOne(ctx, bson.M{
-		"event_id": eventID,
-		"user_id":  userID,
-		"status":   "confirmed",
-	}).Decode(&t)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			return nil, nil
-		}
+	list, err := r.tickets(ctx, `event_id = ? AND user_id = ? AND status = 'confirmed'`, eventID.Hex(), userID.Hex())
+	if err != nil || len(list) == 0 {
 		return nil, err
 	}
-	return &t, nil
+	return &list[0], nil
 }
 
 func (r *EventRepositoryImpl) GetTicketsByUser(ctx context.Context, userID primitive.ObjectID) ([]EventTicket, error) {
-	cursor, err := r.ticketColl.Find(ctx, bson.M{
-		"user_id": userID,
-		"status":  "confirmed",
-	}, options.Find().SetSort(bson.M{"created_at": -1}))
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var tickets []EventTicket
-	if err := cursor.All(ctx, &tickets); err != nil {
-		return nil, err
-	}
-	if tickets == nil {
-		tickets = []EventTicket{}
-	}
-	return tickets, nil
+	return r.tickets(ctx, `user_id = ? AND status = 'confirmed' ORDER BY created_at DESC, id DESC`, userID.Hex())
 }
 
 func (r *EventRepositoryImpl) GetTicketsByEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error) {
-	cursor, err := r.ticketColl.Find(ctx, bson.M{
-		"event_id": eventID,
-		"status":   "confirmed",
-	}, options.Find().SetSort(bson.M{"created_at": -1}))
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var tickets []EventTicket
-	if err := cursor.All(ctx, &tickets); err != nil {
-		return nil, err
-	}
-	if tickets == nil {
-		tickets = []EventTicket{}
-	}
-	return tickets, nil
+	return r.tickets(ctx, `event_id = ? AND status = 'confirmed' ORDER BY created_at DESC, id DESC`, eventID.Hex())
 }
+
+// RevokeTicket cancels a refunded ticket, removes the attendee and returns their seat
+func (r *EventRepositoryImpl) RevokeTicket(ctx context.Context, eventID, userID primitive.ObjectID, razorpayOrderID string) error {
+	db := r.conn(ctx)
+	res := db.Exec(`UPDATE event_tickets SET status = 'cancelled', payment_status = 'refunded'
+		WHERE razorpay_order_id = ? AND status = 'confirmed'`, razorpayOrderID)
+	if res.Error != nil || res.RowsAffected == 0 {
+		return res.Error
+	}
+	if err := db.Exec(`DELETE FROM event_participants WHERE event_id = ? AND user_id = ?`, eventID.Hex(), userID.Hex()).Error; err != nil {
+		return err
+	}
+	return db.Exec(`UPDATE events SET available_seats = available_seats + 1
+		WHERE id = ? AND capacity > 0 AND available_seats < capacity`, eventID.Hex()).Error
+}
+
+// ---------------------------------------------------------------------------------------------
+// Attendees
+// ---------------------------------------------------------------------------------------------
 
 // GetEventAttendees fetches attendee profiles for all confirmed participants of an event (F64)
 func (r *EventRepositoryImpl) GetEventAttendees(ctx context.Context, eventID primitive.ObjectID) ([]EventAttendeeItem, error) {
@@ -223,16 +401,11 @@ func (r *EventRepositoryImpl) GetEventAttendees(ctx context.Context, eventID pri
 	if err != nil {
 		return nil, err
 	}
-	if event == nil {
-		return nil, errors.New("event not found")
-	}
-
 	if len(event.Participants) == 0 {
 		return []EventAttendeeItem{}, nil
 	}
 
-	userColl := r.db.DB.Collection("users")
-	cursor, err := userColl.Find(ctx, bson.M{
+	cursor, err := r.users.Find(ctx, bson.M{
 		"_id": bson.M{"$in": event.Participants},
 	}, options.Find().SetProjection(bson.M{
 		"_id":           1,
@@ -264,15 +437,16 @@ func (r *EventRepositoryImpl) GetEventAttendees(ctx context.Context, eventID pri
 	if err := cursor.All(ctx, &users); err != nil {
 		return nil, err
 	}
-
-	userMap := make(map[primitive.ObjectID]rawUser)
+	userMap := make(map[primitive.ObjectID]rawUser, len(users))
 	for _, u := range users {
 		userMap[u.ID] = u
 	}
 
-	// Fetch confirmed tickets for this event
-	tickets, _ := r.GetTicketsByEvent(ctx, eventID)
-	ticketMap := make(map[primitive.ObjectID]EventTicket)
+	tickets, err := r.GetTicketsByEvent(ctx, eventID)
+	if err != nil {
+		return nil, err
+	}
+	ticketMap := make(map[primitive.ObjectID]EventTicket, len(tickets))
 	for _, t := range tickets {
 		ticketMap[t.UserID] = t
 	}
@@ -307,14 +481,11 @@ func (r *EventRepositoryImpl) GetEventAttendees(ctx context.Context, eventID pri
 
 		paymentType := "free"
 		var ticketNum string
-		var joinedAt time.Time
-
+		joinedAt := event.CreatedAt
 		if hasTicket {
 			paymentType = ticket.PaymentStatus
 			ticketNum = ticket.TicketNumber
 			joinedAt = ticket.CreatedAt
-		} else {
-			joinedAt = event.CreatedAt
 		}
 
 		attendees = append(attendees, EventAttendeeItem{
@@ -329,8 +500,45 @@ func (r *EventRepositoryImpl) GetEventAttendees(ctx context.Context, eventID pri
 			JoinedAt:     joinedAt,
 		})
 	}
-
 	return attendees, nil
+}
+
+// ---------------------------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------------------------
+
+type ticketStats struct {
+	EventID       string
+	Sold          int
+	RevenuePaise  int64
+	Free          int
+	Paid          int
+	Wallet        int
+	Razorpay      int
+}
+
+// statsFor adds up the confirmed tickets of each event in one query
+func (r *EventRepositoryImpl) statsFor(ctx context.Context, eventIDs []string) (map[string]ticketStats, error) {
+	out := make(map[string]ticketStats, len(eventIDs))
+	if len(eventIDs) == 0 {
+		return out, nil
+	}
+	var rows []ticketStats
+	err := r.conn(ctx).Raw(`SELECT event_id,
+			count(*) AS sold,
+			COALESCE(sum(amount_paise), 0) AS revenue_paise,
+			count(*) FILTER (WHERE payment_status = 'free' OR amount_paise = 0) AS free,
+			count(*) FILTER (WHERE NOT (payment_status = 'free' OR amount_paise = 0)) AS paid,
+			count(*) FILTER (WHERE payment_method = 'wallet') AS wallet,
+			count(*) FILTER (WHERE payment_method = 'razorpay') AS razorpay
+		FROM event_tickets WHERE status = 'confirmed' AND event_id IN ? GROUP BY event_id`, eventIDs).Scan(&rows).Error
+	if err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		out[row.EventID] = row
+	}
+	return out, nil
 }
 
 // AdminGetAllEvents lists all events with calculated participants, ticket sales, and revenue
@@ -341,77 +549,52 @@ func (r *EventRepositoryImpl) AdminGetAllEvents(ctx context.Context, search stri
 	if limit < 1 || limit > 100 {
 		limit = 10
 	}
-	skip := int64((page - 1) * limit)
-
-	filter := bson.M{}
+	cond := ` WHERE e.deleted_at IS NULL`
+	args := []interface{}{}
 	if search != "" {
-		regex := bson.M{"$regex": regexp.QuoteMeta(search), "$options": "i"}
-		filter["$or"] = []bson.M{
-			{"title": regex},
-			{"organizer": regex},
-			{"category": regex},
-			{"location": regex},
-		}
+		cond += ` AND (e.title ILIKE ? OR e.organizer ILIKE ? OR e.category ILIKE ? OR e.location ILIKE ?)`
+		p := database.LikeContains(search)
+		args = append(args, p, p, p, p)
 	}
 
-	total, err := r.collection.CountDocuments(ctx, filter)
+	var total int64
+	if err := r.conn(ctx).Raw(`SELECT count(*) FROM events e`+cond, args...).Scan(&total).Error; err != nil {
+		return nil, 0, err
+	}
+	var rows []eventRow
+	query := eventSelect + cond + fmt.Sprintf(` ORDER BY e.created_at DESC, e.id DESC LIMIT %d OFFSET %d`, limit, (page-1)*limit)
+	if err := r.conn(ctx).Raw(query, args...).Scan(&rows).Error; err != nil {
+		return nil, 0, err
+	}
+	events, err := toEvents(rows)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	findOptions := options.Find().
-		SetSort(bson.M{"created_at": -1}).
-		SetSkip(skip).
-		SetLimit(int64(limit))
-
-	cursor, err := r.collection.Find(ctx, filter, findOptions)
+	ids := make([]string, len(events))
+	for i, ev := range events {
+		ids[i] = ev.ID.Hex()
+	}
+	stats, err := r.statsFor(ctx, ids)
 	if err != nil {
 		return nil, 0, err
 	}
-	defer cursor.Close(ctx)
 
-	var events []Event
-	if err := cursor.All(ctx, &events); err != nil {
-		return nil, 0, err
-	}
-
-	adminItems := make([]AdminEventItem, 0, len(events))
+	items := make([]AdminEventItem, 0, len(events))
 	for _, ev := range events {
-		item := AdminEventItem{
+		s := stats[ev.ID.Hex()]
+		items = append(items, AdminEventItem{
 			Event:             ev,
 			TotalParticipants: len(ev.Participants),
-		}
-
-		// Aggregate ticket metrics for this event
-		tCursor, tErr := r.ticketColl.Find(ctx, bson.M{
-			"event_id": ev.ID,
-			"status":   "confirmed",
+			TotalTicketsSold:  s.Sold,
+			TotalRevenue:      money.ToRupees(s.RevenuePaise),
+			FreeRegistrations: s.Free,
+			PaidRegistrations: s.Paid,
+			WalletBookings:    s.Wallet,
+			RazorpayBookings:  s.Razorpay,
 		})
-		if tErr == nil {
-			var tickets []EventTicket
-			if err := tCursor.All(ctx, &tickets); err == nil {
-				item.TotalTicketsSold = len(tickets)
-				for _, t := range tickets {
-					item.TotalRevenue += t.Amount
-					if t.PaymentStatus == "free" || t.Amount == 0 {
-						item.FreeRegistrations++
-					} else {
-						item.PaidRegistrations++
-					}
-					if t.PaymentMethod == "wallet" {
-						item.WalletBookings++
-					} else if t.PaymentMethod == "razorpay" {
-						item.RazorpayBookings++
-					}
-				}
-			}
-			tCursor.Close(ctx)
-		}
-
-		adminItems = append(adminItems, item)
 	}
-
-	return adminItems, total, nil
+	return items, total, nil
 }
 
 // AdminGetEventDetail provides deep inspection into an event including all tickets, payments and attendees
@@ -420,24 +603,19 @@ func (r *EventRepositoryImpl) AdminGetEventDetail(ctx context.Context, eventID p
 	if err != nil {
 		return nil, err
 	}
-	if ev == nil {
-		return nil, errors.New("event not found")
-	}
-
 	tickets, err := r.GetTicketsByEvent(ctx, eventID)
 	if err != nil {
-		tickets = []EventTicket{}
+		return nil, err
 	}
-
 	attendees, err := r.GetEventAttendees(ctx, eventID)
 	if err != nil {
-		attendees = []EventAttendeeItem{}
+		return nil, err
 	}
 
-	var revenue float64
+	var revenuePaise int64
 	var freeCount, paidCount int
 	for _, t := range tickets {
-		revenue += t.Amount
+		revenuePaise += money.ToPaise(t.Amount)
 		if t.PaymentStatus == "free" || t.Amount == 0 {
 			freeCount++
 		} else {
@@ -449,7 +627,7 @@ func (r *EventRepositoryImpl) AdminGetEventDetail(ctx context.Context, eventID p
 		Event:             *ev,
 		TotalParticipants: len(ev.Participants),
 		TotalTicketsSold:  len(tickets),
-		TotalRevenue:      revenue,
+		TotalRevenue:      money.ToRupees(revenuePaise),
 		FreeRegistrations: freeCount,
 		PaidRegistrations: paidCount,
 		Tickets:           tickets,
@@ -459,97 +637,111 @@ func (r *EventRepositoryImpl) AdminGetEventDetail(ctx context.Context, eventID p
 
 // AdminUpdateEvent allows updating any detail of an event
 func (r *EventRepositoryImpl) AdminUpdateEvent(ctx context.Context, eventID primitive.ObjectID, req AdminUpdateEventRequest) (*Event, error) {
-	update := bson.M{
-		"updated_at": time.Now(),
-	}
-
+	set := map[string]interface{}{}
 	if req.Title != "" {
-		update["title"] = req.Title
+		set["title"] = req.Title
 	}
 	if req.Organizer != "" {
-		update["organizer"] = req.Organizer
+		set["organizer"] = req.Organizer
 	}
 	if req.Description != "" {
-		update["description"] = req.Description
+		set["description"] = req.Description
 	}
 	if req.Date != "" {
-		update["date"] = req.Date
+		set["date"] = req.Date
 	}
 	if req.Time != "" {
-		update["time"] = req.Time
+		set["time"] = req.Time
 	}
 	if req.Location != "" {
-		update["location"] = req.Location
+		set["location"] = req.Location
 	}
 	if req.MeetingLink != nil {
-		update["meeting_link"] = *req.MeetingLink
+		set["meeting_link"] = nullable(*req.MeetingLink)
 	}
 	if req.ImageURL != "" {
-		update["image_url"] = req.ImageURL
+		set["image_url"] = req.ImageURL
 	}
 	if req.Category != "" {
-		update["category"] = req.Category
+		set["category"] = req.Category
 	}
 	if req.IsPaid != nil {
-		update["is_paid"] = *req.IsPaid
+		set["is_paid"] = *req.IsPaid
 	}
 	if req.Price >= 0 {
-		update["price"] = req.Price
+		set["price_paise"] = money.ToPaise(req.Price)
 	}
 	if req.Capacity >= 0 {
-		update["capacity"] = req.Capacity
+		set["capacity"] = req.Capacity
 	}
 	if req.AvailableSeats != nil {
-		update["available_seats"] = *req.AvailableSeats
+		set["available_seats"] = *req.AvailableSeats
 	}
 
-	result, err := r.collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$set": update})
-	if err != nil {
-		return nil, err
+	if len(set) > 0 {
+		res := r.conn(ctx).Table("events").Where("id = ? AND deleted_at IS NULL", eventID.Hex()).Updates(set)
+		if database.PgErrCode(res.Error) == database.PgCheckViolation {
+			return nil, ErrSeatsAboveCapacity
+		}
+		if res.Error != nil {
+			return nil, res.Error
+		}
+		if res.RowsAffected == 0 {
+			return nil, errEventMissing
+		}
 	}
-	if result.MatchedCount == 0 {
-		return nil, errors.New("event not found")
-	}
-
 	return r.GetEventByID(ctx, eventID)
 }
 
-// AdminDeleteEvent deletes an event and cancels its tickets cleanly
-func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) error {
-	res, err := r.collection.DeleteOne(ctx, bson.M{"_id": eventID})
-	if err != nil {
-		return err
+// SettleTicketDispute runs before a wallet ticket is refunded because its event was deleted. It
+// returns what an approved dispute on the ticket already paid back, so the refund pays only the
+// rest, and closes a dispute that is still open, which the refund settles. Call inside a
+// transaction.
+func (r *EventRepositoryImpl) SettleTicketDispute(ctx context.Context, ticketID primitive.ObjectID) (int64, error) {
+	db := r.conn(ctx)
+	ref := "ticket:" + ticketID.Hex() + ":pay"
+	if err := db.Exec(`UPDATE wallet_disputes SET status = 'rejected', resolved_by = 'system', resolved_at = now(),
+			admin_notes = 'Closed: the event was cancelled and the ticket refunded'
+		WHERE reference_id = ? AND status IN ('pending', 'under_review')`, ref).Error; err != nil {
+		return 0, err
 	}
-	if res.DeletedCount == 0 {
-		return errors.New("event not found")
-	}
-
-	// Update tickets for deleted event to cancelled status
-	_, _ = r.ticketColl.UpdateMany(ctx, bson.M{"event_id": eventID}, bson.M{
-		"$set": bson.M{
-			"status":     "cancelled",
-			"updated_at": time.Now(),
-		},
-	})
-
-	return nil
+	var refunded int64
+	err := db.Raw(`SELECT coalesce(sum(refund_paise), 0) FROM wallet_disputes WHERE reference_id = ? AND status = 'approved'`,
+		ref).Scan(&refunded).Error
+	return refunded, err
 }
 
-// RevokeTicket cancels a refunded ticket, removes the attendee and returns their seat
-func (r *EventRepositoryImpl) RevokeTicket(ctx context.Context, eventID, userID primitive.ObjectID, razorpayOrderID string) error {
-	res, err := r.ticketColl.UpdateOne(ctx,
-		bson.M{"razorpay_order_id": razorpayOrderID, "status": "confirmed"},
-		bson.M{"$set": bson.M{"status": "cancelled", "payment_status": "refunded"}},
-	)
-	if err != nil || res.ModifiedCount == 0 {
-		return err
+// KeepTicketPaid undoes the "refunded" mark on a cancelled ticket whose refund couldn't be paid
+// (the owner's wallet is closed), so the record doesn't claim money went back
+func (r *EventRepositoryImpl) KeepTicketPaid(ctx context.Context, ticketID primitive.ObjectID) error {
+	return r.conn(ctx).Exec(`UPDATE event_tickets SET payment_status = 'paid' WHERE id = ? AND payment_status = 'refunded'`,
+		ticketID.Hex()).Error
+}
+
+// AdminDeleteEvent hides an event and cancels its tickets, in one transaction, and returns the
+// tickets it cancelled. Paid tickets are marked refunded; the caller posts the refunds in the
+// same transaction. The rows stay because tickets are payment records.
+func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error) {
+	var cancelled []EventTicket
+	err := r.conn(ctx).Transaction(func(tx *gorm.DB) error {
+		res := tx.Exec(`UPDATE events SET deleted_at = now() WHERE id = ? AND deleted_at IS NULL`, eventID.Hex())
+		if res.Error != nil {
+			return res.Error
+		}
+		if res.RowsAffected == 0 {
+			return errEventMissing
+		}
+		var rows []ticketRow
+		if err := tx.Raw(`UPDATE event_tickets SET status = 'cancelled',
+				payment_status = CASE WHEN payment_status = 'paid' THEN 'refunded' ELSE payment_status END
+			WHERE event_id = ? AND status = 'confirmed' RETURNING `+ticketColumns, eventID.Hex()).Scan(&rows).Error; err != nil {
+			return err
+		}
+		cancelled = toTickets(rows)
+		return nil
+	})
+	if err != nil {
+		return nil, err
 	}
-	if _, err := r.collection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$pull": bson.M{"participants": userID}}); err != nil {
-		return err
-	}
-	_, err = r.collection.UpdateOne(ctx,
-		bson.M{"_id": eventID, "capacity": bson.M{"$gt": 0}},
-		bson.M{"$inc": bson.M{"available_seats": 1}},
-	)
-	return err
+	return cancelled, nil
 }

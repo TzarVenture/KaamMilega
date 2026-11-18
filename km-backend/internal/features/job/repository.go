@@ -31,9 +31,14 @@ type JobRepositoryImpl struct {
 }
 
 func NewJobRepository(db *database.MongodbDB) JobRepository {
+	jobs := db.DB.Collection("jobs")
+	database.SyncIndexesInBackground(jobs, []mongo.IndexModel{
+		{Keys: bson.D{{Key: "created_at", Value: -1}}},                                  // job listings, newest first
+		{Keys: bson.D{{Key: "recruiter_id", Value: 1}, {Key: "created_at", Value: -1}}}, // a recruiter's own posts
+	})
 	return &JobRepositoryImpl{
 		db:      db,
-		jobColl: db.DB.Collection("jobs"),
+		jobColl: jobs,
 	}
 }
 

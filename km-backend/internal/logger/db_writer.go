@@ -9,9 +9,14 @@ import (
 	common_models "km-backend/internal/common/models"
 	"km-backend/internal/database"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.uber.org/zap/zapcore"
 )
+
+// logRetentionSeconds is how long log rows are kept (30 days)
+const logRetentionSeconds = 30 * 24 * 3600
 
 // LogEntry holds the data passed from Zap to our worker
 type LogEntry struct {
@@ -30,6 +35,10 @@ type DBLogWriter struct {
 
 // NewDBLogWriter initializes the worker
 func NewDBLogWriter(mongodb *database.MongodbDB, cfg *config.Config) *DBLogWriter {
+	// Log rows delete themselves after 30 days, so the collection stays small
+	database.SyncIndexesInBackground(mongodb.DB.Collection("logs"), []mongo.IndexModel{
+		{Keys: bson.D{{Key: "created_on_utc", Value: 1}}, Options: options.Index().SetExpireAfterSeconds(logRetentionSeconds)},
+	})
 	writer := &DBLogWriter{
 		db:      mongodb.DB,                // Assuming we log to MSSQL. Swap for Oracle if needed.
 		logChan: make(chan LogEntry, 1000), // Buffer 1000 logs

@@ -7,15 +7,14 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000"
+    # Every setting and secret (MONGO_URI, DATABASE_URI, JWT_SECRET, ...) comes from .env,
+    # which is never committed
+    env_file:
+      - .env
     environment:
-      - PORT=8000
-      - MONGO_URI=mongodb+srv://admin:vqsKpKMzkYI5f2eL@cluster0.wtumbu4.mongodb.net/
-      - JWT_SECRET=Rishu@123
-      - DB_NAME=km
+      # A container always runs in production mode (secure cookies, no test shortcuts), even
+      # if the .env next to it was copied from a development machine
       - ENVIRONMENT=production
-      - FS_PATH=./static/uploads
-      - FS_URL=/api/files/uploads
-      - HOST=93.127.172.45:8000
     volumes:
       - km-statics:/root/static/uploads
 

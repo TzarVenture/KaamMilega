@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"km-backend/internal/config"
+	"km-backend/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -32,5 +33,23 @@ func TestPublicDetailNeedsNoLogin(t *testing.T) {
 	}
 	if got := status("GET", "/api/events/my/tickets"); got != fiber.StatusUnauthorized {
 		t.Fatalf("GET /api/events/my/tickets without login: got %d, want 401", got)
+	}
+}
+
+// Experts, recruiters and admins may host an event; a member with only the user role may not
+func TestWhoCanHostAnEvent(t *testing.T) {
+	for role, want := range map[string]int{"expert": 200, "recruiter": 200, "admin": 200, "user": 403} {
+		app := fiber.New()
+		app.Post("/", func(c *fiber.Ctx) error {
+			c.Locals("roles", []string{"user", role})
+			return c.Next()
+		}, middleware.RequireRole(HostRoles...), func(c *fiber.Ctx) error { return c.SendStatus(200) })
+		res, err := app.Test(httptest.NewRequest("POST", "/", nil))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if res.StatusCode != want {
+			t.Errorf("%s: got %d, want %d", role, res.StatusCode, want)
+		}
 	}
 }

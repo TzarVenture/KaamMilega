@@ -7,6 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"km-backend/internal/common/apperr"
+	"km-backend/internal/common/money"
+	"log"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -17,6 +19,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/gorm"
 
 	"km-backend/internal/database"
 )
@@ -68,20 +71,19 @@ type UserRepositoryImpl struct {
 	db       *database.MongodbDB
 	userColl *mongo.Collection
 	otpColl  *mongo.Collection
+	// Wallet, events and Instant work live in Postgres
+	pg *gorm.DB
 }
 
-func NewUserRepository(db *database.MongodbDB) UserRepository {
+func NewUserRepository(db *database.MongodbDB, pg *database.PostgresDB) UserRepository {
 	userColl := db.DB.Collection("users")
-	// Ensure unique sparse index on username
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		opts := options.Index().SetUnique(true).SetSparse(true)
-		_, _ = userColl.Indexes().CreateOne(ctx, mongo.IndexModel{
-			Keys:    bson.M{"username": 1},
-			Options: opts,
-		})
-	}()
+	// One account per username, email and mobile number. Emails are stored lower-case. Accounts
+	// without an email or mobile (empty or removed on deletion) are left out of those two.
+	database.SyncIndexesInBackground(userColl, []mongo.IndexModel{
+		{Keys: bson.D{{Key: "username", Value: 1}}, Options: options.Index().SetUnique(true).SetSparse(true)},
+		{Keys: bson.D{{Key: "email", Value: 1}}, Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.M{"email": bson.M{"$gt": ""}})},
+		{Keys: bson.D{{Key: "mobile", Value: 1}}, Options: options.Index().SetUnique(true).SetPartialFilterExpression(bson.M{"mobile": bson.M{"$gt": ""}})},
+	})
 
 	otpColl := db.DB.Collection("otps")
 	go func() {
@@ -100,6 +102,7 @@ func NewUserRepository(db *database.MongodbDB) UserRepository {
 		db:       db,
 		userColl: userColl,
 		otpColl:  otpColl,
+		pg:       pg.DB,
 	}
 }
 
@@ -279,6 +282,9 @@ func (r *UserRepositoryImpl) CreateUser(ctx context.Context, user *User) (*User,
 		user.Settings = DefaultUserSettings()
 	}
 	res, err := r.userColl.InsertOne(ctx, user)
+	if mongo.IsDuplicateKeyError(err) {
+		return nil, ErrAccountExists
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -294,6 +300,13 @@ func sessionVersionFilter(version int) bson.M {
 	return bson.M{"session_version": version}
 }
 
+// ErrAccountExists: another account already has this email, mobile number or username (two sign-ups
+// racing each other; the services check first, the unique indexes make sure)
+var ErrAccountExists = apperr.New("ACCOUNT_EXISTS", "an account with this email or mobile number already exists")
+
+// ErrContactTaken: the email, mobile number or username being saved belongs to another account
+var ErrContactTaken = apperr.New("CONTACT_TAKEN", "this email, mobile number or username is already linked to another account")
+
 // ErrStaleUser is returned when the user changed account state (deactivated, deletion requested,
 // signed out everywhere) after this copy was read. Replacing it would silently undo that change.
 var ErrStaleUser = apperr.New("ACCOUNT_CHANGED", "your account changed in another session; please reload and try again")
@@ -304,6 +317,10 @@ func (r *UserRepositoryImpl) UpdateUser(ctx context.Context, user *User) (*User,
 	// lifecycle transition bumps it, so a stale copy can never revert one
 	filter := bson.M{"$and": []bson.M{{"_id": user.ID}, sessionVersionFilter(user.SessionVersion)}}
 	res, err := r.userColl.ReplaceOne(ctx, filter, user)
+	if mongo.IsDuplicateKeyError(err) {
+		// Paths such as the profile mobile field and the company profile don't check first
+		return nil, ErrContactTaken
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -659,28 +676,35 @@ func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]i
 	jobs, _ := r.db.DB.Collection("jobs").CountDocuments(ctx, bson.M{})
 	applications, _ := r.db.DB.Collection("applications").CountDocuments(ctx, bson.M{})
 	interviews, _ := r.db.DB.Collection("interviews").CountDocuments(ctx, bson.M{})
-	activeGigs, _ := r.db.DB.Collection("instant_jobs").CountDocuments(ctx, bson.M{})
-	disputes, _ := r.db.DB.Collection("wallet_disputes").CountDocuments(ctx, bson.M{})
-
-	// Aggregate total revenue from completed wallet transactions
-	var totalRevenue float64 = 0
-	pipeline := []bson.M{
-		{"$match": bson.M{"status": bson.M{"$in": []string{"completed", "success"}}}},
-		{"$group": bson.M{"_id": nil, "total": bson.M{"$sum": "$amount"}}},
+	// Postgres side, in one query. Like the counts above, a failure shows as zero.
+	var totals struct {
+		ActiveGigs   int64
+		Disputes     int64
+		RevenuePaise int64
 	}
-	cursor, err := r.db.DB.Collection("wallet_transactions").Aggregate(ctx, pipeline)
-	if err == nil {
-		var results []bson.M
-		if err := cursor.All(ctx, &results); err == nil && len(results) > 0 {
-			if t, ok := results[0]["total"].(float64); ok {
-				totalRevenue = t
-			} else if t, ok := results[0]["total"].(int32); ok {
-				totalRevenue = float64(t)
-			} else if t, ok := results[0]["total"].(int64); ok {
-				totalRevenue = float64(t)
-			}
-		}
+	// Revenue is what the platform keeps: InstantPasses and event tickets, paid by
+	// card or from the wallet, less refunds. Wallet top-ups are the user's own money, and session
+	// fees go to the expert, so neither counts. A purchase is either a card order or a wallet
+	// debit, never both, so nothing is counted twice.
+	// Wallet tickets refunded because their event was deleted come off too (references
+	// "ticket:<id>:refund"); card refunds are already in refund_paise.
+	if err := r.pg.WithContext(ctx).Raw(`SELECT
+			(SELECT count(*) FROM instant_jobs WHERE status IN ('DISPATCHING', 'ACCEPTED', 'IN_PROGRESS')) AS active_gigs,
+			(SELECT count(*) FROM wallet_disputes) AS disputes,
+			  (SELECT coalesce(sum(amount_paise - refund_paise), 0) FROM payment_orders
+				WHERE purpose IN ('instant_pass', 'event_ticket') AND status IN ('paid', 'refund_due', 'refunded'))
+			+ (SELECT coalesce(sum(amount_paise), 0) FROM wallet_transactions
+				WHERE type = 'debit' AND status = 'completed' AND category IN ('pass_purchase', 'event_ticket'))
+			- (SELECT coalesce(sum(refund_paise), 0) FROM wallet_disputes
+				WHERE status = 'approved' AND category IN ('pass_purchase', 'event_ticket'))
+			- (SELECT coalesce(sum(amount_paise), 0) FROM wallet_transactions
+				WHERE type = 'credit' AND status = 'completed' AND category = 'refund' AND reference_id LIKE 'ticket:%:refund')
+			AS revenue_paise`).
+		Scan(&totals).Error; err != nil {
+		log.Printf("[platform stats] reading Postgres totals failed: %v", err)
 	}
+	activeGigs, disputes := totals.ActiveGigs, totals.Disputes
+	totalRevenue := money.ToRupees(totals.RevenuePaise)
 
 	return map[string]interface{}{
 		"total_users":  totalUsers,
@@ -885,21 +909,13 @@ func GenerateDefaultUsername(name, idHex string) string {
 // HasActivePass checks if the user has a ₹99 InstantPass that has not expired or been refunded.
 // Used-up gig credits do not matter here.
 func (r *UserRepositoryImpl) HasActivePass(ctx context.Context, userID string) (bool, error) {
-	objID, err := primitive.ObjectIDFromHex(userID)
-	if err != nil {
+	if _, err := primitive.ObjectIDFromHex(userID); err != nil {
 		return false, err
 	}
-	now := time.Now()
-
-	passCount, err := r.db.DB.Collection("instant_passes").CountDocuments(ctx, bson.M{
-		"user_id":         objID,
-		"has_active_pass": true,
-		"expires_at":      bson.M{"$gte": now},
-	})
-	if err != nil {
-		return false, err
-	}
-	return passCount > 0, nil
+	var has bool
+	err := r.pg.WithContext(ctx).Raw(`SELECT EXISTS (SELECT 1 FROM instant_passes
+		WHERE user_id = ? AND has_active_pass AND expires_at >= now())`, userID).Row().Scan(&has)
+	return has, err
 }
 
 func (r *UserRepositoryImpl) ExportUsersCSV(ctx context.Context, role string) ([]byte, error) {
@@ -1112,20 +1128,27 @@ func (r *UserRepositoryImpl) ExportJobsCSV(ctx context.Context, status string) (
 }
 
 func (r *UserRepositoryImpl) ExportRevenueCSV(ctx context.Context, status string) ([]byte, error) {
-	filter := bson.M{}
+	q := r.pg.WithContext(ctx).Table("wallet_transactions").
+		Select("id, wallet_id, user_id, type, target_balance, category, amount_paise, balance_after_paise, status, reference_id, description, created_at").
+		Order("created_at DESC, id DESC")
 	if status != "" && status != "all" {
-		filter["status"] = status
+		q = q.Where("status = ?", status)
 	}
-
-	opts := options.Find().SetSort(bson.M{"created_at": -1})
-	cursor, err := r.db.DB.Collection("wallet_transactions").Find(ctx, filter, opts)
-	if err != nil {
-		return nil, err
+	var txs []struct {
+		ID                string
+		WalletID          string
+		UserID            string
+		Type              string
+		TargetBalance     string
+		Category          string
+		AmountPaise       int64
+		BalanceAfterPaise int64
+		Status            string
+		ReferenceID       string
+		Description       string
+		CreatedAt         time.Time
 	}
-	defer cursor.Close(ctx)
-
-	var txs []bson.M
-	if err := cursor.All(ctx, &txs); err != nil {
+	if err := q.Scan(&txs).Error; err != nil {
 		return nil, err
 	}
 
@@ -1152,66 +1175,19 @@ func (r *UserRepositoryImpl) ExportRevenueCSV(ctx context.Context, status string
 	}
 
 	for _, tx := range txs {
-		idStr := ""
-		if oid, ok := tx["_id"].(primitive.ObjectID); ok {
-			idStr = oid.Hex()
-		}
-
-		walletID := ""
-		if wid, ok := tx["wallet_id"].(primitive.ObjectID); ok {
-			walletID = wid.Hex()
-		}
-
-		userID := ""
-		if uid, ok := tx["user_id"].(primitive.ObjectID); ok {
-			userID = uid.Hex()
-		}
-
-		txType, _ := tx["type"].(string)
-		targetBal, _ := tx["target_balance"].(string)
-		category, _ := tx["category"].(string)
-		statusVal, _ := tx["status"].(string)
-		refID, _ := tx["reference_id"].(string)
-		desc, _ := tx["description"].(string)
-
-		amount := 0.0
-		if a, ok := tx["amount"].(float64); ok {
-			amount = a
-		} else if a, ok := tx["amount"].(int32); ok {
-			amount = float64(a)
-		} else if a, ok := tx["amount"].(int64); ok {
-			amount = float64(a)
-		}
-
-		balAfter := 0.0
-		if ba, ok := tx["balance_after"].(float64); ok {
-			balAfter = ba
-		} else if ba, ok := tx["balance_after"].(int32); ok {
-			balAfter = float64(ba)
-		} else if ba, ok := tx["balance_after"].(int64); ok {
-			balAfter = float64(ba)
-		}
-
-		createdStr := ""
-		if t, ok := tx["created_at"].(primitive.DateTime); ok {
-			createdStr = t.Time().Format("2006-01-02 15:04:05")
-		} else if t, ok := tx["created_at"].(time.Time); ok {
-			createdStr = t.Format("2006-01-02 15:04:05")
-		}
-
 		row := []string{
-			idStr,
-			walletID,
-			userID,
-			txType,
-			targetBal,
-			category,
-			fmt.Sprintf("%.2f", amount),
-			fmt.Sprintf("%.2f", balAfter),
-			statusVal,
-			refID,
-			desc,
-			createdStr,
+			tx.ID,
+			tx.WalletID,
+			tx.UserID,
+			tx.Type,
+			tx.TargetBalance,
+			tx.Category,
+			rupees(tx.AmountPaise),
+			rupees(tx.BalanceAfterPaise),
+			tx.Status,
+			tx.ReferenceID,
+			tx.Description,
+			tx.CreatedAt.Format("2006-01-02 15:04:05"),
 		}
 		if err := writer.Write(row); err != nil {
 			return nil, err
@@ -1225,6 +1201,9 @@ func (r *UserRepositoryImpl) ExportRevenueCSV(ctx context.Context, status string
 
 	return buf.Bytes(), nil
 }
+
+// rupees writes a non-negative paise amount as exact rupees, e.g. 9900 -> "99.00"
+func rupees(paise int64) string { return fmt.Sprintf("%d.%02d", paise/100, paise%100) }
 
 func (r *UserRepositoryImpl) GlobalSearch(ctx context.Context, q string) (*GlobalSearchResponse, error) {
 	q = strings.TrimSpace(q)
@@ -1414,41 +1393,30 @@ func (r *UserRepositoryImpl) GlobalSearch(ctx context.Context, q string) (*Globa
 		}
 	}
 
-	// 4. Search Events (limit 3)
-	eventFilter := bson.M{
-		"$or": []bson.M{
-			{"title": regexPattern},
-			{"organizer": regexPattern},
-			{"location": regexPattern},
-			{"category": regexPattern},
-		},
+	// 4. Search Events (limit 3). Deleted events are left out.
+	var rawEvents []struct {
+		ID        string
+		Title     string
+		Organizer string
+		Category  *string
 	}
-	eventOpts := options.Find().SetLimit(3).SetProjection(bson.M{
-		"_id": 1, "title": 1, "organizer": 1, "location": 1, "category": 1,
-	})
-	if eventCursor, err := r.db.DB.Collection("events").Find(ctx, eventFilter, eventOpts); err == nil {
-		var rawEvents []bson.M
-		if err := eventCursor.All(ctx, &rawEvents); err == nil {
-			for _, e := range rawEvents {
-				idStr := ""
-				if id, ok := e["_id"].(primitive.ObjectID); ok {
-					idStr = id.Hex()
-				}
-				title, _ := e["title"].(string)
-				organizer, _ := e["organizer"].(string)
-				category, _ := e["category"].(string)
-				if category == "" {
-					category = "Event"
-				}
-				res.Events = append(res.Events, GlobalSearchResultItem{
-					ID:       idStr,
-					Type:     "event",
-					Title:    title,
-					Subtitle: organizer,
-					Badge:    category,
-					URL:      fmt.Sprintf("/admin/events?search=%s", url.QueryEscape(title)),
-				})
+	p := database.LikeContains(q)
+	if err := r.pg.WithContext(ctx).Raw(`SELECT id, title, organizer, category FROM events
+		WHERE deleted_at IS NULL AND (title ILIKE ? OR organizer ILIKE ? OR location ILIKE ? OR category ILIKE ?)
+		ORDER BY created_at DESC, id DESC LIMIT 3`, p, p, p, p).Scan(&rawEvents).Error; err == nil {
+		for _, e := range rawEvents {
+			category := "Event"
+			if e.Category != nil && *e.Category != "" {
+				category = *e.Category
 			}
+			res.Events = append(res.Events, GlobalSearchResultItem{
+				ID:       e.ID,
+				Type:     "event",
+				Title:    e.Title,
+				Subtitle: e.Organizer,
+				Badge:    category,
+				URL:      fmt.Sprintf("/admin/events?search=%s", url.QueryEscape(e.Title)),
+			})
 		}
 	}
 

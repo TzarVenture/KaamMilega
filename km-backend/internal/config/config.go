@@ -8,9 +8,11 @@ import (
 )
 
 type Config struct {
-	Port        string
-	JWTSecret   string
-	MongoURI    string
+	Port      string
+	JWTSecret string
+	MongoURI  string
+	// PostgresURI is the Supabase Postgres connection string (DATABASE_URI). Empty = Postgres off.
+	PostgresURI string
 	DBName      string
 	Host        string
 	Environment string
@@ -58,6 +60,7 @@ func LoadConfig() (*Config, error) {
 		Port:                    getEnv("PORT", "8080"),
 		JWTSecret:               getEnv("JWT_SECRET", "secret"),
 		MongoURI:                getEnv("MONGO_URI", "mongodb://localhost:27017"),
+		PostgresURI:             getEnv("DATABASE_URI", ""),
 		DBName:                  getEnv("DB_NAME", "km-backend"),
 		Environment:             getEnv("ENVIRONMENT", "development"),
 		JobAlertsEnabled:        getEnv("JOB_ALERTS_ENABLED", "false") == "true",

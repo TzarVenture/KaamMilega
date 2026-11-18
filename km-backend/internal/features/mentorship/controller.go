@@ -24,7 +24,7 @@ func (c *MentorshipController) CreateMentorship(ctx *fiber.Ctx) error {
 	expertID := ctx.Locals("user_id").(string)
 	m, err := c.service.CreateMentorship(ctx.Context(), expertID, req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return ctx.Status(sessionErrorStatus(err)).JSON(apperr.Body(err))
 	}
 	return ctx.Status(fiber.StatusCreated).JSON(m)
 }
@@ -69,7 +69,7 @@ func (c *MentorshipController) UpdateMentorship(ctx *fiber.Ctx) error {
 	expertID := ctx.Locals("user_id").(string)
 	m, err := c.service.UpdateMentorship(ctx.Context(), expertID, id, req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return ctx.Status(sessionErrorStatus(err)).JSON(apperr.Body(err))
 	}
 	return ctx.JSON(m)
 }
@@ -78,7 +78,7 @@ func (c *MentorshipController) DeleteMentorship(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 	expertID := ctx.Locals("user_id").(string)
 	if err := c.service.DeleteMentorship(ctx.Context(), expertID, id); err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return ctx.Status(sessionErrorStatus(err)).JSON(apperr.Body(err))
 	}
 	return ctx.SendStatus(fiber.StatusNoContent)
 }

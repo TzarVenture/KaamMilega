@@ -17,6 +17,9 @@ func NewMentorshipApi(controller *MentorshipController) api.Route {
 
 func (api *MentorshipApi) Setup(app *fiber.App) {
 	jwtAuth := middleware.AuthMiddleware(api.controller.config.JWTSecret)
+	// Only approved Experts publish sessions and set their hours. Bookings stay open to the mentor
+	// so someone whose Expert role is removed can still finish or cancel sessions already paid for.
+	expertOnly := middleware.RequireRole("expert", "admin")
 
 	admin := app.Group("/api/admin/mentorship/reports", jwtAuth, middleware.RequireRole("admin"))
 	admin.Get("/", api.controller.GetReportedBookings)
@@ -34,11 +37,11 @@ func (api *MentorshipApi) Setup(app *fiber.App) {
 	protected := app.Group("/api/mentorships")
 	
 	// Availability routes
-	protected.Put("/availability", jwtAuth, api.controller.UpdateAvailability)
+	protected.Put("/availability", jwtAuth, expertOnly, api.controller.UpdateAvailability)
 	protected.Get("/availability", jwtAuth, api.controller.GetAvailability)
 
 	// Expert only routes
-	protected.Post("/", jwtAuth, api.controller.CreateMentorship)
+	protected.Post("/", jwtAuth, expertOnly, api.controller.CreateMentorship)
 	protected.Get("/expert/my", jwtAuth, api.controller.GetMyMentorships)
 	
 	// Booking & Payment routes (F76)
@@ -56,6 +59,6 @@ func (api *MentorshipApi) Setup(app *fiber.App) {
 	
 	// Dynamic ID routes must be defined last
 	app.Get("/api/mentorships/:id", api.controller.GetMentorship)
-	protected.Patch("/:id", jwtAuth, api.controller.UpdateMentorship)
-	protected.Delete("/:id", jwtAuth, api.controller.DeleteMentorship)
+	protected.Patch("/:id", jwtAuth, expertOnly, api.controller.UpdateMentorship)
+	protected.Delete("/:id", jwtAuth, expertOnly, api.controller.DeleteMentorship)
 }

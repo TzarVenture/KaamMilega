@@ -46,7 +46,7 @@ var (
 	ErrCodeLimit         = apperr.New("CODE_LIMIT", "too many codes requested. Try again in an hour")
 	ErrNoChannel         = apperr.New("NO_VERIFIED_CHANNEL", "add a verified email or mobile number to receive a code")
 	ErrConfirmPhrase     = errors.New(`type DELETE to confirm`)
-	ErrAcknowledge       = apperr.New("ACKNOWLEDGE_REQUIRED", "please confirm you understand what happens to your subscription and job posts")
+	ErrAcknowledge       = apperr.New("ACKNOWLEDGE_REQUIRED", "please confirm you understand what happens to your job posts")
 	ErrBlocked           = apperr.New("DELETE_BLOCKED", "resolve the items listed before deleting your account")
 )
 
@@ -81,7 +81,7 @@ type DeleteRequest struct {
 	Feedback string `json:"feedback"`
 	// Confirm must equal ConfirmDeletionPhrase
 	Confirm string `json:"confirm"`
-	// AcknowledgeWarnings is required when the preview lists warnings (subscription, job posts)
+	// AcknowledgeWarnings is required when the preview lists warnings (job posts)
 	AcknowledgeWarnings bool `json:"acknowledge_warnings"`
 }
 
@@ -139,7 +139,6 @@ type deletionChecks struct {
 	PendingTransactions int64
 	OpenDisputes        int64
 	UpcomingSessions    int64
-	SubscriptionEndsAt  *time.Time
 	OpenJobs            int64
 }
 

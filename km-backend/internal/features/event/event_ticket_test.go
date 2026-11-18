@@ -178,12 +178,34 @@ func (m *mockEventRepo) AdminUpdateEvent(ctx context.Context, eventID primitive.
 	return e, nil
 }
 
-func (m *mockEventRepo) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) error {
+// Disputes are a wallet table; the Postgres tests cover them
+func (m *mockEventRepo) SettleTicketDispute(ctx context.Context, ticketID primitive.ObjectID) (int64, error) {
+	return 0, nil
+}
+
+func (m *mockEventRepo) KeepTicketPaid(ctx context.Context, ticketID primitive.ObjectID) error {
+	if t, ok := m.tickets[ticketID.Hex()]; ok && t.PaymentStatus == "refunded" {
+		t.PaymentStatus = "paid"
+	}
+	return nil
+}
+
+func (m *mockEventRepo) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error) {
 	if _, ok := m.events[eventID.Hex()]; !ok {
-		return errors.New("event not found")
+		return nil, errors.New("event not found")
 	}
 	delete(m.events, eventID.Hex())
-	return nil
+	var cancelled []EventTicket
+	for _, t := range m.tickets {
+		if t.EventID == eventID && t.Status == "confirmed" {
+			t.Status = "cancelled"
+			if t.PaymentStatus == "paid" {
+				t.PaymentStatus = "refunded"
+			}
+			cancelled = append(cancelled, *t)
+		}
+	}
+	return cancelled, nil
 }
 
 func (m *mockEventRepo) RevokeTicket(ctx context.Context, eventID, userID primitive.ObjectID, razorpayOrderID string) error {
@@ -221,6 +243,7 @@ func (m *mockUserRepo) FindUserByID(ctx context.Context, id string) (*user.User,
 type mockWalletService struct {
 	wallet.WalletService
 	wallets map[string]*wallet.WalletSummaryResponse
+	closed  map[string]bool // users whose wallet is closed
 }
 
 func (w *mockWalletService) GetWalletSummary(ctx context.Context, userID string) (*wallet.WalletSummaryResponse, error) {
@@ -237,6 +260,9 @@ func (w *mockWalletService) GetWalletSummary(ctx context.Context, userID string)
 
 func (w *mockWalletService) RecordTransaction(ctx context.Context, input wallet.RecordTransactionInput) (*wallet.TransactionItemResponse, *wallet.WalletSummaryResponse, error) {
 	uid := input.UserID.Hex()
+	if w.closed[uid] {
+		return nil, nil, wallet.ErrClosed
+	}
 	sum, _ := w.GetWalletSummary(ctx, uid)
 
 	if input.Type == wallet.TypeDebit {
@@ -636,5 +662,75 @@ func TestGetEventAttendees(t *testing.T) {
 	}
 	if resp.Attendees[0].ID != p1.Hex() {
 		t.Errorf("expected attendee ID %s, got %s", p1.Hex(), resp.Attendees[0].ID)
+	}
+}
+
+// Deleting a paid event pays everyone back: wallet tickets to the wallet, card tickets through a
+// queued Razorpay refund
+func TestEvent_DeletingAPaidEventRefundsEveryTicket(t *testing.T) {
+	ctx := context.Background()
+	repo := newMockEventRepo()
+	fake := paymenttest.New()
+	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
+	svc := NewEventService(repo, &mockUserRepo{users: make(map[string]*user.User)}, walletSvc, &config.Config{}, nil, fake, database.NoopTransactor{})
+	ev := paidEvent(ctx, repo, 199, 100)
+
+	byWallet := primitive.NewObjectID().Hex()
+	walletSvc.wallets[byWallet] = &wallet.WalletSummaryResponse{UserID: byWallet, MainBalance: 500, TotalBalance: 500}
+	if _, _, err := svc.BookTicketWithWallet(ctx, byWallet, ev.ID.Hex(), EventWalletCheckoutRequest{}); err != nil {
+		t.Fatal(err)
+	}
+
+	byCard := primitive.NewObjectID().Hex()
+	checkout, err := svc.CreateEventOrder(ctx, byCard, ev.ID.Hex(), CreateEventOrderRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.VerifyEventPayment(ctx, byCard, ev.ID.Hex(), VerifyEventPaymentRequest{RazorpayOrderID: checkout.OrderID, RazorpayPaymentID: "pay_1", RazorpaySignature: "sig"}); err != nil {
+		t.Fatal(err)
+	}
+	if walletSvc.wallets[byWallet].MainBalance != 301 {
+		t.Fatalf("wallet after buying = %v, want 301", walletSvc.wallets[byWallet].MainBalance)
+	}
+
+	if err := svc.AdminDeleteEvent(ctx, ev.ID.Hex()); err != nil {
+		t.Fatal(err)
+	}
+	if got := walletSvc.wallets[byWallet].MainBalance; got != 500 {
+		t.Errorf("wallet after the event was deleted = %v, want 500", got)
+	}
+	if len(fake.Refunds) != 1 || fake.Refunds[0] != checkout.OrderID || fake.Orders[checkout.OrderID].RefundPaise != 19900 {
+		t.Errorf("card refunds = %v, order = %+v", fake.Refunds, fake.Orders[checkout.OrderID])
+	}
+	for _, tk := range repo.tickets {
+		if tk.Status != "cancelled" || tk.PaymentStatus != "refunded" {
+			t.Errorf("ticket %s: status %q, payment %q", tk.TicketNumber, tk.Status, tk.PaymentStatus)
+		}
+	}
+}
+
+// A ticket whose owner has since closed their wallet can't be paid back; the event still goes,
+// and the ticket keeps saying "paid" rather than claiming a refund that never happened
+func TestEvent_DeletingAnEventWithAClosedWalletKeepsTheTicketPaid(t *testing.T) {
+	ctx := context.Background()
+	repo := newMockEventRepo()
+	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse), closed: map[string]bool{}}
+	svc := NewEventService(repo, &mockUserRepo{users: make(map[string]*user.User)}, walletSvc, &config.Config{}, nil, paymenttest.New(), database.NoopTransactor{})
+	ev := paidEvent(ctx, repo, 199, 100)
+
+	gone := primitive.NewObjectID().Hex()
+	walletSvc.wallets[gone] = &wallet.WalletSummaryResponse{UserID: gone, MainBalance: 500, TotalBalance: 500}
+	ticket, _, err := svc.BookTicketWithWallet(ctx, gone, ev.ID.Hex(), EventWalletCheckoutRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	walletSvc.closed[gone] = true
+
+	if err := svc.AdminDeleteEvent(ctx, ev.ID.Hex()); err != nil {
+		t.Fatalf("delete with a closed wallet: %v", err)
+	}
+	got := repo.tickets[ticket.ID.Hex()]
+	if got.Status != "cancelled" || got.PaymentStatus != "paid" {
+		t.Fatalf("ticket: status %q, payment %q; want cancelled and paid", got.Status, got.PaymentStatus)
 	}
 }

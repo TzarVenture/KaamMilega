@@ -1,517 +1,333 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ArrowRightIcon, ArrowSquareOutIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, CircleNotchIcon, GraduationCapIcon, PlayIcon, UploadSimpleIcon, VideoCameraIcon, WarningCircleIcon } from '@phosphor-icons/react';
+import { ArrowRightIcon, ArrowSquareOutIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, GraduationCapIcon, PlayIcon, UploadSimpleIcon, VideoCameraIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { notify } from "@/lib/notify";
 import api from "@/lib/axios";
-import { getCurrentUser } from "@/lib/auth";
-import { 
-    extractYouTubeVideoId, 
-    getYouTubeThumbnail, 
-    openYouTubeVideo 
-} from "@/lib/youtube";
+import { extractYouTubeVideoId, getYouTubeThumbnail } from "@/lib/youtube";
+import { COURSE_CATEGORIES, COURSE_LIMITS, countWords, type MyCoursesPage } from "@/lib/courses";
+import { useIsExpert } from "@/lib/useIsExpert";
 import CourseCard, { CourseData } from "@/components/km/CourseCard";
 import PageHero, { HeroAccent } from '@/components/km/PageHero';
-
-const CATEGORIES = [
-    "Vocational Skills",
-    "Technology",
-    "Electrician & Electrical",
-    "Plumbing & Sanitation",
-    "Construction & Carpentry",
-    "Hospitality & Culinary",
-    "Automotive & Mechanics",
-    "Business & Sales",
-    "Others",
-];
+import { EmptyState, btn, cx, field } from "@/components/admin/ui";
 
 export default function CoursesExpertStudioPage() {
-    const router = useRouter();
-    const user = getCurrentUser();
-
-    // Check if user is an Expert
-    const roles = Array.isArray(user?.roles)
-        ? user.roles
-        : user?.role
-        ? [user.role]
-        : [];
-    const isExpert = roles.includes("expert");
+    const isExpert = useIsExpert();
 
     // Form state
     const [title, setTitle] = useState("");
     const [youtubeUrl, setYoutubeUrl] = useState("");
     const [duration, setDuration] = useState("");
-    const [category, setCategory] = useState(CATEGORIES[0]);
+    const [category, setCategory] = useState(COURSE_CATEGORIES[0]);
     const [customCategory, setCustomCategory] = useState("");
     const [description, setDescription] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
 
-    // YouTube preview state
-    const [extractedVideoId, setExtractedVideoId] = useState<string | null>(null);
-
-    // Expert's own courses state
+    // Expert's own courses
     const [myCourses, setMyCourses] = useState<CourseData[]>([]);
     const [loadingCourses, setLoadingCourses] = useState(true);
     const [totalCourses, setTotalCourses] = useState(0);
 
-    // Horizontal Scroll ref & handlers
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const scrollBy = (left: number) => scrollContainerRef.current?.scrollBy({ left, behavior: "smooth" });
 
-    const handleScrollLeft = () => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollBy({ left: -360, behavior: "smooth" });
-        }
-    };
+    const videoId = youtubeUrl.trim() ? extractYouTubeVideoId(youtubeUrl) : null;
+    const titleWords = countWords(title);
+    const descWords = countWords(description);
 
-    const handleScrollRight = () => {
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.scrollBy({ left: 360, behavior: "smooth" });
-        }
-    };
-
-    // Live YouTube link parsing
-    useEffect(() => {
-        if (!youtubeUrl.trim()) {
-            setExtractedVideoId(null);
-            return;
-        }
-        const id = extractYouTubeVideoId(youtubeUrl);
-        setExtractedVideoId(id);
-    }, [youtubeUrl]);
-
-    // Fetch Expert's own uploaded courses
-    const fetchMyCourses = async () => {
+    const fetchMyCourses = useCallback(async () => {
         try {
             setLoadingCourses(true);
-            const res: any = await api.get("/courses/my?limit=5");
+            const res = await api.get<unknown, MyCoursesPage>("/courses/my?limit=5");
             setMyCourses(res.data || []);
             setTotalCourses(res.total || (res.data ? res.data.length : 0));
-        } catch (error: any) {
-            console.error("Failed to load courses:", error);
-            notify.error(error, "Your courses couldn’t be loaded.");
+        } catch (err) {
+            notify.error(err, "Your courses couldn’t be loaded.");
         } finally {
             setLoadingCourses(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        if (isExpert) {
-            fetchMyCourses();
-        }
-    }, [isExpert]);
+        if (isExpert) fetchMyCourses();
+    }, [isExpert, fetchMyCourses]);
 
-    // Word count helpers
-    const countWords = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
-    const titleWordCount = countWords(title);
-    const descWordCount = countWords(description);
+    const check = (): string => {
+        if (!title.trim()) return "Enter a course title.";
+        if (titleWords > COURSE_LIMITS.titleWords) return `Keep the title to ${COURSE_LIMITS.titleWords} words.`;
+        if (!videoId) return "Paste a YouTube video link.";
+        if (!duration.trim()) return "Enter how long the video is, for example 45 min.";
+        if (category === "Others" && !customCategory.trim()) return "Type the trade this course is for.";
+        if (descWords > COURSE_LIMITS.descriptionWords) return `Keep the description to ${COURSE_LIMITS.descriptionWords} words.`;
+        return "";
+    };
 
-    // Handle course creation
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!title.trim()) {
-            notify.error("Please enter a course title");
-            return;
-        }
-
-        if (titleWordCount > 10) {
-            notify.error("Course title cannot exceed 10 words");
-            return;
-        }
-
-        if (descWordCount > 50) {
-            notify.error("Course description cannot exceed 50 words");
-            return;
-        }
-
-        if (!extractedVideoId) {
-            notify.error("Please provide a valid YouTube video URL");
-            return;
-        }
-
-        if (!duration.trim()) {
-            notify.error("Please enter the video duration (e.g. 30 Min)");
-            return;
-        }
-
-        const finalCategory = category === "Others" 
-            ? (customCategory.trim() || "General") 
-            : category;
+        const problem = check();
+        setError(problem);
+        if (problem) return;
 
         setSubmitting(true);
         try {
-            const payload = {
+            const created = await api.post<unknown, CourseData | null>("/courses", {
                 title: title.trim(),
                 youtube_url: youtubeUrl.trim(),
                 duration: duration.trim(),
-                category: finalCategory,
+                category: category === "Others" ? customCategory.trim() : category,
                 description: description.trim(),
-            };
+            });
+            notify.success("Course published. Learners can watch it now.");
 
-            const created: any = await api.post("/courses", payload);
-            notify.success("Course published successfully!");
-
-            // Reset form
             setTitle("");
             setYoutubeUrl("");
             setDuration("");
             setDescription("");
-            setCategory(CATEGORIES[0]);
+            setCategory(COURSE_CATEGORIES[0]);
             setCustomCategory("");
-            setExtractedVideoId(null);
 
-            // Prepend new course to list
             if (created && created.id) {
                 setMyCourses((prev) => [created, ...prev.slice(0, 4)]);
                 setTotalCourses((prev) => prev + 1);
             } else {
                 fetchMyCourses();
             }
-        } catch (error: any) {
-            notify.error(error.message || "Failed to publish course");
+        } catch (err) {
+            notify.error(err, "The course couldn’t be published. Please try again.");
         } finally {
             setSubmitting(false);
         }
     };
 
-    // If logged-in user is NOT an expert, show branded gateway card
+    if (isExpert === null) {
+        return <main className="min-h-screen bg-km-surface" aria-busy="true" />;
+    }
+
     if (!isExpert) {
         return (
-            <div className="min-h-screen bg-km-surface py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-                <div className="max-w-md w-full bg-km-surface-card rounded-3xl p-8 border border-km-border shadow-lg text-center space-y-5">
-                    <GraduationCapIcon size={36} weight="duotone" className="text-[#7C3AED] mx-auto dark:text-violet-400" aria-hidden="true" />
-                    <div className="space-y-2">
-                        <h2 className="text-2xl font-bold text-km-heading">
-                            Expert Portal Only
-                        </h2>
-                        <p className="text-sm text-km-text-secondary leading-relaxed">
-                            Only verified Kaammilega Experts can upload and publish video training courses.
-                        </p>
-                    </div>
-                    <div className="pt-2">
-                        <button
-                            type="button"
-                            onClick={() => router.push("/expert/apply")}
-                            className="w-full bg-[#071A4D] hover:bg-[#0B1F52] text-white font-semibold py-3.5 px-6 rounded-xl shadow-md transition-all active:scale-[0.98] flex items-center justify-center gap-2 text-sm dark:bg-km-primary dark:hover:bg-km-primary-dark"
-                        >
-                            <span>Apply to Become an Expert</span>
-                            <ArrowRightIcon weight="bold" size={16} />
-                        </button>
+            <main className="min-h-screen bg-km-surface pb-20">
+                <div className="max-w-3xl mx-auto px-4 pt-16">
+                    <div className="km-card">
+                        <EmptyState
+                            icon={GraduationCapIcon}
+                            title="Publishing courses is for approved Experts"
+                            description="Apply as an Expert to share training videos with learners on KaamMilega."
+                            action={<Link href="/expert/apply" className={btn.primary}>Apply as an Expert</Link>}
+                        />
                     </div>
                 </div>
-            </div>
+            </main>
         );
     }
 
     return (
         <main className="min-h-screen bg-km-surface pb-20 font-sans">
-            {/* ─── Hero ─── */}
             <PageHero
                 width="max-w-6xl"
-                title={<>Create & Manage <HeroAccent>Courses</HeroAccent></>}
-                description="Publish YouTube training videos to the KaamMilega learning marketplace."
+                kicker={{ label: "Expert Portal", Icon: GraduationCapIcon, tone: "experts" }}
+                title={<>Share your skills as <HeroAccent>courses</HeroAccent></>}
+                description="Add your YouTube training videos so learners can find them on KaamMilega."
                 aside={
-                    <div className="flex items-center gap-2.5 shrink-0">
-                        <Link
-                            href="/courses/manage"
-                            className="text-xs sm:text-sm font-semibold border border-white/30 text-white hover:bg-white/10 hover:border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5"
-                        >
-                            <span>Manage My Courses</span>
+                    <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                        <Link href="/courses/manage" className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl border border-white text-sm font-semibold text-white hover:bg-[#0B1F52] transition-colors">
+                            Manage my courses
                         </Link>
-                        <Link
-                            href="/resources"
-                            className="text-xs sm:text-sm font-semibold text-km-heading bg-km-surface-card hover:bg-km-surface-card/90 border border-white px-4 py-2.5 rounded-xl shadow-xs transition-all flex items-center gap-1.5 dark:border-km-surface-card"
-                        >
-                            <span>Public Marketplace</span>
-                            <ArrowSquareOutIcon weight="bold" size={13} />
+                        <Link href="/resources" className="inline-flex items-center gap-1.5 h-10 px-4 rounded-xl bg-white text-sm font-semibold text-[#071A4D] hover:bg-[#F4F7FB] transition-colors">
+                            See them as learners do
+                            <ArrowSquareOutIcon weight="bold" size={14} aria-hidden="true" />
                         </Link>
                     </div>
                 }
             />
 
-            {/* ─── Content Body: Form & My Uploaded Courses ─── */}
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 space-y-8">
-
-                {/* ─── Top Half: Create New Course Form ─── */}
-                <div className="bg-km-surface-card rounded-3xl p-6 sm:p-8 border border-km-border shadow-xs space-y-6">
-                    <div className="flex items-center gap-2.5 border-b border-km-border/60 pb-4">
-                        <VideoCameraIcon size={22} className="text-[#FF6B00]" aria-hidden="true" />
+                <section aria-labelledby="new-course-title" className="km-card p-6 sm:p-8 space-y-6">
+                    <div className="flex items-center gap-3 border-b border-km-border-subtle pb-4">
+                        <span className="w-10 h-10 rounded-xl bg-km-surface flex items-center justify-center shrink-0" aria-hidden="true">
+                            <VideoCameraIcon size={20} className="text-km-mentors-text" />
+                        </span>
                         <div>
-                            <h2 className="text-base sm:text-lg font-bold text-km-text-primary">
-                                Publish a New Course Video
-                            </h2>
-                            <p className="text-xs text-km-text-secondary">
-                                Enter the YouTube URL — your high-res thumbnail will be extracted automatically.
-                            </p>
+                            <h2 id="new-course-title" className="text-lg font-semibold text-km-heading">Add a course video</h2>
+                            <p className="text-sm text-km-text-secondary">Paste the YouTube link and we’ll use the video’s own thumbnail.</p>
                         </div>
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form onSubmit={handleSubmit} noValidate className="space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
-                            {/* Course Title with 10-word limit counter */}
-                            <div className="md:col-span-2 space-y-1.5">
+                            <div className="md:col-span-2">
                                 <div className="flex items-center justify-between">
-                                    <label className="block text-xs font-semibold text-km-heading">
-                                        Course Title <span className="text-[#FF6B00]">*</span>
-                                    </label>
-                                    <span className={`text-[11px] ${titleWordCount > 10 ? "text-red-500 font-semibold dark:text-red-400" : "text-km-text-secondary"}`}>
-                                        {titleWordCount} / 10 words
+                                    <label htmlFor="course-title" className={field.label}>Course title</label>
+                                    <span className={cx("text-xs", titleWords > COURSE_LIMITS.titleWords ? "text-red-600 font-semibold" : "text-km-text-secondary")}>
+                                        {titleWords} / {COURSE_LIMITS.titleWords} words
                                     </span>
                                 </div>
                                 <input
-                                    type="text"
-                                    required
+                                    id="course-title"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="e.g. Complete Domestic House Wiring & Safety Guide"
-                                    className={`w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border rounded-xl focus:outline-hidden transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60 ${
-                                        titleWordCount > 10
-                                            ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                                            : "border-km-border focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
-                                    }`}
+                                    placeholder="House wiring and safety for beginners"
+                                    className={field.input}
+                                    aria-invalid={titleWords > COURSE_LIMITS.titleWords}
+                                    required
                                 />
-                                {titleWordCount > 10 && (
-                                    <p className="text-[11px] text-red-500 dark:text-red-400">
-                                        Title cannot exceed 10 words. Please shorten your title.
-                                    </p>
-                                )}
                             </div>
 
-                            {/* YouTube URL */}
-                            <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-km-heading">
-                                    YouTube Video URL <span className="text-[#FF6B00]">*</span>
-                                </label>
+                            <div>
+                                <label htmlFor="course-url" className={field.label}>YouTube link</label>
                                 <input
+                                    id="course-url"
                                     type="url"
-                                    required
+                                    inputMode="url"
                                     value={youtubeUrl}
                                     onChange={(e) => setYoutubeUrl(e.target.value)}
-                                    placeholder="https://www.youtube.com/watch?v=..."
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border border-km-border rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60"
+                                    placeholder="https://www.youtube.com/watch?v=…"
+                                    className={field.input}
+                                    aria-describedby="course-url-hint"
+                                    required
                                 />
-                                <p className="text-[11px] text-km-text-secondary">
-                                    Supports standard watch links, youtu.be, or shorts.
-                                </p>
+                                <p id="course-url-hint" className={field.hint}>Watch links, youtu.be links and Shorts all work.</p>
                             </div>
 
-                            {/* Video Duration */}
-                            <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-km-heading">
-                                    Video Duration <span className="text-[#FF6B00]">*</span>
-                                </label>
+                            <div>
+                                <label htmlFor="course-duration" className={field.label}>Video length</label>
                                 <input
-                                    type="text"
-                                    required
+                                    id="course-duration"
                                     value={duration}
                                     onChange={(e) => setDuration(e.target.value)}
-                                    placeholder="e.g. 45 Min or 1 Hr 20 Min"
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border border-km-border rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60"
+                                    placeholder="45 min"
+                                    className={field.input}
+                                    required
                                 />
                             </div>
 
-                            {/* Category Dropdown */}
-                            <div className="space-y-1.5">
-                                <label className="block text-xs font-semibold text-km-heading">
-                                    Category / Trade <span className="text-[#FF6B00]">*</span>
-                                </label>
-                                <select
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    className="w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border border-km-border rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-km-text-primary font-medium cursor-pointer"
-                                >
-                                    {CATEGORIES.map((cat) => (
-                                        <option key={cat} value={cat}>
-                                            {cat}
-                                        </option>
-                                    ))}
+                            <div>
+                                <label htmlFor="course-category" className={field.label}>Trade</label>
+                                <select id="course-category" value={category} onChange={(e) => setCategory(e.target.value)} className={field.input}>
+                                    {COURSE_CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
                                 </select>
                             </div>
 
-                            {/* If "Others" is selected: Custom Category Text Field */}
                             {category === "Others" && (
-                                <div className="space-y-1.5 animate-in fade-in duration-200">
-                                    <label className="block text-xs font-semibold text-km-heading">
-                                        Enter Custom Category Name <span className="text-[#FF6B00]">*</span>
-                                    </label>
+                                <div>
+                                    <label htmlFor="course-custom-category" className={field.label}>Your trade</label>
                                     <input
-                                        type="text"
-                                        required
+                                        id="course-custom-category"
                                         value={customCategory}
                                         onChange={(e) => setCustomCategory(e.target.value)}
-                                        placeholder="e.g. Solar Panel Technician, CNC Operator..."
-                                        className="w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border border-km-border rounded-xl focus:outline-hidden focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10 transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60"
+                                        placeholder="Solar panel technician"
+                                        className={field.input}
+                                        required
                                     />
                                 </div>
                             )}
 
-                            {/* Short Description with 50-word limit counter */}
-                            <div className={`space-y-1.5 ${category === "Others" ? "md:col-span-2" : "md:col-span-2"}`}>
+                            <div className="md:col-span-2">
                                 <div className="flex items-center justify-between">
-                                    <label className="block text-xs font-semibold text-km-heading">
-                                        Course Description & Highlights
+                                    <label htmlFor="course-description" className={field.label}>
+                                        What learners will get <span className="font-normal text-km-text-secondary">(optional)</span>
                                     </label>
-                                    <span className={`text-[11px] ${descWordCount > 50 ? "text-red-500 font-semibold dark:text-red-400" : "text-km-text-secondary"}`}>
-                                        {descWordCount} / 50 words
+                                    <span className={cx("text-xs", descWords > COURSE_LIMITS.descriptionWords ? "text-red-600 font-semibold" : "text-km-text-secondary")}>
+                                        {descWords} / {COURSE_LIMITS.descriptionWords} words
                                     </span>
                                 </div>
                                 <textarea
+                                    id="course-description"
                                     rows={3}
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Briefly describe what students will learn from this video session..."
-                                    className={`w-full px-4 py-2.5 sm:py-3 bg-km-surface-card border rounded-xl focus:outline-hidden transition-all text-sm text-km-text-primary font-medium placeholder:text-km-text-secondary/60 resize-none ${
-                                        descWordCount > 50
-                                            ? "border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100"
-                                            : "border-km-border focus:border-[#0B5ED7] focus:ring-2 focus:ring-[#0B5ED7]/10"
-                                    }`}
+                                    placeholder="Which tools you need, the steps covered and the safety checks."
+                                    className={cx(field.textarea, "resize-none")}
+                                    aria-invalid={descWords > COURSE_LIMITS.descriptionWords}
                                 />
-                                {descWordCount > 50 && (
-                                    <p className="text-[11px] text-red-500 dark:text-red-400">
-                                        Description cannot exceed 50 words. Please shorten your description.
-                                    </p>
-                                )}
                             </div>
                         </div>
 
-                        {/* Real-Time Thumbnail Preview Box */}
-                        {extractedVideoId ? (
-                            <div className="p-4 bg-[#F0FDF4] border border-[#16A34A]/30 rounded-2xl flex flex-col sm:flex-row items-center gap-4 dark:bg-[#1D253D]">
-                                <div className="relative w-full sm:w-44 h-26 rounded-xl overflow-hidden bg-slate-200 shrink-0 shadow-xs">
-                                    <img
-                                        src={getYouTubeThumbnail(extractedVideoId)}
-                                        alt="Extracted Thumbnail"
-                                        className="w-full h-full object-cover"
-                                    />
-                                    <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                        <PlayIcon weight="fill" size={20} className="text-white fill-white" />
+                        {videoId ? (
+                            <div className="p-4 rounded-2xl border border-km-border bg-km-surface flex flex-col sm:flex-row items-center gap-4">
+                                <div className="relative w-full sm:w-44 aspect-video rounded-xl overflow-hidden bg-km-border shrink-0">
+                                    <img src={getYouTubeThumbnail(videoId)} alt="Thumbnail of the linked video" className="w-full h-full object-cover" />
+                                    <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
+                                        <span className="w-9 h-9 rounded-full bg-black/60 flex items-center justify-center">
+                                            <PlayIcon weight="fill" size={16} className="text-white" />
+                                        </span>
                                     </div>
                                 </div>
-                                <div className="flex-1 space-y-1 text-center sm:text-left">
-                                    <div className="flex items-center justify-center sm:justify-start gap-1.5 text-xs font-bold text-[#16A34A]">
-                                        <CheckCircleIcon weight="bold" size={16} />
-                                        <span>Verified YouTube Video ID: {extractedVideoId}</span>
-                                    </div>
-                                    <p className="text-xs text-km-text-secondary">
-                                        Thumbnail confirmed. This high-resolution image will be visible across the Kaammilega platform.
-                                    </p>
-                                </div>
+                                <p className="flex items-center gap-2 text-sm text-km-heading">
+                                    <CheckCircleIcon weight="bold" size={16} className="text-emerald-600 shrink-0" aria-hidden="true" />
+                                    Video found. This thumbnail is what learners will see.
+                                </p>
                             </div>
                         ) : youtubeUrl.trim() ? (
-                            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-xs text-amber-700">
-                                <WarningCircleIcon weight="bold" size={16} className="shrink-0" />
-                                <span>Checking YouTube link... Please ensure it is a valid YouTube video URL.</span>
-                            </div>
+                            <p className="flex items-center gap-2 text-sm text-red-600" role="status">
+                                <WarningCircleIcon weight="bold" size={16} className="shrink-0" aria-hidden="true" />
+                                This doesn’t look like a YouTube video link. Copy it from the video’s Share button.
+                            </p>
                         ) : null}
 
-                        {/* Submit Button */}
+                        {error && <p role="alert" className={field.error}>{error}</p>}
+
                         <div className="flex justify-end pt-1">
-                            <button
-                                type="submit"
-                                disabled={submitting || !extractedVideoId}
-                                className={`w-full sm:w-auto px-7 py-3 rounded-xl font-bold text-sm transition-all shadow-md flex items-center justify-center gap-2 ${
-                                    submitting || !extractedVideoId
-                                        ? "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                                        : "bg-[#071A4D] hover:bg-[#0B1F52] text-white shadow-[#071A4D]/20 active:scale-[0.98] cursor-pointer dark:bg-km-primary dark:hover:bg-km-primary-dark"
-                                }`}
-                            >
-                                {submitting ? (
-                                    <>
-                                        <CircleNotchIcon weight="bold" size={16} className="animate-spin" />
-                                        <span>Publishing Course...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <UploadSimpleIcon weight="bold" size={16} />
-                                        <span>Publish Course to Marketplace</span>
-                                    </>
-                                )}
+                            <button type="submit" disabled={submitting} className={cx(btn.primary, "w-full sm:w-auto")}>
+                                <UploadSimpleIcon weight="bold" size={16} aria-hidden="true" />
+                                {submitting ? "Publishing…" : "Publish course"}
                             </button>
                         </div>
                     </form>
-                </div>
+                </section>
 
-                {/* ─── Bottom Half: My Uploaded Courses (Horizontal Scroll of Rectangle Cards) ─── */}
-                <div className="space-y-4">
+                <section aria-labelledby="my-courses-title" className="space-y-4">
                     <div className="flex items-center justify-between gap-2 px-1">
-                        <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0">
-                            <h2 className="text-sm sm:text-base md:text-xl font-medium text-km-heading truncate">
-                                My Uploaded Courses
-                            </h2>
-                            <span className="bg-km-surface border border-km-border text-km-heading font-medium text-[11px] sm:text-xs px-2 py-0.5 rounded-full shrink-0">
-                                {totalCourses}
-                            </span>
-                        </div>
-
-                        {/* View All Course Button */}
-                        <Link
-                            href="/courses/manage"
-                            className="inline-flex items-center justify-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs md:text-sm font-semibold text-white bg-[#071A4D] hover:bg-[#0B1F52] px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl shadow-xs transition-all cursor-pointer active:scale-[0.98] shrink-0 whitespace-nowrap dark:bg-km-primary dark:hover:bg-km-primary-dark"
-                        >
-                            <span>View All Course</span>
-                            <ArrowRightIcon weight="bold" size={12} className="shrink-0" />
+                        <h2 id="my-courses-title" className="text-lg md:text-xl font-semibold text-km-heading truncate">
+                            My courses <span className="text-sm font-normal text-km-text-secondary tabular-nums">({totalCourses})</span>
+                        </h2>
+                        <Link href="/courses/manage" className={cx(btn.secondary, "shrink-0")}>
+                            See all <ArrowRightIcon weight="bold" size={14} aria-hidden="true" />
                         </Link>
                     </div>
 
                     {loadingCourses ? (
-                        <div className="py-12 flex justify-center items-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#0B5ED7]"></div>
+                        <div className="py-12 flex justify-center items-center" role="status">
+                            <div className="animate-spin rounded-full h-8 w-8 border-2 border-km-link border-t-transparent" aria-hidden="true" />
+                            <span className="sr-only">Loading your courses</span>
                         </div>
                     ) : myCourses.length === 0 ? (
-                        <div className="bg-km-surface-card rounded-2xl border border-dashed border-km-border p-8 text-center space-y-2">
-                            <VideoCameraIcon size={28} weight="duotone" className="text-km-text-secondary mx-auto" aria-hidden="true" />
-                            <h3 className="text-sm font-bold text-km-text-primary">
-                                No Courses Published Yet
-                            </h3>
-                            <p className="text-xs text-km-text-secondary max-w-sm mx-auto">
-                                Use the form above to add your first YouTube video training course to share with learners.
-                            </p>
+                        <div className="km-card">
+                            <EmptyState
+                                icon={VideoCameraIcon}
+                                title="No courses yet"
+                                description="Use the form above to add your first training video."
+                            />
                         </div>
                     ) : (
-                        <div className="relative group/carousel">
-                            {/* Left Chevron Floating Button */}
+                        <div className="relative">
                             <button
                                 type="button"
-                                onClick={handleScrollLeft}
+                                onClick={() => scrollBy(-360)}
                                 aria-label="Scroll left"
-                                className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-[#071A4D] hover:text-white border border-km-border shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100 dark:hover:bg-km-primary"
-                                title="Scroll left"
+                                className="hidden md:flex absolute -left-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-km-surface border border-km-border shadow-md items-center justify-center transition-colors"
                             >
-                                <CaretLeftIcon weight="bold" size={18} />
+                                <CaretLeftIcon weight="bold" size={18} aria-hidden="true" />
                             </button>
 
-                            {/* Horizontal scroll container with custom Navy Blue scrollbar */}
-                            <div 
-                                ref={scrollContainerRef}
-                                className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 scroll-smooth snap-x snap-mandatory km-horizontal-scrollbar"
-                            >
+                            <div ref={scrollContainerRef} className="flex gap-4 overflow-x-auto pb-4 pt-1 px-1 scroll-smooth snap-x snap-mandatory km-horizontal-scrollbar">
                                 {myCourses.map((c, idx) => (
-                                    <CourseCard
-                                        key={c.id}
-                                        course={c}
-                                        compact={true}
-                                        isOwner={true}
-                                        orderNumber={idx + 1}
-                                    />
+                                    <CourseCard key={c.id} course={c} compact isOwner orderNumber={idx + 1} />
                                 ))}
                             </div>
 
-                            {/* Right Chevron Floating Button */}
                             <button
                                 type="button"
-                                onClick={handleScrollRight}
+                                onClick={() => scrollBy(360)}
                                 aria-label="Scroll right"
-                                className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-[#071A4D] hover:text-white border border-km-border shadow-md items-center justify-center transition-all cursor-pointer opacity-90 hover:opacity-100 dark:hover:bg-km-primary"
-                                title="Scroll right"
+                                className="hidden md:flex absolute -right-4 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-km-surface-card text-km-heading hover:bg-km-surface border border-km-border shadow-md items-center justify-center transition-colors"
                             >
-                                <CaretRightIcon weight="bold" size={18} />
+                                <CaretRightIcon weight="bold" size={18} aria-hidden="true" />
                             </button>
                         </div>
                     )}
-                </div>
-
+                </section>
             </div>
         </main>
     );

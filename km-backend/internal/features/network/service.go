@@ -34,6 +34,9 @@ func NewNetworkService(
 	}
 }
 
+// ErrInvitationExists: a request between the two is already pending, or they are connected
+var ErrInvitationExists = apperr.New("INVITATION_EXISTS", "invitation already exists or already connected")
+
 func (s *NetworkServiceImpl) SendInvitation(ctx context.Context, senderID primitive.ObjectID, receiverID string) error {
 	rOID, err := primitive.ObjectIDFromHex(receiverID)
 	if err != nil {
@@ -49,7 +52,7 @@ func (s *NetworkServiceImpl) SendInvitation(ctx context.Context, senderID primit
 		return err
 	}
 	if status == StatusPending || status == StatusAccepted {
-		return apperr.New("INVITATION_EXISTS", "invitation already exists or already connected")
+		return ErrInvitationExists
 	}
 	if status == StatusIgnored {
 		_ = s.repo.DeleteInvitation(ctx, senderID, rOID)

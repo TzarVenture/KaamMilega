@@ -30,9 +30,16 @@ type InterviewRepositoryImpl struct {
 }
 
 func NewInterviewRepository(db *database.MongodbDB) InterviewRepository {
+	interviews := db.DB.Collection("interviews")
+	database.SyncIndexesInBackground(interviews, []mongo.IndexModel{
+		{Keys: bson.D{{Key: "application_id", Value: 1}, {Key: "scheduled_at", Value: 1}}},
+		{Keys: bson.D{{Key: "recruiter_id", Value: 1}, {Key: "scheduled_at", Value: 1}}},
+		{Keys: bson.D{{Key: "candidate_id", Value: 1}, {Key: "scheduled_at", Value: 1}}},
+		{Keys: bson.D{{Key: "status", Value: 1}, {Key: "scheduled_at", Value: 1}}}, // "starting soon" reminders
+	})
 	return &InterviewRepositoryImpl{
 		db:      db,
-		intColl: db.DB.Collection("interviews"),
+		intColl: interviews,
 	}
 }
 

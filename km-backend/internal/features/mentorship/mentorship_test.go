@@ -33,6 +33,9 @@ func (m *mockMentorshipRepo) CreateMentorship(ctx context.Context, mentorship *M
 	if mentorship.ID.IsZero() {
 		mentorship.ID = primitive.NewObjectID()
 	}
+	if mentorship.Status == "" {
+		mentorship.Status = "active" // as the Postgres repository does
+	}
 	m.mentorships[mentorship.ID.Hex()] = mentorship
 	return mentorship, nil
 }

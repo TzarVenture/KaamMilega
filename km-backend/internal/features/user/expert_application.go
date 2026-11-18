@@ -18,6 +18,8 @@ import (
 // bank details, an active ₹99 pass, then our team reviews the application the same day.
 // Identity numbers are never stored in full: only the last 4 digits, next to the uploaded
 // document, which lives in the private bucket.
+// Q51 (Nov 2026): the client keeps Aadhaar and wants it checked through DigiLocker. Until a
+// DigiLocker provider is set up, our team checks the uploaded card by hand.
 
 const (
 	ExpertStatusNone     = ""

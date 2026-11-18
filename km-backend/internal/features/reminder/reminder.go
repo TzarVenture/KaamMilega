@@ -1,10 +1,12 @@
 // Package reminder sends the "coming up" notifications: an interview or mentorship session in the next hour,
 // an event in the next day, and an InstantMilega pass about to run out. Each reminder goes out
-// once (a sent-at field on the booking, ticket or pass records it).
+// once (a sent-at field on the booking, ticket or pass records it). Interviews are in MongoDB;
+// bookings, tickets and passes are in Postgres.
 package reminder
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"strings"
@@ -17,35 +19,31 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/fx"
+	"gorm.io/gorm"
 )
 
 const (
-	interval      = 15 * time.Minute
-	sessionAhead  = time.Hour
-	eventAhead    = 24 * time.Hour
-	passAhead     = 3 * 24 * time.Hour
-	sentField     = "reminder_sent_at"
-	passSentField = "expiry_reminder_sent_at"
+	interval     = 15 * time.Minute
+	sessionAhead = time.Hour
+	eventAhead   = 24 * time.Hour
+	passAhead    = 3 * 24 * time.Hour
+	sentField    = "reminder_sent_at"
 )
 
 // ist is India time, which event dates and times are written in
 var ist = time.FixedZone("IST", 5*3600+1800)
 
 type Service struct {
-	bookings   *mongo.Collection
+	pg         *gorm.DB
 	interviews *mongo.Collection
-	tickets    *mongo.Collection
-	passes     *mongo.Collection
 	notify     notification.NotificationService
 	now        func() time.Time
 }
 
-func NewService(db *database.MongodbDB, notify notification.NotificationService) *Service {
+func NewService(db *database.MongodbDB, pg *database.PostgresDB, notify notification.NotificationService) *Service {
 	return &Service{
-		bookings:   db.DB.Collection("mentorship_bookings"),
+		pg:         pg.DB,
 		interviews: db.DB.Collection("interviews"),
-		tickets:    db.DB.Collection("event_tickets"),
-		passes:     db.DB.Collection("instant_passes"),
 		notify:     notify,
 		now:        time.Now,
 	}
@@ -64,7 +62,7 @@ func (s *Service) Run(ctx context.Context) (int, error) {
 	return total, nil
 }
 
-// claim marks a document as reminded; false when another run got there first
+// claim marks a MongoDB document as reminded; false when another run got there first
 func claim(ctx context.Context, coll *mongo.Collection, id primitive.ObjectID, field string, now time.Time) bool {
 	res, err := coll.UpdateOne(ctx, bson.M{"_id": id, field: bson.M{"$exists": false}}, bson.M{"$set": bson.M{field: now}})
 	return err == nil && res.ModifiedCount == 1
@@ -79,42 +77,37 @@ func (s *Service) send(ctx context.Context, to primitive.ObjectID, title, msg, l
 	}
 }
 
+// sessions: confirmed mentorship sessions starting within the hour. The UPDATE claims and reads
+// them in one statement, so two overlapping runs can't both send the same reminder.
 func (s *Service) sessions(ctx context.Context) (int, error) {
 	now := s.now()
-	cur, err := s.bookings.Find(ctx, bson.M{
-		"status":       "confirmed",
-		"scheduled_at": bson.M{"$gt": now, "$lte": now.Add(sessionAhead)},
-		sentField:      bson.M{"$exists": false},
-	})
+	var rows []struct {
+		ID          string
+		UserID      string
+		ExpertID    string
+		ScheduledAt time.Time
+		Title       string
+	}
+	err := s.pg.WithContext(ctx).Raw(`UPDATE mentorship_bookings b SET reminder_sent_at = @now
+		FROM mentorships m
+		WHERE m.id = b.mentorship_id AND b.status = 'confirmed' AND b.reminder_sent_at IS NULL
+		  AND b.scheduled_at > @now AND b.scheduled_at <= @until
+		RETURNING b.id, b.user_id, b.expert_id, b.scheduled_at, m.title`,
+		sql.Named("now", now), sql.Named("until", now.Add(sessionAhead))).Scan(&rows).Error
 	if err != nil {
 		return 0, err
 	}
-	var rows []struct {
-		ID       primitive.ObjectID `bson:"_id"`
-		UserID   primitive.ObjectID `bson:"user_id"`
-		ExpertID primitive.ObjectID `bson:"expert_id"`
-		At       time.Time          `bson:"scheduled_at"`
-		Title    string             `bson:"mentorship_title"`
-	}
-	if err := cur.All(ctx, &rows); err != nil {
-		return 0, err
-	}
-	n := 0
 	for _, b := range rows {
-		if !claim(ctx, s.bookings, b.ID, sentField, now) {
-			continue
-		}
-		when := b.At.In(ist).Format("3:04 PM")
+		when := b.ScheduledAt.In(ist).Format("3:04 PM")
 		what := "Your mentorship session"
 		if b.Title != "" {
 			what = "Your session “" + b.Title + "”"
 		}
-		meta := map[string]interface{}{"booking_id": b.ID.Hex()}
-		s.send(ctx, b.UserID, "Session starting soon", what+" starts at "+when+".", "/mentorship/my-sessions", meta)
-		s.send(ctx, b.ExpertID, "Session starting soon", what+" with your mentee starts at "+when+".", "/expert/mentorship", meta)
-		n++
+		meta := map[string]interface{}{"booking_id": b.ID}
+		s.send(ctx, database.OID(b.UserID), "Session starting soon", what+" starts at "+when+".", "/mentorship/my-sessions", meta)
+		s.send(ctx, database.OID(b.ExpertID), "Session starting soon", what+" with your mentee starts at "+when+".", "/expert/mentorship", meta)
 	}
-	return n, nil
+	return len(rows), nil
 }
 
 func (s *Service) interviewsSoon(ctx context.Context) (int, error) {
@@ -155,28 +148,26 @@ func (s *Service) interviewsSoon(ctx context.Context) (int, error) {
 	return n, nil
 }
 
+// events: confirmed tickets for events starting within a day. The date and time come from the
+// event itself (not the copy on the ticket), so a rescheduled event is reminded at its new time.
 func (s *Service) events(ctx context.Context) (int, error) {
 	now := s.now()
 	today := now.In(ist)
 	days := []string{today.Format("2006-01-02"), today.AddDate(0, 0, 1).Format("2006-01-02")}
-	cur, err := s.tickets.Find(ctx, bson.M{
-		"status":     "confirmed",
-		"event_date": bson.M{"$in": days},
-		sentField:    bson.M{"$exists": false},
-	})
-	if err != nil {
-		return 0, err
-	}
 	var rows []struct {
-		ID       primitive.ObjectID `bson:"_id"`
-		UserID   primitive.ObjectID `bson:"user_id"`
-		EventID  primitive.ObjectID `bson:"event_id"`
-		Title    string             `bson:"event_title"`
-		Date     string             `bson:"event_date"`
-		Time     string             `bson:"event_time"`
-		Location string             `bson:"event_location"`
+		ID       string
+		UserID   string
+		EventID  string
+		Title    string
+		Date     string
+		Time     string
+		Location string
 	}
-	if err := cur.All(ctx, &rows); err != nil {
+	err := s.pg.WithContext(ctx).Raw(`SELECT t.id, t.user_id, t.event_id, e.title, e.date, e.time, e.location
+		FROM event_tickets t JOIN events e ON e.id = t.event_id
+		WHERE t.status = 'confirmed' AND t.reminder_sent_at IS NULL AND e.deleted_at IS NULL AND trim(e.date) IN ?`,
+		days).Scan(&rows).Error
+	if err != nil {
 		return 0, err
 	}
 	n := 0
@@ -185,7 +176,9 @@ func (s *Service) events(ctx context.Context) (int, error) {
 		if !ok || !start.After(now) || start.Sub(now) > eventAhead {
 			continue
 		}
-		if !claim(ctx, s.tickets, t.ID, sentField, now) {
+		// Claim the ticket; false when another run got there first
+		res := s.pg.WithContext(ctx).Exec(`UPDATE event_tickets SET reminder_sent_at = ? WHERE id = ? AND reminder_sent_at IS NULL`, now, t.ID)
+		if res.Error != nil || res.RowsAffected != 1 {
 			continue
 		}
 		day := "today"
@@ -196,45 +189,37 @@ func (s *Service) events(ctx context.Context) (int, error) {
 		if t.Location != "" {
 			msg += ", " + t.Location
 		}
-		s.send(ctx, t.UserID, "Event coming up", msg+".", "/events/"+t.EventID.Hex(), map[string]interface{}{"ticket_id": t.ID.Hex()})
+		s.send(ctx, database.OID(t.UserID), "Event coming up", msg+".", "/events/"+t.EventID, map[string]interface{}{"ticket_id": t.ID})
 		n++
 	}
 	return n, nil
 }
 
-// expiringPasses: InstantMilega passes ending within three days
+// expiringPasses: InstantMilega passes ending within three days, claimed and read in one statement
 func (s *Service) expiringPasses(ctx context.Context) (int, error) {
 	now := s.now()
-	cur, err := s.passes.Find(ctx, bson.M{
-		"has_active_pass": true,
-		"expires_at":      bson.M{"$gt": now, "$lte": now.Add(passAhead)},
-		passSentField:     bson.M{"$exists": false},
-	})
+	var rows []struct {
+		ID             string
+		UserID         string
+		ExpiresAt      time.Time
+		QuotaRemaining int
+	}
+	err := s.pg.WithContext(ctx).Raw(`UPDATE instant_passes SET expiry_reminder_sent_at = @now
+		WHERE has_active_pass AND expiry_reminder_sent_at IS NULL AND expires_at > @now AND expires_at <= @until
+		RETURNING id, user_id, expires_at, quota_remaining`,
+		sql.Named("now", now), sql.Named("until", now.Add(passAhead))).Scan(&rows).Error
 	if err != nil {
 		return 0, err
 	}
-	var rows []struct {
-		ID      primitive.ObjectID `bson:"_id"`
-		UserID  primitive.ObjectID `bson:"user_id"`
-		Expires time.Time          `bson:"expires_at"`
-		Left    int                `bson:"quota_remaining"`
-	}
-	if err := cur.All(ctx, &rows); err != nil {
-		return 0, err
-	}
-	n := 0
 	for _, p := range rows {
-		if !claim(ctx, s.passes, p.ID, passSentField, now) {
-			continue
+		ends := p.ExpiresAt.In(ist).Format("2 Jan")
+		msg := "Your InstantMilega pass ends on " + ends + "."
+		if p.QuotaRemaining > 0 {
+			msg = fmt.Sprintf("Your InstantMilega pass ends on %s with %d jobs left.", ends, p.QuotaRemaining)
 		}
-		msg := "Your InstantMilega pass ends on " + p.Expires.In(ist).Format("2 Jan") + "."
-		if p.Left > 0 {
-			msg = fmt.Sprintf("Your InstantMilega pass ends on %s with %d jobs left.", p.Expires.In(ist).Format("2 Jan"), p.Left)
-		}
-		s.send(ctx, p.UserID, "Pass ending soon", msg, "/instant-milega", map[string]interface{}{"pass_id": p.ID.Hex()})
-		n++
+		s.send(ctx, database.OID(p.UserID), "Pass ending soon", msg, "/instant-milega", map[string]interface{}{"pass_id": p.ID})
 	}
-	return n, nil
+	return len(rows), nil
 }
 
 func orDefault(s, def string) string {

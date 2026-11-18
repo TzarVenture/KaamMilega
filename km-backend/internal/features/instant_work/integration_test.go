@@ -10,20 +10,21 @@ import (
 
 	"km-backend/internal/config"
 	"km-backend/internal/database"
+	"km-backend/internal/database/pgtest"
 	"km-backend/internal/features/payment"
 	"km-backend/internal/features/payment/paymenttest"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// These tests run the pass and gig rules against real MongoDB transactions and indexes. They
-// only run when WALLET_TEST_MONGO_URI is set, and use a throwaway database.
-const testDatabase = "km_instant_test"
+// These tests run the pass and gig rules against real Postgres transactions, constraints and
+// PostGIS, on a throwaway schema (see pgtest). They skip when no database is configured.
+
+func TestMain(m *testing.M) { os.Exit(pgtest.Run(m)) }
 
 type stubUsers struct{ user.UserRepository }
 
@@ -33,7 +34,7 @@ func (stubUsers) FindUserByID(ctx context.Context, id string) (*user.User, error
 
 type env struct {
 	ctx      context.Context
-	db       *database.MongodbDB
+	pg       *database.PostgresDB
 	repo     InstantWorkRepository
 	svc      *InstantWorkServiceImpl
 	wallet   wallet.WalletService
@@ -42,46 +43,32 @@ type env struct {
 
 func setup(t *testing.T) *env {
 	t.Helper()
-	uri := os.Getenv("WALLET_TEST_MONGO_URI")
-	if uri == "" {
-		t.Skip("WALLET_TEST_MONGO_URI not set")
-	}
+	pg := pgtest.New(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	t.Cleanup(cancel)
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	// Users stay in MongoDB. Nothing here needs them (a dispute only looks up the name and email,
+	// and carries on without them), so the wallet gets a client that never connects and gives up fast.
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://127.0.0.1:1").SetServerSelectionTimeout(200*time.Millisecond))
 	if err != nil {
 		t.Fatal(err)
 	}
-	db := &database.MongodbDB{Client: client, Config: &config.Config{}, DB: client.Database(testDatabase)}
-	t.Cleanup(func() {
-		_ = db.DB.Drop(context.Background())
-		_ = client.Disconnect(context.Background())
-	})
-	_ = db.DB.Drop(ctx)
-	for _, name := range []string{"instant_workers", "instant_passes", "instant_jobs", "wallets", "wallet_transactions", "wallet_disputes"} {
-		if err := db.DB.CreateCollection(ctx, name); err != nil {
-			t.Fatal(err)
-		}
-	}
-	if _, err := db.DB.Collection("wallets").Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "user_id", Value: 1}}, Options: options.Index().SetUnique(true)}); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := db.DB.Collection("wallet_transactions").Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "reference_id", Value: 1}}, Options: options.Index().SetUnique(true)}); err != nil {
-		t.Fatal(err)
-	}
+	mdb := &database.MongodbDB{Client: client, Config: &config.Config{}, DB: client.Database("unused")}
 
-	tx := database.NewTransactor(db)
-	repo := NewInstantWorkRepository(db)
-	if err := repo.EnsureIndexes(ctx); err != nil {
-		t.Fatal(err)
-	}
+	tx := database.NewPgTransactor(pg)
+	repo := NewInstantWorkRepository(pg)
 	fake := paymenttest.New()
-	walletRepo := wallet.NewWalletRepository(db)
+	walletRepo := wallet.NewWalletRepository(pg, tx, mdb)
 	walletSvc := wallet.NewWalletService(walletRepo, &config.Config{}, nil, nil, fake, tx)
 	svc := NewInstantWorkService(repo, stubUsers{}, walletSvc, &config.Config{}, nil, fake, tx).(*InstantWorkServiceImpl)
-	time.Sleep(500 * time.Millisecond) // let background index setup finish
-	return &env{ctx: ctx, db: db, repo: repo, svc: svc, wallet: walletSvc, walletDB: walletRepo}
+	return &env{ctx: ctx, pg: pg, repo: repo, svc: svc, wallet: walletSvc, walletDB: walletRepo}
+}
+
+func (e *env) exec(t *testing.T, sql string, args ...interface{}) {
+	t.Helper()
+	if err := e.pg.DB.Exec(sql, args...).Error; err != nil {
+		t.Fatal(err)
+	}
 }
 
 func (e *env) fund(t *testing.T, userID primitive.ObjectID, rupees float64) {
@@ -103,7 +90,7 @@ func (e *env) passWithCredits(t *testing.T, userID primitive.ObjectID, credits i
 		t.Fatal(err)
 	}
 	if credits != passQuota {
-		if _, err := e.db.DB.Collection("instant_passes").UpdateByID(e.ctx, pass.ID, bson.M{"$set": bson.M{"quota_remaining": credits}}); err != nil {
+		if err := e.pg.DB.Exec(`UPDATE instant_passes SET quota_remaining = ? WHERE id = ?`, credits, pass.ID.Hex()).Error; err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -215,7 +202,8 @@ func TestOnlyOnePassAtOnce(t *testing.T) {
 	}
 	wg.Wait()
 
-	n, _ := e.db.DB.Collection("instant_passes").CountDocuments(e.ctx, bson.M{"user_id": buyer})
+	var n int64
+	e.pg.DB.Raw(`SELECT count(*) FROM instant_passes WHERE user_id = ?`, buyer.Hex()).Scan(&n)
 	if n != 1 {
 		t.Fatalf("%d passes created, want 1", n)
 	}
@@ -311,6 +299,10 @@ func TestOnlinePassRefundNeedsUnusedPass(t *testing.T) {
 	e := setup(t)
 	buyer := primitive.NewObjectID()
 	order := &payment.Order{UserID: buyer, RazorpayOrderID: "order_test_" + buyer.Hex(), RazorpayPaymentID: "pay_test"}
+	// The pass points at its checkout, so the checkout has to exist
+	e.exec(t, `INSERT INTO payment_orders (id, razorpay_order_id, razorpay_payment_id, user_id, purpose, amount_paise, status)
+		VALUES (?, ?, ?, ?, 'instant_pass', ?, 'paid')`,
+		primitive.NewObjectID().Hex(), order.RazorpayOrderID, order.RazorpayPaymentID, buyer.Hex(), passPricePaise)
 	if err := e.svc.tx.Run(e.ctx, func(ctx context.Context) error { return e.svc.fulfillPass(ctx, order) }); err != nil {
 		t.Fatal(err)
 	}
@@ -380,7 +372,7 @@ func TestRadarSkipsExpiredPassesAndShortensNames(t *testing.T) {
 	}
 
 	past := time.Now().Add(-time.Hour)
-	_, _ = e.db.DB.Collection("instant_passes").UpdateByID(e.ctx, pass.ID, bson.M{"$set": bson.M{"expires_at": past}})
+	e.exec(t, `UPDATE instant_passes SET activated_at = ?, expires_at = ? WHERE id = ?`, past.Add(-time.Hour), past, pass.ID.Hex())
 	_ = e.repo.SyncWorkerPass(e.ctx, worker, passQuota, past)
 	found, _ = e.svc.GetNearbyCandidatesForRecruiter(e.ctx, 72.87, 19.07, 5, "plumber")
 	if len(found) != 0 {

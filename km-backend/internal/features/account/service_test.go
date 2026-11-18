@@ -200,11 +200,10 @@ func setup(t *testing.T) (*Service, *fakeRepo, *captureMailer, *user.User, *time
 // ─── Tests ──────────────────────────────────────────────────────────────────────
 
 func TestEvaluateBlocksOnMoneyAndSessions(t *testing.T) {
-	ends := time.Now().Add(72 * time.Hour)
 	blockers, warnings := evaluate(&deletionChecks{
 		Wallet:              &walletState{MainPaise: 5000, EarningsPaise: 12050, LockedPaise: 1000, BonusPaise: 2500},
 		PendingTransactions: 1, OpenDisputes: 1, UpcomingSessions: 2,
-		SubscriptionEndsAt: &ends, OpenJobs: 3,
+		OpenJobs: 3,
 	})
 	codes := map[string]bool{}
 	for _, b := range blockers {
@@ -215,8 +214,8 @@ func TestEvaluateBlocksOnMoneyAndSessions(t *testing.T) {
 			t.Errorf("missing blocker %s", want)
 		}
 	}
-	if len(warnings) != 3 { // bonus, subscription, open jobs
-		t.Errorf("warnings = %d, want 3", len(warnings))
+	if len(warnings) != 2 { // bonus, open jobs
+		t.Errorf("warnings = %d, want 2", len(warnings))
 	}
 
 	if b, w := evaluate(&deletionChecks{Wallet: &walletState{}}); len(b) != 0 || len(w) != 0 {

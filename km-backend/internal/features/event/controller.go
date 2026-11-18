@@ -3,6 +3,7 @@ package event
 import (
 	"km-backend/internal/common/apperr"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -17,21 +18,21 @@ func NewEventController(service EventService) *EventController {
 }
 
 func (ctrl *EventController) CreateEvent(c *fiber.Ctx) error {
-	var e Event
-	if err := c.BodyParser(&e); err != nil {
+	var req HostEventRequest
+	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request"})
 	}
-	if err := validateMeetingLink(e.MeetingLink); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	userID, _ := c.Locals("user_id").(string)
+	organizerID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Please sign in again."})
+	}
+	e, err := req.toEvent(organizerID, time.Now())
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 	}
 
-	if userID, ok := c.Locals("user_id").(string); ok && userID != "" {
-		if uID, err := primitive.ObjectIDFromHex(userID); err == nil {
-			e.OrganizerID = uID
-		}
-	}
-
-	created, err := ctrl.service.CreateEvent(c.Context(), &e)
+	created, err := ctrl.service.CreateEvent(c.Context(), e)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}

@@ -12,6 +12,7 @@ import (
 	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
 	"km-backend/internal/database"
+	"km-backend/internal/database/pgtest"
 	"km-backend/internal/features/payment/paymenttest"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,13 +21,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// These tests run the ledger against real MongoDB transactions, because that's what the money
-// rules rely on. They only run when WALLET_TEST_MONGO_URI is set, and use a throwaway database.
+// These tests run the ledger against real Postgres transactions (a throwaway schema built from the
+// migrations, see pgtest) because that's what the money rules rely on. Users still live in MongoDB,
+// so they also need WALLET_TEST_MONGO_URI; both are throwaway.
 const testDatabase = "km_wallet_test"
 
 type env struct {
 	ctx      context.Context
 	db       *database.MongodbDB
+	pg       *database.PostgresDB
 	repo     WalletRepository
 	svc      *WalletServiceImpl
 	tx       database.Transactor
@@ -52,26 +55,20 @@ func setup(t *testing.T) *env {
 		_ = client.Disconnect(context.Background())
 	})
 
-	for _, name := range []string{"wallets", "wallet_transactions", "wallet_disputes", "wallet_withdrawals", "users"} {
+	for _, name := range []string{"users"} {
 		_ = db.DB.Collection(name).Drop(ctx)
 		if err := db.DB.CreateCollection(ctx, name); err != nil {
 			t.Fatal(err)
 		}
 	}
-	unique := options.Index().SetUnique(true)
-	if _, err := db.DB.Collection("wallets").Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "user_id", Value: 1}}, Options: unique}); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := db.DB.Collection("wallet_transactions").Indexes().CreateOne(ctx, mongo.IndexModel{Keys: bson.D{{Key: "reference_id", Value: 1}}, Options: options.Index().SetUnique(true)}); err != nil {
-		t.Fatal(err)
-	}
 
-	tx := database.NewTransactor(db)
-	repo := NewWalletRepository(db)
+	pg := pgtest.New(t)
+	tx := database.NewPgTransactor(pg)
+	repo := NewWalletRepository(pg, tx, db)
 	fake := paymenttest.New()
 	svc := NewWalletService(repo, &config.Config{}, nil, nil, fake, tx).(*WalletServiceImpl)
-	time.Sleep(500 * time.Millisecond) // let the repository's background index setup finish
-	return &env{ctx: ctx, db: db, repo: repo, svc: svc, tx: tx, payments: fake}
+
+	return &env{ctx: ctx, db: db, pg: pg, repo: repo, svc: svc, tx: tx, payments: fake}
 }
 
 func credit(user primitive.ObjectID, balance TargetBalance, amount float64, ref string) RecordTransactionInput {
@@ -93,7 +90,8 @@ func (e *env) wallet(t *testing.T, user primitive.ObjectID) *Wallet {
 
 func (e *env) ledgerCount(t *testing.T, user primitive.ObjectID) int64 {
 	t.Helper()
-	n, err := e.db.DB.Collection("wallet_transactions").CountDocuments(e.ctx, bson.M{"user_id": user})
+	var n int64
+	err := e.pg.DB.Raw(`SELECT count(*) FROM wallet_transactions WHERE user_id = ?`, user.Hex()).Scan(&n).Error
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -408,7 +406,8 @@ func TestDoubleClickCreatesOneWithdrawal(t *testing.T) {
 	if got := e.wallet(t, user).EarningsPaise; got != 450000 {
 		t.Fatalf("earnings = %d", got)
 	}
-	n, _ := e.db.DB.Collection("wallet_withdrawals").CountDocuments(e.ctx, bson.M{"user_id": user})
+	var n int64
+	_ = e.pg.DB.Raw(`SELECT count(*) FROM wallet_withdrawals WHERE user_id = ?`, user.Hex()).Scan(&n).Error
 	if n != 1 {
 		t.Fatalf("withdrawals = %d", n)
 	}
@@ -546,7 +545,7 @@ func TestOldPurchasesCanNotBeDisputed(t *testing.T) {
 	e := setup(t)
 	user := primitive.NewObjectID()
 	row := e.purchase(t, user)
-	if _, err := e.db.DB.Collection("wallet_transactions").UpdateByID(e.ctx, row.ID, bson.M{"$set": bson.M{"created_at": time.Now().Add(-31 * 24 * time.Hour)}}); err != nil {
+	if err := e.pg.DB.Exec(`UPDATE wallet_transactions SET created_at = ? WHERE id = ?`, time.Now().Add(-31*24*time.Hour), row.ID.Hex()).Error; err != nil {
 		t.Fatal(err)
 	}
 	if _, err := e.svc.CreateDispute(e.ctx, user.Hex(), CreateDisputeRequest{TransactionID: row.ID.Hex(), Reason: DisputeReasonOther, Description: "x"}); !errors.Is(err, ErrDisputeExpired) {
@@ -567,7 +566,7 @@ func TestFinanceOverviewFlagsABalanceChangedOutsideTheLedger(t *testing.T) {
 		t.Fatalf("overview = %+v", overview)
 	}
 
-	if _, err := e.db.DB.Collection("wallets").UpdateOne(e.ctx, bson.M{"user_id": user}, bson.M{"$inc": bson.M{"main_paise": 100}}); err != nil {
+	if err := e.pg.DB.Exec(`UPDATE wallets SET main_paise = main_paise + 100 WHERE user_id = ?`, user.Hex()).Error; err != nil {
 		t.Fatal(err)
 	}
 	overview, err = e.svc.GetFinanceOverview(e.ctx)
@@ -578,3 +577,5 @@ func TestFinanceOverviewFlagsABalanceChangedOutsideTheLedger(t *testing.T) {
 		t.Fatalf("overview = %+v", overview)
 	}
 }
+
+func TestMain(m *testing.M) { os.Exit(pgtest.Run(m)) }

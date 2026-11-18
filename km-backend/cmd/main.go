@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	common_api "km-backend/internal/common/api"
@@ -37,7 +38,6 @@ import (
 	"km-backend/internal/features/setting"
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
-	"km-backend/internal/features/subscription"
 	"km-backend/internal/features/system"
 	"km-backend/internal/features/testimonial"
 	"km-backend/internal/features/user"
@@ -182,7 +182,10 @@ func main() {
 
 			// Initialize Database
 			database.NewDatabase,
-			database.NewTransactor,
+			// Supabase Postgres holds money and purchases; every purchase is one Postgres transaction
+			database.NewPgTransactor,
+			func(t *database.PgTransactor) database.Transactor { return t },
+			database.NewPostgres,
 			payment.NewGateway,
 			payment.NewRepository,
 			payment.NewService,
@@ -212,7 +215,6 @@ func main() {
 			event.NewEventRepository,
 			mentorship.NewMentorshipRepository,
 			course.NewCourseRepository,
-			subscription.NewSubscriptionRepository,
 			instant_work.NewInstantWorkRepository,
 			notification.NewNotificationRepository,
 			notification.NewNotificationHub,
@@ -250,7 +252,6 @@ func main() {
 			question.NewQuestionService,
 			mentorship.NewMentorshipService,
 			course.NewCourseService,
-			subscription.NewSubscriptionService,
 			instant_work.NewInstantWorkService,
 			testimonial.NewTestimonialService,
 			account.NewService,
@@ -280,7 +281,6 @@ func main() {
 			event.NewEventController,
 			mentorship.NewMentorshipController,
 			course.NewCourseController,
-			subscription.NewSubscriptionController,
 			instant_work.NewInstantWorkController,
 			notification.NewNotificationController,
 			testimonial.NewTestimonialController,
@@ -310,7 +310,6 @@ func main() {
 			AsRoute(event.NewEventApi),
 			AsRoute(mentorship.NewMentorshipApi),
 			AsRoute(course.NewCourseApi),
-			AsRoute(subscription.NewSubscriptionApi),
 			AsRoute(instant_work.NewInstantWorkApi),
 			AsRoute(notification.NewNotificationApi),
 			AsRoute(testimonial.NewTestimonialApi),
@@ -326,6 +325,8 @@ func main() {
 			return &fxevent.ZapLogger{Logger: log}
 		}),
 		fx.Invoke(
+			// GET /health for uptime monitors (MongoDB and Postgres)
+			RegisterHealth,
 			// Every authenticated request checks the session version and account status
 			func(repo user.UserRepository, cfg *config.Config) {
 				middleware.SetSessionLoader(user.NewSessionLoader(repo))
@@ -352,4 +353,29 @@ func main() {
 	)
 
 	app.Run()
+}
+
+// RegisterHealth adds GET /health: a quick check of both databases for uptime monitors.
+// It only says ok / down / off, never connection details.
+func RegisterHealth(app *fiber.App, mongo *database.MongodbDB, pg *database.PostgresDB) {
+	app.Get("/health", func(c *fiber.Ctx) error {
+		ctx, cancel := context.WithTimeout(c.Context(), 3*time.Second)
+		defer cancel()
+
+		mongoStatus := "ok"
+		if err := mongo.Client.Ping(ctx, nil); err != nil {
+			mongoStatus = "down"
+		}
+		pgStatus := "ok"
+		if err := pg.Ping(ctx); err != nil {
+			pgStatus = "down"
+		}
+
+		// Both are required: MongoDB holds users, chat and the feed; Postgres holds every payment
+		code, status := fiber.StatusOK, "ok"
+		if mongoStatus != "ok" || pgStatus != "ok" {
+			code, status = fiber.StatusServiceUnavailable, "degraded"
+		}
+		return c.Status(code).JSON(fiber.Map{"status": status, "mongo": mongoStatus, "postgres": pgStatus})
+	})
 }

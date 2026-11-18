@@ -2,17 +2,13 @@ package instant_work
 
 import (
 	"context"
-	"errors"
-	"log"
-	"regexp"
 	"time"
 
+	"km-backend/internal/common/money"
 	"km-backend/internal/database"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"gorm.io/gorm"
 )
 
 // workerStaleAfter is how long a worker stays on the radar without a location ping
@@ -58,144 +54,185 @@ type InstantWorkRepository interface {
 	CancelJob(ctx context.Context, jobID, recruiterID primitive.ObjectID) (*InstantJob, error)
 }
 
+// InstantWorkRepositoryImpl keeps workers, passes and gigs in Postgres. Locations are PostGIS
+// geography points, so distances are real metres on the earth's surface.
 type InstantWorkRepositoryImpl struct {
-	db          *database.MongodbDB
-	workersColl *mongo.Collection
-	passesColl  *mongo.Collection
-	jobsColl    *mongo.Collection
+	pg *gorm.DB
 }
 
-func NewInstantWorkRepository(db *database.MongodbDB) InstantWorkRepository {
-	repo := &InstantWorkRepositoryImpl{
-		db:          db,
-		workersColl: db.DB.Collection("instant_workers"),
-		passesColl:  db.DB.Collection("instant_passes"),
-		jobsColl:    db.DB.Collection("instant_jobs"),
-	}
-
-	go func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-		if err := repo.EnsureIndexes(ctx); err != nil {
-			log.Printf("[InstantWork] Error creating indexes: %v", err)
-		}
-	}()
-
-	return repo
+func NewInstantWorkRepository(pg *database.PostgresDB) InstantWorkRepository {
+	return &InstantWorkRepositoryImpl{pg: pg.DB}
 }
 
-// EnsureIndexes creates the geo and lookup indexes, and the one-current-pass-per-user rule
-func (r *InstantWorkRepositoryImpl) EnsureIndexes(ctx context.Context) error {
-	workerIndexes := []mongo.IndexModel{
-		{Keys: bson.D{{Key: "location", Value: "2dsphere"}}, Options: options.Index().SetName("idx_instant_workers_2dsphere")},
-		{Keys: bson.D{{Key: "user_id", Value: 1}}, Options: options.Index().SetName("idx_instant_workers_user_id").SetUnique(true)},
-		{Keys: bson.D{{Key: "is_free_now", Value: 1}, {Key: "last_ping_at", Value: -1}}, Options: options.Index().SetName("idx_instant_workers_availability_ping")},
-		{Keys: bson.D{{Key: "active_skill", Value: 1}, {Key: "is_free_now", Value: 1}}, Options: options.Index().SetName("idx_instant_workers_skill_status")},
-	}
-	if _, err := r.workersColl.Indexes().CreateMany(ctx, workerIndexes); err != nil {
-		return err
-	}
+func (r *InstantWorkRepositoryImpl) conn(ctx context.Context) *gorm.DB { return database.Conn(ctx, r.pg) }
 
-	jobIndexes := []mongo.IndexModel{
-		{Keys: bson.D{{Key: "location", Value: "2dsphere"}}, Options: options.Index().SetName("idx_instant_jobs_2dsphere")},
-		{Keys: bson.D{{Key: "status", Value: 1}, {Key: "expires_at", Value: -1}}, Options: options.Index().SetName("idx_instant_jobs_status_expires")},
-		{Keys: bson.D{{Key: "candidate_id", Value: 1}, {Key: "status", Value: 1}}, Options: options.Index().SetName("idx_instant_jobs_candidate_status")},
-		{Keys: bson.D{{Key: "recruiter_id", Value: 1}, {Key: "status", Value: 1}}, Options: options.Index().SetName("idx_instant_jobs_recruiter_status")},
-	}
-	if _, err := r.jobsColl.Indexes().CreateMany(ctx, jobIndexes); err != nil {
-		return err
-	}
+// EnsureIndexes is a no-op: the indexes (including the one-current-pass rule and the location
+// indexes) are created by the migrations.
+func (r *InstantWorkRepositoryImpl) EnsureIndexes(ctx context.Context) error { return nil }
 
-	passIndexes := []mongo.IndexModel{
-		{
-			// At most one current pass per user, so two purchases at the same moment can't both win
-			Keys: bson.D{{Key: "user_id", Value: 1}},
-			Options: options.Index().SetName("idx_instant_passes_one_current").SetUnique(true).
-				SetPartialFilterExpression(bson.M{"has_active_pass": true}),
-		},
-		{
-			Keys:    bson.D{{Key: "user_id", Value: 1}, {Key: "has_active_pass", Value: 1}, {Key: "expires_at", Value: -1}},
-			Options: options.Index().SetName("idx_instant_passes_active"),
-		},
-		{
-			Keys:    bson.D{{Key: "razorpay_order_id", Value: 1}},
-			Options: options.Index().SetName("idx_instant_passes_order").SetSparse(true),
-		},
-	}
-	_, err := r.passesColl.Indexes().CreateMany(ctx, passIndexes)
-	return err
+// point is the SQL for a geography point from longitude and latitude placeholders
+const point = `ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography`
+
+func geoPoint(lng, lat float64) GeoJSONPoint {
+	return GeoJSONPoint{Type: "Point", Coordinates: []float64{lng, lat}}
 }
 
-// --- Workers ---
+func pointArgs(p GeoJSONPoint) (float64, float64) {
+	if len(p.Coordinates) < 2 {
+		return 0, 0
+	}
+	return p.Coordinates[0], p.Coordinates[1]
+}
+
+func deref(s *string) string {
+	if s == nil {
+		return ""
+	}
+	return *s
+}
+
+func nullable(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+
+func timeOrZero(t *time.Time) time.Time {
+	if t == nil {
+		return time.Time{}
+	}
+	return *t
+}
+
+func nullTime(t time.Time) *time.Time {
+	if t.IsZero() {
+		return nil
+	}
+	return &t
+}
+
+func statusList(list []JobStatus) []string {
+	out := make([]string, len(list))
+	for i, s := range list {
+		out[i] = string(s)
+	}
+	return out
+}
+
+// ---------------------------------------------------------------------------------------------
+// Workers
+// ---------------------------------------------------------------------------------------------
+
+type workerRow struct {
+	ID              string
+	UserID          string
+	Name            string
+	Avatar          string
+	Mobile          string
+	ActiveSkill     string
+	HourlyRatePaise int64
+	Rating          float64
+	TotalGigs       int
+	Lng             *float64
+	Lat             *float64
+	IsFreeNow       bool
+	LastPingAt      *time.Time
+	QuotaRemaining  int
+	PassExpiresAt   *time.Time
+	UpdatedAt       time.Time
+	DistanceMeters  float64
+}
+
+const workerColumns = `id, user_id, name, avatar, mobile, active_skill, hourly_rate_paise, rating::float8 AS rating, total_gigs,
+	ST_X(location::geometry) AS lng, ST_Y(location::geometry) AS lat, is_free_now, last_ping_at, quota_remaining,
+	pass_expires_at, updated_at`
+
+func (w workerRow) location() GeoJSONPoint {
+	if w.Lng == nil || w.Lat == nil {
+		return GeoJSONPoint{}
+	}
+	return geoPoint(*w.Lng, *w.Lat)
+}
+
+func (w workerRow) toDomain() *InstantWorker {
+	return &InstantWorker{
+		ID:             database.OID(w.ID),
+		UserID:         database.OID(w.UserID),
+		Name:           w.Name,
+		Avatar:         w.Avatar,
+		Mobile:         w.Mobile,
+		ActiveSkill:    w.ActiveSkill,
+		HourlyRate:     money.ToRupees(w.HourlyRatePaise),
+		Rating:         w.Rating,
+		TotalGigs:      w.TotalGigs,
+		Location:       w.location(),
+		IsFreeNow:      w.IsFreeNow,
+		LastPingAt:     timeOrZero(w.LastPingAt),
+		QuotaRemaining: w.QuotaRemaining,
+		PassExpiresAt:  timeOrZero(w.PassExpiresAt),
+		UpdatedAt:      w.UpdatedAt,
+	}
+}
 
 // SetWorkerAvailability saves the worker's Free Now state, skill and rate. A new worker starts
 // with no rating and no gigs. The location is only changed when updateLocation is set.
 func (r *InstantWorkRepositoryImpl) SetWorkerAvailability(ctx context.Context, w *InstantWorker, updateLocation bool) (*InstantWorker, error) {
-	now := time.Now()
-	set := bson.M{
-		"name":            w.Name,
-		"avatar":          w.Avatar,
-		"mobile":          w.Mobile,
-		"is_free_now":     w.IsFreeNow,
-		"quota_remaining": w.QuotaRemaining,
-		"pass_expires_at": w.PassExpiresAt,
-		"updated_at":      now,
-	}
-	if w.ActiveSkill != "" {
-		set["active_skill"] = w.ActiveSkill
-		set["hourly_rate"] = w.HourlyRate
-	}
-	if updateLocation {
-		set["location"] = w.Location
-		set["last_ping_at"] = now
-	}
-	update := bson.M{
-		"$set":         set,
-		"$setOnInsert": bson.M{"rating": 0.0, "total_gigs": 0},
-	}
-	opts := options.FindOneAndUpdate().SetUpsert(true).SetReturnDocument(options.After)
-	var updated InstantWorker
-	if err := r.workersColl.FindOneAndUpdate(ctx, bson.M{"user_id": w.UserID}, update, opts).Decode(&updated); err != nil {
-		return nil, err
-	}
-	return &updated, nil
-}
-
-func (r *InstantWorkRepositoryImpl) GetWorkerByUserID(ctx context.Context, userID primitive.ObjectID) (*InstantWorker, error) {
-	var worker InstantWorker
-	err := r.workersColl.FindOne(ctx, bson.M{"user_id": userID}).Decode(&worker)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, nil
-	}
+	lng, lat := pointArgs(w.Location)
+	var rows []workerRow
+	err := r.conn(ctx).Raw(`INSERT INTO instant_workers AS iw
+			(id, user_id, name, avatar, mobile, active_skill, hourly_rate_paise, location, last_ping_at, is_free_now,
+			 quota_remaining, pass_expires_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?,
+			CASE WHEN ? THEN `+point+` END,
+			CASE WHEN ? THEN now() END,
+			?, ?, ?)
+		ON CONFLICT (user_id) DO UPDATE SET
+			name = EXCLUDED.name, avatar = EXCLUDED.avatar, mobile = EXCLUDED.mobile,
+			is_free_now = EXCLUDED.is_free_now, quota_remaining = EXCLUDED.quota_remaining,
+			pass_expires_at = EXCLUDED.pass_expires_at,
+			active_skill = CASE WHEN ? <> '' THEN EXCLUDED.active_skill ELSE iw.active_skill END,
+			hourly_rate_paise = CASE WHEN ? <> '' THEN EXCLUDED.hourly_rate_paise ELSE iw.hourly_rate_paise END,
+			location = CASE WHEN ? THEN EXCLUDED.location ELSE iw.location END,
+			last_ping_at = CASE WHEN ? THEN EXCLUDED.last_ping_at ELSE iw.last_ping_at END
+		RETURNING `+workerColumns,
+		primitive.NewObjectID().Hex(), w.UserID.Hex(), w.Name, w.Avatar, w.Mobile, w.ActiveSkill, money.ToPaise(w.HourlyRate),
+		updateLocation, lng, lat,
+		updateLocation,
+		w.IsFreeNow, w.QuotaRemaining, nullTime(w.PassExpiresAt),
+		w.ActiveSkill, w.ActiveSkill, updateLocation, updateLocation).Scan(&rows).Error
 	if err != nil {
 		return nil, err
 	}
-	return &worker, nil
+	return rows[0].toDomain(), nil
+}
+
+func (r *InstantWorkRepositoryImpl) GetWorkerByUserID(ctx context.Context, userID primitive.ObjectID) (*InstantWorker, error) {
+	var rows []workerRow
+	if err := r.conn(ctx).Raw(`SELECT `+workerColumns+` FROM instant_workers WHERE user_id = ?`, userID.Hex()).Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return nil, nil
+	}
+	return rows[0].toDomain(), nil
 }
 
 func (r *InstantWorkRepositoryImpl) UpdateWorkerPing(ctx context.Context, userID primitive.ObjectID, location GeoJSONPoint) error {
-	now := time.Now()
-	_, err := r.workersColl.UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{
-		"$set": bson.M{"location": location, "last_ping_at": now, "updated_at": now},
-	})
-	return err
+	lng, lat := pointArgs(location)
+	return r.conn(ctx).Exec(`UPDATE instant_workers SET location = `+point+`, last_ping_at = now() WHERE user_id = ?`,
+		lng, lat, userID.Hex()).Error
 }
 
 func (r *InstantWorkRepositoryImpl) SetWorkerFreeNow(ctx context.Context, userID primitive.ObjectID, free bool) error {
-	_, err := r.workersColl.UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{
-		"$set": bson.M{"is_free_now": free, "updated_at": time.Now()},
-	})
-	return err
+	return r.conn(ctx).Exec(`UPDATE instant_workers SET is_free_now = ? WHERE user_id = ?`, free, userID.Hex()).Error
 }
 
 func (r *InstantWorkRepositoryImpl) IncrementWorkerGigs(ctx context.Context, userID primitive.ObjectID) error {
 	// Upsert: a worker can take a gig from the feed without ever going Free Now
-	_, err := r.workersColl.UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{
-		"$inc":         bson.M{"total_gigs": 1},
-		"$set":         bson.M{"updated_at": time.Now()},
-		"$setOnInsert": bson.M{"rating": 0.0, "is_free_now": false},
-	}, options.Update().SetUpsert(true))
-	return err
+	return r.conn(ctx).Exec(`INSERT INTO instant_workers (id, user_id, total_gigs) VALUES (?, ?, 1)
+		ON CONFLICT (user_id) DO UPDATE SET total_gigs = instant_workers.total_gigs + 1`,
+		primitive.NewObjectID().Hex(), userID.Hex()).Error
 }
 
 // FindNearbyWorkers lists free workers with credits and a valid pass who pinged recently,
@@ -204,314 +241,357 @@ func (r *InstantWorkRepositoryImpl) FindNearbyWorkers(ctx context.Context, lng, 
 	if limit <= 0 || limit > 50 {
 		limit = 25
 	}
-	now := time.Now()
-	geoQuery := bson.M{
-		"is_free_now":     true,
-		"quota_remaining": bson.M{"$gt": 0},
-		"pass_expires_at": bson.M{"$gt": now},
-		"last_ping_at":    bson.M{"$gte": now.Add(-workerStaleAfter)},
-	}
+	q := `SELECT ` + workerColumns + `, ST_Distance(location, ` + point + `) AS distance_meters
+		FROM instant_workers
+		WHERE is_free_now AND quota_remaining > 0 AND pass_expires_at > now() AND last_ping_at >= ?
+		  AND location IS NOT NULL AND ST_DWithin(location, ` + point + `, ?)`
+	args := []interface{}{lng, lat, time.Now().Add(-workerStaleAfter), lng, lat, radiusMeters}
 	if skill != "" && skill != "all" {
-		geoQuery["active_skill"] = bson.M{
-			"$regex": primitive.Regex{Pattern: "^" + regexp.QuoteMeta(skill) + "$", Options: "i"},
-		}
+		q += ` AND lower(active_skill) = lower(?)`
+		args = append(args, skill)
 	}
+	q += ` ORDER BY rating DESC, distance_meters, id LIMIT ?`
+	args = append(args, limit)
 
-	pipeline := mongo.Pipeline{
-		{{Key: "$geoNear", Value: bson.M{
-			"near":          bson.M{"type": "Point", "coordinates": []float64{lng, lat}},
-			"distanceField": "distance_meters",
-			"maxDistance":   radiusMeters,
-			"spherical":     true,
-			"query":         geoQuery,
-		}}},
-		{{Key: "$sort", Value: bson.D{{Key: "rating", Value: -1}, {Key: "distance_meters", Value: 1}}}},
-		{{Key: "$limit", Value: limit}},
-	}
-
-	cursor, err := r.workersColl.Aggregate(ctx, pipeline)
-	if err != nil {
+	var rows []workerRow
+	if err := r.conn(ctx).Raw(q, args...).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
-
-	results := []NearbyCandidateResult{}
-	if err := cursor.All(ctx, &results); err != nil {
-		return nil, err
+	out := make([]NearbyCandidateResult, 0, len(rows))
+	for _, w := range rows {
+		out = append(out, NearbyCandidateResult{
+			ID:             database.OID(w.ID),
+			UserID:         database.OID(w.UserID),
+			Name:           w.Name,
+			Avatar:         w.Avatar,
+			ActiveSkill:    w.ActiveSkill,
+			HourlyRate:     money.ToRupees(w.HourlyRatePaise),
+			Rating:         w.Rating,
+			TotalGigs:      w.TotalGigs,
+			Location:       w.location(),
+			DistanceMeters: w.DistanceMeters,
+			DistanceKm:     w.DistanceMeters / 1000.0,
+		})
 	}
-	for i := range results {
-		results[i].DistanceKm = results[i].DistanceMeters / 1000.0
-	}
-	return results, nil
+	return out, nil
 }
 
-// --- Passes ---
+// SyncWorkerPass copies the pass credits and expiry onto the worker's radar record
+func (r *InstantWorkRepositoryImpl) SyncWorkerPass(ctx context.Context, userID primitive.ObjectID, quota int, expiresAt time.Time) error {
+	return r.conn(ctx).Exec(`UPDATE instant_workers SET quota_remaining = ?, pass_expires_at = ? WHERE user_id = ?`,
+		quota, nullTime(expiresAt), userID.Hex()).Error
+}
+
+// ---------------------------------------------------------------------------------------------
+// Passes
+// ---------------------------------------------------------------------------------------------
+
+type passRow struct {
+	ID                string
+	UserID            string
+	HasActivePass     bool
+	Channel           *string
+	EndedReason       *string
+	QuotaTotal        int
+	QuotaRemaining    int
+	PricePaise        int64
+	RazorpayOrderID   *string
+	RazorpayPaymentID *string
+	ActivatedAt       time.Time
+	ExpiresAt         time.Time
+	CreatedAt         time.Time
+	UpdatedAt         time.Time
+}
+
+const passColumns = `id, user_id, has_active_pass, channel, ended_reason, quota_total, quota_remaining, price_paise,
+	razorpay_order_id, razorpay_payment_id, activated_at, expires_at, created_at, updated_at`
+
+func (p passRow) toDomain() *InstantPass {
+	return &InstantPass{
+		ID:                database.OID(p.ID),
+		UserID:            database.OID(p.UserID),
+		HasActivePass:     p.HasActivePass,
+		Channel:           deref(p.Channel),
+		EndedReason:       deref(p.EndedReason),
+		QuotaTotal:        p.QuotaTotal,
+		QuotaRemaining:    p.QuotaRemaining,
+		PriceINR:          money.ToRupees(p.PricePaise),
+		RazorpayOrderID:   deref(p.RazorpayOrderID),
+		RazorpayPaymentID: deref(p.RazorpayPaymentID),
+		ActivatedAt:       p.ActivatedAt,
+		ExpiresAt:         p.ExpiresAt,
+		CreatedAt:         p.CreatedAt,
+		UpdatedAt:         p.UpdatedAt,
+	}
+}
+
+func (r *InstantWorkRepositoryImpl) passQuery(ctx context.Context, sql string, args ...interface{}) (*InstantPass, error) {
+	var rows []passRow
+	if err := r.conn(ctx).Raw(sql, args...).Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return nil, nil
+	}
+	return rows[0].toDomain(), nil
+}
 
 // CreatePass inserts a new current pass. ErrPassAlreadyActive means the user already has one.
 func (r *InstantWorkRepositoryImpl) CreatePass(ctx context.Context, pass *InstantPass) error {
+	if pass.ID.IsZero() {
+		pass.ID = primitive.NewObjectID()
+	}
 	now := time.Now()
-	pass.CreatedAt = now
-	pass.UpdatedAt = now
-	res, err := r.passesColl.InsertOne(ctx, pass)
-	if mongo.IsDuplicateKeyError(err) {
+	pass.CreatedAt, pass.UpdatedAt = now, now
+	err := r.conn(ctx).Exec(`INSERT INTO instant_passes
+		(id, user_id, has_active_pass, channel, ended_reason, quota_total, quota_remaining, price_paise, razorpay_order_id,
+		 razorpay_payment_id, activated_at, expires_at, created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		pass.ID.Hex(), pass.UserID.Hex(), pass.HasActivePass, nullable(pass.Channel), nullable(pass.EndedReason),
+		pass.QuotaTotal, pass.QuotaRemaining, money.ToPaise(pass.PriceINR), nullable(pass.RazorpayOrderID),
+		nullable(pass.RazorpayPaymentID), pass.ActivatedAt, pass.ExpiresAt, now, now).Error
+	if database.PgConstraint(err) == "instant_passes_one_current_idx" {
 		return ErrPassAlreadyActive
 	}
-	if err != nil {
-		return err
-	}
-	pass.ID = res.InsertedID.(primitive.ObjectID)
-	return nil
+	return err
 }
 
 // GetActivePassByUserID returns the user's current pass if it hasn't expired, even with no credits left
 func (r *InstantWorkRepositoryImpl) GetActivePassByUserID(ctx context.Context, userID primitive.ObjectID) (*InstantPass, error) {
-	return r.findPass(ctx, bson.M{
-		"user_id":         userID,
-		"has_active_pass": true,
-		"expires_at":      bson.M{"$gt": time.Now()},
-	})
+	return r.passQuery(ctx, `SELECT `+passColumns+` FROM instant_passes WHERE user_id = ? AND has_active_pass AND expires_at > now()`, userID.Hex())
 }
 
 func (r *InstantWorkRepositoryImpl) GetPassByID(ctx context.Context, passID primitive.ObjectID) (*InstantPass, error) {
-	return r.findPass(ctx, bson.M{"_id": passID})
+	return r.passQuery(ctx, `SELECT `+passColumns+` FROM instant_passes WHERE id = ?`, passID.Hex())
 }
 
 func (r *InstantWorkRepositoryImpl) GetPassByOrderID(ctx context.Context, orderID string) (*InstantPass, error) {
-	return r.findPass(ctx, bson.M{"razorpay_order_id": orderID})
-}
-
-func (r *InstantWorkRepositoryImpl) findPass(ctx context.Context, filter bson.M) (*InstantPass, error) {
-	var pass InstantPass
-	err := r.passesColl.FindOne(ctx, filter).Decode(&pass)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &pass, nil
+	return r.passQuery(ctx, `SELECT `+passColumns+` FROM instant_passes WHERE razorpay_order_id = ?`, orderID)
 }
 
 // RetireFinishedPasses ends the user's current pass if it has expired or has no credits left,
 // so a new one can replace it
 func (r *InstantWorkRepositoryImpl) RetireFinishedPasses(ctx context.Context, userID primitive.ObjectID) error {
-	now := time.Now()
-	_, err := r.passesColl.UpdateMany(ctx, bson.M{
-		"user_id":         userID,
-		"has_active_pass": true,
-		"$or": bson.A{
-			bson.M{"expires_at": bson.M{"$lte": now}},
-			bson.M{"quota_remaining": bson.M{"$lte": 0}},
-		},
-	}, bson.M{"$set": bson.M{"has_active_pass": false, "ended_reason": "replaced", "updated_at": now}})
-	return err
+	return r.conn(ctx).Exec(`UPDATE instant_passes SET has_active_pass = false, ended_reason = 'replaced'
+		WHERE user_id = ? AND has_active_pass AND (expires_at <= now() OR quota_remaining <= 0)`, userID.Hex()).Error
 }
 
 // RefundUnusedPass ends a current pass that has all its credits. ErrPassUsed if any were spent.
 func (r *InstantWorkRepositoryImpl) RefundUnusedPass(ctx context.Context, passID primitive.ObjectID) (*InstantPass, error) {
-	now := time.Now()
-	filter := bson.M{
-		"_id":             passID,
-		"has_active_pass": true,
-		"$expr":           bson.M{"$eq": bson.A{"$quota_remaining", "$quota_total"}},
-	}
-	update := bson.M{"$set": bson.M{"has_active_pass": false, "ended_reason": "refunded", "quota_remaining": 0, "updated_at": now}}
-	var pass InstantPass
-	err := r.passesColl.FindOneAndUpdate(ctx, filter, update, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&pass)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, ErrPassUsed
-	}
+	pass, err := r.passQuery(ctx, `UPDATE instant_passes SET has_active_pass = false, ended_reason = 'refunded', quota_remaining = 0
+		WHERE id = ? AND has_active_pass AND quota_remaining = quota_total RETURNING `+passColumns, passID.Hex())
 	if err != nil {
 		return nil, err
 	}
-	return &pass, nil
+	if pass == nil {
+		return nil, ErrPassUsed
+	}
+	return pass, nil
 }
 
 // UseCredit takes one credit from the current, unexpired pass. ErrPassQuotaExhausted if there's none.
-// Run it in the same transaction as the claim, so a failed claim gives the credit back.
+// Run it in the same transaction as the claim, so a failed claim gives the credit back. The row
+// lock it takes also makes a worker's claims run one at a time.
 func (r *InstantWorkRepositoryImpl) UseCredit(ctx context.Context, userID primitive.ObjectID) (*InstantPass, error) {
-	now := time.Now()
-	filter := bson.M{
-		"user_id":         userID,
-		"has_active_pass": true,
-		"quota_remaining": bson.M{"$gt": 0},
-		"expires_at":      bson.M{"$gt": now},
-	}
-	update := bson.M{"$inc": bson.M{"quota_remaining": -1}, "$set": bson.M{"updated_at": now}}
-	var pass InstantPass
-	err := r.passesColl.FindOneAndUpdate(ctx, filter, update, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&pass)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, ErrPassQuotaExhausted
-	}
+	pass, err := r.passQuery(ctx, `UPDATE instant_passes SET quota_remaining = quota_remaining - 1
+		WHERE user_id = ? AND has_active_pass AND quota_remaining > 0 AND expires_at > now() RETURNING `+passColumns, userID.Hex())
 	if err != nil {
 		return nil, err
 	}
-	return &pass, nil
+	if pass == nil {
+		return nil, ErrPassQuotaExhausted
+	}
+	return pass, nil
 }
 
-// SyncWorkerPass copies the pass credits and expiry onto the worker's radar record
-func (r *InstantWorkRepositoryImpl) SyncWorkerPass(ctx context.Context, userID primitive.ObjectID, quota int, expiresAt time.Time) error {
-	_, err := r.workersColl.UpdateOne(ctx, bson.M{"user_id": userID}, bson.M{
-		"$set": bson.M{"quota_remaining": quota, "pass_expires_at": expiresAt, "updated_at": time.Now()},
-	})
-	return err
+// ---------------------------------------------------------------------------------------------
+// Jobs
+// ---------------------------------------------------------------------------------------------
+
+type jobRow struct {
+	ID              string
+	RecruiterID     string
+	RecruiterName   string
+	RecruiterMobile *string
+	CompanyName     string
+	Skill           string
+	Lng             float64
+	Lat             float64
+	Address         string
+	PayRatePaise    int64
+	RateType        string
+	DurationHours   int
+	RequiredWorkers int
+	Notes           string
+	Status          string
+	CandidateID     *string
+	CandidateName   *string
+	CandidateMobile *string
+	MatchedAt       *time.Time
+	CompletedAt     *time.Time
+	ClosedAt        *time.Time
+	CancelledAt     *time.Time
+	ExpiresAt       time.Time
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	DistanceMeters  float64
 }
 
-// --- Jobs ---
+const jobColumns = `id, recruiter_id, recruiter_name, recruiter_mobile, company_name, skill,
+	ST_X(location::geometry) AS lng, ST_Y(location::geometry) AS lat, address, pay_rate_paise, rate_type, duration_hours,
+	required_workers, notes, status, candidate_id, candidate_name, candidate_mobile, matched_at, completed_at, closed_at,
+	cancelled_at, expires_at, created_at, updated_at`
+
+func (j jobRow) toDomain() *InstantJob {
+	out := &InstantJob{
+		ID:              database.OID(j.ID),
+		RecruiterID:     database.OID(j.RecruiterID),
+		RecruiterName:   j.RecruiterName,
+		RecruiterMobile: deref(j.RecruiterMobile),
+		CompanyName:     j.CompanyName,
+		Skill:           j.Skill,
+		Location:        geoPoint(j.Lng, j.Lat),
+		Address:         j.Address,
+		PayRate:         money.ToRupees(j.PayRatePaise),
+		RateType:        j.RateType,
+		DurationHours:   j.DurationHours,
+		RequiredWorkers: j.RequiredWorkers,
+		Notes:           j.Notes,
+		Status:          JobStatus(j.Status),
+		CandidateName:   deref(j.CandidateName),
+		CandidateMobile: deref(j.CandidateMobile),
+		MatchedAt:       j.MatchedAt,
+		CompletedAt:     j.CompletedAt,
+		ClosedAt:        j.ClosedAt,
+		CancelledAt:     j.CancelledAt,
+		ExpiresAt:       j.ExpiresAt,
+		DistanceMeters:  j.DistanceMeters,
+		CreatedAt:       j.CreatedAt,
+		UpdatedAt:       j.UpdatedAt,
+	}
+	if j.CandidateID != nil {
+		id := database.OID(*j.CandidateID)
+		out.CandidateID = &id
+	}
+	return out
+}
+
+func (r *InstantWorkRepositoryImpl) jobQuery(ctx context.Context, sql string, args ...interface{}) (*InstantJob, error) {
+	var rows []jobRow
+	if err := r.conn(ctx).Raw(sql, args...).Scan(&rows).Error; err != nil {
+		return nil, err
+	}
+	if len(rows) == 0 {
+		return nil, nil
+	}
+	return rows[0].toDomain(), nil
+}
 
 func (r *InstantWorkRepositoryImpl) CreateJob(ctx context.Context, job *InstantJob) error {
-	now := time.Now()
-	job.CreatedAt = now
-	job.UpdatedAt = now
-	res, err := r.jobsColl.InsertOne(ctx, job)
-	if err != nil {
-		return err
+	if job.ID.IsZero() {
+		job.ID = primitive.NewObjectID()
 	}
-	job.ID = res.InsertedID.(primitive.ObjectID)
-	return nil
+	now := time.Now()
+	job.CreatedAt, job.UpdatedAt = now, now
+	lng, lat := pointArgs(job.Location)
+	var candidate *string
+	if job.CandidateID != nil {
+		hex := job.CandidateID.Hex()
+		candidate = &hex
+	}
+	return r.conn(ctx).Exec(`INSERT INTO instant_jobs
+		(id, recruiter_id, recruiter_name, recruiter_mobile, company_name, skill, location, address, pay_rate_paise, rate_type,
+		 duration_hours, required_workers, notes, status, candidate_id, candidate_name, candidate_mobile, expires_at,
+		 created_at, updated_at)
+		VALUES (?, ?, ?, ?, ?, ?, `+point+`, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		job.ID.Hex(), job.RecruiterID.Hex(), job.RecruiterName, nullable(job.RecruiterMobile), job.CompanyName, job.Skill,
+		lng, lat, job.Address, money.ToPaise(job.PayRate), job.RateType, job.DurationHours, job.RequiredWorkers, job.Notes,
+		string(job.Status), candidate, nullable(job.CandidateName), nullable(job.CandidateMobile), job.ExpiresAt, now, now).Error
 }
 
 func (r *InstantWorkRepositoryImpl) GetJobByID(ctx context.Context, jobID primitive.ObjectID) (*InstantJob, error) {
-	return r.findJob(ctx, bson.M{"_id": jobID}, nil)
+	return r.jobQuery(ctx, `SELECT `+jobColumns+` FROM instant_jobs WHERE id = ?`, jobID.Hex())
 }
 
-func (r *InstantWorkRepositoryImpl) findJob(ctx context.Context, filter bson.M, opts *options.FindOneOptions) (*InstantJob, error) {
-	var job InstantJob
-	err := r.jobsColl.FindOne(ctx, filter, opts).Decode(&job)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &job, nil
-}
-
-// FindNearbyJobsForWorker lists open jobs near the worker, leaving out the worker's own
+// FindNearbyJobsForWorker lists open jobs near the worker, newest first, leaving out the worker's own
 func (r *InstantWorkRepositoryImpl) FindNearbyJobsForWorker(ctx context.Context, lng, lat float64, radiusMeters float64, skill string, excludeRecruiter primitive.ObjectID) ([]InstantJob, error) {
-	geoQuery := bson.M{
-		"status":       JobStatusDispatching,
-		"expires_at":   bson.M{"$gt": time.Now()},
-		"recruiter_id": bson.M{"$ne": excludeRecruiter},
-	}
+	q := `SELECT ` + jobColumns + `, ST_Distance(location, ` + point + `) AS distance_meters
+		FROM instant_jobs
+		WHERE status = ? AND expires_at > now() AND recruiter_id <> ? AND ST_DWithin(location, ` + point + `, ?)`
+	args := []interface{}{lng, lat, string(JobStatusDispatching), excludeRecruiter.Hex(), lng, lat, radiusMeters}
 	if skill != "" && skill != "all" {
-		geoQuery["skill"] = bson.M{
-			"$regex": primitive.Regex{Pattern: "^" + regexp.QuoteMeta(skill) + "$", Options: "i"},
-		}
+		q += ` AND lower(skill) = lower(?)`
+		args = append(args, skill)
 	}
+	q += ` ORDER BY created_at DESC, id DESC LIMIT 20`
 
-	pipeline := mongo.Pipeline{
-		{{Key: "$geoNear", Value: bson.M{
-			"near":          bson.M{"type": "Point", "coordinates": []float64{lng, lat}},
-			"distanceField": "distance_meters",
-			"maxDistance":   radiusMeters,
-			"spherical":     true,
-			"query":         geoQuery,
-		}}},
-		{{Key: "$sort", Value: bson.M{"created_at": -1}}},
-		{{Key: "$limit", Value: 20}},
-		// The hirer's number is only shared once a worker has accepted
-		{{Key: "$project", Value: bson.M{"recruiter_mobile": 0}}},
-	}
-
-	cursor, err := r.jobsColl.Aggregate(ctx, pipeline)
-	if err != nil {
+	var rows []jobRow
+	if err := r.conn(ctx).Raw(q, args...).Scan(&rows).Error; err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
-
-	jobs := []InstantJob{}
-	if err := cursor.All(ctx, &jobs); err != nil {
-		return nil, err
-	}
-	for i := range jobs {
-		jobs[i].DistanceKm = jobs[i].DistanceMeters / 1000.0
+	jobs := make([]InstantJob, 0, len(rows))
+	for _, row := range rows {
+		j := row.toDomain()
+		j.RecruiterMobile = "" // The hirer's number is only shared once a worker has accepted
+		j.DistanceKm = j.DistanceMeters / 1000.0
+		jobs = append(jobs, *j)
 	}
 	return jobs, nil
 }
 
 func (r *InstantWorkRepositoryImpl) GetActiveJobForCandidate(ctx context.Context, candidateID primitive.ObjectID) (*InstantJob, error) {
-	return r.findJob(ctx, bson.M{
-		"candidate_id": candidateID,
-		"status":       bson.M{"$in": candidateActiveStatuses},
-	}, nil)
+	return r.jobQuery(ctx, `SELECT `+jobColumns+` FROM instant_jobs WHERE candidate_id = ? AND status IN ?
+		ORDER BY created_at DESC, id DESC LIMIT 1`, candidateID.Hex(), statusList(candidateActiveStatuses))
 }
 
 func (r *InstantWorkRepositoryImpl) GetActiveJobForRecruiter(ctx context.Context, recruiterID primitive.ObjectID) (*InstantJob, error) {
-	return r.findJob(ctx, bson.M{
-		"recruiter_id": recruiterID,
-		"status":       bson.M{"$in": recruiterActiveStatuses},
-	}, options.FindOne().SetSort(bson.M{"created_at": -1}))
+	return r.jobQuery(ctx, `SELECT `+jobColumns+` FROM instant_jobs WHERE recruiter_id = ? AND status IN ?
+		ORDER BY created_at DESC, id DESC LIMIT 1`, recruiterID.Hex(), statusList(recruiterActiveStatuses))
 }
 
 // ExpireStaleJobs marks the hirer's jobs that nobody accepted in time as expired
 func (r *InstantWorkRepositoryImpl) ExpireStaleJobs(ctx context.Context, recruiterID primitive.ObjectID) error {
-	now := time.Now()
-	_, err := r.jobsColl.UpdateMany(ctx, bson.M{
-		"recruiter_id": recruiterID,
-		"status":       JobStatusDispatching,
-		"expires_at":   bson.M{"$lte": now},
-	}, bson.M{"$set": bson.M{"status": JobStatusExpired, "updated_at": now}})
-	return err
+	return r.conn(ctx).Exec(`UPDATE instant_jobs SET status = ? WHERE recruiter_id = ? AND status = ? AND expires_at <= now()`,
+		string(JobStatusExpired), recruiterID.Hex(), string(JobStatusDispatching)).Error
+}
+
+// moveJob applies a status change guarded by its WHERE clause, returning notMatched when the job
+// isn't in that state. The single UPDATE is atomic, so only one of two racing moves wins.
+func (r *InstantWorkRepositoryImpl) moveJob(ctx context.Context, set, where string, notMatched error, args ...interface{}) (*InstantJob, error) {
+	job, err := r.jobQuery(ctx, `UPDATE instant_jobs SET `+set+` WHERE `+where+` RETURNING `+jobColumns, args...)
+	if err != nil {
+		return nil, err
+	}
+	if job == nil {
+		return nil, notMatched
+	}
+	return job, nil
 }
 
 // ClaimJobAtomic gives an open job to the worker. Only one claim can win.
 func (r *InstantWorkRepositoryImpl) ClaimJobAtomic(ctx context.Context, jobID primitive.ObjectID, candidateID primitive.ObjectID, candidateName string, candidateMobile string) (*InstantJob, error) {
-	now := time.Now()
-	filter := bson.M{
-		"_id":          jobID,
-		"status":       JobStatusDispatching,
-		"expires_at":   bson.M{"$gt": now},
-		"recruiter_id": bson.M{"$ne": candidateID},
-	}
-	update := bson.M{"$set": bson.M{
-		"status":           JobStatusAccepted,
-		"candidate_id":     candidateID,
-		"candidate_name":   candidateName,
-		"candidate_mobile": candidateMobile,
-		"matched_at":       now,
-		"updated_at":       now,
-	}}
-	return r.moveJob(ctx, filter, update, ErrGigUnavailable)
+	return r.moveJob(ctx,
+		`status = ?, candidate_id = ?, candidate_name = ?, candidate_mobile = ?, matched_at = now()`,
+		`id = ? AND status = ? AND expires_at > now() AND recruiter_id <> ?`,
+		ErrGigUnavailable,
+		string(JobStatusAccepted), candidateID.Hex(), nullable(candidateName), nullable(candidateMobile),
+		jobID.Hex(), string(JobStatusDispatching), candidateID.Hex())
 }
 
 // CompleteJob is the worker marking their accepted job as done
 func (r *InstantWorkRepositoryImpl) CompleteJob(ctx context.Context, jobID, candidateID primitive.ObjectID) (*InstantJob, error) {
-	now := time.Now()
-	filter := bson.M{
-		"_id":          jobID,
-		"candidate_id": candidateID,
-		"status":       bson.M{"$in": []JobStatus{JobStatusAccepted, JobStatusInProgress}},
-	}
-	update := bson.M{"$set": bson.M{"status": JobStatusCompleted, "completed_at": now, "updated_at": now}}
-	return r.moveJob(ctx, filter, update, ErrJobWrongState)
+	return r.moveJob(ctx, `status = ?, completed_at = now()`, `id = ? AND candidate_id = ? AND status IN ?`, ErrJobWrongState,
+		string(JobStatusCompleted), jobID.Hex(), candidateID.Hex(), statusList([]JobStatus{JobStatusAccepted, JobStatusInProgress}))
 }
 
 // CloseJob is the hirer approving a completed job
 func (r *InstantWorkRepositoryImpl) CloseJob(ctx context.Context, jobID, recruiterID primitive.ObjectID) (*InstantJob, error) {
-	now := time.Now()
-	filter := bson.M{"_id": jobID, "recruiter_id": recruiterID, "status": JobStatusCompleted}
-	update := bson.M{"$set": bson.M{"status": JobStatusClosed, "closed_at": now, "updated_at": now}}
-	return r.moveJob(ctx, filter, update, ErrJobNotCompleted)
+	return r.moveJob(ctx, `status = ?, closed_at = now()`, `id = ? AND recruiter_id = ? AND status = ?`, ErrJobNotCompleted,
+		string(JobStatusClosed), jobID.Hex(), recruiterID.Hex(), string(JobStatusCompleted))
 }
 
 // CancelJob is the hirer withdrawing a job before any worker accepts it
 func (r *InstantWorkRepositoryImpl) CancelJob(ctx context.Context, jobID, recruiterID primitive.ObjectID) (*InstantJob, error) {
-	now := time.Now()
-	filter := bson.M{"_id": jobID, "recruiter_id": recruiterID, "status": JobStatusDispatching}
-	update := bson.M{"$set": bson.M{"status": JobStatusCancelled, "cancelled_at": now, "updated_at": now}}
-	return r.moveJob(ctx, filter, update, ErrJobWrongState)
-}
-
-// moveJob applies a status change guarded by filter, returning notMatched when the job isn't in that state
-func (r *InstantWorkRepositoryImpl) moveJob(ctx context.Context, filter, update bson.M, notMatched error) (*InstantJob, error) {
-	var job InstantJob
-	err := r.jobsColl.FindOneAndUpdate(ctx, filter, update, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&job)
-	if errors.Is(err, mongo.ErrNoDocuments) {
-		return nil, notMatched
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &job, nil
+	return r.moveJob(ctx, `status = ?, cancelled_at = now()`, `id = ? AND recruiter_id = ? AND status = ?`, ErrJobWrongState,
+		string(JobStatusCancelled), jobID.Hex(), recruiterID.Hex(), string(JobStatusDispatching))
 }

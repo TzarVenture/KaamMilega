@@ -665,7 +665,7 @@ function HowItWorks() {
       <ol className="mt-4 space-y-4">
         {items.map((it, i) => (
           <li key={it.title} className="flex gap-3">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#F5F3FF] text-xs font-bold text-[#6D28D9] dark:bg-[#231C45] dark:text-[#C4B5FD]">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-km-surface text-xs font-bold text-km-mentors-text">
               {i + 1}
             </span>
             <div>
