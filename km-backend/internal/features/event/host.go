@@ -12,7 +12,8 @@ import (
 
 // HostEventRequest is what an Expert fills in to host an event. Only these fields are read from
 // the request: seats, attendees and the price are set here, never by the caller. Events hosted
-// this way are always free, because only KaamMilega runs paid events (client answers, Nov 2026).
+// this way are free for now. The client wants Experts, recruiters and hosts with 100+ followers to
+// run paid events later (Q15, "Can wait"); that needs ticket payouts to the host first.
 type HostEventRequest struct {
 	Title       string `json:"title"`
 	Organizer   string `json:"organizer"`
