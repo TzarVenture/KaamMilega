@@ -92,7 +92,7 @@ Paying from the wallet does steps 1 to 3 as one transaction: the wallet debit an
 ## Still open (needs a decision)
 
 1. **The backend signs in to Postgres as `postgres`, the all-powerful admin user.** Industry practice is a separate app user that can read and write the `app` tables but can't drop tables or change the schema. Migrations keep using the admin user. This changes the live database and the server's `.env`, so it needs your go-ahead. The SQL is ready below.
-2. **Backups.** The 16 and 17 Nov copies are in the local `docs/db-backup-2026-11-16` and `docs/db-backup-2026-11-17` folders (not in git). Before launch, turn on scheduled backups for both databases on the paid plans.
+2. **Backups.** The 16 and 17 Nov copies are in `db-backup-2026-11-16` and `db-backup-2026-11-17` in the `docs` folder next to the repository (not in git). Before launch, turn on scheduled backups for both databases on the paid plans.
 3. **Stricter certificate check (optional).** `sslmode=require` encrypts the connection. `verify-full` also checks it's really Supabase, but needs Supabase's certificate file on the server.
 4. **Unused code.** `database.NewTransactor` (MongoDB transactions) isn't used any more; every feature uses the Postgres one.
 
