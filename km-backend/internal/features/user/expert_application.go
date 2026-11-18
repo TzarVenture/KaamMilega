@@ -14,11 +14,12 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// Becoming an Expert (client Q&A Q8–Q12): at least 2 years of experience, PAN and payout
-// details, an active ₹99 pass, then our team reviews the application the same day.
-// Aadhaar is not collected (client answer Q51, Nov 2026: "PAN and bank check only"), which also
-// keeps us clear of UIDAI's Aadhaar storage rules. The PAN is never stored in full: only a masked
-// copy, next to the uploaded card, which lives in the private bucket.
+// Becoming an Expert (client Q&A Q8–Q12): at least 2 years of experience, Aadhaar, PAN and
+// bank details, an active ₹99 pass, then our team reviews the application the same day.
+// Identity numbers are never stored in full: only the last 4 digits, next to the uploaded
+// document, which lives in the private bucket.
+// Q51 (Nov 2026): the client keeps Aadhaar and wants it checked through DigiLocker. Until a
+// DigiLocker provider is set up, our team checks the uploaded card by hand.
 
 const (
 	ExpertStatusNone     = ""
@@ -40,8 +41,9 @@ var (
 	ErrExpertCategoryInvalid  = apperr.New("EXPERT_CATEGORY_INVALID", "choose an expertise area from the list")
 	ErrExpertBioLength        = apperr.New("EXPERT_BIO_LENGTH", "describe your expertise in 50 to 1000 characters")
 	ErrExpertPriceInvalid     = apperr.New("EXPERT_PRICE_INVALID", "set a session price between ₹99 and ₹50,000")
+	ErrAadhaarInvalid         = apperr.New("AADHAAR_INVALID", "enter a valid 12-digit Aadhaar number")
 	ErrPANInvalid             = apperr.New("PAN_INVALID", "enter a valid PAN, like ABCDE1234F")
-	ErrKYCDocumentRequired    = apperr.New("KYC_DOCUMENT_REQUIRED", "upload a photo of your PAN card")
+	ErrKYCDocumentRequired    = apperr.New("KYC_DOCUMENT_REQUIRED", "upload both your Aadhaar and PAN card")
 	ErrPayoutMethodInvalid    = apperr.New("PAYOUT_METHOD_INVALID", "choose bank account or UPI for payouts")
 	ErrAccountHolderRequired  = apperr.New("ACCOUNT_HOLDER_REQUIRED", "enter the account holder's name as on the bank account")
 	ErrBankAccountInvalid     = apperr.New("BANK_ACCOUNT_INVALID", "enter a valid bank account number (9 to 18 digits)")
@@ -56,11 +58,10 @@ var (
 // ExpertKYC is the identity and payout part of an Expert application. Only masked values leave
 // the server; the full account number is kept for payouts and never sent to clients.
 type ExpertKYC struct {
-	PANMasked string `bson:"pan_masked" json:"pan_masked"` // XXXXX1234X
-	PANDocURL string `bson:"pan_doc_url" json:"pan_doc_url"`
-	// Only on applications sent before Aadhaar stopped being collected (Nov 2026)
-	AadhaarLast4  string `bson:"aadhaar_last4,omitempty" json:"aadhaar_last4,omitempty"`
-	AadhaarDocURL string `bson:"aadhaar_doc_url,omitempty" json:"aadhaar_doc_url,omitempty"`
+	AadhaarLast4  string `bson:"aadhaar_last4" json:"aadhaar_last4"`
+	PANMasked     string `bson:"pan_masked" json:"pan_masked"` // XXXXX1234X
+	AadhaarDocURL string `bson:"aadhaar_doc_url" json:"aadhaar_doc_url"`
+	PANDocURL     string `bson:"pan_doc_url" json:"pan_doc_url"`
 
 	PayoutMethod  string `bson:"payout_method" json:"payout_method"` // "bank" or "upi"
 	AccountHolder string `bson:"account_holder" json:"account_holder"`
@@ -80,8 +81,10 @@ type ApplyExpertRequest struct {
 	ExpertBio      string  `json:"expert_bio"`
 	ExpertPricing  float64 `json:"expert_pricing"`
 
-	PANNumber string `json:"pan_number"`
-	PANDocURL string `json:"pan_doc_url"`
+	AadhaarNumber string `json:"aadhaar_number"`
+	PANNumber     string `json:"pan_number"`
+	AadhaarDocURL string `json:"aadhaar_doc_url"`
+	PANDocURL     string `json:"pan_doc_url"`
 
 	PayoutMethod         string `json:"payout_method"`
 	AccountHolder        string `json:"account_holder"`
@@ -117,6 +120,33 @@ var (
 	spaces         = strings.NewReplacer(" ", "", "-", "")
 )
 
+// validAadhaar checks the length, the first digit (never 0 or 1) and the Verhoeff checksum
+func validAadhaar(n string) bool {
+	if len(n) != 12 || n[0] == '0' || n[0] == '1' {
+		return false
+	}
+	d := [10][10]int{
+		{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, {1, 2, 3, 4, 0, 6, 7, 8, 9, 5}, {2, 3, 4, 0, 1, 7, 8, 9, 5, 6},
+		{3, 4, 0, 1, 2, 8, 9, 5, 6, 7}, {4, 0, 1, 2, 3, 9, 5, 6, 7, 8}, {5, 9, 8, 7, 6, 0, 4, 3, 2, 1},
+		{6, 5, 9, 8, 7, 1, 0, 4, 3, 2}, {7, 6, 5, 9, 8, 2, 1, 0, 4, 3}, {8, 7, 6, 5, 9, 3, 2, 1, 0, 4},
+		{9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
+	}
+	p := [8][10]int{
+		{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, {1, 5, 7, 6, 2, 8, 3, 0, 9, 4}, {5, 8, 0, 3, 7, 9, 6, 1, 4, 2},
+		{8, 9, 1, 6, 0, 4, 3, 5, 2, 7}, {9, 4, 5, 3, 1, 2, 6, 8, 7, 0}, {4, 2, 8, 6, 5, 7, 3, 9, 0, 1},
+		{2, 7, 9, 3, 8, 0, 6, 4, 1, 5}, {7, 0, 4, 6, 9, 1, 3, 2, 5, 8},
+	}
+	c := 0
+	for i := 0; i < len(n); i++ {
+		ch := n[len(n)-1-i]
+		if ch < '0' || ch > '9' {
+			return false
+		}
+		c = d[c][p[i%8][ch-'0']]
+	}
+	return c == 0
+}
+
 func containsString(list []string, v string) bool {
 	for _, s := range list {
 		if s == v {
@@ -140,16 +170,22 @@ func (req *ApplyExpertRequest) normalise() (*ExpertKYC, error) {
 		return nil, ErrExpertPriceInvalid
 	}
 
+	aadhaar := spaces.Replace(strings.TrimSpace(req.AadhaarNumber))
+	if !validAadhaar(aadhaar) {
+		return nil, ErrAadhaarInvalid
+	}
 	pan := strings.ToUpper(spaces.Replace(strings.TrimSpace(req.PANNumber)))
 	if !panPattern.MatchString(pan) {
 		return nil, ErrPANInvalid
 	}
-	if req.PANDocURL == "" {
+	if req.AadhaarDocURL == "" || req.PANDocURL == "" {
 		return nil, ErrKYCDocumentRequired
 	}
 
 	kyc := &ExpertKYC{
+		AadhaarLast4:  aadhaar[8:],
 		PANMasked:     "XXXXX" + pan[5:9] + "X",
+		AadhaarDocURL: req.AadhaarDocURL,
 		PANDocURL:     req.PANDocURL,
 		PayoutMethod:  req.PayoutMethod,
 		AccountHolder: strings.TrimSpace(req.AccountHolder),
@@ -245,20 +281,25 @@ func (s *UserServiceImpl) ApplyForExpert(ctx context.Context, userID string, req
 	if err != nil {
 		return nil, err
 	}
-	// The PAN card must be this user's own private upload
-	ok, err := s.repo.OwnsPrivateFile(ctx, userID, kyc.PANDocURL, "expert_document")
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, ErrKYCDocumentRequired
+	// The documents must be this user's own private uploads
+	for _, ref := range []string{kyc.AadhaarDocURL, kyc.PANDocURL} {
+		ok, err := s.repo.OwnsPrivateFile(ctx, userID, ref, "expert_document")
+		if err != nil {
+			return nil, err
+		}
+		if !ok {
+			return nil, ErrKYCDocumentRequired
+		}
 	}
 
 	user.ExpertCategory = req.ExpertCategory
 	user.ExpertBio = req.ExpertBio
 	user.ExpertPricing = req.ExpertPricing
 	user.ExpertKYC = kyc
-	user.ExpertDocuments = []Document{{Name: "PAN card", URL: kyc.PANDocURL}}
+	user.ExpertDocuments = []Document{
+		{Name: "Aadhaar card", URL: kyc.AadhaarDocURL},
+		{Name: "PAN card", URL: kyc.PANDocURL},
+	}
 	user.ExpertApprovalStatus = ExpertStatusPending
 
 	return s.repo.UpdateUser(ctx, user)

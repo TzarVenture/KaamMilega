@@ -830,7 +830,7 @@
     "EXPERT_PRICE_INVALID": "Set a session price between ₹99 and ₹50,000.",
     "AADHAAR_INVALID": "Enter a valid 12-digit Aadhaar number.",
     "PAN_INVALID": "Enter a valid PAN, like ABCDE1234F.",
-    "KYC_DOCUMENT_REQUIRED": "Upload a photo of your PAN card.",
+    "KYC_DOCUMENT_REQUIRED": "Upload both your Aadhaar and PAN card.",
     "PAYOUT_METHOD_INVALID": "Choose bank account or UPI for payouts.",
     "ACCOUNT_HOLDER_REQUIRED": "Enter the account holder's name as on the bank account.",
     "BANK_ACCOUNT_INVALID": "Enter a valid bank account number (9 to 18 digits).",

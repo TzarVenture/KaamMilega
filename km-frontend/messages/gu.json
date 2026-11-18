@@ -830,7 +830,7 @@
     "EXPERT_PRICE_INVALID": "સેશનની કિંમત ₹99 થી ₹50,000 વચ્ચે રાખો.",
     "AADHAAR_INVALID": "માન્ય 12 અંકનો આધાર નંબર દાખલ કરો.",
     "PAN_INVALID": "માન્ય PAN દાખલ કરો, જેમ કે ABCDE1234F.",
-    "KYC_DOCUMENT_REQUIRED": "તમારા PAN કાર્ડનો ફોટો અપલોડ કરો.",
+    "KYC_DOCUMENT_REQUIRED": "આધાર અને PAN કાર્ડ બંને અપલોડ કરો.",
     "PAYOUT_METHOD_INVALID": "ચુકવણી માટે બેંક ખાતું અથવા UPI પસંદ કરો.",
     "ACCOUNT_HOLDER_REQUIRED": "બેંક ખાતા પર લખેલું ખાતાધારકનું નામ દાખલ કરો.",
     "BANK_ACCOUNT_INVALID": "માન્ય બેંક ખાતા નંબર દાખલ કરો (9 થી 18 અંક).",

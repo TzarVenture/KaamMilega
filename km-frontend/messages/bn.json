@@ -830,7 +830,7 @@
     "EXPERT_PRICE_INVALID": "সেশনের দাম ₹99 থেকে ₹50,000-এর মধ্যে রাখুন।",
     "AADHAAR_INVALID": "সঠিক 12 সংখ্যার আধার নম্বর দিন।",
     "PAN_INVALID": "সঠিক PAN দিন, যেমন ABCDE1234F।",
-    "KYC_DOCUMENT_REQUIRED": "আপনার PAN কার্ডের ছবি আপলোড করুন।",
+    "KYC_DOCUMENT_REQUIRED": "আধার ও PAN কার্ড দুটোই আপলোড করুন।",
     "PAYOUT_METHOD_INVALID": "পেমেন্টের জন্য ব্যাংক অ্যাকাউন্ট বা UPI বেছে নিন।",
     "ACCOUNT_HOLDER_REQUIRED": "ব্যাংক অ্যাকাউন্টে থাকা অ্যাকাউন্টধারীর নাম দিন।",
     "BANK_ACCOUNT_INVALID": "সঠিক ব্যাংক অ্যাকাউন্ট নম্বর দিন (9 থেকে 18 সংখ্যা)।",

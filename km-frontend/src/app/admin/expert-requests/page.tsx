@@ -99,7 +99,7 @@ export default function ExpertRequestsPage() {
                                                 ))}
                                                 {req.expert_kyc && (
                                                     <span className="text-xs text-km-text-secondary">
-                                                        {req.expert_kyc.aadhaar_last4 && <>Aadhaar …{req.expert_kyc.aadhaar_last4} · </>}PAN {req.expert_kyc.pan_masked} ·{' '}
+                                                        Aadhaar …{req.expert_kyc.aadhaar_last4} · PAN {req.expert_kyc.pan_masked} ·{' '}
                                                         {req.expert_kyc.payout_method === 'bank'
                                                             ? `${req.expert_kyc.account_holder}, a/c …${req.expert_kyc.account_last4}, ${req.expert_kyc.ifsc}`
                                                             : `${req.expert_kyc.account_holder}, UPI ${req.expert_kyc.upi_id}`}

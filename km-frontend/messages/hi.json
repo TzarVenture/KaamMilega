@@ -830,7 +830,7 @@
     "EXPERT_PRICE_INVALID": "सेशन की कीमत ₹99 से ₹50,000 के बीच रखें।",
     "AADHAAR_INVALID": "सही 12 अंकों का आधार नंबर डालें।",
     "PAN_INVALID": "सही PAN डालें, जैसे ABCDE1234F।",
-    "KYC_DOCUMENT_REQUIRED": "अपने PAN कार्ड की फ़ोटो अपलोड करें।",
+    "KYC_DOCUMENT_REQUIRED": "आधार और PAN कार्ड दोनों अपलोड करें।",
     "PAYOUT_METHOD_INVALID": "भुगतान के लिए बैंक खाता या UPI चुनें।",
     "ACCOUNT_HOLDER_REQUIRED": "बैंक खाते में लिखा खाताधारक का नाम डालें।",
     "BANK_ACCOUNT_INVALID": "सही बैंक खाता नंबर डालें (9 से 18 अंक)।",
