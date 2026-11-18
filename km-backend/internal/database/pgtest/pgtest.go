@@ -125,7 +125,8 @@ func open() (*database.PostgresDB, error) {
 		_ = sqlDB.Close()
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	// Packages build their schemas at the same time and wait for each other (see applyMigration)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	for _, file := range files {
 		body, err := os.ReadFile(file)
@@ -133,13 +134,31 @@ func open() (*database.PostgresDB, error) {
 			_ = sqlDB.Close()
 			return nil, err
 		}
-		if err := db.WithContext(ctx).Exec(appSchema.ReplaceAllString(string(body), schema)).Error; err != nil {
+		if err := applyMigration(db.WithContext(ctx), appSchema.ReplaceAllString(string(body), schema)); err != nil {
 			dropSchema(db, schema)
 			_ = sqlDB.Close()
 			return nil, fmt.Errorf("applying %s: %w", filepath.Base(file), err)
 		}
 	}
 	return &database.PostgresDB{DB: db}, nil
+}
+
+// migrationLock is the advisory lock key every test build takes while it applies a migration file.
+const migrationLock int64 = 0x6b6d5f7067746573 // "km_pgtes"
+
+// applyMigration runs one migration file in a transaction, one test build at a time.
+//
+// Most of a migration only touches the test's own schema, but some statements change objects the
+// whole database shares, such as the km_app role and its grant on the extensions schema. Go runs
+// test packages in parallel, and two of those changes at the same moment fail with "tuple
+// concurrently updated". The lock is released when the transaction ends.
+func applyMigration(db *gorm.DB, sql string) error {
+	return db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Exec(`SELECT pg_advisory_xact_lock(?)`, migrationLock).Error; err != nil {
+			return err
+		}
+		return tx.Exec(sql).Error
+	})
 }
 
 func dropSchema(db *gorm.DB, name string) {
