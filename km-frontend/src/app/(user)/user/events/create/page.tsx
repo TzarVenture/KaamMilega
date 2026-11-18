@@ -12,7 +12,7 @@ import { uploadFile, UPLOAD_LIMITS } from "@/lib/upload";
 import { EmptyState, btn, cx, field } from "@/components/admin/ui";
 import EventCard from "@/components/events/EventCard";
 
-/** The event types an Expert can host (paid hiring drives are run by KaamMilega) */
+/** The event types an Expert can host. Hosted events are free for now (client Q15: paid hosting "can wait") */
 const EVENT_TYPES = ["Webinar", "Skill Workshop", "Expert Session", "Community Meetup"];
 
 /** The same limits the server checks (km-backend event/host.go) */
@@ -184,7 +184,7 @@ export default function CreateEventPage() {
                 <p className="mt-1 text-sm text-km-text-secondary">Run a webinar, workshop or meetup for the KaamMilega community.</p>
                 <p className="mt-3 flex items-start gap-2 text-sm text-km-text-secondary">
                     <InfoIcon size={16} className="mt-0.5 shrink-0 text-km-link" aria-hidden="true" />
-                    Events you host are free to join. Paid events are run by KaamMilega.
+                    Events you host are free to join for now.
                 </p>
 
                 <form onSubmit={submit} noValidate className="mt-6 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-x-8 gap-y-6 items-start">

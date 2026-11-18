@@ -366,8 +366,9 @@ func (s *EventServiceImpl) refundTicket(ctx context.Context, t *EventTicket) (bo
 		})
 		if errors.Is(err, wallet.ErrClosed) {
 			// The member deleted their account; there is no wallet to pay into
-			log.Printf("[event] ticket %s: wallet closed, refund of ₹%.2f needs manual handling", t.TicketNumber, t.Amount)
-			return false, nil
+			log.Printf("[event] ticket %s: wallet closed, refund of ₹%.2f needs manual handling", t.TicketNumber, money.ToRupees(paise))
+			t.PaymentStatus = "paid"
+			return false, s.repo.KeepTicketPaid(ctx, t.ID)
 		}
 		return false, err
 	}

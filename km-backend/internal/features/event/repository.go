@@ -711,6 +711,13 @@ func (r *EventRepositoryImpl) SettleTicketDispute(ctx context.Context, ticketID 
 	return refunded, err
 }
 
+// KeepTicketPaid undoes the "refunded" mark on a cancelled ticket whose refund couldn't be paid
+// (the owner's wallet is closed), so the record doesn't claim money went back
+func (r *EventRepositoryImpl) KeepTicketPaid(ctx context.Context, ticketID primitive.ObjectID) error {
+	return r.conn(ctx).Exec(`UPDATE event_tickets SET payment_status = 'paid' WHERE id = ? AND payment_status = 'refunded'`,
+		ticketID.Hex()).Error
+}
+
 // AdminDeleteEvent hides an event and cancels its tickets, in one transaction, and returns the
 // tickets it cancelled. Paid tickets are marked refunded; the caller posts the refunds in the
 // same transaction. The rows stay because tickets are payment records.

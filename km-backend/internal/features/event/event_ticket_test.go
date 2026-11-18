@@ -183,6 +183,13 @@ func (m *mockEventRepo) SettleTicketDispute(ctx context.Context, ticketID primit
 	return 0, nil
 }
 
+func (m *mockEventRepo) KeepTicketPaid(ctx context.Context, ticketID primitive.ObjectID) error {
+	if t, ok := m.tickets[ticketID.Hex()]; ok && t.PaymentStatus == "refunded" {
+		t.PaymentStatus = "paid"
+	}
+	return nil
+}
+
 func (m *mockEventRepo) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error) {
 	if _, ok := m.events[eventID.Hex()]; !ok {
 		return nil, errors.New("event not found")
@@ -236,6 +243,7 @@ func (m *mockUserRepo) FindUserByID(ctx context.Context, id string) (*user.User,
 type mockWalletService struct {
 	wallet.WalletService
 	wallets map[string]*wallet.WalletSummaryResponse
+	closed  map[string]bool // users whose wallet is closed
 }
 
 func (w *mockWalletService) GetWalletSummary(ctx context.Context, userID string) (*wallet.WalletSummaryResponse, error) {
@@ -252,6 +260,9 @@ func (w *mockWalletService) GetWalletSummary(ctx context.Context, userID string)
 
 func (w *mockWalletService) RecordTransaction(ctx context.Context, input wallet.RecordTransactionInput) (*wallet.TransactionItemResponse, *wallet.WalletSummaryResponse, error) {
 	uid := input.UserID.Hex()
+	if w.closed[uid] {
+		return nil, nil, wallet.ErrClosed
+	}
 	sum, _ := w.GetWalletSummary(ctx, uid)
 
 	if input.Type == wallet.TypeDebit {
@@ -695,5 +706,31 @@ func TestEvent_DeletingAPaidEventRefundsEveryTicket(t *testing.T) {
 		if tk.Status != "cancelled" || tk.PaymentStatus != "refunded" {
 			t.Errorf("ticket %s: status %q, payment %q", tk.TicketNumber, tk.Status, tk.PaymentStatus)
 		}
+	}
+}
+
+// A ticket whose owner has since closed their wallet can't be paid back; the event still goes,
+// and the ticket keeps saying "paid" rather than claiming a refund that never happened
+func TestEvent_DeletingAnEventWithAClosedWalletKeepsTheTicketPaid(t *testing.T) {
+	ctx := context.Background()
+	repo := newMockEventRepo()
+	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse), closed: map[string]bool{}}
+	svc := NewEventService(repo, &mockUserRepo{users: make(map[string]*user.User)}, walletSvc, &config.Config{}, nil, paymenttest.New(), database.NoopTransactor{})
+	ev := paidEvent(ctx, repo, 199, 100)
+
+	gone := primitive.NewObjectID().Hex()
+	walletSvc.wallets[gone] = &wallet.WalletSummaryResponse{UserID: gone, MainBalance: 500, TotalBalance: 500}
+	ticket, _, err := svc.BookTicketWithWallet(ctx, gone, ev.ID.Hex(), EventWalletCheckoutRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	walletSvc.closed[gone] = true
+
+	if err := svc.AdminDeleteEvent(ctx, ev.ID.Hex()); err != nil {
+		t.Fatalf("delete with a closed wallet: %v", err)
+	}
+	got := repo.tickets[ticket.ID.Hex()]
+	if got.Status != "cancelled" || got.PaymentStatus != "paid" {
+		t.Fatalf("ticket: status %q, payment %q; want cancelled and paid", got.Status, got.PaymentStatus)
 	}
 }
