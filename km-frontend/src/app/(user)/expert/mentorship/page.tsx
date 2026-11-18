@@ -146,14 +146,15 @@ export default function ExpertMentorshipManagement() {
 
           <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
             {wallet && (
-              <dl className="flex items-center gap-6 bg-km-surface-card border border-km-border rounded-xl px-4 py-2">
-                <div>
-                  <dt className="text-xs text-km-text-secondary">Earnings</dt>
-                  <dd className="text-base font-semibold text-km-heading tabular-nums">{inr(wallet.withdrawable_balance)}</dd>
+              <dl className="flex items-center gap-4 h-10 bg-km-surface-card border border-km-border rounded-xl px-4 text-sm">
+                <div className="flex items-baseline gap-1.5">
+                  <dt className="text-km-text-secondary">Earnings</dt>
+                  <dd className="font-semibold text-km-heading tabular-nums">{inr(wallet.withdrawable_balance)}</dd>
                 </div>
-                <div>
-                  <dt className="text-xs text-km-text-secondary">On hold</dt>
-                  <dd className="text-base font-semibold text-km-heading tabular-nums">{inr(wallet.locked_balance)}</dd>
+                <div className="w-px h-4 bg-km-border" aria-hidden="true" />
+                <div className="flex items-baseline gap-1.5">
+                  <dt className="text-km-text-secondary">On hold</dt>
+                  <dd className="font-semibold text-km-heading tabular-nums">{inr(wallet.locked_balance)}</dd>
                 </div>
               </dl>
             )}
