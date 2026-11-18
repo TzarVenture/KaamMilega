@@ -6,13 +6,13 @@ import { useRouter } from "next/navigation";
 import { CalendarPlusIcon, CheckCircleIcon, CircleIcon, ImageIcon, InfoIcon, MapPinIcon, TrashIcon, VideoCameraIcon } from "@phosphor-icons/react";
 import api from "@/lib/axios";
 import { getCurrentUser } from "@/lib/auth";
-import { useIsExpert } from "@/lib/useIsExpert";
+import { EVENT_HOST_ROLES, useHasRole } from "@/lib/useIsExpert";
 import { notify } from "@/lib/notify";
 import { uploadFile, UPLOAD_LIMITS } from "@/lib/upload";
 import { EmptyState, btn, cx, field } from "@/components/admin/ui";
 import EventCard from "@/components/events/EventCard";
 
-/** The event types an Expert can host. Hosted events are free for now (client Q15: paid hosting "can wait") */
+/** The event types an Expert or recruiter can host. Hosted events are free for now (client Q15: paid hosting "can wait") */
 const EVENT_TYPES = ["Webinar", "Skill Workshop", "Expert Session", "Community Meetup"];
 
 /** The same limits the server checks (km-backend event/host.go) */
@@ -37,7 +37,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function CreateEventPage() {
     const router = useRouter();
     const imageInputRef = useRef<HTMLInputElement>(null);
-    const canHost = useIsExpert(true);
+    const canHost = useHasRole(EVENT_HOST_ROLES);
     const [online, setOnline] = useState(true);
     const [form, setForm] = useState({
         title: "",
@@ -149,8 +149,8 @@ export default function CreateEventPage() {
                     <div className="km-card">
                         <EmptyState
                             icon={CalendarPlusIcon}
-                            title="Hosting events is for approved Experts"
-                            description="Apply as an Expert to host webinars and workshops on KaamMilega."
+                            title="Hosting events is for Experts and recruiters"
+                            description="Apply as an Expert to host webinars and workshops on KaamMilega. Recruiters can host events from their account."
                             action={<Link href="/expert/apply" className={btn.primary}>Apply as an Expert</Link>}
                         />
                     </div>
@@ -176,9 +176,9 @@ export default function CreateEventPage() {
     return (
         <main className="min-h-screen bg-km-surface pb-24">
             <div className="max-w-6xl mx-auto px-4 md:px-6 pt-8 md:pt-10">
-                <p className="flex items-center gap-2 text-[13px] font-semibold text-km-mentors-text mb-1.5">
+                <p className="flex items-center gap-2 text-[13px] font-semibold text-km-events-text mb-1.5">
                     <CalendarPlusIcon size={16} weight="bold" aria-hidden="true" />
-                    Expert Portal
+                    Events
                 </p>
                 <h1 className="text-2xl md:text-3xl font-bold text-km-heading">Host an event</h1>
                 <p className="mt-1 text-sm text-km-text-secondary">Run a webinar, workshop or meetup for the KaamMilega community.</p>

@@ -585,6 +585,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                         href="/recruiter/interviews"
                       />
                       <MenuItem label="Posts & activity" href="/recruiter/posts" />
+                      <MenuItem label="Create Event" href="/user/events/create" />
                     </>
                   ) : (
                     <>
@@ -819,6 +820,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 <MobileRow href="/recruiter/applications" Icon={FileTextIcon} label="Applications" onNavigate={() => setMobileNavOpen(false)} />
                 <MobileRow href="/recruiter/interviews" Icon={CalendarCheckIcon} label="Interviews" onNavigate={() => setMobileNavOpen(false)} />
                 <MobileRow href="/recruiter/posts" Icon={NewspaperIcon} label="Posts & activity" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/user/events/create" Icon={CalendarPlusIcon} label="Create event" onNavigate={() => setMobileNavOpen(false)} />
               </MobileSection>
             ) : (
               <MobileSection title="Your activity">

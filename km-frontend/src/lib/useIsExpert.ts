@@ -17,12 +17,17 @@ function rolesNow(): string[] {
  * nothing role-specific until it is known, so the first render matches the server's.
  */
 export function useIsExpert(orAdmin = false): boolean | null {
+    return useHasRole(orAdmin ? ['expert', 'admin'] : ['expert']);
+}
+
+/** Roles that may host an event (the server checks the same list: km-backend event/host.go HostRoles) */
+export const EVENT_HOST_ROLES = ['expert', 'recruiter', 'admin'];
+
+/** Whether the signed-in user has any of these roles; null until known, as above */
+export function useHasRole(anyOf: string[]): boolean | null {
     return useSyncExternalStore(
         subscribe,
-        () => {
-            const roles = rolesNow();
-            return roles.includes('expert') || (orAdmin && roles.includes('admin'));
-        },
+        () => rolesNow().some((r) => anyOf.includes(r)),
         () => null,
     );
 }

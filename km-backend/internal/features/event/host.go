@@ -27,6 +27,9 @@ type HostEventRequest struct {
 	Capacity    int    `json:"capacity"` // 0 = no limit
 }
 
+// HostRoles may host events. The web app's Host an event page checks the same list.
+var HostRoles = []string{"expert", "recruiter", "admin"}
+
 const (
 	maxEventTitle    = 120
 	maxEventDetails  = 3000
