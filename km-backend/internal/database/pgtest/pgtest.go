@@ -4,7 +4,7 @@
 // the real tables, constraints and indexes. The live "app" schema is never touched. One schema and
 // one small connection pool are shared by every test in a package (Supabase allows few
 // connections), so tests must use their own fresh ids. Call Run from TestMain so the schema is
-// dropped at the end. Tests skip when TEST_DATABASE_URI (or DATABASE_URI) is not set.
+// dropped at the end. Tests skip when none of TEST_DATABASE_URI, DATABASE_ADMIN_URI or DATABASE_URI is set.
 package pgtest
 
 import (
@@ -89,7 +89,11 @@ func Run(m *testing.M) int {
 }
 
 func open() (*database.PostgresDB, error) {
+	// Building a schema needs the admin user; the server's own user (km_app) can't create one
 	uri := os.Getenv("TEST_DATABASE_URI")
+	if uri == "" {
+		uri = os.Getenv("DATABASE_ADMIN_URI")
+	}
 	if uri == "" {
 		uri = os.Getenv("DATABASE_URI")
 	}

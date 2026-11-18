@@ -89,20 +89,22 @@ Paying from the wallet does steps 1 to 3 as one transaction: the wallet debit an
 - That refund pays only what an approved dispute hasn't already returned, and closes a dispute that is still open, so nobody is paid twice.
 - Admin revenue now subtracts those refunds, and "Active gigs" counts only gigs that are still under way.
 
-## Still open (needs a decision)
+## Database users
 
-1. **The backend signs in to Postgres as `postgres`, the all-powerful admin user.** Industry practice is a separate app user that can read and write the `app` tables but can't drop tables or change the schema. Migrations keep using the admin user. This changes the live database and the server's `.env`, so it needs your go-ahead. The SQL is ready below.
+Two Postgres users, each with only what it needs (set up 18 Nov, migration `20261118000001_backend_role.sql`):
+
+| User | Used by | `.env` key | Can do |
+|---|---|---|---|
+| `km_app` | The backend server | `DATABASE_URI` | Read, add, change and delete rows in the `app` tables. Can't create, change, drop or empty tables |
+| `postgres` | Atlas migrations and the Postgres tests | `DATABASE_ADMIN_URI` | Everything (owns the tables) |
+
+Through the Supabase pooler the user name is written `km_app.<project ref>`. The `km_app` password is only in `.env` files, never in git. To change it, run `ALTER ROLE km_app PASSWORD '...'` as `postgres` and update `DATABASE_URI` everywhere the server runs.
+
+`km_app` passes row level security (`BYPASSRLS`): RLS is there only to keep Supabase's public API out, and new tables need no policy. Tables added by later migrations get `km_app`'s rights automatically.
+
+## Still open
+
+1. **The live server (VPS) still signs in as `postgres`.** Copy the `DATABASE_URI` line from your local `km-backend/.env` into the server's `.env`, add a `DATABASE_ADMIN_URI` line with the old value (only needed if you run migrations there), and restart the backend.
 2. **Backups.** The 16 and 17 Nov copies are in `db-backup-2026-11-16` and `db-backup-2026-11-17` in the `docs` folder next to the repository (not in git). Before launch, turn on scheduled backups for both databases on the paid plans.
 3. **Stricter certificate check (optional).** `sslmode=require` encrypts the connection. `verify-full` also checks it's really Supabase, but needs Supabase's certificate file on the server.
 4. **Unused code.** `database.NewTransactor` (MongoDB transactions) isn't used any more; every feature uses the Postgres one.
-
-### Least-privilege app user (not applied)
-
-```sql
--- Run once as the admin user, then put km_app in the backend's DATABASE_URI.
-CREATE ROLE km_app LOGIN PASSWORD '<a new strong password>';
-GRANT USAGE ON SCHEMA app, extensions TO km_app;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA app TO km_app;
-ALTER DEFAULT PRIVILEGES IN SCHEMA app GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO km_app;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA extensions TO km_app;
-```
