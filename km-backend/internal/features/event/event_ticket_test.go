@@ -178,12 +178,22 @@ func (m *mockEventRepo) AdminUpdateEvent(ctx context.Context, eventID primitive.
 	return e, nil
 }
 
-func (m *mockEventRepo) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) error {
+func (m *mockEventRepo) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error) {
 	if _, ok := m.events[eventID.Hex()]; !ok {
-		return errors.New("event not found")
+		return nil, errors.New("event not found")
 	}
 	delete(m.events, eventID.Hex())
-	return nil
+	var cancelled []EventTicket
+	for _, t := range m.tickets {
+		if t.EventID == eventID && t.Status == "confirmed" {
+			t.Status = "cancelled"
+			if t.PaymentStatus == "paid" {
+				t.PaymentStatus = "refunded"
+			}
+			cancelled = append(cancelled, *t)
+		}
+	}
+	return cancelled, nil
 }
 
 func (m *mockEventRepo) RevokeTicket(ctx context.Context, eventID, userID primitive.ObjectID, razorpayOrderID string) error {
@@ -636,5 +646,49 @@ func TestGetEventAttendees(t *testing.T) {
 	}
 	if resp.Attendees[0].ID != p1.Hex() {
 		t.Errorf("expected attendee ID %s, got %s", p1.Hex(), resp.Attendees[0].ID)
+	}
+}
+
+// Deleting a paid event pays everyone back: wallet tickets to the wallet, card tickets through a
+// queued Razorpay refund
+func TestEvent_DeletingAPaidEventRefundsEveryTicket(t *testing.T) {
+	ctx := context.Background()
+	repo := newMockEventRepo()
+	fake := paymenttest.New()
+	walletSvc := &mockWalletService{wallets: make(map[string]*wallet.WalletSummaryResponse)}
+	svc := NewEventService(repo, &mockUserRepo{users: make(map[string]*user.User)}, walletSvc, &config.Config{}, nil, fake, database.NoopTransactor{})
+	ev := paidEvent(ctx, repo, 199, 100)
+
+	byWallet := primitive.NewObjectID().Hex()
+	walletSvc.wallets[byWallet] = &wallet.WalletSummaryResponse{UserID: byWallet, MainBalance: 500, TotalBalance: 500}
+	if _, _, err := svc.BookTicketWithWallet(ctx, byWallet, ev.ID.Hex(), EventWalletCheckoutRequest{}); err != nil {
+		t.Fatal(err)
+	}
+
+	byCard := primitive.NewObjectID().Hex()
+	checkout, err := svc.CreateEventOrder(ctx, byCard, ev.ID.Hex(), CreateEventOrderRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := svc.VerifyEventPayment(ctx, byCard, ev.ID.Hex(), VerifyEventPaymentRequest{RazorpayOrderID: checkout.OrderID, RazorpayPaymentID: "pay_1", RazorpaySignature: "sig"}); err != nil {
+		t.Fatal(err)
+	}
+	if walletSvc.wallets[byWallet].MainBalance != 301 {
+		t.Fatalf("wallet after buying = %v, want 301", walletSvc.wallets[byWallet].MainBalance)
+	}
+
+	if err := svc.AdminDeleteEvent(ctx, ev.ID.Hex()); err != nil {
+		t.Fatal(err)
+	}
+	if got := walletSvc.wallets[byWallet].MainBalance; got != 500 {
+		t.Errorf("wallet after the event was deleted = %v, want 500", got)
+	}
+	if len(fake.Refunds) != 1 || fake.Refunds[0] != checkout.OrderID || fake.Orders[checkout.OrderID].RefundPaise != 19900 {
+		t.Errorf("card refunds = %v, order = %+v", fake.Refunds, fake.Orders[checkout.OrderID])
+	}
+	for _, tk := range repo.tickets {
+		if tk.Status != "cancelled" || tk.PaymentStatus != "refunded" {
+			t.Errorf("ticket %s: status %q, payment %q", tk.TicketNumber, tk.Status, tk.PaymentStatus)
+		}
 	}
 }

@@ -182,7 +182,7 @@ type EventRepository interface {
 	AdminGetAllEvents(ctx context.Context, search string, page, limit int) ([]AdminEventItem, int64, error)
 	AdminGetEventDetail(ctx context.Context, eventID primitive.ObjectID) (*AdminEventDetailResponse, error)
 	AdminUpdateEvent(ctx context.Context, eventID primitive.ObjectID, req AdminUpdateEventRequest) (*Event, error)
-	AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) error
+	AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error)
 }
 
 type EventService interface {

@@ -693,10 +693,12 @@ func (r *EventRepositoryImpl) AdminUpdateEvent(ctx context.Context, eventID prim
 	return r.GetEventByID(ctx, eventID)
 }
 
-// AdminDeleteEvent hides an event and cancels its tickets, in one transaction. The rows stay
-// because tickets are payment records.
-func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) error {
-	return r.conn(ctx).Transaction(func(tx *gorm.DB) error {
+// AdminDeleteEvent hides an event and cancels its tickets, in one transaction, and returns the
+// tickets it cancelled. Paid tickets are marked refunded; the caller posts the refunds in the
+// same transaction. The rows stay because tickets are payment records.
+func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error) {
+	var cancelled []EventTicket
+	err := r.conn(ctx).Transaction(func(tx *gorm.DB) error {
 		res := tx.Exec(`UPDATE events SET deleted_at = now() WHERE id = ? AND deleted_at IS NULL`, eventID.Hex())
 		if res.Error != nil {
 			return res.Error
@@ -704,6 +706,17 @@ func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID prim
 		if res.RowsAffected == 0 {
 			return errEventMissing
 		}
-		return tx.Exec(`UPDATE event_tickets SET status = 'cancelled' WHERE event_id = ? AND status = 'confirmed'`, eventID.Hex()).Error
+		var rows []ticketRow
+		if err := tx.Raw(`UPDATE event_tickets SET status = 'cancelled',
+				payment_status = CASE WHEN payment_status = 'paid' THEN 'refunded' ELSE payment_status END
+			WHERE event_id = ? AND status = 'confirmed' RETURNING `+ticketColumns, eventID.Hex()).Scan(&rows).Error; err != nil {
+			return err
+		}
+		cancelled = toTickets(rows)
+		return nil
 	})
+	if err != nil {
+		return nil, err
+	}
+	return cancelled, nil
 }

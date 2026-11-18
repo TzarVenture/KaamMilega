@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"km-backend/internal/common/apperr"
+	"km-backend/internal/common/money"
+	"log"
 	"net/url"
 	"strings"
 
@@ -284,12 +286,107 @@ func (s *EventServiceImpl) AdminUpdateEvent(ctx context.Context, eventID string,
 	return s.repo.AdminUpdateEvent(ctx, evID, req)
 }
 
+// AdminDeleteEvent hides an event, cancels its tickets and refunds every paid one, in one
+// transaction: a wallet payment goes back to the wallet, a card or UPI payment is queued for a
+// Razorpay refund. Queued refunds are sent after the commit; the recovery job retries failures.
 func (s *EventServiceImpl) AdminDeleteEvent(ctx context.Context, eventID string) error {
 	evID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
 		return errors.New("invalid event id")
 	}
-	return s.repo.AdminDeleteEvent(ctx, evID)
+	var cancelled []EventTicket
+	var cardRefunds []string
+	err = s.tx.Run(ctx, func(ctx context.Context) error {
+		cardRefunds = nil
+		if cancelled, err = s.repo.AdminDeleteEvent(ctx, evID); err != nil {
+			return err
+		}
+		for i := range cancelled {
+			queued, err := s.refundTicket(ctx, &cancelled[i])
+			if err != nil {
+				return err
+			}
+			if queued {
+				cardRefunds = append(cardRefunds, cancelled[i].RazorpayOrderID)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+
+	for _, orderID := range cardRefunds {
+		if err := s.payments.ProcessRefundByRazorpayOrder(ctx, orderID); err != nil {
+			log.Printf("[event] deleted event %s: refund for order %s will be retried: %v", eventID, orderID, err)
+		}
+	}
+	for i := range cancelled {
+		s.notifyCancelled(&cancelled[i])
+	}
+	return nil
+}
+
+// refundTicket pays back a cancelled ticket. It reports whether a card or UPI refund was queued,
+// which the caller sends once the transaction has committed. Call inside a transaction.
+func (s *EventServiceImpl) refundTicket(ctx context.Context, t *EventTicket) (bool, error) {
+	paise := money.ToPaise(t.Amount)
+	if paise <= 0 {
+		return false, nil
+	}
+	switch t.PaymentMethod {
+	case "razorpay":
+		_, err := s.payments.MarkRefundDue(ctx, t.RazorpayOrderID, paise, "Event cancelled")
+		if errors.Is(err, payment.ErrNotRefundable) {
+			return false, nil // already refunded or on its way
+		}
+		return err == nil, err
+	case "wallet":
+		_, _, err := s.walletService.RecordTransaction(ctx, wallet.RecordTransactionInput{
+			UserID:        t.UserID,
+			Type:          wallet.TypeCredit,
+			TargetBalance: wallet.BalanceMain,
+			Category:      wallet.CategoryRefund,
+			Amount:        t.Amount,
+			ReferenceID:   "ticket:" + t.ID.Hex() + ":refund",
+			Description:   "Refund: " + t.EventTitle + " was cancelled",
+			Metadata: map[string]interface{}{
+				"ticket_id":     t.ID.Hex(),
+				"ticket_number": t.TicketNumber,
+				"event_id":      t.EventID.Hex(),
+			},
+		})
+		if errors.Is(err, wallet.ErrClosed) {
+			// The member deleted their account; there is no wallet to pay into
+			log.Printf("[event] ticket %s: wallet closed, refund of ₹%.2f needs manual handling", t.TicketNumber, t.Amount)
+			return false, nil
+		}
+		return false, err
+	}
+	return false, nil
+}
+
+func (s *EventServiceImpl) notifyCancelled(t *EventTicket) {
+	if s.notifService == nil {
+		return
+	}
+	message := fmt.Sprintf("%s has been cancelled.", t.EventTitle)
+	if money.ToPaise(t.Amount) > 0 && t.PaymentMethod == "wallet" {
+		message += " Your ticket money is back in your wallet."
+	} else if money.ToPaise(t.Amount) > 0 {
+		message += " Your refund is on its way to your original payment method."
+	}
+	go func() {
+		_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
+			UserID:   t.UserID,
+			Type:     "event_cancelled",
+			Category: notification.CategorySystem,
+			Title:    "Event cancelled",
+			Message:  message,
+			Link:     "/events",
+			Metadata: map[string]interface{}{"event_id": t.EventID.Hex(), "ticket_number": t.TicketNumber},
+		})
+	}()
 }
 
 func min(a, b int) int {

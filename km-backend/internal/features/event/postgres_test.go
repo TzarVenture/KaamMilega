@@ -171,8 +171,24 @@ func TestDeletedEventIsHiddenAndTicketsCancelled(t *testing.T) {
 		PaymentStatus: "free", PaymentMethod: "free", Status: "confirmed"}); err != nil {
 		t.Fatal(err)
 	}
-	if err := e.repo.AdminDeleteEvent(e.ctx, ev.ID); err != nil {
+	payer := primitive.NewObjectID()
+	if _, err := e.repo.CreateTicket(e.ctx, &EventTicket{TicketNumber: "TKT-P", EventID: ev.ID, UserID: payer, Amount: 199,
+		PaymentStatus: "paid", PaymentMethod: "wallet", Status: "confirmed"}); err != nil {
 		t.Fatal(err)
+	}
+	cancelled, err := e.repo.AdminDeleteEvent(e.ctx, ev.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Both come back for the caller to refund; only the paid one is marked refunded
+	if len(cancelled) != 2 {
+		t.Fatalf("cancelled %d tickets, want 2", len(cancelled))
+	}
+	for _, tk := range cancelled {
+		want := map[string]string{"TKT-D": "free", "TKT-P": "refunded"}[tk.TicketNumber]
+		if tk.Status != "cancelled" || tk.PaymentStatus != want || (tk.TicketNumber == "TKT-P" && tk.Amount != 199) {
+			t.Errorf("%s: status %q, payment %q, amount %v", tk.TicketNumber, tk.Status, tk.PaymentStatus, tk.Amount)
+		}
 	}
 	if _, err := e.repo.GetEventByID(e.ctx, ev.ID); err == nil {
 		t.Fatal("deleted event still visible")
@@ -184,7 +200,7 @@ func TestDeletedEventIsHiddenAndTicketsCancelled(t *testing.T) {
 	if tickets, _ := e.repo.GetTicketsByUser(e.ctx, user); len(tickets) != 0 {
 		t.Fatal("ticket of a deleted event is still confirmed")
 	}
-	if err := e.repo.AdminDeleteEvent(e.ctx, ev.ID); err == nil {
+	if _, err := e.repo.AdminDeleteEvent(e.ctx, ev.ID); err == nil {
 		t.Fatal("deleting twice should report not found")
 	}
 }
