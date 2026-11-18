@@ -110,6 +110,34 @@ func TestPGRevenueIsWhatThePlatformKeeps(t *testing.T) {
 	if got := revenue(); got != 99.0+200.0 {
 		t.Fatalf("revenue after refund = %v, want 299", got)
 	}
+
+	// A ₹150 wallet ticket, then its event is deleted and the ticket refunded: no change overall
+	var wallet string
+	pg.DB.Raw(`SELECT id FROM wallets WHERE user_id = ?`, uid).Scan(&wallet)
+	pgExec(t, pg, `INSERT INTO wallet_transactions (id, wallet_id, user_id, type, target_balance, category, amount_paise, balance_after_paise, reference_id) VALUES
+		(?, ?, ?, 'debit', 'main', 'event_ticket', 15000, 0, 'ticket:t1:pay'),
+		(?, ?, ?, 'credit', 'main', 'refund', 15000, 15000, 'ticket:t1:refund')`,
+		oidHex(), wallet, uid, oidHex(), wallet, uid)
+	if got := revenue(); got != 99.0+200.0 {
+		t.Fatalf("revenue after a refunded ticket = %v, want 299", got)
+	}
+}
+
+// Only gigs still under way count as active
+func TestPGActiveGigsLeavesOutFinishedOnes(t *testing.T) {
+	r, pg := newPGUserRepo(t)
+	for _, status := range []string{"DISPATCHING", "ACCEPTED", "IN_PROGRESS", "COMPLETED", "CLOSED", "CANCELLED", "EXPIRED"} {
+		pgExec(t, pg, `INSERT INTO instant_jobs (id, recruiter_id, skill, location, pay_rate_paise, rate_type, status, expires_at)
+			VALUES (?, ?, 'Loader', extensions.ST_GeogFromText('POINT(72.87 19.07)'), 30000, 'hourly', ?, now() + interval '1 hour')`,
+			oidHex(), oidHex(), status)
+	}
+	stats, err := r.GetPlatformStats(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stats["active_gigs"] != int64(3) {
+		t.Fatalf("active gigs = %v (%T), want 3", stats["active_gigs"], stats["active_gigs"])
+	}
 }
 
 func TestPGRevenueCSV(t *testing.T) {

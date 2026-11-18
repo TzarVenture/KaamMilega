@@ -237,3 +237,48 @@ func TestSearchAndAdminStats(t *testing.T) {
 		t.Fatalf("stats = %+v", it)
 	}
 }
+
+// A wallet ticket's dispute: an approved partial refund is reported so the event refund pays only
+// the rest, and a dispute still open is closed, because the event refund settles it
+func TestTicketDisputeIsSettledBeforeTheEventRefund(t *testing.T) {
+	e := setupPG(t)
+	db := e.repo.pg.WithContext(e.ctx)
+	dispute := func(status string, refund int64) primitive.ObjectID {
+		t.Helper()
+		user, wallet, ticket, tx := primitive.NewObjectID().Hex(), primitive.NewObjectID().Hex(), primitive.NewObjectID(), primitive.NewObjectID().Hex()
+		ref := "ticket:" + ticket.Hex() + ":pay"
+		for _, q := range []struct {
+			sql  string
+			args []interface{}
+		}{
+			{`INSERT INTO wallets (id, user_id) VALUES (?, ?)`, []interface{}{wallet, user}},
+			{`INSERT INTO wallet_transactions (id, wallet_id, user_id, type, target_balance, category, amount_paise, balance_after_paise, reference_id)
+				VALUES (?, ?, ?, 'debit', 'main', 'event_ticket', 19900, 0, ?)`, []interface{}{tx, wallet, user, ref}},
+			{`INSERT INTO wallet_disputes (id, user_id, transaction_id, reference_id, amount_paise, refund_paise, target_balance, category, reason, description, status)
+				VALUES (?, ?, ?, ?, 19900, ?, 'main', 'event_ticket', 'other', 'test', ?)`, []interface{}{primitive.NewObjectID().Hex(), user, tx, ref, refund, status}},
+		} {
+			if err := db.Exec(q.sql, q.args...).Error; err != nil {
+				t.Fatal(err)
+			}
+		}
+		return ticket
+	}
+
+	partial := dispute("approved", 5000)
+	if got, err := e.repo.SettleTicketDispute(e.ctx, partial); err != nil || got != 5000 {
+		t.Fatalf("approved partial refund: got %d, %v; want 5000", got, err)
+	}
+
+	open := dispute("pending", 0)
+	if got, err := e.repo.SettleTicketDispute(e.ctx, open); err != nil || got != 0 {
+		t.Fatalf("open dispute: got %d, %v; want 0", got, err)
+	}
+	var status string
+	if err := db.Raw(`SELECT status FROM wallet_disputes WHERE reference_id = ?`, "ticket:"+open.Hex()+":pay").Scan(&status).Error; err != nil || status != "rejected" {
+		t.Fatalf("open dispute is now %q (%v), want closed as rejected", status, err)
+	}
+
+	if got, err := e.repo.SettleTicketDispute(e.ctx, primitive.NewObjectID()); err != nil || got != 0 {
+		t.Fatalf("no dispute: got %d, %v", got, err)
+	}
+}

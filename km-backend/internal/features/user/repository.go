@@ -686,8 +686,10 @@ func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]i
 	// card or from the wallet, less refunds. Wallet top-ups are the user's own money, and session
 	// fees go to the expert, so neither counts. A purchase is either a card order or a wallet
 	// debit, never both, so nothing is counted twice.
+	// Wallet tickets refunded because their event was deleted come off too (references
+	// "ticket:<id>:refund"); card refunds are already in refund_paise.
 	if err := r.pg.WithContext(ctx).Raw(`SELECT
-			(SELECT count(*) FROM instant_jobs) AS active_gigs,
+			(SELECT count(*) FROM instant_jobs WHERE status IN ('DISPATCHING', 'ACCEPTED', 'IN_PROGRESS')) AS active_gigs,
 			(SELECT count(*) FROM wallet_disputes) AS disputes,
 			  (SELECT coalesce(sum(amount_paise - refund_paise), 0) FROM payment_orders
 				WHERE purpose IN ('instant_pass', 'event_ticket') AND status IN ('paid', 'refund_due', 'refunded'))
@@ -695,6 +697,8 @@ func (r *UserRepositoryImpl) GetPlatformStats(ctx context.Context) (map[string]i
 				WHERE type = 'debit' AND status = 'completed' AND category IN ('pass_purchase', 'event_ticket'))
 			- (SELECT coalesce(sum(refund_paise), 0) FROM wallet_disputes
 				WHERE status = 'approved' AND category IN ('pass_purchase', 'event_ticket'))
+			- (SELECT coalesce(sum(amount_paise), 0) FROM wallet_transactions
+				WHERE type = 'credit' AND status = 'completed' AND category = 'refund' AND reference_id LIKE 'ticket:%:refund')
 			AS revenue_paise`).
 		Scan(&totals).Error; err != nil {
 		log.Printf("[platform stats] reading Postgres totals failed: %v", err)

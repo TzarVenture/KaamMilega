@@ -183,6 +183,7 @@ type EventRepository interface {
 	AdminGetEventDetail(ctx context.Context, eventID primitive.ObjectID) (*AdminEventDetailResponse, error)
 	AdminUpdateEvent(ctx context.Context, eventID primitive.ObjectID, req AdminUpdateEventRequest) (*Event, error)
 	AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error)
+	SettleTicketDispute(ctx context.Context, ticketID primitive.ObjectID) (int64, error)
 }
 
 type EventService interface {

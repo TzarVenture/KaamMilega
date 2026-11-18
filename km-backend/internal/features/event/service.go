@@ -342,12 +342,20 @@ func (s *EventServiceImpl) refundTicket(ctx context.Context, t *EventTicket) (bo
 		}
 		return err == nil, err
 	case "wallet":
-		_, _, err := s.walletService.RecordTransaction(ctx, wallet.RecordTransactionInput{
+		// A partial dispute refund already paid some of it back
+		already, err := s.repo.SettleTicketDispute(ctx, t.ID)
+		if err != nil {
+			return false, err
+		}
+		if paise -= already; paise <= 0 {
+			return false, nil
+		}
+		_, _, err = s.walletService.RecordTransaction(ctx, wallet.RecordTransactionInput{
 			UserID:        t.UserID,
 			Type:          wallet.TypeCredit,
 			TargetBalance: wallet.BalanceMain,
 			Category:      wallet.CategoryRefund,
-			Amount:        t.Amount,
+			Amount:        money.ToRupees(paise),
 			ReferenceID:   "ticket:" + t.ID.Hex() + ":refund",
 			Description:   "Refund: " + t.EventTitle + " was cancelled",
 			Metadata: map[string]interface{}{

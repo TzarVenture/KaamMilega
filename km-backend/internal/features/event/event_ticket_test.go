@@ -178,6 +178,11 @@ func (m *mockEventRepo) AdminUpdateEvent(ctx context.Context, eventID primitive.
 	return e, nil
 }
 
+// Disputes are a wallet table; the Postgres tests cover them
+func (m *mockEventRepo) SettleTicketDispute(ctx context.Context, ticketID primitive.ObjectID) (int64, error) {
+	return 0, nil
+}
+
 func (m *mockEventRepo) AdminDeleteEvent(ctx context.Context, eventID primitive.ObjectID) ([]EventTicket, error) {
 	if _, ok := m.events[eventID.Hex()]; !ok {
 		return nil, errors.New("event not found")

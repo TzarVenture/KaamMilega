@@ -693,6 +693,24 @@ func (r *EventRepositoryImpl) AdminUpdateEvent(ctx context.Context, eventID prim
 	return r.GetEventByID(ctx, eventID)
 }
 
+// SettleTicketDispute runs before a wallet ticket is refunded because its event was deleted. It
+// returns what an approved dispute on the ticket already paid back, so the refund pays only the
+// rest, and closes a dispute that is still open, which the refund settles. Call inside a
+// transaction.
+func (r *EventRepositoryImpl) SettleTicketDispute(ctx context.Context, ticketID primitive.ObjectID) (int64, error) {
+	db := r.conn(ctx)
+	ref := "ticket:" + ticketID.Hex() + ":pay"
+	if err := db.Exec(`UPDATE wallet_disputes SET status = 'rejected', resolved_by = 'system', resolved_at = now(),
+			admin_notes = 'Closed: the event was cancelled and the ticket refunded'
+		WHERE reference_id = ? AND status IN ('pending', 'under_review')`, ref).Error; err != nil {
+		return 0, err
+	}
+	var refunded int64
+	err := db.Raw(`SELECT coalesce(sum(refund_paise), 0) FROM wallet_disputes WHERE reference_id = ? AND status = 'approved'`,
+		ref).Scan(&refunded).Error
+	return refunded, err
+}
+
 // AdminDeleteEvent hides an event and cancels its tickets, in one transaction, and returns the
 // tickets it cancelled. Paid tickets are marked refunded; the caller posts the refunds in the
 // same transaction. The rows stay because tickets are payment records.
