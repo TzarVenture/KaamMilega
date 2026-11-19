@@ -53,7 +53,7 @@ api.interceptors.response.use(
                     document.cookie = "km_user_role=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0;";
 
                     const currentPath = window.location.pathname;
-                    const isPublicRoute = currentPath === "/" || currentPath.startsWith("/jobs") || currentPath.startsWith("/mentorship");
+                    const isPublicRoute = currentPath === "/" || currentPath.startsWith("/jobs") || currentPath.startsWith("/mentorship") || currentPath.startsWith("/company/");
 
                     // Sign in again on the right portal, then come back to this page
                     if (!isAuthPage(currentPath) && !isPublicRoute) {

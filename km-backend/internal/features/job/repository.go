@@ -161,6 +161,11 @@ func listFilter(filter JobFilter) bson.M {
 		andConditions = append(andConditions, bson.M{"salary_min": bson.M{"$lte": *filter.SalaryMax}})
 	}
 
+	// One company's jobs
+	if oid, err := primitive.ObjectIDFromHex(strings.TrimSpace(filter.RecruiterID)); err == nil {
+		andConditions = append(andConditions, bson.M{"recruiter_id": oid})
+	}
+
 	// Jobs of a deactivated or pending-deletion recruiter account are hidden (internal/features/account)
 	andConditions = append(andConditions, bson.M{"hidden_by_account": bson.M{"$ne": true}})
 	andConditions = append(andConditions, bson.M{"status": bson.M{"$ne": "Deleted"}})

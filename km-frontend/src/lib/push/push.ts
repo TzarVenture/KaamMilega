@@ -137,6 +137,54 @@ async function ensureAccountPushOn() {
 export class PushPermissionError extends Error {}
 
 /**
+ * The browser's own push service refused or couldn't be reached. Chrome reports it as
+ * "AbortError: Registration failed - push service error"; Firebase may wrap it as
+ * messaging/token-subscribe-failed. Our server is not involved at that point.
+ */
+function isPushServiceError(err: unknown): boolean {
+    const e = err as { name?: string; code?: string; message?: string } | null;
+    return (
+        e?.name === 'AbortError' ||
+        e?.code === 'messaging/token-subscribe-failed' ||
+        /push service error|registration failed/i.test(String(e?.message ?? ''))
+    );
+}
+
+/** What to tell the user when the browser's push service fails */
+function pushServiceHelp(): string {
+    // Brave turns off Google's push service (which it relies on) by default
+    if ((navigator as Navigator & { brave?: unknown }).brave) {
+        return 'Brave blocks website notifications by default. Open brave://settings/privacy, turn on “Use Google services for push messaging”, restart Brave, then try again.';
+    }
+    return 'Your browser couldn’t reach its notification service. Check your internet, pause any VPN or ad blocker for KaamMilega, then try again. If it still fails, try Chrome, Edge or Firefox.';
+}
+
+/**
+ * currentToken, with one retry for a push-service failure: a stale subscription left from an
+ * earlier key or browser update can cause it, so that one is dropped first.
+ */
+async function tokenForEnable(): Promise<string> {
+    try {
+        return await currentToken();
+    } catch (err) {
+        if (!isPushServiceError(err)) throw err;
+    }
+    try {
+        const reg = await navigator.serviceWorker.getRegistration(PUSH_SW_SCOPE);
+        const sub = await reg?.pushManager.getSubscription();
+        await sub?.unsubscribe();
+    } catch {
+        // Nothing to clear
+    }
+    try {
+        return await currentToken();
+    } catch (err) {
+        if (isPushServiceError(err)) throw new PushPermissionError(pushServiceHelp());
+        throw err;
+    }
+}
+
+/**
  * Turn push on in this browser. Must run from a click (browsers only show the permission
  * prompt after a user gesture).
  */
@@ -151,7 +199,7 @@ export async function enablePush(): Promise<void> {
                 : 'Notifications were not allowed.',
         );
     }
-    const token = await currentToken();
+    const token = await tokenForEnable();
     await registerWithServer(token);
     await ensureAccountPushOn();
     writePref('on');

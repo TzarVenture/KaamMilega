@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { BuildingOfficeIcon, CaretRightIcon, CheckIcon, PlusIcon, SealCheckIcon } from '@phosphor-icons/react';
@@ -11,8 +11,9 @@ import { useFormat } from '@/i18n/useFormat';
 interface CompanyCardProps {
     company: HiringCompany;
     variant?: 'compact' | 'expanded';
-    isInitiallyFollowing?: boolean;
-    onToggleFollow?: (companyName: string, following: boolean) => void;
+    /** Shown with a Follow button when onToggleFollow is given (compact cards only) */
+    isFollowing?: boolean;
+    onToggleFollow?: (company: HiringCompany) => void;
 }
 
 /**
@@ -22,23 +23,20 @@ interface CompanyCardProps {
 export const CompanyCard: React.FC<CompanyCardProps> = ({
     company,
     variant = 'compact',
-    isInitiallyFollowing = false,
+    isFollowing = false,
     onToggleFollow,
 }) => {
     const t = useTranslations('company');
     const tc = useTranslations('common');
     const { number } = useFormat();
-    const [isFollowing, setIsFollowing] = useState(isInitiallyFollowing);
-    const searchHref = `/jobs?company=${encodeURIComponent(company.name)}`;
+    // The company page when we know the company, else a job search for its name
+    const pageHref = company.id ? `/company/${company.id}` : `/jobs?q=${encodeURIComponent(company.name)}`;
+    const searchHref = company.id ? `/company/${company.id}/jobs` : pageHref;
 
     const handleFollowClick = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        const nextState = !isFollowing;
-        setIsFollowing(nextState);
-        if (onToggleFollow) {
-            onToggleFollow(company.name, nextState);
-        }
+        onToggleFollow?.(company);
     };
 
     // Logo in a neutral tile so every brand sits on the same surface
@@ -107,12 +105,13 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 {logoTile('w-11 h-11', 20)}
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
-                        <Link href={searchHref} className="text-sm font-semibold text-km-text-primary group-hover:text-km-heading transition-colors truncate">
+                        <Link href={pageHref} className="text-sm font-semibold text-km-text-primary group-hover:text-km-heading transition-colors truncate">
                             {company.name}
                         </Link>
                         {verifiedSeal(14)}
                     </div>
                     {company.category && <p className="text-xs text-km-text-secondary truncate mt-0.5">{company.category}</p>}
+                    {company.reason && <p className="text-xs font-medium text-km-heading truncate mt-0.5">{company.reason}</p>}
                 </div>
             </div>
 
@@ -128,6 +127,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 <button
                     type="button"
                     onClick={handleFollowClick}
+                    aria-pressed={isFollowing}
                     className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
                         isFollowing
                             ? 'bg-km-surface text-km-text-primary border border-km-border hover:bg-[#E3E9F1] dark:hover:bg-[#1D253D]'

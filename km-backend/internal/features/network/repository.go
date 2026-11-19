@@ -17,6 +17,8 @@ type MongoDBRepository struct {
 	usersColl     *mongo.Collection
 	dismissedColl *mongo.Collection
 	blocksColl    *mongo.Collection
+	followsColl   *mongo.Collection
+	jobsColl      *mongo.Collection
 }
 
 func NewNetworkRepository(db *database.MongodbDB) NetworkRepository {
@@ -30,7 +32,15 @@ func NewNetworkRepository(db *database.MongodbDB) NetworkRepository {
 		{Keys: bson.D{{Key: "user_id", Value: 1}}},
 		{Keys: bson.D{{Key: "dismissed_user_id", Value: 1}}},
 	})
+	follows := db.DB.Collection(CompanyFollowsCollection)
+	database.SyncIndexesInBackground(follows, []mongo.IndexModel{
+		// One follow per person and company
+		{Keys: bson.D{{Key: "user_id", Value: 1}, {Key: "company_id", Value: 1}}, Options: options.Index().SetUnique(true)},
+		{Keys: bson.D{{Key: "company_id", Value: 1}}},
+	})
 	return &MongoDBRepository{
+		followsColl:   follows,
+		jobsColl:      db.DB.Collection("jobs"),
 		db:            db,
 		collection:    connections,
 		usersColl:     db.DB.Collection("users"),
@@ -342,4 +352,3 @@ func (r *MongoDBRepository) FriendsOfFriends(ctx context.Context, userID primiti
 	}
 	return out, nil
 }
-

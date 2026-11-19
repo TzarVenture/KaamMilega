@@ -191,3 +191,67 @@ func (ctrl *NetworkController) DismissSuggestion(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{"message": "Suggestion dismissed"})
 }
+
+func signedInUser(c *fiber.Ctx) (primitive.ObjectID, bool) {
+	s, _ := c.Locals("user_id").(string)
+	id, err := primitive.ObjectIDFromHex(s)
+	return id, err == nil
+}
+
+func (ctrl *NetworkController) CompanySuggestions(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return apperr.Respond(c, errNotSignedIn)
+	}
+	list, err := ctrl.service.CompanySuggestions(c.Context(), userID, c.QueryInt("limit", 6))
+	if err != nil {
+		return apperr.Respond(c, err)
+	}
+	return c.JSON(fiber.Map{"data": list})
+}
+
+func (ctrl *NetworkController) FollowedCompanies(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return apperr.Respond(c, errNotSignedIn)
+	}
+	ids, err := ctrl.service.FollowedCompanies(c.Context(), userID)
+	if err != nil {
+		return apperr.Respond(c, err)
+	}
+	return c.JSON(fiber.Map{"data": ids})
+}
+
+func (ctrl *NetworkController) FollowCompany(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return apperr.Respond(c, errNotSignedIn)
+	}
+	if err := ctrl.service.FollowCompany(c.Context(), userID, c.Params("id")); err != nil {
+		return apperr.Respond(c, err)
+	}
+	return c.JSON(fiber.Map{"following": true})
+}
+
+func (ctrl *NetworkController) UnfollowCompany(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return apperr.Respond(c, errNotSignedIn)
+	}
+	if err := ctrl.service.UnfollowCompany(c.Context(), userID, c.Params("id")); err != nil {
+		return apperr.Respond(c, err)
+	}
+	return c.JSON(fiber.Map{"following": false})
+}
+
+func (ctrl *NetworkController) CompanyPeople(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return apperr.Respond(c, errNotSignedIn)
+	}
+	people, err := ctrl.service.CompanyPeople(c.Context(), userID, c.Params("id"), c.QueryInt("limit", 24))
+	if err != nil {
+		return apperr.Respond(c, err)
+	}
+	return c.JSON(fiber.Map{"data": people})
+}

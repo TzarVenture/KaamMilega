@@ -91,6 +91,9 @@ type JobFilter struct {
 	ExperienceMin *int
 	ExperienceMax *int
 
+	// RecruiterID lists one company's jobs (a company is its recruiter's account)
+	RecruiterID string
+
 	Page  int
 	Limit int
 }

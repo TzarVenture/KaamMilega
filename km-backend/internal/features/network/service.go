@@ -638,4 +638,3 @@ func extractKeyWords(text string) map[string]bool {
 	}
 	return tokens
 }
-

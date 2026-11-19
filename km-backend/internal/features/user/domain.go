@@ -92,6 +92,10 @@ type User struct {
 	CompanyName        string     `bson:"company_name,omitempty" json:"company_name,omitempty"`
 	CompanyLogo        string     `bson:"company_logo,omitempty" json:"company_logo,omitempty"`
 	CompanyWebsite     string     `bson:"company_website,omitempty" json:"company_website,omitempty"`
+	CompanyCover       string     `bson:"company_cover,omitempty" json:"company_cover,omitempty"`
+	CompanyAbout       string     `bson:"company_about,omitempty" json:"company_about,omitempty"`
+	CompanyCity        string     `bson:"company_city,omitempty" json:"company_city,omitempty"` // where the company is based (City is the recruiter's own)
+	CompanySize        string     `bson:"company_size,omitempty" json:"company_size,omitempty"` // one of CompanySizes
 	GST                string     `bson:"gst,omitempty" json:"gst,omitempty"`
 	CompanyDocuments   []Document `bson:"company_documents,omitempty" json:"company_documents,omitempty"`
 	Industry           string     `bson:"industry,omitempty" json:"industry,omitempty"`
@@ -215,6 +219,9 @@ type RegisterRequest struct {
 	CompanyName      string     `json:"company_name,omitempty"`
 	CompanyWebsite   string     `json:"company_website,omitempty"`
 	CompanyLogo      string     `json:"company_logo,omitempty"`
+	CompanyAbout     string     `json:"company_about,omitempty"`
+	CompanyCity      string     `json:"company_city,omitempty"`
+	CompanySize      string     `json:"company_size,omitempty"`
 	GST              string     `json:"gst,omitempty"`
 	Industry         string     `json:"industry,omitempty"`
 	CompanyDocuments []Document `json:"company_documents,omitempty"`

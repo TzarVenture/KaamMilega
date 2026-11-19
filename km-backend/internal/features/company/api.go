@@ -30,6 +30,7 @@ func (api *CompanyApi) Setup(app *fiber.App) {
 	publicRoutes := app.Group("/api/companies")
 	publicRoutes.Get("/top", api.controller.GetTopCompanies)
 	publicRoutes.Get("/", api.controller.GetTopCompanies)
+	publicRoutes.Get("/:id", api.controller.GetPublicCompany) // after /top, so "top" isn't read as an id
 
 	// Group for admin company management
 	adminRoutes := app.Group("/api/admin/companies", middleware.AuthMiddleware(api.config.JWTSecret), middleware.RequireRole("admin"))

@@ -20,29 +20,16 @@ import {
     linkClass,
 } from '@/components/auth/AuthUI';
 import OtpInput from '@/components/ui/OtpInput';
+import ImageCropper, { CROPPABLE_ACCEPT, isCroppableImage, isSvgImage } from '@/components/ui/ImageCropper';
+import ModalWrapper from '@/components/ui/ModalWrapper';
 import api from '@/lib/axios';
 import { isAuthenticated, saveSession, type StoredUser } from '@/lib/auth';
 import { uploadFile } from '@/lib/upload';
 import { errorText } from '@/lib/notify';
+import { COMPANY_ABOUT_MAX, INDUSTRIES, normalizeWebsite, useCityOptions } from '@/lib/companyProfile';
 
 export type EmployerSetupStep = 'you' | 'company' | 'verify';
 const STEPS: EmployerSetupStep[] = ['you', 'company', 'verify'];
-
-// Stored values stay in English (they are what existing companies already have); the labels
-// come from the messages
-const INDUSTRIES: [key: string, value: string][] = [
-    ['it', 'Information Technology & Services'],
-    ['manufacturing', 'Manufacturing & Engineering'],
-    ['healthcare', 'Healthcare & Pharmaceuticals'],
-    ['logistics', 'Logistics, Supply Chain & Transport'],
-    ['retail', 'Retail & E-Commerce'],
-    ['hospitality', 'Hospitality & Food Services'],
-    ['finance', 'Banking & Financial Services'],
-    ['construction', 'Construction, Real Estate & Trades'],
-    ['education', 'Education & EdTech'],
-    ['staffing', 'Staffing & Executive Search'],
-    ['other', 'Other Industry'],
-];
 
 // Document names are saved in English for the team that reviews them
 const DOCUMENTS: [key: string, name: string][] = [
@@ -55,6 +42,8 @@ const DOCUMENTS: [key: string, name: string][] = [
 
 const PERSONAL_EMAIL_DOMAINS = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'rediffmail.com', 'icloud.com'];
 const MAX_LOGO_BYTES = 2 * 1024 * 1024;
+// Larger photos are refused before cropping, since the browser has to decode them
+const MAX_LOGO_SOURCE_BYTES = 15 * 1024 * 1024;
 const MAX_DOC_BYTES = 5 * 1024 * 1024;
 const RESEND_SECONDS = 30;
 
@@ -65,19 +54,15 @@ type ProfileUser = StoredUser & {
     company_website?: string;
     company_logo?: string;
     industry?: string;
+    company_city?: string;
+    company_about?: string;
+    city?: string;
     gst?: string;
     email?: string;
     is_email_verified?: boolean;
 };
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-
-/** "acme.in" -> "https://acme.in"; empty stays empty */
-const normalizeWebsite = (value: string) => {
-    const v = value.trim();
-    if (!v) return '';
-    return /^https?:\/\//i.test(v) ? v : `https://${v}`;
-};
 
 export default function EmployerSetupView({
     previewStep,
@@ -100,9 +85,14 @@ export default function EmployerSetupView({
     const [companyName, setCompanyName] = useState('');
     const [website, setWebsite] = useState('');
     const [industry, setIndustry] = useState('');
+    const [companyCity, setCompanyCity] = useState('');
+    const [companyAbout, setCompanyAbout] = useState('');
+    const cityOptions = useCityOptions(step === 'company');
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [savedLogo, setSavedLogo] = useState('');
+    // A picked logo waiting to be cropped
+    const [cropLogo, setCropLogo] = useState<File | null>(null);
 
     // Verification
     const [email, setEmail] = useState('');
@@ -145,6 +135,9 @@ export default function EmployerSetupView({
                 }
                 setWebsite((u.company_website || '').replace(/^https?:\/\//i, ''));
                 setIndustry(INDUSTRIES.find(([, value]) => value === u.industry)?.[1] || '');
+                // A new company starts from the recruiter's own city
+                setCompanyCity(u.company_city || u.city || '');
+                setCompanyAbout(u.company_about || '');
                 setSavedLogo(u.company_logo || '');
                 setDocNumber(u.gst || '');
                 setEmail(u.email || '');
@@ -211,6 +204,8 @@ export default function EmployerSetupView({
                 company_website: normalizeWebsite(website) || undefined,
                 company_logo: companyLogo,
                 industry: industry || undefined,
+                company_city: companyCity.trim() || undefined,
+                company_about: companyAbout.trim() || undefined,
             })) as ProfileUser | null;
 
             if (user) {
@@ -231,10 +226,8 @@ export default function EmployerSetupView({
         }
     };
 
-    const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        e.target.value = '';
-        if (!file) return;
+    const applyLogo = (file: File) => {
+        setCropLogo(null);
         if (file.size > MAX_LOGO_BYTES) {
             setError(t('company.logoTooBig'));
             return;
@@ -242,6 +235,27 @@ export default function EmployerSetupView({
         setError(null);
         setLogoFile(file);
         setLogoPreview(URL.createObjectURL(file));
+    };
+
+    const handleLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        // An SVG is sharp at any size: used as it is. Photos are cropped to a square first.
+        if (isSvgImage(file)) {
+            applyLogo(file);
+            return;
+        }
+        if (!isCroppableImage(file)) {
+            setError(t('company.logoType'));
+            return;
+        }
+        if (file.size > MAX_LOGO_SOURCE_BYTES) {
+            setError(t('company.logoTooBig'));
+            return;
+        }
+        setError(null);
+        setCropLogo(file);
     };
 
     // Step 3: work email
@@ -495,6 +509,26 @@ export default function EmployerSetupView({
                         <CaretDownIcon size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-km-text-secondary" aria-hidden="true" />
                     </div>
 
+                    <label htmlFor="setup-city" className={`${labelClass} mt-4`}>
+                        {t('company.city')} <span className="font-normal text-km-text-secondary">({t('optional')})</span>
+                    </label>
+                    <input
+                        id="setup-city"
+                        type="text"
+                        list="setup-city-options"
+                        autoComplete="address-level2"
+                        enterKeyHint="next"
+                        placeholder={t('company.cityPlaceholder')}
+                        value={companyCity}
+                        onChange={(e) => setCompanyCity(e.target.value)}
+                        className={inputClass(false)}
+                    />
+                    <datalist id="setup-city-options">
+                        {cityOptions.map((name) => (
+                            <option key={name} value={name} />
+                        ))}
+                    </datalist>
+
                     <label htmlFor="setup-website" className={`${labelClass} mt-4`}>
                         {t('company.website')} <span className="font-normal text-km-text-secondary">({t('optional')})</span>
                     </label>
@@ -505,11 +539,24 @@ export default function EmployerSetupView({
                         autoComplete="url"
                         autoCapitalize="none"
                         spellCheck={false}
-                        enterKeyHint="done"
+                        enterKeyHint="next"
                         placeholder={t('company.websitePlaceholder')}
                         value={website}
                         onChange={(e) => setWebsite(e.target.value)}
                         className={inputClass(false)}
+                    />
+
+                    <label htmlFor="setup-about" className={`${labelClass} mt-4`}>
+                        {t('company.about')} <span className="font-normal text-km-text-secondary">({t('optional')})</span>
+                    </label>
+                    <textarea
+                        id="setup-about"
+                        rows={3}
+                        maxLength={COMPANY_ABOUT_MAX}
+                        placeholder={t('company.aboutPlaceholder')}
+                        value={companyAbout}
+                        onChange={(e) => setCompanyAbout(e.target.value)}
+                        className={`${inputClass(false).replace('h-12 ', '')} py-2.5 resize-y`}
                     />
 
                     <span className={`${labelClass} mt-4`}>
@@ -525,7 +572,7 @@ export default function EmployerSetupView({
                             )}
                         </span>
                         <div className="min-w-0">
-                            <input id="setup-logo" type="file" accept="image/png,image/jpeg,image/svg+xml" onChange={handleLogo} className="sr-only peer" />
+                            <input id="setup-logo" type="file" accept={`${CROPPABLE_ACCEPT},image/svg+xml,.svg`} onChange={handleLogo} className="sr-only peer" />
                             <label htmlFor="setup-logo" className={`${actionLinkClass} peer-focus-visible:underline`}>
                                 {shownLogo ? t('company.logoChange') : t('company.logoUpload')}
                             </label>
@@ -697,6 +744,26 @@ export default function EmployerSetupView({
                     </div>
                 </form>
             )}
+            <ModalWrapper isOpen={Boolean(cropLogo)} onClose={() => setCropLogo(null)} title={t('company.logoCropTitle')}>
+                {cropLogo && (
+                    <div className="py-2">
+                        <p className="mb-4 text-sm text-km-text-secondary text-center">{t('company.logoCropHint')}</p>
+                        <ImageCropper
+                            key={`${cropLogo.name}-${cropLogo.lastModified}`}
+                            file={cropLogo}
+                            shape="square"
+                            format="image/png"
+                            saveLabel={t('company.logoCropUse')}
+                            onCancel={() => setCropLogo(null)}
+                            onError={() => {
+                                setCropLogo(null);
+                                setError(t('company.logoUnreadable'));
+                            }}
+                            onCrop={applyLogo}
+                        />
+                    </div>
+                )}
+            </ModalWrapper>
         </AuthShell>
     );
 }

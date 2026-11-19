@@ -3,6 +3,8 @@ package jobalert
 import (
 	"testing"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func TestScoreNeedsSkillOrHeadlineMatch(t *testing.T) {
@@ -14,7 +16,7 @@ func TestScoreNeedsSkillOrHeadlineMatch(t *testing.T) {
 		{jobDoc{Title: "Electrician", CityName: "Mumbai"}, true},
 		{jobDoc{Title: "Site Technician", Requirements: []string{"solar panel installation experience"}, CityName: "Pune"}, true},
 		{jobDoc{Title: "Delivery Partner", CityName: "Pune"}, false}, // same city alone isn't a match
-		{jobDoc{Title: "Rewiring specialist"}, false},              // whole words only
+		{jobDoc{Title: "Rewiring specialist"}, false},                // whole words only
 	}
 	for _, tc := range cases {
 		if got := score(c, tc.job) > 0; got != tc.want {
@@ -53,5 +55,21 @@ func TestSalaryText(t *testing.T) {
 		if got := salaryText(in[0], in[1]); got != want {
 			t.Errorf("salaryText(%d, %d) = %q, want %q", in[0], in[1], got, want)
 		}
+	}
+}
+
+func TestFollowedCompanyJobsAlwaysQualify(t *testing.T) {
+	followed := primitive.NewObjectID()
+	c := candidate{City: "Pune", Skills: []string{"Driving"}, Following: map[primitive.ObjectID]bool{followed: true}}
+	other := jobDoc{Title: "Accountant", RecruiterID: primitive.NewObjectID()}
+	fromFollowed := jobDoc{Title: "Accountant", RecruiterID: followed}
+	skillMatch := jobDoc{Title: "Driving job", CityName: "Pune", RecruiterID: primitive.NewObjectID()}
+
+	if score(c, other) != 0 {
+		t.Error("an unrelated job from a company they don't follow matched")
+	}
+	got := pick(c, []jobDoc{skillMatch, other, fromFollowed})
+	if len(got) != 2 || got[0].RecruiterID != followed {
+		t.Fatalf("picked %+v; want the followed company's job first, then the skill match", got)
 	}
 }
