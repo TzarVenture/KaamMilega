@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowRightIcon, BriefcaseIcon, MapPinIcon, MedalIcon, TargetIcon, UsersThreeIcon, UsersIcon } from '@phosphor-icons/react';
+import { ArrowRightIcon, BriefcaseIcon, BuildingsIcon, HandshakeIcon, MapPinIcon, MedalIcon, TargetIcon, UsersThreeIcon, UsersIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '@/components/ui/UserAvatar';
@@ -41,7 +41,7 @@ interface SuggestionsApiResponse {
     user_skills_count: number;
 }
 
-type FilterType = 'all' | 'city' | 'skills' | 'industry';
+type FilterType = 'all' | 'mutual' | 'company' | 'city' | 'skills' | 'industry';
 
 const NetworkPage = () => {
     const router = useRouter();
@@ -294,6 +294,8 @@ const NetworkPage = () => {
                 <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide pt-1">
                     {[
                         { id: 'all' as FilterType, label: 'All Recommended', icon: UsersThreeIcon },
+                        { id: 'mutual' as FilterType, label: 'People You May Know', icon: HandshakeIcon },
+                        { id: 'company' as FilterType, label: 'Colleagues & Classmates', icon: BuildingsIcon },
                         { id: 'city' as FilterType, label: userCity ? `In ${userCity}` : 'Near You', icon: MapPinIcon },
                         { id: 'skills' as FilterType, label: 'Similar Skills', icon: MedalIcon },
                         { id: 'industry' as FilterType, label: 'In Your Domain', icon: BriefcaseIcon },
@@ -341,6 +343,10 @@ const NetworkPage = () => {
                                 ? 'No Direct Skill Overlap Found'
                                 : activeFilter === 'industry'
                                 ? 'No Domain Matches Found'
+                                : activeFilter === 'mutual'
+                                ? 'No Mutual Connections Yet'
+                                : activeFilter === 'company'
+                                ? 'No Colleagues or Classmates Found'
                                 : 'No New Suggestions Right Now'}
                         </h3>
                         <p className="text-xs text-km-text-secondary max-w-sm mx-auto leading-relaxed mb-4">

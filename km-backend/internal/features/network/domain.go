@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -52,7 +53,7 @@ type SuggestedConnection struct {
 
 // SuggestionsFilter holds request query parameters
 type SuggestionsFilter struct {
-	Type  string `json:"type"`  // "all", "city", "skills", "industry"
+	Type  string `json:"type"`  // "all", "city", "skills", "industry", "company" (workplace or college), "mutual"
 	Limit int    `json:"limit"` // default 20
 	Page  int    `json:"page"`
 }
@@ -89,6 +90,9 @@ type CandidateUser struct {
 	JobCategories []string           `bson:"job_categories"`
 	LastActiveAt  time.Time          `bson:"last_active_at"`
 	UpdatedAt     time.Time          `bson:"updated_at"`
+	CompanyName   string             `bson:"company_name"` // recruiters' own company
+	Experience    []experienceEntry  `bson:"experience"`
+	Education     []educationEntry   `bson:"education"`
 }
 
 type NetworkRepository interface {
@@ -104,8 +108,12 @@ type NetworkRepository interface {
 	// Suggestions & Exclusions (F55)
 	GetExclusionIDs(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
 	GetCandidateUsers(ctx context.Context, exclusionIDs []primitive.ObjectID, limit int) ([]CandidateUser, error)
+	// GetCandidateUsersWhere is GetCandidateUsers narrowed by an extra filter
+	GetCandidateUsersWhere(ctx context.Context, exclusionIDs []primitive.ObjectID, where bson.M, limit int) ([]CandidateUser, error)
 	DismissSuggestion(ctx context.Context, userID, dismissedUserID primitive.ObjectID) error
-	GetMutualConnectionsCount(ctx context.Context, myConnections []primitive.ObjectID, candidateID primitive.ObjectID) (int, error)
+	// FriendsOfFriends maps each person connected to one of the user's connections (but not to the
+	// user) to how many connections they share
+	FriendsOfFriends(ctx context.Context, userID primitive.ObjectID, myConnections []primitive.ObjectID) (map[primitive.ObjectID]int, error)
 }
 
 type NetworkService interface {
