@@ -147,21 +147,22 @@ func (s *InstantWorkServiceImpl) revokePass(ctx context.Context, order *payment.
 	if pass == nil {
 		return ErrPassUsed
 	}
-	return s.endRefundedPass(ctx, pass.ID)
+	return s.endRefundedPass(ctx, pass.ID, true)
 }
 
-// revokeWalletPass ends a wallet-bought pass when its dispute is refunded in full
+// revokeWalletPass ends a wallet-bought pass when its dispute is refunded in full. The 24-hour
+// limit was checked when the dispute was filed (wallet.PassDisputeWindow).
 func (s *InstantWorkServiceImpl) revokeWalletPass(ctx context.Context, tx *wallet.WalletTransaction) error {
 	id, _ := tx.Metadata["pass_id"].(string)
 	passID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return ErrPassUsed
 	}
-	return s.endRefundedPass(ctx, passID)
+	return s.endRefundedPass(ctx, passID, false)
 }
 
-func (s *InstantWorkServiceImpl) endRefundedPass(ctx context.Context, passID primitive.ObjectID) error {
-	pass, err := s.repo.RefundUnusedPass(ctx, passID)
+func (s *InstantWorkServiceImpl) endRefundedPass(ctx context.Context, passID primitive.ObjectID, checkWindow bool) error {
+	pass, err := s.repo.RefundUnusedPass(ctx, passID, checkWindow)
 	if err != nil {
 		return err
 	}

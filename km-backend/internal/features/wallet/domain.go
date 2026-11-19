@@ -57,6 +57,8 @@ const (
 
 	// How long after a purchase it can still be disputed
 	DisputeWindow = 30 * 24 * time.Hour
+	// PassDisputeWindow: the ₹99 pass can only be refunded within 24 hours of buying it (client answer Q5)
+	PassDisputeWindow = 24 * time.Hour
 )
 
 var (

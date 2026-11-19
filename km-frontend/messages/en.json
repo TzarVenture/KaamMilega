@@ -228,7 +228,7 @@
       "limit": "10 bookings or gigs, or 90 days, whichever comes first",
       "covers": "Covers InstantMilega, chats and 10 mentors",
       "counts": "Every booking counts, even a cancelled one; unused ones lapse",
-      "refund": "Full refund if you have not used it"
+      "refund": "Full refund within 24 hours if you have not used it"
     },
     "screens": {
       "title": "A look inside the app"
@@ -943,6 +943,10 @@
     "MENTORSHIP_FORBIDDEN": "This session isn't yours.",
     "MENTORSHIP_HAS_BOOKINGS": "This session has bookings that aren't finished. Complete or cancel them first, or pause the session instead.",
     "MENTORSHIP_PAUSED": "This session isn't taking bookings right now.",
+    "EVENT_TICKET_NOT_FOUND": "Ticket not found.",
+    "EVENT_MEETING_LINK_INVALID": "The meeting link must be a full https:// link, for example https://meet.google.com/abc-defg-hij.",
+    "MENTORSHIP_REVIEW_NOT_ALLOWED": "You can review a session once it's completed.",
+    "MENTORSHIP_RATING_INVALID": "Choose a rating from 1 to 5 stars.",
     "EVENT_FIELDS_REQUIRED": "Fill in the title, host name, description, date, time and location.",
     "EVENT_TEXT_TOO_LONG": "The title can be up to 120 characters and the description up to 3,000.",
     "EVENT_DATE_INVALID": "Choose a date and time that haven't passed yet.",
@@ -959,6 +963,7 @@
     "INSTANT_JOB_NOT_COMPLETED": "This job is not complete yet.",
     "INSTANT_JOB_SELF_CLAIM": "You cannot take your own job.",
     "PASS_USED": "This InstantPass has been used, so it can't be refunded.",
+    "PASS_REFUND_WINDOW_CLOSED": "An InstantPass can only be refunded within 24 hours of buying it.",
     "INSTANT_JOB_WRONG_STATE": "This gig can't be changed at its current stage.",
     "INSTANT_ALREADY_ON_GIG": "Finish your current gig before taking another one.",
     "INSTANT_OPEN_JOB_EXISTS": "You already have an open spot job. Close or cancel it first.",

@@ -553,6 +553,27 @@ func TestOldPurchasesCanNotBeDisputed(t *testing.T) {
 	}
 }
 
+// The ₹99 pass can only be disputed in its first 24 hours; other purchases have 30 days (client answer Q5)
+func TestPassDisputesCloseAfter24Hours(t *testing.T) {
+	now := time.Now()
+	row := func(category TransactionCategory, age time.Duration) *WalletTransaction {
+		return &WalletTransaction{Type: TypeDebit, TargetBalance: BalanceMain, Category: category, CreatedAt: now.Add(-age)}
+	}
+	cases := []struct {
+		tx   *WalletTransaction
+		want error
+	}{
+		{row(CategoryPassPurchase, 23*time.Hour), nil},
+		{row(CategoryPassPurchase, 25*time.Hour), ErrDisputeExpired},
+		{row(CategoryEventTicket, 25*time.Hour), nil},
+	}
+	for _, c := range cases {
+		if err := disputeRefusal(c.tx, now); err != c.want {
+			t.Errorf("%s, %v old: err = %v, want %v", c.tx.Category, now.Sub(c.tx.CreatedAt), err, c.want)
+		}
+	}
+}
+
 func TestFinanceOverviewFlagsABalanceChangedOutsideTheLedger(t *testing.T) {
 	e := setup(t)
 	user := primitive.NewObjectID()

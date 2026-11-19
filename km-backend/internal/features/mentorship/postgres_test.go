@@ -119,6 +119,22 @@ func TestPGWalletBookingHoldsTheMoney(t *testing.T) {
 	}
 }
 
+// Booking an expert counts as using the ₹99 pass, so it can't be refunded (client answer Q5)
+func TestPGBookingMarksThePassUsed(t *testing.T) {
+	f := newPGFixture(t)
+	passID := primitive.NewObjectID().Hex()
+	if err := f.pg.DB.Exec(`INSERT INTO instant_passes (id, user_id, quota_total, quota_remaining, price_paise, activated_at, expires_at)
+		VALUES (?, ?, 10, 10, 9900, now(), now() + interval '30 days')`, passID, f.mentee.Hex()).Error; err != nil {
+		t.Fatal(err)
+	}
+	f.topUp(t, 800)
+	f.book(t)
+	var used bool
+	if err := f.pg.DB.Raw(`SELECT benefit_used_at IS NOT NULL FROM instant_passes WHERE id = ?`, passID).Row().Scan(&used); err != nil || !used {
+		t.Fatalf("pass marked used = %v, err = %v", used, err)
+	}
+}
+
 func TestPGBookingWithoutEnoughMoneyLeavesNothingBehind(t *testing.T) {
 	f := newPGFixture(t)
 	f.topUp(t, 100)

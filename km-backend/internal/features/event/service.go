@@ -75,16 +75,16 @@ func (s *EventServiceImpl) GetEventByID(ctx context.Context, id string) (*Event,
 func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID string) error {
 	evID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
-		return errors.New("invalid event id")
+		return ErrEventNotFound
 	}
 	uID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return errors.New("invalid user id")
+		return errNoUser
 	}
 
 	ev, err := s.repo.GetEventByID(ctx, evID)
 	if err != nil || ev == nil {
-		return errors.New("event not found")
+		return ErrEventNotFound
 	}
 
 	if ev.IsPaid && ev.Price > 0 {
@@ -92,7 +92,7 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 	}
 
 	if ev.Capacity > 0 && (ev.AvailableSeats <= 0 || len(ev.Participants) >= ev.Capacity) {
-		return errors.New("registration closed: this event has reached maximum capacity")
+		return ErrEventSoldOut
 	}
 
 	// Check if already registered
@@ -149,7 +149,7 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 	})
 	switch {
 	case errors.Is(err, ErrEventSoldOut):
-		return errors.New("registration closed: this event has reached maximum capacity")
+		return ErrEventSoldOut
 	case errors.Is(err, ErrEventTicketTaken):
 		return ErrAlreadyRegistered
 	case err != nil:
@@ -179,7 +179,7 @@ func (s *EventServiceImpl) RegisterUser(ctx context.Context, eventID, userID str
 func (s *EventServiceImpl) GetMyTickets(ctx context.Context, userID string) ([]EventTicket, error) {
 	uID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, errors.New("invalid user id")
+		return nil, errNoUser
 	}
 	return s.repo.GetTicketsByUser(ctx, uID)
 }
@@ -187,11 +187,11 @@ func (s *EventServiceImpl) GetMyTickets(ctx context.Context, userID string) ([]E
 func (s *EventServiceImpl) GetEventTicket(ctx context.Context, userID string, eventID string) (*EventTicket, error) {
 	uID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, errors.New("invalid user id")
+		return nil, errNoUser
 	}
 	evID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
-		return nil, errors.New("invalid event id")
+		return nil, ErrEventNotFound
 	}
 	ticket, err := s.repo.GetTicketByEventAndUser(ctx, evID, uID)
 	if err != nil || ticket == nil {
@@ -211,7 +211,7 @@ func validateMeetingLink(link string) error {
 	}
 	u, err := url.Parse(strings.TrimSpace(link))
 	if err != nil || u.Scheme != "https" || u.Host == "" {
-		return errors.New("meeting link must be a full https:// link, for example https://meet.google.com/abc-defg-hij")
+		return ErrMeetingLink
 	}
 	return nil
 }
@@ -220,7 +220,7 @@ func validateMeetingLink(link string) error {
 func (s *EventServiceImpl) GetEventAttendees(ctx context.Context, eventID string) (*EventAttendeesResponse, error) {
 	evID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
-		return nil, errors.New("invalid event id")
+		return nil, ErrEventNotFound
 	}
 
 	event, err := s.repo.GetEventByID(ctx, evID)
@@ -228,7 +228,7 @@ func (s *EventServiceImpl) GetEventAttendees(ctx context.Context, eventID string
 		return nil, err
 	}
 	if event == nil {
-		return nil, errors.New("event not found")
+		return nil, ErrEventNotFound
 	}
 
 	attendees, err := s.repo.GetEventAttendees(ctx, evID)
@@ -253,14 +253,14 @@ func (s *EventServiceImpl) AdminGetAllEvents(ctx context.Context, search string,
 func (s *EventServiceImpl) AdminGetEventDetail(ctx context.Context, eventID string) (*AdminEventDetailResponse, error) {
 	evID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
-		return nil, errors.New("invalid event id")
+		return nil, ErrEventNotFound
 	}
 	return s.repo.AdminGetEventDetail(ctx, evID)
 }
 
 func (s *EventServiceImpl) AdminCreateEvent(ctx context.Context, e *Event) (*Event, error) {
 	if e.Title == "" {
-		return nil, errors.New("event title is required")
+		return nil, ErrEventFieldsMissing
 	}
 	if err := validateMeetingLink(e.MeetingLink); err != nil {
 		return nil, err
@@ -274,7 +274,7 @@ func (s *EventServiceImpl) AdminCreateEvent(ctx context.Context, e *Event) (*Eve
 func (s *EventServiceImpl) AdminUpdateEvent(ctx context.Context, eventID string, req AdminUpdateEventRequest) (*Event, error) {
 	evID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
-		return nil, errors.New("invalid event id")
+		return nil, ErrEventNotFound
 	}
 	if req.MeetingLink != nil {
 		trimmed := strings.TrimSpace(*req.MeetingLink)
@@ -292,7 +292,7 @@ func (s *EventServiceImpl) AdminUpdateEvent(ctx context.Context, eventID string,
 func (s *EventServiceImpl) AdminDeleteEvent(ctx context.Context, eventID string) error {
 	evID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
-		return errors.New("invalid event id")
+		return ErrEventNotFound
 	}
 	var cancelled []EventTicket
 	var cardRefunds []string

@@ -682,7 +682,11 @@ func disputeRefusal(tx *WalletTransaction, now time.Time) error {
 	default:
 		return ErrDisputeNotEligible
 	}
-	if now.Sub(tx.CreatedAt) > DisputeWindow {
+	window := DisputeWindow
+	if tx.Category == CategoryPassPurchase {
+		window = PassDisputeWindow
+	}
+	if now.Sub(tx.CreatedAt) > window {
 		return ErrDisputeExpired
 	}
 	return nil

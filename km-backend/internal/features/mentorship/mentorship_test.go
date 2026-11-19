@@ -594,20 +594,20 @@ func TestSubmitBookingReview(t *testing.T) {
 	// 1. Cannot review non-completed session
 	req := SubmitBookingReviewRequest{Rating: 5, Review: "Great mentorship!"}
 	err := svc.SubmitBookingReview(ctx, menteeID.Hex(), bookingID.Hex(), req)
-	if err == nil || err.Error() != "can only review completed sessions" {
+	if !errors.Is(err, ErrReviewNotDue) {
 		t.Fatalf("expected can only review completed sessions, got %v", err)
 	}
 
 	// 2. Unauthorized mentee cannot review
 	booking.Status = "completed"
 	err = svc.SubmitBookingReview(ctx, otherUserID.Hex(), bookingID.Hex(), req)
-	if err == nil || err.Error() != "unauthorized to review this booking" {
+	if !errors.Is(err, ErrNotYourBooking) {
 		t.Fatalf("expected unauthorized error, got %v", err)
 	}
 
 	// 3. Invalid rating (e.g. 6 or 0)
 	err = svc.SubmitBookingReview(ctx, menteeID.Hex(), bookingID.Hex(), SubmitBookingReviewRequest{Rating: 6, Review: "Too high"})
-	if err == nil || err.Error() != "rating must be between 1 and 5" {
+	if !errors.Is(err, ErrRatingInvalid) {
 		t.Fatalf("expected rating out of range error, got %v", err)
 	}
 

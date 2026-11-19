@@ -2,7 +2,6 @@ package mentorship
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math"
 	"strings"
@@ -136,7 +135,7 @@ func (s *MentorshipServiceImpl) GetMentorship(ctx context.Context, id string) (*
 
 	u, _ := s.userRepo.FindUserByID(ctx, m.ExpertID.Hex())
 	if u == nil {
-		return nil, errors.New("expert not found")
+		return nil, ErrMentorshipGone
 	}
 
 	reviewsSummary, _ := s.GetMentorshipReviews(ctx, id)
@@ -214,7 +213,7 @@ func (s *MentorshipServiceImpl) ownSession(ctx context.Context, expertID, id str
 func (s *MentorshipServiceImpl) BookSession(ctx context.Context, userID string, req BookMentorshipRequest) (*Booking, error) {
 	m, err := s.repo.GetMentorshipByID(ctx, req.MentorshipID)
 	if err != nil || m == nil {
-		return nil, errors.New("mentorship not found")
+		return nil, ErrMentorshipGone
 	}
 
 	uid, _ := primitive.ObjectIDFromHex(userID)
@@ -313,10 +312,10 @@ func (s *MentorshipServiceImpl) GetExpertBookings(ctx context.Context, expertID 
 func (s *MentorshipServiceImpl) UpdateMeetingLink(ctx context.Context, expertID string, bookingID string, meetingLink string) error {
 	b, err := s.repo.GetBookingByID(ctx, bookingID)
 	if err != nil || b == nil {
-		return errors.New("booking not found")
+		return ErrBookingNotFound
 	}
 	if b.ExpertID.Hex() != expertID {
-		return errors.New("unauthorized: caller is not the session expert")
+		return ErrNotYourBooking
 	}
 	return s.repo.UpdateMeetingLink(ctx, bookingID, meetingLink)
 }
@@ -341,19 +340,19 @@ func (s *MentorshipServiceImpl) GetAvailability(ctx context.Context, expertID st
 func (s *MentorshipServiceImpl) SubmitBookingReview(ctx context.Context, userID string, bookingID string, req SubmitBookingReviewRequest) error {
 	booking, err := s.repo.GetBookingByID(ctx, bookingID)
 	if err != nil || booking == nil {
-		return errors.New("booking not found")
+		return ErrBookingNotFound
 	}
 
 	if booking.UserID.Hex() != userID {
-		return errors.New("unauthorized to review this booking")
+		return ErrNotYourBooking
 	}
 
 	if booking.Status != "completed" {
-		return errors.New("can only review completed sessions")
+		return ErrReviewNotDue
 	}
 
 	if req.Rating < 1 || req.Rating > 5 {
-		return errors.New("rating must be between 1 and 5")
+		return ErrRatingInvalid
 	}
 
 	if err := s.repo.UpdateBookingReview(ctx, bookingID, req.Rating, req.Review); err != nil {
