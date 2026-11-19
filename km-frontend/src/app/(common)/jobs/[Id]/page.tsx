@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import CompanyLogo from '@/components/ui/CompanyLogo';
 import { ArrowLeftIcon, ArrowUpRightIcon, BookmarkSimpleIcon, BriefcaseIcon, CalendarBlankIcon, CheckCircleIcon, CloudArrowUpIcon, FileTextIcon, MapPinIcon, MedalIcon, SealCheckIcon, ShareNetworkIcon, ShieldCheckIcon, TrashIcon, XIcon } from '@phosphor-icons/react';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
@@ -533,14 +534,7 @@ const JobDetailPage = () => {
                             {/* Company Info Box */}
                             <div className="pt-4 border-t border-km-border">
                                 <div className="flex items-center gap-3">
-                                    {job.company_logo ? (
-                                        // eslint-disable-next-line @next/next/no-img-element
-                                        <img src={job.company_logo} alt="" className="w-10 h-10 rounded-xl object-cover border border-km-border shrink-0 bg-km-surface-card" />
-                                    ) : (
-                                        <div className="w-10 h-10 rounded-xl bg-[#071A4D] text-white font-bold text-sm flex items-center justify-center shrink-0 border border-[#0B1F52] dark:bg-km-primary dark:border-km-link">
-                                            {job.company ? job.company.charAt(0).toUpperCase() : 'C'}
-                                        </div>
-                                    )}
+                                    <CompanyLogo src={job.company_logo} name={job.company} className="w-10 h-10" textClass="text-sm" />
                                     <div className="min-w-0 flex-1">
                                         <p className="text-xs font-bold text-km-text-primary truncate">{job.company}</p>
                                         {job.employer_verified ? (

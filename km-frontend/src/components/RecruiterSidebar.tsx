@@ -18,6 +18,7 @@ import {
     WarningCircleIcon,
 } from "@phosphor-icons/react";
 import api from "@/lib/axios";
+import CompanyLogo from "@/components/ui/CompanyLogo";
 import { clearSession } from "@/lib/auth";
 
 const sidebarItems = [
@@ -68,9 +69,7 @@ export default function RecruiterSidebar() {
                 {/* Recruiter / Company Profile Card */}
                 <div className="p-4 border-b border-km-border/70">
                     <div className="p-3 bg-km-surface rounded-xl border border-km-border flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-km-primary text-white flex items-center justify-center font-bold text-xs uppercase shrink-0">
-                            {companyName.charAt(0)}
-                        </div>
+                        <CompanyLogo src={user?.company_logo} name={companyName} className="w-8 h-8" textClass="text-xs" />
                         <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold text-km-text-primary truncate">
                                 {companyName}

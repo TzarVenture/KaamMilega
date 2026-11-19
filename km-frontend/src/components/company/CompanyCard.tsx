@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { BuildingOfficeIcon, CaretRightIcon, CheckIcon, PlusIcon, SealCheckIcon } from '@phosphor-icons/react';
-import CustomImage from '@/components/ui/CustomImage';
+import { CaretRightIcon, CheckIcon, PlusIcon, SealCheckIcon } from '@phosphor-icons/react';
+import CompanyLogo from '@/components/ui/CompanyLogo';
 import { HiringCompany } from '@/lib/constants/companies';
 import { useFormat } from '@/i18n/useFormat';
 
@@ -39,20 +39,8 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
         onToggleFollow?.(company);
     };
 
-    // Logo in a neutral tile so every brand sits on the same surface
-    const logoTile = (sizeClass: string, iconSize: number) => (
-        <span className={`${sizeClass} rounded-xl border border-km-border-subtle bg-white p-2 flex items-center justify-center shrink-0`}>
-            {company.logo ? (
-                <CustomImage
-                    src={company.logo}
-                    alt=""
-                    className="max-h-full max-w-full object-contain"
-                />
-            ) : (
-                <BuildingOfficeIcon size={iconSize} className="text-km-heading" aria-hidden="true" />
-            )}
-        </span>
-    );
+    // Round logo, filled edge to edge like a profile photo
+    const logoTile = (sizeClass: string, textClass: string) => <CompanyLogo src={company.logo} name={company.name} className={sizeClass} textClass={textClass} />;
 
     const verifiedSeal = (size: number) =>
         company.verified ? (
@@ -66,7 +54,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 className="km-press-card group/card bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 flex items-center gap-3 sm:flex-col sm:items-stretch sm:gap-0 hover:border-[#0B5ED7]/40 hover:shadow-md"
             >
                 <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                    {logoTile('w-12 h-12 sm:w-14 sm:h-14', 22)}
+                    {logoTile('w-12 h-12 sm:w-14 sm:h-14', 'text-lg')}
                     <div className="min-w-0">
                         <div className="flex items-center gap-1.5">
                             <h3 className="text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors truncate">
@@ -102,7 +90,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
     return (
         <div className="group bg-km-surface-card rounded-2xl border border-km-border p-4 flex flex-col hover:border-[#0B5ED7]/40 hover:shadow-md transition-all">
             <div className="flex items-center gap-3">
-                {logoTile('w-11 h-11', 20)}
+                {logoTile('w-11 h-11', 'text-base')}
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
                         <Link href={pageHref} className="text-sm font-semibold text-km-text-primary group-hover:text-km-heading transition-colors truncate">

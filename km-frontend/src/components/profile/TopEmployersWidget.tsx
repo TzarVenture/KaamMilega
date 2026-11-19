@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowSquareOutIcon, BuildingOfficeIcon, CaretRightIcon, CheckCircleIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { HiringCompany, companiesFromApi } from '@/lib/constants/companies';
-import CustomImage from '@/components/ui/CustomImage';
+import CompanyLogo from '@/components/ui/CompanyLogo';
 
 interface TopEmployersWidgetProps {
     companies?: HiringCompany[];
@@ -66,18 +66,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                             className="p-3 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-blue-50/30 hover:border-blue-200 transition-all flex flex-col gap-2.5 group"
                         >
                             <div className="flex items-start gap-3">
-                                {/* Company Logo / Icon */}
-                                <div className={`w-11 h-11 rounded-xl border p-1.5 shrink-0 flex items-center justify-center bg-white shadow-2xs ${comp.bgClass || 'border-gray-200'}`}>
-                                    {comp.logo ? (
-                                        <CustomImage
-                                            src={comp.logo}
-                                            alt={comp.name}
-                                            className={`object-contain ${comp.imgClass || 'max-h-full max-w-full'}`}
-                                        />
-                                    ) : (
-                                        <BuildingOfficeIcon weight="bold" size={18} className="text-km-heading" />
-                                    )}
-                                </div>
+                                <CompanyLogo src={comp.logo} name={comp.name} className="w-11 h-11" />
 
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-1.5">

@@ -266,7 +266,7 @@ function CompaniesContent() {
                                         <tr key={company.id} className={table.row}>
                                             <td className={table.td}>
                                                 <div className="flex items-center gap-3 min-w-[240px]">
-                                                    <LogoTile src={company.logo} name={company.name || company.recruiter?.name || ''} />
+                                                    <LogoTile src={company.logo} name={company.name || company.recruiter?.name || ''} rounded="rounded-full" />
                                                     <div className="min-w-0">
                                                         <p className="font-medium text-km-heading truncate">{company.name || 'Unnamed company'}</p>
                                                         <p className="text-xs text-km-text-secondary truncate">

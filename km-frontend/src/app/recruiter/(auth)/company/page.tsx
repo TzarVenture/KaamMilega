@@ -247,9 +247,9 @@ export default function RecruiterCompanyPage() {
                     </div>
                 </div>
                 <div className="px-5 sm:px-6 pb-5 flex flex-wrap items-end gap-4 -mt-8">
-                    <span className="relative w-20 h-20 shrink-0 rounded-2xl border-4 border-km-surface-card bg-km-surface flex items-center justify-center overflow-hidden">
+                    <span className="relative w-20 h-20 shrink-0 rounded-full border-4 border-km-surface-card bg-km-surface flex items-center justify-center overflow-hidden">
                         {shownLogo ? (
-                            <CustomImage src={shownLogo} alt="" className="w-full h-full object-contain bg-white" />
+                            <CustomImage src={shownLogo} alt="" className="w-full h-full object-cover bg-white" />
                         ) : (
                             <BuildingsIcon size={30} className="text-km-text-muted" aria-hidden="true" />
                         )}
@@ -389,7 +389,7 @@ export default function RecruiterCompanyPage() {
                             key={`${cropping.kind}-${cropping.file.name}-${cropping.file.lastModified}`}
                             file={cropping.file}
                             aspect={cropping.kind === "cover" ? COVER_ASPECT : 1}
-                            shape={cropping.kind === "cover" ? "rect" : "square"}
+                            shape={cropping.kind === "cover" ? "rect" : "round"}
                             outputSize={cropping.kind === "cover" ? 1600 : 512}
                             format={cropping.kind === "cover" ? "image/jpeg" : "image/png"}
                             saveLabel={cropping.kind === "cover" ? "Save cover photo" : "Save logo"}

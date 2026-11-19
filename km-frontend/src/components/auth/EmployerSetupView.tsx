@@ -563,10 +563,10 @@ export default function EmployerSetupView({
                         {t('company.logo')} <span className="font-normal text-km-text-secondary">({t('optional')})</span>
                     </span>
                     <div className="flex items-center gap-3.5">
-                        <span className="w-14 h-14 shrink-0 rounded-xl border-[1.5px] border-dashed border-km-border bg-km-surface flex items-center justify-center overflow-hidden">
+                        <span className="w-14 h-14 shrink-0 rounded-full border-[1.5px] border-dashed border-km-border bg-km-surface flex items-center justify-center overflow-hidden">
                             {shownLogo ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={shownLogo} alt="" className="w-full h-full object-contain" />
+                                <img src={shownLogo} alt="" className="w-full h-full object-cover bg-white" />
                             ) : (
                                 <ImageIcon size={22} className="text-km-text-muted" aria-hidden="true" />
                             )}
@@ -751,7 +751,7 @@ export default function EmployerSetupView({
                         <ImageCropper
                             key={`${cropLogo.name}-${cropLogo.lastModified}`}
                             file={cropLogo}
-                            shape="square"
+                            shape="round"
                             format="image/png"
                             saveLabel={t('company.logoCropUse')}
                             onCancel={() => setCropLogo(null)}

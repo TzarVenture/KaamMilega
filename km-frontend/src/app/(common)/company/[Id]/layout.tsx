@@ -7,6 +7,7 @@ import { CompanyProvider, useCompany, websiteHref } from "./CompanyContext";
 import AdSlot from '@/components/ads/AdSlot';
 import CompaniesToFollow from '@/components/network/CompaniesToFollow';
 import CustomImage from '@/components/ui/CustomImage';
+import CompanyLogo from '@/components/ui/CompanyLogo';
 import { useCompanyFollows } from '@/lib/useCompanyFollows';
 import { getCurrentUser, isAuthenticated } from '@/lib/auth';
 import { loginPathFor } from '@/lib/authPaths';
@@ -76,14 +77,8 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
                             {company.cover && (
                                 <CustomImage src={company.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
                             )}
-                            <div className="absolute -bottom-12 left-6 sm:left-8 p-1.5 bg-km-surface-card rounded-2xl shadow-md">
-                                <div className="w-24 h-24 rounded-xl bg-white border border-km-border-subtle flex items-center justify-center overflow-hidden">
-                                    {company.logo ? (
-                                        <CustomImage src={company.logo} alt="" className="w-full h-full object-contain" />
-                                    ) : (
-                                        <BuildingOfficeIcon size={40} className="text-km-heading" aria-hidden="true" />
-                                    )}
-                                </div>
+                            <div className="absolute -bottom-12 left-6 sm:left-8 p-1.5 bg-km-surface-card rounded-full shadow-md">
+                                <CompanyLogo src={company.logo} name={company.name} className="w-24 h-24" textClass="text-3xl" />
                             </div>
                         </div>
 
