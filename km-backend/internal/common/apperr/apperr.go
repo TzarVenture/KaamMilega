@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -49,6 +50,34 @@ func Body(err error) fiber.Map {
 		return fiber.Map{"error": err.Error(), "code": code}
 	}
 	return fiber.Map{"error": err.Error()}
+}
+
+// StatusOf picks the HTTP status for an error a service returned. A coded error is the user's
+// request being refused: 401 for UNAUTHORIZED, 404 for a code ending in _NOT_FOUND, 403 for one
+// ending in _FORBIDDEN, 503 when the payment service is down, otherwise 400. An error without a
+// code is a fault on our side (a database or network failure): 500.
+func StatusOf(err error) int {
+	code := CodeOf(err)
+	switch {
+	case code == "":
+		return fiber.StatusInternalServerError
+	case code == "UNAUTHORIZED":
+		return fiber.StatusUnauthorized
+	case strings.HasSuffix(code, "_NOT_FOUND"):
+		return fiber.StatusNotFound
+	case strings.HasSuffix(code, "_FORBIDDEN"):
+		return fiber.StatusForbidden
+	case code == "PAYMENT_GATEWAY_ERROR", code == "PAYMENT_NOT_CONFIGURED":
+		return fiber.StatusServiceUnavailable
+	default:
+		return fiber.StatusBadRequest
+	}
+}
+
+// Respond answers with err and the status StatusOf picks. A server fault's own text is logged and
+// replaced with ServerErrorMessage by the Codes middleware, so it never reaches the user.
+func Respond(c *fiber.Ctx, err error) error {
+	return c.Status(StatusOf(err)).JSON(Body(err))
 }
 
 // ServerErrorMessage replaces the text of server faults that have no specific code

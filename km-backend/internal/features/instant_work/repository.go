@@ -37,7 +37,7 @@ type InstantWorkRepository interface {
 	GetPassByID(ctx context.Context, passID primitive.ObjectID) (*InstantPass, error)
 	GetPassByOrderID(ctx context.Context, orderID string) (*InstantPass, error)
 	RetireFinishedPasses(ctx context.Context, userID primitive.ObjectID) error
-	RefundUnusedPass(ctx context.Context, passID primitive.ObjectID) (*InstantPass, error)
+	RefundUnusedPass(ctx context.Context, passID primitive.ObjectID, checkWindow bool) (*InstantPass, error)
 	UseCredit(ctx context.Context, userID primitive.ObjectID) (*InstantPass, error)
 	SyncWorkerPass(ctx context.Context, userID primitive.ObjectID, quota int, expiresAt time.Time) error
 
@@ -376,17 +376,30 @@ func (r *InstantWorkRepositoryImpl) RetireFinishedPasses(ctx context.Context, us
 		WHERE user_id = ? AND has_active_pass AND (expires_at <= now() OR quota_remaining <= 0)`, userID.Hex()).Error
 }
 
-// RefundUnusedPass ends a current pass that has all its credits. ErrPassUsed if any were spent.
-func (r *InstantWorkRepositoryImpl) RefundUnusedPass(ctx context.Context, passID primitive.ObjectID) (*InstantPass, error) {
+// RefundUnusedPass ends a current pass that can still be refunded (client answer Q5): bought less
+// than 24 hours ago, no gig credits spent and no chat the pass paid for (benefit_used_at).
+// ErrPassRefundTooLate after 24 hours, ErrPassUsed if it was used. checkWindow is false when the
+// 24 hours were already checked when the member asked (a wallet dispute), so a slow review is fine.
+func (r *InstantWorkRepositoryImpl) RefundUnusedPass(ctx context.Context, passID primitive.ObjectID, checkWindow bool) (*InstantPass, error) {
 	pass, err := r.passQuery(ctx, `UPDATE instant_passes SET has_active_pass = false, ended_reason = 'refunded', quota_remaining = 0
-		WHERE id = ? AND has_active_pass AND quota_remaining = quota_total RETURNING `+passColumns, passID.Hex())
+		WHERE id = ? AND has_active_pass AND quota_remaining = quota_total AND benefit_used_at IS NULL
+		AND (NOT ? OR activated_at > now() - interval '24 hours') RETURNING `+passColumns, passID.Hex(), checkWindow)
 	if err != nil {
 		return nil, err
 	}
-	if pass == nil {
-		return nil, ErrPassUsed
+	if pass != nil {
+		return pass, nil
 	}
-	return pass, nil
+	// Say why: too late, or used
+	var late bool
+	if err := r.pg.WithContext(ctx).Raw(`SELECT activated_at <= now() - interval '24 hours' FROM instant_passes WHERE id = ?`,
+		passID.Hex()).Scan(&late).Error; err != nil {
+		return nil, err
+	}
+	if checkWindow && late {
+		return nil, ErrPassRefundTooLate
+	}
+	return nil, ErrPassUsed
 }
 
 // UseCredit takes one credit from the current, unexpired pass. ErrPassQuotaExhausted if there's none.

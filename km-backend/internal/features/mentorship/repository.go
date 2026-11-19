@@ -2,7 +2,6 @@ package mentorship
 
 import (
 	"context"
-	"errors"
 	"time"
 
 	"km-backend/internal/common/apperr"
@@ -43,7 +42,6 @@ type MentorshipRepository interface {
 // ErrAvailabilityInvalid is a time slot Postgres can't store (bad format or ending before it starts)
 var ErrAvailabilityInvalid = apperr.New("AVAILABILITY_INVALID", "each time slot needs a start and end time (HH:MM) on the same day, ending after it starts")
 
-var errBookingMissing = errors.New("booking not found")
 
 // MentorshipRepositoryImpl keeps mentorships, bookings and availability in Postgres.
 type MentorshipRepositoryImpl struct {
@@ -196,7 +194,7 @@ func (r *MentorshipRepositoryImpl) UpdateMentorship(ctx context.Context, id stri
 		return nil, res.Error
 	}
 	if res.RowsAffected == 0 {
-		return nil, errors.New("mentorship not found")
+		return nil, ErrMentorshipGone
 	}
 	m.UpdatedAt = time.Now()
 	return m, nil
@@ -311,6 +309,12 @@ func (r *MentorshipRepositoryImpl) CreateBooking(ctx context.Context, b *Booking
 	if err != nil {
 		return nil, err
 	}
+	// Booking an expert counts as using the ₹99 pass, so it can't be refunded any more (client answer Q5).
+	// Same transaction as the booking, so a failed booking leaves the pass refundable.
+	if err := r.conn(ctx).Exec(`UPDATE instant_passes SET benefit_used_at = now()
+		WHERE user_id = ? AND has_active_pass AND expires_at > now() AND benefit_used_at IS NULL`, b.UserID.Hex()).Error; err != nil {
+		return nil, err
+	}
 	return b, nil
 }
 
@@ -324,7 +328,7 @@ func (r *MentorshipRepositoryImpl) GetBookingByID(ctx context.Context, id string
 		return nil, err
 	}
 	if len(list) == 0 {
-		return nil, errBookingMissing
+		return nil, ErrBookingNotFound
 	}
 	return &list[0], nil
 }

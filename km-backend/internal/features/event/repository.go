@@ -3,7 +3,6 @@ package event
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -20,7 +19,6 @@ import (
 )
 
 var (
-	errEventMissing = errors.New("event not found")
 	// ErrAlreadyRegistered is a second registration for the same event
 	ErrAlreadyRegistered = apperr.New("EVENT_ALREADY_REGISTERED", "you are already registered for this event")
 	// ErrSeatsAboveCapacity is an admin edit that would leave more free seats than the event has
@@ -283,7 +281,7 @@ func (r *EventRepositoryImpl) GetEventByID(ctx context.Context, id primitive.Obj
 		return nil, err
 	}
 	if len(rows) == 0 {
-		return nil, errEventMissing
+		return nil, ErrEventNotFound
 	}
 	ev, err := rows[0].toDomain()
 	if err != nil {
@@ -355,7 +353,7 @@ func (r *EventRepositoryImpl) GetTicketByID(ctx context.Context, id primitive.Ob
 		return nil, err
 	}
 	if len(list) == 0 {
-		return nil, errors.New("ticket not found")
+		return nil, ErrTicketNotFound
 	}
 	return &list[0], nil
 }
@@ -687,7 +685,7 @@ func (r *EventRepositoryImpl) AdminUpdateEvent(ctx context.Context, eventID prim
 			return nil, res.Error
 		}
 		if res.RowsAffected == 0 {
-			return nil, errEventMissing
+			return nil, ErrEventNotFound
 		}
 	}
 	return r.GetEventByID(ctx, eventID)
@@ -729,7 +727,7 @@ func (r *EventRepositoryImpl) AdminDeleteEvent(ctx context.Context, eventID prim
 			return res.Error
 		}
 		if res.RowsAffected == 0 {
-			return errEventMissing
+			return ErrEventNotFound
 		}
 		var rows []ticketRow
 		if err := tx.Raw(`UPDATE event_tickets SET status = 'cancelled',

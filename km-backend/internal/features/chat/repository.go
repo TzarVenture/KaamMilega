@@ -489,6 +489,13 @@ func (r *repository) ActivePass(ctx context.Context, userID primitive.ObjectID) 
 	return true, rows[0].QuotaRemaining, nil
 }
 
+// MarkPassBenefitUsed stamps the user's current pass the first time it pays for a chat the free
+// allowance wouldn't cover. A stamped pass can't be refunded (client answer Q5).
+func (r *repository) MarkPassBenefitUsed(ctx context.Context, userID primitive.ObjectID) error {
+	return r.pg.WithContext(ctx).Exec(`UPDATE instant_passes SET benefit_used_at = now()
+		WHERE user_id = ? AND has_active_pass AND expires_at > now() AND benefit_used_at IS NULL`, userID.Hex()).Error
+}
+
 // CountConversationsStartedSince counts the chats the user opened since the given time
 func (r *repository) CountConversationsStartedSince(ctx context.Context, userID primitive.ObjectID, since time.Time) (int64, error) {
 	return r.db.DB.Collection("conversations").CountDocuments(ctx, bson.M{

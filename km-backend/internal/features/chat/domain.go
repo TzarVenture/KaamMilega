@@ -205,6 +205,8 @@ type ChatRepository interface {
 	// Free chat limit and ₹99 pass
 	ActivePass(ctx context.Context, userID primitive.ObjectID) (bool, int, error)
 	CountConversationsStartedSince(ctx context.Context, userID primitive.ObjectID, since time.Time) (int64, error)
+	// MarkPassBenefitUsed records that the current pass paid for a chat, so it can't be refunded
+	MarkPassBenefitUsed(ctx context.Context, userID primitive.ObjectID) error
 }
 
 // ChatEntitlementResponse says which new chats the user can start. Without the ₹99 pass, a user
@@ -221,6 +223,8 @@ type ChatEntitlementResponse struct {
 
 	// Deprecated: same as StartedToday, kept for older app versions
 	DistinctConversations int64 `json:"distinct_conversations"`
+
+	staff bool // recruiter or admin: their chats never use the pass
 }
 
 type ChatService interface {

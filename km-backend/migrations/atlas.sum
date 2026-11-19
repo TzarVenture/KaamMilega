@@ -1,4 +1,4 @@
-h1:5g1veSrwGhhzghRwYmgNOR9ql/LdDikW1fyYDhEk4ys=
+h1:K6pzpO8yF4MhjW4ZaObarP7AyrkCyk61QyW4tqWtV3k=
 20261116000001_money_and_purchases.sql h1:GNRihfxX28ShXy0SAyIOWI624XdGsLCl/Q9ibTdcgo4=
 20261117000001_events_soft_delete.sql h1:LzFYVkGUn7k7Q4j4dsPOdDJJfayTC3ehPxANanLosb4=
 20261117000002_mentorships_soft_delete.sql h1:pzZ8fi6J1wus0Y1GicxPfuIffM9jB2VX4wB3kI5jrkg=
@@ -7,3 +7,4 @@ h1:5g1veSrwGhhzghRwYmgNOR9ql/LdDikW1fyYDhEk4ys=
 20261117000005_audit_fixes.sql h1:td9qGCNgZuuyb61BWw3XZyCJiSzTNlXnYUYhKYaCec8=
 20261117000006_retire_expert_plans.sql h1:DANkILH+5RP3Vd6/MmP8iSu18mCkyFqyvhYUWPZ+89k=
 20261118000001_backend_role.sql h1:SpB1I81OOM7W8HMFs/S2zg+gmfICXqS/WeaauTZHZLc=
+20261119000001_pass_benefit_used.sql h1:/ZDm3QQYqpXma3nz9v5Rp711ez7APFfCdRxUf3NhoG8=

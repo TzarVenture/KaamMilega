@@ -247,6 +247,15 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 				return nil, ErrChatDailyLimit
 			}
 		}
+		// A chat only the pass allows (with someone who isn't a recruiter, or past today's free
+		// ones) uses the pass, so it can't be refunded any more. Stamped before the chat exists,
+		// so a failure never leaves a used pass looking unused.
+		freeCovers := receiver != nil && hasRole(receiver.Roles, user.RoleRecruiter) && ent.FreeRemaining > 0
+		if ent.HasActivePass && !ent.staff && !freeCovers {
+			if err := s.repo.MarkPassBenefitUsed(ctx, senderID); err != nil {
+				return nil, err
+			}
+		}
 
 		conv, err = s.repo.CreateConversation(ctx, participants)
 		if err != nil {
@@ -674,14 +683,16 @@ func (s *service) GetChatEntitlement(ctx context.Context, userID primitive.Objec
 		return nil, err
 	}
 
-	unlimited := hasPass
-	if !unlimited && s.userRepo != nil {
+	// Recruiters and admins chat freely without the pass
+	staff := false
+	if s.userRepo != nil {
 		u, err := s.userRepo.FindUserByID(ctx, userID.Hex())
 		if err != nil {
 			return nil, err
 		}
-		unlimited = u != nil && (hasRole(u.Roles, user.RoleRecruiter) || hasRole(u.Roles, user.RoleAdmin))
+		staff = u != nil && (hasRole(u.Roles, user.RoleRecruiter) || hasRole(u.Roles, user.RoleAdmin))
 	}
+	unlimited := hasPass || staff
 
 	remaining := int64(DailyFreeChats) - started
 	if remaining < 0 {
@@ -697,5 +708,6 @@ func (s *service) GetChatEntitlement(ctx context.Context, userID primitive.Objec
 		CanStartNew:           unlimited || remaining > 0,
 		PassQuotaRemaining:    quota,
 		DistinctConversations: started,
+		staff:                 staff,
 	}, nil
 }

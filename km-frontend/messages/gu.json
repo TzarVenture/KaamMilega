@@ -228,7 +228,7 @@
       "limit": "10 બુકિંગ અથવા કામ, અથવા 90 દિવસ, જે પહેલાં પૂરું થાય",
       "covers": "InstantMilega, ચેટ અને 10 મેન્ટર સામેલ",
       "counts": "દરેક બુકિંગ ગણાય છે, રદ થયેલી પણ; બાકી રહેલી નકામી થઈ જાય છે",
-      "refund": "ઉપયોગ ન કર્યો હોય તો પૂરા પૈસા પાછા"
+      "refund": "24 કલાકની અંદર, ઉપયોગ ન કર્યો હોય તો પૂરા પૈસા પાછા"
     },
     "screens": {
       "title": "એપની અંદર એક ઝલક"
@@ -943,6 +943,10 @@
     "MENTORSHIP_FORBIDDEN": "આ સેશન તમારું નથી.",
     "MENTORSHIP_HAS_BOOKINGS": "આ સેશનની કેટલીક બુકિંગ હજી પૂરી થઈ નથી. પહેલાં તેને પૂરી કે રદ કરો, અથવા સેશન થોભાવો.",
     "MENTORSHIP_PAUSED": "આ સેશન હમણાં બુકિંગ લેતું નથી.",
+    "EVENT_TICKET_NOT_FOUND": "ટિકિટ મળી નહીં.",
+    "EVENT_MEETING_LINK_INVALID": "મીટિંગ લિંક પૂરી https:// લિંક હોવી જોઈએ, જેમ કે https://meet.google.com/abc-defg-hij",
+    "MENTORSHIP_REVIEW_NOT_ALLOWED": "સેશન પૂરું થયા પછી જ તમે રિવ્યૂ આપી શકો છો.",
+    "MENTORSHIP_RATING_INVALID": "1 થી 5 સ્ટાર વચ્ચે રેટિંગ પસંદ કરો.",
     "EVENT_FIELDS_REQUIRED": "શીર્ષક, હોસ્ટનું નામ, વર્ણન, તારીખ, સમય અને સ્થળ ભરો.",
     "EVENT_TEXT_TOO_LONG": "શીર્ષક 120 અક્ષરો સુધી અને વર્ણન 3,000 અક્ષરો સુધી હોઈ શકે.",
     "EVENT_DATE_INVALID": "હજી વીતી ન હોય તેવી તારીખ અને સમય પસંદ કરો.",
@@ -959,6 +963,7 @@
     "INSTANT_JOB_NOT_COMPLETED": "આ કામ હજી પૂરું થયું નથી.",
     "INSTANT_JOB_SELF_CLAIM": "તમે પોતાનું કામ લઈ શકતા નથી.",
     "PASS_USED": "આ InstantPass વપરાઈ ગયો છે, તેથી તેનું રિફંડ થઈ શકે નહીં.",
+    "PASS_REFUND_WINDOW_CLOSED": "InstantPassનું રિફંડ ખરીદ્યાના 24 કલાકની અંદર જ થઈ શકે છે.",
     "INSTANT_JOB_WRONG_STATE": "આ તબક્કે આ ગિગ બદલી શકાય નહીં.",
     "INSTANT_ALREADY_ON_GIG": "બીજો ગિગ લેતા પહેલાં હાલનો ગિગ પૂરો કરો.",
     "INSTANT_OPEN_JOB_EXISTS": "તમારો એક સ્પોટ જોબ પહેલેથી ખુલ્લો છે. પહેલાં તેને બંધ અથવા રદ કરો.",

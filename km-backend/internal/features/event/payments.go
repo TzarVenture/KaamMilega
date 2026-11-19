@@ -20,6 +20,9 @@ var (
 	ErrEventTicketTaken = apperr.New("EVENT_TICKET_EXISTS", "you already have a confirmed ticket for this event")
 	ErrEventIsFree      = apperr.New("EVENT_IS_FREE", "this is a free event; please use free registration")
 	ErrEventNotFound    = apperr.New("EVENT_NOT_FOUND", "event not found")
+	ErrTicketNotFound   = apperr.New("EVENT_TICKET_NOT_FOUND", "ticket not found")
+	ErrMeetingLink      = apperr.New("EVENT_MEETING_LINK_INVALID", "meeting link must be a full https:// link, for example https://meet.google.com/abc-defg-hij")
+	errNoUser           = apperr.New("UNAUTHORIZED", "unauthorized: missing user id")
 )
 
 type attendee struct {
@@ -126,7 +129,7 @@ func (s *EventServiceImpl) notifyTicket(t *EventTicket) {
 func (s *EventServiceImpl) CreateEventOrder(ctx context.Context, userID string, eventID string, req CreateEventOrderRequest) (*CreateEventOrderResponse, error) {
 	uid, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, apperr.New("UNAUTHORIZED", "unauthorized: missing user id")
+		return nil, errNoUser
 	}
 	ev, err := s.sellableEvent(ctx, uid, eventID)
 	if err != nil {
@@ -202,7 +205,7 @@ func (s *EventServiceImpl) revokeTicket(ctx context.Context, order *payment.Orde
 func (s *EventServiceImpl) VerifyEventPayment(ctx context.Context, userID string, eventID string, req VerifyEventPaymentRequest) (*EventTicket, error) {
 	uid, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, apperr.New("UNAUTHORIZED", "unauthorized: missing user id")
+		return nil, errNoUser
 	}
 	order, err := s.payments.Confirm(ctx, uid, payment.PurposeEventTicket, payment.ConfirmInput{
 		RazorpayOrderID:   req.RazorpayOrderID,
@@ -223,7 +226,7 @@ func (s *EventServiceImpl) VerifyEventPayment(ctx context.Context, userID string
 func (s *EventServiceImpl) BookTicketWithWallet(ctx context.Context, userID string, eventID string, req EventWalletCheckoutRequest) (*EventTicket, *wallet.WalletSummaryResponse, error) {
 	uid, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		return nil, nil, apperr.New("UNAUTHORIZED", "unauthorized: missing user id")
+		return nil, nil, errNoUser
 	}
 	ev, err := s.sellableEvent(ctx, uid, eventID)
 	if err != nil {

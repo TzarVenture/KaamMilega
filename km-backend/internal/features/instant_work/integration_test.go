@@ -314,6 +314,31 @@ func TestOnlinePassRefundNeedsUnusedPass(t *testing.T) {
 	}
 }
 
+// A pass can be refunded only within 24 hours of buying it, and only if it paid for nothing:
+// no gig credit spent and no chat the free allowance wouldn't cover (client answer Q5)
+func TestPassRefundWindowAndChatUse(t *testing.T) {
+	e := setup(t)
+	fresh, late, chatted := primitive.NewObjectID(), primitive.NewObjectID(), primitive.NewObjectID()
+	freshPass := e.passWithCredits(t, fresh, passQuota)
+	latePass := e.passWithCredits(t, late, passQuota)
+	chattedPass := e.passWithCredits(t, chatted, passQuota)
+	e.exec(t, `UPDATE instant_passes SET activated_at = now() - interval '25 hours' WHERE id = ?`, latePass.ID.Hex())
+	e.exec(t, `UPDATE instant_passes SET benefit_used_at = now() WHERE id = ?`, chattedPass.ID.Hex())
+
+	if _, err := e.repo.RefundUnusedPass(e.ctx, latePass.ID, true); !errors.Is(err, ErrPassRefundTooLate) {
+		t.Fatalf("refunding a 25-hour-old pass: %v", err)
+	}
+	if _, err := e.repo.RefundUnusedPass(e.ctx, chattedPass.ID, true); !errors.Is(err, ErrPassUsed) {
+		t.Fatalf("refunding a pass used for a chat: %v", err)
+	}
+	if _, err := e.repo.RefundUnusedPass(e.ctx, freshPass.ID, true); err != nil {
+		t.Fatalf("refunding an unused pass bought just now: %v", err)
+	}
+	if e.credits(t, late) != passQuota || e.credits(t, chatted) != passQuota {
+		t.Fatal("a refused refund ended the pass")
+	}
+}
+
 func TestJobLifecycle(t *testing.T) {
 	e := setup(t)
 	worker := primitive.NewObjectID()

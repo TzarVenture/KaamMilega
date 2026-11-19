@@ -37,6 +37,8 @@ var (
 	ErrReasonRequired   = apperr.New("MENTORSHIP_REPORT_REASON_REQUIRED", "tell us what went wrong")
 	ErrInvalidBookState = apperr.New("MENTORSHIP_STATUS_INVALID", "that status can't be set on a session")
 	ErrSessionPaused    = apperr.New("MENTORSHIP_PAUSED", "this session isn't taking bookings right now")
+	ErrReviewNotDue     = apperr.New("MENTORSHIP_REVIEW_NOT_ALLOWED", "you can review a session once it's completed")
+	ErrRatingInvalid    = apperr.New("MENTORSHIP_RATING_INVALID", "choose a rating from 1 to 5 stars")
 )
 
 // bookable loads a mentorship and checks this user can buy it for this time.

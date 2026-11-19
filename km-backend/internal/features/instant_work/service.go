@@ -25,6 +25,7 @@ var (
 	ErrPassRequired       = apperr.New("PASS_REQUIRED", "an active InstantPass (₹99) is required to go Free Now and receive dispatches")
 	ErrPassQuotaExhausted = apperr.New("PASS_QUOTA_EXHAUSTED", "your InstantPass has no gig credits left. Buy a new pass to accept more gigs")
 	ErrPassUsed           = apperr.New("PASS_USED", "this InstantPass has been used, so it can't be refunded")
+	ErrPassRefundTooLate  = apperr.New("PASS_REFUND_WINDOW_CLOSED", "an InstantPass can only be refunded within 24 hours of buying it")
 	ErrJobNotFound        = apperr.New("INSTANT_JOB_NOT_FOUND", "instant job not found")
 	ErrUnauthorizedJob    = apperr.New("INSTANT_JOB_FORBIDDEN", "unauthorized access to this instant job")
 	ErrJobNotCompleted    = apperr.New("INSTANT_JOB_NOT_COMPLETED", "this gig must be completed before it can be closed")

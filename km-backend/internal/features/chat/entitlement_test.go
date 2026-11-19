@@ -16,6 +16,7 @@ type limitRepo struct {
 	hasPass      bool
 	startedToday int64
 	since        time.Time
+	passUsed     bool
 }
 
 func (r *limitRepo) ActivePass(ctx context.Context, userID primitive.ObjectID) (bool, int, error) {
@@ -25,6 +26,11 @@ func (r *limitRepo) ActivePass(ctx context.Context, userID primitive.ObjectID) (
 func (r *limitRepo) CountConversationsStartedSince(ctx context.Context, userID primitive.ObjectID, since time.Time) (int64, error) {
 	r.since = since
 	return r.startedToday, nil
+}
+
+func (r *limitRepo) MarkPassBenefitUsed(ctx context.Context, userID primitive.ObjectID) error {
+	r.passUsed = true
+	return nil
 }
 
 func (r *limitRepo) IsBlockedEitherWay(ctx context.Context, a, b primitive.ObjectID) (bool, error) {
@@ -66,12 +72,16 @@ func TestNewChatLimit(t *testing.T) {
 		pass    bool
 		started int64
 		want    error
+		used    bool // the chat counts as using the pass, so it can't be refunded (Q5)
 	}{
-		{"free user to recruiter", seeker, recruiter, false, 2, errGatePassed},
-		{"free user's 4th chat today", seeker, recruiter, false, 3, ErrChatDailyLimit},
-		{"free user to someone who isn't a recruiter", seeker, peer, false, 0, ErrChatPassRequired},
-		{"pass holder to anyone", seeker, peer, true, 10, errGatePassed},
-		{"recruiter has no limit", recruiter, peer, false, 10, errGatePassed},
+		{"free user to recruiter", seeker, recruiter, false, 2, errGatePassed, false},
+		{"free user's 4th chat today", seeker, recruiter, false, 3, ErrChatDailyLimit, false},
+		{"free user to someone who isn't a recruiter", seeker, peer, false, 0, ErrChatPassRequired, false},
+		{"pass holder to anyone", seeker, peer, true, 10, errGatePassed, true},
+		{"pass holder's free chat with a recruiter", seeker, recruiter, true, 2, errGatePassed, false},
+		{"pass holder's 4th chat with a recruiter", seeker, recruiter, true, 3, errGatePassed, true},
+		{"pass holder to someone who isn't a recruiter", seeker, peer, true, 0, errGatePassed, true},
+		{"recruiter has no limit", recruiter, peer, false, 10, errGatePassed, false},
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
@@ -80,6 +90,9 @@ func TestNewChatLimit(t *testing.T) {
 			_, err := svc.SendMessage(context.Background(), c.from, CreateMessageRequest{ReceiverID: c.to, Content: "hi"})
 			if !errors.Is(err, c.want) {
 				t.Fatalf("got %v, want %v", err, c.want)
+			}
+			if repo.passUsed != c.used {
+				t.Fatalf("pass marked used = %v, want %v", repo.passUsed, c.used)
 			}
 		})
 	}
