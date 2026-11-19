@@ -56,7 +56,9 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
 
             <div className="space-y-3.5">
                 {list.map((comp) => {
-                    const searchHref = `/jobs?company=${encodeURIComponent(comp.name)}`;
+                    // The company page and its jobs when we know the company, else a job search for its name
+                    const pageHref = comp.id ? `/company/${comp.id}` : `/jobs?q=${encodeURIComponent(comp.name)}`;
+                    const searchHref = comp.id ? `/company/${comp.id}/jobs` : pageHref;
 
                     return (
                         <div
@@ -80,7 +82,7 @@ export const TopEmployersWidget: React.FC<TopEmployersWidgetProps> = ({
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-1.5">
                                         <Link
-                                            href={searchHref}
+                                            href={pageHref}
                                             className="font-bold text-sm text-gray-900 hover:text-km-heading transition-colors truncate"
                                         >
                                             {comp.name}

@@ -39,16 +39,19 @@ export function useCompanyFollows() {
             return next;
         });
 
-    const toggle = useCallback(async (companyId: string) => {
-        if (!companyId) return;
+    /** Follows or unfollows; resolves false if the server refused (the button is put back) */
+    const toggle = useCallback(async (companyId: string): Promise<boolean> => {
+        if (!companyId) return false;
         const on = !following.has(companyId);
         set(companyId, on);
         try {
             if (on) await api.post(`/network/companies/${companyId}/follow`);
             else await api.delete(`/network/companies/${companyId}/follow`);
+            return true;
         } catch (err) {
             set(companyId, !on);
             notify.error(err, on ? 'Couldn’t follow this company.' : 'Couldn’t unfollow this company.');
+            return false;
         }
     }, [following]);
 

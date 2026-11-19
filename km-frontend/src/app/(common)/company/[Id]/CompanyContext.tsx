@@ -4,27 +4,29 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '@/lib/axios';
 import { useParams } from 'next/navigation';
 
+/** GET /api/companies/:id: the public company page (a recruiter's company profile) */
 export interface CompanyData {
     id: string;
     name: string;
-    industry: string;
-    connections: number;
-    website: string;
-    size: string;
-    specialties: string;
-    description: string;
     logo?: string;
-    cover_image?: string;
+    website?: string;
+    cover?: string;
+    about?: string;
+    /** Headcount band, e.g. "11-50" */
+    size?: string;
+    industry?: string;
     location?: string;
-    email?: string;
-    phone?: string;
-    recruiter_id?: string;
+    verified: boolean;
+    job_count: number;
+    follower_count: number;
 }
 
 interface CompanyContextType {
     company: CompanyData | null;
     loading: boolean;
-    error: string | null;
+    notFound: boolean;
+    /** Moves the follower count when the viewer follows or unfollows */
+    adjustFollowers: (delta: number) => void;
 }
 
 const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
@@ -33,33 +35,31 @@ export const CompanyProvider = ({ children }: { children: React.ReactNode }) => 
     const { Id } = useParams();
     const [company, setCompany] = useState<CompanyData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [notFound, setNotFound] = useState(false);
 
     useEffect(() => {
         if (!Id) return;
-
-        const fetchCompany = async () => {
-            try {
-                // Try fetching from /companies/:id
-                // Adjust endpoint if needed based on backend
-                const res: any = await api.get(`/companies/${Id}`);
-                setCompany(res.data || res);
-            } catch (err: any) {
-                console.error("Failed to fetch company", err);
-                setError(err.message || "Failed to load company data");
-
-                // Fallback to mock data if API fails (for development if API not ready)
-                // Remove this fallback in production if strictly API driven
-            } finally {
-                setLoading(false);
-            }
+        let alive = true;
+        api.get(`/companies/${Id}`)
+            .then((res) => {
+                if (alive) setCompany(res as unknown as CompanyData);
+            })
+            .catch(() => {
+                if (alive) setNotFound(true);
+            })
+            .finally(() => {
+                if (alive) setLoading(false);
+            });
+        return () => {
+            alive = false;
         };
-
-        fetchCompany();
     }, [Id]);
 
+    const adjustFollowers = (delta: number) =>
+        setCompany((c) => (c ? { ...c, follower_count: Math.max(0, c.follower_count + delta) } : c));
+
     return (
-        <CompanyContext.Provider value={{ company, loading, error }}>
+        <CompanyContext.Provider value={{ company, loading, notFound, adjustFollowers }}>
             {children}
         </CompanyContext.Provider>
     );
@@ -72,3 +72,10 @@ export const useCompany = () => {
     }
     return context;
 };
+
+/** The company's website as a link target, or null when it has none */
+export function websiteHref(website?: string): string | null {
+    const w = website?.trim();
+    if (!w) return null;
+    return /^https?:\/\//i.test(w) ? w : `https://${w}`;
+}

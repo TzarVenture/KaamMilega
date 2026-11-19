@@ -1,147 +1,104 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { ChatCircleIcon, MapPinIcon } from '@phosphor-icons/react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { MapPinIcon, UsersIcon } from '@phosphor-icons/react';
 import { useCompany } from "../CompanyContext";
 import api from '@/lib/axios';
-import Link from 'next/link';
-import { notify } from "@/lib/notify";
+import UserAvatar from '@/components/ui/UserAvatar';
+import { isAuthenticated } from '@/lib/auth';
+import { loginPathFor } from '@/lib/authPaths';
 
+/** GET /network/companies/:id/people */
 interface Person {
     id: string;
     name: string;
-    designation: string;
-    location?: string;
-    avatar?: string;
-    mutual_connects?: number;
+    headline?: string;
+    title?: string;
+    profile_image?: string;
+    city?: string;
+    is_recruiter: boolean;
 }
 
-const PeopleSection: React.FC = () => {
+/** Members who work at the company now. Signed-in members only, like the rest of the network. */
+export default function CompanyPeoplePage() {
+    const t = useTranslations('company');
+    const pathname = usePathname();
     const { company } = useCompany();
-    const [people, setPeople] = useState<Person[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [signedIn] = useState(() => isAuthenticated());
+    const [people, setPeople] = useState<Person[] | null>(null);
 
     useEffect(() => {
-        const fetchPeople = async () => {
-            if (!company?.id) return;
-            setLoading(true);
-            try {
-                // Fetch people working in company. Assuming /users endpoint with filter
-                const res: any = await api.get('/users', {
-                    params: {
-                        company_id: company.id,
-                        limit: 8
-                    }
-                });
-
-                const peopleList = res.users || res.data || [];
-                setPeople(peopleList);
-            } catch (error) {
-                console.error("Failed to fetch people", error);
-                notify.error(error, "This company’s people couldn’t be loaded.");
-                // Could not fetch people, show empty or mock for presentation if needed
-            } finally {
-                setLoading(false);
-            }
+        if (!company?.id || !signedIn) return;
+        let alive = true;
+        api.get(`/network/companies/${company.id}/people`)
+            .then((res) => {
+                const list = (res as { data?: Person[] } | null)?.data;
+                if (alive) setPeople(Array.isArray(list) ? list : []);
+            })
+            .catch(() => alive && setPeople([]));
+        return () => {
+            alive = false;
         };
+    }, [company?.id, signedIn]);
 
-        fetchPeople();
-    }, [company?.id]);
+    const box = 'bg-km-surface-card border border-km-border rounded-2xl p-10 text-center';
 
+    if (!signedIn) {
+        return (
+            <section className={box}>
+                <UsersIcon size={32} weight="duotone" className="text-km-heading mx-auto mb-3" aria-hidden="true" />
+                <p className="text-sm text-km-text-secondary mb-4">{t('peopleSignIn')}</p>
+                <Link href={loginPathFor(pathname)} className="inline-flex px-5 py-2 bg-km-primary text-white rounded-xl text-sm font-semibold hover:bg-km-primary-dark transition-colors">
+                    {t('signIn')}
+                </Link>
+            </section>
+        );
+    }
+
+    if (people === null) {
+        return (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" aria-busy="true">
+                {[1, 2, 3, 4].map((n) => <div key={n} className="h-20 bg-km-surface-card border border-km-border rounded-2xl animate-pulse" />)}
+            </div>
+        );
+    }
+
+    if (people.length === 0) {
+        return (
+            <section className={box}>
+                <UsersIcon size={32} weight="duotone" className="text-km-heading mx-auto mb-3" aria-hidden="true" />
+                <p className="text-sm text-km-text-secondary">{t('noPeople')}</p>
+            </section>
+        );
+    }
 
     return (
-        <div className="flex w-full gap-6">
-            {/* Consistent Sidebar */}
-            <aside className="w-full lg:w-1/4 hidden lg:block">
-                <div className="sticky top-6 bg-blue-50/50 rounded-2xl border border-blue-100 p-8 flex flex-col items-center text-center">
-                    <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center mb-4 overflow-hidden shadow-inner">
-                        {company?.logo ? (
-                            <img src={company.logo} alt={company?.name} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-white text-2xl uppercase font-bold">{company?.name?.charAt(0) || 'C'}</span>
-                        )}
-                    </div>
-                    <h2 className="text-xl font-bold text-gray-900">{company?.name || "Company Name"}</h2>
-                    <p className="text-sm text-gray-600 mt-1">{company?.connections?.toLocaleString() || 0} Followers</p>
-                </div>
-            </aside>
-
-            {/* Main Content Area */}
-            <section className="flex-1 space-y-12">
-                {/* Top Grid: People associated with the company */}
-                <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-6">People at {company?.name}</h3>
-                    {loading ? (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[1, 2, 3, 4].map(n => <div key={n} className="h-48 bg-gray-100 rounded-3xl animate-pulse" />)}
-                        </div>
-                    ) : people.length === 0 ? (
-                        <div className="bg-km-surface-card border border-gray-200 rounded-3xl p-8 text-center">
-                            <h3 className="text-lg font-bold text-gray-900">No people found</h3>
-                            <p className="text-gray-500">We couldn't find anyone working here yet.</p>
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {people.map((person) => (
-                                <PersonCard key={person.id} person={person} />
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </section>
-        </div>
-    );
-};
-
-export default PeopleSection;
-
-
-const PersonCard = ({ person }: { person: Person }) => (
-    <div className="bg-km-surface-card border border-gray-100 rounded-3xl p-5 flex flex-col items-center relative shadow-sm hover:shadow-md transition">
-        <div className="relative mb-3">
-            <div className="w-20 h-20 bg-km-primary-dark rounded-full flex items-center justify-center overflow-hidden shadow-inner">
-                {person.avatar ? (
-                    <img src={person.avatar} alt={person.name} className="w-full h-full object-cover" />
-                ) : (
-                    <span className="text-white text-2xl uppercase font-bold">{person.name.charAt(0)}</span>
-                )}
-            </div>
-        </div>
-
-        <h3 className="font-bold text-gray-900 text-sm text-center truncate w-full">{person.name}</h3>
-        <p className="text-xs text-gray-400 mb-2 text-center w-full truncate font-semibold">{person.designation || 'Member'}</p>
-
-        <div className="flex items-center text-gray-500 text-[10px] mb-1 font-medium">
-            <MapPinIcon weight="bold" size={10} className="mr-1 text-km-heading" />
-            <span>{person.location || 'Location N/A'}</span>
-        </div>
-        <p className="text-[10px] text-gray-400 mb-4 cursor-default">{person.mutual_connects || 0} Mutual Connects</p>
-
-        <div className="w-full space-y-2">
-            {(() => {
-                const storedUser = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
-                let currentUserId = '';
-                if (storedUser) {
-                    try {
-                        const parsed = JSON.parse(storedUser);
-                        currentUserId = parsed.id || parsed._id;
-                    } catch (e) {}
-                }
-                const isSelf = (person.id === currentUserId);
-                
-                return !isSelf && (
-                    <>
-                        <Link href={`/chat?userId=${person.id}`}>
-                            <button className="w-full py-2 border border-km-primary text-km-heading rounded-xl text-xs font-bold flex items-center justify-center space-x-1 hover:bg-blue-50 transition-colors">
-                                <ChatCircleIcon weight="bold" size={12} />
-                                <span>Chat</span>
-                            </button>
+        <section className="bg-km-surface-card border border-km-border rounded-2xl p-5 sm:p-6">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {people.map((p) => (
+                    <li key={p.id}>
+                        <Link href={`/profile/${p.id}`} className="flex items-center gap-3 p-3 rounded-xl border border-km-border-subtle hover:border-km-border hover:bg-km-surface transition-colors">
+                            <div className="w-12 h-12 rounded-full overflow-hidden shrink-0 bg-km-surface border border-km-border">
+                                <UserAvatar src={p.profile_image} name={p.name} />
+                            </div>
+                            <div className="min-w-0">
+                                <p className="text-sm font-semibold text-km-text-primary truncate">{p.name}</p>
+                                <p className="text-xs text-km-text-secondary truncate">
+                                    {p.is_recruiter ? t('recruiter') : p.title || p.headline}
+                                </p>
+                                {p.city && (
+                                    <p className="flex items-center gap-1 text-xs text-km-text-secondary mt-0.5">
+                                        <MapPinIcon weight="bold" size={11} className="text-km-heading shrink-0" aria-hidden="true" />
+                                        <span className="truncate">{p.city}</span>
+                                    </p>
+                                )}
+                            </div>
                         </Link>
-                        <button className="w-full py-2 bg-km-primary text-white rounded-xl text-xs font-bold hover:bg-km-primary-dark transition-colors shadow-sm">
-                            Follow
-                        </button>
-                    </>
-                );
-            })()}
-        </div>
-    </div>
-);
+                    </li>
+                ))}
+            </ul>
+        </section>
+    );
+}

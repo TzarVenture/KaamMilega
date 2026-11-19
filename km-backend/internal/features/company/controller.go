@@ -100,6 +100,15 @@ func (c *CompanyController) DeleteCompany(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusNoContent)
 }
 
+// GetPublicCompany is the public company page (GET /api/companies/:id)
+func (c *CompanyController) GetPublicCompany(ctx *fiber.Ctx) error {
+	company, err := c.service.GetPublicCompany(ctx.Context(), ctx.Params("id"))
+	if err != nil {
+		return apperr.Respond(ctx, err)
+	}
+	return ctx.JSON(company)
+}
+
 func (c *CompanyController) GetTopCompanies(ctx *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(ctx.Query("limit", "10"))
 	companies, err := c.service.GetTopCompanies(ctx.Context(), limit)

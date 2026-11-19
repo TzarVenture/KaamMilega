@@ -122,6 +122,7 @@ type NetworkRepository interface {
 	FollowedCompanyIDs(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
 	OpenJobCounts(ctx context.Context, companyIDs []primitive.ObjectID) (map[primitive.ObjectID]int, error)
 	BlockedEitherWay(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
+	CountFollowers(ctx context.Context, companyID primitive.ObjectID) (int64, error)
 }
 
 type NetworkService interface {
@@ -143,4 +144,5 @@ type NetworkService interface {
 	UnfollowCompany(ctx context.Context, userID primitive.ObjectID, companyID string) error
 	FollowedCompanies(ctx context.Context, userID primitive.ObjectID) ([]string, error)
 	CompanySuggestions(ctx context.Context, userID primitive.ObjectID, limit int) ([]SuggestedCompany, error)
+	CompanyPeople(ctx context.Context, viewerID primitive.ObjectID, companyID string, limit int) ([]CompanyPerson, error)
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     BriefcaseIcon,
+    BuildingsIcon,
     CalendarBlankIcon,
     CaretRightIcon,
     GearSixIcon,
@@ -25,6 +26,7 @@ const sidebarItems = [
     { name: "Manage Job Posts", href: "/recruiter/jobs/list", icon: BriefcaseIcon },
     { name: "Applicant Pipeline", href: "/recruiter/applications", icon: KanbanIcon },
     { name: "Scheduled Interviews", href: "/recruiter/interviews", icon: CalendarBlankIcon },
+    { name: "Company Profile", href: "/recruiter/company", icon: BuildingsIcon },
     { name: "Billing & Wallet", href: "/wallet", icon: WalletIcon },
     { name: "Account Settings", href: "/recruiter/settings", icon: GearSixIcon },
 ];

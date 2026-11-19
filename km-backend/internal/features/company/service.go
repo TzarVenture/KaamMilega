@@ -7,19 +7,81 @@ import (
 	"time"
 
 	"km-backend/internal/features/job"
+	"km-backend/internal/features/network"
 	"km-backend/internal/features/user"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type CompanyService struct {
 	userRepo user.UserRepository
 	jobRepo  job.JobRepository
+	network  network.NetworkRepository
 }
 
-func NewCompanyService(userRepo user.UserRepository, jobRepo job.JobRepository) *CompanyService {
+func NewCompanyService(userRepo user.UserRepository, jobRepo job.JobRepository, networkRepo network.NetworkRepository) *CompanyService {
 	return &CompanyService{
 		userRepo: userRepo,
 		jobRepo:  jobRepo,
+		network:  networkRepo,
 	}
+}
+
+// PublicCompany is what anyone can see on a company page. Contact details, GST and documents
+// stay admin-only (GetCompany).
+type PublicCompany struct {
+	ID            string `json:"id"`
+	Name          string `json:"name"`
+	Logo          string `json:"logo,omitempty"`
+	Website       string `json:"website,omitempty"`
+	Cover         string `json:"cover,omitempty"`
+	About         string `json:"about,omitempty"`
+	Size          string `json:"size,omitempty"`
+	Industry      string `json:"industry,omitempty"`
+	Location      string `json:"location,omitempty"`
+	Verified      bool   `json:"verified"`
+	JobCount      int    `json:"job_count"`
+	FollowerCount int64  `json:"follower_count"`
+}
+
+// GetPublicCompany loads a company page: an active recruiter account with a company name.
+// network.ErrCompanyNotFound otherwise.
+func (s *CompanyService) GetPublicCompany(ctx context.Context, id string) (*PublicCompany, error) {
+	oid, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, network.ErrCompanyNotFound
+	}
+	found, err := s.network.GetCompanies(ctx, bson.M{"_id": oid}, 1)
+	if err != nil {
+		return nil, err
+	}
+	if len(found) == 0 {
+		return nil, network.ErrCompanyNotFound
+	}
+	c := found[0]
+	jobs, err := s.network.OpenJobCounts(ctx, []primitive.ObjectID{oid})
+	if err != nil {
+		return nil, err
+	}
+	followers, err := s.network.CountFollowers(ctx, oid)
+	if err != nil {
+		return nil, err
+	}
+	return &PublicCompany{
+		ID:            oid.Hex(),
+		Name:          strings.TrimSpace(c.CompanyName),
+		Logo:          c.CompanyLogo,
+		Website:       c.CompanyWebsite,
+		Cover:         c.CompanyCover,
+		About:         c.CompanyAbout,
+		Size:          c.CompanySize,
+		Industry:      strings.TrimSpace(c.Industry),
+		Location:      c.Location(),
+		Verified:      c.VerificationStatus == "verified",
+		JobCount:      jobs[oid],
+		FollowerCount: followers,
+	}, nil
 }
 
 // openJobCount counts the recruiter's live listings (status "Open", not hidden because the
@@ -315,7 +377,10 @@ func (s *CompanyService) GetTopCompanies(ctx context.Context, limit int) ([]TopC
 	for _, u := range users {
 		if u.CompanyName != "" {
 			category := strings.TrimSpace(u.Industry)
-			location := strings.TrimSpace(u.City)
+			location := strings.TrimSpace(u.CompanyCity)
+			if location == "" {
+				location = strings.TrimSpace(u.City)
+			}
 			top = append(top, TopCompanyResponse{
 				ID:       u.ID.Hex(),
 				Name:     u.CompanyName,

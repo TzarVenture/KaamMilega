@@ -151,3 +151,37 @@ func TestFollowCompanyRules(t *testing.T) {
 		}
 	}
 }
+
+type peopleRepo struct {
+	companyRepo
+	people []CandidateUser
+}
+
+func (r *peopleRepo) GetCandidateUsersWhere(ctx context.Context, exclusions []primitive.ObjectID, where bson.M, limit int) ([]CandidateUser, error) {
+	return r.people, nil
+}
+
+func TestCompanyPeopleListsCurrentStaffOnly(t *testing.T) {
+	company := CompanyProfile{ID: primitive.NewObjectID(), CompanyName: "Zomato Pvt Ltd"}
+	repo := &peopleRepo{
+		companyRepo: companyRepo{companies: []CompanyProfile{company}},
+		people: []CandidateUser{
+			{ID: primitive.NewObjectID(), Name: "Ravi", Experience: []experienceEntry{{CompanyName: "zomato", Title: "Delivery lead"}}},
+			{ID: primitive.NewObjectID(), Name: "Asha", Experience: []experienceEntry{{CompanyName: "Zomato", EndDate: "2023-01"}}}, // left
+			{ID: company.ID, FirstName: "Neha", LastName: "Rao"},                                                                    // the recruiter
+			{ID: primitive.NewObjectID(), Name: "Kiran", Experience: []experienceEntry{{CompanyName: "Zomato Hyperpure"}}},          // another company
+		},
+	}
+	svc := NewNetworkService(repo, nil, fakeUsers{})
+
+	got, err := svc.CompanyPeople(context.Background(), primitive.NewObjectID(), company.ID.Hex(), 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 2 || got[0].Name != "Neha Rao" || !got[0].IsRecruiter || got[1].Name != "Ravi" || got[1].Title != "Delivery lead" {
+		t.Fatalf("people = %+v", got)
+	}
+	if _, err := svc.CompanyPeople(context.Background(), primitive.NewObjectID(), primitive.NewObjectID().Hex(), 10); !errors.Is(err, ErrCompanyNotFound) {
+		t.Fatalf("unknown company: %v", err)
+	}
+}

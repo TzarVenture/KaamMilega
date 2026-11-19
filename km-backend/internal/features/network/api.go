@@ -38,4 +38,5 @@ func (a *NetworkApi) Setup(app *fiber.App) {
 	network.Get("/companies/following", a.ctrl.FollowedCompanies)
 	network.Post("/companies/:id/follow", a.ctrl.FollowCompany)
 	network.Delete("/companies/:id/follow", a.ctrl.UnfollowCompany)
+	network.Get("/companies/:id/people", a.ctrl.CompanyPeople)
 }

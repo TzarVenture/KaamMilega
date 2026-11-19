@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // educationPatterns pulls the education regexes out of a list filter
@@ -60,5 +61,18 @@ func TestListFilterAlwaysHidesDeleted(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("deleted jobs are not filtered out")
+	}
+}
+
+func TestListFilterByCompany(t *testing.T) {
+	id := primitive.NewObjectID()
+	found := false
+	for _, cond := range listFilter(JobFilter{RecruiterID: id.Hex()})["$and"].([]bson.M) {
+		if cond["recruiter_id"] == id {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("recruiter_id is not filtered")
 	}
 }

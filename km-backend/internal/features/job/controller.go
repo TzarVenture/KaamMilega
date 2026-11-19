@@ -44,17 +44,13 @@ func (c *JobController) CreateJob(ctx *fiber.Ctx) error {
 }
 
 func (c *JobController) GetJobs(ctx *fiber.Ctx) error {
-	// Check if filtering by recruiter through query param
+	// recruiter_id lists one company's jobs under the same rules as the public list (paged,
+	// deleted and hidden jobs left out, no applicant counts)
 	recruiterID := ctx.Query("recruiter_id")
 	if recruiterID != "" {
 		if _, err := primitive.ObjectIDFromHex(recruiterID); err != nil {
 			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid recruiter ID format"})
 		}
-		jobs, err := c.service.GetJobsByRecruiter(ctx.Context(), recruiterID)
-		if err != nil {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
-		}
-		return ctx.JSON(jobs)
 	}
 
 	// Default filters
@@ -119,6 +115,7 @@ func (c *JobController) GetJobs(ctx *fiber.Ctx) error {
 		SalaryMax:     getIntPtr("salary_max"),
 		ExperienceMin: getIntPtr("experience_min"),
 		ExperienceMax: getIntPtr("experience_max"),
+		RecruiterID:   recruiterID,
 		Page:          page,
 		Limit:         limit,
 	}

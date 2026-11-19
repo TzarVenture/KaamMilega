@@ -3,17 +3,45 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MagnifyingGlassMinusIcon, MagnifyingGlassPlusIcon } from '@phosphor-icons/react';
 
-/** Size of the crop window on screen, in CSS pixels */
+/** Width of the crop window on screen for a square crop, in CSS pixels */
 const VIEW = 288;
 const MAX_ZOOM = 3;
 
 interface ImageCropperProps {
   file: File;
-  /** Width and height of the saved square image */
+  /** Width of the saved image (its height follows the aspect) */
   outputSize?: number;
+  /** Width divided by height of the crop, 1 for a square */
+  aspect?: number;
+  /** The guide drawn over the crop: a circle (profile photos), a rounded square (logos) or the plain frame */
+  shape?: 'round' | 'square' | 'rect';
+  /** PNG keeps a logo's transparent background; JPEG is smaller for photos */
+  format?: 'image/jpeg' | 'image/png';
+  saveLabel?: string;
   busy?: boolean;
   onCancel: () => void;
   onCrop: (cropped: File) => void;
+  /** The browser couldn't open the image (a broken or unusual file); without it, the crop just closes */
+  onError?: () => void;
+}
+
+/** Picker list for photos the cropper takes. Extensions too: some systems report no type for .webp. */
+export const CROPPABLE_ACCEPT = 'image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp';
+
+/** A JPG, PNG or WebP, judged by its type or its file name (some systems report no or an odd type for .webp) */
+export function isCroppableImage(file: File): boolean {
+  return /^image\/(jpeg|png|webp)$/.test(file.type) || /\.(jpe?g|png|webp)$/i.test(file.name);
+}
+
+export function isSvgImage(file: File): boolean {
+  return file.type === 'image/svg+xml' || (!file.type && /\.svg$/i.test(file.name));
+}
+
+/** Crop window size: square crops stay 288px; wide ones use the room the screen has (up to 480px) */
+function viewSize(aspect: number): { w: number; h: number } {
+  const room = typeof window === 'undefined' ? VIEW : window.innerWidth - 80;
+  const w = aspect > 1 ? Math.round(Math.max(VIEW, Math.min(480, room))) : VIEW;
+  return { w, h: Math.round(w / aspect) };
 }
 
 interface Box {
@@ -22,13 +50,29 @@ interface Box {
   zoom: number;
 }
 
-/** Square crop with a round guide: drag to move, slider or wheel to zoom */
-export default function ImageCropper({ file, outputSize = 512, busy = false, onCancel, onCrop }: ImageCropperProps) {
+/** Drag to move, slider or wheel to zoom. By default a square crop with a round guide (profile photos). */
+export default function ImageCropper({
+  file,
+  outputSize = 512,
+  aspect = 1,
+  shape = 'round',
+  format = 'image/jpeg',
+  saveLabel = 'Save photo',
+  busy = false,
+  onCancel,
+  onCrop,
+  onError,
+}: ImageCropperProps) {
+  const [{ w: VW, h: VH }] = useState(() => viewSize(aspect));
   const [src, setSrc] = useState('');
   const [natural, setNatural] = useState<{ w: number; h: number } | null>(null);
   const [box, setBox] = useState<Box>({ x: 0, y: 0, zoom: 1 });
   const imgRef = useRef<HTMLImageElement>(null);
   const drag = useRef<{ id: number; startX: number; startY: number; x: number; y: number } | null>(null);
+  const failRef = useRef(onError || onCancel);
+  useEffect(() => {
+    failRef.current = onError || onCancel;
+  });
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
@@ -38,34 +82,37 @@ export default function ImageCropper({ file, outputSize = 512, busy = false, onC
       setNatural(null);
       setSrc(url);
     };
+    // Without this a file the browser can't decode leaves an empty crop box and no way on
+    probe.onerror = () => failRef.current();
     probe.src = url;
     return () => {
       probe.onload = null;
+      probe.onerror = null;
       URL.revokeObjectURL(url);
     };
   }, [file]);
 
-  // Scale at zoom 1: the short side fills the window
-  const baseScale = natural ? VIEW / Math.min(natural.w, natural.h) : 1;
+  // Scale at zoom 1: the photo just covers the window
+  const baseScale = natural ? Math.max(VW / natural.w, VH / natural.h) : 1;
 
   const clamp = useCallback(
     (b: Box): Box => {
       if (!natural) return b;
       const s = baseScale * b.zoom;
-      const minX = VIEW - natural.w * s;
-      const minY = VIEW - natural.h * s;
+      const minX = VW - natural.w * s;
+      const minY = VH - natural.h * s;
       return { zoom: b.zoom, x: Math.min(0, Math.max(minX, b.x)), y: Math.min(0, Math.max(minY, b.y)) };
     },
-    [natural, baseScale],
+    [natural, baseScale, VW, VH],
   );
 
   const onLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const w = e.currentTarget.naturalWidth;
     const h = e.currentTarget.naturalHeight;
-    const s = VIEW / Math.min(w, h);
+    const s = Math.max(VW / w, VH / h);
     setNatural({ w, h });
     // Start centred
-    setBox({ zoom: 1, x: (VIEW - w * s) / 2, y: (VIEW - h * s) / 2 });
+    setBox({ zoom: 1, x: (VW - w * s) / 2, y: (VH - h * s) / 2 });
   };
 
   /** Zooms around the centre of the window */
@@ -74,9 +121,9 @@ export default function ImageCropper({ file, outputSize = 512, busy = false, onC
     setBox((b) => {
       const oldS = baseScale * b.zoom;
       const newS = baseScale * z;
-      const cx = (VIEW / 2 - b.x) / oldS;
-      const cy = (VIEW / 2 - b.y) / oldS;
-      return clamp({ zoom: z, x: VIEW / 2 - cx * newS, y: VIEW / 2 - cy * newS });
+      const cx = (VW / 2 - b.x) / oldS;
+      const cy = (VH / 2 - b.y) / oldS;
+      return clamp({ zoom: z, x: VW / 2 - cx * newS, y: VH / 2 - cy * newS });
     });
   };
 
@@ -130,20 +177,26 @@ export default function ImageCropper({ file, outputSize = 512, busy = false, onC
     const img = imgRef.current;
     if (!img || !natural) return;
     const s = baseScale * box.zoom;
+    const outW = outputSize;
+    const outH = Math.round(outputSize / aspect);
     const canvas = document.createElement('canvas');
-    canvas.width = outputSize;
-    canvas.height = outputSize;
+    canvas.width = outW;
+    canvas.height = outH;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, outputSize, outputSize);
+    // JPEG has no transparency: fill white so see-through parts don't turn black
+    if (format === 'image/jpeg') {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, outW, outH);
+    }
     ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(img, -box.x / s, -box.y / s, VIEW / s, VIEW / s, 0, 0, outputSize, outputSize);
+    ctx.drawImage(img, -box.x / s, -box.y / s, VW / s, VH / s, 0, 0, outW, outH);
+    const ext = format === 'image/png' ? 'png' : 'jpg';
     canvas.toBlob(
       (blob) => {
-        if (blob) onCrop(new File([blob], 'profile-photo.jpg', { type: 'image/jpeg' }));
+        if (blob) onCrop(new File([blob], `cropped.${ext}`, { type: format }));
       },
-      'image/jpeg',
+      format,
       0.9,
     );
   };
@@ -163,7 +216,7 @@ export default function ImageCropper({ file, outputSize = 512, busy = false, onC
         onPointerCancel={onPointerUp}
         onKeyDown={onKeyDown}
         className="relative overflow-hidden rounded-xl bg-km-surface touch-none select-none cursor-grab active:cursor-grabbing outline-none focus-visible:ring-4 focus-visible:ring-[#DCE8FB] dark:focus-visible:ring-[#16294F]"
-        style={{ width: VIEW, height: VIEW }}
+        style={{ width: VW, height: VH }}
       >
         {src && (
           // eslint-disable-next-line @next/next/no-img-element
@@ -177,12 +230,20 @@ export default function ImageCropper({ file, outputSize = 512, busy = false, onC
             style={natural ? { width: natural.w * s, height: natural.h * s, transform: `translate(${box.x}px, ${box.y}px)` } : { opacity: 0 }}
           />
         )}
-        {/* Darkens what falls outside the round photo */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full shadow-[0_0_0_999px_rgba(7,26,77,0.55)]" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-full border-2 border-white/90" />
+        {/* Darkens what falls outside the round photo or logo */}
+        {shape !== 'rect' && (
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-0 shadow-[0_0_0_999px_rgba(7,26,77,0.55)] ${shape === 'round' ? 'rounded-full' : 'rounded-2xl'}`}
+          />
+        )}
+        <div
+          aria-hidden="true"
+          className={`pointer-events-none absolute inset-0 border-2 border-white/90 ${shape === 'round' ? 'rounded-full' : shape === 'square' ? 'rounded-2xl' : 'rounded-xl'}`}
+        />
       </div>
 
-      <div className="flex w-full max-w-[288px] items-center gap-3">
+      <div className="flex w-full items-center gap-3" style={{ maxWidth: VW }}>
         <button type="button" onClick={() => setZoom(box.zoom - 0.2)} className="text-km-text-secondary hover:text-km-heading cursor-pointer" aria-label="Zoom out">
           <MagnifyingGlassMinusIcon size={20} />
         </button>
@@ -206,7 +267,7 @@ export default function ImageCropper({ file, outputSize = 512, busy = false, onC
           Cancel
         </button>
         <button type="button" onClick={save} disabled={busy || !natural} className="btn-primary h-10 px-5 text-sm disabled:opacity-60 disabled:cursor-not-allowed">
-          {busy ? 'Saving…' : 'Save photo'}
+          {busy ? 'Saving…' : saveLabel}
         </button>
       </div>
     </div>

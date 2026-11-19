@@ -482,7 +482,7 @@ func (s *Service) ProcessDueDeletions(ctx context.Context) (deleted int, err err
 
 // deleteUploadedFiles removes the user's own uploads (photos, documents, resumes) from disk
 func (s *Service) deleteUploadedFiles(ctx context.Context, u *user.User) {
-	urls := []string{u.ProfileImage, u.CoverImage, u.CompanyLogo}
+	urls := []string{u.ProfileImage, u.CoverImage, u.CompanyLogo, u.CompanyCover}
 	for _, d := range u.CompanyDocuments {
 		urls = append(urls, d.URL)
 	}

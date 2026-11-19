@@ -1,197 +1,169 @@
 'use client'
-import { BriefcaseIcon, ChatCircleIcon, MapPinIcon, PlusIcon, UsersIcon } from '@phosphor-icons/react';
+import { BuildingOfficeIcon, CheckIcon, PencilSimpleIcon, PlusIcon, SealCheckIcon } from '@phosphor-icons/react';
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { CompanyProvider, useCompany } from "./CompanyContext";
+import { useTranslations } from 'next-intl';
+import { CompanyProvider, useCompany, websiteHref } from "./CompanyContext";
 import AdSlot from '@/components/ads/AdSlot';
-
-const tabs = [
-    { id: 1, label: 'About', links: "/company/[Id]" },
-    { id: 2, label: 'Posts', links: "/company/[Id]/posts" },
-    { id: 3, label: 'Jobs', links: "/company/[Id]/jobs" },
-    { id: 4, label: 'People', links: "/company/[Id]/people" },
-];
+import CompaniesToFollow from '@/components/network/CompaniesToFollow';
+import CustomImage from '@/components/ui/CustomImage';
+import { useCompanyFollows } from '@/lib/useCompanyFollows';
+import { getCurrentUser, isAuthenticated } from '@/lib/auth';
+import { loginPathFor } from '@/lib/authPaths';
+import { useFormat } from '@/i18n/useFormat';
 
 function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const { Id } = useParams();
-    const { company, loading, error } = useCompany();
+    const t = useTranslations('company');
+    const tc = useTranslations('common');
+    const { number } = useFormat();
+    const { company, loading, notFound, adjustFollowers } = useCompany();
+    const follows = useCompanyFollows();
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] dark:bg-[#1D253D]">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
-            </div>
+            <main className="min-h-screen bg-km-surface py-8 px-4 md:px-12 lg:px-24">
+                <div className="max-w-7xl mx-auto h-56 rounded-2xl bg-km-surface-card border border-km-border animate-pulse" />
+            </main>
         );
     }
 
-    if (error || !company) {
+    if (notFound || !company) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] gap-4 dark:bg-[#1D253D]">
-                <h2 className="text-xl font-bold text-gray-900">Company not found</h2>
-                <p className="text-gray-500">{error || "The company you are looking for does not exist."}</p>
-                <Link href="/" className="px-6 py-2 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 transition">
-                    Go Home
+            <main className="min-h-screen flex flex-col items-center justify-center bg-km-surface gap-3 px-4 text-center">
+                <BuildingOfficeIcon size={40} weight="duotone" className="text-km-heading" aria-hidden="true" />
+                <h1 className="text-xl font-bold text-km-text-primary">{t('notFoundTitle')}</h1>
+                <p className="text-sm text-km-text-secondary">{t('notFoundText')}</p>
+                <Link href="/jobs" className="mt-2 px-5 py-2 bg-km-primary text-white rounded-xl text-sm font-semibold hover:bg-km-primary-dark transition-colors">
+                    {t('browseJobs')}
                 </Link>
-            </div>
+            </main>
         );
     }
+
+    const base = `/company/${Id}`;
+    const tabs = [
+        { href: base, label: t('tabAbout') },
+        { href: `${base}/jobs`, label: t('tabJobs') },
+        { href: `${base}/people`, label: t('tabPeople') },
+    ];
+    const website = websiteHref(company.website);
+    const following = follows.isFollowing(company.id);
+    const me = getCurrentUser();
+    const isOwner = Boolean(me && (me.id || me._id) === company.id);
+    const facts = [company.industry, company.location].filter(Boolean).join(' · ');
+
+    const onFollow = async () => {
+        adjustFollowers(following ? -1 : 1);
+        const ok = await follows.toggle(company.id);
+        if (!ok) adjustFollowers(following ? 1 : -1);
+    };
+
+    const followButtonClass = `inline-flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+        following
+            ? 'bg-km-surface text-km-text-primary border border-km-border hover:bg-km-surface-card'
+            : 'bg-km-primary text-white hover:bg-km-primary-dark'
+    }`;
 
     return (
-        <main className="min-h-screen bg-[#f8f9fa] py-8 px-4 md:px-12 lg:px-24 dark:bg-[#1D253D]">
+        <main className="min-h-screen bg-km-surface py-8 px-4 md:px-12 lg:px-24">
             <div className="max-w-7xl mx-auto grid grid-cols-12 gap-6">
 
-                {/* LEFT COLUMN: Main Content */}
                 <div className="col-span-12 lg:col-span-8 flex flex-col gap-6">
-
-                    {/* Company Hero Card */}
-                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                        <div className="h-44 bg-linear-to-r from-[#020617] via-km-primary-dark to-[#020617] relative">
-                            {/* Banner Placeholder Icon or Image */}
-                            {company.cover_image ? (
-                                <img src={company.cover_image} alt="Cover" className="w-full h-full object-cover" />
-                            ) : (
-                                <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                                    <BriefcaseIcon size={64} className="text-white" />
-                                </div>
+                    <section className="bg-km-surface-card rounded-2xl border border-km-border shadow-xs overflow-hidden">
+                        <div className="h-32 sm:h-44 bg-[#071A4D] relative">
+                            {company.cover && (
+                                <CustomImage src={company.cover} alt="" className="absolute inset-0 w-full h-full object-cover" />
                             )}
-
-                            {/* Profile Logo */}
-                            <div className="absolute -bottom-14 left-8 p-1.5 bg-km-surface-card rounded-full shadow-md">
-                                <div className="w-28 h-28 bg-km-primary-dark rounded-full flex items-center justify-center overflow-hidden">
+                            <div className="absolute -bottom-12 left-6 sm:left-8 p-1.5 bg-km-surface-card rounded-2xl shadow-md">
+                                <div className="w-24 h-24 rounded-xl bg-white border border-km-border-subtle flex items-center justify-center overflow-hidden">
                                     {company.logo ? (
-                                        <img src={company.logo} alt={company.name} className="w-full h-full object-cover" />
+                                        <CustomImage src={company.logo} alt="" className="w-full h-full object-contain" />
                                     ) : (
-                                        <BriefcaseIcon size={48} className="text-white" />
+                                        <BuildingOfficeIcon size={40} className="text-km-heading" aria-hidden="true" />
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="pt-16 px-8 pb-8">
-                            <div className="flex flex-col gap-1">
-                                <h1 className="text-2xl font-bold text-gray-900">{company.name}</h1>
-                                <p className="text-xs font-bold text-gray-400">
-                                    {company.industry || "Industry N/A"}
-                                </p>
-                                <p className="text-sm text-gray-600 mt-1 font-medium">
-                                    {company.connections || 0} Connections
-                                </p>
+                        <div className="pt-16 px-6 sm:px-8 pb-6">
+                            <div className="flex items-center gap-2">
+                                <h1 className="text-2xl font-bold text-km-text-primary">{company.name}</h1>
+                                {company.verified && (
+                                    <SealCheckIcon weight="fill" size={20} className="text-km-link shrink-0" aria-label={t('verified')} role="img" />
+                                )}
                             </div>
+                            {facts && <p className="text-sm text-km-text-secondary mt-1">{facts}</p>}
+                            <p className="text-sm text-km-text-secondary mt-1 tabular-nums">
+                                {t('followers', { count: company.follower_count, n: number(company.follower_count) })}
+                                {company.job_count > 0 && (
+                                    <>
+                                        {' · '}
+                                        <span className="font-medium text-[#16A34A]">
+                                            {tc('openJobs', { count: company.job_count, n: number(company.job_count) })}
+                                        </span>
+                                    </>
+                                )}
+                            </p>
 
-                            <div className="mt-6 flex gap-4">
-                                <button className="bg-km-primary text-white px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-km-primary-dark transition-all shadow-md shadow-blue-900/10">
-                                    Follow
-                                </button>
-                                <a href={company.website ? (company.website.startsWith('http') ? company.website : `https://${company.website}`) : '#'} target="_blank" rel="noopener noreferrer" className="border-2 border-km-primary text-km-heading px-8 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-50 transition-all text-center">
-                                    Visit Website
-                                </a>
+                            <div className="mt-5 flex flex-wrap gap-3">
+                                {follows.canFollow && !isOwner ? (
+                                    <button type="button" onClick={onFollow} aria-pressed={following} className={`${followButtonClass} cursor-pointer`}>
+                                        {following ? <CheckIcon weight="bold" size={16} aria-hidden="true" /> : <PlusIcon weight="bold" size={16} aria-hidden="true" />}
+                                        {following ? t('following') : t('follow')}
+                                    </button>
+                                ) : !isAuthenticated() ? (
+                                    // Visitors sign in first, then come back here
+                                    <Link href={loginPathFor(pathname)} className={followButtonClass}>
+                                        <PlusIcon weight="bold" size={16} aria-hidden="true" />
+                                        {t('follow')}
+                                    </Link>
+                                ) : null}
+                                {isOwner && (
+                                    <Link href="/recruiter/company" className="inline-flex items-center justify-center gap-1.5 px-6 py-2.5 rounded-xl text-sm font-semibold border border-km-border text-km-text-primary hover:bg-km-surface transition-colors">
+                                        <PencilSimpleIcon weight="bold" size={16} aria-hidden="true" />
+                                        {t('editPage')}
+                                    </Link>
+                                )}
+                                {website && (
+                                    <a href={website} target="_blank" rel="noopener noreferrer" className="inline-flex items-center justify-center px-6 py-2.5 rounded-xl text-sm font-semibold border border-km-primary text-km-heading hover:bg-km-surface transition-colors">
+                                        {t('visitWebsite')}
+                                    </a>
+                                )}
                             </div>
                         </div>
 
-                        {/* Navigation Tabs */}
-                        <div className="flex border-t border-gray-100 px-8 gap-10 overflow-x-auto">
+                        <nav className="flex border-t border-km-border px-6 sm:px-8 gap-8 overflow-x-auto" aria-label={company.name}>
                             {tabs.map((tab) => {
-                                const dynamicPath = tab.links.replace("[Id]", Id as string);
-                                const isActive = pathname === dynamicPath;
+                                const isActive = pathname === tab.href;
                                 return (
                                     <Link
-                                        href={dynamicPath}
-                                        key={tab.id}
-                                        className={`py-4 text-sm font-bold transition-colors whitespace-nowrap ${isActive ? 'text-km-heading border-b-2 border-km-primary' : 'text-gray-500 hover:text-gray-700'
-                                            }`}
+                                        href={tab.href}
+                                        key={tab.href}
+                                        aria-current={isActive ? 'page' : undefined}
+                                        className={`py-3.5 text-sm font-semibold transition-colors whitespace-nowrap border-b-2 ${isActive ? 'text-km-heading border-km-primary' : 'text-km-text-secondary border-transparent hover:text-km-text-primary'}`}
                                     >
                                         {tab.label}
                                     </Link>
-                                )
+                                );
                             })}
-                        </div>
+                        </nav>
                     </section>
 
                     {children}
                 </div>
 
-                {/* RIGHT COLUMN: Sidebar */}
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-6">
-
                     <AdSlot placement="company_sidebar" />
-
-                    {/* People Also Follow */}
-                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">People Also Follow</h3>
-
-                        {[1, 2, 3].map((i) => (
-                            <div key={i} className="flex items-center gap-3 py-4 border-b border-gray-50 last:border-0">
-                                <div className="w-12 h-12 bg-km-primary-dark rounded-full shrink-0 flex items-center justify-center">
-                                    <UsersIcon className="text-white w-6 h-6" />
-                                </div>
-                                <div className="flex-1">
-                                    <p className="text-sm font-bold text-gray-900">Person Name</p>
-                                    <p className="text-[11px] text-gray-400 font-medium">Person Designation</p>
-                                    <div className="flex items-center text-[11px] text-gray-400 mt-0.5 font-medium">
-                                        <MapPinIcon weight="bold" size={10} className="mr-1 text-km-heading" /> Location
-                                    </div>
-                                    <p className="text-[10px] text-gray-300 mt-1">10 Mutual Connects</p>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <button className="p-1.5 rounded-xl border border-gray-200 text-km-heading hover:bg-gray-50">
-                                        <ChatCircleIcon weight="bold" size={16} />
-                                    </button>
-                                    <button className="p-1.5 rounded-xl bg-km-primary text-white shadow-sm hover:bg-km-primary-dark">
-                                        <PlusIcon weight="bold" size={16} />
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-
-                        <button className="w-full text-center py-3 text-km-heading text-sm font-bold hover:underline">
-                            Show All
-                        </button>
-                    </section>
-
-                    {/* Similar Companies */}
-                    <section className="bg-km-surface-card rounded-2xl border border-gray-100 shadow-sm p-6">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">Companies</h3>
-
-                        {[1, 2].map((i) => (
-                            <div key={i} className="mb-6 last:mb-0">
-                                <div className="flex gap-4">
-                                    <div className="w-12 h-12 bg-km-primary-dark rounded-xl flex items-center justify-center shrink-0">
-                                        <BriefcaseIcon className="text-white w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <p className="text-sm font-bold text-gray-900">Company Name</p>
-                                        <p className="text-[11px] text-gray-400">Serve In Sector</p>
-                                        <p className="text-[10px] text-gray-400 font-medium">308,800 Followers</p>
-                                    </div>
-                                </div>
-
-                                <div className="mt-3 flex items-center gap-2">
-                                    <div className="flex -space-x-2">
-                                        <div className="w-5 h-5 rounded-full bg-gray-200 border border-white dark:border-km-surface-card" />
-                                        <div className="w-5 h-5 rounded-full bg-gray-300 border border-white dark:border-km-surface-card" />
-                                    </div>
-                                    <p className="text-[10px] text-gray-500 font-medium">44 Connections Follow This Page</p>
-                                </div>
-
-                                <button className="w-full mt-4 py-2 rounded-xl bg-km-primary text-white text-xs font-bold shadow-sm hover:bg-km-primary-dark">
-                                    Follow
-                                </button>
-                            </div>
-                        ))}
-
-                        <button className="w-full text-center mt-4 text-km-heading text-sm font-bold hover:underline">
-                            Show All
-                        </button>
-                    </section>
-
+                    {follows.canFollow && <CompaniesToFollow layout="sidebar" excludeId={company.id} />}
                 </div>
             </div>
         </main>
     );
 }
 
-export default function layout({ children }: { children: React.ReactNode }) {
+export default function CompanyLayout({ children }: { children: React.ReactNode }) {
     return (
         <CompanyProvider>
             <CompanyLayoutContent>

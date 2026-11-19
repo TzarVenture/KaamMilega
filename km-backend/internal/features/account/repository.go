@@ -558,7 +558,8 @@ var erasedUserFields = []string{
 	"job_categories", "experience_detail", "email_verified_at", "otp_verified_at",
 	"education", "experience", "skills", "projects", "portfolio_url", "portfolio_label",
 	"bookmarked_jobs", "open_to_work", "providing_services",
-	"company_logo", "company_website", "gst", "company_documents",
+	"company_logo", "company_website", "company_cover", "company_about", "company_city", "company_size",
+	"gst", "company_documents",
 	"expert_category", "expert_bio", "expert_pricing", "expert_documents",
 	"last_login_lat", "last_login_lng",
 	// Counters from before analytics moved to its own collections

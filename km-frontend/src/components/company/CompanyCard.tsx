@@ -29,7 +29,9 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
     const t = useTranslations('company');
     const tc = useTranslations('common');
     const { number } = useFormat();
-    const searchHref = `/jobs?company=${encodeURIComponent(company.name)}`;
+    // The company page when we know the company, else a job search for its name
+    const pageHref = company.id ? `/company/${company.id}` : `/jobs?q=${encodeURIComponent(company.name)}`;
+    const searchHref = company.id ? `/company/${company.id}/jobs` : pageHref;
 
     const handleFollowClick = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -103,7 +105,7 @@ export const CompanyCard: React.FC<CompanyCardProps> = ({
                 {logoTile('w-11 h-11', 20)}
                 <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
-                        <Link href={searchHref} className="text-sm font-semibold text-km-text-primary group-hover:text-km-heading transition-colors truncate">
+                        <Link href={pageHref} className="text-sm font-semibold text-km-text-primary group-hover:text-km-heading transition-colors truncate">
                             {company.name}
                         </Link>
                         {verifiedSeal(14)}

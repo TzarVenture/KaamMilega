@@ -485,6 +485,15 @@ func (s *UserServiceImpl) Register(ctx context.Context, userID string, req Regis
 	if req.CompanyLogo != "" {
 		user.CompanyLogo = req.CompanyLogo
 	}
+	if v := cleanCompanyAbout(req.CompanyAbout); v != "" {
+		user.CompanyAbout = v
+	}
+	if v := strings.TrimSpace(req.CompanyCity); v != "" {
+		user.CompanyCity = v
+	}
+	if IsCompanySize(req.CompanySize) {
+		user.CompanySize = req.CompanySize
+	}
 	if req.GST != "" {
 		user.GST = req.GST
 	}
@@ -737,8 +746,29 @@ func (s *UserServiceImpl) UpdateProfile(ctx context.Context, userID string, upda
 				user.LastLoginLng = v
 			}
 		case "company_name":
+			// a company keeps its name; it can be changed but not cleared
+			if v, ok := value.(string); ok && strings.TrimSpace(v) != "" {
+				user.CompanyName = strings.TrimSpace(v)
+			}
+		case "company_cover":
 			if v, ok := value.(string); ok {
-				user.CompanyName = v
+				user.CompanyCover = strings.TrimSpace(v)
+			}
+		case "company_about":
+			if v, ok := value.(string); ok {
+				user.CompanyAbout = cleanCompanyAbout(v)
+			}
+		case "company_city":
+			if v, ok := value.(string); ok {
+				user.CompanyCity = strings.TrimSpace(v)
+			}
+		case "company_size":
+			if v, ok := value.(string); ok && (v == "" || IsCompanySize(v)) {
+				user.CompanySize = v
+			}
+		case "industry":
+			if v, ok := value.(string); ok {
+				user.Industry = strings.TrimSpace(v)
 			}
 		case "company_logo":
 			if v, ok := value.(string); ok {

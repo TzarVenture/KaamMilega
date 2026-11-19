@@ -62,6 +62,7 @@ type orgs struct {
 }
 
 type experienceEntry struct {
+	Title       string `bson:"title"`
 	CompanyName string `bson:"company_name"`
 	EndDate     string `bson:"end_date"`
 }

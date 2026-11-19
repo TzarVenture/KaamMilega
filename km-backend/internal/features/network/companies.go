@@ -42,9 +42,22 @@ type CompanyProfile struct {
 	CompanyName        string             `bson:"company_name"`
 	CompanyLogo        string             `bson:"company_logo"`
 	CompanyWebsite     string             `bson:"company_website"`
+	CompanyCover       string             `bson:"company_cover"`
+	CompanyAbout       string             `bson:"company_about"`
+	CompanyCity        string             `bson:"company_city"`
+	CompanySize        string             `bson:"company_size"`
 	Industry           string             `bson:"industry"`
 	City               string             `bson:"city"`
 	VerificationStatus string             `bson:"verification_status"`
+}
+
+// Location is where the company is based. Older accounts never set a company city, so the
+// recruiter's own city stands in.
+func (c CompanyProfile) Location() string {
+	if v := strings.TrimSpace(c.CompanyCity); v != "" {
+		return v
+	}
+	return strings.TrimSpace(c.City)
 }
 
 // SuggestedCompany is one "Companies to follow" entry. The fields match GET /companies/top, so
@@ -82,7 +95,8 @@ func (r *MongoDBRepository) GetCompanies(ctx context.Context, where bson.M, limi
 	}
 	cursor, err := r.usersColl.Find(ctx, filter, options.Find().
 		SetSort(bson.M{"updated_at": -1}).SetLimit(int64(limit)).
-		SetProjection(bson.M{"company_name": 1, "company_logo": 1, "company_website": 1, "industry": 1, "city": 1, "verification_status": 1}))
+		SetProjection(bson.M{"company_name": 1, "company_logo": 1, "company_website": 1, "company_cover": 1, "company_about": 1,
+			"company_city": 1, "company_size": 1, "industry": 1, "city": 1, "verification_status": 1}))
 	if err != nil {
 		return nil, err
 	}
@@ -369,7 +383,7 @@ func (s *NetworkServiceImpl) CompanySuggestions(ctx context.Context, userID prim
 
 func scoreCompany(c CompanyProfile, connectionsHere, openJobs int, myFields map[string]bool, myCity string) SuggestedCompany {
 	industry := strings.TrimSpace(c.Industry)
-	city := strings.TrimSpace(c.City)
+	city := c.Location()
 	sameField := industry != "" && myFields[strings.ToLower(industry)]
 	sameCity := myCity != "" && strings.EqualFold(city, myCity)
 
@@ -419,4 +433,100 @@ func scoreCompany(c CompanyProfile, connectionsHere, openJobs int, myFields map[
 		Reason:           reason,
 		score:            score,
 	}
+}
+
+func (r *MongoDBRepository) CountFollowers(ctx context.Context, companyID primitive.ObjectID) (int64, error) {
+	return r.followsColl.CountDocuments(ctx, bson.M{"company_id": companyID})
+}
+
+// CompanyPerson is someone who works at a company, for the company page's People tab
+type CompanyPerson struct {
+	ID           string `json:"id"`
+	Name         string `json:"name"`
+	Headline     string `json:"headline,omitempty"`
+	Title        string `json:"title,omitempty"` // their role there
+	ProfileImage string `json:"profile_image,omitempty"`
+	City         string `json:"city,omitempty"`
+	IsRecruiter  bool   `json:"is_recruiter"`
+}
+
+// CompanyPeople lists members who work at the company now: its recruiter, and people whose
+// current job on their profile is at a company of the same name. Private profiles, people who
+// turned off matching and anyone blocked either way are left out.
+func (s *NetworkServiceImpl) CompanyPeople(ctx context.Context, viewerID primitive.ObjectID, companyID string, limit int) ([]CompanyPerson, error) {
+	if limit <= 0 || limit > 50 {
+		limit = 24
+	}
+	id, err := primitive.ObjectIDFromHex(companyID)
+	if err != nil {
+		return nil, ErrCompanyNotFound
+	}
+	found, err := s.repo.GetCompanies(ctx, bson.M{"_id": id}, 1)
+	if err != nil {
+		return nil, err
+	}
+	if len(found) == 0 {
+		return nil, ErrCompanyNotFound
+	}
+	key := orgKey(found[0].CompanyName)
+	if key == "" {
+		return []CompanyPerson{}, nil
+	}
+	blocked, err := s.repo.BlockedEitherWay(ctx, viewerID)
+	if err != nil {
+		return nil, err
+	}
+	pattern := primitive.Regex{Pattern: orgPattern(key), Options: "i"}
+	people, err := s.repo.GetCandidateUsersWhere(ctx, append([]primitive.ObjectID{}, blocked...), bson.M{"$or": []bson.M{
+		{"_id": id},
+		{"experience.company_name": pattern},
+	}}, 100)
+	if err != nil {
+		return nil, err
+	}
+
+	out := []CompanyPerson{}
+	for _, p := range people {
+		person := CompanyPerson{
+			ID:           p.ID.Hex(),
+			Name:         displayName(p),
+			Headline:     p.Headline,
+			ProfileImage: p.ProfileImage,
+			City:         p.City,
+			IsRecruiter:  p.ID == id,
+		}
+		works := person.IsRecruiter
+		for _, e := range p.Experience {
+			if strings.TrimSpace(e.EndDate) == "" && orgKey(e.CompanyName) == key {
+				works = true
+				if person.Title == "" {
+					person.Title = strings.TrimSpace(e.Title)
+				}
+			}
+		}
+		if works {
+			out = append(out, person)
+		}
+	}
+	// The recruiter first, then by name
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].IsRecruiter != out[j].IsRecruiter {
+			return out[i].IsRecruiter
+		}
+		return strings.ToLower(out[i].Name) < strings.ToLower(out[j].Name)
+	})
+	if len(out) > limit {
+		out = out[:limit]
+	}
+	return out, nil
+}
+
+func displayName(p CandidateUser) string {
+	if n := strings.TrimSpace(p.Name); n != "" {
+		return n
+	}
+	if n := strings.TrimSpace(p.FirstName + " " + p.LastName); n != "" {
+		return n
+	}
+	return "Member"
 }
