@@ -20,6 +20,9 @@ const SOCIALS = [
 export default function Footer() {
     const t = useTranslations("footer");
 
+    // Company and legal pages wait for the client's contact details, legal text and terms
+    const pending = !FEATURES.INFO_PAGES;
+
     const column = (title: string, links: React.ReactNode) => (
         <div>
             <h3 className="text-base font-semibold text-white mb-2 sm:mb-4">{title}</h3>
@@ -50,11 +53,11 @@ export default function Footer() {
 
                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-8 sm:gap-10">
                     {column(t("legal"), <>
-                        <FooterLink href="/support#faqs">{t("jobseekerFaqs")}</FooterLink>
-                        <FooterLink href="/policies/terms">{t("userTerms")}</FooterLink>
-                        <FooterLink href="/policies/privacy">{t("privacy")}</FooterLink>
-                        <FooterLink href="/policies/employer-terms">{t("employerTerms")}</FooterLink>
-                        <FooterLink href="/policies/community-guidelines">{t("guidelines")}</FooterLink>
+                        <FooterLink href="/support#faqs" disabled={pending}>{t("jobseekerFaqs")}</FooterLink>
+                        <FooterLink href="/policies/terms" disabled={pending}>{t("userTerms")}</FooterLink>
+                        <FooterLink href="/policies/privacy" disabled={pending}>{t("privacy")}</FooterLink>
+                        <FooterLink href="/policies/employer-terms" disabled={pending}>{t("employerTerms")}</FooterLink>
+                        <FooterLink href="/policies/community-guidelines" disabled={pending}>{t("guidelines")}</FooterLink>
                     </>)}
 
                     {column(t("services"), <>
@@ -68,14 +71,14 @@ export default function Footer() {
                         <FooterLink href="/network">{t("connectLikeYou")}</FooterLink>
                         {FEATURES.INSTANT_MILEGA && <FooterLink href="/instant-milega">InstantMilega™</FooterLink>}
                         <FooterLink href="/resources">{t("learn")}</FooterLink>
-                        <FooterLink href="/how-we-work">{t("howWeWork")}</FooterLink>
+                        <FooterLink href="/how-we-work" disabled={pending}>{t("howWeWork")}</FooterLink>
                     </>)}
 
                     <div>
                         {column(t("connect"), <>
-                            <FooterLink href="/about">{t("about")}</FooterLink>
-                            <FooterLink href="/support">{t("support")}</FooterLink>
-                            <FooterLink href="/career">{t("career")}</FooterLink>
+                            <FooterLink href="/about" disabled={pending}>{t("about")}</FooterLink>
+                            <FooterLink href="/support" disabled={pending}>{t("support")}</FooterLink>
+                            <FooterLink href="/career" disabled={pending}>{t("career")}</FooterLink>
                         </>)}
                         {SOCIALS.length > 0 && (
                             <div className="mt-6">
@@ -101,7 +104,7 @@ export default function Footer() {
                     <div className="col-span-2 lg:col-span-1">
                         {column(t("employer"), <>
                             <FooterLink href="/recruiter/register">{t("postJob")}</FooterLink>
-                            <FooterLink href="/support">{t("contactSupport")}</FooterLink>
+                            <FooterLink href="/support" disabled={pending}>{t("contactSupport")}</FooterLink>
                         </>)}
                         <div className="mt-8">
                             <h3 className="text-base font-semibold text-white mb-1">{t("appTitle")}</h3>

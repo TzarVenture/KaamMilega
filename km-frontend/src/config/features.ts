@@ -18,4 +18,8 @@ export const FEATURES = {
     I18N: process.env.NEXT_PUBLIC_ENABLE_I18N
         ? process.env.NEXT_PUBLIC_ENABLE_I18N === 'true'
         : process.env.NODE_ENV !== 'production',
+    // Footer links to the company and legal pages (FAQs, policies, About, How we work, Support,
+    // Career). Off until the client sends their contact details, legal text and terms: the links
+    // show but can't be clicked. Set NEXT_PUBLIC_ENABLE_INFO_PAGES=true to turn them on.
+    INFO_PAGES: process.env.NEXT_PUBLIC_ENABLE_INFO_PAGES === 'true',
 } as const;
