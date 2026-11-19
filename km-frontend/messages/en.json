@@ -345,6 +345,8 @@
     "viewJobs": "View jobs",
     "follow": "Follow",
     "following": "Following",
+    "toFollowTitle": "Companies to follow",
+    "toFollowSubtitle": "New jobs from companies you follow come in your job alerts",
     "verified": "Verified employer"
   },
   "profileCriteria": {
@@ -815,6 +817,8 @@
     "SIGNUP_INCOMPLETE": "Please finish creating your account first.",
     "EMAIL_NOT_VERIFIED": "This email isn’t verified. Sign in with your mobile OTP, then set a new password in Settings.",
     "COMPANY_NAME_REQUIRED": "Please enter your company or organization name.",
+    "COMPANY_NOT_FOUND": "Company not found.",
+    "COMPANY_FOLLOW_SELF": "You can't follow your own company.",
     "CITY_REQUIRED": "Please enter the city where you want to work.",
     "MOBILE_INVALID": "Enter a valid 10-digit mobile number.",
     "INTEREST_INVALID": "Choose whether you want to hire or work.",

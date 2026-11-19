@@ -1,6 +1,7 @@
 package network
 
 import (
+	"errors"
 	"github.com/gofiber/fiber/v2"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"km-backend/internal/common/apperr"
@@ -190,4 +191,67 @@ func (ctrl *NetworkController) DismissSuggestion(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"message": "Suggestion dismissed"})
+}
+
+// companyError picks the status for a follow error: unknown company 404, own company 400
+func companyError(c *fiber.Ctx, err error) error {
+	switch {
+	case errors.Is(err, ErrCompanyNotFound):
+		return c.Status(fiber.StatusNotFound).JSON(apperr.Body(err))
+	case errors.Is(err, ErrFollowOwnCompany):
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	}
+	return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+}
+
+func signedInUser(c *fiber.Ctx) (primitive.ObjectID, bool) {
+	s, _ := c.Locals("user_id").(string)
+	id, err := primitive.ObjectIDFromHex(s)
+	return id, err == nil
+}
+
+func (ctrl *NetworkController) CompanySuggestions(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(errNotSignedIn))
+	}
+	list, err := ctrl.service.CompanySuggestions(c.Context(), userID, c.QueryInt("limit", 6))
+	if err != nil {
+		return companyError(c, err)
+	}
+	return c.JSON(fiber.Map{"data": list})
+}
+
+func (ctrl *NetworkController) FollowedCompanies(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(errNotSignedIn))
+	}
+	ids, err := ctrl.service.FollowedCompanies(c.Context(), userID)
+	if err != nil {
+		return companyError(c, err)
+	}
+	return c.JSON(fiber.Map{"data": ids})
+}
+
+func (ctrl *NetworkController) FollowCompany(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(errNotSignedIn))
+	}
+	if err := ctrl.service.FollowCompany(c.Context(), userID, c.Params("id")); err != nil {
+		return companyError(c, err)
+	}
+	return c.JSON(fiber.Map{"following": true})
+}
+
+func (ctrl *NetworkController) UnfollowCompany(c *fiber.Ctx) error {
+	userID, ok := signedInUser(c)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(errNotSignedIn))
+	}
+	if err := ctrl.service.UnfollowCompany(c.Context(), userID, c.Params("id")); err != nil {
+		return companyError(c, err)
+	}
+	return c.JSON(fiber.Map{"following": false})
 }

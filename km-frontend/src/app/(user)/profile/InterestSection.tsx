@@ -8,6 +8,7 @@ import api from '@/lib/axios';
 import ProfileConnectionCard, { ProfileCardUser } from '@/components/network/ProfileConnectionCard';
 import CompanyCard from '@/components/company/CompanyCard';
 import { HiringCompany, companiesFromApi } from '@/lib/constants/companies';
+import { useCompanyFollows } from '@/lib/useCompanyFollows';
 
 interface InterestsSectionProps {
     initialExperts?: ProfileCardUser[];
@@ -19,6 +20,7 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
     const [experts, setExperts] = useState<ProfileCardUser[]>(initialExperts || []);
     // Real companies only (registered employers); no showcase list mixed in
     const [companies, setCompanies] = useState<HiringCompany[]>([]);
+    const follows = useCompanyFollows();
     const [loading, setLoading] = useState(false);
     const tabs: Array<'Top Experts' | 'Companies'> = ['Top Experts', 'Companies'];
 
@@ -137,6 +139,8 @@ const InterestsSection = ({ initialExperts }: InterestsSectionProps) => {
                                     key={comp.name || idx}
                                     company={comp}
                                     variant="compact"
+                                    isFollowing={follows.isFollowing(comp.id)}
+                                    onToggleFollow={follows.canFollow && comp.id ? () => follows.toggle(comp.id!) : undefined}
                                 />
                             ))}
                         </div>

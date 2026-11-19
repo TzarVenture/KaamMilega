@@ -1,5 +1,6 @@
 // Package jobalert sends the daily job-alert email: new jobs that match a candidate's city,
-// skills and headline, for candidates with settings.email_job_alerts on and a verified email.
+// skills and headline, plus new jobs from companies they follow, for candidates with
+// settings.email_job_alerts on and a verified email.
 package jobalert
 
 import (
@@ -13,6 +14,7 @@ import (
 
 	"km-backend/internal/config"
 	"km-backend/internal/database"
+	"km-backend/internal/features/network"
 	"km-backend/internal/features/notification"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -29,7 +31,9 @@ const (
 	minGap = 20 * time.Hour
 	// firstLookback bounds the jobs considered for someone's first digest
 	firstLookback = 3 * 24 * time.Hour
-	runInterval   = time.Hour
+	// followedCompanyBoost is worth three matching skills
+	followedCompanyBoost = 6
+	runInterval          = time.Hour
 	// Emails go out between 08:00 and 21:00 IST only
 	sendFromHour, sendUntilHour = 8, 21
 )
@@ -42,10 +46,13 @@ type candidate struct {
 	Headline  string             `bson:"headline"`
 	Skills    []string           `bson:"skills"`
 	LastAlert *time.Time         `bson:"job_alerts_last_run_at"`
+	// Following holds the companies (recruiter ids) the candidate follows
+	Following map[primitive.ObjectID]bool `bson:"-"`
 }
 
 type jobDoc struct {
 	ID           primitive.ObjectID `bson:"_id"`
+	RecruiterID  primitive.ObjectID `bson:"recruiter_id"`
 	Title        string             `bson:"title"`
 	Company      string             `bson:"company"`
 	CityName     string             `bson:"city_name"`
@@ -57,15 +64,17 @@ type jobDoc struct {
 }
 
 type Service struct {
-	users  *mongo.Collection
-	jobs   *mongo.Collection
-	mailer notification.Mailer
-	now    func() time.Time
-	notify notification.NotificationService
+	users   *mongo.Collection
+	jobs    *mongo.Collection
+	follows *mongo.Collection
+	mailer  notification.Mailer
+	now     func() time.Time
+	notify  notification.NotificationService
 }
 
 func NewService(db *database.MongodbDB, mailer notification.Mailer, notify notification.NotificationService) *Service {
-	return &Service{users: db.DB.Collection("users"), jobs: db.DB.Collection("jobs"), mailer: mailer, now: time.Now, notify: notify}
+	return &Service{users: db.DB.Collection("users"), jobs: db.DB.Collection("jobs"),
+		follows: db.DB.Collection(network.CompanyFollowsCollection), mailer: mailer, now: time.Now, notify: notify}
 }
 
 func ist() *time.Location {
@@ -89,6 +98,7 @@ func words(s string) []string {
 
 // score ranks a job for a candidate: 0 means not relevant. Same city counts as much as one
 // matching skill, so local jobs surface but a strong skill match elsewhere still qualifies.
+// A job from a company the candidate follows always qualifies and ranks near the top.
 func score(c candidate, j jobDoc) int {
 	jobText := " " + strings.Join(words(j.Title+" "+strings.Join(j.Requirements, " ")), " ") + " "
 	s := 0
@@ -101,6 +111,9 @@ func score(c candidate, j jobDoc) int {
 		if strings.Contains(jobText, " "+w+" ") {
 			s++
 		}
+	}
+	if c.Following[j.RecruiterID] {
+		s += followedCompanyBoost
 	}
 	if s == 0 {
 		return 0
@@ -194,6 +207,9 @@ func (s *Service) Run(ctx context.Context) (int, error) {
 	if err := cur.All(ctx, &candidates); err != nil {
 		return 0, err
 	}
+	if err := s.loadFollows(ctx, candidates); err != nil {
+		return 0, err
+	}
 
 	sent := 0
 	for _, c := range candidates {
@@ -234,6 +250,36 @@ func (s *Service) Run(ctx context.Context) (int, error) {
 	return sent, nil
 }
 
+// loadFollows fills in the companies each candidate follows, in one query for the whole run
+func (s *Service) loadFollows(ctx context.Context, candidates []candidate) error {
+	if len(candidates) == 0 || s.follows == nil {
+		return nil
+	}
+	index := make(map[primitive.ObjectID]int, len(candidates))
+	ids := make([]primitive.ObjectID, 0, len(candidates))
+	for i, c := range candidates {
+		index[c.ID] = i
+		ids = append(ids, c.ID)
+	}
+	cur, err := s.follows.Find(ctx, bson.M{"user_id": bson.M{"$in": ids}},
+		options.Find().SetProjection(bson.M{"user_id": 1, "company_id": 1}))
+	if err != nil {
+		return err
+	}
+	var rows []network.CompanyFollow
+	if err := cur.All(ctx, &rows); err != nil {
+		return err
+	}
+	for _, row := range rows {
+		c := &candidates[index[row.UserID]]
+		if c.Following == nil {
+			c.Following = map[primitive.ObjectID]bool{}
+		}
+		c.Following[row.CompanyID] = true
+	}
+	return nil
+}
+
 // notifyMatches puts the digest in the bell and on the phone, next to the email
 func (s *Service) notifyMatches(ctx context.Context, userID primitive.ObjectID, n int) {
 	if s.notify == nil {
@@ -257,7 +303,7 @@ func (s *Service) recentJobs(ctx context.Context, since time.Time) ([]jobDoc, er
 		"status":            bson.M{"$nin": []string{"Closed", "closed"}},
 		"hidden_by_account": bson.M{"$ne": true},
 	}, options.Find().SetSort(bson.D{{Key: "created_at", Value: -1}}).SetLimit(300).SetProjection(bson.M{
-		"title": 1, "company": 1, "city_name": 1, "location": 1, "salary_min": 1, "salary_max": 1, "requirements": 1, "created_at": 1,
+		"title": 1, "recruiter_id": 1, "company": 1, "city_name": 1, "location": 1, "salary_min": 1, "salary_max": 1, "requirements": 1, "created_at": 1,
 	}))
 	if err != nil {
 		return nil, err

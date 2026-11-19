@@ -32,4 +32,10 @@ func (a *NetworkApi) Setup(app *fiber.App) {
 	// F55: Suggestions Recommendation Engine
 	network.Get("/suggestions", a.ctrl.GetSuggestions)
 	network.Post("/suggestions/:id/dismiss", a.ctrl.DismissSuggestion)
+
+	// Companies to follow
+	network.Get("/companies/suggestions", a.ctrl.CompanySuggestions)
+	network.Get("/companies/following", a.ctrl.FollowedCompanies)
+	network.Post("/companies/:id/follow", a.ctrl.FollowCompany)
+	network.Delete("/companies/:id/follow", a.ctrl.UnfollowCompany)
 }

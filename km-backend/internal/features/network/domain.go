@@ -114,6 +114,14 @@ type NetworkRepository interface {
 	// FriendsOfFriends maps each person connected to one of the user's connections (but not to the
 	// user) to how many connections they share
 	FriendsOfFriends(ctx context.Context, userID primitive.ObjectID, myConnections []primitive.ObjectID) (map[primitive.ObjectID]int, error)
+
+	// Companies to follow
+	GetCompanies(ctx context.Context, where bson.M, limit int) ([]CompanyProfile, error)
+	FollowCompany(ctx context.Context, userID, companyID primitive.ObjectID) error
+	UnfollowCompany(ctx context.Context, userID, companyID primitive.ObjectID) error
+	FollowedCompanyIDs(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
+	OpenJobCounts(ctx context.Context, companyIDs []primitive.ObjectID) (map[primitive.ObjectID]int, error)
+	BlockedEitherWay(ctx context.Context, userID primitive.ObjectID) ([]primitive.ObjectID, error)
 }
 
 type NetworkService interface {
@@ -129,5 +137,10 @@ type NetworkService interface {
 	// Suggestions Recommendation Engine (F55)
 	GetSuggestions(ctx context.Context, userID primitive.ObjectID, filter SuggestionsFilter) (*SuggestionsResponse, error)
 	DismissSuggestion(ctx context.Context, userID primitive.ObjectID, targetUserID string) error
-}
 
+	// Companies to follow
+	FollowCompany(ctx context.Context, userID primitive.ObjectID, companyID string) error
+	UnfollowCompany(ctx context.Context, userID primitive.ObjectID, companyID string) error
+	FollowedCompanies(ctx context.Context, userID primitive.ObjectID) ([]string, error)
+	CompanySuggestions(ctx context.Context, userID primitive.ObjectID, limit int) ([]SuggestedCompany, error)
+}

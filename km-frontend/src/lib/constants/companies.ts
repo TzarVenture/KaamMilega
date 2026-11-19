@@ -11,6 +11,8 @@ export interface HiringCompany {
     bgClass?: string;
     imgClass?: string;
     website?: string;
+    /** Why it's suggested, e.g. "2 of your connections work here" (Companies to follow only) */
+    reason?: string;
 }
 
 /** Shape of GET /api/companies/top items (recruiter company profiles) */
@@ -24,6 +26,8 @@ export interface ApiCompany {
     verified?: boolean;
     /** Live listings (status Open), counted by the backend */
     job_count?: number;
+    /** GET /network/companies/suggestions only */
+    reason?: string;
 }
 
 /**
@@ -49,6 +53,7 @@ export function companiesFromApi(list: unknown): HiringCompany[] {
             jobCount: jobs,
             verified: c.verified === true,
             website: c.website,
+            reason: c.reason || undefined,
         });
     }
     return out;

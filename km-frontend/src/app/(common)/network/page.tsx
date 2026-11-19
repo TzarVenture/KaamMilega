@@ -7,6 +7,7 @@ import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 import UserAvatar from '@/components/ui/UserAvatar';
 import ProfileConnectionCard, { ProfileCardUser } from '@/components/network/ProfileConnectionCard';
+import CompaniesToFollow from '@/components/network/CompaniesToFollow';
 import { errorText, notify } from "@/lib/notify";
 
 // --- Types ---
@@ -294,7 +295,7 @@ const NetworkPage = () => {
                 <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-hide pt-1">
                     {[
                         { id: 'all' as FilterType, label: 'All Recommended', icon: UsersThreeIcon },
-                        { id: 'mutual' as FilterType, label: 'People You May Know', icon: HandshakeIcon },
+                        { id: 'mutual' as FilterType, label: 'Mutual Connections', icon: HandshakeIcon },
                         { id: 'company' as FilterType, label: 'Colleagues & Classmates', icon: BuildingsIcon },
                         { id: 'city' as FilterType, label: userCity ? `In ${userCity}` : 'Near You', icon: MapPinIcon },
                         { id: 'skills' as FilterType, label: 'Similar Skills', icon: MedalIcon },
@@ -388,6 +389,8 @@ const NetworkPage = () => {
                     </div>
                 )}
             </section>
+
+            <CompaniesToFollow />
         </div>
     );
 };
