@@ -524,9 +524,9 @@ const QualificationSearch = () => {
           <Link
             key={label}
             href={`/jobs?qualification=${encodeURIComponent(label)}`}
-            className="km-press-card group/card bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 hover:border-[#0B5ED7]/40 hover:shadow-md"
+            className="km-press-card group/card flex flex-col items-center text-center bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 hover:border-[#0B5ED7]/40 hover:shadow-md"
           >
-            <Art className="h-12 sm:h-16 w-auto -ml-3" />
+            <Art className="h-12 sm:h-16 w-auto" />
             <h3 className="mt-2 sm:mt-4 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
               {t(key)}
             </h3>
@@ -567,13 +567,14 @@ const JobTypeSection = () => {
           <Link
             key={label}
             href={`/jobs?job_type=${encodeURIComponent(label)}`}
-            className="km-press-card group/card flex lg:flex-col items-center sm:items-start gap-3 sm:gap-4 lg:gap-0 bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 hover:border-[#0B5ED7]/40 hover:shadow-md"
+            className="km-press-card group/card flex flex-col items-center text-center bg-km-surface-card rounded-2xl border border-km-border p-4 sm:p-5 hover:border-[#0B5ED7]/40 hover:shadow-md"
           >
-            <Art className="h-12 sm:h-14 lg:h-16 w-auto shrink-0 -ml-3" />
-            <div className="lg:mt-4 min-w-0">
-              <h3 className="flex items-center gap-1 text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
+            <Art className="h-12 sm:h-14 lg:h-16 w-auto shrink-0" />
+            <div className="mt-3 lg:mt-4 min-w-0">
+              {/* The hover arrow sits outside the flow so the title stays centred */}
+              <h3 className="relative inline-flex items-center text-base font-semibold text-km-text-primary group-hover/card:text-km-heading transition-colors">
                 {t(`${key}.title`)}
-                <CaretRightIcon size={14} weight="bold" className="opacity-0 -translate-x-1 group-hover/card:opacity-100 group-hover/card:translate-x-0 transition-all" aria-hidden="true" />
+                <CaretRightIcon size={14} weight="bold" className="absolute left-full ml-1 opacity-0 -translate-x-1 group-hover/card:opacity-100 group-hover/card:translate-x-0 transition-all" aria-hidden="true" />
               </h3>
               <p className="mt-0.5 text-sm text-km-text-secondary leading-relaxed">{t(`${key}.text`)}</p>
             </div>
