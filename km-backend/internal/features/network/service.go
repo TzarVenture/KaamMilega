@@ -13,6 +13,7 @@ import (
 	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -215,7 +216,23 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 
 	myConnections, _ := s.repo.GetConnections(ctx, userID)
 
-	candidates, err := s.repo.GetCandidateUsers(ctx, exclusions, 150)
+	myExperience := make([]experienceEntry, 0, len(currentUser.Experience))
+	for _, e := range currentUser.Experience {
+		myExperience = append(myExperience, experienceEntry{CompanyName: e.CompanyName, EndDate: e.EndDate})
+	}
+	myEducation := make([]educationEntry, 0, len(currentUser.Education))
+	for _, e := range currentUser.Education {
+		myEducation = append(myEducation, educationEntry{SchoolName: e.SchoolName})
+	}
+	myOrgs := orgsOf(currentUser.CompanyName, myExperience, myEducation)
+
+	// People you may know: friends of friends, counted in one query
+	mutuals, err := s.repo.FriendsOfFriends(ctx, userID, myConnections)
+	if err != nil {
+		mutuals = map[primitive.ObjectID]int{}
+	}
+
+	candidates, err := s.gatherCandidates(ctx, exclusions, mutuals, myOrgs)
 	if err != nil {
 		return nil, err
 	}
@@ -276,8 +293,9 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 		isSameCity := userCity != "" && candCity != "" && strings.EqualFold(candCity, userCity)
 		isSameState := userState != "" && cand.State != "" && strings.EqualFold(cand.State, userState)
 
-		// 5. Mutual connections count
-		mutualCount, _ := s.repo.GetMutualConnectionsCount(ctx, myConnections, cand.ID)
+		// 5. Mutual connections count, and a workplace or college in common
+		mutualCount := mutuals[cand.ID]
+		shared := sharedOrgs(myOrgs, orgsOf(cand.CompanyName, cand.Experience, cand.Education))
 
 		// 6. Recruiter / Expert synergy
 		isRecruiterMatch := false
@@ -296,6 +314,8 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 				len(mutualCategories) > 0 ||
 				hasHeadlineOverlap ||
 				mutualCount > 0 ||
+				shared.company != "" ||
+				shared.school != "" ||
 				isRecruiterMatch
 
 			if !hasAffinity {
@@ -311,6 +331,12 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 			continue
 		}
 		if filter.Type == "industry" && len(mutualCategories) == 0 && !hasHeadlineOverlap {
+			continue
+		}
+		if filter.Type == "company" && shared.company == "" && shared.school == "" {
+			continue
+		}
+		if filter.Type == "mutual" && mutualCount == 0 {
 			continue
 		}
 
@@ -343,13 +369,20 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 			score += 10
 		}
 
-		// Mutual connections social proof
+		// Mutual connections: the main "people you may know" signal
 		if mutualCount > 0 {
-			connBonus := mutualCount * 5
-			if connBonus > 15 {
-				connBonus = 15
-			}
-			score += connBonus
+			score += min(mutualCount*10, 40)
+		}
+
+		// Same workplace or college
+		switch {
+		case shared.colleagues:
+			score += 40
+		case shared.company != "":
+			score += 25
+		}
+		if shared.school != "" {
+			score += 20
 		}
 
 		// Recruiter / Expert mentorship bonus
@@ -365,8 +398,25 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 		// 10. Match Reason Badge Formulation
 		var badge string
 		var reasons []string
+		if shared.colleagues {
+			reasons = append(reasons, fmt.Sprintf("Also works at %s", shared.company))
+		} else if shared.company != "" {
+			reasons = append(reasons, fmt.Sprintf("Also worked at %s", shared.company))
+		}
+		if shared.school != "" {
+			reasons = append(reasons, fmt.Sprintf("Also studied at %s", shared.school))
+		}
+		if mutualCount > 0 {
+			reasons = append(reasons, mutualReason(mutualCount))
+		}
 
-		if len(mutualSkills) >= 2 {
+		if shared.company != "" {
+			badge = reasons[0]
+		} else if mutualCount >= 2 {
+			badge = mutualReason(mutualCount)
+		} else if shared.school != "" {
+			badge = fmt.Sprintf("Also studied at %s", shared.school)
+		} else if len(mutualSkills) >= 2 {
 			maxShow := 2
 			if len(mutualSkills) < maxShow {
 				maxShow = len(mutualSkills)
@@ -391,8 +441,7 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 			badge = "Recruiter in your field"
 			reasons = append(reasons, "Active recruiter in your industry")
 		} else if mutualCount > 0 {
-			badge = fmt.Sprintf("%d mutual connections", mutualCount)
-			reasons = append(reasons, fmt.Sprintf("%d shared network connections", mutualCount))
+			badge = mutualReason(mutualCount)
 		} else if isSameCity {
 			badge = fmt.Sprintf("Based in %s", candCity)
 			reasons = append(reasons, fmt.Sprintf("In your city (%s)", candCity))
@@ -467,6 +516,94 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 		UserCity:             userCity,
 		UserSkillsCount:      len(currentUser.Skills),
 	}, nil
+}
+
+func mutualReason(n int) string {
+	if n == 1 {
+		return "1 mutual connection"
+	}
+	return fmt.Sprintf("%d mutual connections", n)
+}
+
+// Pools that feed one suggestions request
+const (
+	recentPool  = 150 // most recently updated profiles
+	mutualPool  = 100 // friends of friends with the most shared connections
+	orgPool     = 100 // people from the same workplaces and colleges
+	maxOrgNames = 20  // workplaces and colleges searched per request
+)
+
+// gatherCandidates collects everyone worth scoring: recently active profiles, friends of friends
+// and people from the user's workplaces and colleges, each listed once.
+func (s *NetworkServiceImpl) gatherCandidates(ctx context.Context, exclusions []primitive.ObjectID, mutuals map[primitive.ObjectID]int, mine orgs) ([]CandidateUser, error) {
+	recent, err := s.repo.GetCandidateUsers(ctx, exclusions, recentPool)
+	if err != nil {
+		return nil, err
+	}
+	out := recent
+	seen := make(map[primitive.ObjectID]bool, len(recent))
+	for _, c := range recent {
+		seen[c.ID] = true
+	}
+	merge := func(more []CandidateUser) {
+		for _, c := range more {
+			if !seen[c.ID] {
+				seen[c.ID] = true
+				out = append(out, c)
+			}
+		}
+	}
+
+	if len(mutuals) > 0 {
+		ids := make([]primitive.ObjectID, 0, len(mutuals))
+		for id := range mutuals {
+			ids = append(ids, id)
+		}
+		sort.Slice(ids, func(i, j int) bool {
+			if mutuals[ids[i]] != mutuals[ids[j]] {
+				return mutuals[ids[i]] > mutuals[ids[j]]
+			}
+			return ids[i].Hex() < ids[j].Hex()
+		})
+		if len(ids) > mutualPool {
+			ids = ids[:mutualPool]
+		}
+		// The pool filter still applies, so blocked, hidden and dismissed people stay out
+		more, err := s.repo.GetCandidateUsersWhere(ctx, exclusions, bson.M{"_id": bson.M{"$in": ids}}, mutualPool)
+		if err != nil {
+			return nil, err
+		}
+		merge(more)
+	}
+
+	var companies, schools []primitive.Regex
+	for _, key := range sortedKeys(mine.companies) {
+		if len(companies) < maxOrgNames {
+			companies = append(companies, primitive.Regex{Pattern: orgPattern(key), Options: "i"})
+		}
+	}
+	for _, key := range sortedKeys(mine.schools) {
+		if len(schools) < maxOrgNames {
+			schools = append(schools, primitive.Regex{Pattern: orgPattern(key), Options: "i"})
+		}
+	}
+	var either []bson.M
+	if len(companies) > 0 {
+		either = append(either,
+			bson.M{"experience.company_name": bson.M{"$in": companies}},
+			bson.M{"company_name": bson.M{"$in": companies}})
+	}
+	if len(schools) > 0 {
+		either = append(either, bson.M{"education.school_name": bson.M{"$in": schools}})
+	}
+	if len(either) > 0 {
+		more, err := s.repo.GetCandidateUsersWhere(ctx, exclusions, bson.M{"$or": either}, orgPool)
+		if err != nil {
+			return nil, err
+		}
+		merge(more)
+	}
+	return out, nil
 }
 
 func (s *NetworkServiceImpl) DismissSuggestion(ctx context.Context, userID primitive.ObjectID, targetUserID string) error {

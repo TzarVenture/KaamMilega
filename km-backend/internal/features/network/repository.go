@@ -245,6 +245,10 @@ func (r *MongoDBRepository) GetExclusionIDs(ctx context.Context, userID primitiv
 }
 
 func (r *MongoDBRepository) GetCandidateUsers(ctx context.Context, exclusionIDs []primitive.ObjectID, limit int) ([]CandidateUser, error) {
+	return r.GetCandidateUsersWhere(ctx, exclusionIDs, nil, limit)
+}
+
+func (r *MongoDBRepository) GetCandidateUsersWhere(ctx context.Context, exclusionIDs []primitive.ObjectID, where bson.M, limit int) ([]CandidateUser, error) {
 	if limit <= 0 || limit > 200 {
 		limit = 100
 	}
@@ -257,6 +261,9 @@ func (r *MongoDBRepository) GetCandidateUsers(ctx context.Context, exclusionIDs 
 		"settings.profile_visibility":        bson.M{"$ne": "private"},
 		"settings.enable_ai_recommendations": bson.M{"$ne": false},
 		"account_status":                     bson.M{"$nin": []string{"deactivated", "pending_deletion", "deleted", "suspended"}},
+	}
+	if len(where) > 0 {
+		filter = bson.M{"$and": []bson.M{filter, where}}
 	}
 
 	opts := options.Find().
@@ -287,27 +294,52 @@ func (r *MongoDBRepository) DismissSuggestion(ctx context.Context, userID, dismi
 	return err
 }
 
-func (r *MongoDBRepository) GetMutualConnectionsCount(ctx context.Context, myConnections []primitive.ObjectID, candidateID primitive.ObjectID) (int, error) {
+// maxFriendsOfFriendsRows caps how many connection rows one suggestions request reads
+const maxFriendsOfFriendsRows = 5000
+
+func (r *MongoDBRepository) FriendsOfFriends(ctx context.Context, userID primitive.ObjectID, myConnections []primitive.ObjectID) (map[primitive.ObjectID]int, error) {
+	out := map[primitive.ObjectID]int{}
 	if len(myConnections) == 0 {
-		return 0, nil
+		return out, nil
 	}
-	filter := bson.M{
+	mine := make(map[primitive.ObjectID]bool, len(myConnections))
+	for _, id := range myConnections {
+		mine[id] = true
+	}
+	cursor, err := r.collection.Find(ctx, bson.M{
 		"status": StatusAccepted,
 		"$or": []bson.M{
-			{
-				"sender_id":   candidateID,
-				"receiver_id": bson.M{"$in": myConnections},
-			},
-			{
-				"receiver_id": candidateID,
-				"sender_id":   bson.M{"$in": myConnections},
-			},
+			{"sender_id": bson.M{"$in": myConnections}},
+			{"receiver_id": bson.M{"$in": myConnections}},
 		},
-	}
-	count, err := r.collection.CountDocuments(ctx, filter)
+	}, options.Find().SetProjection(bson.M{"sender_id": 1, "receiver_id": 1}).SetLimit(maxFriendsOfFriendsRows))
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-	return int(count), nil
+	defer cursor.Close(ctx)
+	var rows []ConnectionRequest
+	if err := cursor.All(ctx, &rows); err != nil {
+		return nil, err
+	}
+
+	// Each shared connection counts once, even if two requests link the same pair
+	via := map[primitive.ObjectID]map[primitive.ObjectID]bool{}
+	note := func(friend, other primitive.ObjectID) {
+		if !mine[friend] || other == userID || mine[other] {
+			return
+		}
+		if via[other] == nil {
+			via[other] = map[primitive.ObjectID]bool{}
+		}
+		via[other][friend] = true
+	}
+	for _, row := range rows {
+		note(row.SenderID, row.ReceiverID)
+		note(row.ReceiverID, row.SenderID)
+	}
+	for id, friends := range via {
+		out[id] = len(friends)
+	}
+	return out, nil
 }
 
