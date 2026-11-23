@@ -17,6 +17,19 @@ type limitRepo struct {
 	startedToday int64
 	since        time.Time
 	passUsed     bool
+	applied      bool // the receiver applied to one of the sender's jobs
+}
+
+func (r *limitRepo) HasApplied(ctx context.Context, candidateID, recruiterID primitive.ObjectID) (bool, error) {
+	return r.applied, nil
+}
+
+// countingQuota records what was counted against a recruiter's plan
+type countingQuota struct{ uses int }
+
+func (q *countingQuota) Use(ctx context.Context, userID primitive.ObjectID, kind, refID string) (func(context.Context), error) {
+	q.uses++
+	return func(context.Context) {}, nil
 }
 
 func (r *limitRepo) ActivePass(ctx context.Context, userID primitive.ObjectID) (bool, int, error) {
@@ -86,13 +99,42 @@ func TestNewChatLimit(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			repo := &limitRepo{hasPass: c.pass, startedToday: c.started}
-			svc := NewService(repo, users, nil)
+			svc := NewService(repo, users, nil, nil)
 			_, err := svc.SendMessage(context.Background(), c.from, CreateMessageRequest{ReceiverID: c.to, Content: "hi"})
 			if !errors.Is(err, c.want) {
 				t.Fatalf("got %v, want %v", err, c.want)
 			}
 			if repo.passUsed != c.used {
 				t.Fatalf("pass marked used = %v, want %v", repo.passUsed, c.used)
+			}
+		})
+	}
+}
+
+// A recruiter's first chat with someone who applied to their job doesn't use a plan chat
+func TestRecruiterChatWithApplicantIsFree(t *testing.T) {
+	recruiter, person := primitive.NewObjectID(), primitive.NewObjectID()
+	users := limitUsers{roles: map[string][]string{
+		recruiter.Hex(): {"user", user.RoleRecruiter},
+		person.Hex():    {"user"},
+	}}
+	for _, c := range []struct {
+		name    string
+		applied bool
+		want    int
+	}{
+		{"own applicant", true, 0},
+		{"someone who didn't apply", false, 1},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			quota := &countingQuota{}
+			svc := NewService(&limitRepo{applied: c.applied}, users, nil, quota)
+			_, err := svc.SendMessage(context.Background(), recruiter, CreateMessageRequest{ReceiverID: person, Content: "hi"})
+			if !errors.Is(err, errGatePassed) {
+				t.Fatalf("got %v", err)
+			}
+			if quota.uses != c.want {
+				t.Fatalf("plan chats used = %d, want %d", quota.uses, c.want)
 			}
 		})
 	}

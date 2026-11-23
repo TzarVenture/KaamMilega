@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { notify } from "@/lib/notify";
-import { BellIcon, CheckIcon, GlobeIcon, LockIcon, ShieldCheckIcon, UserCircleIcon } from "@phosphor-icons/react";
+import { BellIcon, CheckIcon, GlobeIcon, IdentificationCardIcon, LockIcon, ShieldCheckIcon, UserCircleIcon } from "@phosphor-icons/react";
 import type { Icon } from "@phosphor-icons/react";
 import api from "@/lib/axios";
 import { clearAnalyticsCache, type ProfileViewingMode } from "@/lib/api/analytics";
@@ -17,6 +17,7 @@ import { Badge, SettingRow, SettingsCard, Toggle, inputClass } from "@/component
 import SecuritySection from "@/components/settings/SecuritySection";
 import AccountSection from "@/components/settings/AccountSection";
 import PushSettingRow from "@/components/settings/PushSettingRow";
+import PoliceCheckSection from "@/components/settings/PoliceCheckSection";
 
 interface SettingsViewProps {
     mode?: "candidate" | "recruiter";
@@ -109,7 +110,7 @@ interface SettingsProfile {
     has_password?: boolean;
 }
 
-type Tab = "notifications" | "privacy" | "security" | "preferences" | "account";
+type Tab = "notifications" | "privacy" | "verification" | "security" | "preferences" | "account";
 
 const SoonBadge = () => <Badge tone="soon">Coming soon</Badge>;
 
@@ -122,6 +123,7 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
     const tabs: { id: Tab; label: string; Icon: Icon }[] = [
         { id: "notifications", label: "Notifications", Icon: BellIcon },
         ...(!isRecruiter ? [{ id: "privacy" as Tab, label: "Privacy", Icon: ShieldCheckIcon }] : []),
+        ...(!isRecruiter ? [{ id: "verification" as Tab, label: "Verification", Icon: IdentificationCardIcon }] : []),
         { id: "security", label: "Sign-in & security", Icon: LockIcon },
         { id: "preferences", label: "Preferences", Icon: GlobeIcon },
         { id: "account", label: "Account", Icon: UserCircleIcon },
@@ -323,6 +325,8 @@ export default function SettingsView({ mode = "candidate" }: SettingsViewProps) 
                             </SettingsCard>
                         </>
                     )}
+
+                    {activeTab === "verification" && !isRecruiter && <PoliceCheckSection />}
 
                     {activeTab === "security" && <SecuritySection profile={profile || {}} onPasswordSet={loadProfile} />}
 

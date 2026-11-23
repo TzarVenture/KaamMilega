@@ -15,6 +15,7 @@ env.production
 /docs/
 /docMain/
 !km-backend/docs/
+km-backend/docs
 CODEBASE_ANALYSIS.md
 *.pdf
 *.docx

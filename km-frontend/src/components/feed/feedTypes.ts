@@ -23,6 +23,7 @@ export interface FeedAuthor {
   headline?: string;
   avatar?: string;
   is_verified: boolean;
+  badges?: string[];
   role: 'user' | 'recruiter' | 'expert';
 }
 

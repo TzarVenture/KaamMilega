@@ -151,6 +151,11 @@ type ClaimGigRequest struct {
 	JobID string `json:"job_id"`
 }
 
+// PassPurchaseRequest is the optional body of a pass purchase
+type PassPurchaseRequest struct {
+	CouponCode string `json:"coupon_code"`
+}
+
 type CreatePassOrderResponse struct {
 	KeyID   string  `json:"key_id"`
 	OrderID string  `json:"order_id"`

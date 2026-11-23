@@ -480,6 +480,10 @@ func (s *NetworkServiceImpl) GetSuggestions(ctx context.Context, userID primitiv
 			PrimaryMatchBadge:      badge,
 			MutualSkills:           mutualSkills,
 			MutualConnectionsCount: mutualCount,
+			Badges: user.BadgesOf(&user.User{
+				VerificationStatus: cand.VerificationStatus, ExpertApprovalStatus: cand.ExpertApprovalStatus,
+				PoliceVerification: cand.PoliceVerification, RatingAverage: cand.RatingAverage, RatingCount: cand.RatingCount,
+			}, time.Now()),
 		})
 	}
 

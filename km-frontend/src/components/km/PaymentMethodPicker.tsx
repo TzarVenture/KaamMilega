@@ -15,18 +15,31 @@ interface PaymentMethodPickerProps {
     onChange: (method: PaymentMethod) => void;
     /** Spending balance, or null while it loads */
     balance: number | null;
+    /**
+     * Bonus credit, for purchases that can spend it (the InstantPass and hiring plans). Bonus is
+     * spent first, then the spending balance. Leave it out where only the spending balance counts.
+     */
+    bonus?: number;
     price: number;
     disabled?: boolean;
     /** Off when the screen explains a low balance elsewhere */
     showShortfall?: boolean;
 }
 
-export default function PaymentMethodPicker({ value, onChange, balance, price, disabled, showShortfall = true }: PaymentMethodPickerProps) {
+export default function PaymentMethodPicker({ value, onChange, balance, bonus = 0, price, disabled, showShortfall = true }: PaymentMethodPickerProps) {
     const t = useTranslations('checkout');
-    const shortBy = balance === null ? 0 : price - balance;
+    const shortBy = balance === null ? 0 : Math.round((price - (balance + bonus)) * 100) / 100;
+    // The same split the server makes (wallet.SpendSplit): bonus first, then the balance
+    const fromBonus = Math.min(bonus, price);
+    const fromMain = Math.round((price - fromBonus) * 100) / 100;
+
+    const walletHint =
+        balance === null ? t('balanceLoading')
+            : bonus > 0 ? t('balanceWithBonus', { amount: inr(balance), bonus: inr(bonus) })
+                : t('balance', { amount: inr(balance) });
 
     const options: { method: PaymentMethod; icon: Icon; title: string; hint: string }[] = [
-        { method: 'wallet', icon: WalletIcon, title: t('wallet'), hint: balance === null ? t('balanceLoading') : t('balance', { amount: inr(balance) }) },
+        { method: 'wallet', icon: WalletIcon, title: t('wallet'), hint: walletHint },
         { method: 'razorpay', icon: CreditCardIcon, title: t('online'), hint: t('onlineHint') },
     ];
 
@@ -61,6 +74,12 @@ export default function PaymentMethodPicker({ value, onChange, balance, price, d
                     );
                 })}
             </div>
+
+            {value === 'wallet' && balance !== null && shortBy <= 0 && fromBonus > 0 && (
+                <p className="mt-2 text-sm text-km-text-secondary">
+                    {fromMain > 0 ? t('split', { bonus: inr(fromBonus), main: inr(fromMain) }) : t('allBonus', { bonus: inr(fromBonus) })}
+                </p>
+            )}
 
             {showShortfall && value === 'wallet' && shortBy > 0 && (
                 <p className="mt-2 flex items-center justify-between gap-3 text-sm text-km-text-secondary">

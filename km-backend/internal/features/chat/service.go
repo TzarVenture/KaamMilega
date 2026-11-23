@@ -15,17 +15,28 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// PlanQuota counts a new chat a recruiter starts against their plan (recruiterplan.Service). It
+// errors only when limits are enforced and the plan's new chats are used up.
+type PlanQuota interface {
+	Use(ctx context.Context, userID primitive.ObjectID, kind, refID string) (func(context.Context), error)
+}
+
+// planKindNewChat is recruiterplan.KindNewChat
+const planKindNewChat = "new_chat"
+
 type service struct {
 	repo     ChatRepository
 	userRepo user.UserRepository
 	hub      *Hub
+	quota    PlanQuota
 }
 
-func NewService(repo ChatRepository, userRepo user.UserRepository, hub *Hub) ChatService {
+func NewService(repo ChatRepository, userRepo user.UserRepository, hub *Hub, quota PlanQuota) ChatService {
 	return &service{
 		repo:     repo,
 		userRepo: userRepo,
 		hub:      hub,
+		quota:    quota,
 	}
 }
 
@@ -233,6 +244,7 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 	}
 
 	created := false
+	release := func(context.Context) {}
 	if conv == nil {
 		// Without the ₹99 pass: a few new chats a day, only with recruiters
 		ent, err := s.GetChatEntitlement(ctx, senderID)
@@ -257,8 +269,23 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 			}
 		}
 
+		// A recruiter's new chat counts against their plan, once per person in each period. Chats
+		// with people who applied to their jobs are free: that's replying, not reaching out.
+		if ent.staff && s.quota != nil {
+			applicant, err := s.repo.HasApplied(ctx, req.ReceiverID, senderID)
+			if err != nil {
+				return nil, err
+			}
+			if !applicant {
+				if release, err = s.quota.Use(ctx, senderID, planKindNewChat, req.ReceiverID.Hex()); err != nil {
+					return nil, err
+				}
+			}
+		}
+
 		conv, err = s.repo.CreateConversation(ctx, participants)
 		if err != nil {
+			release(context.Background())
 			return nil, err
 		}
 		created = true
@@ -267,6 +294,7 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 	fail := func(err error) (*Message, error) {
 		if created {
 			_ = s.repo.DeleteConversation(ctx, conv.ID)
+			release(context.Background())
 		}
 		return nil, err
 	}

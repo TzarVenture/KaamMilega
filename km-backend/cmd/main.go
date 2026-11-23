@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"time"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	common_api "km-backend/internal/common/api"
@@ -20,8 +19,12 @@ import (
 	"km-backend/internal/features/mentorship"
 	"km-backend/internal/features/network"
 	"km-backend/internal/features/notification"
+	"km-backend/internal/features/policecheck"
 	"km-backend/internal/features/policies"
+	"km-backend/internal/features/promo"
 	"km-backend/internal/features/push"
+	"km-backend/internal/features/recruiterplan"
+	"time"
 
 	"km-backend/internal/features/ads"
 	"km-backend/internal/features/analytics"
@@ -168,8 +171,18 @@ func newEmployerLookup(users user.UserRepository) job.EmployerLookup {
 	})
 }
 
+// Job posts and new chats count against a recruiter's plan
+func newJobPlanQuota(plans recruiterplan.Service) job.PlanQuota   { return plans }
+func newChatPlanQuota(plans recruiterplan.Service) chat.PlanQuota { return plans }
+
 func main() {
-	app := fx.New(
+	fx.New(appOptions()).Run()
+}
+
+// appOptions is every provider, worker and route of the server. cmd/wiring_test.go checks that
+// it fits together (no missing or circular dependency) without starting anything.
+func appOptions() fx.Option {
+	return fx.Options(
 		fx.Provide(
 			// Load Config
 			config.LoadConfig,
@@ -222,6 +235,9 @@ func main() {
 			app_waitlist.NewRepository,
 			account.NewRepository,
 			credential.NewRepository,
+			policecheck.NewRepository,
+			recruiterplan.NewRepository,
+			promo.NewRepository,
 			push.NewRepository,
 			feed.NewFeedRepository,
 			analytics.NewRepository,
@@ -256,6 +272,11 @@ func main() {
 			testimonial.NewTestimonialService,
 			account.NewService,
 			credential.NewService,
+			policecheck.NewService,
+			recruiterplan.NewService,
+			promo.NewService,
+			newJobPlanQuota,
+			newChatPlanQuota,
 			jobalert.NewService,
 			reminder.NewService,
 			feed.NewFeedService,
@@ -289,6 +310,9 @@ func main() {
 			policies.NewController,
 			account.NewController,
 			credential.NewController,
+			policecheck.NewController,
+			recruiterplan.NewController,
+			promo.NewController,
 			feed.NewFeedController,
 
 			// routes
@@ -318,6 +342,9 @@ func main() {
 			AsRoute(policies.NewApi),
 			AsRoute(account.NewApi),
 			AsRoute(credential.NewApi),
+			AsRoute(policecheck.NewApi),
+			AsRoute(recruiterplan.NewApi),
+			AsRoute(promo.NewApi),
 			AsRoute(push.NewApi),
 			AsRoute(feed.NewFeedApi),
 		),
@@ -351,8 +378,6 @@ func main() {
 			},
 		),
 	)
-
-	app.Run()
 }
 
 // RegisterHealth adds GET /health: a quick check of both databases for uptime monitors.

@@ -22,6 +22,7 @@ import CertificationModal from '@/components/profile/CertificationModal';
 import { credentialsApi, monthLabel, type Byline, type Certification, type ProfileCredentials as Data, type SkillView } from '@/lib/api/credentials';
 import { notify } from '@/lib/notify';
 import { useFeedUser } from '@/components/feed/feedUtils';
+import UserBadges from '@/components/ui/UserBadges';
 
 const SKILLS_SHOWN = 6;
 
@@ -270,7 +271,7 @@ function EndorsersDialog({ userId, skill, onClose }: { userId: string; skill: st
                 <span className="min-w-0">
                   <span className="flex items-center gap-1 text-sm font-semibold text-km-heading">
                     <span className="truncate">{b.name}</span>
-                    {b.is_verified && <SealCheckIcon size={14} weight="fill" className="text-km-link shrink-0" aria-label="Verified" />}
+                    <UserBadges badges={b.badges} isVerified={b.is_verified} size={14} />
                   </span>
                   {b.headline && <span className="block truncate text-[13px] text-km-text-secondary">{b.headline}</span>}
                 </span>

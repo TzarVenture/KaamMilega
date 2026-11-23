@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { SealCheckIcon, SpinnerGapIcon } from '@phosphor-icons/react';
+import { SpinnerGapIcon } from '@phosphor-icons/react';
+import UserBadges from '@/components/ui/UserBadges';
 import { useTranslations } from 'next-intl';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { feedApi } from '@/lib/api/feed';
@@ -439,7 +440,7 @@ export function CommentItem({ comment, isPostAuthor, small = false, onDelete, on
             <div className="min-w-0">
               <p className="flex items-center gap-1 text-sm font-semibold text-km-heading">
                 <Link href={profile} className="truncate hover:text-km-link hover:underline">{comment.author.name}</Link>
-                {comment.author.is_verified && <SealCheckIcon size={15} weight="fill" className="text-km-link shrink-0" aria-label={t('verified')} />}
+                <UserBadges badges={comment.author.badges} isVerified={comment.author.is_verified} size={15} />
                 {isPostAuthor && <span className="shrink-0 text-[12px] font-medium text-km-text-secondary">· {t('author')}</span>}
               </p>
               {comment.author.headline && <p className="truncate text-[13px] text-km-text-secondary">{comment.author.headline}</p>}

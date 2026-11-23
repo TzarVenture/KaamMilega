@@ -37,6 +37,9 @@ func (c *JobController) CreateJob(ctx *fiber.Ctx) error {
 
 	job, err := c.service.CreateJob(ctx.Context(), &req, recruiterID)
 	if err != nil {
+		if apperr.CodeOf(err) == "PLAN_JOB_POSTS_USED_UP" {
+			return ctx.Status(fiber.StatusPaymentRequired).JSON(apperr.Body(err))
+		}
 		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 

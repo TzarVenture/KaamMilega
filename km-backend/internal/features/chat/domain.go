@@ -195,6 +195,8 @@ type ChatRepository interface {
 	UnblockUser(ctx context.Context, userID, blockedUserID primitive.ObjectID) error
 	GetBlockStatus(ctx context.Context, userID, otherUserID primitive.ObjectID) (bool, bool, error)
 	IsBlockedEitherWay(ctx context.Context, userA, userB primitive.ObjectID) (bool, error)
+	// HasApplied says whether candidateID has applied to any of recruiterID's jobs
+	HasApplied(ctx context.Context, candidateID, recruiterID primitive.ObjectID) (bool, error)
 
 	// Report & Moderation
 	CreateChatReport(ctx context.Context, report *ChatReport) (*ChatReport, error)

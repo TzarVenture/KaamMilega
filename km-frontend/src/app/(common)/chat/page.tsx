@@ -1396,6 +1396,12 @@ function ChatView() {
         notify.error(err, "Failed to send message");
         return;
       }
+      // A recruiter whose hiring plan has no new chats left (recruiterplan, enforced by the admin)
+      if (code === "PLAN_CHATS_USED_UP") {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
+        notify.error(err, "You've used all the new chats in your plan.");
+        return;
+      }
       notify.error(err, "Your message wasn't sent. Tap Retry to send it again.");
       setMessages((prev) => prev.map((m) => (m.id === tempId ? { ...m, sendFailed: true } : m)));
     }

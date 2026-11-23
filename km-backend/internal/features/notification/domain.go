@@ -29,6 +29,8 @@ const (
 	TypeFeedComment         = "feed_comment"
 	TypeSkillEndorsement    = "skill_endorsement"
 	TypeCertificateReview   = "certificate_review"
+	TypePoliceVerification  = "police_verification"
+	TypeRecruiterPlan       = "recruiter_plan"
 	TypeFeedReaction        = "feed_reaction"
 	TypeJobAlert            = "job_alert"
 	TypeReminder            = "reminder"

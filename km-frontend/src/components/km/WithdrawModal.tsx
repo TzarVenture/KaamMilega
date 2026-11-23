@@ -25,11 +25,14 @@ interface PayoutAccount {
 interface Props {
     isOpen: boolean;
     available: number;
+    /** Earnings that must stay in the wallet */
+    reserved: number;
+    reservePercent: number;
     onClose: () => void;
     onRequested: (wallet: WalletSummary) => void;
 }
 
-export default function WithdrawModal({ isOpen, available, onClose, onRequested }: Props) {
+export default function WithdrawModal({ isOpen, available, reserved, reservePercent, onClose, onRequested }: Props) {
     const t = useTranslations('walletPage');
     const [account, setAccount] = useState<PayoutAccount | null>(null);
     const [amount, setAmount] = useState('');
@@ -90,6 +93,12 @@ export default function WithdrawModal({ isOpen, available, onClose, onRequested 
                             <dt className="text-km-text-secondary">{t('available')}</dt>
                             <dd className="font-semibold text-km-heading font-inter tabular-nums">{inr(available)}</dd>
                         </div>
+                        {reserved > 0 && (
+                            <div className="flex justify-between gap-4 px-4 py-2.5">
+                                <dt className="text-km-text-secondary">{t('reserved', { percent: reservePercent })}</dt>
+                                <dd className="text-km-text-primary font-inter tabular-nums">{inr(reserved)}</dd>
+                            </div>
+                        )}
                         <div className="flex justify-between gap-4 px-4 py-2.5">
                             <dt className="text-km-text-secondary shrink-0">{t('sendTo')}</dt>
                             <dd className="text-right text-km-text-primary">
@@ -105,7 +114,7 @@ export default function WithdrawModal({ isOpen, available, onClose, onRequested 
                         <span className={error && amount ? field.error : field.hint}>{error && amount ? error : t('withdrawLimits')}</span>
                     </label>
 
-                    <p className="text-sm text-km-text-secondary">{t('withdrawNote')}</p>
+                    <p className="text-sm text-km-text-secondary">{t('reserveNote', { percent: reservePercent })} {t('withdrawNote')}</p>
 
                     <div className="flex justify-end gap-2 pt-2">
                         <button type="button" onClick={onClose} disabled={busy} className={btn.secondary}>{t('cancel')}</button>

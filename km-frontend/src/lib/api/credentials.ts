@@ -7,6 +7,7 @@ export interface Byline {
   headline?: string;
   avatar?: string;
   is_verified: boolean;
+  badges?: string[];
   role: string;
 }
 

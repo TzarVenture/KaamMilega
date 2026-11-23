@@ -27,6 +27,9 @@ import {
     MegaphoneIcon,
     QuestionIcon,
     QuotesIcon,
+    PoliceCarIcon,
+    TicketIcon,
+    TagIcon,
     ShieldCheckIcon,
     ShieldWarningIcon,
     SidebarSimpleIcon,
@@ -61,6 +64,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
             { name: 'Companies', icon: BuildingOfficeIcon, href: '/admin/companies' },
             { name: 'Expert requests', icon: IdentificationBadgeIcon, href: '/admin/expert-requests' },
             { name: 'Certificates', icon: CertificateIcon, href: '/admin/certifications' },
+            { name: 'Police verification', icon: PoliceCarIcon, href: '/admin/police-verifications' },
         ],
     },
     {
@@ -85,6 +89,8 @@ const navGroups: { label: string; items: NavItem[] }[] = [
     {
         label: 'Monetisation',
         items: [
+            { name: 'Recruiter plans', icon: TagIcon, href: '/admin/recruiter-plans' },
+            { name: 'Coupons', icon: TicketIcon, href: '/admin/coupons' },
             { name: 'Ads', icon: MegaphoneIcon, href: '/admin/ads' },
             { name: 'App waitlist', icon: DeviceMobileIcon, href: '/admin/app-waitlist' },
         ],

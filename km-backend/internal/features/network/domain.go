@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"km-backend/internal/features/user"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -49,6 +51,7 @@ type SuggestedConnection struct {
 	PrimaryMatchBadge      string             `json:"primary_match_badge"`
 	MutualSkills           []string           `json:"mutual_skills"`
 	MutualConnectionsCount int                `json:"mutual_connections_count"`
+	Badges                 []string           `json:"badges"`
 }
 
 // SuggestionsFilter holds request query parameters
@@ -91,8 +94,14 @@ type CandidateUser struct {
 	LastActiveAt  time.Time          `bson:"last_active_at"`
 	UpdatedAt     time.Time          `bson:"updated_at"`
 	CompanyName   string             `bson:"company_name"` // recruiters' own company
-	Experience    []experienceEntry  `bson:"experience"`
-	Education     []educationEntry   `bson:"education"`
+	// Badge inputs (see user.BadgesOf)
+	VerificationStatus   string                   `bson:"verification_status"`
+	ExpertApprovalStatus string                   `bson:"expert_approval_status"`
+	PoliceVerification   *user.PoliceVerification `bson:"police_verification"`
+	RatingAverage        float64                  `bson:"rating_average"`
+	RatingCount          int                      `bson:"rating_count"`
+	Experience           []experienceEntry        `bson:"experience"`
+	Education            []educationEntry         `bson:"education"`
 }
 
 type NetworkRepository interface {

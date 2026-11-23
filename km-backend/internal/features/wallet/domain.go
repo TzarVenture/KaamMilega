@@ -33,6 +33,7 @@ const (
 	CategoryBonusReward    TransactionCategory = "bonus_reward"
 	CategoryRefund         TransactionCategory = "refund"
 	CategoryEventTicket    TransactionCategory = "event_ticket"
+	CategoryRecruiterPlan  TransactionCategory = "recruiter_plan"
 
 	StatusCompleted TransactionStatus = "completed"
 	StatusPending   TransactionStatus = "pending"
@@ -54,6 +55,8 @@ const (
 
 	MinWithdrawalPaise      int64 = 100_00
 	MaxDailyWithdrawalPaise int64 = 25_000_00
+	// WithdrawalReservePercent of earnings always stays in the wallet (client answer Q10)
+	WithdrawalReservePercent int64 = 25
 
 	// How long after a purchase it can still be disputed
 	DisputeWindow = 30 * 24 * time.Hour
@@ -67,6 +70,7 @@ var (
 	ErrClosed             = apperr.New("WALLET_CLOSED", "this wallet is closed")
 	ErrReferenceConflict  = apperr.New("WALLET_REFERENCE_CONFLICT", "this transaction reference has already been used")
 	ErrEarningsLow        = apperr.New("EARNINGS_INSUFFICIENT", "you don't have enough earnings to withdraw this amount")
+	ErrWithdrawalReserve  = apperr.New("WITHDRAWAL_RESERVE", "25% of your earnings stays in your wallet, so you can't withdraw this much")
 	ErrKYCRequired        = apperr.New("WITHDRAWAL_KYC_REQUIRED", "your KYC must be approved before you can withdraw")
 	ErrWithdrawalOpen     = apperr.New("WITHDRAWAL_ALREADY_OPEN", "you already have a withdrawal in progress")
 	ErrWithdrawalNotFound = apperr.New("WITHDRAWAL_NOT_FOUND", "withdrawal not found")
@@ -79,6 +83,16 @@ var (
 	ErrRefundTooLarge     = apperr.New("DISPUTE_REFUND_TOO_LARGE", "the refund can't be more than the amount spent")
 	ErrWalletNotFound     = apperr.New("WALLET_NOT_FOUND", "no wallet found for this user")
 )
+
+// MaxWithdrawablePaise is the most of these earnings that can be withdrawn: the part above the
+// reserve, rounded down to a whole rupee.
+func MaxWithdrawablePaise(earningsPaise int64) int64 {
+	if earningsPaise <= 0 {
+		return 0
+	}
+	max := earningsPaise * (100 - WithdrawalReservePercent) / 100
+	return max - max%100
+}
 
 // Wallet holds a user's balances in whole paise. The API reports rupees.
 type Wallet struct {
@@ -99,7 +113,9 @@ type WalletSummaryResponse struct {
 	WalletID            string    `json:"wallet_id"`
 	UserID              string    `json:"user_id"`
 	TotalBalance        float64   `json:"total_balance"`        // Main + Earnings + Bonus
-	WithdrawableBalance float64   `json:"withdrawable_balance"` // Only Earnings
+	WithdrawableBalance float64   `json:"withdrawable_balance"` // The most that can be withdrawn now: earnings less the reserve
+	ReservedBalance     float64   `json:"reserved_balance"`     // Earnings that must stay in the wallet
+	ReservePercent      int64     `json:"reserve_percent"`
 	MainBalance         float64   `json:"main_balance"`
 	EarningsBalance     float64   `json:"earnings_balance"`
 	LockedBalance       float64   `json:"locked_balance"`

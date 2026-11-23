@@ -11,7 +11,6 @@ import {
   FlagIcon,
   LinkSimpleIcon,
   PencilSimpleIcon,
-  SealCheckIcon,
   ShareFatIcon,
   TrashIcon,
 } from '@phosphor-icons/react';
@@ -30,6 +29,7 @@ import ReactionsDialog from './ReactionsDialog';
 import ReportPostDialog from './ReportPostDialog';
 import type { FeedPost, ReactionType } from './feedTypes';
 import { compactNumber, useFeedUser, useRelativeTime } from './feedUtils';
+import UserBadges from '@/components/ui/UserBadges';
 
 interface PostCardProps {
   post: FeedPost;
@@ -192,7 +192,7 @@ export default function PostCard({ post, onUpdate, onRemove, onEdit, commentsOpe
             <Link id={`post-${post.id}-author`} href={profile} className="truncate py-2.5 -my-2.5 text-[15px] font-semibold text-km-heading hover:text-km-link hover:underline">
               {post.author.name}
             </Link>
-            {post.author.is_verified && <SealCheckIcon size={16} weight="fill" className="text-km-link shrink-0" aria-label={t('verified')} />}
+            <UserBadges badges={post.author.badges} isVerified={post.author.is_verified} />
             {roleLabel && <span className="shrink-0 text-[13px] text-km-text-secondary">· {roleLabel}</span>}
           </p>
           {post.author.headline && <p className="truncate text-[13px] text-km-text-secondary">{post.author.headline}</p>}

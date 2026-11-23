@@ -15,6 +15,7 @@ import (
 	"km-backend/internal/database"
 	"km-backend/internal/features/notification"
 	"km-backend/internal/features/payment"
+	"km-backend/internal/features/promo"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -60,8 +61,8 @@ type InstantWorkService interface {
 	UpdateLocation(ctx context.Context, userID primitive.ObjectID, req LocationPingRequest) error
 	GetNearbyCandidatesForRecruiter(ctx context.Context, lng, lat float64, radiusKm float64, skill string) ([]NearbyCandidateResult, error)
 
-	PurchasePassWithWallet(ctx context.Context, userID primitive.ObjectID) (*InstantPass, *wallet.WalletSummaryResponse, error)
-	CreatePassOrder(ctx context.Context, userID primitive.ObjectID) (*CreatePassOrderResponse, error)
+	PurchasePassWithWallet(ctx context.Context, userID primitive.ObjectID, couponCode string) (*InstantPass, *wallet.WalletSummaryResponse, *promo.Receipt, error)
+	CreatePassOrder(ctx context.Context, userID primitive.ObjectID, couponCode string) (*CreatePassOrderResponse, error)
 	VerifyPassPayment(ctx context.Context, userID primitive.ObjectID, req VerifyPassPaymentRequest) (*InstantPass, error)
 
 	CreateSpotJob(ctx context.Context, recruiterID primitive.ObjectID, req CreateInstantJobRequest) (*InstantJob, error)
@@ -82,6 +83,7 @@ type InstantWorkServiceImpl struct {
 	cfg           *config.Config
 	payments      payment.Service
 	tx            database.Transactor
+	promo         promo.Service
 }
 
 func NewInstantWorkService(
@@ -92,6 +94,7 @@ func NewInstantWorkService(
 	notifService notification.NotificationService,
 	payments payment.Service,
 	tx database.Transactor,
+	promoService promo.Service,
 ) InstantWorkService {
 	s := &InstantWorkServiceImpl{
 		repo:          repo,
@@ -101,7 +104,11 @@ func NewInstantWorkService(
 		cfg:           cfg,
 		payments:      payments,
 		tx:            tx,
+		promo:         promoService,
 	}
+	promoService.RegisterPricer(payment.PurposeInstantPass, func(context.Context, string, string) (int64, error) {
+		return PassPricePaise, nil
+	})
 	payments.Register(payment.PurposeInstantPass, payment.Handlers{
 		Fulfill: s.fulfillPass,
 		Revoke:  s.revokePass,

@@ -9,7 +9,9 @@ import { inr } from '@/lib/money';
 import { getCurrentUser } from '@/lib/auth';
 import { CheckoutOrder, useCheckout } from '@/lib/razorpay';
 import PaymentMethodPicker, { PaymentMethod } from '@/components/km/PaymentMethodPicker';
+import { CashbackNote, CouponField, CouponPrice, useCouponQuote } from '@/components/km/CouponCheckout';
 import { AdminModal, btn } from '@/components/admin/ui';
+import type { CouponReceipt } from '@/lib/api/coupons';
 
 export const PASS_PRICE = 99;
 
@@ -38,6 +40,7 @@ export default function InstantPassModal({ isOpen, onClose, onSuccess }: Instant
     const pay = useCheckout();
     const [busy, setBusy] = useState(false);
     const [balance, setBalance] = useState<number | null>(null);
+    const [bonus, setBonus] = useState(0);
     const [status, setStatus] = useState<PassStatus | null>(null);
     const [checking, setChecking] = useState(true);
     const [method, setMethod] = useState<PaymentMethod>('razorpay');
@@ -47,27 +50,36 @@ export default function InstantPassModal({ isOpen, onClose, onSuccess }: Instant
         let cancelled = false;
         setStatus(null);
         setBalance(null);
+        setBonus(0);
         setChecking(true);
         fetchPassStatus()
             .then((s) => !cancelled && setStatus(s))
             .catch(() => undefined)
             .finally(() => !cancelled && setChecking(false));
-        api.get<unknown, { main_balance?: number }>('/wallet/balance')
+        api.get<unknown, { main_balance?: number; bonus_balance?: number }>('/wallet/balance')
             .then((w) => {
                 if (cancelled) return;
                 const main = w?.main_balance ?? 0;
+                const credit = w?.bonus_balance ?? 0;
                 setBalance(main);
-                setMethod(main >= PASS_PRICE ? 'wallet' : 'razorpay');
+                setBonus(credit);
+                setMethod(main + credit >= PASS_PRICE ? 'wallet' : 'razorpay');
             })
             .catch(() => !cancelled && setMethod('razorpay'));
         return () => { cancelled = true; };
     }, [isOpen]);
 
-    const hasCredits = !!status?.has_active_pass && status.quota_remaining > 0;
-    const walletShort = method === 'wallet' && (balance ?? 0) < PASS_PRICE;
+    const coupon = useCouponQuote('instant_pass', isOpen);
+    const price = coupon.quote?.price ?? PASS_PRICE;
+    const free = !!coupon.quote?.free;
+    // A free pass (a 100% coupon) goes through the wallet with nothing charged
+    const payWith: PaymentMethod = free ? 'wallet' : method;
 
-    const done = (quota: number | undefined) => {
-        notify.success(t('activated'));
+    const hasCredits = !!status?.has_active_pass && status.quota_remaining > 0;
+    const walletShort = payWith === 'wallet' && !free && (balance ?? 0) + bonus < price;
+
+    const done = (quota: number | undefined, receipt?: CouponReceipt) => {
+        notify.success(t('activated'), receipt && receipt.cashback > 0 ? t('cashbackAdded', { amount: inr(receipt.cashback) }) : undefined);
         onSuccess(quota ?? 10);
         onClose();
     };
@@ -81,12 +93,13 @@ export default function InstantPassModal({ isOpen, onClose, onSuccess }: Instant
         }
         setBusy(true);
         try {
-            if (method === 'wallet') {
-                const res = await api.post<unknown, { pass?: { quota_remaining?: number } }>('/instant-work/pass/pay-wallet');
-                done(res?.pass?.quota_remaining);
+            const body = { coupon_code: coupon.code };
+            if (payWith === 'wallet') {
+                const res = await api.post<unknown, { pass?: { quota_remaining?: number }; receipt?: CouponReceipt }>('/instant-work/pass/pay-wallet', body);
+                done(res?.pass?.quota_remaining, res?.receipt);
                 return;
             }
-            const order = await api.post<unknown, CheckoutOrder>('/instant-work/pass/order');
+            const order = await api.post<unknown, CheckoutOrder>('/instant-work/pass/order', body);
             const outcome = await pay({
                 order,
                 description: t('title'),
@@ -121,7 +134,7 @@ export default function InstantPassModal({ isOpen, onClose, onSuccess }: Instant
             ) : (
                 <div className="space-y-5">
                     <div>
-                        <p className="text-3xl font-bold text-km-heading">{inr(PASS_PRICE)}</p>
+                        <CouponPrice quote={coupon.quote} fallback={PASS_PRICE} />
                         <p className="mt-1 text-sm text-km-text-secondary">{t('summary')}</p>
                     </div>
 
@@ -135,13 +148,20 @@ export default function InstantPassModal({ isOpen, onClose, onSuccess }: Instant
                     </ul>
                     <p className="text-sm text-km-text-secondary">{t('validity')}</p>
 
-                    <PaymentMethodPicker value={method} onChange={setMethod} balance={balance} price={PASS_PRICE} disabled={busy} />
+                    <CouponField state={coupon} disabled={busy} />
+
+                    {free ? (
+                        <p className="text-sm font-medium text-km-text-primary">{t('freeWithCode')}</p>
+                    ) : (
+                        <PaymentMethodPicker value={method} onChange={setMethod} balance={balance} bonus={bonus} price={price} disabled={busy} />
+                    )}
+                    <CashbackNote quote={coupon.quote} method={payWith} />
 
                     <div className="flex justify-end gap-2 pt-1">
                         <button type="button" onClick={onClose} disabled={busy} className={btn.secondary}>{t('cancel')}</button>
-                        <button type="button" onClick={buy} disabled={busy || checking || walletShort} className={btn.primary}>
+                        <button type="button" onClick={buy} disabled={busy || checking || walletShort || coupon.applying || (payWith === 'wallet' && balance === null)} className={btn.primary}>
                             {busy && <CircleNotchIcon size={16} className="animate-spin" aria-hidden="true" />}
-                            {t('pay', { amount: inr(PASS_PRICE) })}
+                            {free ? t('getFree') : t('pay', { amount: inr(price) })}
                         </button>
                     </div>
                 </div>

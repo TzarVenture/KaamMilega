@@ -22,6 +22,7 @@ const (
 	PurposeEventTicket       Purpose = "event_ticket"
 	PurposeMentorshipBooking Purpose = "mentorship_booking"
 	PurposeInstantPass       Purpose = "instant_pass"
+	PurposeRecruiterPlan     Purpose = "recruiter_plan"
 )
 
 type Status string

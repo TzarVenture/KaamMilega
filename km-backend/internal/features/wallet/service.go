@@ -48,6 +48,10 @@ type WalletService interface {
 	// RegisterPurchaseRevoker sets how to take back what a wallet purchase of this category
 	// bought, when an admin refunds its dispute in full. Call it at startup.
 	RegisterPurchaseRevoker(category TransactionCategory, fn PurchaseRevoker)
+
+	// Spend pays for a purchase with bonus credit first, then the main balance. It joins the
+	// caller's transaction.
+	Spend(ctx context.Context, in SpendInput) (*SpendResult, error)
 }
 
 // PurchaseRevoker takes back the item a wallet purchase bought. It runs inside the refund
@@ -152,7 +156,9 @@ func formatWalletSummary(w *Wallet) *WalletSummaryResponse {
 		WalletID:            w.ID.Hex(),
 		UserID:              w.UserID.Hex(),
 		TotalBalance:        money.ToRupees(w.MainPaise + w.EarningsPaise + w.BonusPaise),
-		WithdrawableBalance: money.ToRupees(w.EarningsPaise),
+		WithdrawableBalance: money.ToRupees(MaxWithdrawablePaise(w.EarningsPaise)),
+		ReservedBalance:     money.ToRupees(w.EarningsPaise - MaxWithdrawablePaise(w.EarningsPaise)),
+		ReservePercent:      WithdrawalReservePercent,
 		MainBalance:         money.ToRupees(w.MainPaise),
 		EarningsBalance:     money.ToRupees(w.EarningsPaise),
 		LockedBalance:       money.ToRupees(w.LockedPaise),
@@ -466,6 +472,17 @@ func (s *WalletServiceImpl) RequestWithdrawal(ctx context.Context, userID string
 		if today+paise > MaxDailyWithdrawalPaise {
 			return apperr.New("WITHDRAWAL_DAILY_LIMIT", fmt.Sprintf("you can withdraw up to %s a day", money.INR(MaxDailyWithdrawalPaise)))
 		}
+		// The reserve is checked on the locked wallet, so two requests can't both use the same headroom
+		current, err := s.repo.LockWallet(ctx, oid)
+		if err != nil {
+			return err
+		}
+		if paise > current.EarningsPaise {
+			return ErrEarningsLow
+		}
+		if paise > MaxWithdrawablePaise(current.EarningsPaise) {
+			return ErrWithdrawalReserve
+		}
 
 		_, updated, err := s.repo.RecordAtomicTransaction(ctx, RecordTransactionInput{
 			UserID:        oid,
@@ -673,8 +690,12 @@ func (s *WalletServiceImpl) UpdateWithdrawal(ctx context.Context, withdrawalID, 
 
 // disputeRefusal says why a ledger row can't be disputed, or nil if it can. Only purchases paid
 // from the wallet qualify. Session payments are held in escrow and have their own report path.
+// A purchase paid partly with bonus credit is disputed on its main row; the bonus half follows it.
 func disputeRefusal(tx *WalletTransaction, now time.Time) error {
-	if tx.Type != TypeDebit || tx.TargetBalance != BalanceMain {
+	if tx.Type != TypeDebit || (tx.TargetBalance != BalanceMain && tx.TargetBalance != BalanceBonus) {
+		return ErrDisputeNotEligible
+	}
+	if _, half := tx.Metadata[metaSplitOf]; half {
 		return ErrDisputeNotEligible
 	}
 	switch tx.Category {
@@ -864,6 +885,11 @@ func (s *WalletServiceImpl) ResolveDispute(ctx context.Context, disputeID string
 
 		update.Status = DisputeStatusApproved
 		update.RefundPaise = refundPaise
+		// Money goes back to the balance it came from (older disputes are all main)
+		refundTo := dispute.TargetBalance
+		if refundTo != BalanceBonus {
+			refundTo = BalanceMain
+		}
 		err := s.tx.Run(ctx, func(ctx context.Context) error {
 			claim(ctx, open, update)
 			if claimErr != nil {
@@ -872,7 +898,7 @@ func (s *WalletServiceImpl) ResolveDispute(ctx context.Context, disputeID string
 			tx, _, err := s.repo.RecordAtomicTransaction(ctx, RecordTransactionInput{
 				UserID:        dispute.UserID,
 				Type:          TypeCredit,
-				TargetBalance: BalanceMain,
+				TargetBalance: refundTo,
 				Category:      CategoryRefund,
 				Amount:        money.ToRupees(refundPaise),
 				ReferenceID:   "dispute:" + dispute.ID.Hex() + ":refund",
@@ -886,8 +912,12 @@ func (s *WalletServiceImpl) ResolveDispute(ctx context.Context, disputeID string
 			if err != nil {
 				return err
 			}
-			// A full refund also takes back what was bought; a partial one is goodwill
+			// A full refund also returns any bonus credit spent with it and takes back what was
+			// bought; a partial one is goodwill
 			if refundPaise == dispute.AmountPaise {
+				if err := s.refundBonusHalf(ctx, dispute); err != nil {
+					return err
+				}
 				if err := s.revokePurchase(ctx, dispute.TransactionID); err != nil {
 					return err
 				}
@@ -912,6 +942,32 @@ func (s *WalletServiceImpl) ResolveDispute(ctx context.Context, disputeID string
 		return updated, nil, err
 	}
 	return updated, summary, nil
+}
+
+// refundBonusHalf gives back the bonus credit spent on a split purchase that is refunded in full.
+func (s *WalletServiceImpl) refundBonusHalf(ctx context.Context, dispute *WalletDispute) error {
+	purchase, err := s.repo.GetTransactionByID(ctx, dispute.TransactionID)
+	if err != nil || purchase == nil {
+		return err
+	}
+	half, err := s.bonusHalfOf(ctx, purchase)
+	if err != nil || half == nil {
+		return err
+	}
+	_, _, err = s.repo.RecordAtomicTransaction(ctx, RecordTransactionInput{
+		UserID:        dispute.UserID,
+		Type:          TypeCredit,
+		TargetBalance: BalanceBonus,
+		Category:      CategoryRefund,
+		Amount:        money.ToRupees(half.AmountPaise),
+		ReferenceID:   "dispute:" + dispute.ID.Hex() + ":bonus_refund",
+		Description:   "Bonus credit returned with your refund",
+		Metadata: map[string]interface{}{
+			"dispute_id":     dispute.ID.Hex(),
+			"original_tx_id": half.ID.Hex(),
+		},
+	})
+	return err
 }
 
 // revokePurchase runs the revoker registered for the purchase's category, if any

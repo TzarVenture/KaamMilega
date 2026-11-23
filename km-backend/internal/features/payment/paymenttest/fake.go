@@ -18,6 +18,9 @@ type Fake struct {
 	Handlers map[payment.Purpose]payment.Handlers
 	Orders   map[string]*payment.Order
 	Refunds  []string
+	// OnCreate, if set, runs for each new order, so a test can store it where foreign keys
+	// expect it (the payment_orders table). An error fails the order.
+	OnCreate func(ctx context.Context, order *payment.Order) error
 	nextID   int
 }
 
@@ -43,6 +46,11 @@ func (f *Fake) CreateOrder(ctx context.Context, input payment.CreateOrderInput) 
 		Details:         input.Details,
 		Status:          payment.StatusCreated,
 		CreatedAt:       time.Now(),
+	}
+	if f.OnCreate != nil {
+		if err := f.OnCreate(ctx, order); err != nil {
+			return nil, nil, err
+		}
 	}
 	f.Orders[id] = order
 	return &payment.Checkout{

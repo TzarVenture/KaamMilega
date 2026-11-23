@@ -84,6 +84,8 @@ func (c *Controller) SendMessage(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusForbidden).JSON(apperr.Body(err))
 	case IsBadRequest(err):
 		return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
+	case apperr.CodeOf(err) == "PLAN_CHATS_USED_UP":
+		return ctx.Status(fiber.StatusPaymentRequired).JSON(apperr.Body(err))
 	}
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))

@@ -14,6 +14,7 @@ import { errorText, notify } from "@/lib/notify";
 import { getCurrentUser } from "@/lib/auth";
 import { recordProfileView } from "@/lib/telemetry";
 import ProfileCredentials from "@/components/profile/ProfileCredentials";
+import UserBadges from '@/components/ui/UserBadges';
 
 const OtherUserProfilePage = () => {
     const params = useParams();
@@ -225,6 +226,7 @@ const OtherUserProfilePage = () => {
                                 <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                                     {user?.first_name ? `${user?.first_name} ${user?.last_name || ''}` : user?.name || "KaamMilega member"}
                                 </h1>
+                                <UserBadges badges={user?.badges} labelled className="mt-1" />
                                 {(user?.headline || user?.designation) && (
                                     <p className="text-gray-600 text-sm sm:text-base mt-0.5">{user.headline || user.designation}</p>
                                 )}
