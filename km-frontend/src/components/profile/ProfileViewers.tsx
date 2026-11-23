@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { SealCheckIcon } from '@phosphor-icons/react';
+import UserBadges from '@/components/ui/UserBadges';
 import { useTranslations } from 'next-intl';
 import UserAvatar from '@/components/ui/UserAvatar';
 import DefaultAvatar from '@/components/ui/DefaultAvatar';
@@ -126,7 +126,7 @@ function ViewerRow({ viewer }: { viewer: AnalyticsViewer }) {
       <div className="min-w-0 flex-1">
         <p className="flex items-center gap-1 text-sm font-semibold text-km-heading">
           <Link href={href} className="truncate hover:text-km-link hover:underline">{viewer.name}</Link>
-          {viewer.is_verified && <SealCheckIcon size={15} weight="fill" className="shrink-0 text-km-link" aria-label={t('verified')} />}
+          <UserBadges badges={viewer.badges} isVerified={viewer.is_verified} size={15} />
         </p>
         {viewer.headline && <p className="truncate text-[13px] text-km-text-secondary">{viewer.headline}</p>}
         {viewed}

@@ -17,6 +17,8 @@ import InstantPassCard from '@/components/instant-milega/InstantPassCard';
 export interface WalletSummary {
     total_balance: number;
     withdrawable_balance: number;
+    reserved_balance?: number;
+    reserve_percent?: number;
     main_balance: number;
     earnings_balance: number;
     locked_balance: number;
@@ -110,7 +112,7 @@ export default function WalletPage() {
             </div>
 
             <AddMoneyModal isOpen={adding} onClose={() => setAdding(false)} onAdded={refresh} />
-            <WithdrawModal isOpen={withdrawing} available={wallet?.withdrawable_balance ?? 0} onClose={closeWithdraw} onRequested={() => { refresh(); setTab('withdrawals'); }} />
+            <WithdrawModal isOpen={withdrawing} available={wallet?.withdrawable_balance ?? 0} reserved={wallet?.reserved_balance ?? 0} reservePercent={wallet?.reserve_percent ?? 25} onClose={closeWithdraw} onRequested={() => { refresh(); setTab('withdrawals'); }} />
             <WalletDisputeModal transaction={disputing} onClose={() => setDisputing(null)} onCreated={() => { refresh(); setTab('disputes'); }} />
         </main>
     );

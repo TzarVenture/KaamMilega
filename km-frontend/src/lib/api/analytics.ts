@@ -28,6 +28,7 @@ export type AnalyticsViewer =
       headline?: string;
       avatar?: string;
       is_verified: boolean;
+      badges?: string[];
       role: MemberRole;
       viewed_at: string;
     }

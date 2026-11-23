@@ -1,5 +1,7 @@
 package user
 
+import "time"
+
 // PublicView returns a copy of u that is safe to show to anyone other than the owner or an
 // admin. Contact details, private documents, location traces, activity and settings stay
 // with the owner; only what a visitor sees on the profile page is kept.
@@ -8,6 +10,7 @@ func (u *User) PublicView() *User {
 		return nil
 	}
 	p := *u
+	p.Badges = BadgesOf(u, time.Now())
 
 	// Contact and identity
 	p.Mobile = ""
@@ -22,6 +25,7 @@ func (u *User) PublicView() *User {
 	p.CompanyDocuments = nil
 	p.ExpertDocuments = nil
 	p.ExpertKYC = nil
+	p.PoliceVerification = nil
 
 	// Location, activity and private lists
 	p.LastLoginLat = 0

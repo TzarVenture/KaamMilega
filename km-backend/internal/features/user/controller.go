@@ -252,6 +252,7 @@ func (ctrl *UserController) GetProfile(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
 	}
 
+	user.Badges = BadgesOf(user, time.Now())
 	return c.JSON(user)
 }
 

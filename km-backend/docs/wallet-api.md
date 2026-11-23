@@ -13,6 +13,7 @@ All routes are under `/api` and need `Authorization: Bearer <token>`.
 - The mock InstantPass order is gone. Use the real Razorpay flow below.
 - Mentorship bookings have two new statuses, `awaiting_confirmation` and `reported`.
 - Only earnings can be withdrawn. Spending balance cannot.
+- 25% of earnings always stays in the wallet. `withdrawable_balance` already leaves it out.
 
 ## Balance
 
@@ -23,11 +24,14 @@ All routes are under `/api` and need `Authorization: Bearer <token>`.
   "total_balance": 500, "withdrawable_balance": 0,
   "main_balance": 500, "earnings_balance": 0,
   "locked_balance": 0, "bonus_balance": 0,
+  "reserved_balance": 0, "reserve_percent": 25,
   "currency": "INR", "status": "active"
 }
 ```
 
 Show `main_balance` as spending and `earnings_balance` as earnings. If `status` is not `active`, disable add money and withdraw.
+
+`withdrawable_balance` is 75% of earnings, rounded down to the rupee. `reserved_balance` is the part that stays in the wallet. On the withdraw screen, show both and say "25% of your earnings always stays in your wallet" (use `reserve_percent`, not a fixed 25).
 
 `GET /wallet/transactions?page=1&limit=10` lists the ledger.
 
@@ -75,7 +79,7 @@ Add money limits: ₹100 to ₹50,000 at a time, ₹1,00,000 a day, ₹2,00,000 
 
 `GET /wallet/payout-account` returns `{eligible, method, account_holder, account_last4, ifsc, upi_id}`. If `eligible` is false, send the person to KYC.
 
-`POST /wallet/withdraw` with `{amount}` returns `{withdrawal, wallet}`. Limits: from ₹100, up to ₹25,000 a day, one open withdrawal at a time.
+`POST /wallet/withdraw` with `{amount}` returns `{withdrawal, wallet}`. Limits: from ₹100, up to ₹25,000 a day, one open withdrawal at a time, and never more than `withdrawable_balance`.
 
 `GET /wallet/withdrawals?page=1&limit=10` returns `{withdrawals, total, page, limit, total_pages}`. Each item has `id, amount, status, payout_method, account_last4, upi_id, bank_reference, failure_reason, created_at, processing_at, paid_at, failed_at`.
 
@@ -108,7 +112,7 @@ Show mentors "You'll be paid when the mentee confirms, or after 24 hours". Do no
 | `WALLET_INSUFFICIENT` | Offer add money or online payment |
 | `WALLET_FROZEN` | Show the hold message and support contact |
 | `WALLET_TOPUP_MIN`, `WALLET_TOPUP_MAX`, `WALLET_TOPUP_DAILY_LIMIT`, `WALLET_BALANCE_LIMIT` | Show the server message by the amount field |
-| `EARNINGS_INSUFFICIENT`, `WITHDRAWAL_MIN`, `WITHDRAWAL_DAILY_LIMIT` | Show the server message by the amount field |
+| `EARNINGS_INSUFFICIENT`, `WITHDRAWAL_MIN`, `WITHDRAWAL_DAILY_LIMIT`, `WITHDRAWAL_RESERVE` | Show the server message by the amount field |
 | `WITHDRAWAL_KYC_REQUIRED` | Send the person to KYC |
 | `WITHDRAWAL_ALREADY_OPEN` | Show the open withdrawal |
 | `PAYMENT_SIGNATURE_INVALID`, `PAYMENT_NOT_COMPLETE` | Poll the order status, as above |

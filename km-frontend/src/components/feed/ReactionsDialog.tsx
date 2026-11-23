@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { SealCheckIcon, SpinnerGapIcon } from '@phosphor-icons/react';
+import { SpinnerGapIcon } from '@phosphor-icons/react';
+import UserBadges from '@/components/ui/UserBadges';
 import { useLocale, useTranslations } from 'next-intl';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { feedApi, type Reactor } from '@/lib/api/feed';
@@ -125,7 +126,7 @@ export default function ReactionsDialog({ post, onClose }: { post: FeedPost; onC
                     <span className="min-w-0 flex-1">
                       <span className="flex items-center gap-1 min-w-0">
                         <span className="truncate text-[15px] font-semibold text-km-heading group-hover:text-km-link group-hover:underline">{r.user.name}</span>
-                        {r.user.is_verified && <SealCheckIcon size={15} weight="fill" className="text-km-link shrink-0" aria-label={t('verified')} />}
+                        <UserBadges badges={r.user.badges} isVerified={r.user.is_verified} size={15} />
                       </span>
                       {r.user.headline && <span className="block truncate text-[13px] text-km-text-secondary">{r.user.headline}</span>}
                     </span>

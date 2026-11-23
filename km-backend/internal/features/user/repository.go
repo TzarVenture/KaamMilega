@@ -25,6 +25,8 @@ import (
 )
 
 type UserRepository interface {
+	// SetRatingSummary stores the average and count of a member's reviews (for the Top rated badge)
+	SetRatingSummary(ctx context.Context, userID primitive.ObjectID, average float64, count int) error
 	FindUserByMobile(ctx context.Context, mobile string) (*User, error)
 	FindUserByEmail(ctx context.Context, email string) (*User, error)
 	FindUserByEmailOrMobile(ctx context.Context, identifier string) (*User, error)
@@ -252,14 +254,19 @@ func (r *UserRepositoryImpl) FindUsersByIDs(ctx context.Context, ids []primitive
 		"profile_image":       1,
 		"roles":               1,
 		"verification_status": 1,
-		"company_name":        1,
-		"company_logo":        1,
-		"account_status":      1,
-		"city":                1,
-		"expert_category":     1,
-		"job_categories":      1,
-		"experience.title":    1,
-		"experience.end_date": 1,
+		// Badges
+		"expert_approval_status": 1,
+		"police_verification":    1,
+		"rating_average":         1,
+		"rating_count":           1,
+		"company_name":           1,
+		"company_logo":           1,
+		"account_status":         1,
+		"city":                   1,
+		"expert_category":        1,
+		"job_categories":         1,
+		"experience.title":       1,
+		"experience.end_date":    1,
 	})
 	cursor, err := r.userColl.Find(ctx, filter, opts)
 	if err != nil {
@@ -421,6 +428,12 @@ func (r *UserRepositoryImpl) GetSessionState(ctx context.Context, userID string)
 		return nil, err
 	}
 	return &out, nil
+}
+
+func (r *UserRepositoryImpl) SetRatingSummary(ctx context.Context, userID primitive.ObjectID, average float64, count int) error {
+	_, err := r.userColl.UpdateOne(ctx, bson.M{"_id": userID},
+		bson.M{"$set": bson.M{"rating_average": average, "rating_count": count}})
+	return err
 }
 
 func (r *UserRepositoryImpl) UpdatePassword(ctx context.Context, userID string, passwordHash string) error {

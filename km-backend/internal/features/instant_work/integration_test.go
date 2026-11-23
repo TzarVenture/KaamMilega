@@ -13,6 +13,7 @@ import (
 	"km-backend/internal/database/pgtest"
 	"km-backend/internal/features/payment"
 	"km-backend/internal/features/payment/paymenttest"
+	"km-backend/internal/features/promo"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
 
@@ -39,6 +40,8 @@ type env struct {
 	svc      *InstantWorkServiceImpl
 	wallet   wallet.WalletService
 	walletDB wallet.WalletRepository
+	coupons  promo.Service
+	fake     *paymenttest.Fake
 }
 
 func setup(t *testing.T) *env {
@@ -60,8 +63,9 @@ func setup(t *testing.T) *env {
 	fake := paymenttest.New()
 	walletRepo := wallet.NewWalletRepository(pg, tx, mdb)
 	walletSvc := wallet.NewWalletService(walletRepo, &config.Config{}, nil, nil, fake, tx)
-	svc := NewInstantWorkService(repo, stubUsers{}, walletSvc, &config.Config{}, nil, fake, tx).(*InstantWorkServiceImpl)
-	return &env{ctx: ctx, pg: pg, repo: repo, svc: svc, wallet: walletSvc, walletDB: walletRepo}
+	coupons := promo.NewService(promo.NewRepository(pg), tx, walletSvc, stubUsers{})
+	svc := NewInstantWorkService(repo, stubUsers{}, walletSvc, &config.Config{}, nil, fake, tx, coupons).(*InstantWorkServiceImpl)
+	return &env{ctx: ctx, pg: pg, repo: repo, svc: svc, wallet: walletSvc, walletDB: walletRepo, coupons: coupons, fake: fake}
 }
 
 func (e *env) exec(t *testing.T, sql string, args ...interface{}) {
@@ -85,7 +89,7 @@ func (e *env) fund(t *testing.T, userID primitive.ObjectID, rupees float64) {
 func (e *env) passWithCredits(t *testing.T, userID primitive.ObjectID, credits int) *InstantPass {
 	t.Helper()
 	e.fund(t, userID, 99)
-	pass, _, err := e.svc.PurchasePassWithWallet(e.ctx, userID)
+	pass, _, _, err := e.svc.PurchasePassWithWallet(e.ctx, userID, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +202,7 @@ func TestOnlyOnePassAtOnce(t *testing.T) {
 	var wg sync.WaitGroup
 	for i := 0; i < 3; i++ {
 		wg.Add(1)
-		go func() { defer wg.Done(); _, _, _ = e.svc.PurchasePassWithWallet(e.ctx, buyer) }()
+		go func() { defer wg.Done(); _, _, _, _ = e.svc.PurchasePassWithWallet(e.ctx, buyer, "") }()
 	}
 	wg.Wait()
 
@@ -229,7 +233,7 @@ func TestUsedUpPassStillUnlocksAndCanBeReplaced(t *testing.T) {
 	}
 
 	e.fund(t, buyer, 99)
-	fresh, _, err := e.svc.PurchasePassWithWallet(e.ctx, buyer)
+	fresh, _, _, err := e.svc.PurchasePassWithWallet(e.ctx, buyer, "")
 	if err != nil {
 		t.Fatalf("buying again after credits ran out: %v", err)
 	}
@@ -243,7 +247,7 @@ func TestUsedUpPassStillUnlocksAndCanBeReplaced(t *testing.T) {
 
 	// With credits left, another purchase is refused
 	e.fund(t, buyer, 99)
-	if _, _, err := e.svc.PurchasePassWithWallet(e.ctx, buyer); !errors.Is(err, ErrPassAlreadyActive) {
+	if _, _, _, err := e.svc.PurchasePassWithWallet(e.ctx, buyer, ""); !errors.Is(err, ErrPassAlreadyActive) {
 		t.Fatalf("second purchase with credits left: %v", err)
 	}
 }
@@ -302,7 +306,7 @@ func TestOnlinePassRefundNeedsUnusedPass(t *testing.T) {
 	// The pass points at its checkout, so the checkout has to exist
 	e.exec(t, `INSERT INTO payment_orders (id, razorpay_order_id, razorpay_payment_id, user_id, purpose, amount_paise, status)
 		VALUES (?, ?, ?, ?, 'instant_pass', ?, 'paid')`,
-		primitive.NewObjectID().Hex(), order.RazorpayOrderID, order.RazorpayPaymentID, buyer.Hex(), passPricePaise)
+		primitive.NewObjectID().Hex(), order.RazorpayOrderID, order.RazorpayPaymentID, buyer.Hex(), PassPricePaise)
 	if err := e.svc.tx.Run(e.ctx, func(ctx context.Context) error { return e.svc.fulfillPass(ctx, order) }); err != nil {
 		t.Fatal(err)
 	}

@@ -425,6 +425,44 @@ func TestWithdrawalDailyLimit(t *testing.T) {
 	}
 }
 
+func TestQuarterOfEarningsStaysInTheWallet(t *testing.T) {
+	e := setup(t)
+	user := primitive.NewObjectID()
+	e.approveKYC(t, user)
+	if _, _, err := e.repo.RecordAtomicTransaction(e.ctx, credit(user, BalanceEarnings, 1000.50, "earn")); err != nil {
+		t.Fatal(err)
+	}
+	summary, err := e.svc.GetWalletSummary(e.ctx, user.Hex())
+	if err != nil {
+		t.Fatal(err)
+	}
+	// 75% of 1000.50 is 750.37, rounded down to the rupee
+	if summary.WithdrawableBalance != 750 || summary.ReservedBalance != 250.5 || summary.ReservePercent != 25 {
+		t.Fatalf("summary = %+v", summary)
+	}
+	if _, err := e.svc.RequestWithdrawal(e.ctx, user.Hex(), WithdrawalRequest{Amount: 751}); !errors.Is(err, ErrWithdrawalReserve) {
+		t.Fatalf("err = %v", err)
+	}
+	if _, err := e.svc.RequestWithdrawal(e.ctx, user.Hex(), WithdrawalRequest{Amount: 1200}); !errors.Is(err, ErrEarningsLow) {
+		t.Fatalf("err = %v", err)
+	}
+	res, err := e.svc.RequestWithdrawal(e.ctx, user.Hex(), WithdrawalRequest{Amount: 750})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.Wallet.EarningsBalance != 250.5 {
+		t.Fatalf("earnings = %v", res.Wallet.EarningsBalance)
+	}
+}
+
+func TestMaxWithdrawable(t *testing.T) {
+	for _, c := range []struct{ in, want int64 }{{0, 0}, {-5, 0}, {100_00, 75_00}, {133_33, 99_00}, {99, 0}} {
+		if got := MaxWithdrawablePaise(c.in); got != c.want {
+			t.Errorf("MaxWithdrawablePaise(%d) = %d, want %d", c.in, got, c.want)
+		}
+	}
+}
+
 func TestChangedBankDetailsBlockReveal(t *testing.T) {
 	e := setup(t)
 	user := primitive.NewObjectID()

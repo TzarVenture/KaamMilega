@@ -121,7 +121,7 @@ export default function CreateJobPage() {
             notify.success("Job posted successfully!");
             router.push("/recruiter");
         } catch (err: any) {
-            notify.error(err.message || "Failed to post job");
+            notify.error(err, "Failed to post job");
         } finally {
             setLoading(false);
         }

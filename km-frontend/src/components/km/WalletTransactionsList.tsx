@@ -23,7 +23,7 @@ export interface TransactionItem {
 
 type Filter = 'all' | 'credit' | 'debit' | 'earnings';
 
-const CATEGORIES = ['topup', 'pass_purchase', 'session_booking', 'session_payout', 'gig_payout', 'withdrawal', 'bonus_reward', 'refund', 'event_ticket'];
+const CATEGORIES = ['topup', 'pass_purchase', 'session_booking', 'session_payout', 'gig_payout', 'withdrawal', 'bonus_reward', 'refund', 'event_ticket', 'recruiter_plan', 'cashback'];
 const STATUS_TONE: Record<TransactionItem['status'], BadgeTone> = { completed: 'green', pending: 'amber', failed: 'red', reversed: 'neutral' };
 
 function filterParams(filter: Filter) {

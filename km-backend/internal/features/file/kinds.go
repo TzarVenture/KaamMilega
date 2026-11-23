@@ -40,6 +40,8 @@ var kinds = map[string]Kind{
 	"expert_document":  {Visibility: storage.Private, Extensions: idProofExts, MaxSize: MaxUploadSize},
 	// Proof of a certificate on a profile; only the member and admins open it
 	"certificate": {Visibility: storage.Private, Extensions: idProofExts, MaxSize: 5 << 20},
+	// Police verification certificate for the Police checked badge; only the member and admins open it
+	"police_certificate": {Visibility: storage.Private, Extensions: idProofExts, MaxSize: 5 << 20},
 	"chat": {Visibility: storage.Private, Extensions: []string{".jpg", ".jpeg", ".png", ".webp", ".gif", ".pdf", ".doc", ".docx", ".txt"},
 		MaxSize: MaxUploadSize},
 }

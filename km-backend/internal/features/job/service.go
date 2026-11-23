@@ -24,19 +24,31 @@ type EmployerLookup interface {
 	Employers(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]Employer, error)
 }
 
+// PlanQuota counts a job post against the recruiter's plan (recruiterplan.Service). It errors
+// only when limits are enforced and the plan's job posts are used up; the returned func gives the
+// post back if the job then fails to save.
+type PlanQuota interface {
+	Use(ctx context.Context, userID primitive.ObjectID, kind, refID string) (func(context.Context), error)
+}
+
+// planKindJobPost is recruiterplan.KindJobPost
+const planKindJobPost = "job_post"
+
 type JobService struct {
 	repo      JobRepository
 	cityRepo  city.CityRepository
 	appRepo   ApplicationCounter
 	employers EmployerLookup
+	quota     PlanQuota
 }
 
-func NewJobService(repo JobRepository, cityRepo city.CityRepository, appRepo ApplicationCounter, employers EmployerLookup) *JobService {
+func NewJobService(repo JobRepository, cityRepo city.CityRepository, appRepo ApplicationCounter, employers EmployerLookup, quota PlanQuota) *JobService {
 	return &JobService{
 		repo:      repo,
 		cityRepo:  cityRepo,
 		appRepo:   appRepo,
 		employers: employers,
+		quota:     quota,
 	}
 }
 
@@ -86,6 +98,7 @@ func (s *JobService) CreateJob(ctx context.Context, req *CreateJobRequest, recru
 	}
 
 	job := &Job{
+		ID:          primitive.NewObjectID(),
 		Title:       req.Title,
 		Description: req.Description,
 		Company:     req.Company,
@@ -108,7 +121,19 @@ func (s *JobService) CreateJob(ctx context.Context, req *CreateJobRequest, recru
 		Status:        "Open",
 	}
 
-	return s.repo.Create(ctx, job)
+	// Counted before saving, so two posts at once can't both slip past the plan's limit
+	release := func(context.Context) {}
+	if s.quota != nil {
+		if release, err = s.quota.Use(ctx, rid, planKindJobPost, job.ID.Hex()); err != nil {
+			return nil, err
+		}
+	}
+	created, err := s.repo.Create(ctx, job)
+	if err != nil {
+		release(context.Background())
+		return nil, err
+	}
+	return created, nil
 }
 
 func (s *JobService) GetJob(ctx context.Context, id string) (*Job, error) {

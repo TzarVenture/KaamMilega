@@ -21,8 +21,12 @@ const (
 	// An order younger than this is probably still being paid in the customer's browser
 	reconcileAfter = 2 * time.Minute
 	// An order with no payment after this long has been abandoned
-	expireAfter = 24 * time.Hour
+	expireAfter = OrderLifetime
 )
+
+// OrderLifetime is how long an unpaid order stays open. Features that hold something for a
+// checkout (a coupon use, say) hold it this long.
+const OrderLifetime = 24 * time.Hour
 
 // Service is the single way to take and return Razorpay payments.
 type Service interface {

@@ -20,6 +20,8 @@ import (
 
 type WalletRepository interface {
 	GetOrCreateWallet(ctx context.Context, userID primitive.ObjectID) (*Wallet, error)
+	// LockWallet reads the wallet and locks it until the transaction ends
+	LockWallet(ctx context.Context, userID primitive.ObjectID) (*Wallet, error)
 	SetWalletStatus(ctx context.Context, userID primitive.ObjectID, status string) (*Wallet, error)
 	GetTransactionsByWalletID(ctx context.Context, walletID primitive.ObjectID, query TransactionQuery) ([]WalletTransaction, int64, error)
 	GetTransactionByID(ctx context.Context, txID primitive.ObjectID) (*WalletTransaction, error)
@@ -295,6 +297,10 @@ const walletColumns = `id, user_id, main_paise, earnings_paise, locked_paise, bo
 // GetOrCreateWallet retrieves a user's wallet, creating an empty one the first time
 func (r *WalletRepositoryImpl) GetOrCreateWallet(ctx context.Context, userID primitive.ObjectID) (*Wallet, error) {
 	return r.getOrCreate(ctx, userID, false)
+}
+
+func (r *WalletRepositoryImpl) LockWallet(ctx context.Context, userID primitive.ObjectID) (*Wallet, error) {
+	return r.getOrCreate(ctx, userID, true)
 }
 
 // getOrCreate optionally locks the row (FOR UPDATE) so balance changes on one wallet run one at a time.

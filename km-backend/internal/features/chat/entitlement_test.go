@@ -86,7 +86,7 @@ func TestNewChatLimit(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			repo := &limitRepo{hasPass: c.pass, startedToday: c.started}
-			svc := NewService(repo, users, nil)
+			svc := NewService(repo, users, nil, nil)
 			_, err := svc.SendMessage(context.Background(), c.from, CreateMessageRequest{ReceiverID: c.to, Content: "hi"})
 			if !errors.Is(err, c.want) {
 				t.Fatalf("got %v, want %v", err, c.want)

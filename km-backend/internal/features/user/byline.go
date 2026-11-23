@@ -1,6 +1,9 @@
 package user
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 // Byline is how a member appears next to something they did: a feed post, a comment, a visit
 // to someone's profile
@@ -10,6 +13,8 @@ type Byline struct {
 	Headline   string `json:"headline,omitempty"`
 	Avatar     string `json:"avatar,omitempty"`
 	IsVerified bool   `json:"is_verified"`
+	// Badges: "verified", "top_rated", "police_checked" (see badges.go)
+	Badges []string `json:"badges"`
 	// Role is "recruiter", "expert" or "user", for the small badge next to the name
 	Role string `json:"role"`
 }
@@ -35,6 +40,7 @@ func BylineOf(u *User) Byline {
 		b.Headline = strings.TrimSpace(u.CompanyName)
 	}
 	// Verified means checked by our team (company or expert documents), not just an email
-	b.IsVerified = u.VerificationStatus == "verified"
+	b.Badges = BadgesOf(u, time.Now())
+	b.IsVerified = HasBadge(b.Badges, BadgeVerified)
 	return b
 }

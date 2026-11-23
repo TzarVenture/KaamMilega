@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { CalendarBlankIcon, ChatIcon, CheckCircleIcon, MapPinIcon, TrashIcon, UserMinusIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
+import UserBadges from '@/components/ui/UserBadges';
 import { useFormat } from '@/i18n/useFormat';
 
 export interface ProfileCardUser {
@@ -31,6 +32,7 @@ export interface ProfileCardUser {
     primary_match_badge?: string;
     mutual_skills?: string[];
     mutual_connections_count?: number;
+    badges?: string[];
 }
 
 export interface ProfileConnectionCardProps {
@@ -141,8 +143,9 @@ export const ProfileConnectionCard: React.FC<ProfileConnectionCardProps> = ({
                 </div>
 
                 {/* Name */}
-                <h3 className="text-sm font-bold text-km-text-primary group-hover/card:text-km-link transition-colors leading-tight mb-1 text-center line-clamp-1">
-                    {cleanName}
+                <h3 className="flex items-center justify-center gap-1 max-w-full text-sm font-bold text-km-text-primary group-hover/card:text-km-link transition-colors leading-tight mb-1">
+                    <span className="truncate">{cleanName}</span>
+                    <UserBadges badges={user.badges} size={14} />
                 </h3>
 
                 {/* Headline */}

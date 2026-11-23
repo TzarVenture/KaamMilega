@@ -3,6 +3,7 @@ package mentorship
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"strings"
 
@@ -360,7 +361,34 @@ func (s *MentorshipServiceImpl) SubmitBookingReview(ctx context.Context, userID 
 	}
 
 	_ = s.recalculateMentorshipRating(ctx, booking.MentorshipID.Hex())
+	if err := s.refreshExpertRating(ctx, booking.ExpertID); err != nil {
+		log.Printf("rating summary for expert %s: %v", booking.ExpertID.Hex(), err)
+	}
 	return nil
+}
+
+// refreshExpertRating stores the Expert's review average and count on their profile, which is
+// what the Top rated badge reads (user.BadgesOf)
+func (s *MentorshipServiceImpl) refreshExpertRating(ctx context.Context, expertID primitive.ObjectID) error {
+	if s.userRepo == nil || expertID.IsZero() {
+		return nil
+	}
+	reviews, err := s.repo.GetReviewsByExpertID(ctx, expertID.Hex())
+	if err != nil {
+		return err
+	}
+	count, sum := 0, 0.0
+	for _, b := range reviews {
+		if b.Rating >= 1 && b.Rating <= 5 {
+			count++
+			sum += b.Rating
+		}
+	}
+	average := 0.0
+	if count > 0 {
+		average = math.Round(sum/float64(count)*100) / 100
+	}
+	return s.userRepo.SetRatingSummary(ctx, expertID, average, count)
 }
 
 func (s *MentorshipServiceImpl) recalculateMentorshipRating(ctx context.Context, mentorshipID string) error {

@@ -112,6 +112,14 @@ type User struct {
 	// Identity and payout details of the Expert application (masked; see ExpertKYC)
 	ExpertKYC *ExpertKYC `bson:"expert_kyc,omitempty" json:"expert_kyc,omitempty"` // "pending", "approved", "rejected"
 
+	// Badges (see badges.go). The police certificate is private; the rating summary is written
+	// when a review comes in, so lists can show Top rated without reading every review.
+	PoliceVerification *PoliceVerification `bson:"police_verification,omitempty" json:"police_verification,omitempty"`
+	RatingAverage      float64             `bson:"rating_average,omitempty" json:"rating_average,omitempty"`
+	RatingCount        int                 `bson:"rating_count,omitempty" json:"rating_count,omitempty"`
+	// Badges is computed for responses (never stored)
+	Badges []string `bson:"-" json:"badges"`
+
 	// Account lifecycle (see internal/features/account)
 	AccountStatus        string     `bson:"account_status,omitempty" json:"account_status,omitempty"`
 	DeactivatedAt        *time.Time `bson:"deactivated_at,omitempty" json:"deactivated_at,omitempty"`

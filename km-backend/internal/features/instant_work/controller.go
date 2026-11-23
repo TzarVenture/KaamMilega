@@ -206,7 +206,14 @@ func (ctrl *InstantWorkController) PurchasePassWithWallet(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
-	pass, summary, err := ctrl.service.PurchasePassWithWallet(c.Context(), userID)
+	var body PassPurchaseRequest
+	if len(c.Body()) > 0 {
+		if err := c.BodyParser(&body); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"code": "INVALID_REQUEST", "error": "Invalid request body"})
+		}
+	}
+
+	pass, summary, receipt, err := ctrl.service.PurchasePassWithWallet(c.Context(), userID, body.CouponCode)
 	if err != nil {
 		return fail(c, err)
 	}
@@ -214,6 +221,7 @@ func (ctrl *InstantWorkController) PurchasePassWithWallet(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"pass":           pass,
 		"wallet_summary": summary,
+		"receipt":        receipt,
 		"message":        "InstantPass activated successfully from wallet balance",
 	})
 }
@@ -225,7 +233,14 @@ func (ctrl *InstantWorkController) CreatePassOrder(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusUnauthorized).JSON(apperr.Body(err))
 	}
 
-	resp, err := ctrl.service.CreatePassOrder(c.Context(), userID)
+	var body PassPurchaseRequest
+	if len(c.Body()) > 0 {
+		if err := c.BodyParser(&body); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"code": "INVALID_REQUEST", "error": "Invalid request body"})
+		}
+	}
+
+	resp, err := ctrl.service.CreatePassOrder(c.Context(), userID, body.CouponCode)
 	if err != nil {
 		return fail(c, err)
 	}

@@ -29,6 +29,7 @@ import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
 import ProfileViewers from '@/components/profile/ProfileViewers';
 import ProfileCredentials from '@/components/profile/ProfileCredentials';
 import UserAvatar from '@/components/ui/UserAvatar';
+import UserBadges from '@/components/ui/UserBadges';
 
 const ProfilePage = () => {
     const [user, setUser] = useState<any>(null);
@@ -325,6 +326,7 @@ const ProfilePage = () => {
                             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                                 {user?.first_name ? `${user?.first_name} ${user?.last_name || ''}` : user?.name || "User Name"}
                             </h1>
+                            <UserBadges badges={user?.badges} labelled className="mt-1" />
                             <p className="text-gray-600 text-sm sm:text-base mt-0.5">
                                 {user?.headline || user?.designation || "Add a headline to your profile"}
                             </p>
