@@ -122,6 +122,12 @@ type User struct {
 	ExpertHeldAt *time.Time `bson:"expert_held_at,omitempty" json:"expert_held_at,omitempty"`
 	// ExpertLowReviewBase is how many low reviews the Expert had when the last hold was lifted
 	ExpertLowReviewBase int `bson:"expert_low_review_base,omitempty" json:"-"`
+
+	// Resume the member keeps on their profile (a private file). Never sent in profile
+	// responses: the owner reads it from GET /user/resume, recruiters through a counted download.
+	Resume *ProfileResume `bson:"resume,omitempty" json:"-"`
+	// ResumeShared: the member lets recruiters download their resume. Only true while a resume is saved.
+	ResumeShared bool `bson:"resume_shared,omitempty" json:"resume_shared,omitempty"`
 	// Badges is computed for responses (never stored)
 	Badges []string `bson:"-" json:"badges"`
 
@@ -378,4 +384,11 @@ type GlobalSearchResponse struct {
 	Companies []GlobalSearchResultItem `json:"companies"`
 	Jobs      []GlobalSearchResultItem `json:"jobs"`
 	Events    []GlobalSearchResultItem `json:"events"`
+}
+
+// ProfileResume is the resume a member keeps on their profile (file kind "resume", private)
+type ProfileResume struct {
+	URL        string    `bson:"url" json:"url"`
+	Name       string    `bson:"name" json:"name"`
+	UploadedAt time.Time `bson:"uploaded_at" json:"uploaded_at"`
 }

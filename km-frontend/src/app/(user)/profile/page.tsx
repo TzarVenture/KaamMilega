@@ -28,6 +28,7 @@ import TopEmployersWidget from '@/components/profile/TopEmployersWidget';
 import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
 import ProfileViewers from '@/components/profile/ProfileViewers';
 import ProfileCredentials from '@/components/profile/ProfileCredentials';
+import ProfileResume from '@/components/profile/ProfileResume';
 import UserAvatar from '@/components/ui/UserAvatar';
 import UserBadges from '@/components/ui/UserBadges';
 
@@ -1099,6 +1100,9 @@ const ProfilePage = () => {
                             )}
                         </div>
                     </section>
+
+                    {/* Resume recruiters can download, if the member allows it */}
+                    <ProfileResume />
 
                     {/* Skills (with endorsements) and certificates */}
                     <ProfileCredentials

@@ -1839,7 +1839,8 @@
     "buyFailed": "Couldn't buy the plan. Please try again.",
     "freeWithCode": "Nothing to pay with this code.",
     "getFree": "Get it free",
-    "cashbackAdded": "{amount} cashback added to your bonus credit."
+    "cashbackAdded": "{amount} cashback added to your bonus credit.",
+    "resumeDownloads": "Resume downloads"
   },
   "coupon": {
     "have": "Have a coupon code?",
@@ -1855,5 +1856,22 @@
     "cashbackNote": "You'll get {amount} cashback as bonus credit.",
     "cashbackRealMoney": "Cashback is only on the part paid from your balance.",
     "noCashbackOnBonus": "This is paid fully with bonus credit, so there's no cashback. Pay online to get it."
+  },
+  "profileResume": {
+    "title": "My resume",
+    "hint": "PDF or Word, up to 5 MB. It stays private unless you let recruiters download it.",
+    "upload": "Upload resume",
+    "uploading": "Uploading…",
+    "replace": "Replace",
+    "remove": "Remove",
+    "uploaded": "Added {date}",
+    "shareLabel": "Let recruiters download my resume",
+    "shareHint": "Recruiters can download it from the candidate directory. You can turn this off at any time.",
+    "saved": "Resume saved",
+    "removed": "Resume removed",
+    "sharedOn": "Recruiters can now download your resume",
+    "sharedOff": "Your resume is private again",
+    "failed": "Couldn't save your resume",
+    "tooBig": "Your resume must be under 5 MB"
   }
 }

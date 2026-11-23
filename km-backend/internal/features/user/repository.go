@@ -25,6 +25,7 @@ import (
 )
 
 type UserRepository interface {
+	ResumeRepository
 	// SetRatingSummary stores the average and count of a member's reviews (for the Top rated badge)
 	SetRatingSummary(ctx context.Context, userID primitive.ObjectID, average float64, count int) error
 	// HoldExpert pauses an Expert's sessions; false when they were already on hold

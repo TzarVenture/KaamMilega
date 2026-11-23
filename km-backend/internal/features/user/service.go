@@ -30,6 +30,12 @@ import (
 )
 
 type UserService interface {
+	// Profile resume (resume.go)
+	GetResume(ctx context.Context, userID string) (*ResumeStatus, error)
+	SaveResume(ctx context.Context, userID, url string) (*ResumeStatus, error)
+	DeleteResume(ctx context.Context, userID string) error
+	ShareResume(ctx context.Context, userID string, shared bool) (*ResumeStatus, error)
+
 	SendOTP(ctx context.Context, mobile string, role string) error
 	VerifyOTP(ctx context.Context, mobile, code string, role string) (*VerifyOTPResponse, error)
 	LoginWithPassword(ctx context.Context, req PasswordLoginRequest) (*PasswordLoginResponse, error)

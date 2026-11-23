@@ -51,7 +51,19 @@ func (m *memSettings) SetValue(_ context.Context, key, value string) error {
 
 type memUsers struct {
 	user.UserRepository
-	roles map[string][]string
+	roles   map[string][]string
+	resumes map[string]*user.ProfileResume // shared profile resumes by member ID
+	applied map[string]bool                // candidate+recruiter pairs with an application
+	unlocks map[string]bool                // recruiter+resume URL pairs that were downloaded
+}
+
+func (m memUsers) HasAppliedTo(_ context.Context, candidateID, recruiterID primitive.ObjectID) (bool, error) {
+	return m.applied[candidateID.Hex()+recruiterID.Hex()], nil
+}
+
+func (m memUsers) RecordResumeUnlock(_ context.Context, recruiterID, _ primitive.ObjectID, url string) error {
+	m.unlocks[recruiterID.Hex()+url] = true
+	return nil
 }
 
 func (m memUsers) FindUserByID(_ context.Context, id string) (*user.User, error) {
@@ -59,7 +71,8 @@ func (m memUsers) FindUserByID(_ context.Context, id string) (*user.User, error)
 	if !ok {
 		return nil, nil
 	}
-	return &user.User{Name: "Asha Traders", Roles: roles}, nil
+	r := m.resumes[id]
+	return &user.User{Name: "Asha Traders", Roles: roles, Resume: r, ResumeShared: r != nil}, nil
 }
 
 func (m memUsers) FindUsersByIDs(context.Context, []primitive.ObjectID) (map[primitive.ObjectID]*user.User, error) {
@@ -91,7 +104,7 @@ func setup(t *testing.T) *env {
 	tx := database.NewPgTransactor(pg)
 	fake := paymenttest.New()
 	walletSvc := wallet.NewWalletService(wallet.NewWalletRepository(pg, tx, mdb), &config.Config{}, nil, nil, fake, tx)
-	users := memUsers{roles: map[string][]string{}}
+	users := memUsers{roles: map[string][]string{}, resumes: map[string]*user.ProfileResume{}, applied: map[string]bool{}, unlocks: map[string]bool{}}
 	coupons := promo.NewService(promo.NewRepository(pg), tx, walletSvc, users)
 	svc := NewService(NewRepository(pg), tx, walletSvc, fake, &memSettings{val: map[string]string{}}, users, nil, coupons).(*service)
 	svc.users = users
@@ -385,5 +398,51 @@ func TestPlanValidation(t *testing.T) {
 	s, err := e.svc.GetSettings(e.ctx)
 	if err != nil || s.Enforce || *s.Free.JobPosts != 2 {
 		t.Fatalf("defaults = %+v, %v", s, err)
+	}
+}
+
+func TestResumeDownloadsCountOncePerCandidate(t *testing.T) {
+	e := setup(t)
+	r := e.recruiter()
+	shared, applicant, private := primitive.NewObjectID(), primitive.NewObjectID(), primitive.NewObjectID()
+	for _, id := range []primitive.ObjectID{shared, applicant, private} {
+		e.users.roles[id.Hex()] = []string{user.RoleUser}
+	}
+	e.users.resumes[shared.Hex()] = &user.ProfileResume{URL: "/api/files/a", Name: "cv.pdf"}
+	e.users.resumes[applicant.Hex()] = &user.ProfileResume{URL: "/api/files/b", Name: "cv.pdf"}
+	e.users.applied[applicant.Hex()+r.Hex()] = true
+
+	// A candidate who doesn't share a resume
+	if _, err := e.svc.CandidateResume(e.ctx, r.Hex(), private.Hex()); !errors.Is(err, ErrResumeNotShared) {
+		t.Fatalf("private resume: got %v", err)
+	}
+	// The same candidate twice counts once; an own applicant is free
+	for i := 0; i < 2; i++ {
+		res, err := e.svc.CandidateResume(e.ctx, r.Hex(), shared.Hex())
+		if err != nil || res.URL != "/api/files/a" {
+			t.Fatalf("download %d: %v %+v", i+1, err, res)
+		}
+	}
+	if _, err := e.svc.CandidateResume(e.ctx, r.Hex(), applicant.Hex()); err != nil {
+		t.Fatal(err)
+	}
+	if got := e.used(t, r).ResumeDownloads.Used; got != 1 {
+		t.Fatalf("resume downloads used = %d, want 1", got)
+	}
+	if !e.users.unlocks[r.Hex()+"/api/files/a"] || !e.users.unlocks[r.Hex()+"/api/files/b"] {
+		t.Fatalf("unlocks = %v", e.users.unlocks)
+	}
+
+	// With enforcement on and a limit of 1, a second new candidate is refused
+	one := 1
+	e.enforce(t, Limits{ResumeDownloads: &one})
+	other := primitive.NewObjectID()
+	e.users.roles[other.Hex()] = []string{user.RoleUser}
+	e.users.resumes[other.Hex()] = &user.ProfileResume{URL: "/api/files/c"}
+	if _, err := e.svc.CandidateResume(e.ctx, r.Hex(), other.Hex()); !errors.Is(err, ErrResumesUsedUp) {
+		t.Fatalf("over the limit: got %v", err)
+	}
+	if e.users.unlocks[r.Hex()+"/api/files/c"] {
+		t.Fatal("a refused download still unlocked the file")
 	}
 }

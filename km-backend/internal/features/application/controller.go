@@ -41,7 +41,7 @@ func (c *ApplicationController) CreateApplication(ctx *fiber.Ctx) error {
 			return ctx.Status(fiber.StatusConflict).JSON(apperr.Body(err))
 		case errors.Is(err, ErrInvalidJobID), errors.Is(err, ErrInvalidCandidate):
 			return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
-		case errors.Is(err, ErrJobClosed), errors.Is(err, ErrCannotApplyOwn):
+		case errors.Is(err, ErrJobClosed), errors.Is(err, ErrCannotApplyOwn), errors.Is(err, ErrResumeNotYours):
 			return ctx.Status(fiber.StatusBadRequest).JSON(apperr.Body(err))
 		case errors.Is(err, ErrProfileIncomplete):
 			return ctx.Status(fiber.StatusForbidden).JSON(apperr.Body(err))

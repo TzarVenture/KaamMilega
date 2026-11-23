@@ -32,6 +32,8 @@ type SettingStore interface {
 type Users interface {
 	FindUserByID(ctx context.Context, id string) (*user.User, error)
 	FindUsersByIDs(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]*user.User, error)
+	HasAppliedTo(ctx context.Context, candidateID, recruiterID primitive.ObjectID) (bool, error)
+	RecordResumeUnlock(ctx context.Context, recruiterID, candidateID primitive.ObjectID, url string) error
 }
 
 type notifier interface {
@@ -52,6 +54,8 @@ type Service interface {
 	// only when enforcement is on and the period's limit is used up. Members who aren't
 	// recruiters, and admins, are never counted.
 	Use(ctx context.Context, userID primitive.ObjectID, kind, refID string) (Releaser, error)
+	// CandidateResume gives a recruiter a candidate's shared profile resume (resume.go)
+	CandidateResume(ctx context.Context, recruiterID, candidateID string) (*user.ProfileResume, error)
 
 	AdminPlans(ctx context.Context) ([]Plan, error)
 	CreatePlan(ctx context.Context, in PlanInput) (*Plan, error)

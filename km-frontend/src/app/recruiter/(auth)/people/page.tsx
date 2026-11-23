@@ -3,9 +3,12 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import api from "@/lib/axios";
+import { openFile } from "@/lib/upload";
+import { notify } from "@/lib/notify";
 import {
     ArrowUpRightIcon,
     ChatCircleIcon,
+    FileTextIcon,
     MagnifyingGlassIcon,
     MapPinIcon,
     ShieldCheckIcon,
@@ -21,13 +24,36 @@ interface Candidate {
     city?: string;
     skills?: string[];
     avatar?: string;
-    experience?: any[];
+    experience?: unknown[];
+    /** The candidate lets recruiters download their profile resume */
+    resume_shared?: boolean;
 }
 
 export default function CandidateDirectoryPage() {
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [loading, setLoading] = useState(true);
+    const [opening, setOpening] = useState("");
+    // The signed-in recruiter can be in the list too; their own resume needs no download
+    const [myId, setMyId] = useState("");
+    useEffect(() => {
+        api.get<unknown, { id?: string; _id?: string } | null>("/user/profile")
+            .then((me) => setMyId(me?.id || me?._id || ""))
+            .catch(() => undefined);
+    }, []);
+
+    // Counts as one resume download in the plan (once per candidate each period; own applicants are free)
+    const downloadResume = async (candidateId: string) => {
+        setOpening(candidateId);
+        try {
+            const res = await api.post<unknown, { resume: { url: string } }>(`/recruiter/candidates/${candidateId}/resume`);
+            await openFile(res.resume.url);
+        } catch (err) {
+            notify.error(err, "Couldn't open this resume");
+        } finally {
+            setOpening("");
+        }
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -165,6 +191,18 @@ export default function CandidateDirectoryPage() {
                                         <span>View Profile</span>
                                         <ArrowUpRightIcon size={12} weight="bold" aria-hidden="true" />
                                     </Link>
+                                    {candidate.resume_shared && candidateId !== myId && (
+                                        <button
+                                            type="button"
+                                            onClick={() => downloadResume(candidateId)}
+                                            disabled={opening === candidateId}
+                                            className="py-1.5 px-3 rounded-lg border border-km-border text-km-text-primary hover:bg-km-surface text-xs font-medium flex items-center justify-center gap-1 transition-colors disabled:opacity-60"
+                                            title="Download resume (uses 1 resume download from your plan)"
+                                        >
+                                            <FileTextIcon size={14} weight="regular" aria-hidden="true" />
+                                            <span>{opening === candidateId ? "Opening…" : "Resume"}</span>
+                                        </button>
+                                    )}
                                     <Link
                                         href={`/chat?user=${candidateId}`}
                                         className="py-1.5 px-3 rounded-lg bg-km-primary hover:bg-km-primary-dark text-white text-xs font-semibold flex items-center justify-center gap-1 transition-colors shadow-xs"
