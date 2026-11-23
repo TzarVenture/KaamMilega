@@ -25,6 +25,11 @@ func (api *MentorshipApi) Setup(app *fiber.App) {
 	admin.Get("/", api.controller.GetReportedBookings)
 	admin.Post("/:id/resolve", api.controller.ResolveReport)
 
+	// Experts on hold after 10 reviews of 2 stars or less
+	held := app.Group("/api/admin/mentorship/experts-on-hold", jwtAuth, middleware.RequireRole("admin"))
+	held.Get("/", api.controller.ListHeldExperts)
+	held.Post("/:id/lift", api.controller.LiftExpertHold)
+
 	// Public routes
 	app.Get("/api/mentorships", api.controller.ListMentorships)
 	app.Get("/api/mentorships/expert/:expert_id/availability", api.controller.GetAvailability)

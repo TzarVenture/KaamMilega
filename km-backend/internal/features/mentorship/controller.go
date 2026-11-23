@@ -337,3 +337,21 @@ func (c *MentorshipController) ResolveReport(ctx *fiber.Ctx) error {
 	}
 	return ctx.JSON(fiber.Map{"message": "Report resolved"})
 }
+
+// ListHeldExperts lists the Experts on hold after too many low reviews
+func (c *MentorshipController) ListHeldExperts(ctx *fiber.Ctx) error {
+	experts, err := c.service.ListHeldExperts(ctx.Context())
+	if err != nil {
+		return apperr.Respond(ctx, err)
+	}
+	return ctx.JSON(fiber.Map{"experts": experts})
+}
+
+// LiftExpertHold lets an Expert on hold take bookings again
+func (c *MentorshipController) LiftExpertHold(ctx *fiber.Ctx) error {
+	adminID := ctx.Locals("user_id").(string)
+	if err := c.service.LiftExpertHold(ctx.Context(), adminID, ctx.Params("id")); err != nil {
+		return apperr.Respond(ctx, err)
+	}
+	return ctx.JSON(fiber.Map{"message": "Hold lifted"})
+}

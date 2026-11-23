@@ -41,6 +41,7 @@ import {
     BankIcon,
     ChartLineUpIcon,
     ChatsCircleIcon,
+    PauseCircleIcon,
     CreditCardIcon,
 } from '@phosphor-icons/react';
 import { useNotifications } from '@/lib/notifications';
@@ -110,6 +111,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
             { name: 'Chat reports', icon: ChatCircleTextIcon, href: '/admin/chat-reports' },
             { name: 'Wallet disputes', icon: ShieldWarningIcon, href: '/admin/disputes' },
             { name: 'Session reports', icon: ChatsCircleIcon, href: '/admin/session-reports' },
+            { name: 'Experts on hold', icon: PauseCircleIcon, href: '/admin/experts-on-hold' },
         ],
     },
 ];

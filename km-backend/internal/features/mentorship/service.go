@@ -49,6 +49,10 @@ type MentorshipService interface {
 	SubmitBookingReview(ctx context.Context, userID string, bookingID string, req SubmitBookingReviewRequest) error
 	GetMentorshipReviews(ctx context.Context, mentorshipID string) (*MentorshipReviewsResponse, error)
 	GetExpertReviews(ctx context.Context, expertID string) (*MentorshipReviewsResponse, error)
+
+	// Expert auto-block (hold.go)
+	ListHeldExperts(ctx context.Context) ([]HeldExpert, error)
+	LiftExpertHold(ctx context.Context, adminID, expertID string) error
 }
 
 type MentorshipServiceImpl struct {
@@ -112,7 +116,8 @@ func (s *MentorshipServiceImpl) ListMentorships(ctx context.Context, category st
 	var details []MentorshipDetail
 	for _, m := range ms {
 		u, _ := s.userRepo.FindUserByID(ctx, m.ExpertID.Hex())
-		if u != nil {
+		// Experts on hold after too many low reviews are hidden until an admin lifts it
+		if u != nil && u.ExpertHeldAt == nil {
 			details = append(details, MentorshipDetail{
 				Mentorship: m,
 				Expert: ExpertInfo{
@@ -215,6 +220,9 @@ func (s *MentorshipServiceImpl) BookSession(ctx context.Context, userID string, 
 	m, err := s.repo.GetMentorshipByID(ctx, req.MentorshipID)
 	if err != nil || m == nil {
 		return nil, ErrMentorshipGone
+	}
+	if s.expertOnHold(ctx, m.ExpertID) {
+		return nil, ErrExpertOnHold
 	}
 
 	uid, _ := primitive.ObjectIDFromHex(userID)
@@ -388,7 +396,10 @@ func (s *MentorshipServiceImpl) refreshExpertRating(ctx context.Context, expertI
 	if count > 0 {
 		average = math.Round(sum/float64(count)*100) / 100
 	}
-	return s.userRepo.SetRatingSummary(ctx, expertID, average, count)
+	if err := s.userRepo.SetRatingSummary(ctx, expertID, average, count); err != nil {
+		return err
+	}
+	return s.checkExpertHold(ctx, expertID, countLowReviews(reviews))
 }
 
 func (s *MentorshipServiceImpl) recalculateMentorshipRating(ctx context.Context, mentorshipID string) error {

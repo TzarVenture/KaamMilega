@@ -117,6 +117,11 @@ type User struct {
 	PoliceVerification *PoliceVerification `bson:"police_verification,omitempty" json:"police_verification,omitempty"`
 	RatingAverage      float64             `bson:"rating_average,omitempty" json:"rating_average,omitempty"`
 	RatingCount        int                 `bson:"rating_count,omitempty" json:"rating_count,omitempty"`
+	// Expert auto-block (client answer Q59): set once 10 reviews of 2 stars or less came in since
+	// the last lift. A held Expert is hidden from lists and can't be booked until an admin lifts it.
+	ExpertHeldAt *time.Time `bson:"expert_held_at,omitempty" json:"expert_held_at,omitempty"`
+	// ExpertLowReviewBase is how many low reviews the Expert had when the last hold was lifted
+	ExpertLowReviewBase int `bson:"expert_low_review_base,omitempty" json:"-"`
 	// Badges is computed for responses (never stored)
 	Badges []string `bson:"-" json:"badges"`
 

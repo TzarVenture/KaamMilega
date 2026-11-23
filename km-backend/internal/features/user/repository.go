@@ -27,6 +27,13 @@ import (
 type UserRepository interface {
 	// SetRatingSummary stores the average and count of a member's reviews (for the Top rated badge)
 	SetRatingSummary(ctx context.Context, userID primitive.ObjectID, average float64, count int) error
+	// HoldExpert pauses an Expert's sessions; false when they were already on hold
+	HoldExpert(ctx context.Context, userID primitive.ObjectID, at time.Time) (bool, error)
+	// LiftExpertHold ends a hold and remembers how many low reviews the Expert had at that point;
+	// false when they weren't on hold
+	LiftExpertHold(ctx context.Context, userID primitive.ObjectID, lowReviews int) (bool, error)
+	// HeldExperts lists the Experts on hold, longest held first
+	HeldExperts(ctx context.Context) ([]*User, error)
 	FindUserByMobile(ctx context.Context, mobile string) (*User, error)
 	FindUserByEmail(ctx context.Context, email string) (*User, error)
 	FindUserByEmailOrMobile(ctx context.Context, identifier string) (*User, error)
@@ -434,6 +441,37 @@ func (r *UserRepositoryImpl) SetRatingSummary(ctx context.Context, userID primit
 	_, err := r.userColl.UpdateOne(ctx, bson.M{"_id": userID},
 		bson.M{"$set": bson.M{"rating_average": average, "rating_count": count}})
 	return err
+}
+
+func (r *UserRepositoryImpl) HoldExpert(ctx context.Context, userID primitive.ObjectID, at time.Time) (bool, error) {
+	res, err := r.userColl.UpdateOne(ctx, bson.M{"_id": userID, "expert_held_at": nil},
+		bson.M{"$set": bson.M{"expert_held_at": at, "updated_at": at}})
+	if err != nil {
+		return false, err
+	}
+	return res.ModifiedCount > 0, nil
+}
+
+func (r *UserRepositoryImpl) LiftExpertHold(ctx context.Context, userID primitive.ObjectID, lowReviews int) (bool, error) {
+	res, err := r.userColl.UpdateOne(ctx, bson.M{"_id": userID, "expert_held_at": bson.M{"$ne": nil}},
+		bson.M{"$unset": bson.M{"expert_held_at": ""}, "$set": bson.M{"expert_low_review_base": lowReviews, "updated_at": time.Now()}})
+	if err != nil {
+		return false, err
+	}
+	return res.ModifiedCount > 0, nil
+}
+
+func (r *UserRepositoryImpl) HeldExperts(ctx context.Context) ([]*User, error) {
+	cur, err := r.userColl.Find(ctx, bson.M{"expert_held_at": bson.M{"$ne": nil}},
+		options.Find().SetSort(bson.M{"expert_held_at": 1}).SetLimit(200))
+	if err != nil {
+		return nil, err
+	}
+	var out []*User
+	if err := cur.All(ctx, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (r *UserRepositoryImpl) UpdatePassword(ctx context.Context, userID string, passwordHash string) error {

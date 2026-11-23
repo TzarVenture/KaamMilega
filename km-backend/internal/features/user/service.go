@@ -1334,7 +1334,17 @@ func (s *UserServiceImpl) GetCommunityUsers(ctx context.Context) ([]*User, error
 
 func (s *UserServiceImpl) GetExperts(ctx context.Context) ([]*User, error) {
 	users, _, err := s.repo.FindUsers(ctx, UserFilter{Role: RoleExpert})
-	return users, err
+	if err != nil {
+		return nil, err
+	}
+	// Experts on hold after too many low reviews are hidden until an admin lifts it
+	shown := users[:0]
+	for _, u := range users {
+		if u.ExpertHeldAt == nil {
+			shown = append(shown, u)
+		}
+	}
+	return shown, nil
 }
 
 func (s *UserServiceImpl) SearchUsers(ctx context.Context, searcherID, query string) ([]*User, error) {
