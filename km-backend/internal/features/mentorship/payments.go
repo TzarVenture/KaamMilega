@@ -57,6 +57,9 @@ func (s *MentorshipServiceImpl) bookable(ctx context.Context, uid primitive.Obje
 	if m.ExpertID == uid {
 		return nil, ErrSelfBooking
 	}
+	if s.expertOnHold(ctx, m.ExpertID) {
+		return nil, ErrExpertOnHold
+	}
 	if scheduledAt.Before(time.Now().Add(-5 * time.Minute)) {
 		return nil, ErrScheduleInPast
 	}
