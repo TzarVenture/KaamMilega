@@ -90,6 +90,18 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 		return nil, ErrProfileIncomplete
 	}
 
+	// The recruiter gets access to the attached file, so it must be a resume this member uploaded
+	req.ResumeURL = strings.TrimSpace(req.ResumeURL)
+	if req.ResumeURL != "" {
+		name, err := s.userRepo.ResumeFileName(ctx, cOID, req.ResumeURL)
+		if err != nil {
+			return nil, err
+		}
+		if name == "" {
+			return nil, ErrResumeNotYours
+		}
+	}
+
 	app := &Application{
 		JobID:       jOID,
 		RecruiterID: jobInfo.RecruiterID,

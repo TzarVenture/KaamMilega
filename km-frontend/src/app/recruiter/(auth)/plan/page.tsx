@@ -176,6 +176,7 @@ export default function RecruiterPlanPage() {
                             <div className="space-y-4">
                                 <Meter label={t('jobPosts')} allowance={data.usage.job_posts} text={meterText(data.usage.job_posts)} />
                                 <Meter label={t('newChats')} allowance={data.usage.new_chats} text={meterText(data.usage.new_chats)} />
+                                <Meter label={t('resumeDownloads')} allowance={data.usage.resume_downloads} text={meterText(data.usage.resume_downloads)} />
                                 {!data.enforced && <p className="text-xs text-km-text-secondary">{t('notEnforced')}</p>}
                             </div>
                         </div>
@@ -193,7 +194,7 @@ export default function RecruiterPlanPage() {
                                 const features = [
                                     { text: jobsText(plan.job_posts), soon: false },
                                     { text: chatsText(plan.new_chats), soon: false },
-                                    ...(plan.resume_downloads !== 0 ? [{ text: resumesText(plan.resume_downloads), soon: true }] : []),
+                                    ...(plan.resume_downloads !== 0 ? [{ text: resumesText(plan.resume_downloads), soon: false }] : []),
                                     ...(plan.ai_job_writer ? [{ text: t('featureAi'), soon: true }] : []),
                                 ];
                                 return (

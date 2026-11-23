@@ -80,6 +80,9 @@ const JobDetailPage = () => {
     const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
     const [coverLetter, setCoverLetter] = useState('');
     const [resumeFile, setResumeFile] = useState<File | null>(null);
+    // The resume saved on the member's profile is attached unless they remove it or pick another
+    const [savedResume, setSavedResume] = useState<{ url: string; name: string } | null>(null);
+    const [useSavedResume, setUseSavedResume] = useState(true);
     const [hasApplied, setHasApplied] = useState(false);
     const [isBookmarked, setIsBookmarked] = useState(false);
     const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -135,6 +138,9 @@ const JobDetailPage = () => {
 
         // Below the apply tier: ask for the missing details first (once), then the apply form
         if (!(await ensureCanApply())) return;
+        api.get<unknown, { resume: { url: string; name: string } | null }>('/user/resume')
+            .then((res) => setSavedResume(res?.resume ?? null))
+            .catch(() => setSavedResume(null));
         setIsApplyModalOpen(true);
     };
 
@@ -142,7 +148,9 @@ const JobDetailPage = () => {
         setIsApplying(true);
         try {
             // The resume is private: only the candidate and this job's recruiter can open it
-            const resumeUrl = resumeFile ? (await uploadFile(resumeFile, 'resume')).url : '';
+            const resumeUrl = resumeFile
+                ? (await uploadFile(resumeFile, 'resume')).url
+                : (useSavedResume && savedResume ? savedResume.url : '');
             await api.post('/applications', {
                 job_id: job?.id,
                 cover_letter: coverLetter,
@@ -673,7 +681,38 @@ const JobDetailPage = () => {
                                         className="hidden"
                                     />
 
-                                    {!resumeFile ? (
+                                    {!resumeFile && useSavedResume && savedResume ? (
+                                        <div className="flex items-center justify-between p-3 bg-km-surface border border-[#BFDBFE] rounded-xl dark:border-blue-500/30">
+                                            <div className="flex items-center gap-2.5 min-w-0">
+                                                <FileTextIcon size={20} className="text-km-link shrink-0" aria-hidden="true" />
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-bold text-km-text-primary truncate">
+                                                        {savedResume.name}
+                                                    </p>
+                                                    <p className="text-[11px] text-km-text-secondary">
+                                                        From your profile • Attached
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    className="px-2 py-1 text-[11px] font-semibold text-km-link hover:underline cursor-pointer"
+                                                >
+                                                    Change
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setUseSavedResume(false)}
+                                                    className="p-1.5 text-km-text-secondary hover:text-rose-600 rounded-lg hover:bg-rose-50 transition-colors cursor-pointer dark:hover:text-rose-400"
+                                                    title="Don't attach this resume"
+                                                >
+                                                    <TrashIcon weight="bold" size={15} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : !resumeFile ? (
                                         <div
                                             onClick={() => fileInputRef.current?.click()}
                                             className="border-2 border-dashed border-km-border hover:border-km-blue hover:bg-[#EBF3FE]/30 rounded-xl p-4 text-center cursor-pointer transition-colors group dark:hover:bg-[#172A50]"

@@ -27,6 +27,9 @@ func (a *Api) Setup(app *fiber.App) {
 	mine.Post("/:id/buy-with-wallet", a.controller.BuyWithWallet)
 	mine.Post("/:id/create-order", a.controller.CreateOrder)
 
+	// Shared profile resumes, counted as resume downloads
+	app.Post("/api/recruiter/candidates/:id/resume", auth, middleware.RequireRole(user.RoleRecruiter), a.controller.CandidateResume)
+
 	admin := app.Group("/api/admin/recruiter-plans", auth, middleware.RequireRole(user.RoleAdmin))
 	admin.Get("/", a.controller.AdminPlans)
 	admin.Post("/", a.controller.CreatePlan)
