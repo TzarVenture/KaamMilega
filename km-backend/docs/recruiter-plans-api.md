@@ -17,7 +17,7 @@ What counts:
 | Limit | Counts when | Notes |
 |---|---|---|
 | Job posts | A job is posted | Editing or reopening a job doesn't count again |
-| New chats | The recruiter sends the first message to someone | Each person counts once per plan period. Replies and chats the other person started are free |
+| New chats | The recruiter sends the first message to someone | Each person counts once per plan period. Replies, chats the other person started, and chats with people who applied to the recruiter's jobs are free |
 | Resume downloads | Not counted yet | Shown on plans. It will apply to the candidate database, not to applicants' resumes |
 | AI job writer | Not built yet | `ai_job_writer` says whether the plan includes it. Show it as coming soon |
 

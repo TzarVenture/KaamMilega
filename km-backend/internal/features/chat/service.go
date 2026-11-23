@@ -269,10 +269,17 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 			}
 		}
 
-		// A recruiter's new chat counts against their plan, once per person in each period
+		// A recruiter's new chat counts against their plan, once per person in each period. Chats
+		// with people who applied to their jobs are free: that's replying, not reaching out.
 		if ent.staff && s.quota != nil {
-			if release, err = s.quota.Use(ctx, senderID, planKindNewChat, req.ReceiverID.Hex()); err != nil {
+			applicant, err := s.repo.HasApplied(ctx, req.ReceiverID, senderID)
+			if err != nil {
 				return nil, err
+			}
+			if !applicant {
+				if release, err = s.quota.Use(ctx, senderID, planKindNewChat, req.ReceiverID.Hex()); err != nil {
+					return nil, err
+				}
 			}
 		}
 

@@ -313,7 +313,7 @@ export default function RecruiterPlansAdminPage() {
                             <LimitInput id="plan-jobs" label="Job posts" value={editing.input.job_posts} onChange={(v) => set('job_posts', v)}
                                 hint="Leave empty for unlimited" />
                             <LimitInput id="plan-chats" label="New chats" value={editing.input.new_chats} onChange={(v) => set('new_chats', v)}
-                                hint="Chats the recruiter starts; replies are always free" />
+                                hint="Chats the recruiter starts; replies and chats with their applicants are free" />
                             <LimitInput id="plan-resumes" label="Resume downloads" value={editing.input.resume_downloads}
                                 onChange={(v) => set('resume_downloads', v)} hint="Shown on the plan; counted once the candidate database launches" />
                             <div>

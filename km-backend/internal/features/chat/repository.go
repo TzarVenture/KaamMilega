@@ -388,6 +388,15 @@ func (r *repository) IsBlockedEitherWay(ctx context.Context, userA, userB primit
 	return count > 0, nil
 }
 
+func (r *repository) HasApplied(ctx context.Context, candidateID, recruiterID primitive.ObjectID) (bool, error) {
+	n, err := r.db.DB.Collection("applications").CountDocuments(ctx,
+		bson.M{"candidate_id": candidateID, "recruiter_id": recruiterID}, options.Count().SetLimit(1))
+	if err != nil {
+		return false, err
+	}
+	return n > 0, nil
+}
+
 // Report & Moderation repository methods
 
 func (r *repository) CreateChatReport(ctx context.Context, report *ChatReport) (*ChatReport, error) {
