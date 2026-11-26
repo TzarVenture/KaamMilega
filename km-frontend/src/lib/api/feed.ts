@@ -37,7 +37,7 @@ export interface ListParams {
 export interface NewPost {
   content: string;
   category: PostCategory;
-  media: { file_id: string; width?: number; height?: number }[];
+  media: { file_id: string; width?: number; height?: number; poster_file_id?: string; duration?: number }[];
 }
 
 export const feedApi = {

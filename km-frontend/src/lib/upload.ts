@@ -14,6 +14,7 @@ export type UploadKind =
     | "company_logo"
     | "event_image"
     | "feed_image"
+    | "feed_video"
     | "ad_creative"
     | "ad_image"
     | "resume"
@@ -40,6 +41,7 @@ export const UPLOAD_LIMITS: Record<UploadKind, number> = {
     company_logo: 2 << 20,
     event_image: 5 << 20,
     feed_image: 5 << 20,
+    feed_video: 50 << 20,
     ad_creative: 10 << 20,
     ad_image: 5 << 20,
     resume: 5 << 20,
@@ -76,6 +78,129 @@ export async function uploadFile(
     })) as unknown as UploadedFile;
     if (!res?.url) throw new Error("File upload failed. Please try again.");
     return res;
+}
+
+/** The longest video on a post, in seconds (the server refuses longer ones) */
+export const MAX_VIDEO_SECONDS = 60;
+
+/**
+ * Uploads a large file (a video) in parts: the server takes about 12 MB per request, so the file
+ * is cut into the part size it asks for and sent in order. Each part is retried a few times on a
+ * network error; if the upload still fails or is aborted, the server is told to drop it.
+ */
+export async function uploadLargeFile(
+    file: File,
+    kind: "feed_video",
+    extra?: { onProgress?: (fraction: number) => void; signal?: AbortSignal },
+): Promise<UploadedFile> {
+    const started = (await api.post(
+        "/files/multipart",
+        { kind, filename: file.name, size: file.size },
+        { signal: extra?.signal },
+    )) as unknown as { id: string; part_size: number; parts: number };
+    const { id, part_size: partSize, parts } = started;
+    try {
+        for (let n = 1; n <= parts; n++) {
+            const chunk = file.slice((n - 1) * partSize, Math.min(n * partSize, file.size));
+            const before = (n - 1) * partSize;
+            for (let attempt = 1; ; attempt++) {
+                try {
+                    await api.put(`/files/multipart/${id}/parts/${n}`, chunk, {
+                        headers: { "Content-Type": "application/octet-stream" },
+                        // A part can take a while on a slow connection
+                        timeout: 0,
+                        signal: extra?.signal,
+                        onUploadProgress: extra?.onProgress
+                            ? (e) => extra.onProgress?.(Math.min(1, (before + (e.loaded ?? 0)) / file.size))
+                            : undefined,
+                    });
+                    break;
+                } catch (err) {
+                    const code = (err as { code?: string }).code;
+                    // The part arrived but its answer was lost: the server already wants the next one
+                    if (attempt > 1 && code === "UPLOAD_PART_OUT_OF_ORDER") break;
+                    // UPLOAD_BUSY: an earlier try of this part is still being stored, which can take a while
+                    const busy = code === "UPLOAD_BUSY";
+                    const retry = (code === "NETWORK_ERROR" || code === "TIMEOUT" || busy) && attempt < (busy ? 12 : 4);
+                    if (!retry || extra?.signal?.aborted) throw err;
+                    await new Promise((r) => setTimeout(r, busy ? 10_000 : 1500 * attempt));
+                }
+            }
+        }
+        const res = (await api.post(`/files/multipart/${id}/complete`, undefined, {
+            signal: extra?.signal,
+            timeout: 60_000,
+        })) as unknown as UploadedFile;
+        if (!res?.url) throw new Error("File upload failed. Please try again.");
+        extra?.onProgress?.(1);
+        return res;
+    } catch (err) {
+        api.delete(`/files/multipart/${id}`).catch(() => {});
+        throw err;
+    }
+}
+
+/** A video's length and size in the browser, or null if it can't be read */
+export function readVideo(file: File): Promise<{ duration: number; width: number; height: number } | null> {
+    return new Promise((resolve) => {
+        const url = URL.createObjectURL(file);
+        const v = document.createElement("video");
+        v.preload = "metadata";
+        v.muted = true;
+        let timer: ReturnType<typeof setTimeout> | undefined = undefined;
+        const done = (r: { duration: number; width: number; height: number } | null) => {
+            clearTimeout(timer);
+            URL.revokeObjectURL(url);
+            resolve(r);
+        };
+        // Some files never say whether they can be read
+        timer = setTimeout(() => done(null), 10_000);
+        v.onloadedmetadata = () =>
+            done(Number.isFinite(v.duration) ? { duration: v.duration, width: v.videoWidth, height: v.videoHeight } : null);
+        v.onerror = () => done(null);
+        v.src = url;
+    });
+}
+
+/**
+ * A still from early in the video, as a JPEG, to show before it plays. Null when the browser
+ * can't draw the video (the post still works, just without the still).
+ */
+export function videoPoster(file: File): Promise<File | null> {
+    return new Promise((resolve) => {
+        const url = URL.createObjectURL(file);
+        const v = document.createElement("video");
+        v.preload = "auto";
+        v.muted = true;
+        v.playsInline = true;
+        let settled = false;
+        const done = (f: File | null) => {
+            if (settled) return;
+            settled = true;
+            URL.revokeObjectURL(url);
+            resolve(f);
+        };
+        const timer = setTimeout(() => done(null), 8000);
+        v.onloadeddata = () => {
+            v.currentTime = Math.min(1, (v.duration || 0) / 2);
+        };
+        v.onseeked = () => {
+            clearTimeout(timer);
+            const scale = Math.min(1, 1280 / Math.max(v.videoWidth, v.videoHeight, 1));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.max(1, Math.round(v.videoWidth * scale));
+            canvas.height = Math.max(1, Math.round(v.videoHeight * scale));
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return done(null);
+            ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((b) => done(b ? new File([b], "poster.jpg", { type: "image/jpeg" }) : null), "image/jpeg", 0.82);
+        };
+        v.onerror = () => {
+            clearTimeout(timer);
+            done(null);
+        };
+        v.src = url;
+    });
 }
 
 const PRIVATE_REF = /^\/api\/files\/([a-f0-9]{24})$/;

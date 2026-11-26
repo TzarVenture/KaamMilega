@@ -282,37 +282,85 @@ func (r *feedRepository) CountPostsSince(ctx context.Context, authorID primitive
 	return r.posts.CountDocuments(ctx, bson.M{"author_id": authorID, "_id": bson.M{"$gte": primitive.NewObjectIDFromTimestamp(since)}})
 }
 
-// ─── Photos ─────────────────────────────────────────────────────────────────────
+// ─── Photos and videos ─────────────────────────────────────────────────────────────────────
 
 func (r *feedRepository) ClaimMedia(ctx context.Context, userID, postID primitive.ObjectID, in []MediaInput) ([]Media, error) {
 	out := make([]Media, 0, len(in))
 	seen := make(map[primitive.ObjectID]bool, len(in))
-	for _, m := range in {
-		id, err := primitive.ObjectIDFromHex(m.FileID)
+	// file looks up one of the member's own uploads that isn't on another post
+	file := func(hexID string, kinds ...string) (primitive.ObjectID, string, string, error) {
+		id, err := primitive.ObjectIDFromHex(hexID)
 		if err != nil || seen[id] {
-			return nil, ErrInvalidMedia
+			return id, "", "", ErrInvalidMedia
 		}
 		seen[id] = true
 		var f struct {
 			URL      string `bson:"url"`
+			Kind     string `bson:"kind"`
 			RecordID string `bson:"record_id"`
 		}
 		err = r.files.FindOne(ctx, bson.M{
-			"_id": id, "uploaded_by": userID, "kind": "feed_image", "visibility": "public",
+			"_id": id, "uploaded_by": userID, "kind": bson.M{"$in": kinds}, "visibility": "public",
 		}).Decode(&f)
 		if err != nil || f.URL == "" {
-			return nil, ErrInvalidMedia
+			return id, "", "", ErrInvalidMedia
 		}
-		// A photo already on another post stays there
+		// A photo or video already on another post stays there
 		if f.RecordID != "" && f.RecordID != postID.Hex() {
-			return nil, ErrInvalidMedia
+			return id, "", "", ErrInvalidMedia
 		}
-		out = append(out, Media{FileID: id, URL: f.URL, Width: clampDimension(m.Width), Height: clampDimension(m.Height)})
+		return id, f.URL, f.Kind, nil
 	}
-	for _, m := range out {
-		if _, err := r.files.UpdateOne(ctx, bson.M{"_id": m.FileID}, bson.M{"$set": bson.M{"module_name": "feed", "record_id": postID.Hex()}}); err != nil {
+	for _, m := range in {
+		id, url, kind, err := file(m.FileID, "feed_image", "feed_video")
+		if err != nil {
 			return nil, err
 		}
+		item := Media{FileID: id, Type: MediaImage, URL: url, Width: clampDimension(m.Width), Height: clampDimension(m.Height)}
+		if kind == "feed_video" {
+			if len(in) > 1 {
+				return nil, ErrVideoWithPhotos
+			}
+			if m.Duration <= 0 {
+				return nil, ErrVideoDuration
+			}
+			if m.Duration > MaxVideoSeconds {
+				return nil, ErrVideoTooLong
+			}
+			item.Type = MediaVideo
+			item.Duration = m.Duration
+			if m.PosterFileID != "" {
+				pid, purl, _, err := file(m.PosterFileID, "feed_image")
+				if err != nil {
+					return nil, err
+				}
+				item.PosterFileID, item.PosterURL = pid, purl
+			}
+		} else if m.PosterFileID != "" {
+			return nil, ErrInvalidMedia
+		}
+		out = append(out, item)
+	}
+	// Each file is taken only if it is still on no post, so two posts sent at once can't share one
+	free := bson.M{"$in": bson.A{nil, "", postID.Hex()}}
+	taken := make([]primitive.ObjectID, 0, len(seen))
+	undo := func() {
+		if len(taken) > 0 {
+			_, _ = r.files.UpdateMany(context.Background(), bson.M{"_id": bson.M{"$in": taken}, "record_id": postID.Hex()},
+				bson.M{"$unset": bson.M{"module_name": "", "record_id": ""}})
+		}
+	}
+	for id := range seen {
+		res, err := r.files.UpdateOne(ctx, bson.M{"_id": id, "record_id": free}, bson.M{"$set": bson.M{"module_name": "feed", "record_id": postID.Hex()}})
+		if err != nil {
+			undo()
+			return nil, err
+		}
+		if res.MatchedCount == 0 {
+			undo()
+			return nil, ErrInvalidMedia
+		}
+		taken = append(taken, id)
 	}
 	return out, nil
 }

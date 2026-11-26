@@ -170,12 +170,12 @@ export default function AdminPostReportsPage() {
                                         <tr key={item.post.id} className={table.row}>
                                             <td className={`${table.td} max-w-sm`}>
                                                 <p className="text-km-heading line-clamp-2 whitespace-pre-line">
-                                                    {item.post.content || <span className="text-km-text-secondary">Photo only</span>}
+                                                    {item.post.content || <span className="text-km-text-secondary">{item.post.media[0]?.type === 'video' ? 'Video only' : 'Photo only'}</span>}
                                                 </p>
                                                 {item.post.media.length > 0 && (
                                                     <p className="mt-1 flex items-center gap-1 text-xs text-km-text-secondary">
                                                         <ImageIcon size={14} aria-hidden="true" />
-                                                        {item.post.media.length} photo{item.post.media.length > 1 ? 's' : ''}
+                                                        {item.post.media[0]?.type === 'video' ? 'Video' : `${item.post.media.length} photo${item.post.media.length > 1 ? 's' : ''}`}
                                                     </p>
                                                 )}
                                             </td>
@@ -281,7 +281,9 @@ function ReviewDialog({ postId, onClose, onDecided }: { postId: string; onClose:
                             )}
                             {post!.media.length > 0 && (
                                 <div className={cx('mt-3 grid gap-2', post!.media.length > 1 ? 'grid-cols-2' : 'grid-cols-1')}>
-                                    {post!.media.map((m) => (
+                                    {post!.media.map((m) => m.type === 'video' ? (
+                                        <video key={m.url} src={m.url} poster={m.poster_url} controls playsInline preload="metadata" className="w-full max-h-72 rounded-xl border border-km-border bg-black" />
+                                    ) : (
                                         <a key={m.url} href={m.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-xl border border-km-border bg-km-surface">
                                             {/* eslint-disable-next-line @next/next/no-img-element -- user photos from the CDN, shown as uploaded */}
                                             <img src={m.url} alt="Photo in the reported post" className="w-full max-h-72 object-contain" />

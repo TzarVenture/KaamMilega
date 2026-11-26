@@ -16,6 +16,8 @@ type Kind struct {
 	MaxSize    int64
 	// AdminOnly kinds can only be uploaded by admins
 	AdminOnly bool
+	// Chunked kinds are too big for one request and come in parts (chunked.go)
+	Chunked bool
 }
 
 var (
@@ -31,6 +33,8 @@ var kinds = map[string]Kind{
 	"company_logo": {Visibility: storage.Public, Extensions: append([]string{".svg"}, imageExts...), MaxSize: 2 << 20},
 	"event_image":  {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
 	"feed_image":   {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
+	// A video on a post: up to 60 seconds (checked in the app) and 50 MB, uploaded in parts
+	"feed_video": {Visibility: storage.Public, Extensions: []string{".mp4", ".mov", ".m4v", ".webm"}, MaxSize: 50 << 20, Chunked: true},
 	// Ad creatives (admins only): an image, an animated GIF or a short muted video
 	// A recruiter's paid ad (adsales): a still image only; an admin checks it before it runs
 	"ad_image":    {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},

@@ -12,11 +12,34 @@ function singleRatio(m: FeedMedia): number {
   return Math.min(1.91, Math.max(0.8, m.width / m.height));
 }
 
+/** A video plays where it is, with sound only once the viewer turns it on */
+function PostVideo({ m, authorName }: { m: FeedMedia; authorName: string }) {
+  const t = useTranslations('feed');
+  // Tall phone videos are shown no taller than 4:5, wide ones no wider than 16:9
+  const ratio = m.width && m.height ? Math.min(16 / 9, Math.max(0.8, m.width / m.height)) : 16 / 9;
+  return (
+    <div className="border-y border-km-border bg-black">
+      <video
+        src={m.url}
+        poster={m.poster_url}
+        controls
+        playsInline
+        preload="metadata"
+        controlsList="nodownload"
+        aria-label={t('videoBy', { name: authorName })}
+        className="block w-full h-full object-contain"
+        style={{ aspectRatio: String(ratio) }}
+      />
+    </div>
+  );
+}
+
 /** Photos on a post: one at its own shape, two side by side, three as one large and two small, four in a square grid */
 export default function PostMedia({ media, authorName }: { media: FeedMedia[]; authorName: string }) {
   const t = useTranslations('feed');
   const [open, setOpen] = useState<number | null>(null);
   if (media.length === 0) return null;
+  if (media[0].type === 'video') return <PostVideo m={media[0]} authorName={authorName} />;
 
   const tile = (m: FeedMedia, i: number, className: string, style?: React.CSSProperties) => (
     <button

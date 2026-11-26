@@ -82,12 +82,15 @@ const (
 )
 
 var (
-	ErrPostEmpty        = apperr.New("FEED_CONTENT_EMPTY", "Please write something or add a photo before posting.")
+	ErrPostEmpty        = apperr.New("FEED_CONTENT_EMPTY", "Please write something or add a photo or video before posting.")
 	ErrPostTooLong      = apperr.New("FEED_CONTENT_TOO_LONG", "Posts can be up to 3,000 characters.")
 	ErrPostNotFound     = apperr.New("FEED_POST_NOT_FOUND", "This post doesn't exist or was removed.")
 	ErrNotAllowed       = apperr.New("FEED_UNAUTHORIZED", "You can't change this post.")
-	ErrInvalidMedia     = apperr.New("FEED_INVALID_MEDIA", "One of the photos couldn't be attached. Please add it again.")
+	ErrInvalidMedia     = apperr.New("FEED_INVALID_MEDIA", "A photo or video couldn't be attached. Please add it again.")
 	ErrTooManyImages    = apperr.New("FEED_TOO_MANY_IMAGES", "You can add up to 4 photos to a post.")
+	ErrVideoWithPhotos  = apperr.New("FEED_VIDEO_WITH_PHOTOS", "A post can have one video or up to 4 photos, not both.")
+	ErrVideoTooLong     = apperr.New("FEED_VIDEO_TOO_LONG", "Videos can be up to 60 seconds long.")
+	ErrVideoDuration    = apperr.New("FEED_VIDEO_DURATION_MISSING", "The video's length is missing. Please add it again.")
 	ErrInvalidCategory  = apperr.New("FEED_INVALID_CATEGORY", "Please choose what the post is about.")
 	ErrInvalidReaction  = apperr.New("FEED_INVALID_REACTION", "Please select a valid reaction.")
 	ErrCommentEmpty     = apperr.New("FEED_COMMENT_EMPTY", "Comment cannot be empty.")
@@ -100,13 +103,53 @@ var (
 	ErrModerationAction = apperr.New("FEED_MODERATION_ACTION_INVALID", "Choose whether to keep or remove the post.")
 )
 
-// Media is one photo on a post. FileID points at the upload record, which holds the storage
-// key used to delete the photo with the post.
+// MediaImage and MediaVideo are the kinds of media on a post. A post has up to 4 photos or
+// one video, never both.
+const (
+	MediaImage = "image"
+	MediaVideo = "video"
+	// MaxVideoSeconds is the longest video on a post (the app checks it before uploading)
+	MaxVideoSeconds = 60
+)
+
+// Media is one photo or video on a post. FileID points at the upload record, which holds the
+// storage key used to delete the file with the post. A video may have a still image (poster)
+// shown before it plays, which is a feed_image upload of its own.
 type Media struct {
 	FileID primitive.ObjectID `bson:"file_id" json:"-"`
-	URL    string             `bson:"url" json:"url"`
-	Width  int                `bson:"width,omitempty" json:"width,omitempty"`
-	Height int                `bson:"height,omitempty" json:"height,omitempty"`
+	// Type is "image" or "video"; posts from before videos have none and are images
+	Type   string `bson:"type,omitempty" json:"type"`
+	URL    string `bson:"url" json:"url"`
+	Width  int    `bson:"width,omitempty" json:"width,omitempty"`
+	Height int    `bson:"height,omitempty" json:"height,omitempty"`
+	// Video only
+	PosterFileID primitive.ObjectID `bson:"poster_file_id,omitempty" json:"-"`
+	PosterURL    string             `bson:"poster_url,omitempty" json:"poster_url,omitempty"`
+	Duration     int                `bson:"duration,omitempty" json:"duration,omitempty"`
+}
+
+// fileIDs are the uploads behind the media, posters included
+func fileIDs(media []Media) []primitive.ObjectID {
+	ids := make([]primitive.ObjectID, 0, len(media))
+	for _, m := range media {
+		ids = append(ids, m.FileID)
+		if !m.PosterFileID.IsZero() {
+			ids = append(ids, m.PosterFileID)
+		}
+	}
+	return ids
+}
+
+// mediaOut is the media as the apps get it: never null, and every item has its type
+func mediaOut(media []Media) []Media {
+	out := make([]Media, len(media))
+	for i, m := range media {
+		if m.Type == "" {
+			m.Type = MediaImage
+		}
+		out[i] = m
+	}
+	return out
 }
 
 // Post is a feed post. Who reacted, saved or reported lives in its own collection, so a
@@ -184,10 +227,14 @@ type ReportedPost struct {
 
 // ─── Requests ───────────────────────────────────────────────────────────────────
 
+// MediaInput is a photo (kind feed_image) or a video (kind feed_video) uploaded beforehand.
+// For a video, poster_file_id is an optional feed_image still and duration its length in seconds.
 type MediaInput struct {
-	FileID string `json:"file_id"`
-	Width  int    `json:"width"`
-	Height int    `json:"height"`
+	FileID       string `json:"file_id"`
+	Width        int    `json:"width"`
+	Height       int    `json:"height"`
+	PosterFileID string `json:"poster_file_id,omitempty"`
+	Duration     int    `json:"duration,omitempty"`
 }
 
 type CreatePostRequest struct {

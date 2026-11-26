@@ -222,7 +222,7 @@ func (ctrl *FeedController) GetPost(c *fiber.Ctx) error {
 
 // CreatePost godoc
 // @Summary Create a post
-// @Description Photos are uploaded first through POST /api/files/upload with kind=feed_image; pass their file IDs here.
+// @Description Photos are uploaded first through POST /api/files/upload with kind=feed_image; a video (one per post, up to 60 seconds and 50 MB) through POST /api/files/multipart with kind=feed_video, with an optional feed_image still as poster_file_id. Pass their file IDs here.
 // @Tags feed
 // @Accept json
 // @Produce json

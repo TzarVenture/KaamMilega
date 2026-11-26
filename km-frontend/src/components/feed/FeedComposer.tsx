@@ -1,18 +1,34 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
-import { ArrowClockwiseIcon, CaretDownIcon, HashIcon, ImageIcon, SpinnerGapIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowClockwiseIcon, CaretDownIcon, HashIcon, ImageIcon, SpinnerGapIcon, VideoCameraIcon, WarningCircleIcon, XIcon } from '@phosphor-icons/react';
 import { useTranslations } from 'next-intl';
 import UserAvatar from '@/components/ui/UserAvatar';
 import { feedApi } from '@/lib/api/feed';
 import { compressImage } from '@/lib/compressImage';
 import { notify } from '@/lib/notify';
-import { uploadFile, UPLOAD_LIMITS } from '@/lib/upload';
+import { MAX_VIDEO_SECONDS, readVideo, uploadFile, uploadLargeFile, UPLOAD_LIMITS, videoPoster } from '@/lib/upload';
 import FeedDialog, { ConfirmDialog } from './FeedDialog';
 import { MAX_POST_IMAGES, MAX_POST_LENGTH, POST_CATEGORIES, type FeedPost, type PostCategory } from './feedTypes';
 import { displayName, imageSize, useFeedUser } from './feedUtils';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
+const VIDEO_ACCEPT = 'video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm';
+const VIDEO_EXT = /\.(mp4|mov|m4v|webm)$/i;
+
+/** One video instead of photos: sent in parts, with a still taken from it in the browser */
+interface Video {
+  preview: string;
+  status: 'uploading' | 'done' | 'error';
+  progress: number;
+  file: File;
+  duration: number;
+  width?: number;
+  height?: number;
+  fileId?: string;
+  posterId?: string;
+  abort?: AbortController;
+}
 
 interface Photo {
   key: string;
@@ -42,6 +58,9 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
   const [content, setContent] = useState(editing?.content ?? '');
   const [category, setCategory] = useState<PostCategory>(editing?.category ?? initialCategory);
   const [photos, setPhotos] = useState<Photo[]>([]);
+  const [video, setVideo] = useState<Video | null>(null);
+  const videoInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<Video | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -50,9 +69,22 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
   useEffect(() => {
     photosRef.current = photos;
   }, [photos]);
+  useEffect(() => {
+    videoRef.current = video;
+  }, [video]);
 
-  // Free the previews when the composer goes away
-  useEffect(() => () => photosRef.current.forEach((p) => URL.revokeObjectURL(p.preview)), []);
+  // Free the previews, and stop a video still uploading, when the composer goes away
+  useEffect(
+    () => () => {
+      photosRef.current.forEach((p) => URL.revokeObjectURL(p.preview));
+      const v = videoRef.current;
+      if (v) {
+        v.abort?.abort();
+        URL.revokeObjectURL(v.preview);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (pickPhoto) fileRef.current?.click();
@@ -104,6 +136,74 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
     }
   };
 
+  const patchVideo = (change: Partial<Video>) => setVideo((v) => (v ? { ...v, ...change } : v));
+
+  const uploadVideo = async (v: Video) => {
+    const abort = new AbortController();
+    patchVideo({ status: 'uploading', progress: 0, abort });
+    let posterId = v.posterId;
+    try {
+      // The still is a small photo upload of its own; the post still works without it
+      if (!posterId) {
+        const still = await videoPoster(v.file);
+        if (still) posterId = (await uploadFile(still, 'feed_image', { moduleName: 'feed' }).catch(() => null))?.id;
+      }
+      if (abort.signal.aborted) return;
+      const res = await uploadLargeFile(v.file, 'feed_video', {
+        signal: abort.signal,
+        onProgress: (f) => patchVideo({ progress: f }),
+      });
+      patchVideo({ status: 'done', progress: 1, fileId: res.id, posterId, abort: undefined });
+    } catch (err) {
+      if (abort.signal.aborted) return;
+      patchVideo({ status: 'error', posterId, abort: undefined });
+      notify.error(err, t('videoUploadFailed'));
+    }
+  };
+
+  const addVideo = async (list: FileList | null) => {
+    const file = list?.[0];
+    if (!file) return;
+    if (!VIDEO_EXT.test(file.name)) {
+      notify.error(t('videoType'));
+      return;
+    }
+    if (file.size > UPLOAD_LIMITS.feed_video) {
+      notify.error(t('videoTooLarge'));
+      return;
+    }
+    const meta = await readVideo(file);
+    if (!meta) {
+      notify.error(t('videoUnreadable'));
+      return;
+    }
+    if (meta.duration > MAX_VIDEO_SECONDS + 0.5) {
+      notify.error(t('videoTooLong', { seconds: MAX_VIDEO_SECONDS }));
+      return;
+    }
+    const v: Video = {
+      preview: URL.createObjectURL(file),
+      status: 'uploading',
+      progress: 0,
+      file,
+      duration: Math.min(MAX_VIDEO_SECONDS, Math.max(1, Math.round(meta.duration))),
+      width: meta.width || undefined,
+      height: meta.height || undefined,
+    };
+    setVideo(v);
+    void uploadVideo(v);
+  };
+
+  const removeVideo = () => {
+    setVideo((v) => {
+      if (v) {
+        v.abort?.abort();
+        URL.revokeObjectURL(v.preview);
+      }
+      return null;
+    });
+  };
+
   const removePhoto = (key: string) => {
     setPhotos((ps) => {
       const gone = ps.find((p) => p.key === key);
@@ -128,13 +228,13 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
   };
 
   const text = content.trim();
-  const uploading = photos.some((p) => p.status === 'uploading');
-  const failed = photos.some((p) => p.status === 'error');
+  const uploading = photos.some((p) => p.status === 'uploading') || video?.status === 'uploading';
+  const failed = photos.some((p) => p.status === 'error') || video?.status === 'error';
   const over = content.length > MAX_POST_LENGTH;
-  const hasPhotos = photos.length > 0 || (editing?.media.length ?? 0) > 0;
+  const hasPhotos = photos.length > 0 || !!video || (editing?.media.length ?? 0) > 0;
   const unchanged = editing ? text === editing.content && category === editing.category : false;
   const canPost = !busy && !uploading && !failed && !over && (text.length > 0 || hasPhotos) && !unchanged;
-  const dirty = editing ? !unchanged : text.length > 0 || photos.length > 0;
+  const dirty = editing ? !unchanged : text.length > 0 || photos.length > 0 || !!video;
 
   const requestClose = () => {
     if (busy) return;
@@ -153,7 +253,9 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
         const created = await feedApi.create({
           content: text,
           category,
-          media: photos.map((p) => ({ file_id: p.fileId!, width: p.width, height: p.height })),
+          media: video
+            ? [{ file_id: video.fileId!, width: video.width, height: video.height, duration: video.duration, poster_file_id: video.posterId }]
+            : photos.map((p) => ({ file_id: p.fileId!, width: p.width, height: p.height })),
         });
         onSaved(created, true);
       }
@@ -178,12 +280,24 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                disabled={photos.length >= MAX_POST_IMAGES}
+                disabled={photos.length >= MAX_POST_IMAGES || !!video}
                 aria-label={t('addPhoto')}
                 title={t('addPhoto')}
                 className="p-2.5 rounded-xl text-km-text-secondary hover:text-km-link hover:bg-km-surface disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 <ImageIcon size={22} />
+              </button>
+            )}
+            {!editing && (
+              <button
+                type="button"
+                onClick={() => videoInputRef.current?.click()}
+                disabled={photos.length > 0 || !!video}
+                aria-label={t('addVideo')}
+                title={t('addVideo')}
+                className="p-2.5 rounded-xl text-km-text-secondary hover:text-km-link hover:bg-km-surface disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <VideoCameraIcon size={22} />
               </button>
             )}
             <button
@@ -209,7 +323,7 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
               className="btn-primary h-11 px-6 text-[15px] inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {(busy || uploading) && <SpinnerGapIcon size={16} className="animate-spin" aria-hidden="true" />}
-              {busy ? (editing ? t('saving') : t('posting')) : uploading ? t('uploadingPhotos') : editing ? t('saveChanges') : t('post')}
+              {busy ? (editing ? t('saving') : t('posting')) : uploading ? (video ? t('uploadingVideo') : t('uploadingPhotos')) : editing ? t('saveChanges') : t('post')}
             </button>
           </div>
         }
@@ -256,10 +370,10 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
               <div className="grid grid-cols-4 gap-2">
                 {editing.media.map((m) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={m.url} src={m.url} alt="" className="aspect-square w-full rounded-xl object-cover border border-km-border" />
+                  <img key={m.url} src={m.type === 'video' ? m.poster_url || undefined : m.url} alt="" className="aspect-square w-full rounded-xl object-cover border border-km-border" />
                 ))}
               </div>
-              <p className="mt-2 text-[13px] text-km-text-secondary">{t('photosCantChange')}</p>
+              <p className="mt-2 text-[13px] text-km-text-secondary">{editing.media[0]?.type === 'video' ? t('videoCantChange') : t('photosCantChange')}</p>
             </div>
           )}
 
@@ -300,6 +414,51 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
             </ul>
           )}
 
+          {video && (
+            <div className="relative overflow-hidden rounded-xl border border-km-border bg-black">
+              <video src={video.preview} controls playsInline muted preload="metadata" aria-label={t('videoPreview')} className={`block w-full max-h-80 object-contain ${video.status === 'done' ? '' : 'opacity-70'}`} />
+              {video.status === 'uploading' && (
+                <div className="absolute inset-x-3 top-3 mr-10 flex items-center gap-2">
+                  <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden" role="progressbar" aria-label={t('uploadingVideo')} aria-valuenow={Math.round(video.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
+                    <div className="h-full bg-white transition-[width]" style={{ width: `${Math.max(3, video.progress * 100)}%` }} />
+                  </div>
+                  <span className="text-xs font-semibold text-white tabular-nums">{Math.round(video.progress * 100)}%</span>
+                </div>
+              )}
+              {video.status === 'error' && (
+                <button
+                  type="button"
+                  onClick={() => void uploadVideo(video)}
+                  className="absolute inset-0 flex flex-col items-center justify-center gap-1 bg-black/55 text-white text-sm font-semibold cursor-pointer"
+                >
+                  <WarningCircleIcon size={22} aria-hidden="true" />
+                  <span className="inline-flex items-center gap-1">
+                    <ArrowClockwiseIcon size={14} aria-hidden="true" />
+                    {t('retry')}
+                  </span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={removeVideo}
+                aria-label={t('removeVideo')}
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/65 text-white hover:bg-black/85 cursor-pointer"
+              >
+                <XIcon size={16} weight="bold" />
+              </button>
+            </div>
+          )}
+
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept={VIDEO_ACCEPT}
+            className="hidden"
+            onChange={(e) => {
+              void addVideo(e.target.files);
+              e.target.value = '';
+            }}
+          />
           <input
             ref={fileRef}
             type="file"
