@@ -22,13 +22,16 @@ type Config struct {
 	JobAlertsEnabled bool
 	FSURL            string // URL path prefix for file access
 	// Media storage: STORAGE_DRIVER=r2 keeps uploads on Cloudflare R2, anything else on local disk
-	StorageDriver         string
-	R2AccountID           string
-	R2AccessKeyID         string
-	R2SecretAccessKey     string
-	R2PublicBucket        string
-	R2PrivateBucket       string
-	R2PublicBaseURL       string
+	StorageDriver     string
+	R2AccountID       string
+	R2AccessKeyID     string
+	R2SecretAccessKey string
+	R2PublicBucket    string
+	R2PrivateBucket   string
+	R2PublicBaseURL   string
+	// Clears a deleted public file from Cloudflare's cache (storage/purge.go)
+	CloudflareZoneID      string
+	CloudflarePurgeToken  string
 	SMTPHost              string
 	SMTPPort              string
 	SMTPUsername          string
@@ -74,6 +77,8 @@ func LoadConfig() (*Config, error) {
 		R2PublicBucket:          getEnv("R2_PUBLIC_BUCKET", ""),
 		R2PrivateBucket:         getEnv("R2_PRIVATE_BUCKET", ""),
 		R2PublicBaseURL:         getEnv("R2_PUBLIC_BASE_URL", ""),
+		CloudflareZoneID:        getEnv("CLOUDFLARE_ZONE_ID", ""),
+		CloudflarePurgeToken:    getEnv("CLOUDFLARE_CACHE_PURGE_TOKEN", ""),
 		SMTPHost:                getEnv("SMTP_HOST", "smtp-relay.brevo.com"),
 		SMTPPort:                getEnv("SMTP_PORT", "587"),
 		SMTPUsername:            getEnv("SMTP_USERNAME", getEnv("SMTP_USER", "")),
