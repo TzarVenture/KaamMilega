@@ -62,6 +62,9 @@ type Service interface {
 	// Reverse gives back the coupon use of a purchase being refunded in full, and takes back its
 	// cashback. Call it from the refund (Revoke) handler, in its transaction.
 	Reverse(ctx context.Context, purchaseRef string) error
+	// ReverseFromRefund is Reverse for a refund that was just credited to the wallet: cashback the
+	// member already spent is taken from the main balance instead, so the refund is net of it.
+	ReverseFromRefund(ctx context.Context, purchaseRef string) error
 
 	AdminCoupons(ctx context.Context) ([]CouponStats, error)
 	CreateCoupon(ctx context.Context, adminID string, in CouponInput) (*Coupon, error)
@@ -429,12 +432,20 @@ func (s *service) creditCashback(ctx context.Context, userID primitive.ObjectID,
 }
 
 func (s *service) Reverse(ctx context.Context, purchaseRef string) error {
+	return s.reverse(ctx, purchaseRef, false)
+}
+
+func (s *service) ReverseFromRefund(ctx context.Context, purchaseRef string) error {
+	return s.reverse(ctx, purchaseRef, true)
+}
+
+func (s *service) reverse(ctx context.Context, purchaseRef string, mainIfSpent bool) error {
 	use, err := s.repo.GetRedemptionByPurchase(ctx, purchaseRef)
 	if err != nil || use == nil || use.Status != StatusRedeemed {
 		return err
 	}
 	if use.CashbackPaise > 0 {
-		_, _, err := s.wallet.RecordTransaction(ctx, wallet.RecordTransactionInput{
+		in := wallet.RecordTransactionInput{
 			UserID:        database.OID(use.UserID),
 			Type:          wallet.TypeDebit,
 			TargetBalance: wallet.BalanceBonus,
@@ -443,7 +454,14 @@ func (s *service) Reverse(ctx context.Context, purchaseRef string) error {
 			ReferenceID:   "coupon:" + use.ID + ":cashback_reversal",
 			Description:   "Cashback taken back with a refund",
 			Metadata:      map[string]interface{}{"coupon_redemption_id": use.ID, "purchase_ref": use.PurchaseRef},
-		})
+		}
+		_, _, err := s.wallet.RecordTransaction(ctx, in)
+		if errors.Is(err, wallet.ErrInsufficient) && mainIfSpent {
+			in.TargetBalance = wallet.BalanceMain
+			in.ReferenceID += ":main"
+			in.Description = "Spent cashback taken from your refund"
+			_, _, err = s.wallet.RecordTransaction(ctx, in)
+		}
 		if errors.Is(err, wallet.ErrInsufficient) {
 			return ErrCashbackSpent
 		}

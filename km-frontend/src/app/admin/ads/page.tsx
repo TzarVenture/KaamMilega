@@ -222,7 +222,7 @@ export default function AdsPage() {
                                                     </span>
                                                     <span className="min-w-0">
                                                         <span className="block font-medium text-km-heading truncate">{c.name}</span>
-                                                        <span className="block text-xs text-km-text-secondary truncate">{c.advertiser}</span>
+                                                        <span className="block text-xs text-km-text-secondary truncate">{c.advertiser}{c.recruiter_ad_id && ' · Recruiter ad'}</span>
                                                     </span>
                                                 </div>
                                             </td>
@@ -256,7 +256,8 @@ export default function AdsPage() {
                                                                     {c.status === 'paused' ? 'Resume' : 'Pause'}
                                                                 </MenuItem>
                                                             )}
-                                                            <MenuItem icon={TrashIcon} danger onClick={() => setDeleteTarget(c)}>Delete</MenuItem>
+                                                            {/* A paid recruiter ad can be paused, not deleted */}
+                                                            {!c.recruiter_ad_id && <MenuItem icon={TrashIcon} danger onClick={() => setDeleteTarget(c)}>Delete</MenuItem>}
                                                         </>
                                                     )}
                                                 </RowMenu>

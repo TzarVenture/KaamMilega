@@ -34,6 +34,7 @@ const (
 	CategoryRefund         TransactionCategory = "refund"
 	CategoryEventTicket    TransactionCategory = "event_ticket"
 	CategoryRecruiterPlan  TransactionCategory = "recruiter_plan"
+	CategoryRecruiterAd    TransactionCategory = "recruiter_ad"
 
 	StatusCompleted TransactionStatus = "completed"
 	StatusPending   TransactionStatus = "pending"

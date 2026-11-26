@@ -51,6 +51,8 @@ export interface AdCampaign {
   end_at?: string;
   priority: number;
   frequency_cap: number;
+  /** Set on a recruiter's paid ad (Recruiter ads page) */
+  recruiter_ad_id?: string;
   status: 'active' | 'paused';
   state: AdState;
   impressions: number;

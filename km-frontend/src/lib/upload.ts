@@ -15,6 +15,7 @@ export type UploadKind =
     | "event_image"
     | "feed_image"
     | "ad_creative"
+    | "ad_image"
     | "resume"
     | "company_document"
     | "expert_document"
@@ -40,6 +41,7 @@ export const UPLOAD_LIMITS: Record<UploadKind, number> = {
     event_image: 5 << 20,
     feed_image: 5 << 20,
     ad_creative: 10 << 20,
+    ad_image: 5 << 20,
     resume: 5 << 20,
     company_document: 10 << 20,
     expert_document: 10 << 20,

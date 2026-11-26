@@ -20,6 +20,7 @@ import {
     ShieldWarningIcon,
     SpinnerGapIcon,
     TagIcon,
+    MegaphoneIcon,
     TrashIcon,
     UsersIcon,
     XIcon,
@@ -59,6 +60,7 @@ function typeIcon(item: NotificationItem): { Icon: Icon; color: string } {
     if (item.type === "certificate_review") return { Icon: CertificateIcon, color: "text-km-link" };
     if (item.type === "expert_application") return { Icon: SealCheckIcon, color: "text-km-mentors" };
     if (item.type === "recruiter_plan") return { Icon: TagIcon, color: "text-km-link" };
+    if (item.type === "recruiter_ad") return { Icon: MegaphoneIcon, color: "text-km-link" };
     if (item.type === "police_verification") return { Icon: ShieldCheckIcon, color: "text-[#15803D] dark:text-[#4ADE80]" };
     if (item.type === "interview_scheduled") return { Icon: CalendarBlankIcon, color: "text-km-jobs" };
     if (item.type === "feed_reaction") return { Icon: HeartIcon, color: "text-km-services" };

@@ -33,7 +33,7 @@ const (
 )
 
 // Purposes coupons can be used on. Matches the coupons.applies_to check in the database.
-var Purposes = []payment.Purpose{payment.PurposeInstantPass, payment.PurposeRecruiterPlan}
+var Purposes = []payment.Purpose{payment.PurposeInstantPass, payment.PurposeRecruiterPlan, payment.PurposeRecruiterAd}
 
 var (
 	// Shown to customers

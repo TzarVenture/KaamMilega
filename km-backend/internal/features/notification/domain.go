@@ -31,6 +31,7 @@ const (
 	TypeCertificateReview   = "certificate_review"
 	TypePoliceVerification  = "police_verification"
 	TypeRecruiterPlan       = "recruiter_plan"
+	TypeRecruiterAd         = "recruiter_ad"
 	TypeFeedReaction        = "feed_reaction"
 	TypeJobAlert            = "job_alert"
 	TypeReminder            = "reminder"
