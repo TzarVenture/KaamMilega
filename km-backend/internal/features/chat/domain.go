@@ -53,6 +53,9 @@ type Message struct {
 	// repeat the first one for older readers
 	Attachments []Attachment  `bson:"attachments,omitempty" json:"attachments,omitempty"`
 	ReplyTo     *ReplyPreview `bson:"reply_to,omitempty" json:"reply_to,omitempty"`
+	// Story is the story this message replies to, as it was; once expires_at passes the app shows
+	// it as ended (its files are deleted by then)
+	Story *StoryQuote `bson:"story,omitempty" json:"story,omitempty"`
 	IsRead      bool          `bson:"is_read" json:"is_read"`
 	IsDeleted   bool          `bson:"is_deleted" json:"is_deleted"`
 	DeletedAt   *time.Time    `bson:"deleted_at,omitempty" json:"deleted_at,omitempty"`
@@ -65,6 +68,16 @@ type Attachment struct {
 	Type string `bson:"type" json:"type"` // MIME type, e.g. image/jpeg
 	Name string `bson:"name" json:"name"`
 	Size int64  `bson:"size" json:"size"`
+}
+
+// StoryQuote is a copy of the story a message replies to
+type StoryQuote struct {
+	ID        primitive.ObjectID `bson:"id" json:"id"`
+	OwnerID   primitive.ObjectID `bson:"owner_id" json:"owner_id"`
+	MediaType string             `bson:"media_type" json:"media_type"`
+	ThumbURL  string             `bson:"thumb_url,omitempty" json:"thumb_url,omitempty"`
+	Caption   string             `bson:"caption,omitempty" json:"caption,omitempty"`
+	ExpiresAt time.Time          `bson:"expires_at" json:"expires_at"`
 }
 
 // ReplyPreview is a copy of the quoted message, so the quote shows without loading it
@@ -96,6 +109,8 @@ type CreateMessageRequest struct {
 	AttachmentSize int64  `json:"attachment_size,omitempty"`
 	// ReplyToID: the message being replied to, in the same conversation
 	ReplyToID string `json:"reply_to_id,omitempty"`
+	// StoryID: a reply to the receiver's story. The sender must be able to see it now.
+	StoryID string `json:"story_id,omitempty"`
 }
 
 type AttachmentRef struct {

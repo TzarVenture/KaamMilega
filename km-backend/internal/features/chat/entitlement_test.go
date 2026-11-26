@@ -99,7 +99,7 @@ func TestNewChatLimit(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			repo := &limitRepo{hasPass: c.pass, startedToday: c.started}
-			svc := NewService(repo, users, nil, nil)
+			svc := NewService(repo, users, nil, nil, nil)
 			_, err := svc.SendMessage(context.Background(), c.from, CreateMessageRequest{ReceiverID: c.to, Content: "hi"})
 			if !errors.Is(err, c.want) {
 				t.Fatalf("got %v, want %v", err, c.want)
@@ -128,7 +128,7 @@ func TestRecruiterChatWithApplicantIsFree(t *testing.T) {
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			quota := &countingQuota{}
-			svc := NewService(&limitRepo{applied: c.applied}, users, nil, quota)
+			svc := NewService(&limitRepo{applied: c.applied}, users, nil, quota, nil)
 			_, err := svc.SendMessage(context.Background(), recruiter, CreateMessageRequest{ReceiverID: person, Content: "hi"})
 			if !errors.Is(err, errGatePassed) {
 				t.Fatalf("got %v", err)

@@ -12,6 +12,7 @@ import { compressImage } from "@/lib/compressImage";
 import MessageAttachments from "@/components/chat/MessageAttachments";
 import MediaViewer from "@/components/chat/MediaViewer";
 import ReplyQuote from "@/components/chat/ReplyQuote";
+import StoryQuote, { type StoryQuoteData } from "@/components/chat/StoryQuote";
 import {
   ChatAttachment,
   ReplyPreview,
@@ -76,6 +77,8 @@ interface Message {
   /** Every file of the message (an album); older messages only have attachment_* */
   attachments?: ChatAttachment[];
   reply_to?: ReplyPreview;
+  /** A reply to a story: what the story was */
+  story?: StoryQuoteData;
   isOptimistic?: boolean;
   /** Sending failed; the bubble offers Retry */
   sendFailed?: boolean;
@@ -2262,6 +2265,7 @@ function ChatView() {
                               </p>
                             ) : (
                               <>
+                                {msg.story && <StoryQuote story={msg.story} isMe={isMe} isMine={msg.story.owner_id === currentUser?.id} />}
                                 {/* A reply with no text: the quote sits above the photos */}
                                 {msg.reply_to && !msg.content && (
                                   <div className="w-[272px] max-w-full">

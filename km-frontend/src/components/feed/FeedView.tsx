@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowClockwiseIcon, BookmarkSimpleIcon, ChatsCircleIcon, NotePencilIcon, SpinnerGapIcon } from '@phosphor-icons/react';
 import { useTranslations } from 'next-intl';
 import AdSlot from '@/components/ads/AdSlot';
+import StoryBar from '@/components/stories/StoryBar';
 import { feedApi } from '@/lib/api/feed';
 import { loginPathFor } from '@/lib/authPaths';
 import { notify } from '@/lib/notify';
@@ -170,6 +171,7 @@ export default function FeedView() {
 
         <main className="min-w-0 space-y-4">
           <h1 className="sr-only">{t('title')}</h1>
+          {view === 'all' && user && <StoryBar />}
           {view === 'all' && <CreatePostCard onCompose={(o) => setComposer(o)} onSignIn={signIn} />}
 
           <FeedHeaderFilters

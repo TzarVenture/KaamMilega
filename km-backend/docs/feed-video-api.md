@@ -4,16 +4,19 @@ All routes are under `/api` and need `Authorization: Bearer <token>`.
 Errors look like `{"code": "UPLOAD_PART_SIZE", "error": "..."}`. Branch on `code`, never on the text.
 
 A post has **one video or up to 4 photos**, never both. A video is up to **60 seconds** and **50 MB**,
-in MP4, MOV (iPhone) or WebM. Check the length on the phone before uploading: the server can't
-read it. A post must send `duration` (1 to 60 whole seconds; round, and send 60 for 60.4).
+in MP4, MOV (iPhone) or WebM. After upload the server checks every video itself (its real length
+and size) and converts ones browsers can't play (HEVC, WebM) to H.264 MP4. A video can go on a post
+only once that check is done (step 3b).
 A member can finish up to 20 video uploads a day. A finished video that isn't put on a post
 within 24 hours is deleted, so upload it while the member writes the post, and post soon after.
 
 ## 1. Check the video on the phone
 
 - Length 60 seconds or less, size 50 MB or less. If it is too big, offer to trim it or compress it.
-- H.264 video with AAC sound plays everywhere. HEVC (some iPhones' default) doesn't play in every
-  browser, so convert it to H.264 before uploading when you can.
+  The server checks the length again and refuses longer videos, so this only saves the member a
+  wasted upload.
+- H.264 video with AAC sound is used as it is. HEVC (some iPhones' default) and other formats are
+  converted by the server, which takes a little longer; converting on the phone first is fine too.
 - Take a still from early in the video (about 1 second in) as a JPEG, up to 1280 px on the long
   side. It shows before the video plays.
 
@@ -53,6 +56,8 @@ Videos can't go through `/files/upload` (code `UPLOAD_IN_PARTS`).
 **Finish:** `POST /files/multipart/{id}/complete`. The answer (201) is the file, like
 `/files/upload` returns. Keep its `id`.
 
+The answer's `video.state` is `processing`: the server is now checking the video.
+
 **Cancel** (the member removed the video or left the screen): `DELETE /files/multipart/{id}`.
 An upload not finished within an hour is cleared by the server anyway.
 
@@ -73,6 +78,24 @@ An upload not finished within an hour is cleared by the server anyway.
 | `UPLOAD_INCOMPLETE` | 400 | `complete` was called before every part arrived |
 | `FILE_STORE_FAILED` | 502 or 500 | Storage or the server failed; try the same step again |
 
+## 3b. Wait until the video is ready
+
+`GET /files/videos/{id}` (your own videos only) every 2 seconds until `video.state` changes:
+
+```json
+{ "id": "…", "url": "https://cdn.../feed_video/....mp4", "mime_type": "video/mp4",
+  "video": { "state": "ready", "duration": 41.6, "width": 720, "height": 1280 } }
+```
+
+- `processing`: keep waiting (show "Preparing video…"). Most videos take a few seconds; a long
+  iPhone video being converted can take a minute.
+- `ready`: the video can be posted. Its `url` may have changed (a converted video is a new MP4
+  file), so use this one for any preview.
+- `failed`: show `video.error` and let the member pick another video. `video.error_code` is
+  `VIDEO_TOO_LONG` (over 60 seconds), `VIDEO_UNREADABLE` (not a video the server can read),
+  `VIDEO_PROCESSING_FAILED` or `VIDEO_PROCESSING_UNAVAILABLE` (try again later). A failed video
+  is deleted.
+
 ## 4. Create the post
 
 `POST /feed`, as for photos, with the video as the only media item:
@@ -87,15 +110,14 @@ An upload not finished within an hour is cleared by the server anyway.
 }
 ```
 
-`duration` is in whole seconds; `width` and `height` are the video's size in pixels, so the feed can
-keep its shape before it loads.
+`duration`, `width` and `height` may be sent but the server uses its own values from the check
+(the length rounded to whole seconds, the size in pixels as the video plays).
 
 | Code | Meaning |
 |---|---|
 | `FEED_VIDEO_WITH_PHOTOS` | A video and photos in one post |
-| `FEED_VIDEO_TOO_LONG` | `duration` over 60 |
-| `FEED_VIDEO_DURATION_MISSING` | No `duration` (or 0) |
-| `FEED_INVALID_MEDIA` | A file that isn't yours, is already on another post, was deleted for not being posted in time, or a still on a photo |
+| `FEED_VIDEO_NOT_READY` | The server is still checking the video; wait for `ready` (step 3b) |
+| `FEED_INVALID_MEDIA` | A video the server refused, a file that isn't yours, is already on another post, was deleted for not being posted in time, or a still on a photo |
 
 ## 5. Showing posts
 

@@ -49,6 +49,8 @@ type Storage interface {
 	Driver() string
 	// Large files (videos) are uploaded in parts
 	Multipart
+	// Reading and copying files on the server
+	Objects
 }
 
 // disposition: "attachment" makes the browser save the file, "inline" opens it

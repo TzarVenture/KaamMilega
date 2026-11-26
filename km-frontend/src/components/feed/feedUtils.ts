@@ -84,13 +84,20 @@ export function compactNumber(n: number, locale: string): string {
 }
 
 /** Locks page scroll while a dialog or sheet is open */
+// How many open layers want the page held still, and how the page was before the first
+let scrollLocks = 0;
+let overflowBefore = '';
+
+/** Stops the page behind a dialog from scrolling. Layers can open and close in any order. */
 export function useScrollLock(active: boolean) {
   useEffect(() => {
     if (!active) return;
-    const previous = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    if (scrollLocks++ === 0) {
+      overflowBefore = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
     return () => {
-      document.body.style.overflow = previous;
+      if (--scrollLocks === 0) document.body.style.overflow = overflowBefore;
     };
   }, [active]);
 }

@@ -40,7 +40,7 @@ func newChunked(t *testing.T) (*ChunkedUploads, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	return NewChunkedUploads(mdb, store, NewFileService(NewFileRepository(mdb))), filepath.Join(dir, "media")
+	return NewChunkedUploads(mdb, store, NewFileService(NewFileRepository(mdb)), nil), filepath.Join(dir, "media")
 }
 
 // mp4Bytes is a file of n bytes that starts like an MP4

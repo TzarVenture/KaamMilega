@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
@@ -30,8 +31,13 @@ type Config struct {
 	R2PrivateBucket   string
 	R2PublicBaseURL   string
 	// Clears a deleted public file from Cloudflare's cache (storage/purge.go)
-	CloudflareZoneID      string
-	CloudflarePurgeToken  string
+	CloudflareZoneID     string
+	CloudflarePurgeToken string
+	// Video checking and converting: where ffmpeg and ffprobe are (default: found on PATH), and
+	// how many videos are worked on at once
+	FFmpegPath            string
+	FFprobePath           string
+	VideoWorkers          int
 	SMTPHost              string
 	SMTPPort              string
 	SMTPUsername          string
@@ -79,6 +85,9 @@ func LoadConfig() (*Config, error) {
 		R2PublicBaseURL:         getEnv("R2_PUBLIC_BASE_URL", ""),
 		CloudflareZoneID:        getEnv("CLOUDFLARE_ZONE_ID", ""),
 		CloudflarePurgeToken:    getEnv("CLOUDFLARE_CACHE_PURGE_TOKEN", ""),
+		FFmpegPath:              getEnv("FFMPEG_PATH", ""),
+		FFprobePath:             getEnv("FFPROBE_PATH", ""),
+		VideoWorkers:            videoWorkers(),
 		SMTPHost:                getEnv("SMTP_HOST", "smtp-relay.brevo.com"),
 		SMTPPort:                getEnv("SMTP_PORT", "587"),
 		SMTPUsername:            getEnv("SMTP_USERNAME", getEnv("SMTP_USER", "")),
@@ -93,6 +102,15 @@ func LoadConfig() (*Config, error) {
 		FirebaseCredentialsJSON: getEnv("FIREBASE_CREDENTIALS_JSON", ""),
 		FrontendURL:             getEnv("FRONTEND_URL", "https://kaammilega.com"),
 	}, nil
+}
+
+// videoWorkers is VIDEO_WORKERS: videos converted at once (default 1; each uses about 2 CPU cores)
+func videoWorkers() int {
+	n, err := strconv.Atoi(getEnv("VIDEO_WORKERS", "1"))
+	if err != nil || n < 1 {
+		return 1
+	}
+	return min(n, 4)
 }
 
 func getEnv(key, fallback string) string {

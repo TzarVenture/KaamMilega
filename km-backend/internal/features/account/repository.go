@@ -10,6 +10,7 @@ import (
 
 	"km-backend/internal/database"
 	"km-backend/internal/features/analytics"
+	"km-backend/internal/features/story"
 	"km-backend/internal/features/user"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -384,6 +385,41 @@ func (r *mongoRepository) EraseRelatedData(ctx context.Context, u *user.User, no
 		},
 		// Feed: their posts with everything on them, and their comments and reactions elsewhere
 		func() error { return r.eraseFeedData(ctx, id) },
+		// Stories: theirs are taken down now and handed to the story sweeper, which deletes them
+		// with their photos and videos from storage within minutes. Then their views and
+		// reports, given and received.
+		func() error {
+			_, err := r.db.Collection(story.StoriesCollection).UpdateMany(ctx, bson.M{"owner_id": id},
+				bson.M{"$set": bson.M{"status": story.StatusRemoved, "purge_at": now}})
+			return err
+		},
+		func() error {
+			views := r.db.Collection(story.ViewsCollection)
+			// Their views of others' stories come off those stories' counts first
+			seen, err := views.Distinct(ctx, "story_id", bson.M{"viewer_id": id, "owner_id": bson.M{"$ne": id}})
+			if err != nil {
+				return err
+			}
+			if len(seen) > 0 {
+				if _, err := views.DeleteMany(ctx, bson.M{"viewer_id": id, "story_id": bson.M{"$in": seen}}); err != nil {
+					return err
+				}
+				if _, err := r.db.Collection(story.StoriesCollection).UpdateMany(ctx,
+					bson.M{"_id": bson.M{"$in": seen}, "views": bson.M{"$gt": 0}}, bson.M{"$inc": bson.M{"views": -1}}); err != nil {
+					return err
+				}
+			}
+			_, err = views.DeleteMany(ctx, bson.M{"$or": []bson.M{{"owner_id": id}, {"viewer_id": id}}})
+			return err
+		},
+		func() error {
+			_, err := r.db.Collection(story.SharesCollection).DeleteMany(ctx, bson.M{"owner_id": id})
+			return err
+		},
+		func() error {
+			_, err := r.db.Collection(story.ReportsCollection).DeleteMany(ctx, bson.M{"$or": []bson.M{{"owner_id": id}, {"reporter_id": id}}})
+			return err
+		},
 		// Analytics: their own numbers, and their visits and searches that named other people.
 		// Impressions they made on others' posts stay, so those posts' counts don't drop.
 		func() error {

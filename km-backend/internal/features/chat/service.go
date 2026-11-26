@@ -21,6 +21,11 @@ type PlanQuota interface {
 	Use(ctx context.Context, userID primitive.ObjectID, kind, refID string) (func(context.Context), error)
 }
 
+// StoryQuoter checks a member may reply to a story and returns what the message keeps of it
+type StoryQuoter interface {
+	QuoteStory(ctx context.Context, viewer, storyID primitive.ObjectID) (*StoryQuote, error)
+}
+
 // planKindNewChat is recruiterplan.KindNewChat
 const planKindNewChat = "new_chat"
 
@@ -29,14 +34,16 @@ type service struct {
 	userRepo user.UserRepository
 	hub      *Hub
 	quota    PlanQuota
+	stories  StoryQuoter
 }
 
-func NewService(repo ChatRepository, userRepo user.UserRepository, hub *Hub, quota PlanQuota) ChatService {
+func NewService(repo ChatRepository, userRepo user.UserRepository, hub *Hub, quota PlanQuota, stories StoryQuoter) ChatService {
 	return &service{
 		repo:     repo,
 		userRepo: userRepo,
 		hub:      hub,
 		quota:    quota,
+		stories:  stories,
 	}
 }
 
@@ -137,12 +144,14 @@ var ErrAttachmentInvalid = apperr.New("CHAT_ATTACHMENT_INVALID", "One of the fil
 var ErrTooManyAttachments = apperr.New("CHAT_TOO_MANY_ATTACHMENTS", "You can send up to 10 files at a time.")
 
 // ErrReplyInvalid: the quoted message is not in this conversation
+var ErrStoryUnavailable = apperr.New("CHAT_STORY_UNAVAILABLE", "This story has ended or isn't available.")
+
 var ErrReplyInvalid = apperr.New("CHAT_REPLY_INVALID", "The message you're replying to isn't available.")
 
 // IsBadRequest reports errors caused by the request itself (HTTP 400)
 func IsBadRequest(err error) bool {
 	return errors.Is(err, ErrMessageSelf) || errors.Is(err, ErrAttachmentInvalid) ||
-		errors.Is(err, ErrTooManyAttachments) || errors.Is(err, ErrReplyInvalid)
+		errors.Is(err, ErrTooManyAttachments) || errors.Is(err, ErrReplyInvalid) || errors.Is(err, ErrStoryUnavailable)
 }
 
 // attachmentRefs collects the file references of a request, old single-file form included
@@ -233,6 +242,18 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 	refs := attachmentRefs(req)
 	if len(refs) > MaxAttachments {
 		return nil, ErrTooManyAttachments
+	}
+
+	// A reply to a story: it must be the receiver's, and one the sender can see now
+	var story *StoryQuote
+	if req.StoryID != "" {
+		id, err := primitive.ObjectIDFromHex(req.StoryID)
+		if err != nil || s.stories == nil {
+			return nil, ErrStoryUnavailable
+		}
+		if story, err = s.stories.QuoteStory(ctx, senderID, id); err != nil || story == nil || story.OwnerID != req.ReceiverID {
+			return nil, ErrStoryUnavailable
+		}
 	}
 
 	// 1. Find or create conversation
@@ -327,6 +348,7 @@ func (s *service) SendMessage(ctx context.Context, senderID primitive.ObjectID, 
 		Content:        req.Content,
 		Attachments:    atts,
 		ReplyTo:        reply,
+		Story:          story,
 		IsRead:         false,
 	}
 	if len(atts) > 0 {

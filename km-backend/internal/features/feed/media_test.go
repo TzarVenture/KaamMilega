@@ -34,12 +34,14 @@ func newMediaRepo(t *testing.T) *feedRepository {
 	return NewFeedRepository(mdb).(*feedRepository)
 }
 
-func addFile(t *testing.T, r *feedRepository, owner primitive.ObjectID, kind string) string {
+func addFile(t *testing.T, r *feedRepository, owner primitive.ObjectID, kind string, video ...bson.M) string {
 	t.Helper()
 	id := primitive.NewObjectID()
-	_, err := r.files.InsertOne(context.Background(), bson.M{
-		"_id": id, "uploaded_by": owner, "kind": kind, "visibility": "public", "url": "https://cdn.test/" + id.Hex(),
-	})
+	doc := bson.M{"_id": id, "uploaded_by": owner, "kind": kind, "visibility": "public", "url": "https://cdn.test/" + id.Hex()}
+	if len(video) > 0 {
+		doc["video"] = video[0]
+	}
+	_, err := r.files.InsertOne(context.Background(), doc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +52,11 @@ func TestClaimMediaVideo(t *testing.T) {
 	r := newMediaRepo(t)
 	ctx := context.Background()
 	me, other := primitive.NewObjectID(), primitive.NewObjectID()
-	video := addFile(t, r, me, "feed_video")
+	// Checked by the server: 41.6 seconds, upright
+	video := addFile(t, r, me, "feed_video", bson.M{"state": "ready", "duration": 41.6, "width": 720, "height": 1280})
+	waiting := addFile(t, r, me, "feed_video", bson.M{"state": "processing"})
+	refusedVideo := addFile(t, r, me, "feed_video", bson.M{"state": "failed", "error_code": "VIDEO_TOO_LONG"})
+	unchecked := addFile(t, r, me, "feed_video")
 	poster := addFile(t, r, me, "feed_image")
 	photo := addFile(t, r, me, "feed_image")
 	theirs := addFile(t, r, other, "feed_image")
@@ -63,8 +69,9 @@ func TestClaimMediaVideo(t *testing.T) {
 	}{
 		{"video with a photo", []MediaInput{{FileID: video}, {FileID: photo}}, ErrVideoWithPhotos},
 		{"photo then video", []MediaInput{{FileID: photo}, {FileID: video}}, ErrVideoWithPhotos},
-		{"over 60 seconds", []MediaInput{{FileID: video, Duration: 61}}, ErrVideoTooLong},
-		{"no length", []MediaInput{{FileID: video}}, ErrVideoDuration},
+		{"still being checked", []MediaInput{{FileID: waiting, Duration: 10}}, ErrVideoNotReady},
+		{"never checked", []MediaInput{{FileID: unchecked, Duration: 10}}, ErrVideoNotReady},
+		{"refused by the check", []MediaInput{{FileID: refusedVideo, Duration: 10}}, ErrInvalidMedia},
 		{"someone else's poster", []MediaInput{{FileID: video, PosterFileID: theirs, Duration: 10}}, ErrInvalidMedia},
 		{"a video as the poster", []MediaInput{{FileID: video, PosterFileID: video, Duration: 10}}, ErrInvalidMedia},
 		{"a poster on a photo", []MediaInput{{FileID: photo, PosterFileID: poster}}, ErrInvalidMedia},
@@ -75,12 +82,13 @@ func TestClaimMediaVideo(t *testing.T) {
 		}
 	}
 
-	got, err := r.ClaimMedia(ctx, me, post, []MediaInput{{FileID: video, PosterFileID: poster, Duration: 42, Width: 720, Height: 1280}})
+	// The app's own length and size are ignored
+	got, err := r.ClaimMedia(ctx, me, post, []MediaInput{{FileID: video, PosterFileID: poster, Duration: 5, Width: 9999, Height: 1}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	m := got[0]
-	if len(got) != 1 || m.Type != MediaVideo || m.Duration != 42 || m.PosterURL == "" || m.PosterFileID.Hex() != poster || m.Width != 720 {
+	if len(got) != 1 || m.Type != MediaVideo || m.Duration != 42 || m.PosterURL == "" || m.PosterFileID.Hex() != poster || m.Width != 720 || m.Height != 1280 {
 		t.Fatalf("media = %+v", got)
 	}
 	if ids := fileIDs(got); len(ids) != 2 {

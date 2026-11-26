@@ -23,4 +23,6 @@ type File struct {
 	RecordID   string             `json:"record_id,omitempty" bson:"record_id,omitempty"`
 	UploadedBy primitive.ObjectID `json:"uploaded_by" bson:"uploaded_by"`
 	CreatedAt  time.Time          `json:"created_at" bson:"created_at"`
+	// Video is set on uploaded videos: checked and converted on the server (video.go)
+	Video *VideoInfo `json:"video,omitempty" bson:"video,omitempty"`
 }

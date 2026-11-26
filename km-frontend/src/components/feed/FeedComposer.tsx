@@ -7,7 +7,7 @@ import UserAvatar from '@/components/ui/UserAvatar';
 import { feedApi } from '@/lib/api/feed';
 import { compressImage } from '@/lib/compressImage';
 import { notify } from '@/lib/notify';
-import { MAX_VIDEO_SECONDS, readVideo, uploadFile, uploadLargeFile, UPLOAD_LIMITS, videoPoster } from '@/lib/upload';
+import { MAX_VIDEO_SECONDS, readVideo, uploadFile, uploadLargeFile, UPLOAD_LIMITS, videoPoster, waitForVideo } from '@/lib/upload';
 import FeedDialog, { ConfirmDialog } from './FeedDialog';
 import { MAX_POST_IMAGES, MAX_POST_LENGTH, POST_CATEGORIES, type FeedPost, type PostCategory } from './feedTypes';
 import { displayName, imageSize, useFeedUser } from './feedUtils';
@@ -21,6 +21,10 @@ interface Video {
   preview: string;
   status: 'uploading' | 'done' | 'error';
   progress: number;
+  /** Sent; the server is checking it (and converting it if browsers can't play it) */
+  preparing?: boolean;
+  /** The browser can't play this one, so there is no preview; the server converts it */
+  noPreview?: boolean;
   file: File;
   duration: number;
   width?: number;
@@ -140,7 +144,7 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
 
   const uploadVideo = async (v: Video) => {
     const abort = new AbortController();
-    patchVideo({ status: 'uploading', progress: 0, abort });
+    patchVideo({ status: 'uploading', progress: 0, preparing: false, abort });
     let posterId = v.posterId;
     try {
       // The still is a small photo upload of its own; the post still works without it
@@ -153,10 +157,27 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
         signal: abort.signal,
         onProgress: (f) => patchVideo({ progress: f }),
       });
-      patchVideo({ status: 'done', progress: 1, fileId: res.id, posterId, abort: undefined });
+      if (abort.signal.aborted) return;
+      patchVideo({ progress: 1, preparing: true, posterId });
+      const ready = await waitForVideo(res.id, abort.signal);
+      if (abort.signal.aborted) return;
+      // The server's length and size, which are what the post will show. A video this browser
+      // couldn't play was converted, so its preview is the server's copy.
+      if (v.noPreview) URL.revokeObjectURL(v.preview);
+      patchVideo({
+        ...(v.noPreview ? { preview: ready.url, noPreview: false } : {}),
+        status: 'done',
+        preparing: false,
+        fileId: ready.id,
+        posterId,
+        duration: Math.max(1, Math.round(ready.video?.duration ?? v.duration)),
+        width: ready.video?.width || v.width,
+        height: ready.video?.height || v.height,
+        abort: undefined,
+      });
     } catch (err) {
       if (abort.signal.aborted) return;
-      patchVideo({ status: 'error', posterId, abort: undefined });
+      patchVideo({ status: 'error', preparing: false, posterId, abort: undefined });
       notify.error(err, t('videoUploadFailed'));
     }
   };
@@ -172,12 +193,11 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
       notify.error(t('videoTooLarge'));
       return;
     }
+    // Null, or no picture size, when this browser can't play the file (often an iPhone video):
+    // it is sent anyway and the server checks and converts it
     const meta = await readVideo(file);
-    if (!meta) {
-      notify.error(t('videoUnreadable'));
-      return;
-    }
-    if (meta.duration > MAX_VIDEO_SECONDS + 0.5) {
+    const playable = !!meta?.width && !!meta.height;
+    if (meta && meta.duration > MAX_VIDEO_SECONDS + 0.5) {
       notify.error(t('videoTooLong', { seconds: MAX_VIDEO_SECONDS }));
       return;
     }
@@ -186,9 +206,10 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
       status: 'uploading',
       progress: 0,
       file,
-      duration: Math.min(MAX_VIDEO_SECONDS, Math.max(1, Math.round(meta.duration))),
-      width: meta.width || undefined,
-      height: meta.height || undefined,
+      duration: meta ? Math.min(MAX_VIDEO_SECONDS, Math.max(1, Math.round(meta.duration))) : 0,
+      width: meta?.width || undefined,
+      height: meta?.height || undefined,
+      noPreview: !playable,
     };
     setVideo(v);
     void uploadVideo(v);
@@ -323,7 +344,7 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
               className="btn-primary h-11 px-6 text-[15px] inline-flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {(busy || uploading) && <SpinnerGapIcon size={16} className="animate-spin" aria-hidden="true" />}
-              {busy ? (editing ? t('saving') : t('posting')) : uploading ? (video ? t('uploadingVideo') : t('uploadingPhotos')) : editing ? t('saveChanges') : t('post')}
+              {busy ? (editing ? t('saving') : t('posting')) : uploading ? (video?.preparing ? t('preparingVideo') : video ? t('uploadingVideo') : t('uploadingPhotos')) : editing ? t('saveChanges') : t('post')}
             </button>
           </div>
         }
@@ -416,8 +437,21 @@ export default function FeedComposer({ editing, initialCategory = 'general', pic
 
           {video && (
             <div className="relative overflow-hidden rounded-xl border border-km-border bg-black">
-              <video src={video.preview} controls playsInline muted preload="metadata" aria-label={t('videoPreview')} className={`block w-full max-h-80 object-contain ${video.status === 'done' ? '' : 'opacity-70'}`} />
-              {video.status === 'uploading' && (
+              {video.noPreview ? (
+                <div className="flex min-h-40 flex-col items-center justify-center gap-2 px-6 py-8 text-center text-white">
+                  <VideoCameraIcon size={28} aria-hidden="true" />
+                  <span className="text-sm">{t('videoNoPreview')}</span>
+                </div>
+              ) : (
+                <video src={video.preview} controls playsInline muted preload="metadata" aria-label={t('videoPreview')} className={`block w-full max-h-80 object-contain ${video.status === 'done' ? '' : 'opacity-70'}`} />
+              )}
+              {video.status === 'uploading' && video.preparing && (
+                <div role="status" className="absolute left-3 top-3 mr-12 inline-flex items-center gap-2 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white">
+                  <SpinnerGapIcon size={14} className="animate-spin" aria-hidden="true" />
+                  {t('preparingVideo')}
+                </div>
+              )}
+              {video.status === 'uploading' && !video.preparing && (
                 <div className="absolute inset-x-3 top-3 mr-10 flex items-center gap-2">
                   <div className="flex-1 h-1.5 rounded-full bg-black/40 overflow-hidden" role="progressbar" aria-label={t('uploadingVideo')} aria-valuenow={Math.round(video.progress * 100)} aria-valuemin={0} aria-valuemax={100}>
                     <div className="h-full bg-white transition-[width]" style={{ width: `${Math.max(3, video.progress * 100)}%` }} />

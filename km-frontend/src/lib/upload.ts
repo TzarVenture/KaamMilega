@@ -15,6 +15,8 @@ export type UploadKind =
     | "event_image"
     | "feed_image"
     | "feed_video"
+    | "story_image"
+    | "story_video"
     | "ad_creative"
     | "ad_image"
     | "resume"
@@ -32,6 +34,18 @@ export interface UploadedFile {
     size: number;
     kind: UploadKind;
     visibility: "public" | "private";
+    /** Videos only: the server's check of the video (see waitForVideo) */
+    video?: VideoCheck;
+}
+
+/** The server checks every video (and converts ones browsers can't play) before it can be posted */
+export interface VideoCheck {
+    state: "processing" | "ready" | "failed";
+    duration?: number;
+    width?: number;
+    height?: number;
+    error_code?: string;
+    error?: string;
 }
 
 /** Size limits per kind, mirrored from the backend so users hear about them before uploading */
@@ -42,6 +56,8 @@ export const UPLOAD_LIMITS: Record<UploadKind, number> = {
     event_image: 5 << 20,
     feed_image: 5 << 20,
     feed_video: 50 << 20,
+    story_image: 5 << 20,
+    story_video: 50 << 20,
     ad_creative: 10 << 20,
     ad_image: 5 << 20,
     resume: 5 << 20,
@@ -60,6 +76,7 @@ export async function uploadFile(
         recordId?: string;
         /** Called with 0..1 while the file is sent */
         onProgress?: (fraction: number) => void;
+        signal?: AbortSignal;
     },
 ): Promise<UploadedFile> {
     const formData = new FormData();
@@ -70,6 +87,7 @@ export async function uploadFile(
     const onProgress = extra?.onProgress;
     const res = (await api.post("/files/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
+        signal: extra?.signal,
         onUploadProgress: onProgress
             ? (e) => {
                   if (e.total) onProgress(Math.min(1, e.loaded / e.total));
@@ -80,7 +98,7 @@ export async function uploadFile(
     return res;
 }
 
-/** The longest video on a post, in seconds (the server refuses longer ones) */
+/** The longest video on a post or story, in seconds (the server refuses longer ones) */
 export const MAX_VIDEO_SECONDS = 60;
 
 /**
@@ -90,7 +108,7 @@ export const MAX_VIDEO_SECONDS = 60;
  */
 export async function uploadLargeFile(
     file: File,
-    kind: "feed_video",
+    kind: "feed_video" | "story_video",
     extra?: { onProgress?: (fraction: number) => void; signal?: AbortSignal },
 ): Promise<UploadedFile> {
     const started = (await api.post(
@@ -140,6 +158,37 @@ export async function uploadLargeFile(
     }
 }
 
+/**
+ * Waits for the server to finish checking an uploaded video (and converting it if browsers
+ * can't play it, like many iPhone videos). Resolves with the file once it is ready; its URL may
+ * have changed. Throws the server's reason if the video was refused.
+ */
+export async function waitForVideo(id: string, signal?: AbortSignal): Promise<UploadedFile> {
+    const stop = Date.now() + 15 * 60_000;
+    let misses = 0;
+    for (;;) {
+        if (signal?.aborted) throw new DOMException("Aborted", "AbortError");
+        try {
+            const f = (await api.get(`/files/videos/${id}`, { signal })) as unknown as UploadedFile;
+            misses = 0;
+            if (f.video?.state === "ready") return f;
+            if (f.video?.state === "failed") {
+                throw Object.assign(new Error(f.video.error || "This video couldn't be prepared. Please try another one."), {
+                    code: f.video.error_code,
+                    videoFailed: true,
+                });
+            }
+        } catch (err) {
+            if ((err as { videoFailed?: boolean }).videoFailed || signal?.aborted) throw err;
+            // A dropped connection while waiting is tried again a few times
+            const code = (err as { code?: string }).code;
+            if ((code !== "NETWORK_ERROR" && code !== "TIMEOUT") || ++misses > 5) throw err;
+        }
+        if (Date.now() > stop) throw new Error("This video is taking too long to prepare. Please try again later.");
+        await new Promise((r) => setTimeout(r, 2000));
+    }
+}
+
 /** A video's length and size in the browser, or null if it can't be read */
 export function readVideo(file: File): Promise<{ duration: number; width: number; height: number } | null> {
     return new Promise((resolve) => {
@@ -186,6 +235,8 @@ export function videoPoster(file: File): Promise<File | null> {
         };
         v.onseeked = () => {
             clearTimeout(timer);
+            // Chrome reads some videos it can't draw (often iPhone HEVC): the still would be black
+            if (!v.videoWidth || !v.videoHeight) return done(null);
             const scale = Math.min(1, 1280 / Math.max(v.videoWidth, v.videoHeight, 1));
             const canvas = document.createElement("canvas");
             canvas.width = Math.max(1, Math.round(v.videoWidth * scale));

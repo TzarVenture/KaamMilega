@@ -21,8 +21,9 @@ RUN go build -o main ./cmd/main.go
 # Run stage — minimal image
 FROM alpine:latest
 
-# Add CA certs (needed for HTTPS/TLS calls like MongoDB Atlas, AWS SES)
-RUN apk --no-cache add ca-certificates tzdata
+# Add CA certs (needed for HTTPS/TLS calls like MongoDB Atlas, AWS SES), and ffmpeg to check
+# and convert uploaded videos (internal/features/file/video.go)
+RUN apk --no-cache add ca-certificates tzdata ffmpeg
 
 WORKDIR /root/
 

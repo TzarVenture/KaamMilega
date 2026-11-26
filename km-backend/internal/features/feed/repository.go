@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"km-backend/internal/database"
+	"km-backend/internal/features/file"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -288,49 +289,54 @@ func (r *feedRepository) ClaimMedia(ctx context.Context, userID, postID primitiv
 	out := make([]Media, 0, len(in))
 	seen := make(map[primitive.ObjectID]bool, len(in))
 	// file looks up one of the member's own uploads that isn't on another post
-	file := func(hexID string, kinds ...string) (primitive.ObjectID, string, string, error) {
+	type upload struct {
+		URL      string          `bson:"url"`
+		Kind     string          `bson:"kind"`
+		RecordID string          `bson:"record_id"`
+		Video    *file.VideoInfo `bson:"video"`
+	}
+	lookup := func(hexID string, kinds ...string) (primitive.ObjectID, upload, error) {
+		var f upload
 		id, err := primitive.ObjectIDFromHex(hexID)
 		if err != nil || seen[id] {
-			return id, "", "", ErrInvalidMedia
+			return id, f, ErrInvalidMedia
 		}
 		seen[id] = true
-		var f struct {
-			URL      string `bson:"url"`
-			Kind     string `bson:"kind"`
-			RecordID string `bson:"record_id"`
-		}
 		err = r.files.FindOne(ctx, bson.M{
 			"_id": id, "uploaded_by": userID, "kind": bson.M{"$in": kinds}, "visibility": "public",
 		}).Decode(&f)
 		if err != nil || f.URL == "" {
-			return id, "", "", ErrInvalidMedia
+			return id, f, ErrInvalidMedia
 		}
 		// A photo or video already on another post stays there
 		if f.RecordID != "" && f.RecordID != postID.Hex() {
-			return id, "", "", ErrInvalidMedia
+			return id, f, ErrInvalidMedia
 		}
-		return id, f.URL, f.Kind, nil
+		return id, f, nil
 	}
 	for _, m := range in {
-		id, url, kind, err := file(m.FileID, "feed_image", "feed_video")
+		id, f, err := lookup(m.FileID, "feed_image", "feed_video")
 		if err != nil {
 			return nil, err
 		}
-		item := Media{FileID: id, Type: MediaImage, URL: url, Width: clampDimension(m.Width), Height: clampDimension(m.Height)}
-		if kind == "feed_video" {
+		item := Media{FileID: id, Type: MediaImage, URL: f.URL, Width: clampDimension(m.Width), Height: clampDimension(m.Height)}
+		if f.Kind == "feed_video" {
 			if len(in) > 1 {
 				return nil, ErrVideoWithPhotos
 			}
-			if m.Duration <= 0 {
-				return nil, ErrVideoDuration
+			// The server checked the video after upload; its length and size are what count
+			if f.Video == nil || f.Video.State == file.VideoProcessing {
+				return nil, ErrVideoNotReady
 			}
-			if m.Duration > MaxVideoSeconds {
-				return nil, ErrVideoTooLong
+			if f.Video.State != file.VideoReady {
+				return nil, ErrInvalidMedia
 			}
 			item.Type = MediaVideo
-			item.Duration = m.Duration
+			item.Duration = f.Video.Seconds()
+			item.Width, item.Height = clampDimension(f.Video.Width), clampDimension(f.Video.Height)
 			if m.PosterFileID != "" {
-				pid, purl, _, err := file(m.PosterFileID, "feed_image")
+				pid, poster, err := lookup(m.PosterFileID, "feed_image")
+				purl := poster.URL
 				if err != nil {
 					return nil, err
 				}

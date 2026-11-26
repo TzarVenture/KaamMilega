@@ -89,8 +89,7 @@ var (
 	ErrInvalidMedia     = apperr.New("FEED_INVALID_MEDIA", "A photo or video couldn't be attached. Please add it again.")
 	ErrTooManyImages    = apperr.New("FEED_TOO_MANY_IMAGES", "You can add up to 4 photos to a post.")
 	ErrVideoWithPhotos  = apperr.New("FEED_VIDEO_WITH_PHOTOS", "A post can have one video or up to 4 photos, not both.")
-	ErrVideoTooLong     = apperr.New("FEED_VIDEO_TOO_LONG", "Videos can be up to 60 seconds long.")
-	ErrVideoDuration    = apperr.New("FEED_VIDEO_DURATION_MISSING", "The video's length is missing. Please add it again.")
+	ErrVideoNotReady    = apperr.New("FEED_VIDEO_NOT_READY", "Your video is still being prepared. Please wait a moment and try again.")
 	ErrInvalidCategory  = apperr.New("FEED_INVALID_CATEGORY", "Please choose what the post is about.")
 	ErrInvalidReaction  = apperr.New("FEED_INVALID_REACTION", "Please select a valid reaction.")
 	ErrCommentEmpty     = apperr.New("FEED_COMMENT_EMPTY", "Comment cannot be empty.")
@@ -108,8 +107,6 @@ var (
 const (
 	MediaImage = "image"
 	MediaVideo = "video"
-	// MaxVideoSeconds is the longest video on a post (the app checks it before uploading)
-	MaxVideoSeconds = 60
 )
 
 // Media is one photo or video on a post. FileID points at the upload record, which holds the

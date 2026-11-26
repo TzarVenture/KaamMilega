@@ -102,16 +102,17 @@ type ChunkedUploads struct {
 	files FileService
 	// fileRecs is the files collection, to count a member's videos and clear unposted ones
 	fileRecs *mongo.Collection
+	videos   *VideoProcessor
 	now      func() time.Time
 }
 
-func NewChunkedUploads(db *database.MongodbDB, store storage.Storage, files FileService) *ChunkedUploads {
+func NewChunkedUploads(db *database.MongodbDB, store storage.Storage, files FileService, videos *VideoProcessor) *ChunkedUploads {
 	coll := db.DB.Collection(uploadsCollection)
 	database.SyncIndexesInBackground(coll, []mongo.IndexModel{
 		{Keys: bson.D{{Key: "user_id", Value: 1}, {Key: "expires_at", Value: 1}}},
 		{Keys: bson.D{{Key: "expires_at", Value: 1}}},
 	})
-	return &ChunkedUploads{coll: coll, store: store, files: files, fileRecs: db.DB.Collection("files"), now: time.Now}
+	return &ChunkedUploads{coll: coll, store: store, files: files, fileRecs: db.DB.Collection("files"), videos: videos, now: time.Now}
 }
 
 // videoExts are the video files taken in parts. A .mov from an iPhone is the same ISO media
@@ -299,6 +300,8 @@ func (u *ChunkedUploads) Complete(ctx context.Context, userID primitive.ObjectID
 	f := &File{
 		ID: primitive.NewObjectID(), OriginalFilename: s.Filename, Kind: kind.Name, Visibility: string(kind.Visibility),
 		Key: s.Key, Size: s.Size, MimeType: s.ContentType, UploadedBy: userID, CreatedAt: u.now(),
+		// Checked (and converted if need be) before it can be posted
+		Video: &VideoInfo{State: VideoProcessing},
 	}
 	if kind.Visibility == storage.Public {
 		f.URL = u.store.PublicURL(s.Key)
@@ -311,6 +314,7 @@ func (u *ChunkedUploads) Complete(ctx context.Context, userID primitive.ObjectID
 		return nil, err
 	}
 	_, _ = u.coll.DeleteOne(ctx, bson.M{"_id": oid})
+	u.videos.Kick()
 	return f, nil
 }
 
@@ -368,7 +372,7 @@ func (u *ChunkedUploads) ClearExpired(ctx context.Context) error {
 func (u *ChunkedUploads) clearUnposted(ctx context.Context) error {
 	var names []string
 	for name, k := range kinds {
-		if k.Chunked {
+		if k.Chunked || k.ClearUnused {
 			names = append(names, name)
 		}
 	}
@@ -386,7 +390,7 @@ func (u *ChunkedUploads) clearUnposted(ctx context.Context) error {
 	}
 	for _, f := range recs {
 		if err := u.store.Delete(ctx, storage.Visibility(f.Visibility), f.Key); err != nil && !errors.Is(err, storage.ErrNotFound) {
-			log.Printf("[files] delete unposted video %s: %v", f.ID.Hex(), err)
+			log.Printf("[files] delete unused upload %s: %v", f.ID.Hex(), err)
 			continue
 		}
 		// Only if it is still on no post
@@ -475,7 +479,7 @@ func uploader(c *fiber.Ctx) (primitive.ObjectID, bool) {
 
 // StartUpload godoc
 // @Summary Start uploading a large file (a video) in parts
-// @Description Kinds: feed_video. Cut the file into parts of part_size bytes (the last one smaller) and PUT them in order. Requires sign-in.
+// @Description Kinds: feed_video, story_video. Cut the file into parts of part_size bytes (the last one smaller) and PUT them in order. Requires sign-in.
 // @Tags files
 // @Accept json
 // @Produce json
@@ -524,7 +528,7 @@ func (u *ChunkedUploads) PutPartHandler(c *fiber.Ctx) error {
 
 // CompleteHandler godoc
 // @Summary Finish an upload in parts
-// @Description Returns the file, as /api/files/upload does.
+// @Description Returns the file, as /api/files/upload does, with video.state "processing": poll GET /api/files/videos/{file id} until it is ready.
 // @Tags files
 // @Produce json
 // @Param id path string true "Upload ID"

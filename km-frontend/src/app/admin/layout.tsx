@@ -18,6 +18,7 @@ import {
     DeviceMobileIcon,
     FileXlsIcon,
     FlagIcon,
+    FilmStripIcon,
     GraduationCapIcon,
     CertificateIcon,
     IdentificationBadgeIcon,
@@ -112,6 +113,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
         label: 'Trust and safety',
         items: [
             { name: 'Post reports', icon: FlagIcon, href: '/admin/post-reports' },
+            { name: 'Story reports', icon: FilmStripIcon, href: '/admin/story-reports' },
             { name: 'Chat reports', icon: ChatCircleTextIcon, href: '/admin/chat-reports' },
             { name: 'Wallet disputes', icon: ShieldWarningIcon, href: '/admin/disputes' },
             { name: 'Session reports', icon: ChatsCircleIcon, href: '/admin/session-reports' },

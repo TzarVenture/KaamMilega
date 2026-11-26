@@ -9,8 +9,21 @@ import { REPORT_REASONS, type ReportReason } from './feedTypes';
 
 const MAX_DETAILS = 500;
 
+interface Props {
+  postId: string;
+  open: boolean;
+  onClose: () => void;
+  onReported: () => void;
+  /** Reporting something else (a story): how to send it, and the dialog's own title */
+  send?: (reason: ReportReason, details?: string) => Promise<void>;
+  title?: string;
+  description?: string;
+  /** Shown under "Thanks for reporting" */
+  doneHint?: string;
+}
+
 /** Asks why a post is being reported. On success the post leaves this member's feed. */
-export default function ReportPostDialog({ postId, open, onClose, onReported }: { postId: string; open: boolean; onClose: () => void; onReported: () => void }) {
+export default function ReportPostDialog({ postId, open, onClose, onReported, send, title, description, doneHint }: Props) {
   const t = useTranslations('feed');
   const [reason, setReason] = useState<ReportReason | null>(null);
   const [details, setDetails] = useState('');
@@ -32,8 +45,8 @@ export default function ReportPostDialog({ postId, open, onClose, onReported }: 
     }
     setBusy(true);
     try {
-      await feedApi.report(postId, reason, details.trim() || undefined);
-      notify.success(t('reported'), t('reportedHint'));
+      await (send ?? ((r, d) => feedApi.report(postId, r, d)))(reason, details.trim() || undefined);
+      notify.success(t('reported'), doneHint ?? t('reportedHint'));
       close();
       onReported();
     } catch (err) {
@@ -47,8 +60,8 @@ export default function ReportPostDialog({ postId, open, onClose, onReported }: 
     <FeedDialog
       open={open}
       onClose={close}
-      title={t('reportTitle')}
-      description={t('reportSubtitle')}
+      title={title ?? t('reportTitle')}
+      description={description ?? t('reportSubtitle')}
       footer={
         <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
           <button type="button" onClick={close} className="h-11 px-5 rounded-xl text-[15px] font-semibold text-km-text-primary hover:bg-km-surface cursor-pointer">

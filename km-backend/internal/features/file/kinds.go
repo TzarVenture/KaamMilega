@@ -18,10 +18,14 @@ type Kind struct {
 	AdminOnly bool
 	// Chunked kinds are too big for one request and come in parts (chunked.go)
 	Chunked bool
+	// ClearUnused: uploads of this kind still on nothing after a day are deleted (chunked kinds
+	// always are)
+	ClearUnused bool
 }
 
 var (
 	imageExts    = []string{".jpg", ".jpeg", ".png", ".webp"}
+	gifOrImage   = append([]string{".gif"}, imageExts...)
 	documentExts = []string{".pdf", ".doc", ".docx"}
 	idProofExts  = []string{".pdf", ".jpg", ".jpeg", ".png"}
 )
@@ -32,9 +36,13 @@ var kinds = map[string]Kind{
 	"cover":        {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
 	"company_logo": {Visibility: storage.Public, Extensions: append([]string{".svg"}, imageExts...), MaxSize: 2 << 20},
 	"event_image":  {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
-	"feed_image":   {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
+	// Photos on posts and stories may also be animated GIFs (the composers offer them)
+	"feed_image": {Visibility: storage.Public, Extensions: gifOrImage, MaxSize: 5 << 20},
 	// A video on a post: up to 60 seconds (checked in the app) and 50 MB, uploaded in parts
 	"feed_video": {Visibility: storage.Public, Extensions: []string{".mp4", ".mov", ".m4v", ".webm"}, MaxSize: 50 << 20, Chunked: true},
+	// A story (24 hours): a photo, or a video with the same limits as a post's
+	"story_image": {Visibility: storage.Public, Extensions: gifOrImage, MaxSize: 5 << 20, ClearUnused: true},
+	"story_video": {Visibility: storage.Public, Extensions: []string{".mp4", ".mov", ".m4v", ".webm"}, MaxSize: 50 << 20, Chunked: true},
 	// Ad creatives (admins only): an image, an animated GIF or a short muted video
 	// A recruiter's paid ad (adsales): a still image only; an admin checks it before it runs
 	"ad_image":    {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},

@@ -42,6 +42,7 @@ import (
 	"km-backend/internal/features/setting"
 	"km-backend/internal/features/skill"
 	"km-backend/internal/features/sms"
+	"km-backend/internal/features/story"
 	"km-backend/internal/features/system"
 	"km-backend/internal/features/testimonial"
 	"km-backend/internal/features/user"
@@ -176,6 +177,19 @@ func newEmployerLookup(users user.UserRepository) job.EmployerLookup {
 func newJobPlanQuota(plans recruiterplan.Service) job.PlanQuota   { return plans }
 func newChatPlanQuota(plans recruiterplan.Service) chat.PlanQuota { return plans }
 
+// A chat message can reply to a story the sender can see
+type storyQuoter struct{ stories story.Service }
+
+func newStoryQuoter(stories story.Service) chat.StoryQuoter { return storyQuoter{stories} }
+
+func (q storyQuoter) QuoteStory(ctx context.Context, viewer, id primitive.ObjectID) (*chat.StoryQuote, error) {
+	s, err := q.stories.Quote(ctx, viewer, id)
+	if err != nil {
+		return nil, err
+	}
+	return &chat.StoryQuote{ID: s.ID, OwnerID: s.OwnerID, MediaType: s.MediaType, ThumbURL: s.ThumbURL, Caption: s.Caption, ExpiresAt: s.ExpiresAt}, nil
+}
+
 func main() {
 	fx.New(appOptions()).Run()
 }
@@ -279,6 +293,9 @@ func appOptions() fx.Option {
 			promo.NewService,
 			newJobPlanQuota,
 			newChatPlanQuota,
+			newStoryQuoter,
+			story.NewRepository,
+			story.NewService,
 			jobalert.NewService,
 			reminder.NewService,
 			feed.NewFeedService,
@@ -290,6 +307,7 @@ func appOptions() fx.Option {
 			// controllers
 			file.NewFileController,
 			file.NewChunkedUploads,
+			file.NewVideoProcessor,
 			sms.NewSMSController,
 			setting.NewSettingController,
 			user.NewUserController,
@@ -335,6 +353,7 @@ func appOptions() fx.Option {
 			AsRoute(company.NewCompanyApi),
 			AsRoute(question.NewQuestionApi),
 			AsRoute(chat.NewChatApi),
+			AsRoute(story.NewApi),
 			AsRoute(network.NewNetworkApi),
 			AsRoute(event.NewEventApi),
 			AsRoute(mentorship.NewMentorshipApi),
@@ -377,6 +396,9 @@ func appOptions() fx.Option {
 			reminder.RegisterWorker,
 			// Clears video uploads that were started but never finished
 			file.RegisterUploadSweeper,
+			file.RegisterVideoProcessor,
+			// Deletes stories 24 hours after they were shared, files and all
+			story.RegisterSweeper,
 			// Register Routes & Start
 			RegisterAllRoutesWithAnnotation,
 			StartServer,

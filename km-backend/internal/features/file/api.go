@@ -53,4 +53,5 @@ func (h *FileApi) Setup(app *fiber.App) {
 	app.Put("/api/files/multipart/:id/parts/:n", auth, h.chunked.PutPartHandler)
 	app.Post("/api/files/multipart/:id/complete", auth, h.chunked.CompleteHandler)
 	app.Delete("/api/files/multipart/:id", auth, h.chunked.CancelHandler)
+	app.Get("/api/files/videos/:id", auth, h.chunked.VideoStatusHandler)
 }
