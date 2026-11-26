@@ -2,6 +2,7 @@ package adsales
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"os"
 	"sync"
@@ -134,7 +135,8 @@ func setup(t *testing.T) *env {
 	users := memUsers{roles: map[string][]string{}}
 	coupons := promo.NewService(promo.NewRepository(pg), tx, walletSvc, users)
 	adServer := &memAds{campaigns: map[primitive.ObjectID]*ads.Campaign{}}
-	svc := newService(NewRepository(pg), tx, walletSvc, fake, coupons, adServer, users, nil, nil, nil)
+	svc := newService(NewRepository(pg), tx, walletSvc, fake, coupons, adServer, users, nil, nil, nil,
+		func(key string) string { return "https://cdn.example.com/" + key })
 	return &env{ctx: ctx, pg: pg, svc: svc, wallet: walletSvc, coupons: coupons, users: users, fake: fake, ads: adServer}
 }
 
@@ -178,21 +180,65 @@ func (e *env) pkg(t *testing.T, price float64, days int) *Package {
 	return p
 }
 
-func content() Content {
+// content is an ad whose image the recruiter uploaded
+func content(userID string) Content {
 	return Content{
 		Advertiser: "Asha Traders", Headline: "We're hiring drivers", Body: "Good pay", CTALabel: "Apply",
-		ImageURL: "https://cdn.example.com/ad.png", LinkURL: "https://asha.example.com/jobs",
+		ImageURL: "https://cdn.example.com/ad_image/" + userID + "/2026/11/ad.png", LinkURL: "https://asha.example.com/jobs",
 		Cities: []string{"Pune"}, Audiences: []string{"user"},
 	}
 }
 
 func (e *env) write(t *testing.T, userID string, p *Package) *Ad {
 	t.Helper()
-	ad, err := e.svc.Save(e.ctx, userID, "", SaveRequest{PackageID: p.ID, Content: content()})
+	ad, err := e.svc.Save(e.ctx, userID, "", SaveRequest{PackageID: p.ID, Content: content(userID)})
 	if err != nil {
 		t.Fatal(err)
 	}
 	return ad
+}
+
+// seen is the updated_at the admin sees for a pending ad
+func (e *env) seen(t *testing.T, adID string) *time.Time {
+	t.Helper()
+	ad, err := e.svc.repo.GetAd(e.ctx, adID, false)
+	if err != nil || ad == nil {
+		t.Fatal(err)
+	}
+	return viaJSON(t, &ad.UpdatedAt)
+}
+
+// viaJSON sends a time to the browser and back, as the admin page does
+func viaJSON(t *testing.T, at *time.Time) *time.Time {
+	t.Helper()
+	if at == nil {
+		return nil
+	}
+	b, err := json.Marshal(Ad{UpdatedAt: *at})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var shown struct {
+		UpdatedAt string `json:"updated_at"`
+	}
+	if err := json.Unmarshal(b, &shown); err != nil {
+		t.Fatal(err)
+	}
+	var req RejectRequest
+	if err := json.Unmarshal([]byte(`{"seen":"`+shown.UpdatedAt+`"}`), &req); err != nil {
+		t.Fatal(err)
+	}
+	return req.Seen
+}
+
+// seenChange is the revision_at the admin sees for a change waiting on a running ad
+func (e *env) seenChange(t *testing.T, adID string) *time.Time {
+	t.Helper()
+	ad, err := e.svc.repo.GetAd(e.ctx, adID, false)
+	if err != nil || ad == nil {
+		t.Fatal(err)
+	}
+	return viaJSON(t, ad.RevisionAt)
 }
 
 func (e *env) coupon(t *testing.T, in promo.CouponInput) {
@@ -263,13 +309,13 @@ func TestWalletAdRejectedGoesBackToBonusAndMain(t *testing.T) {
 	if _, err := e.svc.Reject(e.ctx, ad.ID, "admin-1", "again"); !errors.Is(err, ErrState) {
 		t.Fatalf("second reject: %v", err)
 	}
-	if _, err := e.svc.Approve(e.ctx, ad.ID, "admin-1"); !errors.Is(err, ErrState) {
+	if _, err := e.svc.Approve(e.ctx, ad.ID, "admin-1", e.seen(t, ad.ID)); !errors.Is(err, ErrState) {
 		t.Fatalf("approve after reject: %v", err)
 	}
 	if len(e.ads.campaigns) != 0 {
 		t.Fatalf("campaigns = %d", len(e.ads.campaigns))
 	}
-	if _, err := e.svc.Save(e.ctx, rec, ad.ID, SaveRequest{Content: content()}); !errors.Is(err, ErrCantEdit) {
+	if _, err := e.svc.Save(e.ctx, rec, ad.ID, SaveRequest{Content: content(rec)}); !errors.Is(err, ErrCantEdit) {
 		t.Fatalf("edit after reject: %v", err)
 	}
 }
@@ -301,8 +347,16 @@ func TestOnlineAdApprovedRunsForItsDaysFromApproval(t *testing.T) {
 		t.Fatalf("paid = %+v", paid)
 	}
 
+	// An admin looking at an older version can't approve it
+	stale := e.seen(t, ad.ID).Add(-time.Second)
+	if _, err := e.svc.Approve(e.ctx, ad.ID, "admin-1", &stale); !errors.Is(err, ErrChanged) {
+		t.Fatalf("approve an older version: %v", err)
+	}
+	if _, err := e.svc.Approve(e.ctx, ad.ID, "admin-1", nil); !errors.Is(err, ErrChanged) {
+		t.Fatalf("approve without saying what was seen: %v", err)
+	}
 	before := time.Now()
-	approved, err := e.svc.Approve(e.ctx, ad.ID, "admin-1")
+	approved, err := e.svc.Approve(e.ctx, ad.ID, "admin-1", e.seen(t, ad.ID))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -314,10 +368,10 @@ func TestOnlineAdApprovedRunsForItsDaysFromApproval(t *testing.T) {
 	}
 	c := e.ads.campaigns[database.OID(approved.CampaignID)]
 	if c == nil || c.RecruiterAdID != ad.ID || c.OwnerID != rec || !c.EndAt.Equal(*approved.EndsAt) ||
-		c.CreativeURL != content().ImageURL || len(c.Cities) != 1 || c.FreqCap != DefaultFreqCap {
+		c.CreativeURL != content(rec).ImageURL || len(c.Cities) != 1 || c.FreqCap != DefaultFreqCap {
 		t.Fatalf("campaign = %+v", c)
 	}
-	if _, err := e.svc.Approve(e.ctx, ad.ID, "admin-1"); !errors.Is(err, ErrState) {
+	if _, err := e.svc.Approve(e.ctx, ad.ID, "admin-1", e.seen(t, ad.ID)); !errors.Is(err, ErrState) {
 		t.Fatalf("second approve: %v", err)
 	}
 	if _, err := e.svc.Reject(e.ctx, ad.ID, "admin-1", "late"); !errors.Is(err, ErrState) {
@@ -342,13 +396,13 @@ func TestChangeToRunningAdWaitsAndOldVersionKeepsRunning(t *testing.T) {
 	if _, _, _, err := e.svc.PayWithWallet(e.ctx, rec, ad.ID, ""); err != nil {
 		t.Fatal(err)
 	}
-	approved, err := e.svc.Approve(e.ctx, ad.ID, "admin-1")
+	approved, err := e.svc.Approve(e.ctx, ad.ID, "admin-1", e.seen(t, ad.ID))
 	if err != nil {
 		t.Fatal(err)
 	}
 	campaign := e.ads.campaigns[database.OID(approved.CampaignID)]
 
-	changed := content()
+	changed := content(rec)
 	changed.Headline = "Now hiring cooks"
 	changed.Cities = []string{"Mumbai"} // who sees it stays as approved
 	saved, err := e.svc.Save(e.ctx, rec, ad.ID, SaveRequest{Content: changed})
@@ -383,14 +437,23 @@ func TestChangeToRunningAdWaitsAndOldVersionKeepsRunning(t *testing.T) {
 	if refused.Revision != nil || refused.RevisionNote != "Headline is misleading." || refused.Headline != "We're hiring drivers" {
 		t.Fatalf("refused = %+v", refused)
 	}
-	if _, err := e.svc.ApproveChange(e.ctx, ad.ID, "admin-1"); !errors.Is(err, ErrNoRevision) {
+	if _, err := e.svc.ApproveChange(e.ctx, ad.ID, "admin-1", e.seenChange(t, ad.ID)); !errors.Is(err, ErrNoRevision) {
 		t.Fatalf("approve with nothing waiting: %v", err)
 	}
 
 	if _, err := e.svc.Save(e.ctx, rec, ad.ID, SaveRequest{Content: changed}); err != nil {
 		t.Fatal(err)
 	}
-	live, err := e.svc.ApproveChange(e.ctx, ad.ID, "admin-1")
+	// The recruiter edits the change while the admin is looking at it
+	looked := e.seenChange(t, ad.ID)
+	time.Sleep(2 * time.Millisecond)
+	if _, err := e.svc.Save(e.ctx, rec, ad.ID, SaveRequest{Content: changed}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := e.svc.ApproveChange(e.ctx, ad.ID, "admin-1", looked); !errors.Is(err, ErrChanged) {
+		t.Fatalf("approve a change that changed again: %v", err)
+	}
+	live, err := e.svc.ApproveChange(e.ctx, ad.ID, "admin-1", e.seenChange(t, ad.ID))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -420,18 +483,23 @@ func TestRejectedAdWithSpentCashbackRefundsTheRest(t *testing.T) {
 	if _, bonus := e.balances(t, rec); bonus != 100 {
 		t.Fatalf("cashback = %v", bonus)
 	}
-	// The recruiter spends the cashback
+	// The recruiter spends ₹60 of the ₹100 cashback
 	if _, _, err := e.wallet.RecordTransaction(e.ctx, wallet.RecordTransactionInput{
 		UserID: database.OID(rec), Type: wallet.TypeDebit, TargetBalance: wallet.BalanceBonus, Category: wallet.CategoryRecruiterPlan,
-		Amount: 100, ReferenceID: "spend-cashback", Description: "test",
+		Amount: 60, ReferenceID: "spend-cashback", Description: "test",
 	}); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := e.svc.Reject(e.ctx, ad.ID, "admin-1", "Not a job ad"); err != nil {
+	rejected, err := e.svc.Reject(e.ctx, ad.ID, "admin-1", "Not a job ad")
+	if err != nil {
 		t.Fatal(err)
 	}
-	if main, bonus := e.balances(t, rec); main != 900 || bonus != 0 {
+	// The ₹40 left comes from bonus, only the ₹60 spent from the refund
+	if rejected.RefundedPaise != 900_00 {
+		t.Fatalf("refunded = %d", rejected.RefundedPaise)
+	}
+	if main, bonus := e.balances(t, rec); main != 940 || bonus != 0 {
 		t.Fatalf("after refund main %v bonus %v", main, bonus)
 	}
 	if got := e.useStatus(t, Ref(ad.ID)); got != promo.StatusReversed {
@@ -446,16 +514,23 @@ func TestUnpaidAdRules(t *testing.T) {
 	p := e.pkg(t, 200, 5)
 	ad := e.write(t, rec, p)
 
-	if _, err := e.svc.Save(e.ctx, other, ad.ID, SaveRequest{Content: content()}); !errors.Is(err, ErrAdNotFound) {
+	if _, err := e.svc.Save(e.ctx, other, ad.ID, SaveRequest{Content: content(other)}); !errors.Is(err, ErrAdNotFound) {
 		t.Fatalf("someone else's ad: %v", err)
 	}
 	if _, err := e.svc.Overview(e.ctx, primitive.NewObjectID().Hex()); !errors.Is(err, ErrRecruitersOnly) {
 		t.Fatalf("not a recruiter: %v", err)
 	}
-	bad := content()
-	bad.ImageURL = "https://cdn.example.com/ad.mp4"
+	bad := content(rec)
+	bad.ImageURL = "https://cdn.example.com/ad_image/" + rec + "/ad.mp4"
 	if _, err := e.svc.Save(e.ctx, rec, "", SaveRequest{PackageID: p.ID, Content: bad}); !errors.Is(err, ErrImage) {
 		t.Fatalf("video: %v", err)
+	}
+	// Only the recruiter's own upload: another server's image could be swapped after approval
+	for _, img := range []string{"https://evil.example.com/ad_image/" + rec + "/ad.png", content(other).ImageURL} {
+		bad.ImageURL = img
+		if _, err := e.svc.Save(e.ctx, rec, "", SaveRequest{PackageID: p.ID, Content: bad}); !errors.Is(err, ErrImage) {
+			t.Fatalf("image %s: %v", img, err)
+		}
 	}
 
 	// Paying online for an ad deleted meanwhile refunds the payment

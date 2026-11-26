@@ -161,6 +161,11 @@ func (s *service) Update(ctx context.Context, id primitive.ObjectID, in *Campaig
 	if err != nil {
 		return nil, err
 	}
+	// A recruiter's paid ad changes only through its review (adsales), so its dates and content
+	// stay what was paid for and approved
+	if existing.RecruiterAdID != "" {
+		return nil, ErrPaidEdit
+	}
 	now := s.now()
 	c, err := in.Campaign(now)
 	if err != nil {

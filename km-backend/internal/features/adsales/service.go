@@ -20,6 +20,7 @@ import (
 	"km-backend/internal/features/promo"
 	"km-backend/internal/features/user"
 	"km-backend/internal/features/wallet"
+	"km-backend/internal/storage"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -47,9 +48,10 @@ type Service interface {
 	CreatePackage(ctx context.Context, in PackageInput) (*Package, error)
 	UpdatePackage(ctx context.Context, id string, in PackageInput) (*Package, error)
 	AdminAds(ctx context.Context, q AdminQuery) (*AdminPage, error)
-	Approve(ctx context.Context, adID, adminID string) (*Ad, error)
+	// Approve and ApproveChange take the updated_at / revision_at the admin saw; see RejectRequest.Seen
+	Approve(ctx context.Context, adID, adminID string, seen *time.Time) (*Ad, error)
 	Reject(ctx context.Context, adID, adminID, reason string) (*Ad, error)
-	ApproveChange(ctx context.Context, adID, adminID string) (*Ad, error)
+	ApproveChange(ctx context.Context, adID, adminID string, seen *time.Time) (*Ad, error)
 	RejectChange(ctx context.Context, adID, adminID, reason string) (*Ad, error)
 }
 
@@ -65,6 +67,8 @@ type service struct {
 	mailer   notification.Mailer
 	cfg      *config.Config
 	now      func() time.Time
+	// publicURL turns a storage key into its public address (the storage driver's PublicURL)
+	publicURL func(key string) string
 }
 
 // DefaultFreqCap is how often one person sees a recruiter ad a day. The admin can change it on
@@ -73,14 +77,15 @@ const DefaultFreqCap = 3
 
 func NewService(repo Repository, tx database.Transactor, walletService wallet.WalletService, payments payment.Service,
 	coupons promo.Service, adServer ads.Service, users user.UserRepository, notify notification.NotificationService,
-	mailer notification.Mailer, cfg *config.Config) Service {
-	return newService(repo, tx, walletService, payments, coupons, adServer, users, notify, mailer, cfg)
+	mailer notification.Mailer, cfg *config.Config, store storage.Storage) Service {
+	return newService(repo, tx, walletService, payments, coupons, adServer, users, notify, mailer, cfg, store.PublicURL)
 }
 
 func newService(repo Repository, tx database.Transactor, walletService wallet.WalletService, payments payment.Service,
-	coupons promo.Service, adServer ads.Service, users Users, notify notifier, mailer notification.Mailer, cfg *config.Config) *service {
+	coupons promo.Service, adServer ads.Service, users Users, notify notifier, mailer notification.Mailer, cfg *config.Config,
+	publicURL func(key string) string) *service {
 	s := &service{repo: repo, tx: tx, wallet: walletService, payments: payments, promo: coupons, ads: adServer,
-		users: users, mailer: mailer, cfg: cfg, now: time.Now}
+		users: users, mailer: mailer, cfg: cfg, now: time.Now, publicURL: publicURL}
 	if notify != nil {
 		s.notify = notify
 	}
@@ -212,6 +217,10 @@ func (s *service) Save(ctx context.Context, userID, adID string, req SaveRequest
 	content, err := req.Content.Clean()
 	if err != nil {
 		return nil, err
+	}
+	// Only the recruiter's own upload: a link to another server could be swapped after approval
+	if !strings.HasPrefix(content.ImageURL, s.publicURL("ad_image/"+userID+"/")) {
+		return nil, ErrImage
 	}
 
 	if adID == "" {
@@ -588,7 +597,12 @@ func displayName(u *user.User) string {
 	return strings.TrimSpace(u.Name)
 }
 
-func (s *service) Approve(ctx context.Context, adID, adminID string) (*Ad, error) {
+// sameTime: the admin's view of the ad is the current one
+func sameTime(seen *time.Time, at time.Time) bool {
+	return seen != nil && seen.Equal(at)
+}
+
+func (s *service) Approve(ctx context.Context, adID, adminID string, seen *time.Time) (*Ad, error) {
 	if !primitive.IsValidObjectID(adID) {
 		return nil, ErrAdNotFound
 	}
@@ -605,6 +619,9 @@ func (s *service) Approve(ctx context.Context, adID, adminID string) (*Ad, error
 		}
 		if ad.Status != StatusPending {
 			return ErrState
+		}
+		if !sameTime(seen, ad.UpdatedAt) {
+			return ErrChanged
 		}
 		// MongoDB keeps milliseconds, so the dates stored here and on the campaign agree
 		start := s.now().Truncate(time.Millisecond)
@@ -703,10 +720,11 @@ func (s *service) Reject(ctx context.Context, adID, adminID, reason string) (*Ad
 			}
 		}
 		// Gives the coupon use back and takes back its cashback, from the refund if it was spent
-		if err := s.promo.ReverseFromRefund(ctx, Ref(ad.ID)); err != nil {
+		taken, err := s.promo.ReverseFromRefund(ctx, Ref(ad.ID))
+		if err != nil {
 			return err
 		}
-		return s.repo.Reject(ctx, ad.ID, adminID, reason, ad.PricePaise)
+		return s.repo.Reject(ctx, ad.ID, adminID, reason, max(ad.PricePaise-taken, 0))
 	})
 	if err != nil {
 		return nil, err
@@ -716,17 +734,19 @@ func (s *service) Reject(ctx context.Context, adID, adminID, reason string) (*Ad
 		return nil, err
 	}
 	msg := fmt.Sprintf("Your ad \"%s\" wasn't approved: %s", ad.Headline, reason)
-	if ad.PricePaise > 0 {
-		msg += fmt.Sprintf(" %s is back in your KaamMilega wallet.", money.INR(ad.PricePaise))
+	if ad.RefundedPaise > 0 {
+		msg += fmt.Sprintf(" %s is back in your KaamMilega wallet.", money.INR(ad.RefundedPaise))
 	}
 	go s.notifyRecruiter(ad, "Ad not approved", msg)
 	return ad, nil
 }
 
-func (s *service) ApproveChange(ctx context.Context, adID, adminID string) (*Ad, error) {
+func (s *service) ApproveChange(ctx context.Context, adID, adminID string, seen *time.Time) (*Ad, error) {
 	if !primitive.IsValidObjectID(adID) {
 		return nil, ErrAdNotFound
 	}
+	var old *ads.Creative
+	var campaignID primitive.ObjectID
 	err := s.tx.Run(ctx, func(ctx context.Context) error {
 		ad, err := s.repo.GetAd(ctx, adID, true)
 		if err != nil {
@@ -738,13 +758,28 @@ func (s *service) ApproveChange(ctx context.Context, adID, adminID string) (*Ad,
 		if ad.Status != StatusApproved || ad.Revision == nil {
 			return ErrNoRevision
 		}
+		if ad.RevisionAt == nil || !sameTime(seen, *ad.RevisionAt) {
+			return ErrChanged
+		}
 		if err := s.repo.ApplyRevision(ctx, ad.ID, *ad.Revision); err != nil {
 			return err
 		}
-		// Last, so a failure here keeps the change waiting
-		return s.ads.SetCreative(ctx, database.OID(ad.CampaignID), ad.Revision.Creative())
+		// Last, so a failure here keeps the change waiting. The running version is kept to put
+		// back if the change doesn't commit.
+		running := ad.Content.Creative()
+		campaignID = database.OID(ad.CampaignID)
+		if err := s.ads.SetCreative(ctx, campaignID, ad.Revision.Creative()); err != nil {
+			return err
+		}
+		old = &running
+		return nil
 	})
 	if err != nil {
+		if old != nil {
+			if rbErr := s.ads.SetCreative(context.Background(), campaignID, *old); rbErr != nil {
+				log.Printf("[adsales] change to %s failed and campaign %s keeps the new version: %v", adID, campaignID.Hex(), rbErr)
+			}
+		}
 		return nil, err
 	}
 	ad, err := s.repo.GetAd(ctx, adID, false)

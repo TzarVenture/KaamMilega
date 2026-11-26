@@ -379,6 +379,9 @@ type Totals struct {
 // ErrPaidCampaign: a recruiter's paid ad can be paused but not deleted
 var ErrPaidCampaign = apperr.New("AD_PAID_CAMPAIGN", "This is a recruiter's paid ad. Pause it instead of deleting it.")
 
+// ErrPaidEdit: a recruiter's paid ad is changed through Recruiter ads, where changes are reviewed
+var ErrPaidEdit = apperr.New("AD_PAID_CAMPAIGN_EDIT", "This is a recruiter's paid ad. Changes go through Recruiter ads; you can only pause it here.")
+
 // DayStats is one day of a campaign's numbers
 type DayStats struct {
 	Day         string `bson:"day" json:"day"`

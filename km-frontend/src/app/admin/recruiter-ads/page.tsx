@@ -115,13 +115,13 @@ export default function AdminRecruiterAdsPage() {
         setBusy(true);
         try {
             if (action === 'approve') {
-                await recruiterAdsApi.approve(selected.id);
+                await recruiterAdsApi.approve(selected.id, selected.updated_at);
                 notify.success('Approved. The ad is live.');
             } else if (action === 'reject') {
                 const ad = await recruiterAdsApi.reject(selected.id, reason.trim());
                 notify.info(ad.refunded > 0 ? `Rejected. ${inr(ad.refunded)} is back in their wallet.` : 'Rejected.');
             } else if (action === 'approveChange') {
-                await recruiterAdsApi.approveChange(selected.id);
+                await recruiterAdsApi.approveChange(selected.id, selected.revision_at ?? '');
                 notify.success('The change is live.');
             } else {
                 await recruiterAdsApi.rejectChange(selected.id, reason.trim());
@@ -131,6 +131,11 @@ export default function AdminRecruiterAdsPage() {
             void loadAds();
         } catch (err) {
             notify.error(err, "Couldn't update the ad");
+            // Changed while the admin was looking: close it so the fresh version is reviewed
+            if ((err as { code?: string }).code === 'RECRUITER_AD_CHANGED') {
+                setSelected(null);
+                void loadAds();
+            }
         } finally {
             setBusy(false);
         }

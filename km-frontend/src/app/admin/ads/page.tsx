@@ -250,7 +250,7 @@ export default function AdsPage() {
                                                     {() => (
                                                         <>
                                                             <MenuItem icon={ChartBarIcon} onClick={() => setStatsFor(c)}>Daily numbers</MenuItem>
-                                                            <MenuItem icon={PencilSimpleIcon} onClick={() => { setEditing(c); setFormOpen(true); }}>Edit</MenuItem>
+                                                            {!c.recruiter_ad_id && <MenuItem icon={PencilSimpleIcon} onClick={() => { setEditing(c); setFormOpen(true); }}>Edit</MenuItem>}
                                                             {c.state !== 'ended' && (
                                                                 <MenuItem icon={c.status === 'paused' ? PlayIcon : PauseIcon} onClick={() => toggleStatus(c)}>
                                                                     {c.status === 'paused' ? 'Resume' : 'Pause'}

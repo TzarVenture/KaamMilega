@@ -53,6 +53,7 @@ export interface RecruiterAd extends AdContent {
     paid_at?: string;
     decided_at?: string;
     created_at: string;
+    updated_at: string;
     impressions: number;
     clicks: number;
     user_name?: string;
@@ -88,9 +89,11 @@ export const recruiterAdsApi = {
         api.get<unknown, { ads: RecruiterAd[]; total: number; total_pages: number }>('/admin/recruiter-ads', {
             params: { page, limit: 20, ...(filter !== 'all' && { status: filter }) },
         }),
-    approve: (id: string) => api.post<unknown, RecruiterAd>(`/admin/recruiter-ads/${id}/approve`),
+    // seen: the updated_at the admin looked at; the server refuses if the ad changed since
+    approve: (id: string, seen: string) => api.post<unknown, RecruiterAd>(`/admin/recruiter-ads/${id}/approve`, { seen }),
     reject: (id: string, reason: string) => api.post<unknown, RecruiterAd>(`/admin/recruiter-ads/${id}/reject`, { reason }),
-    approveChange: (id: string) => api.post<unknown, RecruiterAd>(`/admin/recruiter-ads/${id}/approve-change`),
+    // seen: the revision_at the admin looked at
+    approveChange: (id: string, seen: string) => api.post<unknown, RecruiterAd>(`/admin/recruiter-ads/${id}/approve-change`, { seen }),
     rejectChange: (id: string, reason: string) => api.post<unknown, RecruiterAd>(`/admin/recruiter-ads/${id}/reject-change`, { reason }),
 };
 

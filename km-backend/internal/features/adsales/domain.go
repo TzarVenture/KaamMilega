@@ -160,6 +160,9 @@ type CheckoutResponse struct {
 // RejectRequest is the admin's reason, shown to the recruiter
 type RejectRequest struct {
 	Reason string `json:"reason"`
+	// Seen is the ad's updated_at (or revision_at for a change) the admin was looking at. Approving
+	// is refused if the recruiter changed the ad since, so nothing goes live unseen.
+	Seen *time.Time `json:"seen,omitempty"`
 }
 
 // AdminQuery filters the admin's review list. Status "review" is new ads and changes waiting.
@@ -210,6 +213,7 @@ var (
 	ErrReason         = apperr.New("RECRUITER_AD_REASON_REQUIRED", "Give a reason of up to 300 characters. The recruiter sees it.")
 	ErrAlreadyEnded   = apperr.New("RECRUITER_AD_ENDED", "This ad has ended.")
 	ErrAlreadyRefund  = apperr.New("RECRUITER_AD_ALREADY_REFUNDED", "This ad was already refunded.")
+	ErrChanged        = apperr.New("RECRUITER_AD_CHANGED", "The recruiter changed this ad while you were looking. Check it again before deciding.")
 )
 
 func validLink(raw string) bool {

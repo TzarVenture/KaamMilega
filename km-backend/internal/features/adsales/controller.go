@@ -228,14 +228,14 @@ func (ctrl *Controller) AdminAds(c *fiber.Ctx) error {
 	return c.JSON(res)
 }
 
-func (ctrl *Controller) decide(c *fiber.Ctx, fn func(adID, adminID, reason string) (*Ad, error)) error {
+func (ctrl *Controller) decide(c *fiber.Ctx, fn func(adID, adminID string, body RejectRequest) (*Ad, error)) error {
 	var body RejectRequest
 	if len(c.Body()) > 0 {
 		if err := c.BodyParser(&body); err != nil {
 			return badBody(c)
 		}
 	}
-	ad, err := fn(c.Params("id"), userID(c), body.Reason)
+	ad, err := fn(c.Params("id"), userID(c), body)
 	if err != nil {
 		return fail(c, err)
 	}
@@ -248,7 +248,9 @@ func (ctrl *Controller) decide(c *fiber.Ctx, fn func(adID, adminID, reason strin
 // @Param id path string true "Ad ID"
 // @Router /api/admin/recruiter-ads/{id}/approve [post]
 func (ctrl *Controller) Approve(c *fiber.Ctx) error {
-	return ctrl.decide(c, func(id, admin, _ string) (*Ad, error) { return ctrl.service.Approve(c.UserContext(), id, admin) })
+	return ctrl.decide(c, func(id, admin string, b RejectRequest) (*Ad, error) {
+		return ctrl.service.Approve(c.UserContext(), id, admin, b.Seen)
+	})
 }
 
 // Reject godoc
@@ -258,8 +260,8 @@ func (ctrl *Controller) Approve(c *fiber.Ctx) error {
 // @Param body body RejectRequest true "Reason"
 // @Router /api/admin/recruiter-ads/{id}/reject [post]
 func (ctrl *Controller) Reject(c *fiber.Ctx) error {
-	return ctrl.decide(c, func(id, admin, reason string) (*Ad, error) {
-		return ctrl.service.Reject(c.UserContext(), id, admin, reason)
+	return ctrl.decide(c, func(id, admin string, b RejectRequest) (*Ad, error) {
+		return ctrl.service.Reject(c.UserContext(), id, admin, b.Reason)
 	})
 }
 
@@ -269,7 +271,9 @@ func (ctrl *Controller) Reject(c *fiber.Ctx) error {
 // @Param id path string true "Ad ID"
 // @Router /api/admin/recruiter-ads/{id}/approve-change [post]
 func (ctrl *Controller) ApproveChange(c *fiber.Ctx) error {
-	return ctrl.decide(c, func(id, admin, _ string) (*Ad, error) { return ctrl.service.ApproveChange(c.UserContext(), id, admin) })
+	return ctrl.decide(c, func(id, admin string, b RejectRequest) (*Ad, error) {
+		return ctrl.service.ApproveChange(c.UserContext(), id, admin, b.Seen)
+	})
 }
 
 // RejectChange godoc
@@ -279,7 +283,7 @@ func (ctrl *Controller) ApproveChange(c *fiber.Ctx) error {
 // @Param body body RejectRequest true "Reason"
 // @Router /api/admin/recruiter-ads/{id}/reject-change [post]
 func (ctrl *Controller) RejectChange(c *fiber.Ctx) error {
-	return ctrl.decide(c, func(id, admin, reason string) (*Ad, error) {
-		return ctrl.service.RejectChange(c.UserContext(), id, admin, reason)
+	return ctrl.decide(c, func(id, admin string, b RejectRequest) (*Ad, error) {
+		return ctrl.service.RejectChange(c.UserContext(), id, admin, b.Reason)
 	})
 }
