@@ -2,6 +2,7 @@ package ads
 
 import (
 	"context"
+	"errors"
 	"math/rand"
 	"time"
 
@@ -25,6 +26,15 @@ type Service interface {
 	// Daily is the campaign's last n days, oldest first, with empty days filled in
 	Daily(ctx context.Context, id primitive.ObjectID, n int) ([]DayStats, error)
 	UserCity(ctx context.Context, userID primitive.ObjectID) (string, error)
+
+	// RunPaid starts a recruiter's approved ad. The campaign's ID is set by the caller, so a retry
+	// adds nothing new.
+	RunPaid(ctx context.Context, c *Campaign) error
+	// SetCreative swaps the text, image and link of a running ad, keeping its dates and slots
+	SetCreative(ctx context.Context, id primitive.ObjectID, cr Creative) error
+	// Remove deletes a campaign that never ran (an approval that failed after it was added)
+	Remove(ctx context.Context, id primitive.ObjectID) error
+	Totals(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]Totals, error)
 }
 
 type service struct {
@@ -151,6 +161,11 @@ func (s *service) Update(ctx context.Context, id primitive.ObjectID, in *Campaig
 	if err != nil {
 		return nil, err
 	}
+	// A recruiter's paid ad changes only through its review (adsales), so its dates and content
+	// stay what was paid for and approved
+	if existing.RecruiterAdID != "" {
+		return nil, ErrPaidEdit
+	}
 	now := s.now()
 	c, err := in.Campaign(now)
 	if err != nil {
@@ -178,7 +193,44 @@ func (s *service) SetStatus(ctx context.Context, id primitive.ObjectID, status s
 }
 
 func (s *service) Delete(ctx context.Context, id primitive.ObjectID) error {
+	c, err := s.repo.Get(ctx, id)
+	if err != nil {
+		return err
+	}
+	if c.RecruiterAdID != "" {
+		return ErrPaidCampaign
+	}
 	return s.repo.Delete(ctx, id)
+}
+
+func (s *service) RunPaid(ctx context.Context, c *Campaign) error {
+	if c.ID.IsZero() || c.RecruiterAdID == "" {
+		return errors.New("ads: a paid campaign needs its ID and recruiter ad")
+	}
+	now := s.now()
+	c.CreativeType = CreativeImage
+	c.Status = StatusActive
+	if c.Priority == 0 {
+		c.Priority = 5
+	}
+	c.CreatedAt, c.UpdatedAt = now, now
+	return s.repo.Insert(ctx, c)
+}
+
+func (s *service) SetCreative(ctx context.Context, id primitive.ObjectID, cr Creative) error {
+	return s.repo.SetCreative(ctx, id, cr)
+}
+
+func (s *service) Remove(ctx context.Context, id primitive.ObjectID) error {
+	err := s.repo.Delete(ctx, id)
+	if errors.Is(err, ErrNotFound) {
+		return nil
+	}
+	return err
+}
+
+func (s *service) Totals(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]Totals, error) {
+	return s.repo.Totals(ctx, ids)
 }
 
 func (s *service) Get(ctx context.Context, id primitive.ObjectID) (*Campaign, error) {

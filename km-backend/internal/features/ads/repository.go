@@ -35,6 +35,11 @@ type Repository interface {
 	Daily(ctx context.Context, id primitive.ObjectID, fromDay string) ([]DayStats, error)
 
 	UserCity(ctx context.Context, userID primitive.ObjectID) (string, error)
+
+	// Insert adds a campaign with its ID already set; adding the same one again changes nothing
+	Insert(ctx context.Context, c *Campaign) error
+	SetCreative(ctx context.Context, id primitive.ObjectID, cr Creative) error
+	Totals(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]Totals, error)
 }
 
 type mongoRepository struct {
@@ -273,4 +278,49 @@ func (r *mongoRepository) UserCity(ctx context.Context, userID primitive.ObjectI
 		return "", nil
 	}
 	return u.City, err
+}
+
+func (r *mongoRepository) Insert(ctx context.Context, c *Campaign) error {
+	_, err := r.campaigns.InsertOne(ctx, c)
+	if mongo.IsDuplicateKeyError(err) {
+		return nil
+	}
+	return err
+}
+
+func (r *mongoRepository) SetCreative(ctx context.Context, id primitive.ObjectID, cr Creative) error {
+	res, err := r.campaigns.UpdateByID(ctx, id, bson.M{"$set": bson.M{
+		"advertiser": cr.Advertiser, "headline": cr.Headline, "body": cr.Body, "cta_label": cr.CTALabel,
+		"creative_type": CreativeImage, "creative_url": cr.ImageURL, "link_url": cr.LinkURL, "updated_at": time.Now(),
+	}})
+	if err != nil {
+		return err
+	}
+	if res.MatchedCount == 0 {
+		return ErrNotFound
+	}
+	return nil
+}
+
+func (r *mongoRepository) Totals(ctx context.Context, ids []primitive.ObjectID) (map[primitive.ObjectID]Totals, error) {
+	out := map[primitive.ObjectID]Totals{}
+	if len(ids) == 0 {
+		return out, nil
+	}
+	cur, err := r.campaigns.Find(ctx, bson.M{"_id": bson.M{"$in": ids}},
+		options.Find().SetProjection(bson.M{"impressions": 1, "clicks": 1}))
+	if err != nil {
+		return nil, err
+	}
+	var rows []struct {
+		ID     primitive.ObjectID `bson:"_id"`
+		Totals `bson:",inline"`
+	}
+	if err := cur.All(ctx, &rows); err != nil {
+		return nil, err
+	}
+	for _, row := range rows {
+		out[row.ID] = row.Totals
+	}
+	return out, nil
 }

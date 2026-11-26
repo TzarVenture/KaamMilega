@@ -17,6 +17,7 @@ import {
 const PURPOSES: { value: CouponPurpose; label: string }[] = [
     { value: 'instant_pass', label: 'InstantPass' },
     { value: 'recruiter_plan', label: 'Recruiter plans' },
+    { value: 'recruiter_ad', label: 'Recruiter ads' },
 ];
 
 const EMPTY_COUPON: CouponInput = {

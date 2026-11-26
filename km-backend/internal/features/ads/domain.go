@@ -135,6 +135,10 @@ type Campaign struct {
 	Impressions int64 `bson:"impressions" json:"impressions"`
 	Clicks      int64 `bson:"clicks" json:"clicks"`
 
+	// A recruiter's paid ad (adsales): the ad's id and the recruiter. Empty for the admin's own.
+	RecruiterAdID string `bson:"recruiter_ad_id,omitempty" json:"recruiter_ad_id,omitempty"`
+	OwnerID       string `bson:"owner_id,omitempty" json:"owner_id,omitempty"`
+
 	CreatedBy primitive.ObjectID `bson:"created_by,omitempty" json:"-"`
 	CreatedAt time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time          `bson:"updated_at" json:"updated_at"`
@@ -355,6 +359,28 @@ func (in *CampaignInput) Campaign(now time.Time) (*Campaign, error) {
 	}
 	return c, nil
 }
+
+// Creative is what a recruiter can change on a running ad
+type Creative struct {
+	Advertiser string
+	Headline   string
+	Body       string
+	CTALabel   string
+	ImageURL   string
+	LinkURL    string
+}
+
+// Totals are a campaign's counts so far
+type Totals struct {
+	Impressions int64 `bson:"impressions" json:"impressions"`
+	Clicks      int64 `bson:"clicks" json:"clicks"`
+}
+
+// ErrPaidCampaign: a recruiter's paid ad can be paused but not deleted
+var ErrPaidCampaign = apperr.New("AD_PAID_CAMPAIGN", "This is a recruiter's paid ad. Pause it instead of deleting it.")
+
+// ErrPaidEdit: a recruiter's paid ad is changed through Recruiter ads, where changes are reviewed
+var ErrPaidEdit = apperr.New("AD_PAID_CAMPAIGN_EDIT", "This is a recruiter's paid ad. Changes go through Recruiter ads; you can only pause it here.")
 
 // DayStats is one day of a campaign's numbers
 type DayStats struct {

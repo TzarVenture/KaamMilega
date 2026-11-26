@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"km-backend/internal/features/ads"
+	"km-backend/internal/features/adsales"
 	"km-backend/internal/features/analytics"
 	"km-backend/internal/features/company"
 	"km-backend/internal/features/course"
@@ -242,6 +243,7 @@ func appOptions() fx.Option {
 			feed.NewFeedRepository,
 			analytics.NewRepository,
 			ads.NewRepository,
+			adsales.NewRepository,
 			policies.NewRepository,
 
 			// Services
@@ -282,6 +284,7 @@ func appOptions() fx.Option {
 			feed.NewFeedService,
 			analytics.NewService,
 			ads.NewService,
+			adsales.NewService,
 			policies.NewService,
 
 			// controllers
@@ -307,6 +310,7 @@ func appOptions() fx.Option {
 			testimonial.NewTestimonialController,
 			app_waitlist.NewController,
 			ads.NewController,
+			adsales.NewController,
 			policies.NewController,
 			account.NewController,
 			credential.NewController,
@@ -339,6 +343,7 @@ func appOptions() fx.Option {
 			AsRoute(testimonial.NewTestimonialApi),
 			AsRoute(app_waitlist.NewApi),
 			AsRoute(ads.NewApi),
+			AsRoute(adsales.NewApi),
 			AsRoute(policies.NewApi),
 			AsRoute(account.NewApi),
 			AsRoute(credential.NewApi),

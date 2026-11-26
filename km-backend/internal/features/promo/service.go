@@ -62,6 +62,9 @@ type Service interface {
 	// Reverse gives back the coupon use of a purchase being refunded in full, and takes back its
 	// cashback. Call it from the refund (Revoke) handler, in its transaction.
 	Reverse(ctx context.Context, purchaseRef string) error
+	// ReverseFromRefund is Reverse for a refund that was just credited to the wallet: cashback the
+	// member already spent is taken from the main balance instead, so the refund is net of it.
+	ReverseFromRefund(ctx context.Context, purchaseRef string) (takenPaise int64, err error)
 
 	AdminCoupons(ctx context.Context) ([]CouponStats, error)
 	CreateCoupon(ctx context.Context, adminID string, in CouponInput) (*Coupon, error)
@@ -429,30 +432,68 @@ func (s *service) creditCashback(ctx context.Context, userID primitive.ObjectID,
 }
 
 func (s *service) Reverse(ctx context.Context, purchaseRef string) error {
+	return s.reverse(ctx, purchaseRef, false)
+}
+
+func (s *service) ReverseFromRefund(ctx context.Context, purchaseRef string) (int64, error) {
+	return s.reverseTaken(ctx, purchaseRef, true)
+}
+
+func (s *service) reverse(ctx context.Context, purchaseRef string, mainIfSpent bool) error {
+	_, err := s.reverseTaken(ctx, purchaseRef, mainIfSpent)
+	return err
+}
+
+// reverseTaken gives the coupon use back and takes back its cashback from the bonus balance. With
+// mainIfSpent, cashback already spent is taken from main: what bonus is left first, then only the
+// rest from main. It returns how much was taken back.
+func (s *service) reverseTaken(ctx context.Context, purchaseRef string, mainIfSpent bool) (int64, error) {
 	use, err := s.repo.GetRedemptionByPurchase(ctx, purchaseRef)
 	if err != nil || use == nil || use.Status != StatusRedeemed {
-		return err
+		return 0, err
 	}
 	if use.CashbackPaise > 0 {
-		_, _, err := s.wallet.RecordTransaction(ctx, wallet.RecordTransactionInput{
-			UserID:        database.OID(use.UserID),
-			Type:          wallet.TypeDebit,
-			TargetBalance: wallet.BalanceBonus,
-			Category:      wallet.CategoryCashback,
-			Amount:        money.ToRupees(use.CashbackPaise),
-			ReferenceID:   "coupon:" + use.ID + ":cashback_reversal",
-			Description:   "Cashback taken back with a refund",
-			Metadata:      map[string]interface{}{"coupon_redemption_id": use.ID, "purchase_ref": use.PurchaseRef},
-		})
-		if errors.Is(err, wallet.ErrInsufficient) {
-			return ErrCashbackSpent
+		fromBonus := use.CashbackPaise
+		if mainIfSpent {
+			sum, err := s.wallet.GetWalletSummary(ctx, use.UserID)
+			if err != nil {
+				return 0, err
+			}
+			if left := money.ToPaise(sum.BonusBalance); left < fromBonus {
+				fromBonus = max(left, 0)
+			}
 		}
-		if err != nil {
-			return err
+		in := wallet.RecordTransactionInput{
+			UserID:      database.OID(use.UserID),
+			Type:        wallet.TypeDebit,
+			Category:    wallet.CategoryCashback,
+			Description: "Cashback taken back with a refund",
+			Metadata:    map[string]interface{}{"coupon_redemption_id": use.ID, "purchase_ref": use.PurchaseRef},
+		}
+		if fromBonus > 0 {
+			in.TargetBalance, in.Amount = wallet.BalanceBonus, money.ToRupees(fromBonus)
+			in.ReferenceID = "coupon:" + use.ID + ":cashback_reversal"
+			if _, _, err := s.wallet.RecordTransaction(ctx, in); errors.Is(err, wallet.ErrInsufficient) {
+				return 0, ErrCashbackSpent
+			} else if err != nil {
+				return 0, err
+			}
+		}
+		if rest := use.CashbackPaise - fromBonus; rest > 0 {
+			in.TargetBalance, in.Amount = wallet.BalanceMain, money.ToRupees(rest)
+			in.ReferenceID = "coupon:" + use.ID + ":cashback_reversal:main"
+			in.Description = "Spent cashback taken from your refund"
+			if _, _, err := s.wallet.RecordTransaction(ctx, in); errors.Is(err, wallet.ErrInsufficient) {
+				return 0, ErrCashbackSpent
+			} else if err != nil {
+				return 0, err
+			}
 		}
 	}
-	_, err = s.repo.SetStatus(ctx, use.ID, []string{StatusRedeemed}, StatusReversed, "", 0, s.now())
-	return err
+	if _, err := s.repo.SetStatus(ctx, use.ID, []string{StatusRedeemed}, StatusReversed, "", 0, s.now()); err != nil {
+		return 0, err
+	}
+	return use.CashbackPaise, nil
 }
 
 // ---------------------------------------------------------------------------------------------

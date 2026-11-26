@@ -15,6 +15,7 @@ import {
     SignOutIcon,
     SquaresFourIcon,
     TagIcon,
+    MegaphoneIcon,
     WalletIcon,
     WarningCircleIcon,
 } from "@phosphor-icons/react";
@@ -30,6 +31,7 @@ const sidebarItems = [
     { name: "Scheduled Interviews", href: "/recruiter/interviews", icon: CalendarBlankIcon },
     { name: "Company Profile", href: "/recruiter/company", icon: BuildingsIcon },
     { name: "Hiring Plan", href: "/recruiter/plan", icon: TagIcon },
+    { name: "Advertise", href: "/recruiter/ads", icon: MegaphoneIcon },
     { name: "Billing & Wallet", href: "/wallet", icon: WalletIcon },
     { name: "Account Settings", href: "/recruiter/settings", icon: GearSixIcon },
 ];

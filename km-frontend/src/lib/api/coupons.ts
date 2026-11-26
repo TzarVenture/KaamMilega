@@ -1,7 +1,7 @@
 import api from '@/lib/axios';
 
 /** What a coupon can be used on (backend payment purposes) */
-export type CouponPurpose = 'instant_pass' | 'recruiter_plan';
+export type CouponPurpose = 'instant_pass' | 'recruiter_plan' | 'recruiter_ad';
 export type CouponKind = 'discount' | 'cashback';
 export type CouponValueType = 'flat' | 'percent';
 

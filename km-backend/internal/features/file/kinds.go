@@ -32,6 +32,8 @@ var kinds = map[string]Kind{
 	"event_image":  {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
 	"feed_image":   {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
 	// Ad creatives (admins only): an image, an animated GIF or a short muted video
+	// A recruiter's paid ad (adsales): a still image only; an admin checks it before it runs
+	"ad_image":    {Visibility: storage.Public, Extensions: imageExts, MaxSize: 5 << 20},
 	"ad_creative": {Visibility: storage.Public, Extensions: append([]string{".gif", ".mp4", ".webm"}, imageExts...), MaxSize: MaxUploadSize, AdminOnly: true},
 
 	// Private: owner, admins and the people the file was shared with, through signed links
@@ -47,9 +49,9 @@ var kinds = map[string]Kind{
 }
 
 var (
-	errUnknownKind  = apperr.New("FILE_KIND_INVALID", "Unknown upload type.")
-	errKindFileType = apperr.New("FILE_TYPE_NOT_ALLOWED_HERE", "This file type isn't allowed here.")
-	errKindTooLarge = apperr.New("FILE_TOO_LARGE_HERE", "This file is over the size limit for this upload.")
+	errUnknownKind   = apperr.New("FILE_KIND_INVALID", "Unknown upload type.")
+	errKindFileType  = apperr.New("FILE_TYPE_NOT_ALLOWED_HERE", "This file type isn't allowed here.")
+	errKindTooLarge  = apperr.New("FILE_TOO_LARGE_HERE", "This file is over the size limit for this upload.")
 	errKindAdminOnly = apperr.New("FILE_KIND_ADMIN_ONLY", "Only admins can upload this.")
 )
 

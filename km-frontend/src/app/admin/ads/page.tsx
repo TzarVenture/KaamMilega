@@ -222,7 +222,7 @@ export default function AdsPage() {
                                                     </span>
                                                     <span className="min-w-0">
                                                         <span className="block font-medium text-km-heading truncate">{c.name}</span>
-                                                        <span className="block text-xs text-km-text-secondary truncate">{c.advertiser}</span>
+                                                        <span className="block text-xs text-km-text-secondary truncate">{c.advertiser}{c.recruiter_ad_id && ' · Recruiter ad'}</span>
                                                     </span>
                                                 </div>
                                             </td>
@@ -250,13 +250,14 @@ export default function AdsPage() {
                                                     {() => (
                                                         <>
                                                             <MenuItem icon={ChartBarIcon} onClick={() => setStatsFor(c)}>Daily numbers</MenuItem>
-                                                            <MenuItem icon={PencilSimpleIcon} onClick={() => { setEditing(c); setFormOpen(true); }}>Edit</MenuItem>
+                                                            {!c.recruiter_ad_id && <MenuItem icon={PencilSimpleIcon} onClick={() => { setEditing(c); setFormOpen(true); }}>Edit</MenuItem>}
                                                             {c.state !== 'ended' && (
                                                                 <MenuItem icon={c.status === 'paused' ? PlayIcon : PauseIcon} onClick={() => toggleStatus(c)}>
                                                                     {c.status === 'paused' ? 'Resume' : 'Pause'}
                                                                 </MenuItem>
                                                             )}
-                                                            <MenuItem icon={TrashIcon} danger onClick={() => setDeleteTarget(c)}>Delete</MenuItem>
+                                                            {/* A paid recruiter ad can be paused, not deleted */}
+                                                            {!c.recruiter_ad_id && <MenuItem icon={TrashIcon} danger onClick={() => setDeleteTarget(c)}>Delete</MenuItem>}
                                                         </>
                                                     )}
                                                 </RowMenu>
