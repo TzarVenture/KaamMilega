@@ -40,6 +40,13 @@ type WalletService interface {
 	GetAdminDisputes(ctx context.Context, query DisputeQuery) (*DisputeListResponse, error)
 	ResolveDispute(ctx context.Context, disputeID string, adminID string, req ResolveDisputeRequest) (*WalletDispute, *WalletSummaryResponse, error)
 
+	// Refunds of unspent top-up money (client answer Q11)
+	GetTopupRefundInfo(ctx context.Context, userID string) (*TopupRefundInfo, error)
+	RequestTopupRefund(ctx context.Context, userID string, req TopupRefundRequest) (*TopupRefund, error)
+	GetAdminTopupRefunds(ctx context.Context, query TopupRefundQuery) (*TopupRefundListResponse, error)
+	ApproveTopupRefund(ctx context.Context, id, adminID string) (*TopupRefund, error)
+	RejectTopupRefund(ctx context.Context, id, adminID string, req RejectTopupRefundRequest) (*TopupRefund, error)
+
 	// Admin finance
 	GetFinanceOverview(ctx context.Context) (*FinanceOverview, error)
 	LookupWallet(ctx context.Context, search string) (*WalletLookupResponse, error)

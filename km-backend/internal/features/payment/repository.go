@@ -30,6 +30,7 @@ type Repository interface {
 	ListRefundDue(ctx context.Context, limit int64) ([]Order, error)
 	MarkExpired(ctx context.Context, id primitive.ObjectID, now time.Time) error
 	SumPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) (int64, error)
+	ListPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) ([]Order, error)
 	AdminList(ctx context.Context, query AdminOrderQuery) ([]Order, int64, error)
 }
 
@@ -250,6 +251,12 @@ func (r *pgRepository) SumPaidSince(ctx context.Context, userID primitive.Object
 		WHERE user_id = ? AND purpose = ? AND status = 'paid' AND paid_at >= ?`,
 		userID.Hex(), string(purpose), since).Scan(&total).Error
 	return total, err
+}
+
+// ListPaidSince returns a user's paid (not refunded) orders for a purpose since a moment, newest first.
+func (r *pgRepository) ListPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) ([]Order, error) {
+	return r.list(ctx, `WHERE user_id = ? AND purpose = ? AND status = 'paid' AND paid_at >= ? ORDER BY paid_at DESC, id DESC`,
+		userID.Hex(), string(purpose), since)
 }
 
 func (r *pgRepository) AdminList(ctx context.Context, query AdminOrderQuery) ([]Order, int64, error) {

@@ -48,6 +48,9 @@ type WalletRepository interface {
 	UpdateDispute(ctx context.Context, id primitive.ObjectID, from []DisputeStatus, update DisputeUpdate) (bool, error)
 
 	FinanceOverview(ctx context.Context) (*FinanceOverview, error)
+
+	// Refunds of unspent top-up money
+	TopupRefundRepository
 }
 
 // WithdrawalUpdate is a withdrawal's move to its next status.

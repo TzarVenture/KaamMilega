@@ -13,6 +13,7 @@ import WalletDisputeModal from '@/components/km/WalletDisputeModal';
 import AddMoneyModal from '@/components/km/AddMoneyModal';
 import WithdrawModal from '@/components/km/WithdrawModal';
 import InstantPassCard from '@/components/instant-milega/InstantPassCard';
+import TopupRefundCard from '@/components/km/TopupRefundCard';
 
 export interface WalletSummary {
     total_balance: number;
@@ -90,6 +91,8 @@ export default function WalletPage() {
                         {(wallet?.bonus_balance ?? 0) > 0 && <StatCard label={t('bonus')} value={value(wallet?.bonus_balance)} />}
                     </div>
                 )}
+
+                {!failed && <TopupRefundCard refreshKey={refreshKey} onRequested={refresh} />}
 
                 {!failed && <InstantPassCard onBought={refresh} />}
 

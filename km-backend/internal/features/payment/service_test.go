@@ -151,6 +151,8 @@ type fakeGateway struct {
 	payments  map[string]*GatewayPayment
 	refunds   []string
 	refundErr error
+	// Amount of each refund sent, in paise
+	refundPaise []int64
 	captured  []string
 }
 
@@ -186,6 +188,7 @@ func (g *fakeGateway) Refund(ctx context.Context, id string, amount int64, key s
 		return "", g.refundErr
 	}
 	g.refunds = append(g.refunds, id)
+	g.refundPaise = append(g.refundPaise, amount)
 	g.payments[id].AmountRefunded += amount
 	return "rfnd_1", nil
 }
@@ -569,5 +572,45 @@ func TestRazorpaySignatureCheck(t *testing.T) {
 	unconfigured := NewGateway(&config.Config{})
 	if unconfigured.CheckoutSignatureValid("o", "p", sign("", "o|p")) || unconfigured.WebhookSignatureValid([]byte("b"), sign("", "b")) {
 		t.Error("an empty secret must never validate")
+	}
+}
+
+// A wallet refund can send back part of a top-up. A retry after Razorpay already took it must not
+// send the part again.
+func TestPartialRefundIsSentOnce(t *testing.T) {
+	h := newHarness()
+	ctx := context.Background()
+	id := h.order(t, 30000)
+	h.pay(id, "pay_1", gatewayCaptured, 30000)
+	if _, err := h.confirm(id, "pay_1"); err != nil {
+		t.Fatal(err)
+	}
+
+	order, err := h.svc.MarkRefundDue(ctx, id, 20000, "unspent money")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := h.svc.ProcessRefund(ctx, order.ID); err != nil {
+		t.Fatal(err)
+	}
+	if len(h.gateway.refundPaise) != 1 || h.gateway.refundPaise[0] != 20000 {
+		t.Fatalf("refunds sent = %v", h.gateway.refundPaise)
+	}
+
+	// Razorpay reports a failure after all, and the recovery job tries again: it sees the money
+	// already went back and sends nothing more
+	if err := h.repo.ReopenRefund(ctx, order.ID, "refund failed"); err != nil {
+		t.Fatal(err)
+	}
+	if err := h.svc.Reconcile(ctx); err != nil {
+		t.Fatal(err)
+	}
+	if len(h.gateway.refundPaise) != 1 {
+		t.Fatalf("refunds sent after retry = %v", h.gateway.refundPaise)
+	}
+
+	// A second refund of the same top-up is refused
+	if _, err := h.svc.MarkRefundDue(ctx, id, 10000, "again"); err == nil {
+		t.Fatal("second refund was queued")
 	}
 }

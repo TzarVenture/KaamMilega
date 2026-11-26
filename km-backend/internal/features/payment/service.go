@@ -38,6 +38,8 @@ type Service interface {
 	HandleWebhook(ctx context.Context, body []byte, signature string) error
 	Reconcile(ctx context.Context) error
 	SumPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) (int64, error)
+	// ListPaidSince returns a user's paid, not refunded, orders for a purpose since a moment, newest first
+	ListPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) ([]Order, error)
 
 	// MarkRefundDue queues a refund to the original payment method. It joins the caller's
 	// transaction; call ProcessRefund after that commits (the recovery job also picks it up).
@@ -467,6 +469,10 @@ func (s *service) ProcessRefund(ctx context.Context, orderID primitive.ObjectID)
 
 func (s *service) SumPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) (int64, error) {
 	return s.repo.SumPaidSince(ctx, userID, purpose, since)
+}
+
+func (s *service) ListPaidSince(ctx context.Context, userID primitive.ObjectID, purpose Purpose, since time.Time) ([]Order, error) {
+	return s.repo.ListPaidSince(ctx, userID, purpose, since)
 }
 
 func (s *service) AdminList(ctx context.Context, query AdminOrderQuery) (*AdminOrderList, error) {

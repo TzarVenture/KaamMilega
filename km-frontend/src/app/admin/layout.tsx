@@ -38,6 +38,7 @@ import {
     UsersIcon,
     VideoCameraIcon,
     XIcon,
+    ArrowCounterClockwiseIcon,
     BankIcon,
     ChartLineUpIcon,
     ChatsCircleIcon,
@@ -100,6 +101,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
         label: 'Money',
         items: [
             { name: 'Payouts', icon: BankIcon, href: '/admin/payouts' },
+            { name: 'Top-up refunds', icon: ArrowCounterClockwiseIcon, href: '/admin/topup-refunds' },
             { name: 'Finance', icon: ChartLineUpIcon, href: '/admin/finance' },
             { name: 'Payments', icon: CreditCardIcon, href: '/admin/payments' },
         ],

@@ -1873,5 +1873,24 @@
     "sharedOff": "Your resume is private again",
     "failed": "Couldn't save your resume",
     "tooBig": "Your resume must be under 5 MB"
+  },
+  "topupRefund": {
+    "title": "Refund unspent money",
+    "button": "Refund my money",
+    "canRefund": "{amount} you added and haven't spent can go back to your original payment.",
+    "tooOld": "{amount} is from top-ups older than 6 months, so it can't be refunded. You can still spend it.",
+    "waiting": "Refund of {amount} requested on {date}. Waiting for approval.",
+    "refunded": "{amount} was refunded on {date}. Banks usually take 5 to 7 working days.",
+    "rejected": "Your last refund request was declined: {reason}",
+    "confirmTitle": "Refund {amount}?",
+    "pointAll": "All {amount} of your unspent money goes back at once.",
+    "pointSource": "It goes back to the card, UPI or bank you paid with.",
+    "pointNoFee": "There is no fee. You get the full amount.",
+    "pointHeld": "The money is held until our team approves the refund. Banks usually take 5 to 7 working days after that.",
+    "reasonLabel": "Reason (optional)",
+    "cancel": "Cancel",
+    "submit": "Request refund",
+    "requested": "Refund requested. We'll let you know once it's approved.",
+    "failed": "Couldn't request the refund"
   }
 }

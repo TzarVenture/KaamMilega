@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"time"
 
 	"km-backend/internal/features/payment"
@@ -98,6 +99,29 @@ func (f *Fake) MarkRefundDue(ctx context.Context, razorpayOrderID string, paise 
 
 func (f *Fake) ProcessRefundByRazorpayOrder(ctx context.Context, razorpayOrderID string) error {
 	return nil
+}
+
+// ListPaidSince returns paid orders newest first; an order without a paid time counts from its creation
+func (f *Fake) ListPaidSince(ctx context.Context, userID primitive.ObjectID, purpose payment.Purpose, since time.Time) ([]payment.Order, error) {
+	var list []payment.Order
+	for _, order := range f.Orders {
+		paid := order.CreatedAt
+		if order.PaidAt != nil {
+			paid = *order.PaidAt
+		}
+		if order.UserID == userID && order.Purpose == purpose && order.Status == payment.StatusPaid && !paid.Before(since) {
+			list = append(list, *order)
+		}
+	}
+	sort.Slice(list, func(i, j int) bool { return paidAt(list[i]).After(paidAt(list[j])) })
+	return list, nil
+}
+
+func paidAt(o payment.Order) time.Time {
+	if o.PaidAt != nil {
+		return *o.PaidAt
+	}
+	return o.CreatedAt
 }
 
 func (f *Fake) SumPaidSince(ctx context.Context, userID primitive.ObjectID, purpose payment.Purpose, since time.Time) (int64, error) {
