@@ -30,6 +30,11 @@ func (api *JobApi) Setup(app *fiber.App) {
 	// Jobs are posted by recruiters (a saved company), Experts and the KaamMilega team
 	protected.Post("/", jwtAuth, middleware.RequireRole("recruiter", "expert", "admin"), api.controller.CreateJob)
 	protected.Get("/my", jwtAuth, api.controller.GetMyJobs)
+	// The employer portal: paged own jobs with stage counts, one job's home, status and copy
+	protected.Get("/mine", jwtAuth, api.controller.ListMyJobs)
+	protected.Get("/mine/:id", jwtAuth, api.controller.GetMyJob)
+	protected.Patch("/:id/status", jwtAuth, api.controller.SetMyJobStatus)
+	protected.Post("/:id/duplicate", jwtAuth, middleware.RequireRole("recruiter", "expert", "admin"), api.controller.DuplicateMyJob)
 	protected.Patch("/:id", jwtAuth, api.controller.UpdateJob)
 	protected.Delete("/:id", jwtAuth, api.controller.DeleteJob)
 

@@ -325,6 +325,7 @@ func appOptions() fx.Option {
 			AsRoute(sms.NewSMSApi),
 			AsRoute(setting.NewSettingApi),
 			AsRoute(user.NewUserApi),
+			AsRoute(user.NewTalentApi),
 			AsRoute(wallet.NewWalletApi),
 			AsRoute(skill.NewSkillApi),
 			AsRoute(job.NewJobApi),

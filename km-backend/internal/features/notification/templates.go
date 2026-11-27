@@ -39,6 +39,7 @@ type templateRegistry struct {
 	emailOTP           *template.Template
 	accountNotice      *template.Template
 	jobAlert           *template.Template
+	newApplication     *template.Template
 }
 
 // mustParseTemplates builds isolated template trees for every transactional email type.
@@ -51,6 +52,7 @@ func mustParseTemplates() *templateRegistry {
 		withdrawalAdmin:    template.Must(template.New("withdrawal_admin").Parse(baseLayout + withdrawalAdminTmpl)),
 		emailOTP:           template.Must(template.New("email_otp").Parse(baseLayout + emailOTPTmpl)),
 		accountNotice:      template.Must(template.New("account_notice").Parse(baseLayout + accountNoticeTmpl)),
+		newApplication:     template.Must(template.New("new_application").Parse(baseLayout + newApplicationTmpl)),
 		jobAlert:           template.Must(template.New("job_alert").Funcs(jobAlertFuncs).Parse(baseLayout + jobAlertTmpl)),
 	}
 }
@@ -73,6 +75,8 @@ func renderTemplate(reg *templateRegistry, name string, data templateData) (stri
 		t = reg.accountNotice
 	case "job_alert":
 		t = reg.jobAlert
+	case "new_application":
+		t = reg.newApplication
 	default:
 		return "", fmt.Errorf("notification: unknown template %q", name)
 	}
@@ -216,16 +220,20 @@ const interviewInviteTmpl = `
 {{define "content"}}
 {{template "greeting" .}}
 <p style="margin:0 0 12px;color:#374151;font-size:15px;line-height:1.65;">
-  Congratulations! Your interview for <strong>{{.JobTitle}}</strong>
-  {{if .CompanyName}}at <strong>{{.CompanyName}}</strong>{{end}} has been scheduled.
+  {{if eq .Status "Interview Cancelled"}}Your interview for <strong>{{.JobTitle}}</strong>
+  {{if .CompanyName}}at <strong>{{.CompanyName}}</strong>{{end}} has been cancelled by the employer. You do not need to attend.
+  {{else if eq .Status "Interview Rescheduled"}}Your interview for <strong>{{.JobTitle}}</strong>
+  {{if .CompanyName}}at <strong>{{.CompanyName}}</strong>{{end}} has been changed. Please check the new details below.
+  {{else}}Congratulations! Your interview for <strong>{{.JobTitle}}</strong>
+  {{if .CompanyName}}at <strong>{{.CompanyName}}</strong>{{end}} has been scheduled.{{end}}
 </p>
 {{template "status_badge" .}}
-<p style="margin:16px 0 4px;color:#5B6472;font-size:13px;font-weight:600;">Here are your interview details:</p>
+<p style="margin:16px 0 4px;color:#5B6472;font-size:13px;font-weight:600;">{{if eq .Status "Interview Cancelled"}}The cancelled interview:{{else}}Here are your interview details:{{end}}</p>
 {{template "detail_table" .}}
-{{template "note_box" .}}
+{{if ne .Status "Interview Cancelled"}}{{template "note_box" .}}
 <p style="margin:16px 0 0;color:#374151;font-size:14px;line-height:1.65;">
   Please make sure to be available 5 minutes before your scheduled time. Good luck! 🎉
-</p>
+</p>{{end}}
 {{template "cta_button" .}}
 {{template "settings_note" .}}
 {{end}}
@@ -248,9 +256,11 @@ const applicationUpdateTmpl = `
       🎉 Congratulations! Your profile has been <strong>shortlisted</strong> by the hiring team.
     {{else if eq .Status "Interviewing"}}
       📅 Great news! Your application is in the <strong>interview stage</strong>. The recruiter will reach out with scheduling details.
+    {{else if eq .Status "Hired"}}
+      🌟 Congratulations! You have been <strong>hired</strong> for this role. The employer will contact you with next steps.
     {{else if eq .Status "Selected"}}
       🌟 Fantastic news! You have been <strong>selected</strong> for this role.
-    {{else if eq .Status "Rejected"}}
+    {{else if or (eq .Status "Rejected") (eq .Status "Not selected")}}
       Thank you for taking the time to apply. While this role was not a match, new matching opportunities are posted daily on KaamMilega.
     {{else}}
       Your application status has been updated to <strong>{{.Status}}</strong>.
@@ -259,6 +269,20 @@ const applicationUpdateTmpl = `
 </div>
 
 {{template "note_box" .}}
+{{template "cta_button" .}}
+{{template "settings_note" .}}
+{{end}}
+`
+
+// ─── New Application Template (to the employer) ──────────────────────────────
+
+const newApplicationTmpl = `
+{{define "content"}}
+{{template "greeting" .}}
+<p style="margin:0 0 12px;color:#374151;font-size:15px;line-height:1.65;">
+  Someone new applied for <strong>{{.JobTitle}}</strong>. Review them while they are still looking.
+</p>
+{{template "detail_table" .}}
 {{template "cta_button" .}}
 {{template "settings_note" .}}
 {{end}}

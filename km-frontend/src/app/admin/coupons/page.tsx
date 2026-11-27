@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { CircleNotchIcon, PencilSimpleIcon, PlusIcon, ReceiptIcon, TicketIcon } from '@phosphor-icons/react';
-import { AdminModal, AdminPageHeader, AdminPanel, EmptyState, SkeletonRows, StatusBadge, btn, cx, field, table } from '@/components/admin/ui';
+import { CircleNotchIcon, PencilSimpleIcon, PlusIcon, ReceiptIcon, SealPercentIcon, TicketIcon, WalletIcon } from '@phosphor-icons/react';
+import { AdminModal, AdminPageHeader, AdminPanel, EmptyState, SkeletonRows, StatCard, StatusBadge, btn, cx, field, table } from '@/components/admin/ui';
 import { Toggle } from '@/components/settings/SettingsPrimitives';
 import { inr } from '@/lib/money';
 import { notify } from '@/lib/notify';
@@ -182,6 +182,15 @@ export default function CouponsAdminPage() {
                     </button>
                 }
             />
+
+            {coupons && coupons.length > 0 && (
+                <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    <StatCard label="Live codes" value={coupons.filter((c) => couponState(c).label === 'Live').length} hint={`${coupons.length} code${coupons.length === 1 ? '' : 's'} in all`} icon={TicketIcon} iconClassName="text-[#16A34A]" />
+                    <StatCard label="Times used" value={coupons.reduce((n, c) => n + c.used, 0)} hint={`${coupons.reduce((n, c) => n + c.held, 0)} awaiting payment`} icon={ReceiptIcon} iconClassName="text-km-link" />
+                    <StatCard label="Discount given" value={inr(coupons.reduce((n, c) => n + c.discounted, 0))} icon={SealPercentIcon} iconClassName="text-[#FF6B00]" />
+                    <StatCard label="Cashback given" value={inr(coupons.reduce((n, c) => n + c.cashback_given, 0))} hint="As bonus wallet credit" icon={WalletIcon} iconClassName="text-[#7C3AED]" />
+                </div>
+            )}
 
             <AdminPanel title="Codes">
                 {coupons === null ? (

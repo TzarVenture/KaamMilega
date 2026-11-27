@@ -120,11 +120,10 @@ func (r *ApplicationRepositoryImpl) UpdateStatus(ctx context.Context, id string,
 		return nil, err
 	}
 
+	now := time.Now()
 	update := bson.M{
-		"$set": bson.M{
-			"status":     status,
-			"updated_at": time.Now(),
-		},
+		"$set":  bson.M{"status": status, "updated_at": now},
+		"$push": bson.M{"history": StageEvent{Status: status, At: now}},
 	}
 
 	_, err = r.appColl.UpdateOne(ctx, bson.M{"_id": oid}, update)

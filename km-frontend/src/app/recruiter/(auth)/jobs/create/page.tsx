@@ -26,6 +26,7 @@ type Step = 1 | 2 | 3;
 
 export default function CreateJobPage() {
     const router = useRouter();
+    const [planUsedUp, setPlanUsedUp] = useState(false);
     const [step, setStep] = useState<Step>(1);
     const [loading, setLoading] = useState(false);
     const [cities, setCities] = useState<any[]>([]);
@@ -117,11 +118,17 @@ export default function CreateJobPage() {
                 education: formData.education,
             };
 
-            await api.post("/jobs", jobData);
+            const created = await api.post<unknown, { id?: string; _id?: string }>("/jobs", jobData);
             notify.success("Job posted successfully!");
-            router.push("/recruiter");
+            const newId = created?.id || created?._id;
+            router.push(newId ? `/recruiter/jobs/${newId}` : "/recruiter/jobs/list");
         } catch (err: any) {
-            notify.error(err, "Failed to post job");
+            if (err?.code === "PLAN_JOB_POSTS_USED_UP") {
+                setPlanUsedUp(true);
+                notify.error(err, "You have used all the job posts in your plan. Upgrade your plan to post more jobs.");
+            } else {
+                notify.error(err, "Failed to post job");
+            }
         } finally {
             setLoading(false);
         }
@@ -171,6 +178,13 @@ export default function CreateJobPage() {
                     ))}
                 </div>
             </div>
+
+            {planUsedUp && (
+                <div role="alert" className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                    You have used all the job posts in your hiring plan.{" "}
+                    <Link href="/recruiter/plan" className="font-semibold underline">Upgrade your plan</Link> to post more jobs.
+                </div>
+            )}
 
             <form onSubmit={handleSubmit} className="relative">
                 <AnimatePresence mode="wait">

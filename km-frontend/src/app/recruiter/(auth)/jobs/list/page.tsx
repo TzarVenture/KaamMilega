@@ -1,337 +1,206 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import api from "@/lib/axios";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { notify } from "@/lib/notify";
-import { 
-    BriefcaseIcon, 
-    CircleNotchIcon, 
-    EyeIcon, 
-    KanbanIcon,
-    MagnifyingGlassIcon, 
-    MapPinIcon, 
-    NotePencilIcon, 
-    TrashIcon, 
-    XIcon 
-} from '@phosphor-icons/react';
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
+import { BriefcaseIcon, CaretLeftIcon, CaretRightIcon, MagnifyingGlassIcon, PlusIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { recruiterApi, type MyJob, type MyJobsPage } from "@/lib/api/recruiter";
+import { EmptyState, FilterTabs, SearchInput, SkeletonRows, btn, cx } from "@/components/admin/ui";
+import JobStatusChip from "@/components/recruiter/JobStatusChip";
+import StageBar from "@/components/recruiter/StageBar";
+import JobActionsMenu from "@/components/recruiter/JobActionsMenu";
+import { salaryRange } from "@/components/recruiter/jobFormat";
 
-import { TableSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
+const LIMIT = 20;
+type Tab = "all" | "open" | "paused" | "closed";
+const TABS: Tab[] = ["all", "open", "paused", "closed"];
 
-export default function ManageJobsPage() {
-    const [jobs, setJobs] = useState<any[]>([]);
+export default function JobsListPage() {
+    return (
+        <Suspense fallback={<div className="max-w-7xl mx-auto"><SkeletonRows rows={6} /></div>}>
+            <JobsList />
+        </Suspense>
+    );
+}
+
+function JobsList() {
+    const t = useTranslations("recruiterJobs");
+    const format = useFormatter();
+    const router = useRouter();
+    const pathname = usePathname();
+    const params = useSearchParams();
+
+    const tab = (TABS.includes(params.get("status") as Tab) ? params.get("status") : "all") as Tab;
+    const search = params.get("q") || "";
+    const page = Math.max(1, Number(params.get("page")) || 1);
+
+    const [query, setQuery] = useState(search);
+    const [data, setData] = useState<MyJobsPage | null>(null);
+    const [error, setError] = useState(false);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [deleteModalJob, setDeleteModalJob] = useState<{ id: string; title: string } | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
+    const [reload, setReload] = useState(0);
 
-    const fetchJobs = async () => {
-        try {
-            const data = await api.get("/jobs/my") as any[];
-            setJobs(data || []);
-        } catch (error) {
-            console.error("Failed to fetch jobs:", error);
-            notify.error("Failed to load jobs");
-        } finally {
-            setLoading(false);
+    const setParams = useCallback((next: Record<string, string | number | null>) => {
+        const sp = new URLSearchParams(params.toString());
+        for (const [k, v] of Object.entries(next)) {
+            if (v === null || v === "" || (k === "page" && v === 1) || (k === "status" && v === "all")) sp.delete(k);
+            else sp.set(k, String(v));
         }
-    };
+        const qs = sp.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }, [params, pathname, router]);
+
+    // Debounced search into the URL
+    const firstRun = useRef(true);
+    useEffect(() => {
+        if (firstRun.current) { firstRun.current = false; return; }
+        const id = setTimeout(() => { if (query.trim() !== search) setParams({ q: query.trim(), page: 1 }); }, 350);
+        return () => clearTimeout(id);
+    }, [query, search, setParams]);
 
     useEffect(() => {
-        fetchJobs();
-    }, []);
+        let alive = true;
+        recruiterApi.jobs({ search, status: tab === "all" ? undefined : tab, page, limit: LIMIT })
+            .then((res) => { if (alive) { setData(res); setError(false); } })
+            .catch(() => { if (alive) setError(true); })
+            .finally(() => { if (alive) setLoading(false); });
+        return () => { alive = false; };
+    }, [search, tab, page, reload]);
 
+    const refetch = () => { setLoading(true); setReload((n) => n + 1); };
 
-
-    const confirmDelete = async () => {
-        if (!deleteModalJob) return;
-        setIsDeleting(true);
-        try {
-            await api.delete(`/jobs/${deleteModalJob.id}`);
-            setJobs(prev => prev.filter(job => job.id !== deleteModalJob.id));
-            notify.success("Job posting removed successfully");
-            setDeleteModalJob(null);
-        } catch (error) {
-            console.error("Failed to delete job:", error);
-            notify.error("Failed to delete job");
-        } finally {
-            setIsDeleting(false);
-        }
+    const refreshCounts = () => {
+        recruiterApi.jobs({ search, status: tab === "all" ? undefined : tab, page, limit: 1 })
+            .then((res) => setData((d) => (d ? { ...d, counts: res.counts, total: res.total } : d)))
+            .catch(() => {});
     };
 
-    const filteredJobs = jobs.filter(job => {
-        const matchesSearch = 
-            job.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            job.company?.toLowerCase().includes(searchTerm.toLowerCase());
-        
-        if (!matchesSearch) return false;
-        
-        if (statusFilter === "all") return true;
-        const s = (job.status || "Open").toLowerCase();
-        if (statusFilter === "open") return s === "open";
-        if (statusFilter === "closed") return s === "closed";
-        if (statusFilter === "on hold") return s === "on hold" || s === "onhold";
-        return true;
-    });
+    const onUpdated = (job: MyJob) => {
+        setData((d) => d ? { ...d, jobs: d.jobs.map((j) => (j.id === job.id ? job : j)) } : d);
+        refreshCounts();
+    };
+    const onDeleted = (id: string) => {
+        setData((d) => d ? { ...d, jobs: d.jobs.filter((j) => j.id !== id) } : d);
+        refreshCounts();
+    };
 
-    if (loading) {
-        return (
-            <div className="space-y-6">
-                <PageHeaderSkeleton />
-                <TableSkeleton rows={5} cols={5} />
-            </div>
-        );
-    }
+    const counts = data?.counts;
+    const totalPages = data ? Math.max(1, Math.ceil(data.total / LIMIT)) : 1;
+    const filtered = !!search || tab !== "all";
 
     return (
-        <div className="space-y-6 font-sans text-km-text-primary pb-16">
-
-            {/* Header */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-km-text-primary font-poppins">Manage Job Postings</h1>
-                    <p className="text-xs text-km-text-secondary mt-0.5">View, edit, and track applicants across all your active positions</p>
+        <div className="max-w-7xl mx-auto">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
+                <div className="min-w-0">
+                    <h1 className="text-2xl font-bold text-km-heading tracking-tight">{t("list.title")}</h1>
+                    <p className="mt-1 text-sm text-km-text-secondary">{t("list.description")}</p>
                 </div>
-                <Link
-                    href="/recruiter/jobs/create"
-                    className="inline-flex items-center gap-2 bg-km-primary hover:bg-km-primary-dark text-white px-4 py-2.5 rounded-xl font-semibold text-xs transition-colors shadow-xs shrink-0"
-                >
-                    <BriefcaseIcon size={16} weight="bold" aria-hidden="true" />
-                    <span>Post New Job</span>
+                <Link href="/recruiter/jobs/create" className={cx(btn.accent, "self-start sm:self-auto")}>
+                    <PlusIcon size={18} weight="bold" aria-hidden="true" />
+                    {t("list.post")}
                 </Link>
-            </header>
-
-            {/* Search and Filter Bar */}
-            <div className="bg-km-surface-card p-3 rounded-2xl border border-km-border shadow-xs space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex-1 relative">
-                        <MagnifyingGlassIcon size={16} weight="regular" className="absolute left-3 top-2.5 text-km-text-secondary" aria-hidden="true" />
-                        <input
-                            type="text"
-                            placeholder="Search jobs by title or company..."
-                            className="w-full pl-9 pr-3.5 py-1.5 text-xs rounded-xl border border-km-border bg-km-surface-card text-km-text-primary placeholder:text-km-text-secondary/70 outline-none focus:border-km-primary transition-colors"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
-                        {[
-                            { id: "all", label: "All", count: jobs.length },
-                            { id: "open", label: "Open", count: jobs.filter(j => (j.status || "Open").toLowerCase() === "open").length },
-                            { id: "closed", label: "Closed", count: jobs.filter(j => (j.status || "").toLowerCase() === "closed").length },
-                            { id: "on hold", label: "On Hold", count: jobs.filter(j => { const s = (j.status || "").toLowerCase(); return s === "on hold" || s === "onhold"; }).length },
-                        ].map((tab) => (
-                            <button
-                                key={tab.id}
-                                type="button"
-                                onClick={() => setStatusFilter(tab.id)}
-                                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0 border ${
-                                    statusFilter === tab.id
-                                        ? "bg-km-primary text-white border-km-primary shadow-xs"
-                                        : "bg-km-surface hover:bg-km-surface/80 text-km-text-secondary hover:text-km-text-primary border-km-border/70"
-                                }`}
-                            >
-                                <span>{tab.label}</span>
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
-                                    statusFilter === tab.id ? "bg-white/20 text-white" : "bg-km-border/60 text-km-text-secondary"
-                                }`}>
-                                    {tab.count}
-                                </span>
-                            </button>
-                        ))}
-                    </div>
-                </div>
             </div>
 
-            {filteredJobs.length === 0 ? (
-                <div className="text-center py-14 bg-km-surface-card rounded-2xl border border-km-border shadow-xs p-6">
-                    <BriefcaseIcon size={36} weight="duotone" className="text-km-text-secondary mx-auto mb-3" aria-hidden="true" />
-                    <h3 className="text-sm font-semibold text-km-text-primary font-poppins">No jobs found</h3>
-                    <p className="text-xs text-km-text-secondary mt-1 mb-4 max-w-sm mx-auto">
-                        {searchTerm ? "No job postings matched your search criteria." : "You haven't posted any jobs yet. Create your first opening to attract talent."}
-                    </p>
-                    <Link
-                        href="/recruiter/jobs/create"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-km-primary hover:bg-km-primary-dark text-white rounded-xl text-xs font-semibold transition-colors shadow-xs"
-                    >
-                        <BriefcaseIcon size={15} weight="bold" aria-hidden="true" />
-                        <span>Post a new job</span>
-                    </Link>
+            <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-4">
+                <div className="overflow-x-auto max-w-full">
+                    <FilterTabs<Tab>
+                        value={tab}
+                        onChange={(v) => { setLoading(true); setParams({ status: v, page: 1 }); }}
+                        options={TABS.map((v) => ({ value: v, label: t(`tabs.${v}`), count: counts?.[v] }))}
+                    />
                 </div>
-            ) : (
-                <div className="bg-km-surface-card rounded-2xl border border-km-border shadow-xs overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs text-km-text-secondary">
-                            <thead className="bg-km-surface text-km-text-secondary font-semibold border-b border-km-border/70">
-                                <tr>
-                                    <th className="px-5 py-3">Job Title & Company</th>
-                                    <th className="px-5 py-3">Status</th>
-                                    <th className="px-5 py-3">Salary Range</th>
-                                    <th className="px-5 py-3">Location</th>
-                                    <th className="px-5 py-3 text-center">Applications</th>
-                                    <th className="px-5 py-3 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-km-border/60">
-                                {filteredJobs.map((job) => (
-                                    <tr key={job.id} className="hover:bg-km-surface/50 transition-colors">
-                                        <td className="px-5 py-3.5">
-                                            <div className="font-semibold text-km-text-primary text-xs">{job.title}</div>
-                                            <div className="text-[11px] text-km-text-secondary mt-0.5">{job.company}</div>
-                                        </td>
-                                        <td className="px-5 py-3.5">
-                                            {(() => {
-                                                const s = (job.status || "Open").toLowerCase();
-                                                return (
-                                                    <span
-                                                        title="To change status, edit this job posting"
-                                                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium border select-none capitalize ${
-                                                            s === "closed"
-                                                                ? "bg-rose-50 text-rose-700 border-rose-200 dark:bg-[#23142B] dark:border-rose-900/50 dark:text-rose-400"
-                                                                : s === "on hold" || s === "onhold"
-                                                                ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-[#211A25] dark:border-amber-900/50 dark:text-amber-400"
-                                                                : s === "draft"
-                                                                ? "bg-slate-100 text-slate-700 border-slate-200 dark:bg-[#626A7D] dark:border-slate-700 dark:text-slate-300"
-                                                                : "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-[#0C1F2E] dark:border-emerald-900/50 dark:text-emerald-400"
-                                                        }`}
-                                                    >
-                                                        {job.status || "Open"}
-                                                    </span>
-                                                );
-                                            })()}
-                                        </td>
-                                        <td className="px-5 py-3.5 font-medium text-km-text-primary">
-                                            {job.salary_min && job.salary_max
-                                                ? `₹${job.salary_min} – ₹${job.salary_max}`
-                                                : job.salary_range || "Not specified"}
-                                        </td>
-                                        <td className="px-5 py-3.5">
-                                            <div className="flex items-center gap-1.5 text-km-text-secondary">
-                                                <MapPinIcon weight="regular" size={13} className="shrink-0 text-km-text-secondary" aria-hidden="true" />
-                                                <span className="truncate">{job.city_name || "Anywhere"} {job.location ? `(${job.location})` : ""}</span>
-                                            </div>
-                                        </td>
+                <SearchInput value={query} onChange={setQuery} placeholder={t("list.search")} className="w-full lg:max-w-xs lg:ml-auto" />
+            </div>
 
-                                        <td className="px-5 py-3.5 text-center">
-                                            <Link
-                                                href={`/recruiter/applications?jobId=${job.id}`}
-                                                className="inline-flex items-center justify-center px-2.5 py-0.5 bg-blue-50 text-km-blue border border-blue-200 rounded-full font-semibold text-xs hover:bg-blue-100 transition-colors dark:bg-[#131D3D] dark:border-blue-900/40 dark:text-km-link"
-                                            >
-                                                {job.applicant_count || 0}
-                                            </Link>
-                                        </td>
-                                        <td className="px-5 py-3.5 text-right">
-                                            <div className="flex items-center justify-end gap-1.5">
-                                                <Link
-                                                    href={`/recruiter/applications?jobId=${job.id}`}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-km-surface hover:bg-km-primary hover:text-white text-km-text-primary border border-km-border transition-colors mr-0.5 shrink-0"
-                                                    title="Open Candidate Pipeline"
-                                                    aria-label={`Open candidate pipeline for ${job.title}`}
-                                                >
-                                                    <KanbanIcon size={14} weight="regular" aria-hidden="true" />
-                                                    <span>Pipeline</span>
-                                                </Link>
-                                                <Link
-                                                    href={`/recruiter/jobs/${job.id}`}
-                                                    className="p-1.5 text-km-text-secondary hover:text-km-blue hover:bg-km-surface rounded-lg transition-colors"
-                                                    title="View Details"
-                                                    aria-label="View Details"
-                                                >
-                                                    <EyeIcon weight="regular" size={16} aria-hidden="true" />
-                                                </Link>
-                                                <Link
-                                                    href={`/recruiter/jobs/${job.id}/edit`}
-                                                    className="p-1.5 text-km-text-secondary hover:text-km-blue hover:bg-km-surface rounded-lg transition-colors"
-                                                    title="Edit Post"
-                                                    aria-label="Edit Post"
-                                                >
-                                                    <NotePencilIcon weight="regular" size={16} aria-hidden="true" />
-                                                </Link>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDeleteModalJob({ id: job.id, title: job.title })}
-                                                    className="p-1.5 text-km-text-secondary hover:text-red-600 hover:bg-red-50/70 rounded-lg transition-colors cursor-pointer"
-                                                    title="Delete Post"
-                                                    aria-label="Delete Post"
-                                                >
-                                                    <TrashIcon weight="regular" size={16} aria-hidden="true" />
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="px-5 py-3 border-t border-km-border/70 text-xs text-km-text-secondary flex justify-between items-center bg-km-surface/30">
-                        <span>Showing {filteredJobs.length} job postings</span>
-                    </div>
+            <section className="bg-km-surface-card border border-km-border rounded-2xl overflow-hidden">
+                {/* Column heads (desktop) */}
+                <div className="hidden md:grid grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.6fr)_auto_2.5rem] gap-4 px-5 py-3 text-xs font-semibold text-km-text-secondary bg-km-surface border-b border-km-border">
+                    <span>{t("list.colJob")}</span>
+                    <span>{t("list.colStatus")}</span>
+                    <span>{t("list.colPipeline")}</span>
+                    <span className="text-right">{t("list.colApplicants")}</span>
+                    <span className="sr-only">{t("list.colActions")}</span>
                 </div>
-            )}
 
-            {/* In-App Delete Confirmation Modal */}
-            {deleteModalJob && (
-                <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="delete-job-dialog-title"
-                >
-                    <div className="w-full max-w-md bg-km-surface-card rounded-2xl border border-km-border shadow-xl p-6 space-y-4 animate-in fade-in duration-150">
-                        <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-2.5">
-                                <TrashIcon size={20} weight="regular" className="text-red-600 shrink-0" aria-hidden="true" />
-                                <h3 id="delete-job-dialog-title" className="text-base font-bold text-km-text-primary font-poppins">
-                                    Delete Job Posting
-                                </h3>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => !isDeleting && setDeleteModalJob(null)}
-                                disabled={isDeleting}
-                                aria-label="Close dialog"
-                                className="p-1 text-km-text-secondary hover:text-km-text-primary rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                            >
-                                <XIcon size={18} weight="regular" aria-hidden="true" />
+                {loading && !data ? (
+                    <SkeletonRows rows={6} />
+                ) : error ? (
+                    <div className="flex flex-col items-center text-center py-12 px-6" role="alert">
+                        <WarningCircleIcon size={32} weight="duotone" className="text-red-500 mb-2" aria-hidden="true" />
+                        <p className="text-sm font-semibold text-km-heading">{t("list.loadFailed")}</p>
+                        <button type="button" onClick={refetch} className={cx(btn.secondary, "mt-4")}>{t("retry")}</button>
+                    </div>
+                ) : !data || data.jobs.length === 0 ? (
+                    filtered ? (
+                        <EmptyState
+                            icon={MagnifyingGlassIcon}
+                            title={t("list.noMatch")}
+                            description={t("list.noMatchHint")}
+                            action={<button type="button" className={btn.secondary} onClick={() => { setQuery(""); setParams({ q: null, status: null, page: 1 }); }}>{t("list.clearFilters")}</button>}
+                        />
+                    ) : (
+                        <EmptyState
+                            icon={BriefcaseIcon}
+                            title={t("list.emptyTitle")}
+                            description={t("list.emptyHint")}
+                            action={<Link href="/recruiter/jobs/create" className={btn.accent}><PlusIcon size={18} weight="bold" aria-hidden="true" />{t("list.postFirst")}</Link>}
+                        />
+                    )
+                ) : (
+                    <ul className={cx("divide-y divide-km-border-subtle", loading && "opacity-60")} aria-busy={loading}>
+                        {data.jobs.map((job) => {
+                            const salary = salaryRange(job.salary_min, job.salary_max);
+                            const meta = [
+                                job.city_name || job.location,
+                                job.job_type,
+                                salary ? t("salaryMonth", { amount: salary }) : t("salaryNotSet"),
+                            ].filter(Boolean).join(" · ");
+                            return (
+                                <li key={job.id} className="relative grid grid-cols-[minmax(0,1fr)_2.5rem] md:grid-cols-[minmax(0,2.2fr)_minmax(0,1fr)_minmax(0,1.6fr)_auto_2.5rem] gap-x-4 gap-y-3 px-4 md:px-5 py-4 hover:bg-km-surface transition-colors">
+                                    <div className="min-w-0">
+                                        <Link href={`/recruiter/jobs/${job.id}`} className="block font-semibold text-km-heading hover:text-km-link truncate">
+                                            {job.title}
+                                        </Link>
+                                        <p className="mt-0.5 text-xs text-km-text-secondary truncate">{meta}</p>
+                                        <p className="mt-0.5 text-xs text-km-text-muted">
+                                            {t("posted", { date: format.dateTime(new Date(job.created_at), { day: "numeric", month: "short", year: "numeric", timeZone: "Asia/Kolkata" }) })}
+                                        </p>
+                                    </div>
+                                    <div className="row-start-1 col-start-2 md:col-start-5 flex justify-end md:items-center">
+                                        <JobActionsMenu job={job} onUpdated={onUpdated} onDeleted={onDeleted} />
+                                    </div>
+                                    <div className="col-span-2 md:col-span-1 md:col-start-2 md:row-start-1 flex items-center gap-3 md:block">
+                                        <JobStatusChip status={job.status} />
+                                    </div>
+                                    <div className="col-span-2 md:col-span-1 md:col-start-3 md:row-start-1 flex items-center">
+                                        <StageBar counts={job.stage_counts} className="w-full" />
+                                    </div>
+                                    <div className="col-span-2 md:col-span-1 md:col-start-4 md:row-start-1 flex md:justify-end items-center">
+                                        <Link href={`/recruiter/applications?job_id=${job.id}`} className="text-sm font-medium text-km-link hover:underline whitespace-nowrap">
+                                            {t("applicants", { count: job.applicant_count || 0 })}
+                                        </Link>
+                                    </div>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+
+                {data && data.total > LIMIT && (
+                    <div className="flex items-center justify-between gap-3 px-4 md:px-5 py-3 border-t border-km-border-subtle text-sm text-km-text-secondary">
+                        <span>{t("list.pageOf", { page, pages: totalPages, total: data.total })}</span>
+                        <div className="flex gap-1">
+                            <button type="button" className={btn.icon} aria-label={t("list.prev")} disabled={page <= 1 || loading} onClick={() => { setLoading(true); setParams({ page: page - 1 }); }}>
+                                <CaretLeftIcon size={18} aria-hidden="true" />
                             </button>
-                        </div>
-
-                        <p className="text-xs text-km-text-secondary leading-relaxed">
-                            Are you sure you want to remove <span className="font-semibold text-km-text-primary">&ldquo;{deleteModalJob.title}&rdquo;</span>? This will unlist the position and mark it as deleted. Existing candidate applications will be safely preserved in your records.
-                        </p>
-
-                        <div className="flex items-center justify-end gap-2.5 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => setDeleteModalJob(null)}
-                                disabled={isDeleting}
-                                className="px-4 py-2 rounded-xl text-xs font-semibold border border-km-border text-km-text-primary hover:bg-km-surface transition-colors disabled:opacity-50 cursor-pointer"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={confirmDelete}
-                                disabled={isDeleting}
-                                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
-                            >
-                                {isDeleting ? (
-                                    <>
-                                        <CircleNotchIcon size={14} weight="bold" className="animate-spin" aria-hidden="true" />
-                                        <span>Deleting...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <TrashIcon size={14} weight="regular" aria-hidden="true" />
-                                        <span>Delete Job</span>
-                                    </>
-                                )}
+                            <button type="button" className={btn.icon} aria-label={t("list.next")} disabled={page >= totalPages || loading} onClick={() => { setLoading(true); setParams({ page: page + 1 }); }}>
+                                <CaretRightIcon size={18} aria-hidden="true" />
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </section>
         </div>
     );
 }

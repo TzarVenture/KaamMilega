@@ -23,6 +23,7 @@ type JobRepository interface {
 	FindByRecruiter(ctx context.Context, recruiterID string) ([]Job, error)
 	Update(ctx context.Context, id string, job *Job) (*Job, error)
 	Delete(ctx context.Context, id string) error
+	CountByStatus(ctx context.Context, recruiterID string) (map[string]int, error)
 }
 
 type JobRepositoryImpl struct {
@@ -169,6 +170,12 @@ func listFilter(filter JobFilter) bson.M {
 	// Jobs of a deactivated or pending-deletion recruiter account are hidden (internal/features/account)
 	andConditions = append(andConditions, bson.M{"hidden_by_account": bson.M{"$ne": true}})
 	andConditions = append(andConditions, bson.M{"status": bson.M{"$ne": "Deleted"}})
+	if cond := statusCondition(filter.Status); cond != nil {
+		andConditions = append(andConditions, cond)
+	}
+	if filter.PublicOnly {
+		andConditions = append(andConditions, bson.M{"status": bson.M{"$not": notOpenStatus}})
+	}
 
 	// Experience
 	if filter.ExperienceMin != nil {
@@ -296,4 +303,60 @@ func (r *JobRepositoryImpl) Delete(ctx context.Context, id string) error {
 	}
 	_, err = r.jobColl.UpdateOne(ctx, bson.M{"_id": oid}, update)
 	return err
+}
+
+// Stored statuses that mean a job is not taking applications (any letter case)
+var (
+	pausedStatus  = primitive.Regex{Pattern: `^\s*(paused|on ?hold|hold)\s*$`, Options: "i"}
+	closedStatus  = primitive.Regex{Pattern: `^\s*(closed|expired|filled)\s*$`, Options: "i"}
+	notOpenStatus = primitive.Regex{Pattern: `^\s*(paused|on ?hold|hold|closed|expired|filled)\s*$`, Options: "i"}
+)
+
+// statusCondition picks one status group (see CanonicalStatus); nil means every status
+func statusCondition(group string) bson.M {
+	switch strings.ToLower(strings.TrimSpace(group)) {
+	case "open":
+		return bson.M{"status": bson.M{"$not": notOpenStatus}}
+	case "paused":
+		return bson.M{"status": pausedStatus}
+	case "closed":
+		return bson.M{"status": closedStatus}
+	}
+	return nil
+}
+
+// CountByStatus counts an employer's jobs in each status group
+func (r *JobRepositoryImpl) CountByStatus(ctx context.Context, recruiterID string) (map[string]int, error) {
+	oid, err := primitive.ObjectIDFromHex(recruiterID)
+	if err != nil {
+		return nil, err
+	}
+	cur, err := r.jobColl.Aggregate(ctx, mongo.Pipeline{
+		{{Key: "$match", Value: bson.M{"recruiter_id": oid, "status": bson.M{"$ne": "Deleted"}}}},
+		{{Key: "$group", Value: bson.M{"_id": "$status", "n": bson.M{"$sum": 1}}}},
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer cur.Close(ctx)
+	var rows []struct {
+		Status string `bson:"_id"`
+		N      int    `bson:"n"`
+	}
+	if err := cur.All(ctx, &rows); err != nil {
+		return nil, err
+	}
+	counts := map[string]int{"all": 0, "open": 0, "paused": 0, "closed": 0}
+	for _, row := range rows {
+		counts["all"] += row.N
+		switch CanonicalStatus(row.Status) {
+		case StatusPaused:
+			counts["paused"] += row.N
+		case StatusClosed:
+			counts["closed"] += row.N
+		default:
+			counts["open"] += row.N
+		}
+	}
+	return counts, nil
 }

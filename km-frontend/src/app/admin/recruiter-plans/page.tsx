@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { CircleNotchIcon, PencilSimpleIcon, PlusIcon, ReceiptIcon, TagIcon } from '@phosphor-icons/react';
-import { AdminModal, AdminPageHeader, AdminPanel, EmptyState, SkeletonRows, StatusBadge, btn, cx, field, table } from '@/components/admin/ui';
+import { CircleNotchIcon, PencilSimpleIcon, PlusIcon, ReceiptIcon, ShieldCheckIcon, TagIcon } from '@phosphor-icons/react';
+import { AdminModal, AdminPageHeader, AdminPanel, EmptyState, SkeletonRows, StatCard, StatusBadge, btn, cx, field, table } from '@/components/admin/ui';
 import { Toggle } from '@/components/settings/SettingsPrimitives';
 import { inr } from '@/lib/money';
 import { notify } from '@/lib/notify';
@@ -129,6 +129,12 @@ export default function RecruiterPlansAdminPage() {
                     </button>
                 }
             />
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <StatCard label="Plans on sale" value={plans ? plans.filter((p) => p.is_active).length : '–'} hint={plans ? `${plans.length} plan${plans.length === 1 ? '' : 's'} in all` : undefined} icon={TagIcon} iconClassName="text-km-link" />
+                <StatCard label="Plans bought" value={subs ? subs.total : '–'} hint="All time, by every recruiter" icon={ReceiptIcon} iconClassName="text-[#16A34A]" />
+                <StatCard label="Limits" value={settings ? (settings.enforce ? 'On' : 'Off') : '–'} hint={settings ? (settings.enforce ? 'Recruiters are stopped at their limit' : 'Use is counted, nobody is stopped') : undefined} icon={ShieldCheckIcon} iconClassName={settings?.enforce ? 'text-[#16A34A]' : 'text-amber-500'} />
+            </div>
 
             <AdminPanel title="Limits" description="Without a plan, recruiters get the free allowance each calendar month.">
                 {!settings ? (

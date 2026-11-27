@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { CircleNotchIcon, MegaphoneIcon, PlusIcon } from '@phosphor-icons/react';
+import { ArrowCounterClockwiseIcon, CircleNotchIcon, CursorClickIcon, EyeIcon, MapPinAreaIcon, MegaphoneIcon, PencilSimpleLineIcon, PercentIcon, PlayCircleIcon, PlusIcon, SealCheckIcon, WalletIcon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { notify } from '@/lib/notify';
 import { inr } from '@/lib/money';
@@ -12,7 +12,8 @@ import PaymentMethodPicker, { type PaymentMethod } from '@/components/km/Payment
 import { CashbackNote, CouponField, CouponPrice, useCouponQuote } from '@/components/km/CouponCheckout';
 import RecruiterAdFormModal from '@/components/km/RecruiterAdFormModal';
 import type { CouponReceipt } from '@/lib/api/coupons';
-import { AdminModal, BadgeTone, StatusBadge, btn, cx } from '@/components/admin/ui';
+import { AdminModal, BadgeTone, StatCard, StatusBadge, btn, cx } from '@/components/admin/ui';
+import RecruiterBanner, { HeroAccent } from '@/components/km/RecruiterBanner';
 import { recruiterAdsApi, type RecruiterAd, type RecruiterAdState, type RecruiterAdsOverview } from '@/lib/api/recruiterAds';
 
 const STATE_TONE: Record<RecruiterAdState, BadgeTone> = {
@@ -164,19 +165,31 @@ export default function RecruiterAdsPage() {
 
     const newAd = () => { setEditing(null); setFormOpen(true); };
 
+    const ads = data?.ads ?? [];
+    const running = ads.filter((a) => a.state === 'running').length;
+    const views = ads.reduce((n, a) => n + a.impressions, 0);
+    const clicks = ads.reduce((n, a) => n + a.clicks, 0);
+
     return (
         <div className="max-w-5xl mx-auto pb-16">
-            <div className="pb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-km-heading">{t('title')}</h1>
-                    <p className="mt-1 text-sm text-km-text-secondary">{t('subtitle')}</p>
-                </div>
+            <RecruiterBanner
+                kicker={{ label: t('title'), Icon: MegaphoneIcon, tone: 'instant' }}
+                title={t.rich('heroTitle', { accent: (c) => <HeroAccent>{c}</HeroAccent> })}
+                description={t('subtitle')}
+                highlights={[
+                    { Icon: SealCheckIcon, label: t('proofChecked') },
+                    { Icon: MapPinAreaIcon, label: t('proofCities') },
+                    { Icon: ArrowCounterClockwiseIcon, label: t('proofRefund') },
+                ]}
+                art={{ src: '/recruiter-ads-art.svg', alt: t('artAlt') }}
+            >
                 {data && data.packages.length > 0 && (
-                    <button type="button" onClick={newAd} className={cx(btn.primary, 'shrink-0')}>
+                    <button type="button" onClick={newAd} className={btn.accent}>
                         <PlusIcon size={16} weight="bold" aria-hidden="true" />{t('newAd')}
                     </button>
                 )}
-            </div>
+            </RecruiterBanner>
+            <div className="h-6" />
 
             {failed && !data && (
                 <div className="bg-km-surface-card border border-km-border rounded-2xl p-6 text-sm text-km-text-secondary">
@@ -196,12 +209,38 @@ export default function RecruiterAdsPage() {
             {data && (
                 <>
                     {data.ads.length === 0 ? (
-                        <div className="bg-km-surface-card border border-km-border rounded-2xl p-8 text-center">
-                            <MegaphoneIcon size={28} className="mx-auto text-km-text-muted" aria-hidden="true" />
-                            <p className="mt-2 text-sm font-medium text-km-heading">{t('emptyTitle')}</p>
+                        <section className="bg-km-surface-card border border-km-border rounded-2xl p-6 sm:p-8" aria-labelledby="ads-empty">
+                            <h2 id="ads-empty" className="text-lg font-semibold text-km-heading">{t('emptyTitle')}</h2>
                             <p className="mt-1 text-sm text-km-text-secondary">{data.packages.length > 0 ? t('emptyHint') : t('noPackages')}</p>
-                        </div>
+                            <ol className="mt-6 grid gap-6 sm:grid-cols-3">
+                                {[
+                                    { Icon: PencilSimpleLineIcon, title: t('step1Title'), text: t('step1Text') },
+                                    { Icon: WalletIcon, title: t('step2Title'), text: t('step2Text') },
+                                    { Icon: PlayCircleIcon, title: t('step3Title'), text: t('step3Text') },
+                                ].map(({ Icon, title, text }, i) => (
+                                    <li key={i} className="relative">
+                                        {i < 2 && <span className="hidden sm:block absolute top-[18px] left-12 -right-3 border-t-2 border-dashed border-km-border" aria-hidden="true" />}
+                                        <Icon size={36} weight="duotone" className="relative text-[#FF6B00]" aria-hidden="true" />
+                                        <p className="mt-3 text-xs font-medium text-km-text-secondary">{t('stepLabel', { n: i + 1 })}</p>
+                                        <p className="mt-0.5 font-semibold text-km-heading">{title}</p>
+                                        <p className="mt-1 text-sm text-km-text-secondary">{text}</p>
+                                    </li>
+                                ))}
+                            </ol>
+                            {data.packages.length > 0 && (
+                                <button type="button" onClick={newAd} className={cx(btn.primary, 'mt-7')}>
+                                    <PlusIcon size={16} weight="bold" aria-hidden="true" />{t('newAd')}
+                                </button>
+                            )}
+                        </section>
                     ) : (
+                        <>
+                        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+                            <StatCard label={t('statRunning')} value={format.number(running)} hint={t('statAll', { count: ads.length })} icon={PlayCircleIcon} iconClassName="text-[#16A34A]" />
+                            <StatCard label={t('views')} value={format.number(views)} icon={EyeIcon} iconClassName="text-km-link" />
+                            <StatCard label={t('clicks')} value={format.number(clicks)} icon={CursorClickIcon} iconClassName="text-[#FF6B00]" />
+                            <StatCard label={t('statRate')} value={views > 0 ? format.number(clicks / views, { style: 'percent', maximumFractionDigits: 1 }) : '–'} hint={t('statRateHint')} icon={PercentIcon} iconClassName="text-[#0F9D8A]" />
+                        </div>
                         <ul className="space-y-3">
                             {data.ads.map((ad) => (
                                 <li key={ad.id} className="bg-km-surface-card border border-km-border rounded-2xl p-4 sm:p-5 flex flex-col gap-4 sm:flex-row">
@@ -218,8 +257,8 @@ export default function RecruiterAdsPage() {
                                         {!ad.revision && ad.revision_note && <p className="mt-1 text-sm text-red-700 dark:text-red-400">{t('changeRefused', { reason: ad.revision_note })}</p>}
                                         {(ad.state === 'running' || ad.state === 'ended') && (
                                             <dl className="mt-3 flex gap-6 text-sm">
-                                                <div><dt className="text-km-text-secondary">{t('views')}</dt><dd className="font-semibold text-km-heading font-inter tabular-nums">{format.number(ad.impressions)}</dd></div>
-                                                <div><dt className="text-km-text-secondary">{t('clicks')}</dt><dd className="font-semibold text-km-heading font-inter tabular-nums">{format.number(ad.clicks)}</dd></div>
+                                                <div><dt className="flex items-center gap-1 text-km-text-secondary"><EyeIcon size={14} aria-hidden="true" />{t('views')}</dt><dd className="font-semibold text-km-heading font-inter tabular-nums">{format.number(ad.impressions)}</dd></div>
+                                                <div><dt className="flex items-center gap-1 text-km-text-secondary"><CursorClickIcon size={14} aria-hidden="true" />{t('clicks')}</dt><dd className="font-semibold text-km-heading font-inter tabular-nums">{format.number(ad.clicks)}</dd></div>
                                             </dl>
                                         )}
                                     </div>
@@ -238,6 +277,7 @@ export default function RecruiterAdsPage() {
                                 </li>
                             ))}
                         </ul>
+                        </>
                     )}
                     <p className="mt-6 text-xs text-km-text-secondary">{t('rules')}</p>
                 </>

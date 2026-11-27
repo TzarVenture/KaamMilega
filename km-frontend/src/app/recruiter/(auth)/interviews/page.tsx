@@ -1,543 +1,308 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useFormatter, useTranslations } from "next-intl";
+import { CalendarBlankIcon, CalendarCheckIcon, CalendarXIcon, ClockCounterClockwiseIcon, UsersThreeIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import api from "@/lib/axios";
 import { notify } from "@/lib/notify";
-import { 
-    ArrowSquareOutIcon,
-    CalendarBlankIcon, 
-    CaretRightIcon, 
-    ChatCircleIcon,
-    ChatIcon, 
-    CheckCircleIcon, 
-    CheckIcon,
-    ClockIcon,
-    CopyIcon,
-    KanbanIcon, 
-    MagnifyingGlassIcon, 
-    MapPinIcon, 
-    PencilSimpleIcon, 
-    PhoneIcon, 
-    TrashIcon, 
-    UserIcon, 
-    VideoCameraIcon, 
-    WarningCircleIcon, 
-    XCircleIcon,
-    XIcon
-} from '@phosphor-icons/react';
-import Link from "next/link";
-import { CardGridSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
-import ModalWrapper from "@/components/ui/ModalWrapper";
+import { recruiterApi, type Interview } from "@/lib/api/recruiter";
+import { AdminModal, btn, EmptyState, FilterTabs, SearchInput, SkeletonRows } from "@/components/admin/ui";
+import InterviewAgendaItem from "@/components/recruiter/InterviewAgendaItem";
 import EditInterviewModal from "@/components/recruiter/EditInterviewModal";
-import UserAvatar from "@/components/ui/UserAvatar";
 
-export default function InterviewsPage() {
-    const [interviews, setInterviews] = useState<any[]>([]);
+type Tab = "upcoming" | "overdue" | "completed" | "cancelled";
+const TABS: Tab[] = ["upcoming", "overdue", "completed", "cancelled"];
+const PAGE = 20;
+const HOUR = 60 * 60 * 1000;
+const IST_OFFSET = 330 * 60 * 1000;
+
+/** The calendar day in India for a time, as YYYY-MM-DD */
+const istDay = (ms: number) => new Date(ms + IST_OFFSET).toISOString().slice(0, 10);
+
+function tabOf(i: Interview, now: number): Tab {
+    if (i.status === "Completed") return "completed";
+    if (i.status === "Cancelled") return "cancelled";
+    return new Date(i.scheduled_at).getTime() >= now - HOUR ? "upcoming" : "overdue";
+}
+
+function InterviewsView() {
+    const t = useTranslations("recruiterInterviews");
+    const format = useFormatter();
+    const router = useRouter();
+    const pathname = usePathname();
+    const params = useSearchParams();
+
+    const tabParam = params.get("tab") as Tab | null;
+    const tab: Tab = tabParam && TABS.includes(tabParam) ? tabParam : "upcoming";
+    const urlQuery = params.get("q") || "";
+
+    const [items, setItems] = useState<Interview[]>([]);
+    const [now, setNow] = useState(0);
     const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState<"All" | "Scheduled" | "Completed" | "Cancelled">("All");
+    const [failed, setFailed] = useState(false);
+    const [query, setQuery] = useState(urlQuery);
+    const [seenQuery, setSeenQuery] = useState(urlQuery);
+    if (seenQuery !== urlQuery) {
+        // The URL changed from outside (back/forward): the box follows it
+        setSeenQuery(urlQuery);
+        if (query.trim() !== urlQuery) setQuery(urlQuery);
+    }
+    const [shown, setShown] = useState(PAGE);
+    const [busyId, setBusyId] = useState<string | null>(null);
+    const [editing, setEditing] = useState<Interview | null>(null);
+    const [confirm, setConfirm] = useState<{ kind: "cancel" | "delete"; item: Interview } | null>(null);
 
-    // Modal States
-    const [editTarget, setEditTarget] = useState<any | null>(null);
-    const [deleteTarget, setDeleteTarget] = useState<any | null>(null);
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [copiedId, setCopiedId] = useState<string | null>(null);
+    const setUrl = useCallback((next: { tab?: Tab; q?: string }) => {
+        const sp = new URLSearchParams(params.toString());
+        if (next.tab !== undefined) { if (next.tab === "upcoming") sp.delete("tab"); else sp.set("tab", next.tab); }
+        if (next.q !== undefined) { if (next.q) sp.set("q", next.q); else sp.delete("q"); }
+        const qs = sp.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }, [params, pathname, router]);
 
-    const handleCopyLink = (id: string, link: string) => {
-        if (!link) return;
-        navigator.clipboard.writeText(link);
-        setCopiedId(id);
-        notify.success("Meeting link copied to clipboard");
-        setTimeout(() => {
-            setCopiedId((prev) => (prev === id ? null : prev));
-        }, 2000);
-    };
-
-    const fetchInterviews = async () => {
-        try {
-            const data = await api.get("/interviews/my") as any[];
-            setInterviews(Array.isArray(data) ? data : []);
-        } catch (error) {
-            console.error("Failed to fetch interviews:", error);
-            notify.error(error, "Failed to load interviews");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchInterviews();
+    const load = useCallback(() => {
+        return recruiterApi.interviews()
+            .then((data) => {
+                setItems(Array.isArray(data) ? data : []);
+                setFailed(false);
+                setNow(Date.now());
+            })
+            .catch(() => setFailed(true))
+            .finally(() => setLoading(false));
     }, []);
 
-    const handleUpdateStatus = async (id: string, newStatus: string) => {
-        try {
-            await api.patch(`/interviews/${id}/status`, { status: newStatus });
-            setInterviews(prev => prev.map(inview =>
-                inview.id === id ? { ...inview, status: newStatus } : inview
-            ));
-            notify.success(`Interview marked as ${newStatus}`);
-        } catch (error) {
-            console.error("Failed to update interview status:", error);
-            notify.error(error, "Failed to update status");
-        }
+    useEffect(() => { void load(); }, [load]);
+
+    // Keep "now" fresh so items move to "Needs update" while the page stays open
+    useEffect(() => {
+        const id = window.setInterval(() => setNow(Date.now()), 60 * 1000);
+        return () => window.clearInterval(id);
+    }, []);
+
+    // Debounced search into the URL
+    useEffect(() => {
+        if (query.trim() === urlQuery) return;
+        const id = window.setTimeout(() => setUrl({ q: query.trim() }), 350);
+        return () => window.clearTimeout(id);
+    }, [query, urlQuery, setUrl]);
+
+    const filtered = useMemo(() => {
+        const q = urlQuery.trim().toLowerCase();
+        if (!q) return items;
+        return items.filter((i) => (i.candidate?.name || "").toLowerCase().includes(q) || (i.job?.title || "").toLowerCase().includes(q));
+    }, [items, urlQuery]);
+
+    const byTab = useMemo(() => {
+        const out: Record<Tab, Interview[]> = { upcoming: [], overdue: [], completed: [], cancelled: [] };
+        if (!now) return out;
+        for (const i of filtered) out[tabOf(i, now)].push(i);
+        const at = (i: Interview) => new Date(i.scheduled_at).getTime();
+        out.upcoming.sort((a, b) => at(a) - at(b));
+        out.overdue.sort((a, b) => at(a) - at(b));
+        out.completed.sort((a, b) => at(b) - at(a));
+        out.cancelled.sort((a, b) => at(b) - at(a));
+        return out;
+    }, [filtered, now]);
+
+    const list = byTab[tab];
+    const visible = list.slice(0, shown);
+
+    const dayLabel = (key: string) => {
+        const today = istDay(now);
+        const tomorrow = istDay(now + 24 * HOUR);
+        if (key === today) return t("today");
+        if (key === tomorrow) return t("tomorrow");
+        return format.dateTime(new Date(`${key}T12:00:00+05:30`), { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Kolkata" });
     };
 
-    const handleDelete = async () => {
-        if (!deleteTarget) return;
-        setIsDeleting(true);
+    const groups = useMemo(() => {
+        if (tab !== "upcoming") return null;
+        const out: { key: string; items: Interview[] }[] = [];
+        for (const i of visible) {
+            const key = istDay(new Date(i.scheduled_at).getTime());
+            const last = out[out.length - 1];
+            if (last && last.key === key) last.items.push(i);
+            else out.push({ key, items: [i] });
+        }
+        return out;
+    }, [tab, visible]);
+
+    const patchLocal = (id: string, patch: Partial<Interview>) =>
+        setItems((prev) => prev.map((i) => (i.id === id ? { ...i, ...patch } : i)));
+
+    const setStatus = async (item: Interview, status: "Completed" | "Cancelled") => {
+        const before = items;
+        setBusyId(item.id);
+        patchLocal(item.id, { status });
         try {
-            await api.delete(`/interviews/${deleteTarget.id}`);
-            setInterviews(prev => prev.filter(i => i.id !== deleteTarget.id));
-            notify.success("Interview session deleted successfully");
-            setDeleteTarget(null);
-        } catch (error) {
-            console.error("Failed to delete interview:", error);
-            notify.error(error, "Failed to delete interview");
+            await recruiterApi.setInterviewStatus(item.id, status);
+            notify.success(status === "Completed" ? t("doneCompleted") : t("doneCancelled"));
+        } catch (err) {
+            setItems(before);
+            notify.error(err, t("updateFailed"));
         } finally {
-            setIsDeleting(false);
+            setBusyId(null);
         }
     };
 
-    const handleEditSuccess = (updated: any) => {
-        setInterviews(prev => prev.map(i => i.id === updated.id ? { ...i, ...updated } : i));
-        fetchInterviews();
+    const remove = async (item: Interview) => {
+        const before = items;
+        setBusyId(item.id);
+        setItems((prev) => prev.filter((i) => i.id !== item.id));
+        try {
+            await api.delete(`/interviews/${item.id}`);
+            notify.success(t("doneDeleted"));
+        } catch (err) {
+            setItems(before);
+            notify.error(err, t("deleteFailed"));
+        } finally {
+            setBusyId(null);
+        }
     };
 
-    // Derived Counts
-    const scheduledCount = interviews.filter(i => i.status === "Scheduled").length;
-    const completedCount = interviews.filter(i => i.status === "Completed").length;
-    const cancelledCount = interviews.filter(i => i.status === "Cancelled").length;
+    const onConfirm = () => {
+        if (!confirm) return;
+        const { kind, item } = confirm;
+        setConfirm(null);
+        if (kind === "cancel") void setStatus(item, "Cancelled");
+        else void remove(item);
+    };
 
-    // Filter & Search
-    const filteredInterviews = interviews.filter((inview) => {
-        // Status filter
-        if (statusFilter !== "All" && inview.status !== statusFilter) {
-            return false;
-        }
+    const empty = {
+        upcoming: { icon: CalendarBlankIcon, title: t("emptyUpcoming"), description: t("emptyUpcomingHint") },
+        overdue: { icon: CalendarCheckIcon, title: t("emptyOverdue"), description: t("emptyOverdueHint") },
+        completed: { icon: CalendarCheckIcon, title: t("emptyCompleted"), description: t("emptyCompletedHint") },
+        cancelled: { icon: CalendarXIcon, title: t("emptyCancelled"), description: t("emptyCancelledHint") },
+    }[tab];
 
-        // Search filter
-        if (!searchTerm.trim()) return true;
-        const term = searchTerm.toLowerCase();
-        const candName = String(inview.candidate?.name || "").toLowerCase();
-        const candEmail = String(inview.candidate?.email || "").toLowerCase();
-        const jobTitle = String(inview.job?.title || "").toLowerCase();
-        const location = String(inview.location || "").toLowerCase();
-        const notes = String(inview.notes || "").toLowerCase();
-
-        return (
-            candName.includes(term) ||
-            candEmail.includes(term) ||
-            jobTitle.includes(term) ||
-            location.includes(term) ||
-            notes.includes(term)
-        );
-    });
-
-    if (loading) {
-        return (
-            <div className="space-y-6">
-                <PageHeaderSkeleton />
-                <CardGridSkeleton count={6} />
-            </div>
-        );
-    }
+    const renderItem = (i: Interview) => (
+        <InterviewAgendaItem
+            key={i.id}
+            item={i}
+            overdue={tab === "overdue"}
+            busy={busyId === i.id}
+            onEdit={() => setEditing(i)}
+            onComplete={() => void setStatus(i, "Completed")}
+            onCancel={() => setConfirm({ kind: "cancel", item: i })}
+            onDelete={() => setConfirm({ kind: "delete", item: i })}
+        />
+    );
 
     return (
-        <div className="space-y-6 font-sans text-km-text-primary pb-16">
-
-            {/* Header */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-xl sm:text-2xl font-bold text-km-text-primary font-poppins">Scheduled Interviews</h1>
-                    <p className="text-xs text-km-text-secondary mt-0.5">Manage, reschedule, and evaluate candidate interview sessions</p>
+        <div className="space-y-5">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                    <h1 className="text-2xl font-bold tracking-tight text-km-heading">{t("title")}</h1>
+                    <p className="mt-1 text-sm text-km-text-secondary">{t("description")}</p>
                 </div>
-                <div className="flex items-center gap-2.5">
-                    <Link
-                        href="/recruiter/applications"
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-km-surface-card hover:bg-km-surface border border-km-border rounded-xl text-xs font-semibold text-km-text-primary transition-colors shadow-2xs"
-                    >
-                        <KanbanIcon weight="bold" size={15} aria-hidden="true" />
-                        <span>Applicant Pipeline</span>
-                    </Link>
-                </div>
-            </header>
-
-            {/* Controls: Search & Filter Tabs */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-km-surface-card p-3 rounded-2xl border border-km-border shadow-xs">
-                {/* Search Bar */}
-                <div className="relative flex-1">
-                    <MagnifyingGlassIcon
-                        size={16}
-                        weight="regular"
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-km-text-secondary"
-                        aria-hidden="true"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Search candidate, job title, or meeting details..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-9 pr-8 py-2 bg-km-surface rounded-xl text-xs text-km-text-primary placeholder:text-km-text-secondary/70 border border-km-border focus:border-km-primary outline-none transition-colors"
-                    />
-                    {searchTerm && (
-                        <button
-                            type="button"
-                            onClick={() => setSearchTerm("")}
-                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-km-text-secondary hover:text-km-text-primary p-0.5"
-                            aria-label="Clear search"
-                        >
-                            <XIcon size={13} weight="bold" aria-hidden="true" />
-                        </button>
-                    )}
-                </div>
-
-                {/* Filter Tabs */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
-                    {[
-                        { id: "All" as const, label: "All", count: interviews.length },
-                        { id: "Scheduled" as const, label: "Upcoming", count: scheduledCount },
-                        { id: "Completed" as const, label: "Completed", count: completedCount },
-                        { id: "Cancelled" as const, label: "Cancelled", count: cancelledCount },
-                    ].map((tab) => {
-                        const isActive = statusFilter === tab.id;
-                        return (
-                            <button
-                                key={tab.id}
-                                type="button"
-                                onClick={() => setStatusFilter(tab.id)}
-                                className={`px-3 py-1.5 rounded-xl text-xs transition-colors flex items-center gap-1.5 shrink-0 ${
-                                    isActive
-                                        ? "bg-km-primary text-white font-semibold shadow-2xs"
-                                        : "bg-km-surface text-km-text-secondary hover:text-km-text-primary hover:bg-km-border/40 font-medium"
-                                }`}
-                            >
-                                <span>{tab.label}</span>
-                                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${
-                                    isActive ? "bg-white/20 text-white" : "bg-km-border text-km-text-secondary"
-                                }`}>
-                                    {tab.count}
-                                </span>
-                            </button>
-                        );
-                    })}
-                </div>
+                <Link href="/recruiter/applications?status=Interviewing" className={btn.accent}>
+                    <UsersThreeIcon size={16} weight="bold" aria-hidden="true" />
+                    {t("scheduleFromApplicants")}
+                </Link>
             </div>
 
-            {/* Interviews List */}
-            {interviews.length === 0 ? (
-                <div className="bg-km-surface-card p-12 rounded-2xl shadow-xs border border-km-border text-center">
-                    <CalendarBlankIcon size={36} weight="duotone" className="text-km-text-secondary mx-auto mb-3" aria-hidden="true" />
-                    <h3 className="text-sm font-semibold text-km-text-primary font-poppins">No interviews scheduled yet</h3>
-                    <p className="text-xs text-km-text-secondary mt-1 max-w-sm mx-auto mb-4">
-                        Interviews appear here once you schedule evaluation sessions with candidates from your Applicant Pipeline.
-                    </p>
-                    <Link
-                        href="/recruiter/applications"
-                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-km-primary text-white rounded-xl text-xs font-semibold hover:bg-km-primary-dark transition-colors shadow-xs"
-                    >
-                        <span>Open Applicant Pipeline</span>
-                        <CaretRightIcon weight="bold" size={13} aria-hidden="true" />
-                    </Link>
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div className="max-w-full overflow-x-auto">
+                    <FilterTabs<Tab>
+                        value={tab}
+                        onChange={(v) => { setShown(PAGE); setUrl({ tab: v }); }}
+                        options={TABS.map((v) => ({ value: v, label: t(`tab_${v}`), count: loading || failed ? undefined : byTab[v].length }))}
+                    />
                 </div>
-            ) : filteredInterviews.length === 0 ? (
-                <div className="bg-km-surface-card p-10 rounded-2xl shadow-xs border border-km-border text-center">
-                    <MagnifyingGlassIcon size={32} weight="duotone" className="text-km-text-secondary mx-auto mb-2.5" aria-hidden="true" />
-                    <h3 className="text-sm font-semibold text-km-text-primary font-poppins">No Matching Interviews</h3>
-                    <p className="text-xs text-km-text-secondary mt-1 max-w-sm mx-auto mb-3">
-                        No sessions matched your search or status filter. Try clearing filters to see all interviews.
-                    </p>
-                    <button
-                        type="button"
-                        onClick={() => { setSearchTerm(""); setStatusFilter("All"); }}
-                        className="px-3.5 py-1.5 bg-km-surface hover:bg-km-border/50 text-km-text-primary border border-km-border rounded-xl text-xs font-medium transition-colors"
-                    >
-                        Clear Filters
-                    </button>
+                <SearchInput value={query} onChange={(v) => { setShown(PAGE); setQuery(v); }} placeholder={t("searchPlaceholder")} className="w-full lg:w-72" />
+            </div>
+
+            {tab === "overdue" && !loading && !failed && list.length > 0 && (
+                <p className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-[#33240A] dark:text-amber-200">
+                    <ClockCounterClockwiseIcon size={18} weight="bold" className="mt-0.5 shrink-0" aria-hidden="true" />
+                    {t("overdueHint")}
+                </p>
+            )}
+
+            {failed ? (
+                <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-[#2A1215] dark:text-red-300">
+                    <span className="flex items-center gap-2">
+                        <WarningCircleIcon size={18} weight="bold" aria-hidden="true" />
+                        {t("loadFailed")}
+                    </span>
+                    <button type="button" onClick={() => { setLoading(true); void load(); }} className={btn.secondary}>{t("retry")}</button>
+                </div>
+            ) : loading ? (
+                <div className="rounded-2xl border border-km-border bg-km-surface-card"><SkeletonRows rows={5} /></div>
+            ) : list.length === 0 ? (
+                <div className="rounded-2xl border border-km-border bg-km-surface-card">
+                    {urlQuery ? (
+                        <EmptyState icon={CalendarBlankIcon} title={t("noMatches")} description={t("noMatchesHint")}
+                            action={<button type="button" className={btn.secondary} onClick={() => { setQuery(""); setUrl({ q: "" }); }}>{t("clearSearch")}</button>} />
+                    ) : (
+                        <EmptyState icon={empty.icon} title={empty.title} description={empty.description}
+                            action={tab === "upcoming" ? <Link href="/recruiter/applications?status=Interviewing" className={btn.secondary}>{t("scheduleFromApplicants")}</Link> : undefined} />
+                    )}
+                </div>
+            ) : groups ? (
+                <div className="space-y-5">
+                    {groups.map((g) => (
+                        <section key={g.key} aria-label={dayLabel(g.key)}>
+                            <h2 className="mb-2 text-sm font-semibold text-km-heading">{dayLabel(g.key)}
+                                <span className="ml-2 font-normal text-km-text-secondary">{t("countInterviews", { count: g.items.length })}</span>
+                            </h2>
+                            <ul className="divide-y divide-km-border-subtle rounded-2xl border border-km-border bg-km-surface-card">{g.items.map(renderItem)}</ul>
+                        </section>
+                    ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-4">
-                    {filteredInterviews.map((inview) => {
-                        const candidateId = inview.candidate_id || inview.candidate?.id;
-                        return (
-                            <div key={inview.id} className="bg-km-surface-card rounded-2xl border border-km-border shadow-xs overflow-hidden transition-colors hover:border-km-border/90">
-                                <div className="p-5 flex flex-col md:flex-row gap-5">
-                                    {/* Date & Time Column */}
-                                    <div className="md:w-44 shrink-0 flex flex-row md:flex-col gap-3 items-center md:items-start justify-between md:justify-center border-b md:border-b-0 md:border-r border-km-border pb-4 md:pb-0 md:pr-5">
-                                        <div>
-                                            <p className="text-xs text-km-text-secondary flex items-center gap-1.5 mb-0.5">
-                                                <CalendarBlankIcon size={14} weight="regular" aria-hidden="true" />
-                                                <span>Date</span>
-                                            </p>
-                                            <p className="text-sm font-semibold text-km-text-primary">
-                                                {new Date(inview.scheduled_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-km-text-secondary flex items-center gap-1.5 mb-0.5">
-                                                <ClockIcon size={14} weight="regular" aria-hidden="true" />
-                                                <span>Time</span>
-                                            </p>
-                                            <p className="text-xs font-medium text-km-text-secondary">
-                                                {new Date(inview.scheduled_at).toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <span className={`inline-block px-2.5 py-0.5 rounded-md text-xs font-medium border ${
-                                                inview.status === "Scheduled"
-                                                    ? "bg-blue-50 text-km-blue border-blue-200 dark:bg-[#131D3D] dark:border-blue-900/40 dark:text-km-link"
-                                                    : inview.status === "Completed"
-                                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-[#0C1F2E] dark:border-emerald-900/40 dark:text-emerald-400"
-                                                    : "bg-rose-50 text-rose-700 border-rose-200 dark:bg-[#23142B] dark:border-rose-900/40 dark:text-rose-400"
-                                            }`}>
-                                                {inview.status}
-                                            </span>
-                                        </div>
-                                    </div>
+                <ul className="divide-y divide-km-border-subtle rounded-2xl border border-km-border bg-km-surface-card">{visible.map(renderItem)}</ul>
+            )}
 
-                                    {/* Main Details */}
-                                    <div className="flex-1 space-y-3.5 min-w-0">
-                                        {/* Position Title & Session Format */}
-                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                            <div>
-                                                <p className="text-xs text-km-text-secondary mb-0.5">Job Position</p>
-                                                <h3 className="text-sm font-semibold text-km-text-primary font-poppins">{inview.job?.title || "Position Title"}</h3>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-xs font-medium text-km-text-secondary self-start sm:self-auto">
-                                                {inview.type === "Video" && <VideoCameraIcon size={16} weight="regular" className="text-km-blue" aria-hidden="true" />}
-                                                {inview.type === "Phone" && <PhoneIcon size={16} weight="regular" className="text-emerald-600" aria-hidden="true" />}
-                                                {inview.type === "In-person" && <MapPinIcon size={16} weight="regular" className="text-amber-600" aria-hidden="true" />}
-                                                <span>{inview.type} Interview</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Candidate Profile Snippet Card */}
-                                        <div className="p-3.5 bg-km-surface rounded-xl border border-km-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                                            <div className="flex items-center gap-3 min-w-0">
-                                                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-km-border">
-                                                    <UserAvatar
-                                                        src={inview.candidate?.profile_image}
-                                                        name={inview.candidate?.name || "Candidate"}
-                                                        sizeClass="w-full h-full"
-                                                    />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <div className="flex items-center gap-2 flex-wrap">
-                                                        {candidateId ? (
-                                                            <Link
-                                                                href={`/profile/${candidateId}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-xs font-semibold text-km-text-primary hover:text-km-blue transition-colors flex items-center gap-1 group"
-                                                            >
-                                                                <span>{inview.candidate?.name || "Candidate"}</span>
-                                                                <ArrowSquareOutIcon size={12} weight="bold" className="text-km-text-secondary group-hover:text-km-blue" aria-hidden="true" />
-                                                            </Link>
-                                                        ) : (
-                                                            <span className="text-xs font-semibold text-km-text-primary">
-                                                                {inview.candidate?.name || "Candidate"}
-                                                            </span>
-                                                        )}
-                                                        {inview.candidate?.email && (
-                                                            <span className="text-xs text-km-text-secondary truncate">
-                                                                ({inview.candidate.email})
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {inview.candidate?.headline && (
-                                                        <p className="text-xs text-km-text-secondary truncate max-w-md mt-0.5">
-                                                            {inview.candidate.headline}
-                                                        </p>
-                                                    )}
-                                                    {inview.candidate?.mobile && (
-                                                        <p className="text-xs text-km-text-secondary mt-0.5">
-                                                            Mobile: <span className="font-medium text-km-text-primary">{inview.candidate.mobile}</span>
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Profile & Chat Quick Action Links */}
-                                            {candidateId && (
-                                                <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                                                    <Link
-                                                        href={`/profile/${candidateId}`}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="px-3 py-1.5 text-xs font-medium text-km-text-primary bg-km-surface-card hover:bg-km-border/40 border border-km-border rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
-                                                        title="View candidate profile in new tab"
-                                                    >
-                                                        <UserIcon size={14} weight="regular" aria-hidden="true" />
-                                                        <span>View Profile</span>
-                                                        <ArrowSquareOutIcon size={11} weight="bold" aria-hidden="true" />
-                                                    </Link>
-                                                    <Link
-                                                        href={`/chat?user=${candidateId}`}
-                                                        className="px-3 py-1.5 text-xs font-medium text-km-blue hover:text-km-blue/90 bg-blue-50 hover:bg-blue-100/70 dark:bg-[#131E40] border border-blue-200 dark:border-blue-900/50 rounded-xl transition-colors flex items-center gap-1.5 shadow-2xs"
-                                                        title="Open chat with candidate"
-                                                    >
-                                                        <ChatCircleIcon size={14} weight="regular" aria-hidden="true" />
-                                                        <span>Chat</span>
-                                                    </Link>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                            <div className="bg-km-surface p-3 rounded-xl border border-km-border">
-                                                <div className="flex items-center justify-between gap-2 mb-1.5">
-                                                    <p className="text-xs text-km-text-secondary flex items-center gap-1.5">
-                                                        <MapPinIcon weight="regular" size={14} aria-hidden="true" />
-                                                        <span className="font-medium">{inview.type === "Video" ? "Meeting URL" : inview.type === "Phone" ? "Phone Contact" : "Address"}</span>
-                                                    </p>
-                                                    {inview.location && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => handleCopyLink(inview.id, inview.location)}
-                                                            className="inline-flex items-center gap-1 text-[11px] font-medium text-km-text-secondary hover:text-km-text-primary px-1.5 py-0.5 rounded-md hover:bg-km-border/50 transition-colors"
-                                                            title={inview.type === "Video" ? "Copy meeting link" : "Copy to clipboard"}
-                                                        >
-                                                            {copiedId === inview.id ? (
-                                                                <>
-                                                                    <CheckIcon size={12} weight="bold" className="text-emerald-600" aria-hidden="true" />
-                                                                    <span className="text-emerald-600">Copied</span>
-                                                                </>
-                                                            ) : (
-                                                                <>
-                                                                    <CopyIcon size={12} weight="regular" aria-hidden="true" />
-                                                                    <span>{inview.type === "Video" ? "Copy Link" : "Copy"}</span>
-                                                                </>
-                                                            )}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                                <div className="text-xs font-medium text-km-text-primary break-all">
-                                                    {inview.type === "Video" && inview.location?.startsWith("http") ? (
-                                                        <div className="flex items-center gap-2.5 flex-wrap">
-                                                            <a href={inview.location} target="_blank" rel="noreferrer" className="text-km-blue hover:underline inline-flex items-center gap-1 font-semibold">
-                                                                <span>Join Meeting</span>
-                                                                <CaretRightIcon weight="bold" size={12} aria-hidden="true" />
-                                                            </a>
-                                                            <span className="text-km-text-secondary/70 text-[11px] truncate max-w-xs">
-                                                                {inview.location}
-                                                            </span>
-                                                        </div>
-                                                    ) : (
-                                                        inview.location || "Not specified"
-                                                    )}
-                                                </div>
-                                            </div>
-                                            {inview.notes && (
-                                                <div className="bg-km-surface p-3 rounded-xl border border-km-border">
-                                                    <p className="text-xs text-km-text-secondary flex items-center gap-1.5 mb-1">
-                                                        <ChatIcon weight="regular" size={14} aria-hidden="true" />
-                                                        <span className="font-medium">Instructions / Notes</span>
-                                                    </p>
-                                                    <p className="text-xs text-km-text-secondary line-clamp-2">"{inview.notes}"</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Actions Column (Compact buttons, no excessive padding or vertical stretching) */}
-                                    <div className="md:w-32 shrink-0 flex flex-row md:flex-col gap-2 justify-center border-t md:border-t-0 md:border-l border-km-border pt-4 md:pt-0 md:pl-5">
-                                        {inview.status === "Scheduled" && (
-                                            <>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleUpdateStatus(inview.id, "Completed")}
-                                                    className="w-full py-1.5 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
-                                                >
-                                                    <CheckCircleIcon weight="bold" size={14} aria-hidden="true" />
-                                                    <span>Finish</span>
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleUpdateStatus(inview.id, "Cancelled")}
-                                                    className="w-full py-1.5 px-3 bg-km-surface hover:bg-rose-50 dark:hover:bg-[#23142B] text-rose-600 border border-km-border rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
-                                                >
-                                                    <XCircleIcon weight="regular" size={14} aria-hidden="true" />
-                                                    <span>Cancel</span>
-                                                </button>
-                                            </>
-                                        )}
-
-                                        {/* Edit Button */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setEditTarget(inview)}
-                                            className="w-full py-1.5 px-3 bg-km-surface hover:bg-km-border/50 text-km-text-primary border border-km-border rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
-                                        >
-                                            <PencilSimpleIcon weight="bold" size={14} aria-hidden="true" />
-                                            <span>Edit</span>
-                                        </button>
-
-                                        {/* Delete Button */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setDeleteTarget(inview)}
-                                            className="w-full py-1.5 px-3 bg-km-surface hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-[#211527] text-km-text-secondary border border-km-border rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5"
-                                            title="Delete Interview Record"
-                                        >
-                                            <TrashIcon weight="regular" size={14} aria-hidden="true" />
-                                            <span>Delete</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
+            {!loading && !failed && list.length > shown && (
+                <div className="flex justify-center">
+                    <button type="button" className={btn.secondary} onClick={() => setShown((n) => n + PAGE)}>
+                        {t("showMore", { count: Math.min(PAGE, list.length - shown) })}
+                    </button>
                 </div>
             )}
 
-            {/* Edit / Reschedule Modal */}
             <EditInterviewModal
-                isOpen={!!editTarget}
-                onClose={() => setEditTarget(null)}
-                interview={editTarget}
-                onSuccess={handleEditSuccess}
+                isOpen={!!editing}
+                interview={editing}
+                onClose={() => setEditing(null)}
+                onSuccess={(updated: Partial<Interview> | undefined) => {
+                    if (editing) {
+                        const patch: Partial<Interview> = {};
+                        if (updated && typeof updated === "object") {
+                            for (const k of ["scheduled_at", "type", "location", "notes", "status"] as const) {
+                                if (updated[k] !== undefined) (patch as Record<string, unknown>)[k] = updated[k];
+                            }
+                        }
+                        patchLocal(editing.id, patch);
+                    }
+                    void load();
+                }}
             />
 
-            {/* Delete Confirmation Modal */}
-            {deleteTarget && (
-                <ModalWrapper
-                    isOpen={!!deleteTarget}
-                    onClose={() => setDeleteTarget(null)}
-                    title="Delete Interview Record"
-                >
-                    <div className="space-y-4 font-sans text-km-text-primary">
-                        <div className="flex items-start gap-3 p-3 bg-red-50/70 dark:bg-[#1B172B] border border-red-200 dark:border-red-900/40 rounded-xl text-red-800 dark:text-red-300 text-xs leading-relaxed">
-                            <WarningCircleIcon size={20} weight="fill" className="text-red-600 shrink-0 mt-0.5" aria-hidden="true" />
-                            <div>
-                                <p className="font-semibold">Are you sure you want to delete this interview record?</p>
-                                <p className="mt-1 text-red-700 dark:text-red-400">
-                                    Interview with <strong className="font-semibold">{deleteTarget.candidate?.name || "Candidate"}</strong> scheduled for {new Date(deleteTarget.scheduled_at).toLocaleDateString()} will be permanently removed.
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end gap-2.5 pt-2">
-                            <button
-                                type="button"
-                                onClick={() => setDeleteTarget(null)}
-                                className="px-4 py-2 border border-km-border text-km-text-secondary hover:bg-km-surface rounded-xl text-xs font-medium transition-colors"
-                            >
-                                Keep Interview
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                                className="px-5 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-semibold disabled:opacity-50 transition-colors shadow-xs flex items-center gap-1.5"
-                            >
-                                <TrashIcon weight="bold" size={14} aria-hidden="true" />
-                                <span>{isDeleting ? "Deleting..." : "Confirm Delete"}</span>
-                            </button>
-                        </div>
-                    </div>
-                </ModalWrapper>
-            )}
-
+            <AdminModal isOpen={!!confirm} onClose={() => setConfirm(null)} title={confirm?.kind === "delete" ? t("deleteTitle") : t("cancelTitle")}>
+                <p className="text-sm text-km-text-secondary">
+                    {confirm?.kind === "delete"
+                        ? t("deleteBody")
+                        : t("cancelBody", { name: confirm?.item.candidate?.name || t("candidate") })}
+                </p>
+                <div className="mt-6 flex flex-wrap justify-end gap-2">
+                    <button type="button" className={btn.secondary} onClick={() => setConfirm(null)}>{t("keep")}</button>
+                    <button type="button" className={btn.danger} onClick={onConfirm}>
+                        {confirm?.kind === "delete" ? t("deleteConfirm") : t("cancelConfirm")}
+                    </button>
+                </div>
+            </AdminModal>
         </div>
     );
 }
 
+export default function RecruiterInterviewsPage() {
+    return (
+        <Suspense fallback={<div className="rounded-2xl border border-km-border bg-km-surface-card"><SkeletonRows rows={5} /></div>}>
+            <InterviewsView />
+        </Suspense>
+    );
+}

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"km-backend/internal/features/job"
@@ -63,7 +64,7 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 	}
 
 	// Check if job is closed, deleted, or on hold
-	if strings.EqualFold(jobInfo.Status, "closed") || strings.EqualFold(jobInfo.Status, "deleted") || strings.EqualFold(jobInfo.Status, "on hold") || strings.EqualFold(jobInfo.Status, "onhold") || jobInfo.HiddenByAccount {
+	if strings.EqualFold(jobInfo.Status, "closed") || strings.EqualFold(jobInfo.Status, "deleted") || strings.EqualFold(jobInfo.Status, "on hold") || strings.EqualFold(jobInfo.Status, "onhold") || strings.EqualFold(jobInfo.Status, "paused") || jobInfo.HiddenByAccount {
 		return nil, ErrJobClosed
 	}
 
@@ -138,13 +139,36 @@ func (s *ApplicationService) CreateApplication(ctx context.Context, req *CreateA
 				Category:    notification.CategoryJobs,
 				Title:       "New Application Received",
 				Message:     fmt.Sprintf("%s applied for %s", candName, jobInfo.Title),
-				Link:        fmt.Sprintf("/recruiter/applications?job_id=%s", jobInfo.ID.Hex()),
+				Link:        fmt.Sprintf("/recruiter/applications?job_id=%s&a=%s", jobInfo.ID.Hex(), createdApp.ID.Hex()),
 				Metadata: map[string]interface{}{
 					"application_id": createdApp.ID.Hex(),
 					"job_id":         jobInfo.ID.Hex(),
 					"candidate_id":   candidateID,
 				},
 			})
+
+			// Email the employer too, unless they turned application emails off
+			if s.mailer == nil {
+				return
+			}
+			recruiter, _ := s.userRepo.FindUserByID(context.Background(), jobInfo.RecruiterID.Hex())
+			if recruiter == nil || recruiter.Email == "" {
+				return
+			}
+			if recruiter.Settings.ProfileVisibility != "" && !recruiter.Settings.EmailApplicationUpdates {
+				return
+			}
+			p := notification.NewApplicationParams{
+				ToEmail: recruiter.Email, RecruiterName: strings.TrimSpace(recruiter.Name),
+				CandidateName: candName, JobTitle: jobInfo.Title,
+				ActionURL: fmt.Sprintf("%s/recruiter/applications?job_id=%s&a=%s", s.siteURL(), jobInfo.ID.Hex(), createdApp.ID.Hex()),
+			}
+			if c, _ := s.userRepo.FindUserByID(context.Background(), candidateID); c != nil {
+				p.Headline, p.City = c.Headline, c.City
+			}
+			if err := s.mailer.SendNewApplication(p); err != nil {
+				log.Printf("[ApplicationNotification] New applicant email to %s failed: %v", recruiter.Email, err)
+			}
 		}()
 	}
 
@@ -313,19 +337,9 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id, st
 	if status == "" {
 		return nil, ErrInvalidStatus
 	}
-	if _, err := primitive.ObjectIDFromHex(id); err != nil {
-		return nil, ErrApplicationNotFound
-	}
-	existing, err := s.repo.FindByID(ctx, id)
-	if err != nil {
-		return nil, err
-	}
-	if existing == nil {
-		return nil, ErrApplicationNotFound
-	}
 	// A removed job falls back to the employer stamped on the application
-	if err := s.ownsJob(ctx, existing.JobID.Hex(), userID, isAdmin); err != nil &&
-		!(err == ErrJobNotFound && existing.RecruiterID.Hex() == userID) {
+	existing, err := s.ownApplication(ctx, id, userID, isAdmin)
+	if err != nil {
 		return nil, err
 	}
 	if existing.Status == status {
@@ -379,7 +393,6 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id, st
 				JobTitle:      jobTitle,
 				CompanyName:   company,
 				NewStatus:     status,
-				ActionURL:     "https://kaammilega.com/applications",
 			})
 			if merr != nil {
 				log.Printf("[ApplicationNotification] Failed to send status email to %s: %v", candidate.Email, merr)
@@ -405,10 +418,8 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id, st
 				}
 			}
 
-			statusLabel := status
-			if len(statusLabel) > 0 {
-				statusLabel = strings.ToUpper(statusLabel[:1]) + strings.ToLower(statusLabel[1:])
-			}
+			// "Not selected" rather than "Rejected"
+			statusLabel := notification.CandidateStatusLabel(status)
 
 			_, _ = s.notifService.CreateNotification(context.Background(), notification.CreateNotificationRequest{
 				UserID:      updated.CandidateID,
@@ -416,7 +427,7 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id, st
 				Type:        notification.TypeApplicationStatus,
 				Category:    notification.CategoryJobs,
 				Title:       "Application Status Updated",
-				Message:     fmt.Sprintf("Your application for %s is now %s", jobTitle, statusLabel),
+				Message:     fmt.Sprintf("Your application for %s: %s", jobTitle, statusLabel),
 				Link:        "/applications",
 				Metadata: map[string]interface{}{
 					"application_id": updated.ID.Hex(),
@@ -431,3 +442,11 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id, st
 }
 
 
+
+// siteURL is the website origin for links in emails (FRONTEND_URL, kaammilega.com by default)
+func (s *ApplicationService) siteURL() string {
+	if u := strings.TrimRight(strings.TrimSpace(os.Getenv("FRONTEND_URL")), "/"); u != "" {
+		return u
+	}
+	return "https://kaammilega.com"
+}

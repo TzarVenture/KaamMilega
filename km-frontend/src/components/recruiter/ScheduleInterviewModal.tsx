@@ -12,6 +12,13 @@ interface ScheduleInterviewModalProps {
     onSuccess: () => void;
 }
 
+/** Today's date and the current time as the date/time inputs expect them (local time) */
+function nowParts() {
+    const d = new Date();
+    const p = (n: number) => String(n).padStart(2, '0');
+    return { date: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`, time: `${p(d.getHours())}:${p(d.getMinutes())}` };
+}
+
 const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: ScheduleInterviewModalProps) => {
     const [formData, setFormData] = useState({
         scheduled_at_date: '',
@@ -21,12 +28,17 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
         notes: ''
     });
     const [loading, setLoading] = useState(false);
+    const [now] = useState(nowParts);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         try {
             const scheduledAt = new Date(`${formData.scheduled_at_date}T${formData.scheduled_at_time}`);
+            if (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() < Date.now()) {
+                notify.error("Pick a date and time in the future");
+                return;
+            }
 
             const payload = {
                 application_id: applicationId,
@@ -40,9 +52,8 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
             notify.success("Interview scheduled successfully!");
             onSuccess();
             onClose();
-        } catch (error: any) {
-            console.error("Failed to schedule interview:", error);
-            notify.error(error.message || "Failed to schedule interview");
+        } catch (error) {
+            notify.error(error, "Failed to schedule interview");
         } finally {
             setLoading(false);
         }
@@ -60,6 +71,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                         <input
                             type="date"
                             required
+                            min={now.date}
                             className="w-full px-3 py-2 border border-km-border bg-km-surface-card rounded-xl text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
                             value={formData.scheduled_at_date}
                             onChange={(e) => setFormData({ ...formData, scheduled_at_date: e.target.value })}
@@ -73,6 +85,7 @@ const ScheduleInterviewModal = ({ isOpen, onClose, applicationId, onSuccess }: S
                         <input
                             type="time"
                             required
+                            min={formData.scheduled_at_date === now.date ? now.time : undefined}
                             className="w-full px-3 py-2 border border-km-border bg-km-surface-card rounded-xl text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
                             value={formData.scheduled_at_time}
                             onChange={(e) => setFormData({ ...formData, scheduled_at_time: e.target.value })}

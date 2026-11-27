@@ -169,11 +169,7 @@ func (s *JobService) GetJobsByRecruiter(ctx context.Context, recruiterID string)
 		return nil, err
 	}
 
-	for i := range jobs {
-		count, _ := s.appRepo.CountByJob(ctx, jobs[i].ID.Hex())
-		jobs[i].ApplicantCount = count
-	}
-
+	s.addStageCounts(ctx, jobs)
 	return jobs, nil
 }
 

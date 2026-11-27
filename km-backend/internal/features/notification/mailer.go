@@ -30,6 +30,9 @@ type Mailer interface {
 	// SendApplicationUpdate notifies a candidate that their application status has changed.
 	SendApplicationUpdate(p ApplicationUpdateParams) error
 
+	// SendNewApplication tells an employer that someone applied to one of their jobs.
+	SendNewApplication(p NewApplicationParams) error
+
 	// SendTransactionReceipt sends a detailed receipt after a financial transaction.
 	SendTransactionReceipt(p TransactionReceiptParams) error
 
@@ -61,6 +64,25 @@ type InterviewInviteParams struct {
 	ScheduledAt   time.Time
 	Location      string // Meeting link or physical address
 	Notes         string
+	Kind          string // InterviewScheduled (default), InterviewRescheduled or InterviewCancelled
+}
+
+// Interview email kinds
+const (
+	InterviewScheduled   = "scheduled"
+	InterviewRescheduled = "rescheduled"
+	InterviewCancelled   = "cancelled"
+)
+
+// NewApplicationParams carries data for the employer's "new applicant" email.
+type NewApplicationParams struct {
+	ToEmail       string
+	RecruiterName string
+	CandidateName string
+	Headline      string
+	City          string
+	JobTitle      string
+	ActionURL     string // Deep-link to the applicant in the employer portal
 }
 
 // ApplicationUpdateParams carries data for an application status change notification.
@@ -168,21 +190,32 @@ func (m *smtpMailer) SendInterviewInvite(p InterviewInviteParams) error {
 	if p.Location == "" {
 		p.Location = "To be communicated"
 	}
-	subject := fmt.Sprintf("Interview Scheduled — %s at %s", p.JobTitle, p.CompanyName)
+	status, color := "Interview Scheduled", "#0B5ED7"
+	switch p.Kind {
+	case InterviewRescheduled:
+		status, color = "Interview Rescheduled", "#FF6B00"
+	case InterviewCancelled:
+		status, color = "Interview Cancelled", "#64748B"
+	}
+	subject := fmt.Sprintf("%s — %s", status, p.JobTitle)
+	if p.CompanyName != "" {
+		subject += " at " + p.CompanyName
+	}
 	body, err := renderTemplate(m.templates, "interview_invite", templateData{
 		RecipientName: p.CandidateName,
 		JobTitle:      p.JobTitle,
 		CompanyName:   p.CompanyName,
-		Status:        "Interview Scheduled",
-		StatusColor:   "#0B5ED7",
+		Status:        status,
+		StatusColor:   color,
 		Rows: []tableRow{
-			{Label: "📅 Date & Time", Value: p.ScheduledAt.Format("Monday, 02 Jan 2006 · 03:04 PM")},
+			// Servers run on UTC: the candidate reads India time
+			{Label: "📅 Date & Time", Value: p.ScheduledAt.In(istLocation()).Format("Monday, 02 Jan 2006 · 03:04 PM") + " IST"},
 			{Label: "🎯 Format", Value: p.InterviewType},
 			{Label: "📍 Location / Link", Value: p.Location},
 		},
-		Note:   p.Notes,
-		CTAURL: "https://kaammilega.com/applications",
-		CTALabel: "View My Applications",
+		Note:     p.Notes,
+		CTAURL:   m.siteURL("/interviews"),
+		CTALabel: "View My Interviews",
 	})
 	if err != nil {
 		return fmt.Errorf("notification: render interview invite: %w", err)
@@ -194,10 +227,15 @@ func (m *smtpMailer) SendApplicationUpdate(p ApplicationUpdateParams) error {
 	if p.CandidateName == "" {
 		p.CandidateName = "Candidate"
 	}
+	// Candidates see "Not selected", never "Rejected"
+	p.NewStatus = CandidateStatusLabel(p.NewStatus)
 	statusColor := statusToColor(p.NewStatus)
-	subject := fmt.Sprintf("Application Update — %s at %s", p.JobTitle, p.CompanyName)
+	subject := fmt.Sprintf("Application Update — %s", p.JobTitle)
+	if p.CompanyName != "" {
+		subject += " at " + p.CompanyName
+	}
 	if p.ActionURL == "" {
-		p.ActionURL = "https://kaammilega.com/applications"
+		p.ActionURL = m.siteURL("/applications")
 	}
 	body, err := renderTemplate(m.templates, "application_update", templateData{
 		RecipientName: p.CandidateName,
@@ -212,6 +250,61 @@ func (m *smtpMailer) SendApplicationUpdate(p ApplicationUpdateParams) error {
 		return fmt.Errorf("notification: render application update: %w", err)
 	}
 	return m.SendRaw(p.ToEmail, subject, body)
+}
+
+func (m *smtpMailer) SendNewApplication(p NewApplicationParams) error {
+	if p.RecruiterName == "" {
+		p.RecruiterName = "there"
+	}
+	if p.ActionURL == "" {
+		p.ActionURL = m.siteURL("/recruiter/applications")
+	}
+	rows := []tableRow{{Label: "Candidate", Value: p.CandidateName, Bold: true}}
+	if p.Headline != "" {
+		rows = append(rows, tableRow{Label: "Headline", Value: p.Headline})
+	}
+	if p.City != "" {
+		rows = append(rows, tableRow{Label: "City", Value: p.City})
+	}
+	body, err := renderTemplate(m.templates, "new_application", templateData{
+		RecipientName: p.RecruiterName,
+		JobTitle:      p.JobTitle,
+		Status:        "New Applicant",
+		StatusColor:   "#0B5ED7",
+		Rows:          rows,
+		CTAURL:        p.ActionURL,
+		CTALabel:      "Review Applicant",
+	})
+	if err != nil {
+		return fmt.Errorf("notification: render new application: %w", err)
+	}
+	return m.SendRaw(p.ToEmail, fmt.Sprintf("New applicant for %s — %s", p.JobTitle, p.CandidateName), body)
+}
+
+// siteURL is a full link to a page on the website (FRONTEND_URL, kaammilega.com by default)
+func (m *smtpMailer) siteURL(path string) string {
+	base := strings.TrimRight(m.cfg.FrontendURL, "/")
+	if base == "" {
+		base = "https://kaammilega.com"
+	}
+	return base + path
+}
+
+// CandidateStatusLabel is how a pipeline stage reads to the candidate
+func CandidateStatusLabel(status string) string {
+	switch strings.ToLower(strings.TrimSpace(status)) {
+	case "rejected":
+		return "Not selected"
+	case "interviewing":
+		return "Interviewing"
+	case "shortlisted":
+		return "Shortlisted"
+	case "hired":
+		return "Hired"
+	case "applied":
+		return "Applied"
+	}
+	return status
 }
 
 func (m *smtpMailer) SendTransactionReceipt(p TransactionReceiptParams) error {
@@ -392,8 +485,11 @@ func (m *smtpMailer) SendRaw(to, subject, htmlBody string) error {
 	if to == "" {
 		return fmt.Errorf("notification: empty recipient address")
 	}
-	return dialAndSend(m.cfg, to, subject, htmlBody)
+	return sendRaw(m.cfg, to, subject, htmlBody)
 }
+
+// sendRaw delivers an email (tests swap it to keep the email instead)
+var sendRaw = dialAndSend
 
 // ─── No-Op Implementation ─────────────────────────────────────────────────────
 
@@ -403,6 +499,7 @@ type noopMailer struct{}
 
 func (n *noopMailer) SendInterviewInvite(_ InterviewInviteParams) error      { return nil }
 func (n *noopMailer) SendApplicationUpdate(_ ApplicationUpdateParams) error  { return nil }
+func (n *noopMailer) SendNewApplication(_ NewApplicationParams) error        { return nil }
 func (n *noopMailer) SendTransactionReceipt(_ TransactionReceiptParams) error { return nil }
 func (n *noopMailer) SendWithdrawalRequest(_ WithdrawalRequestParams) error  { return nil }
 func (n *noopMailer) SendEmailOTP(_ EmailOTPParams) error                    { return nil }
@@ -458,7 +555,9 @@ func dialAndSend(cfg *config.Config, to, subject, htmlBody string) error {
 func statusToColor(status string) string {
 	s := strings.ToLower(status)
 	switch {
-	case strings.Contains(s, "selected") || strings.Contains(s, "offer"):
+	case strings.Contains(s, "not selected") || strings.Contains(s, "cancel"):
+		return "#64748B" // Slate
+	case strings.Contains(s, "selected") || strings.Contains(s, "offer") || strings.Contains(s, "hired"):
 		return "#16A34A" // Growth Green
 	case strings.Contains(s, "interview") || strings.Contains(s, "shortlist"):
 		return "#0B5ED7" // Brand Blue

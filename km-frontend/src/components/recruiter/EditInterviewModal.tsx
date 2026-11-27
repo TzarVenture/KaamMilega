@@ -5,14 +5,22 @@ import Link from 'next/link';
 import api from '@/lib/axios';
 import ModalWrapper from '@/components/ui/ModalWrapper';
 import { notify } from "@/lib/notify";
-import { ArrowSquareOutIcon, CalendarBlankIcon, ClockIcon, FileTextIcon, MapPinIcon, PhoneIcon, UserIcon, VideoCameraIcon } from '@phosphor-icons/react';
+import { ArrowSquareOutIcon, CalendarBlankIcon, ClockIcon, FileTextIcon, MapPinIcon, PhoneIcon, VideoCameraIcon } from '@phosphor-icons/react';
 import UserAvatar from '@/components/ui/UserAvatar';
+import type { Interview } from '@/lib/api/recruiter';
 
 interface EditInterviewModalProps {
     isOpen: boolean;
     onClose: () => void;
-    interview: any | null;
-    onSuccess: (updated: any) => void;
+    interview: Interview | null;
+    onSuccess: (updated: Partial<Interview>) => void;
+}
+
+/** Today's date and the current time as the date/time inputs expect them (local time) */
+function nowParts() {
+    const d = new Date();
+    const p = (n: number) => String(n).padStart(2, '0');
+    return { date: `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`, time: `${p(d.getHours())}:${p(d.getMinutes())}` };
 }
 
 export default function EditInterviewModal({ isOpen, onClose, interview, onSuccess }: EditInterviewModalProps) {
@@ -25,6 +33,7 @@ export default function EditInterviewModal({ isOpen, onClose, interview, onSucce
         status: 'Scheduled',
     });
     const [loading, setLoading] = useState(false);
+    const [now] = useState(nowParts);
 
     useEffect(() => {
         if (!interview) return;
@@ -65,6 +74,11 @@ export default function EditInterviewModal({ isOpen, onClose, interview, onSucce
         setLoading(true);
         try {
             const scheduledAt = new Date(`${formData.scheduled_at_date}T${formData.scheduled_at_time}`);
+            const timeChanged = scheduledAt.getTime() !== new Date(interview.scheduled_at).getTime();
+            if (Number.isNaN(scheduledAt.getTime()) || (timeChanged && formData.status === 'Scheduled' && scheduledAt.getTime() < Date.now())) {
+                notify.error("Pick a date and time in the future");
+                return;
+            }
 
             const payload = {
                 scheduled_at: scheduledAt.toISOString(),
@@ -74,11 +88,11 @@ export default function EditInterviewModal({ isOpen, onClose, interview, onSucce
                 status: formData.status,
             };
 
-            const updated: any = await api.patch(`/interviews/${interview.id}`, payload);
-            notify.success("Interview updated successfully!", "Candidate was notified of any schedule changes.");
+            const updated = await api.patch<unknown, Partial<Interview>>(`/interviews/${interview.id}`, payload);
+            notify.success("Interview updated", timeChanged ? "The candidate was told about the new time." : undefined);
             onSuccess(updated);
             onClose();
-        } catch (error: any) {
+        } catch (error) {
             console.error("Failed to update interview:", error);
             notify.error(error, "Failed to update interview");
         } finally {
@@ -129,6 +143,7 @@ export default function EditInterviewModal({ isOpen, onClose, interview, onSucce
                         <input
                             type="date"
                             required
+                            min={formData.status === 'Scheduled' ? now.date : undefined}
                             className="w-full px-3 py-2 border border-km-border bg-km-surface-card rounded-xl text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
                             value={formData.scheduled_at_date}
                             onChange={(e) => setFormData({ ...formData, scheduled_at_date: e.target.value })}
@@ -142,6 +157,7 @@ export default function EditInterviewModal({ isOpen, onClose, interview, onSucce
                         <input
                             type="time"
                             required
+                            min={formData.status === 'Scheduled' && formData.scheduled_at_date === now.date ? now.time : undefined}
                             className="w-full px-3 py-2 border border-km-border bg-km-surface-card rounded-xl text-xs text-km-text-primary focus:border-km-primary outline-none transition-colors"
                             value={formData.scheduled_at_time}
                             onChange={(e) => setFormData({ ...formData, scheduled_at_time: e.target.value })}

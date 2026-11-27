@@ -46,6 +46,10 @@ type Application struct {
 	Status      string             `bson:"status" json:"status"` // Applied, Shortlisted, Interviewing, Rejected, Hired
 	CoverLetter string             `bson:"cover_letter" json:"cover_letter"`
 	ResumeURL   string             `bson:"resume_url" json:"resume_url"`
+	// The employer's private review: never shown to the candidate
+	Rating  int          `bson:"rating,omitempty" json:"rating,omitempty"`
+	Note    string       `bson:"note,omitempty" json:"note,omitempty"`
+	History []StageEvent `bson:"history,omitempty" json:"history,omitempty"`
 	CreatedAt   time.Time          `bson:"created_at" json:"created_at"`
 	UpdatedAt   time.Time          `bson:"updated_at" json:"updated_at"`
 }
@@ -77,6 +81,9 @@ type ApplicationDetail struct {
 	ResumeURL   string         `json:"resume_url"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
+	Rating      int            `json:"rating,omitempty"`
+	Note        string         `json:"note,omitempty"`
+	History     []StageEvent   `json:"history,omitempty"`
 	Job         *JobInfo       `json:"job,omitempty"`
 	Candidate   *CandidateInfo `json:"candidate,omitempty"`
 }
@@ -84,6 +91,7 @@ type ApplicationDetail struct {
 type CandidateInfo struct {
 	ID           string   `json:"id"`
 	Name         string   `json:"name"`
+	Username     string   `json:"username,omitempty"`
 	Email        string   `json:"email"`
 	Mobile       string   `json:"mobile"`
 	ProfileImage string   `json:"profile_image"`
