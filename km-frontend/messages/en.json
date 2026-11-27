@@ -2056,7 +2056,8 @@
       "advertise": "Advertise",
       "plan": "Hiring plan",
       "wallet": "Billing & wallet",
-      "settings": "Settings"
+      "settings": "Settings",
+      "posts": "Posts"
     },
     "short": {
       "dashboard": "Home",
@@ -2514,5 +2515,137 @@
     "downloading": "Opening…",
     "resumeHint": "Opening a resume uses one download from your hiring plan.",
     "resumeFailed": "Could not open the resume"
+  },
+  "recruiterJobForm": {
+    "backToJobs": "Back to jobs",
+    "backToJob": "Back to job",
+    "createTitle": "Post a job",
+    "createText": "Candidates see this exactly as you write it.",
+    "editTitle": "Edit job",
+    "editText": "Changes show to candidates straight away.",
+    "publish": "Post job",
+    "saveChanges": "Save changes",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "posted": "Job posted",
+    "postFailed": "Could not post the job",
+    "saved": "Changes saved",
+    "saveFailed": "Could not save the changes",
+    "loadFailed": "Could not load this job",
+    "retry": "Try again",
+    "planUsedUp": "You have used all the job posts in your hiring plan.",
+    "upgrade": "Upgrade plan",
+    "draftRestored": "We kept the job you started earlier.",
+    "startOver": "Start over",
+    "optional": "(optional)",
+    "add": "Add",
+    "remove": "Remove {item}",
+    "noCity": "No matching city",
+    "section": {
+      "basics": "Job basics",
+      "pay": "Pay and requirements",
+      "details": "Description"
+    },
+    "field": {
+      "title": "Job title",
+      "type": "Job type",
+      "city": "City",
+      "location": "Address or area",
+      "salary": "Monthly salary",
+      "experience": "Experience in years",
+      "education": "Minimum education",
+      "gender": "Gender",
+      "description": "About the job",
+      "requirements": "What the candidate needs",
+      "benefits": "Benefits"
+    },
+    "placeholder": {
+      "title": "For example, Delivery Partner",
+      "city": "Choose a city",
+      "searchCity": "Search city",
+      "location": "For example, Sector 62, Noida",
+      "min": "Minimum",
+      "max": "Maximum",
+      "minYears": "Minimum",
+      "maxYears": "Maximum",
+      "description": "Daily work, shift timings, where the job is and who the candidate reports to.",
+      "requirement": "For example, Two-wheeler with licence",
+      "benefit": "For example, Free lunch"
+    },
+    "aria": {
+      "salaryMin": "Minimum monthly salary",
+      "salaryMax": "Maximum monthly salary",
+      "expMin": "Minimum years of experience",
+      "expMax": "Maximum years of experience"
+    },
+    "hint": {
+      "salaryEmpty": "Leave empty to hide the salary. Jobs with a salary get more applicants.",
+      "salaryShown": "Candidates see {amount} a month.",
+      "experience": "Leave empty or use 0 for freshers."
+    },
+    "error": {
+      "title": "Write a job title of 3 to 100 characters.",
+      "city": "Choose the city of the job.",
+      "location": "Keep the address under 200 characters.",
+      "salary": "The maximum can't be less than the minimum.",
+      "experience": "Use 0 to 50 years, with the maximum not below the minimum.",
+      "description": "Write at least 30 characters about the job.",
+      "lists": "Use up to 20 items of 200 characters each."
+    },
+    "type": {
+      "Full-time": "Full-time",
+      "Part-time": "Part-time",
+      "Contract": "Contract",
+      "Freelance": "Freelance",
+      "Internship": "Internship"
+    },
+    "education": {
+      "any": "Any",
+      "10th Pass": "10th pass",
+      "12th Pass": "12th pass",
+      "Diploma": "Diploma",
+      "Graduation": "Graduate",
+      "Post Graduation": "Postgraduate"
+    },
+    "gender": {
+      "any": "Any",
+      "Male": "Male",
+      "Female": "Female"
+    },
+    "benefit": {
+      "pf": "PF",
+      "esic": "ESIC",
+      "health": "Health insurance",
+      "bonus": "Bonus",
+      "food": "Food",
+      "stay": "Accommodation",
+      "travel": "Travel allowance",
+      "overtime": "Overtime pay",
+      "weeklyOff": "Weekly off"
+    },
+    "preview": {
+      "label": "Preview for candidates",
+      "titlePlaceholder": "Job title",
+      "cityPlaceholder": "City",
+      "perMonth": "{amount} a month",
+      "salaryHidden": "Salary not shown",
+      "fresher": "Freshers can apply",
+      "years": "{range} years",
+      "yearsPlus": "{n, plural, one {# year or more} other {#+ years}}",
+      "upTo": "{n, plural, one {Up to # year} other {Up to # years}}"
+    }
+  },
+  "recruiterPosts": {
+    "title": "Posts",
+    "text": "Share hiring news, walk-in drives and team updates on the KaamMilega feed.",
+    "create": "Create post",
+    "loadFailed": "Could not load your posts",
+    "retry": "Try again",
+    "emptyTitle": "No posts yet",
+    "emptyText": "Job seekers see your posts on the KaamMilega feed. Start with an open job or a walk-in drive.",
+    "emptyCta": "Write your first post",
+    "seeFeed": "See the feed",
+    "loadMore": "Show more posts",
+    "loading": "Loading…"
   }
 }

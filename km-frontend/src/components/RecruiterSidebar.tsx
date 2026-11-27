@@ -13,6 +13,7 @@ import {
     GearSixIcon,
     MagnifyingGlassIcon,
     MegaphoneIcon,
+    NewspaperIcon,
     PlusIcon,
     SignOutIcon,
     SquaresFourIcon,
@@ -44,6 +45,7 @@ const GROUPS: { key: string; items: NavItem[] }[] = [
         key: "company",
         items: [
             { key: "companyPage", href: "/recruiter/company", Icon: BuildingsIcon },
+            { key: "posts", href: "/recruiter/posts", Icon: NewspaperIcon },
             { key: "advertise", href: "/recruiter/ads", Icon: MegaphoneIcon },
         ],
     },

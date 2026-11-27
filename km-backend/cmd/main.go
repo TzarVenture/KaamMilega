@@ -166,7 +166,7 @@ func newEmployerLookup(users user.UserRepository) job.EmployerLookup {
 		}
 		out := make(map[primitive.ObjectID]job.Employer, len(found))
 		for id, u := range found {
-			out[id] = job.Employer{Verified: u.VerificationStatus == "verified", Logo: u.CompanyLogo}
+			out[id] = job.Employer{Verified: u.VerificationStatus == "verified", Logo: u.CompanyLogo, Company: u.CompanyName}
 		}
 		return out, nil
 	})
