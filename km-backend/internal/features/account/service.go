@@ -252,6 +252,12 @@ func evaluate(c *deletionChecks) ([]Blocker, []Warning) {
 			ActionLabel: "View sessions", ActionURL: "/mentorship/my-sessions",
 		})
 	}
+	if c.ReferralCashOwedPaise > 0 {
+		warnings = append(warnings, Warning{
+			Code: "referral_cash_owed", Title: "Referral cash not paid yet",
+			Detail: formatINR(float64(c.ReferralCashOwedPaise)/100) + " in referral rewards is still to be paid to you in cash. Contact support before deleting so it isn't lost.",
+		})
+	}
 	if c.OpenJobs > 0 {
 		warnings = append(warnings, Warning{
 			Code: "open_jobs", Title: "Your job posts will close",

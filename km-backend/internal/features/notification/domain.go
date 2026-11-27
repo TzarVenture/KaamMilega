@@ -32,6 +32,7 @@ const (
 	TypePoliceVerification  = "police_verification"
 	TypeRecruiterPlan       = "recruiter_plan"
 	TypeRecruiterAd         = "recruiter_ad"
+	TypeReferral            = "referral"
 	TypeFeedReaction        = "feed_reaction"
 	TypeJobAlert            = "job_alert"
 	TypeReminder            = "reminder"
@@ -54,9 +55,9 @@ type Notification struct {
 	IsRead      bool                   `bson:"is_read" json:"is_read"`
 	// IsSeen: the member opened the bell or the page since it arrived. The badge counts unread
 	// notifications not seen yet; each stays unread until opened.
-	IsSeen bool `bson:"is_seen" json:"is_seen"`
-	CreatedAt   time.Time              `bson:"created_at" json:"created_at"`
-	UpdatedAt   time.Time              `bson:"updated_at" json:"updated_at"`
+	IsSeen    bool      `bson:"is_seen" json:"is_seen"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }
 
 // NotificationFilter specifies query parameters for fetching notifications

@@ -37,6 +37,7 @@ import {
     SignOutIcon,
     SquaresFourIcon,
     UsersIcon,
+    UsersThreeIcon,
     VideoCameraIcon,
     XIcon,
     ArrowCounterClockwiseIcon,
@@ -94,6 +95,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
         items: [
             { name: 'Recruiter plans', icon: TagIcon, href: '/admin/recruiter-plans' },
             { name: 'Coupons', icon: TicketIcon, href: '/admin/coupons' },
+            { name: 'Referrals', icon: UsersThreeIcon, href: '/admin/referrals' },
             { name: 'Ads', icon: MegaphoneIcon, href: '/admin/ads' },
             { name: 'Recruiter ads', icon: StorefrontIcon, href: '/admin/recruiter-ads' },
             { name: 'App waitlist', icon: DeviceMobileIcon, href: '/admin/app-waitlist' },

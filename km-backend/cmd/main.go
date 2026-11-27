@@ -24,6 +24,7 @@ import (
 	"km-backend/internal/features/promo"
 	"km-backend/internal/features/push"
 	"km-backend/internal/features/recruiterplan"
+	"km-backend/internal/features/referral"
 	"time"
 
 	"km-backend/internal/features/ads"
@@ -238,6 +239,7 @@ func appOptions() fx.Option {
 			credential.NewRepository,
 			policecheck.NewRepository,
 			recruiterplan.NewRepository,
+			referral.NewRepository,
 			promo.NewRepository,
 			push.NewRepository,
 			feed.NewFeedRepository,
@@ -276,6 +278,7 @@ func appOptions() fx.Option {
 			credential.NewService,
 			policecheck.NewService,
 			recruiterplan.NewService,
+			referral.NewService,
 			promo.NewService,
 			newJobPlanQuota,
 			newChatPlanQuota,
@@ -349,6 +352,7 @@ func appOptions() fx.Option {
 			AsRoute(credential.NewApi),
 			AsRoute(policecheck.NewApi),
 			AsRoute(recruiterplan.NewApi),
+			AsRoute(referral.NewApi),
 			AsRoute(promo.NewApi),
 			AsRoute(push.NewApi),
 			AsRoute(feed.NewFeedApi),
@@ -374,6 +378,8 @@ func appOptions() fx.Option {
 			jobalert.RegisterWorker,
 			// Session, event and pass reminders
 			reminder.RegisterWorker,
+			// Referral rewards: first payments, 30-day releases, aggregator groups
+			referral.RegisterWorker,
 			// Register Routes & Start
 			RegisterAllRoutesWithAnnotation,
 			StartServer,

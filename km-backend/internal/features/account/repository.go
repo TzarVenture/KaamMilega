@@ -205,6 +205,7 @@ func (r *mongoRepository) DeletionChecks(ctx context.Context, userID primitive.O
 		PendingTransactions int64
 		OpenDisputes        int64
 		UpcomingSessions    int64
+		ReferralCashOwed    int64
 	}
 	// Pending money still moving to the user counts; pending top-ups (abandoned checkouts) don't,
 	// or a closed payment window could block deletion forever. Sessions count as mentee or as the
@@ -217,7 +218,8 @@ func (r *mongoRepository) DeletionChecks(ctx context.Context, userID primitive.O
 				AND category IN ('withdrawal', 'session_payout', 'gig_payout', 'refund')) AS pending_transactions,
 			(SELECT count(*) FROM wallet_disputes WHERE user_id = @uid AND status IN ('pending', 'under_review')) AS open_disputes,
 			(SELECT count(*) FROM mentorship_bookings WHERE (user_id = @uid OR expert_id = @uid)
-				AND status IN ('pending', 'confirmed') AND scheduled_at >= @since) AS upcoming_sessions
+				AND status IN ('pending', 'confirmed') AND scheduled_at >= @since) AS upcoming_sessions,
+			(SELECT coalesce(sum(cash_paise), 0) FROM referral_payouts WHERE user_id = @uid AND cash_paid_at IS NULL) AS referral_cash_owed
 		FROM (SELECT 1) one LEFT JOIN wallets w ON w.user_id = @uid`,
 		sql.Named("uid", uid), sql.Named("since", now.Add(-2*time.Hour))).Scan(&row).Error
 	if err != nil {
@@ -229,6 +231,7 @@ func (r *mongoRepository) DeletionChecks(ctx context.Context, userID primitive.O
 	checks.PendingTransactions = row.PendingTransactions
 	checks.OpenDisputes = row.OpenDisputes
 	checks.UpcomingSessions = row.UpcomingSessions
+	checks.ReferralCashOwedPaise = row.ReferralCashOwed
 
 	if checks.OpenJobs, err = r.db.Collection("jobs").CountDocuments(ctx, bson.M{
 		"recruiter_id": userID,
@@ -296,6 +299,8 @@ func (r *mongoRepository) Export(ctx context.Context, userID primitive.ObjectID)
 		{"wallet_transactions", "wallet_transactions", "user_id = @uid"},
 		{"wallet_disputes", "wallet_disputes", "user_id = @uid"},
 		{"mentorship_bookings", "mentorship_bookings", "user_id = @uid OR expert_id = @uid"},
+		{"referrals", "referrals", "referrer_id = @uid OR referred_id = @uid"},
+		{"referral_rewards", "referral_payouts", "user_id = @uid"},
 	}
 	for _, s := range pgSections {
 		rows, err := r.pgRows(ctx, s.table, s.where, uid)
@@ -454,6 +459,11 @@ func (r *mongoRepository) erasePurchaseData(ctx context.Context, uid string) err
 			{`UPDATE wallets SET status = 'closed' WHERE user_id = @uid AND status <> 'closed'`},
 			{`UPDATE wallet_disputes SET user_name = 'Deleted user', user_email = ''
 				WHERE user_id = @uid AND (user_name <> 'Deleted user' OR user_email <> '')`},
+			// Unfinished referrals on either side end; the invite code stops working
+			{`UPDATE referrals SET status = 'cancelled', cancel_reason = 'account erased', updated_at = now()
+				WHERE (referrer_id = @uid OR referred_id = @uid) AND status IN ('pending', 'paid')`},
+			{`DELETE FROM referral_codes WHERE user_id = @uid`},
+			{`UPDATE referral_aggregators SET active = false, updated_at = now() WHERE user_id = @uid AND active`},
 		}
 		for _, s := range steps {
 			if err := db.Exec(s.sql, sql.Named("uid", uid)).Error; err != nil {

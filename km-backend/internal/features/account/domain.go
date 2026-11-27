@@ -140,6 +140,8 @@ type deletionChecks struct {
 	OpenDisputes        int64
 	UpcomingSessions    int64
 	OpenJobs            int64
+	// Referral group rewards whose cash half hasn't been paid yet
+	ReferralCashOwedPaise int64
 }
 
 func (w *walletState) main() float64     { return money.ToRupees(w.MainPaise) }

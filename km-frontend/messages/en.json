@@ -1569,7 +1569,8 @@
       "other": "Other",
       "recruiter_plan": "Hiring plan",
       "cashback": "Cashback",
-      "recruiter_ad": "Ad"
+      "recruiter_ad": "Ad",
+      "referral_reward": "Invite reward"
     },
     "balanceName": {
       "main": "Spending balance",
@@ -2008,6 +2009,41 @@
       "resources_inline": "Learn, between videos",
       "resources_sidebar": "Learn, side column",
       "resource_detail_sidebar": "Learn video page, side column"
+    }
+  },
+  "referralsPage": {
+    "title": "Invite friends",
+    "intro": "Share your invite link. When someone joins with it and makes their first payment on KaamMilega, it counts for you.",
+    "loadFailed": "Couldn't load your invites",
+    "retry": "Try again",
+    "paused": "Invites are paused right now. People who already joined with your link still count.",
+    "yourCode": "Your invite code",
+    "copyLink": "Copy link",
+    "copied": "Link copied",
+    "copyFailed": "Couldn't copy. Select the link and copy it yourself.",
+    "shareWhatsApp": "Share on WhatsApp",
+    "shareText": "Join me on KaamMilega, for jobs, gigs and more: {link}",
+    "memberRule": "You get {amount} in wallet credit for each friend who pays, {days} days after their first payment (if it isn't refunded).",
+    "aggregatorRule": "For every {size} friends who pay, you get {credit} in wallet credit and {cash} in cash. Each counts {days} days after their first payment (if it isn't refunded).",
+    "noReward": "Invite rewards are not running right now, but people who join with your link are still counted.",
+    "joined": "Joined",
+    "waiting": "Waiting",
+    "counted": "Counted",
+    "earned": "Credit earned",
+    "groupTitle": "Your next reward",
+    "towardsNext": "{n} of {size} towards your next reward",
+    "groupsDone": "{n, plural, =0 {No rewards yet} one {# reward earned} other {# rewards earned}}",
+    "cashOwed": "Cash still to come",
+    "cashReceived": "Cash received",
+    "peopleTitle": "People you invited",
+    "peopleEmpty": "No one has joined with your link yet",
+    "someone": "Someone",
+    "joinedOn": "Joined {date}",
+    "status": {
+      "pending": "No payment yet",
+      "paid": "Counts on {date}",
+      "released": "Counted",
+      "cancelled": "Refunded, doesn't count"
     }
   }
 }

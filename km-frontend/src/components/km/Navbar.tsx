@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
 
-import { ArrowUpRightIcon, BookOpenIcon, BriefcaseIcon, BuildingsIcon, CalendarCheckIcon, CalendarPlusIcon, CaretDownIcon, CaretRightIcon, ChalkboardTeacherIcon, CheckCircleIcon, CheckIcon, FileTextIcon, GearSixIcon, LifebuoyIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, NewspaperIcon, SealCheckIcon, SignOutIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
+import { ArrowUpRightIcon, BookOpenIcon, BriefcaseIcon, BuildingsIcon, CalendarCheckIcon, CalendarPlusIcon, CaretDownIcon, CaretRightIcon, ChalkboardTeacherIcon, CheckCircleIcon, CheckIcon, FileTextIcon, GearSixIcon, LifebuoyIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, NewspaperIcon, SealCheckIcon, SignOutIcon, UsersThreeIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
 import {
   ChatNavIcon,
@@ -557,6 +557,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                   </h5>
                   <MenuItem label="Settings & privacy" href={isRecruiter ? "/recruiter/settings" : "/settings"} />
                   <MenuItem label="Wallet" href="/wallet" />
+                  <MenuItem label="Invite friends" href="/referrals" />
                   <MenuItem label="Language" href={`${isRecruiter ? "/recruiter/settings" : "/settings"}?tab=preferences`} />
                   <MenuItem label="Help & support" href="/support" />
                   {FEATURES.DARK_MODE && (
@@ -781,6 +782,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 onNavigate={() => setMobileNavOpen(false)}
               />
               <MobileRow href="/wallet" Icon={WalletIcon} label="Wallet" onNavigate={() => setMobileNavOpen(false)} />
+              <MobileRow href="/referrals" Icon={UsersThreeIcon} label="Invite friends" onNavigate={() => setMobileNavOpen(false)} />
               <MobileRow href="/support" Icon={LifebuoyIcon} label="Help & support" onNavigate={() => setMobileNavOpen(false)} />
               {FEATURES.DARK_MODE && (
                 <div className="px-4 pt-2 pb-1">

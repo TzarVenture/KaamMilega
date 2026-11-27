@@ -35,6 +35,8 @@ const (
 	CategoryEventTicket    TransactionCategory = "event_ticket"
 	CategoryRecruiterPlan  TransactionCategory = "recruiter_plan"
 	CategoryRecruiterAd    TransactionCategory = "recruiter_ad"
+	// CategoryReferralReward is a referral reward credited to the bonus balance
+	CategoryReferralReward TransactionCategory = "referral_reward"
 
 	StatusCompleted TransactionStatus = "completed"
 	StatusPending   TransactionStatus = "pending"

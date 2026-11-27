@@ -1,4 +1,4 @@
-h1:ilK5LPtD3PrO6erGCGzeGrfde6A/hV9JVM+7TTcW54w=
+h1:IVOah6tsQZP5lfz12y8U9xwyxHf2L8bXnlr/2H87C3w=
 20261116000001_money_and_purchases.sql h1:GNRihfxX28ShXy0SAyIOWI624XdGsLCl/Q9ibTdcgo4=
 20261117000001_events_soft_delete.sql h1:LzFYVkGUn7k7Q4j4dsPOdDJJfayTC3ehPxANanLosb4=
 20261117000002_mentorships_soft_delete.sql h1:pzZ8fi6J1wus0Y1GicxPfuIffM9jB2VX4wB3kI5jrkg=
@@ -12,3 +12,4 @@ h1:ilK5LPtD3PrO6erGCGzeGrfde6A/hV9JVM+7TTcW54w=
 20261122000001_coupons.sql h1:d8MArtFR+tM3ofPv/EBzYkQtU1pcn/fD8DWE7lQM0hE=
 20261126000001_topup_refunds.sql h1:b4cAdERqiInvq23kCV0LcK0IMVbt1JIEZFssvg+6NZk=
 20261127000001_recruiter_ads.sql h1:Hf/We1G44mFCFm1K5r9qv+CChmy36uKsynTXjVhtKBU=
+20261128000001_referrals.sql h1:9ohu8i3SAXGHk3ivN6uJUfwL7F0ol/4J3ChIVZlCtl4=
