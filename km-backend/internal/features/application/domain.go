@@ -2,6 +2,7 @@ package application
 
 import (
 	"km-backend/internal/common/apperr"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,7 +19,24 @@ var (
 
 	// Applying unlocks at the Professional tier (70% profile)
 	ErrProfileIncomplete = apperr.New("PROFILE_INCOMPLETE", "add your job role, skills, experience and education to apply for jobs")
+
+	ErrApplicationNotFound  = apperr.New("APPLICATION_NOT_FOUND", "application not found")
+	ErrApplicationForbidden = apperr.New("APPLICATION_FORBIDDEN", "only the employer who posted this job can see or change its applications")
+	ErrInvalidStatus        = apperr.New("INVALID_STATUS", "status must be Applied, Shortlisted, Interviewing, Hired or Rejected")
 )
+
+// Statuses are the pipeline stages an employer can move an application to
+var Statuses = []string{"Applied", "Shortlisted", "Interviewing", "Hired", "Rejected"}
+
+// CanonicalStatus returns the stage named by s (any letter case), or "" if s is not a stage
+func CanonicalStatus(s string) string {
+	for _, st := range Statuses {
+		if strings.EqualFold(strings.TrimSpace(s), st) {
+			return st
+		}
+	}
+	return ""
+}
 
 type Application struct {
 	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id"`
