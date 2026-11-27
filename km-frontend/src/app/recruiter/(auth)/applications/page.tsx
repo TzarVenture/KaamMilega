@@ -1,561 +1,385 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import api from "@/lib/axios";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { ArrowsDownUpIcon, BriefcaseIcon, CaretLeftIcon, CaretRightIcon, UsersThreeIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { btn, cx, EmptyState, SearchInput, SkeletonRows } from "@/components/admin/ui";
 import { notify } from "@/lib/notify";
-import { KanbanSkeleton, PageHeaderSkeleton } from "@/components/ui/LoadingSkeleton";
-import { 
-    BriefcaseIcon, 
-    CalendarBlankIcon, 
-    CaretDownIcon, 
-    ClockIcon, 
-    EyeIcon, 
-    FileTextIcon, 
-    KanbanIcon, 
-    ListBulletsIcon, 
-    MagnifyingGlassIcon, 
-    XIcon 
-} from '@phosphor-icons/react';
+import { STAGES, jobStatus, recruiterApi, type Applicant, type ApplicantsPage, type MyJob, type Stage } from "@/lib/api/recruiter";
+import ApplicantList from "@/components/recruiter/ApplicantList";
+import ApplicantPanel from "@/components/recruiter/ApplicantPanel";
+import StageMoveDialog from "@/components/recruiter/StageMoveDialog";
 import ScheduleInterviewModal from "@/components/recruiter/ScheduleInterviewModal";
-import FileLink from '@/components/ui/FileLink';
-import CandidateDetailDrawer from "@/components/recruiter/CandidateDetailDrawer";
 
-const KANBAN_COLUMNS = [
-    { id: "Applied", title: "Applied", color: "blue", headerBg: "bg-blue-50 text-blue-700 border-blue-200", colBg: "bg-blue-50/30 border-blue-100" },
-    { id: "Shortlisted", title: "Shortlisted", color: "amber", headerBg: "bg-amber-50 text-amber-700 border-amber-200", colBg: "bg-amber-50/30 border-amber-100" },
-    { id: "Interviewing", title: "Interview", color: "purple", headerBg: "bg-purple-50 text-purple-700 border-purple-200", colBg: "bg-purple-50/30 border-purple-100" },
-    { id: "Hired", title: "Hired", color: "emerald", headerBg: "bg-emerald-50 text-emerald-700 border-emerald-200", colBg: "bg-emerald-50/30 border-emerald-100" },
-    { id: "Rejected", title: "Rejected", color: "rose", headerBg: "bg-rose-50 text-rose-700 border-rose-200", colBg: "bg-rose-50/30 border-rose-100" }
-];
+const LIMIT = 25;
+const SORTS = ["newest", "oldest", "rating"] as const;
+const JOB_STATUS_CHIP: Record<string, string> = {
+    Open: "bg-emerald-50 text-emerald-700 dark:bg-[#0B2E22] dark:text-emerald-300",
+    Paused: "bg-amber-50 text-amber-700 dark:bg-[#3A2A0B] dark:text-amber-300",
+    Closed: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+};
+
+type Loaded = { key: string; data: ApplicantsPage };
+type PendingMove = { ids: string[]; stage: Stage; name?: string };
 
 function ApplicationsContent() {
+    const t = useTranslations("recruiterApplicants");
     const router = useRouter();
-    const searchParams = useSearchParams();
-    const jobId = searchParams.get("jobId") || searchParams.get("job_id");
+    const pathname = usePathname();
+    const params = useSearchParams();
 
-    const [jobs, setJobs] = useState<any[]>([]);
-    const [applications, setApplications] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [viewMode, setViewMode] = useState<"kanban" | "list">("kanban");
-    const [dragOverCol, setDragOverCol] = useState<string | null>(null);
-    const [isInterviewModalOpen, setIsInterviewModalOpen] = useState(false);
-    const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
-    const [drawerApp, setDrawerApp] = useState<any | null>(null);
+    const jobId = params.get("job_id") || params.get("jobId") || "";
+    const rawStatus = params.get("status") || "";
+    const status = (STAGES as readonly string[]).includes(rawStatus) ? (rawStatus as Stage) : "";
+    const search = params.get("search") || "";
+    const rawSort = params.get("sort") || "";
+    const sort = (SORTS as readonly string[]).includes(rawSort) ? rawSort : "newest";
+    const page = Math.max(1, Number(params.get("page")) || 1);
+    const openId = params.get("a");
 
+    const key = JSON.stringify([jobId, status, search, sort, page]);
+
+    const [loaded, setLoaded] = useState<Loaded | null>(null);
+    const [error, setError] = useState<{ key: string } | null>(null);
+    const [reload, setReload] = useState(0);
+    const [now, setNow] = useState(0);
+    const [jobs, setJobs] = useState<MyJob[]>([]);
+    const [searchText, setSearchText] = useState(search);
+    const [checked, setChecked] = useState<Set<string>>(new Set());
+    const [pending, setPending] = useState<PendingMove | null>(null);
+    const [moving, setMoving] = useState(false);
+    const [scheduleId, setScheduleId] = useState<string | null>(null);
+
+    const setParams = useCallback((patch: Record<string, string | number | null>) => {
+        const next = new URLSearchParams(params.toString());
+        next.delete("jobId");
+        for (const [k, v] of Object.entries(patch)) {
+            if (v === null || v === "" || (k === "page" && v === 1) || (k === "sort" && v === "newest")) next.delete(k);
+            else next.set(k, String(v));
+        }
+        const qs = next.toString();
+        router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    }, [params, pathname, router]);
+
+    // The employer's jobs for the filter, open ones first
     useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            try {
-                const [myJobs, appsData] = await Promise.all([
-                    api.get("/jobs/my").catch(() => []) as Promise<any[]>,
-                    api.get(jobId ? `/applications/job/${jobId}` : "/applications/recruiter/all").catch(() => []) as Promise<any[]>
-                ]);
-                setJobs(myJobs || []);
-                setApplications(appsData || []);
-            } catch (error) {
-                console.error("Failed to fetch applications:", error);
-                notify.error(error, "Failed to load applicant pipeline");
-            } finally {
-                setLoading(false);
-            }
-        };
+        recruiterApi.jobs({ limit: 50 })
+            .then((res) => {
+                const order = { Open: 0, Paused: 1, Closed: 2 };
+                setJobs([...(res.jobs || [])].sort((x, y) => order[jobStatus(x.status)] - order[jobStatus(y.status)]));
+            })
+            .catch(() => setJobs([]));
+    }, []);
 
-        fetchData();
-    }, [jobId]);
+    // The current page of applicants
+    useEffect(() => {
+        let alive = true;
+        const [j, s, q, so, p] = JSON.parse(key) as [string, string, string, string, number];
+        recruiterApi.applicants({ job_id: j, status: s, search: q, sort: so, page: p, limit: LIMIT })
+            .then((data) => {
+                if (!alive) return;
+                setLoaded({ key, data: { ...data, items: data.items || [] } });
+                setError(null);
+                setNow(Date.now());
+            })
+            .catch((err) => {
+                if (!alive) return;
+                setError({ key });
+                notify.error(err, t("errors.load"));
+            });
+        return () => { alive = false; };
+    }, [key, reload, t]);
 
-    const currentJob = jobs.find(j => j.id === jobId || j._id === jobId);
+    // Debounced search into the URL
+    useEffect(() => {
+        if (searchText.trim() === search) return;
+        const id = setTimeout(() => setParams({ search: searchText.trim(), page: 1, a: null }), 350);
+        return () => clearTimeout(id);
+    }, [searchText, search, setParams]);
 
-    const handleStatusUpdate = async (id: string, newStatus: string) => {
-        try {
-            // Optimistic update
-            setApplications(apps => apps.map(app =>
-                app.id === id ? { ...app, status: newStatus, updated_at: new Date().toISOString() } : app
-            ));
-            setDrawerApp((prev: any) => prev && prev.id === id ? { ...prev, status: newStatus } : prev);
-            await api.patch(`/applications/${id}/status`, { status: newStatus });
-            notify.success(`Applicant moved to ${newStatus}`);
-        } catch (error) {
-            console.error("Failed to update status:", error);
-            notify.error(error, "Failed to update applicant status");
-            // Revert on error
-            const data = await api.get(jobId ? `/applications/job/${jobId}` : "/applications/recruiter/all") as any[];
-            setApplications(data || []);
-            setDrawerApp((prev: any) => prev ? data.find((a: any) => a.id === prev.id) || null : null);
-        }
-    };
+    const data = loaded?.key === key ? loaded.data : null;
+    const failed = error?.key === key && !data;
+    const items = useMemo(() => data?.items ?? [], [data]);
+    const stages = data?.stages ?? loaded?.data.stages;
+    const allCount = stages ? STAGES.reduce((n, s) => n + (stages[s] || 0), 0) : undefined;
+    const total = data?.total ?? 0;
+    const pages = Math.max(1, Math.ceil(total / LIMIT));
+    const selectedIdx = openId ? items.findIndex((a) => a.id === openId) : -1;
+    const selected = selectedIdx >= 0 ? items[selectedIdx] : null;
+    const currentJob = jobs.find((j) => j.id === jobId);
 
-    const handleDragStart = (e: React.DragEvent, appId: string) => {
-        e.dataTransfer.setData("applicationId", appId);
-        e.dataTransfer.effectAllowed = "move";
-    };
+    const patchItem = useCallback((id: string, patch: Partial<Applicant>) => {
+        setLoaded((prev) => prev && ({ ...prev, data: { ...prev.data, items: prev.data.items.map((a) => (a.id === id ? { ...a, ...patch } : a)) } }));
+    }, []);
 
-    const handleDragOver = (e: React.DragEvent, colId: string) => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
-        if (dragOverCol !== colId) {
-            setDragOverCol(colId);
-        }
-    };
+    const refreshCounts = useCallback(() => {
+        recruiterApi.applicants({ job_id: jobId, search, page: 1, limit: 1 })
+            .then((res) => setLoaded((prev) => prev && ({ ...prev, data: { ...prev.data, stages: res.stages } })))
+            .catch(() => undefined);
+    }, [jobId, search]);
 
-    const handleDragLeave = () => {
-        setDragOverCol(null);
-    };
+    const openApplicant = (id: string | null) => setParams({ a: id });
 
-    const handleDrop = (e: React.DragEvent, targetStatus: string) => {
-        e.preventDefault();
-        setDragOverCol(null);
-        const appId = e.dataTransfer.getData("applicationId");
-        if (appId) {
-            handleStatusUpdate(appId, targetStatus);
-        }
-    };
-
-    const filteredApps = applications.filter(app => {
-        const candidateName = app.candidate?.name?.toLowerCase() || "";
-        const candidateEmail = app.candidate?.email?.toLowerCase() || "";
-        const candidateHeadline = app.candidate?.headline?.toLowerCase() || "";
-        const jobTitle = app.job?.title?.toLowerCase() || "";
-        const term = searchTerm.toLowerCase();
-
-        return (
-            app.id?.toLowerCase().includes(term) ||
-            candidateName.includes(term) ||
-            candidateEmail.includes(term) ||
-            candidateHeadline.includes(term) ||
-            jobTitle.includes(term) ||
-            app.status?.toLowerCase().includes(term) ||
-            app.cover_letter?.toLowerCase().includes(term)
-        );
+    const toggle = (id: string) => setChecked((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+    });
+    const toggleAll = () => setChecked((prev) => {
+        const all = items.length > 0 && items.every((a) => prev.has(a.id));
+        const next = new Set(prev);
+        items.forEach((a) => (all ? next.delete(a.id) : next.add(a.id)));
+        return next;
     });
 
-    if (loading) {
-        return (
-            <div className="space-y-6">
-                <PageHeaderSkeleton />
-                <KanbanSkeleton columns={4} cardsPerColumn={3} />
-            </div>
-        );
-    }
+    const confirmMove = async () => {
+        if (!pending) return;
+        const { ids, stage } = pending;
+        setMoving(true);
+        if (ids.length === 1) {
+            const before = items.find((a) => a.id === ids[0]);
+            const at = new Date().toISOString();
+            patchItem(ids[0], { status: stage, history: [...(before?.history || []), { status: stage, at }] });
+            try {
+                await recruiterApi.move(ids[0], stage);
+                notify.success(t("move.doneOne", { name: pending.name || "", stage: t(`stage.${stage}`) }));
+                refreshCounts();
+            } catch (err) {
+                if (before) patchItem(ids[0], { status: before.status, history: before.history });
+                notify.error(err, t("errors.move"));
+            }
+        } else {
+            try {
+                const res = await recruiterApi.bulkMove(ids, stage);
+                const moved = res.updated?.length ?? 0;
+                const failedN = Object.keys(res.failed || {}).length;
+                if (failedN) notify.warning(t("bulk.partial", { moved, failed: failedN }));
+                else notify.success(t("bulk.done", { count: moved, stage: t(`stage.${stage}`) }));
+                setChecked(new Set());
+                setReload((n) => n + 1);
+            } catch (err) {
+                notify.error(err, t("errors.move"));
+            }
+        }
+        setMoving(false);
+        setPending(null);
+    };
+
+    const tabs: { value: Stage | ""; label: string; count?: number }[] = [
+        { value: "", label: t("tabs.all"), count: allCount },
+        ...STAGES.map((s) => ({ value: s, label: t(`stage.${s}`), count: stages?.[s] })),
+    ];
+
+    const checkedOnPage = items.filter((a) => checked.has(a.id)).map((a) => a.id);
+    const noApplicantsAtAll = !!data && allCount === 0 && !search && !jobId;
 
     return (
-        <div className="space-y-6 font-sans text-km-text-primary pb-16">
-
-            {/* Header & Controls */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <div className="flex items-center gap-2.5">
-                        <h1 className="text-xl sm:text-2xl font-bold text-km-text-primary font-poppins">
-                            {currentJob ? `Pipeline: ${currentJob.title}` : "Applicant Pipeline"}
-                        </h1>
-                        {currentJob && (
-                            <span className="px-2 py-0.5 rounded-md bg-blue-50 text-km-blue border border-blue-200 text-xs font-semibold">
-                                {currentJob.status || "Open"}
-                            </span>
-                        )}
-                    </div>
-                    <p className="text-xs text-km-text-secondary mt-0.5">
-                        {currentJob 
-                            ? `Showing candidate pipeline for ${currentJob.company} • ${currentJob.city_name || currentJob.location || "Anywhere"}`
-                            : "Consolidated pipeline view across all your active job openings"}
-                    </p>
+        <div className="space-y-4 min-w-0">
+            {/* Header */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                    <h1 className="text-2xl font-bold text-km-heading tracking-tight">{t("title")}</h1>
+                    <p className="mt-1 text-sm text-km-text-secondary">{t("description")}</p>
                 </div>
+                <Link href="/recruiter/jobs/create" className={cx(btn.accent, "self-start sm:self-auto")}>
+                    <BriefcaseIcon size={18} aria-hidden="true" />{t("postJob")}
+                </Link>
+            </div>
 
-                {/* View Switcher & Clear Button */}
-                <div className="flex items-center gap-2.5">
+            {/* Filters */}
+            <div className="flex flex-col lg:flex-row gap-2 lg:items-center">
+                <div className="flex items-center gap-2 min-w-0">
+                    <label htmlFor="applicants-job" className="sr-only">{t("filters.job")}</label>
+                    <select
+                        id="applicants-job"
+                        value={jobId}
+                        onChange={(e) => setParams({ job_id: e.target.value, page: 1, a: null })}
+                        className="h-10 min-w-0 w-full lg:w-72 px-3 rounded-xl border border-km-border bg-km-surface-card text-sm text-km-text-primary cursor-pointer outline-none focus:border-km-blue"
+                    >
+                        <option value="">{t("filters.allJobs")}</option>
+                        {jobs.map((j) => (
+                            <option key={j.id} value={j.id}>
+                                {j.title}{j.city_name ? ` · ${j.city_name}` : ""}{jobStatus(j.status) !== "Open" ? ` (${t(`jobStatus.${jobStatus(j.status)}`)})` : ""}
+                            </option>
+                        ))}
+                        {jobId && !currentJob && <option value={jobId}>{t("filters.thisJob")}</option>}
+                    </select>
                     {currentJob && (
-                        <button
-                            type="button"
-                            onClick={() => router.push("/recruiter/applications")}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-km-border bg-km-surface-card hover:bg-km-surface text-xs font-semibold text-km-text-secondary hover:text-km-text-primary transition-colors cursor-pointer shadow-xs"
-                            title="View all applicants across all jobs"
-                        >
-                            <XIcon size={14} weight="bold" aria-hidden="true" />
-                            <span>View All Jobs</span>
-                        </button>
+                        <span className={cx("shrink-0 px-2 py-0.5 rounded-md text-xs font-medium", JOB_STATUS_CHIP[jobStatus(currentJob.status)])}>
+                            {t(`jobStatus.${jobStatus(currentJob.status)}`)}
+                        </span>
                     )}
-
-                    <div className="bg-km-surface p-1 rounded-xl border border-km-border flex items-center">
-                        <button
-                            type="button"
-                            onClick={() => setViewMode("kanban")}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                                viewMode === "kanban"
-                                    ? "bg-km-surface-card text-km-text-primary shadow-xs"
-                                    : "text-km-text-secondary hover:text-km-text-primary"
-                            }`}
-                        >
-                            <KanbanIcon weight={viewMode === "kanban" ? "fill" : "regular"} size={15} aria-hidden="true" />
-                            <span>Kanban</span>
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setViewMode("list")}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                                viewMode === "list"
-                                    ? "bg-km-surface-card text-km-text-primary shadow-xs"
-                                    : "text-km-text-secondary hover:text-km-text-primary"
-                            }`}
-                        >
-                            <ListBulletsIcon weight={viewMode === "list" ? "fill" : "regular"} size={15} aria-hidden="true" />
-                            <span>Table View</span>
-                        </button>
-                    </div>
                 </div>
+                <SearchInput value={searchText} onChange={setSearchText} placeholder={t("filters.search")} className="flex-1 min-w-0" />
+                <label className="relative flex items-center">
+                    <span className="sr-only">{t("filters.sort")}</span>
+                    <ArrowsDownUpIcon size={16} className="absolute left-3 text-km-text-muted pointer-events-none" aria-hidden="true" />
+                    <select
+                        value={sort}
+                        onChange={(e) => setParams({ sort: e.target.value, page: 1 })}
+                        className="h-10 w-full lg:w-auto pl-9 pr-3 rounded-xl border border-km-border bg-km-surface-card text-sm text-km-text-primary cursor-pointer outline-none focus:border-km-blue"
+                    >
+                        {SORTS.map((s) => <option key={s} value={s}>{t(`sort.${s}`)}</option>)}
+                    </select>
+                </label>
             </div>
 
-            {/* Job Selector & Search Bar Toolbar */}
-            <div className="bg-km-surface-card p-3 rounded-2xl border border-km-border shadow-xs flex flex-col sm:flex-row sm:items-center gap-3">
-                {/* Job Selector Dropdown */}
-                <div className="relative shrink-0">
-                    <label htmlFor="pipeline-job-filter" className="sr-only">Filter pipeline by job opening</label>
-                    <div className="relative">
-                        <BriefcaseIcon size={16} weight="regular" className="absolute left-3 top-1/2 -translate-y-1/2 text-km-text-secondary pointer-events-none" aria-hidden="true" />
-                        <select
-                            id="pipeline-job-filter"
-                            value={jobId || "all"}
-                            onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === "all") {
-                                    router.push("/recruiter/applications");
-                                } else {
-                                    router.push(`/recruiter/applications?jobId=${val}`);
-                                }
-                            }}
-                            className="pl-9 pr-8 py-2 text-xs font-semibold rounded-xl border border-km-border bg-km-surface text-km-text-primary outline-none focus:border-km-primary transition-colors cursor-pointer appearance-none max-w-[280px] truncate"
+            {/* Stage tabs */}
+            <div role="tablist" aria-label={t("tabs.label")} className="flex gap-1 overflow-x-auto overflow-y-hidden border-b border-km-border -mx-4 px-4 sm:mx-0 sm:px-0">
+                {tabs.map((tab) => {
+                    const active = tab.value === status;
+                    return (
+                        <button
+                            key={tab.value || "all"}
+                            type="button"
+                            role="tab"
+                            aria-selected={active}
+                            onClick={() => setParams({ status: tab.value, page: 1, a: null })}
+                            className={cx(
+                                "shrink-0 px-3 h-10 text-sm font-medium border-b-2 -mb-px whitespace-nowrap cursor-pointer transition-colors",
+                                active ? "border-km-accent text-km-heading" : "border-transparent text-km-text-secondary hover:text-km-heading",
+                            )}
                         >
-                            <option value="all">All Jobs ({jobs.length} postings)</option>
-                            {jobs.map((j) => (
-                                <option key={j.id} value={j.id}>
-                                    {j.title} {j.city_name ? `(${j.city_name})` : ""}
-                                </option>
-                            ))}
-                        </select>
-                        <CaretDownIcon size={13} weight="bold" className="absolute right-3 top-1/2 -translate-y-1/2 text-km-text-secondary pointer-events-none" aria-hidden="true" />
-                    </div>
-                </div>
-
-                {/* Search Input */}
-                <div className="flex-1 relative">
-                    <MagnifyingGlassIcon weight="regular" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-km-text-secondary pointer-events-none" aria-hidden="true" />
-                    <input
-                        type="text"
-                        placeholder="Search candidate name, email, or keywords..."
-                        className="w-full pl-9 pr-3.5 py-2 bg-km-surface rounded-xl border border-km-border text-xs text-km-text-primary placeholder:text-km-text-secondary/70 outline-none focus:border-km-primary transition-colors"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-
-                {/* Total badge */}
-                <div className="text-xs text-km-text-secondary font-medium px-2.5 py-1.5 bg-km-surface rounded-xl border border-km-border/70 shrink-0 self-start sm:self-auto">
-                    Applicants: <span className="font-semibold text-km-text-primary">{filteredApps.length}</span>
-                </div>
+                            {tab.label}
+                            {tab.count !== undefined && <span className="ml-1.5 text-xs text-km-text-muted font-inter tabular-nums">{tab.count}</span>}
+                        </button>
+                    );
+                })}
             </div>
 
-            {/* KANBAN BOARD VIEW */}
-            {viewMode === "kanban" ? (
-                <div className="flex gap-4 items-start overflow-x-auto pb-6">
-                    {KANBAN_COLUMNS.map((col) => {
-                        const colApps = filteredApps.filter(app => {
-                            if (col.id === "Interviewing") {
-                                return app.status === "Interviewing" || app.status === "Interview";
+            {/* Bulk bar */}
+            {checked.size > 0 && (
+                <div className="sticky top-2 z-20 flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-xl bg-[#071A4D] text-white">
+                    <span className="text-sm font-semibold">{t("bulk.selected", { count: checked.size })}</span>
+                    <label className="sr-only" htmlFor="bulk-move">{t("bulk.moveTo")}</label>
+                    <select
+                        id="bulk-move"
+                        value=""
+                        onChange={(e) => { if (e.target.value) setPending({ ids: [...checked], stage: e.target.value as Stage }); }}
+                        className="h-9 px-3 rounded-lg bg-white text-[#071A4D] text-sm font-semibold cursor-pointer"
+                    >
+                        <option value="">{t("bulk.moveTo")}</option>
+                        {STAGES.map((s) => <option key={s} value={s}>{t(`stage.${s}`)}</option>)}
+                    </select>
+                    <button type="button" onClick={() => setChecked(new Set())} className="ml-auto h-9 px-3 rounded-lg text-sm font-semibold hover:bg-[#0B1F52] cursor-pointer">
+                        {t("bulk.clear")}
+                    </button>
+                </div>
+            )}
+
+            {/* Master / detail */}
+            <div className="lg:grid lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] lg:gap-4 lg:items-start">
+                <div className="bg-km-surface-card border border-km-border rounded-2xl overflow-hidden min-w-0">
+                    {failed ? (
+                        <div className="flex flex-col items-center text-center py-12 px-6" role="alert">
+                            <WarningCircleIcon size={36} weight="duotone" className="text-red-500 mb-3" aria-hidden="true" />
+                            <p className="text-sm font-semibold text-km-heading">{t("errors.loadTitle")}</p>
+                            <button type="button" onClick={() => { setError(null); setReload((n) => n + 1); }} className={cx(btn.secondary, "mt-4")}>
+                                {t("errors.retry")}
+                            </button>
+                        </div>
+                    ) : !data ? (
+                        <SkeletonRows rows={8} />
+                    ) : noApplicantsAtAll ? (
+                        <EmptyState
+                            icon={UsersThreeIcon}
+                            title={t("empty.noneTitle")}
+                            description={t("empty.noneBody")}
+                            action={
+                                <div className="flex flex-wrap justify-center gap-2">
+                                    <Link href="/recruiter/jobs/create" className={btn.accent}>{t("postJob")}</Link>
+                                    <Link href="/recruiter/ads" className={btn.secondary}>{t("empty.advertise")}</Link>
+                                </div>
                             }
-                            return app.status === col.id;
-                        });
-
-                        const isOver = dragOverCol === col.id;
-
-                        return (
-                            <div
-                                key={col.id}
-                                onDragOver={(e) => handleDragOver(e, col.id)}
-                                onDragLeave={handleDragLeave}
-                                onDrop={(e) => handleDrop(e, col.id)}
-                                className={`rounded-2xl border p-3 min-h-[520px] min-w-[280px] sm:min-w-[300px] flex-1 transition-colors flex flex-col bg-km-surface/50 border-km-border ${
-                                    isOver ? "border-km-primary bg-blue-50/40 dark:bg-[#121C3A]" : ""
-                                }`}
-                            >
-                                {/* Column Header */}
-                                <div className="flex items-center justify-between px-3 py-2 rounded-xl border border-km-border bg-km-surface-card text-xs font-semibold text-km-text-primary mb-3 shadow-2xs">
-                                    <span className="font-poppins">{col.title}</span>
-                                    <span className="px-2 py-0.5 rounded-md bg-km-surface text-km-text-secondary font-semibold text-[11px] border border-km-border/60">
-                                        {colApps.length}
-                                    </span>
+                        />
+                    ) : items.length === 0 ? (
+                        search ? (
+                            <EmptyState
+                                icon={UsersThreeIcon}
+                                title={t("empty.searchTitle")}
+                                description={t("empty.searchBody", { search })}
+                                action={<button type="button" onClick={() => { setSearchText(""); setParams({ search: null, page: 1 }); }} className={btn.secondary}>{t("empty.clearSearch")}</button>}
+                            />
+                        ) : (
+                            <EmptyState
+                                icon={UsersThreeIcon}
+                                title={status ? t("empty.stageTitle", { stage: t(`stage.${status}`) }) : t("empty.jobTitle")}
+                                description={status ? t("empty.stageBody") : t("empty.jobBody")}
+                            />
+                        )
+                    ) : (
+                        <>
+                            <ApplicantList
+                                items={items}
+                                selectedId={openId}
+                                checked={checked}
+                                now={now}
+                                showJob={!jobId}
+                                onOpen={openApplicant}
+                                onToggle={toggle}
+                                onToggleAll={toggleAll}
+                            />
+                            {pages > 1 && (
+                                <div className="flex items-center justify-between gap-2 px-4 py-3 border-t border-km-border">
+                                    <button type="button" disabled={page <= 1} onClick={() => setParams({ page: page - 1, a: null })} className={cx(btn.secondary, "h-9 px-3")}>
+                                        <CaretLeftIcon size={16} aria-hidden="true" />{t("paging.prev")}
+                                    </button>
+                                    <span className="text-xs text-km-text-secondary">{t("paging.info", { page, pages, total })}</span>
+                                    <button type="button" disabled={page >= pages} onClick={() => setParams({ page: page + 1, a: null })} className={cx(btn.secondary, "h-9 px-3")}>
+                                        {t("paging.next")}<CaretRightIcon size={16} aria-hidden="true" />
+                                    </button>
                                 </div>
-
-                                {/* Candidate Cards Container */}
-                                <div className="space-y-3 flex-1 overflow-y-auto max-h-[660px] pr-0.5">
-                                    {colApps.length === 0 ? (
-                                        <div className="border border-dashed border-km-border rounded-xl p-6 text-center text-xs text-km-text-secondary font-normal">
-                                            No applicants in this stage
-                                        </div>
-                                    ) : (
-                                        colApps.map((app) => (
-                                            <div
-                                                key={app.id}
-                                                draggable={true}
-                                                onDragStart={(e) => handleDragStart(e, app.id)}
-                                                className="bg-km-surface-card p-3.5 rounded-xl border border-km-border shadow-xs hover:border-km-primary transition-all cursor-grab active:cursor-grabbing group relative space-y-2.5"
-                                            >
-                                                {/* Candidate Header */}
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <div className="flex items-center gap-2.5 min-w-0">
-                                                        <div
-                                                            onClick={() => setDrawerApp(app)}
-                                                            className="w-8 h-8 rounded-lg bg-km-surface border border-km-border text-km-primary font-bold text-xs flex items-center justify-center shrink-0 uppercase hover:bg-km-border/40 transition-colors cursor-pointer"
-                                                        >
-                                                            {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
-                                                        </div>
-                                                        <div className="min-w-0">
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setDrawerApp(app)}
-                                                                className="font-bold text-km-text-primary text-xs truncate hover:text-km-blue transition-colors hover:underline text-left block cursor-pointer"
-                                                            >
-                                                                {app.candidate?.name || `Candidate #${app.candidate_id?.substring(0, 6) || "ID"}`}
-                                                            </button>
-                                                            <p className="text-[11px] text-km-text-secondary truncate mt-0.5 font-medium">
-                                                                {app.candidate?.headline || app.candidate?.email || "Registered Candidate"}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-
-                                                    <span className="text-[10px] text-km-text-secondary shrink-0 font-medium">
-                                                        {new Date(app.created_at).toLocaleDateString(undefined, { month: "numeric", day: "numeric" })}
-                                                    </span>
-                                                </div>
-
-                                                {/* Job Applied Chip */}
-                                                {app.job && (
-                                                    <div className="p-2 bg-km-surface rounded-lg text-[11px] text-km-text-secondary font-medium flex items-center gap-1.5 border border-km-border/60">
-                                                        <BriefcaseIcon weight="regular" size={13} className="text-km-blue shrink-0" aria-hidden="true" />
-                                                        <span className="truncate">{app.job.title}</span>
-                                                    </div>
-                                                )}
-
-                                                {/* Cover Letter Snippet */}
-                                                {app.cover_letter && (
-                                                    <p className="text-[11px] text-km-text-secondary italic line-clamp-2 p-2 bg-km-surface rounded-lg border border-km-border/60 leading-relaxed">
-                                                        &ldquo;{app.cover_letter}&rdquo;
-                                                    </p>
-                                                )}
-
-                                                {/* Dedicated Action Buttons Row (No text clipping) */}
-                                                <div className="flex items-center justify-between gap-1.5 pt-1 border-t border-km-border/60">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setDrawerApp(app)}
-                                                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-km-blue hover:underline cursor-pointer"
-                                                        title="View full candidate profile & application"
-                                                    >
-                                                        <EyeIcon weight="regular" size={13} aria-hidden="true" />
-                                                        <span>View Details</span>
-                                                    </button>
-
-                                                    <div className="flex items-center gap-2">
-                                                        {app.resume_url && (
-                                                            <FileLink
-                                                                href={app.resume_url}
-                                                                className="text-[11px] font-medium text-km-text-secondary hover:text-km-blue flex items-center gap-1 transition-colors"
-                                                                title="Open candidate resume"
-                                                            >
-                                                                <FileTextIcon weight="regular" size={13} aria-hidden="true" />
-                                                                <span>Resume</span>
-                                                            </FileLink>
-                                                        )}
-
-                                                        <button
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                setSelectedAppId(app.id);
-                                                                setIsInterviewModalOpen(true);
-                                                            }}
-                                                            className="text-[11px] font-medium text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
-                                                            title="Schedule Interview"
-                                                        >
-                                                            <CalendarBlankIcon weight="regular" size={13} aria-hidden="true" />
-                                                            <span>Interview</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Stage Selector */}
-                                                <div className="pt-1">
-                                                    <select
-                                                        value={app.status}
-                                                        onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                                                        className="w-full text-[11px] font-medium bg-km-surface border border-km-border rounded-lg p-1.5 text-km-text-primary outline-none focus:border-km-primary cursor-pointer"
-                                                    >
-                                                        <option value="Applied">Move: Applied</option>
-                                                        <option value="Shortlisted">Move: Shortlisted</option>
-                                                        <option value="Interviewing">Move: Interview</option>
-                                                        <option value="Hired">Move: Hired</option>
-                                                        <option value="Rejected">Move: Rejected</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
+                            )}
+                            {checkedOnPage.length === 0 && checked.size > 0 && (
+                                <p className="px-4 py-2 text-xs text-km-text-secondary border-t border-km-border">{t("bulk.otherPages", { count: checked.size })}</p>
+                            )}
+                        </>
+                    )}
                 </div>
-            ) : (
-                /* TABLE / LIST VIEW */
-                <div className="bg-km-surface-card rounded-2xl border border-km-border shadow-xs overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left text-xs text-km-text-secondary">
-                            <thead className="bg-km-surface text-km-text-secondary font-semibold border-b border-km-border/70">
-                                <tr>
-                                    <th className="py-3 px-5">Candidate</th>
-                                    <th className="py-3 px-5">Applied Position</th>
-                                    <th className="py-3 px-5">Date</th>
-                                    <th className="py-3 px-5">Status</th>
-                                    <th className="py-3 px-5">Resume</th>
-                                    <th className="py-3 px-5 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-km-border/60">
-                                {filteredApps.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="py-10 text-center text-km-text-secondary">
-                                            {currentJob 
-                                                ? `No applicants found for ${currentJob.title}.`
-                                                : "No applicants found matching filter criteria."}
-                                        </td>
-                                    </tr>
-                                ) : (
-                                    filteredApps.map((app) => (
-                                        <tr key={app.id} className="hover:bg-km-surface/50 transition-colors">
-                                            <td className="py-3.5 px-5">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDrawerApp(app)}
-                                                    className="flex items-center gap-2.5 group/cand text-left cursor-pointer"
-                                                >
-                                                    <div className="w-8 h-8 rounded-lg bg-km-surface text-km-primary font-bold flex items-center justify-center uppercase shrink-0 border border-km-border text-xs">
-                                                        {app.candidate?.name ? app.candidate.name.charAt(0) : "C"}
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-semibold text-km-text-primary text-xs group-hover/cand:text-km-blue group-hover/cand:underline transition-colors">
-                                                            {app.candidate?.name || `Candidate #${app.candidate_id?.substring(0, 6) || "ID"}`}
-                                                        </p>
-                                                        <p className="text-[11px] text-km-text-secondary">
-                                                            {app.candidate?.email || app.candidate?.mobile || "N/A"}
-                                                        </p>
-                                                    </div>
-                                                </button>
-                                            </td>
-                                            <td className="py-3.5 px-5">
-                                                <p className="font-semibold text-km-text-primary text-xs">{app.job?.title || "N/A"}</p>
-                                                <p className="text-[11px] text-km-text-secondary">{app.job?.company || ""}</p>
-                                            </td>
-                                            <td className="py-3.5 px-5 text-xs text-km-text-secondary">
-                                                {new Date(app.created_at).toLocaleDateString()}
-                                            </td>
-                                            <td className="py-3.5 px-5">
-                                                <span className={`px-2 py-0.5 rounded-md text-[11px] font-medium border ${
-                                                    app.status === "Applied" ? "bg-blue-50 text-km-blue border-blue-200 dark:bg-[#131D3D] dark:border-blue-900/40 dark:text-km-link" :
-                                                    app.status === "Shortlisted" ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-[#211A25] dark:border-amber-900/40 dark:text-amber-400" :
-                                                    app.status === "Interviewing" || app.status === "Interview" ? "bg-purple-50 text-purple-700 border-purple-200 dark:bg-[#1E1442] dark:border-purple-900/40 dark:text-purple-400" :
-                                                    app.status === "Hired" ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-[#0C1F2E] dark:border-emerald-900/40 dark:text-emerald-400" :
-                                                    "bg-red-50 text-red-700 border-red-200 dark:bg-[#211527] dark:border-red-900/40 dark:text-red-400"
-                                                }`}>
-                                                    {app.status}
-                                                </span>
-                                            </td>
-                                            <td className="py-3.5 px-5">
-                                                {app.resume_url ? (
-                                                    <FileLink
-                                                        href={app.resume_url}
-                                                        className="text-km-blue dark:text-km-link hover:underline font-semibold text-xs flex items-center gap-1"
-                                                    >
-                                                        <FileTextIcon weight="regular" size={13} aria-hidden="true" />
-                                                        <span>Resume</span>
-                                                    </FileLink>
-                                                ) : (
-                                                    <span className="text-xs text-km-text-secondary">None</span>
-                                                )}
-                                            </td>
-                                            <td className="py-3.5 px-5 text-right">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setDrawerApp(app)}
-                                                        className="px-2.5 py-1 bg-km-surface hover:bg-km-border/50 text-km-text-primary border border-km-border rounded-lg text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
-                                                        title="View Complete Candidate Application"
-                                                    >
-                                                        <EyeIcon weight="regular" size={13} aria-hidden="true" />
-                                                        <span>View</span>
-                                                    </button>
 
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            setSelectedAppId(app.id);
-                                                            setIsInterviewModalOpen(true);
-                                                        }}
-                                                        className="px-2.5 py-1 bg-km-surface hover:bg-km-border/50 text-km-text-primary border border-km-border rounded-lg text-xs font-medium flex items-center gap-1 transition-colors cursor-pointer"
-                                                    >
-                                                        <CalendarBlankIcon weight="regular" size={13} aria-hidden="true" />
-                                                        <span>Schedule</span>
-                                                    </button>
-
-                                                    <select
-                                                        value={app.status}
-                                                        onChange={(e) => handleStatusUpdate(app.id, e.target.value)}
-                                                        className="text-xs font-medium bg-km-surface-card border border-km-border rounded-lg px-2 py-1 text-km-text-primary outline-none focus:border-km-primary cursor-pointer"
-                                                    >
-                                                        <option value="Applied">Applied</option>
-                                                        <option value="Shortlisted">Shortlisted</option>
-                                                        <option value="Interviewing">Interview</option>
-                                                        <option value="Hired">Hired</option>
-                                                        <option value="Rejected">Rejected</option>
-                                                    </select>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                {/* Detail: full screen on phones, sticky column on large screens */}
+                <div
+                    className={cx(
+                        selected ? "fixed inset-0 z-40 overflow-y-auto bg-km-surface-card pb-20" : "hidden",
+                        "lg:z-auto lg:block lg:bg-transparent lg:pb-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:rounded-2xl",
+                    )}
+                >
+                    {selected ? (
+                        <ApplicantPanel
+                            key={selected.id}
+                            applicant={selected}
+                            onBack={() => openApplicant(null)}
+                            onPrev={selectedIdx > 0 ? () => openApplicant(items[selectedIdx - 1].id) : undefined}
+                            onNext={selectedIdx < items.length - 1 ? () => openApplicant(items[selectedIdx + 1].id) : undefined}
+                            onRequestMove={(stage) => setPending({ ids: [selected.id], stage, name: selected.candidate?.name })}
+                            onSchedule={() => setScheduleId(selected.id)}
+                            onPatch={patchItem}
+                        />
+                    ) : data && items.length > 0 ? (
+                        <div className="hidden lg:block bg-km-surface-card border border-km-border rounded-2xl">
+                            <EmptyState icon={UsersThreeIcon} title={t("panel.pickTitle")} description={t("panel.pickBody")} />
+                        </div>
+                    ) : null}
                 </div>
-            )}
+            </div>
 
-            {/* Candidate Detail Drawer */}
-            {drawerApp && (
-                <CandidateDetailDrawer
-                    isOpen={!!drawerApp}
-                    onClose={() => setDrawerApp(null)}
-                    application={drawerApp}
-                    onStatusUpdate={handleStatusUpdate}
-                    onScheduleInterview={(appId) => {
-                        setSelectedAppId(appId);
-                        setIsInterviewModalOpen(true);
-                    }}
-                />
-            )}
+            <StageMoveDialog
+                stage={pending?.stage ?? null}
+                count={pending?.ids.length ?? 0}
+                name={pending?.name}
+                busy={moving}
+                onCancel={() => setPending(null)}
+                onConfirm={confirmMove}
+            />
 
-            {/* Schedule Interview Modal */}
-            {selectedAppId && (
+            {scheduleId && (
                 <ScheduleInterviewModal
-                    isOpen={isInterviewModalOpen}
-                    onClose={() => {
-                        setIsInterviewModalOpen(false);
-                        setSelectedAppId(null);
-                    }}
-                    applicationId={selectedAppId}
-                    onSuccess={() => {
-                        setApplications(apps => apps.map(app =>
-                            app.id === selectedAppId ? { ...app, status: 'Interviewing', updated_at: new Date().toISOString() } : app
-                        ));
-                    }}
+                    isOpen
+                    applicationId={scheduleId}
+                    onClose={() => setScheduleId(null)}
+                    onSuccess={() => { setReload((n) => n + 1); }}
                 />
             )}
         </div>
@@ -564,7 +388,7 @@ function ApplicationsContent() {
 
 export default function ApplicationsPage() {
     return (
-        <Suspense fallback={<KanbanSkeleton columns={4} cardsPerColumn={3} />}>
+        <Suspense fallback={<SkeletonRows rows={8} />}>
             <ApplicationsContent />
         </Suspense>
     );

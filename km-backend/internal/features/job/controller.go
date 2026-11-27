@@ -119,6 +119,8 @@ func (c *JobController) GetJobs(ctx *fiber.Ctx) error {
 		ExperienceMin: getIntPtr("experience_min"),
 		ExperienceMax: getIntPtr("experience_max"),
 		RecruiterID:   recruiterID,
+		// Job seekers only see jobs taking applications; the admin list shows every job
+		PublicOnly: !strings.HasPrefix(ctx.Path(), "/api/admin"),
 		Page:          page,
 		Limit:         limit,
 	}
@@ -186,6 +188,13 @@ func (c *JobController) UpdateJob(ctx *fiber.Ctx) error {
 
 	if existingJob.RecruiterID.Hex() != userID {
 		return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "You rely don't own this job"})
+	}
+
+	// An employer may only open, pause or close a job (moderation statuses are the admin's)
+	if req.Status != "" {
+		if req.Status = CanonicalStatus(req.Status); req.Status == "" {
+			return apperr.Respond(ctx, ErrInvalidJobStatus)
+		}
 	}
 
 	job, err := c.service.UpdateJob(ctx.Context(), id, &req)

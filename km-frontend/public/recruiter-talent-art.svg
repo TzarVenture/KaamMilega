@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 360 260" fill="none">
+  <!-- talent board -->
+  <rect x="20" y="92" width="320" height="200" rx="18" fill="#0E2A6B" stroke="#2B4C9B" stroke-width="2"/>
+  <circle cx="40" cy="110" r="4" fill="#FF6B00"/>
+  <circle cx="54" cy="110" r="4" fill="#FDBA74"/>
+  <circle cx="68" cy="110" r="4" fill="#5EEAD4"/>
+  <rect x="90" y="104" width="150" height="12" rx="6" fill="#14357F"/>
+  <rect x="98" y="108" width="60" height="4" rx="2" fill="#93C5FD"/>
+
+  <!-- profile card, back -->
+  <g>
+    <rect x="34" y="130" width="130" height="68" rx="12" fill="#14357F"/>
+    <circle cx="56" cy="152" r="11" fill="#C4B5FD"/>
+    <rect x="74" y="145" width="62" height="6" rx="3" fill="#FFFFFF" opacity=".9"/>
+    <rect x="74" y="156" width="42" height="5" rx="2.5" fill="#475569"/>
+    <rect x="46" y="176" width="30" height="10" rx="5" fill="#2B4C9B"/>
+    <rect x="80" y="176" width="36" height="10" rx="5" fill="#2B4C9B"/>
+    <rect x="120" y="176" width="24" height="10" rx="5" fill="#2B4C9B"/>
+  </g>
+  <g>
+    <rect x="34" y="208" width="130" height="68" rx="12" fill="#14357F" opacity=".7"/>
+    <circle cx="56" cy="230" r="11" fill="#5EEAD4" opacity=".8"/>
+    <rect x="74" y="223" width="56" height="6" rx="3" fill="#FFFFFF" opacity=".6"/>
+    <rect x="74" y="234" width="36" height="5" rx="2.5" fill="#475569"/>
+    <rect x="46" y="254" width="34" height="10" rx="5" fill="#2B4C9B"/>
+    <rect x="84" y="254" width="28" height="10" rx="5" fill="#2B4C9B"/>
+  </g>
+
+  <!-- profile card, front: the match -->
+  <g transform="rotate(-3 252 190)">
+    <rect x="178" y="134" width="148" height="104" rx="14" fill="#FFFFFF"/>
+    <rect x="178" y="134" width="6" height="104" rx="3" fill="#FF6B00"/>
+    <circle cx="208" cy="164" r="15" fill="#071A4D"/>
+    <circle cx="208" cy="159" r="5.5" fill="#FDBA74"/>
+    <path d="M198 174 a10 8 0 0 1 20 0" fill="#FDBA74"/>
+    <rect x="230" y="154" width="64" height="7" rx="3.5" fill="#071A4D"/>
+    <rect x="230" y="166" width="44" height="6" rx="3" fill="#CBD5E1"/>
+    <!-- skill chips -->
+    <rect x="194" y="190" width="38" height="12" rx="6" fill="#DBEAFE"/>
+    <rect x="200" y="194" width="26" height="4" rx="2" fill="#0B5ED7"/>
+    <rect x="236" y="190" width="44" height="12" rx="6" fill="#DBEAFE"/>
+    <rect x="242" y="194" width="32" height="4" rx="2" fill="#0B5ED7"/>
+    <rect x="284" y="190" width="28" height="12" rx="6" fill="#FFEDD5"/>
+    <rect x="290" y="194" width="16" height="4" rx="2" fill="#FF6B00"/>
+    <!-- open to work tag -->
+    <rect x="194" y="212" width="74" height="16" rx="8" fill="#16A34A"/>
+    <path d="M202 220 L206 224 L213 216" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="218" y="218" width="42" height="4" rx="2" fill="#FFFFFF"/>
+  </g>
+
+  <!-- magnifier -->
+  <g>
+    <circle cx="286" cy="76" r="34" fill="#071A4D" stroke="#FFFFFF" stroke-width="8"/>
+    <circle cx="286" cy="76" r="22" fill="#14357F"/>
+    <circle cx="280" cy="70" r="7" fill="#93C5FD"/>
+    <path d="M270 88 a10 8 0 0 1 20 0" fill="#93C5FD"/>
+    <path d="M262 102 L236 130" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round"/>
+    <path d="M250 116 L238 129" stroke="#FF6B00" stroke-width="10" stroke-linecap="round"/>
+  </g>
+</svg>

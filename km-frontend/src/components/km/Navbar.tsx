@@ -1,7 +1,7 @@
 "use client";
 import { useState, useRef, useEffect, useMemo } from "react";
 
-import { ArrowUpRightIcon, BookOpenIcon, BriefcaseIcon, BuildingsIcon, CalendarCheckIcon, CalendarPlusIcon, CaretDownIcon, CaretRightIcon, ChalkboardTeacherIcon, CheckCircleIcon, CheckIcon, FileTextIcon, GearSixIcon, LifebuoyIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, NewspaperIcon, SealCheckIcon, SignOutIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
+import { SquaresFourIcon, TagIcon, UsersThreeIcon, ArrowUpRightIcon, BookOpenIcon, BriefcaseIcon, BuildingsIcon, CalendarCheckIcon, CalendarPlusIcon, CaretDownIcon, CaretRightIcon, ChalkboardTeacherIcon, CheckCircleIcon, CheckIcon, FileTextIcon, GearSixIcon, LifebuoyIcon, ListIcon, MagnifyingGlassIcon, MapPinIcon, NewspaperIcon, SealCheckIcon, SignOutIcon, WalletIcon, XIcon } from '@phosphor-icons/react';
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react';
 import {
   ChatNavIcon,
@@ -21,6 +21,7 @@ import BrandLogo from "./BrandLogo";
 import ThemeToggle, { ThemeIconButton } from "./ThemeToggle";
 import SearchHint from "./SearchHint";
 import CustomImage from "@/components/ui/CustomImage";
+import CompanyLogo from "@/components/ui/CompanyLogo";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
@@ -142,6 +143,8 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
   }, [pathname]);
 
   const displayName = user?.name || "User";
+  const companyName = user?.company_name || displayName;
+  const companyVerified = String(user?.verification_status || "").toLowerCase() === "verified";
 
   // Determine Role
   const roles = Array.isArray(user?.roles)
@@ -516,6 +519,28 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
             {isMenuOpen && (
               // Never taller than the screen below the navbar: the menu scrolls inside instead
               <div className="absolute right-0 top-full mt-2 w-64 max-w-[calc(100vw-1.5rem)] max-h-[calc(100dvh-5.5rem)] overflow-y-auto overscroll-contain km-menu-scroll bg-km-surface-card rounded-2xl shadow-xl border border-slate-200 py-4 z-50 animate-in fade-in zoom-in-95 duration-150">
+                {isRecruiter ? (
+                  <div className="px-4 pb-3">
+                    <div className="flex items-center gap-3">
+                      <CompanyLogo key={user?.company_logo || "none"} src={user?.company_logo} name={companyName} className="w-11 h-11" textClass="text-sm" />
+                      <div className="min-w-0 flex-1">
+                        <h4 className="flex items-center gap-1 font-bold text-km-heading leading-tight">
+                          <span className="truncate">{companyName}</span>
+                          {companyVerified && <SealCheckIcon size={14} weight="fill" className="shrink-0 text-[#0B5ED7]" aria-label="Verified" />}
+                        </h4>
+                        <p className="mt-0.5 truncate text-xs text-km-text-secondary">{displayName} · Employer</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <Link href="/recruiter" className="flex h-8 items-center justify-center rounded-xl bg-[#071A4D] text-xs font-bold text-white hover:bg-[#0B2466] dark:bg-km-primary">
+                        Dashboard
+                      </Link>
+                      <Link href="/recruiter/company" className="flex h-8 items-center justify-center rounded-xl border border-km-border text-xs font-bold text-km-heading hover:bg-km-surface">
+                        Company page
+                      </Link>
+                    </div>
+                  </div>
+                ) : (<>
                 {/* User Identity */}
                 <div className="px-4 pb-3 flex items-center gap-3">
                   <div className="w-11 h-11 bg-km-primary rounded-full flex items-center justify-center overflow-hidden text-white font-bold shrink-0">
@@ -548,6 +573,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     </button>
                   </Link>
                 </div>
+                </>)}
 
                 <hr className="border-gray-100" />
 
@@ -556,7 +582,9 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     Account
                   </h5>
                   <MenuItem label="Settings & privacy" href={isRecruiter ? "/recruiter/settings" : "/settings"} />
-                  <MenuItem label="Wallet" href="/wallet" />
+                  {isRecruiter && <MenuItem label="Hiring plan" href="/recruiter/plan" />}
+                  <MenuItem label={isRecruiter ? "Billing & wallet" : "Wallet"} href="/wallet" />
+                  {isRecruiter && <MenuItem label="My personal profile" href="/profile" />}
                   <MenuItem label="Language" href={`${isRecruiter ? "/recruiter/settings" : "/settings"}?tab=preferences`} />
                   <MenuItem label="Help & support" href="/support" />
                   {FEATURES.DARK_MODE && (
@@ -571,21 +599,17 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
 
                 <div className="py-2">
                   <h5 className="px-4 text-[13px] font-bold text-gray-900 mt-2">
-                    Manage
+                    {isRecruiter ? "Hiring" : "Manage"}
                   </h5>
                   {isRecruiter ? (
                     <>
-                      <MenuItem label="My Jobs" href="/recruiter/jobs/list" />
-                      <MenuItem
-                        label="Active Applications"
-                        href="/recruiter/applications"
-                      />
-                      <MenuItem
-                        label="Interviews"
-                        href="/recruiter/interviews"
-                      />
+                      <MenuItem label="Post a job" href="/recruiter/jobs/create" />
+                      <MenuItem label="Jobs" href="/recruiter/jobs/list" />
+                      <MenuItem label="Applicants" href="/recruiter/applications" />
+                      <MenuItem label="Interviews" href="/recruiter/interviews" />
+                      <MenuItem label="Find candidates" href="/recruiter/people" />
                       <MenuItem label="Posts & activity" href="/recruiter/posts" />
-                      <MenuItem label="Create Event" href="/user/events/create" />
+                      <MenuItem label="Create event" href="/user/events/create" />
                     </>
                   ) : (
                     <>
@@ -623,7 +647,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                     label="Sign Out"
                     onClick={async () => {
                       await clearSession();
-                      window.location.href = "/login";
+                      window.location.href = isRecruiter ? "/recruiter/login" : "/login";
                     }}
                   />
                 </div>
@@ -816,9 +840,13 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
             {/* Role-specific */}
             {isRecruiter ? (
               <MobileSection title="Hiring">
-                <MobileRow href="/recruiter/jobs/list" Icon={BriefcaseIcon} label="My jobs" onNavigate={() => setMobileNavOpen(false)} />
-                <MobileRow href="/recruiter/applications" Icon={FileTextIcon} label="Applications" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter" Icon={SquaresFourIcon} label="Employer dashboard" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter/jobs/list" Icon={BriefcaseIcon} label="Jobs" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter/applications" Icon={UsersThreeIcon} label="Applicants" onNavigate={() => setMobileNavOpen(false)} />
                 <MobileRow href="/recruiter/interviews" Icon={CalendarCheckIcon} label="Interviews" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter/people" Icon={MagnifyingGlassIcon} label="Find candidates" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter/company" Icon={BuildingsIcon} label="Company page" onNavigate={() => setMobileNavOpen(false)} />
+                <MobileRow href="/recruiter/plan" Icon={TagIcon} label="Hiring plan" onNavigate={() => setMobileNavOpen(false)} />
                 <MobileRow href="/recruiter/posts" Icon={NewspaperIcon} label="Posts & activity" onNavigate={() => setMobileNavOpen(false)} />
                 <MobileRow href="/user/events/create" Icon={CalendarPlusIcon} label="Create event" onNavigate={() => setMobileNavOpen(false)} />
               </MobileSection>
@@ -851,7 +879,7 @@ const Navbar = ({ showCitySelector = true, user }: NavbarProps) => {
                 type="button"
                 onClick={async () => {
                   await clearSession();
-                  window.location.href = "/login";
+                  window.location.href = isRecruiter ? "/recruiter/login" : "/login";
                 }}
                 className="w-full min-h-11 flex items-center gap-3.5 px-4 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer dark:text-red-400 dark:hover:bg-[#271E35]"
               >

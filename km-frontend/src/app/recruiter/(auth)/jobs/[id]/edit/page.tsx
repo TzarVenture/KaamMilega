@@ -21,6 +21,7 @@ import {
 } from '@phosphor-icons/react';
 import Link from "next/link";
 import { notify } from "@/lib/notify";
+import { jobStatus } from "@/lib/api/recruiter";
 import { motion, AnimatePresence } from "framer-motion";
 
 type Step = 1 | 2 | 3;
@@ -69,13 +70,6 @@ export default function EditJobPage() {
                 // Fetch job details
                 const jobData: any = await api.get(`/jobs/${jobId}`);
 
-                const normalizeStatus = (status?: string) => {
-                    const s = (status || "").toLowerCase();
-                    if (s === "closed") return "Closed";
-                    if (s === "on hold" || s === "onhold") return "On Hold";
-                    return "Open";
-                };
-
                 setFormData({
                     title: jobData.title || "",
                     company: jobData.company || "",
@@ -92,7 +86,7 @@ export default function EditJobPage() {
                     experience_max: jobData.experience_max?.toString() || "",
                     gender: jobData.gender || "",
                     education: jobData.education || "",
-                    status: normalizeStatus(jobData.status)
+                    status: jobStatus(jobData.status) as string
                 });
             } catch (error: any) {
                 console.error("Failed to fetch job data", error);
@@ -160,7 +154,7 @@ export default function EditJobPage() {
 
             await api.patch(`/jobs/${jobId}`, jobData);
             notify.success("Job updated successfully!");
-            router.push("/recruiter/jobs/list");
+            router.push(`/recruiter/jobs/${jobId}`);
         } catch (err: any) {
             notify.error(err.message || "Failed to update job");
         } finally {
@@ -250,7 +244,7 @@ export default function EditJobPage() {
                                             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer select-none ${
                                                 formData.status === 'Closed' 
                                                     ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100/70 dark:bg-[#291229] dark:text-rose-400 dark:border-rose-800/60' 
-                                                    : formData.status === 'On Hold'
+                                                    : formData.status === 'Paused'
                                                     ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100/70 dark:bg-[#261A20] dark:text-amber-400 dark:border-amber-800/60'
                                                     : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100/70 dark:bg-[#0B212C] dark:text-emerald-400 dark:border-emerald-800/60'
                                             }`}
@@ -296,17 +290,17 @@ export default function EditJobPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => {
-                                                        setFormData(prev => ({ ...prev, status: "On Hold" }));
+                                                        setFormData(prev => ({ ...prev, status: "Paused" }));
                                                         setIsStatusOpen(false);
                                                     }}
                                                     className={`w-full px-3 py-2 text-left text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer ${
-                                                        formData.status === "On Hold"
+                                                        formData.status === "Paused"
                                                             ? "bg-amber-50 text-amber-700"
                                                             : "text-amber-700 hover:bg-amber-50/60"
                                                     }`}
                                                 >
-                                                    <span>On Hold</span>
-                                                    {formData.status === "On Hold" && <CheckCircleIcon size={14} weight="fill" className="text-amber-600" aria-hidden="true" />}
+                                                    <span>Paused</span>
+                                                    {formData.status === "Paused" && <CheckCircleIcon size={14} weight="fill" className="text-amber-600" aria-hidden="true" />}
                                                 </button>
                                             </div>
                                         )}

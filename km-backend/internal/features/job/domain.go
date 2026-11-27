@@ -37,6 +37,8 @@ type Job struct {
 	CreatedAt      time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt      time.Time `bson:"updated_at" json:"updated_at"`
 	ApplicantCount int       `bson:"-" json:"applicant_count"`
+	// Applicants per pipeline stage, filled for the employer's own views
+	StageCounts map[string]int `bson:"-" json:"stage_counts,omitempty"`
 
 	// Filled from the recruiter's account when jobs are read, never stored on the job
 	EmployerVerified bool   `bson:"-" json:"employer_verified"`
@@ -93,6 +95,10 @@ type JobFilter struct {
 
 	// RecruiterID lists one company's jobs (a company is its recruiter's account)
 	RecruiterID string
+	// Status keeps one status group: "open", "paused" or "closed" (any other value: all)
+	Status string
+	// PublicOnly leaves out paused and closed jobs (the public job search)
+	PublicOnly bool
 
 	Page  int
 	Limit int

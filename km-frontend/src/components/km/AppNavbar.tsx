@@ -59,6 +59,16 @@ function AppNavbarContent() {
         verifyUser();
     }, [router]);
 
+    // A new photo, logo or name saved elsewhere shows in the menu straight away
+    useEffect(() => {
+        const refresh = () => {
+            if (!isAuthenticated()) return;
+            api.get(`/user/profile`).then((u) => setUser(u)).catch(() => {});
+        };
+        window.addEventListener("km:profile-updated", refresh);
+        return () => window.removeEventListener("km:profile-updated", refresh);
+    }, []);
+
     // Optimistic UI:
     // 1. Initial render: false (matches server) -> GuestNavbar
     // 2. Effect: Token found -> true -> Navbar (Optimistic)

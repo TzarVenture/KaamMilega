@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 360 260" fill="none">
+  <!-- hiring board: three stage columns -->
+  <rect x="20" y="92" width="320" height="200" rx="18" fill="#0E2A6B" stroke="#2B4C9B" stroke-width="2"/>
+  <circle cx="40" cy="110" r="4" fill="#FF6B00"/>
+  <circle cx="54" cy="110" r="4" fill="#FDBA74"/>
+  <circle cx="68" cy="110" r="4" fill="#5EEAD4"/>
+
+  <!-- column labels -->
+  <rect x="36" y="128" width="40" height="7" rx="3.5" fill="#93C5FD"/>
+  <rect x="140" y="128" width="48" height="7" rx="3.5" fill="#FDBA74"/>
+  <rect x="244" y="128" width="36" height="7" rx="3.5" fill="#86EFAC"/>
+
+  <!-- applied -->
+  <g>
+    <rect x="32" y="146" width="92" height="40" rx="10" fill="#14357F"/>
+    <circle cx="50" cy="166" r="9" fill="#93C5FD"/>
+    <rect x="64" y="159" width="44" height="6" rx="3" fill="#FFFFFF" opacity=".9"/>
+    <rect x="64" y="170" width="30" height="5" rx="2.5" fill="#475569"/>
+  </g>
+  <g>
+    <rect x="32" y="194" width="92" height="40" rx="10" fill="#14357F"/>
+    <circle cx="50" cy="214" r="9" fill="#C4B5FD"/>
+    <rect x="64" y="207" width="38" height="6" rx="3" fill="#FFFFFF" opacity=".9"/>
+    <rect x="64" y="218" width="26" height="5" rx="2.5" fill="#475569"/>
+  </g>
+  <g>
+    <rect x="32" y="242" width="92" height="40" rx="10" fill="#14357F" opacity=".6"/>
+    <circle cx="50" cy="262" r="9" fill="#5EEAD4" opacity=".7"/>
+    <rect x="64" y="255" width="40" height="6" rx="3" fill="#FFFFFF" opacity=".5"/>
+  </g>
+
+  <!-- interview: the card being moved, lifted in white -->
+  <g>
+    <rect x="136" y="146" width="92" height="40" rx="10" fill="#14357F"/>
+    <circle cx="154" cy="166" r="9" fill="#FDBA74"/>
+    <rect x="168" y="159" width="42" height="6" rx="3" fill="#FFFFFF" opacity=".9"/>
+    <rect x="168" y="170" width="28" height="5" rx="2.5" fill="#475569"/>
+  </g>
+  <g transform="rotate(-4 182 222)">
+    <rect x="132" y="198" width="104" height="48" rx="12" fill="#FFFFFF"/>
+    <rect x="132" y="198" width="6" height="48" rx="3" fill="#FF6B00"/>
+    <circle cx="158" cy="222" r="11" fill="#071A4D"/>
+    <circle cx="158" cy="218" r="4" fill="#FDBA74"/>
+    <path d="M151 229 a7 6 0 0 1 14 0" fill="#FDBA74"/>
+    <rect x="175" y="213" width="46" height="7" rx="3.5" fill="#071A4D"/>
+    <rect x="175" y="225" width="32" height="6" rx="3" fill="#CBD5E1"/>
+  </g>
+
+  <!-- hired -->
+  <g>
+    <rect x="240" y="146" width="88" height="40" rx="10" fill="#14357F"/>
+    <circle cx="258" cy="166" r="9" fill="#86EFAC"/>
+    <rect x="272" y="159" width="40" height="6" rx="3" fill="#FFFFFF" opacity=".9"/>
+    <rect x="272" y="170" width="24" height="5" rx="2.5" fill="#475569"/>
+  </g>
+  <g>
+    <rect x="240" y="194" width="88" height="40" rx="10" fill="#16A34A"/>
+    <path d="M255 214 L261 220 L271 208" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="278" y="208" width="38" height="6" rx="3" fill="#FFFFFF"/>
+    <rect x="278" y="219" width="24" height="5" rx="2.5" fill="#DCFCE7"/>
+  </g>
+
+  <!-- calendar chip: interview booked -->
+  <g transform="translate(226 30)">
+    <rect width="104" height="46" rx="14" fill="#FFFFFF"/>
+    <rect x="10" y="9" width="28" height="28" rx="8" fill="#FF6B00"/>
+    <rect x="10" y="9" width="28" height="9" rx="4" fill="#C2410C"/>
+    <rect x="17" y="23" width="5" height="5" rx="1.5" fill="#FFFFFF"/>
+    <rect x="26" y="23" width="5" height="5" rx="1.5" fill="#FFFFFF"/>
+    <rect x="46" y="13" width="46" height="7" rx="3.5" fill="#071A4D"/>
+    <rect x="46" y="26" width="32" height="6" rx="3" fill="#CBD5E1"/>
+  </g>
+
+  <!-- new applicants badge -->
+  <g transform="translate(30 36)">
+    <rect width="112" height="40" rx="14" fill="#0B5ED7"/>
+    <circle cx="22" cy="20" r="9" fill="#FFFFFF"/>
+    <path d="M18 20 h8 M22 16 v8" stroke="#0B5ED7" stroke-width="2.5" stroke-linecap="round"/>
+    <rect x="38" y="13" width="54" height="7" rx="3.5" fill="#FFFFFF"/>
+    <rect x="38" y="24" width="36" height="5" rx="2.5" fill="#BFDBFE"/>
+  </g>
+</svg>
