@@ -1841,7 +1841,13 @@
     "freeWithCode": "Nothing to pay with this code.",
     "getFree": "Get it free",
     "cashbackAdded": "{amount} cashback added to your bonus credit.",
-    "resumeDownloads": "Resume downloads"
+    "resumeDownloads": "Resume downloads",
+    "heroTitle": "Post more jobs, <accent>talk to more people</accent>",
+    "proofStarts": "Starts right away",
+    "proofPay": "Pay by wallet or online",
+    "proofQueue": "Buy the next one early",
+    "artAlt": "Three hiring plans with job posts, chats and resumes",
+    "currentLabel": "Your plan now"
   },
   "coupon": {
     "have": "Have a coupon code?",
@@ -2008,6 +2014,22 @@
       "resources_inline": "Learn, between videos",
       "resources_sidebar": "Learn, side column",
       "resource_detail_sidebar": "Learn video page, side column"
-    }
+    },
+    "heroTitle": "Put your company in front of <accent>the right people</accent>",
+    "proofChecked": "Checked before it runs",
+    "proofCities": "Pick cities and people",
+    "proofRefund": "Full refund if not approved",
+    "artAlt": "A phone showing a company ad with views and clicks",
+    "stepLabel": "Step {n}",
+    "step1Title": "Write your ad",
+    "step1Text": "Add an image, a headline and where people should go.",
+    "step2Title": "Pick a package and pay",
+    "step2Text": "Pay from your wallet or online. Coupons work too.",
+    "step3Title": "It goes live",
+    "step3Text": "Once approved, it runs for the package days.",
+    "statRunning": "Running now",
+    "statAll": "{count, plural, one {# ad in all} other {# ads in all}}",
+    "statRate": "Click rate",
+    "statRateHint": "Clicks out of views"
   }
 }

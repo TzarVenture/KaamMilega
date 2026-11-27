@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 360 260" fill="none">
+  <!-- three plan cards rising left to right -->
+  <g>
+    <rect x="22" y="150" width="96" height="150" rx="14" fill="#0E2A6B" stroke="#2B4C9B" stroke-width="2"/>
+    <rect x="38" y="168" width="40" height="7" rx="3.5" fill="#93C5FD"/>
+    <rect x="38" y="184" width="56" height="12" rx="4" fill="#FFFFFF"/>
+    <circle cx="44" cy="214" r="5" fill="#5EEAD4"/>
+    <rect x="54" y="211" width="46" height="6" rx="3" fill="#475569"/>
+    <circle cx="44" cy="232" r="5" fill="#5EEAD4"/>
+    <rect x="54" y="229" width="36" height="6" rx="3" fill="#475569"/>
+  </g>
+  <g>
+    <rect x="132" y="96" width="100" height="204" rx="14" fill="#FFFFFF"/>
+    <rect x="132" y="96" width="100" height="10" rx="5" fill="#FF6B00"/>
+    <rect x="148" y="120" width="44" height="7" rx="3.5" fill="#FDBA74"/>
+    <rect x="148" y="136" width="64" height="14" rx="4" fill="#071A4D"/>
+    <path d="M146 172 L151 177 L159 168" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="166" y="169" width="50" height="6" rx="3" fill="#CBD5E1"/>
+    <path d="M146 192 L151 197 L159 188" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="166" y="189" width="42" height="6" rx="3" fill="#CBD5E1"/>
+    <path d="M146 212 L151 217 L159 208" stroke="#16A34A" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="166" y="209" width="48" height="6" rx="3" fill="#CBD5E1"/>
+    <rect x="146" y="236" width="72" height="18" rx="9" fill="#FF6B00"/>
+  </g>
+  <g>
+    <rect x="246" y="124" width="96" height="176" rx="14" fill="#0E2A6B" stroke="#2B4C9B" stroke-width="2"/>
+    <rect x="262" y="142" width="40" height="7" rx="3.5" fill="#C4B5FD"/>
+    <rect x="262" y="158" width="60" height="12" rx="4" fill="#FFFFFF"/>
+    <circle cx="268" cy="188" r="5" fill="#5EEAD4"/>
+    <rect x="278" y="185" width="46" height="6" rx="3" fill="#475569"/>
+    <circle cx="268" cy="206" r="5" fill="#5EEAD4"/>
+    <rect x="278" y="203" width="40" height="6" rx="3" fill="#475569"/>
+    <circle cx="268" cy="224" r="5" fill="#5EEAD4"/>
+    <rect x="278" y="221" width="34" height="6" rx="3" fill="#475569"/>
+  </g>
+
+  <!-- what a plan gives: job post, chat, resume -->
+  <g transform="translate(40 52)">
+    <rect width="56" height="56" rx="16" fill="#0B5ED7"/>
+    <rect x="14" y="22" width="28" height="20" rx="4" fill="#FFFFFF"/>
+    <rect x="22" y="16" width="12" height="8" rx="2.5" stroke="#FFFFFF" stroke-width="3"/>
+    <rect x="14" y="30" width="28" height="3" fill="#93C5FD"/>
+  </g>
+  <g transform="translate(152 18)">
+    <path d="M0 14 C0 6 6 0 14 0 H46 C54 0 60 6 60 14 V36 C60 44 54 50 46 50 H22 L8 60 V50 C3 48 0 43 0 36 Z" fill="#0F9D8A"/>
+    <circle cx="18" cy="25" r="4" fill="#FFFFFF"/>
+    <circle cx="30" cy="25" r="4" fill="#FFFFFF"/>
+    <circle cx="42" cy="25" r="4" fill="#FFFFFF"/>
+  </g>
+  <g transform="translate(270 44)">
+    <path d="M0 6 C0 3 3 0 6 0 H34 L48 14 V58 C48 61 45 64 42 64 H6 C3 64 0 61 0 58 Z" fill="#FFFFFF"/>
+    <path d="M34 0 V14 H48" fill="#CBD5E1"/>
+    <circle cx="16" cy="22" r="7" fill="#C4B5FD"/>
+    <rect x="8" y="36" width="32" height="5" rx="2.5" fill="#94A3B8"/>
+    <rect x="8" y="46" width="24" height="5" rx="2.5" fill="#CBD5E1"/>
+  </g>
+
+  <!-- dashed links from the gifts down into the best card -->
+  <path d="M96 84 Q 130 90 150 92" stroke="#93C5FD" stroke-width="2" stroke-dasharray="4 6" stroke-linecap="round"/>
+  <path d="M182 82 L182 92" stroke="#5EEAD4" stroke-width="2" stroke-dasharray="4 6" stroke-linecap="round"/>
+  <path d="M268 84 Q 240 88 220 92" stroke="#C4B5FD" stroke-width="2" stroke-dasharray="4 6" stroke-linecap="round"/>
+</svg>

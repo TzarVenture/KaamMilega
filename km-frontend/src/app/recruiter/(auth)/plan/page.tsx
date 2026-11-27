@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react';
 import { useFormatter, useTranslations } from 'next-intl';
-import { CheckIcon, CircleNotchIcon, ClockIcon, TagIcon } from '@phosphor-icons/react';
+import { BriefcaseIcon, CalendarCheckIcon, ChatsCircleIcon, CircleNotchIcon, ClockIcon, FileTextIcon, PenNibIcon, StackIcon, TagIcon, WalletIcon, type Icon } from '@phosphor-icons/react';
 import api from '@/lib/axios';
 import { notify } from '@/lib/notify';
 import { inr } from '@/lib/money';
@@ -12,23 +12,24 @@ import PaymentMethodPicker, { type PaymentMethod } from '@/components/km/Payment
 import { CashbackNote, CouponField, CouponPrice, useCouponQuote } from '@/components/km/CouponCheckout';
 import type { CouponReceipt } from '@/lib/api/coupons';
 import { AdminModal, btn, cx } from '@/components/admin/ui';
+import RecruiterBanner, { HeroAccent } from '@/components/km/RecruiterBanner';
 import { recruiterPlansApi, type Allowance, type Limit, type PlanOverview, type RecruiterPlan } from '@/lib/api/recruiterPlans';
 
 /** One limited thing: what's used against the period's limit */
-function Meter({ label, allowance, text }: { label: string; allowance: Allowance; text: string }) {
+function Meter({ label, allowance, text, icon: MeterIcon }: { label: string; allowance: Allowance; text: string; icon: Icon }) {
     const { used, limit } = allowance;
     const share = limit === null || limit === 0 ? (limit === 0 ? 1 : 0) : Math.min(1, used / limit);
     const full = limit !== null && used >= limit;
     return (
         <div>
             <div className="flex items-baseline justify-between gap-3 text-sm">
-                <span className="font-medium text-km-text-primary">{label}</span>
+                <span className="flex items-center gap-2 font-medium text-km-text-primary"><MeterIcon size={20} weight="duotone" className="shrink-0 text-km-link" aria-hidden="true" />{label}</span>
                 <span className={cx('font-inter tabular-nums', full ? 'text-red-700 dark:text-red-400 font-semibold' : 'text-km-text-secondary')}>
                     {text}
                 </span>
             </div>
             {limit !== null && (
-                <div className="mt-1.5 h-1.5 rounded-full bg-km-border-subtle overflow-hidden" aria-hidden="true">
+                <div className="mt-2 h-2 rounded-full bg-km-border-subtle overflow-hidden" aria-hidden="true">
                     <div
                         className={cx('h-full rounded-full', full ? 'bg-red-600' : share >= 0.8 ? 'bg-amber-500' : 'bg-km-link')}
                         style={{ width: `${Math.max(share * 100, used > 0 ? 4 : 0)}%` }}
@@ -38,6 +39,9 @@ function Meter({ label, allowance, text }: { label: string; allowance: Allowance
         </div>
     );
 }
+
+/** Colour strip on top of each plan card, in the service colours */
+const PLAN_BAR = ['bg-[#0B5ED7]', 'bg-[#FF6B00]', 'bg-[#7C3AED]', 'bg-[#0F9D8A]'];
 
 /** A recruiter's hiring plan: what's left this period, and plans to buy */
 export default function RecruiterPlanPage() {
@@ -137,10 +141,18 @@ export default function RecruiterPlanPage() {
 
     return (
         <div className="max-w-5xl mx-auto pb-16">
-            <div className="pb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-km-heading">{t('title')}</h1>
-                <p className="mt-1 text-sm text-km-text-secondary">{t('subtitle')}</p>
-            </div>
+            <RecruiterBanner
+                kicker={{ label: t('title'), Icon: BriefcaseIcon, tone: 'jobs' }}
+                title={t.rich('heroTitle', { accent: (c) => <HeroAccent>{c}</HeroAccent> })}
+                description={t('subtitle')}
+                highlights={[
+                    { Icon: CalendarCheckIcon, label: t('proofStarts') },
+                    { Icon: WalletIcon, label: t('proofPay') },
+                    { Icon: StackIcon, label: t('proofQueue') },
+                ]}
+                art={{ src: '/recruiter-plan-art.svg', alt: t('artAlt') }}
+            />
+            <div className="h-6" />
 
             {failed && !data && (
                 <div className="bg-km-surface-card border border-km-border rounded-2xl p-6 text-sm text-km-text-secondary">
@@ -162,7 +174,8 @@ export default function RecruiterPlanPage() {
                     <section className="bg-km-surface-card border border-km-border rounded-2xl p-5 sm:p-6" aria-labelledby="current-plan">
                         <div className="grid gap-6 md:grid-cols-[1fr_1.3fr] md:items-start">
                             <div>
-                                <h2 id="current-plan" className="text-lg font-semibold text-km-heading">{current ? current.plan_name : t('free')}</h2>
+                                <p className="text-xs font-medium text-km-text-secondary">{t('currentLabel')}</p>
+                                <h2 id="current-plan" className="mt-1 text-lg font-semibold text-km-heading">{current ? current.plan_name : t('free')}</h2>
                                 <p className="mt-1 text-sm text-km-text-secondary">
                                     {current ? t('runsUntil', { date: date(current.expires_at) }) : t('freeResets', { date: date(data.period_ends_at) })}
                                 </p>
@@ -174,9 +187,9 @@ export default function RecruiterPlanPage() {
                                 ))}
                             </div>
                             <div className="space-y-4">
-                                <Meter label={t('jobPosts')} allowance={data.usage.job_posts} text={meterText(data.usage.job_posts)} />
-                                <Meter label={t('newChats')} allowance={data.usage.new_chats} text={meterText(data.usage.new_chats)} />
-                                <Meter label={t('resumeDownloads')} allowance={data.usage.resume_downloads} text={meterText(data.usage.resume_downloads)} />
+                                <Meter icon={BriefcaseIcon} label={t('jobPosts')} allowance={data.usage.job_posts} text={meterText(data.usage.job_posts)} />
+                                <Meter icon={ChatsCircleIcon} label={t('newChats')} allowance={data.usage.new_chats} text={meterText(data.usage.new_chats)} />
+                                <Meter icon={FileTextIcon} label={t('resumeDownloads')} allowance={data.usage.resume_downloads} text={meterText(data.usage.resume_downloads)} />
                                 {!data.enforced && <p className="text-xs text-km-text-secondary">{t('notEnforced')}</p>}
                             </div>
                         </div>
@@ -185,30 +198,31 @@ export default function RecruiterPlanPage() {
                     <h2 className="mt-8 mb-3 text-base font-semibold text-km-heading">{t('plansTitle')}</h2>
                     {data.plans.length === 0 ? (
                         <div className="bg-km-surface-card border border-km-border rounded-2xl p-8 text-center">
-                            <TagIcon size={28} className="mx-auto text-km-text-muted" aria-hidden="true" />
+                            <TagIcon size={36} weight="duotone" className="mx-auto text-km-link" aria-hidden="true" />
                             <p className="mt-2 text-sm text-km-text-secondary">{t('noPlans')}</p>
                         </div>
                     ) : (
                         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            {data.plans.map((plan) => {
+                            {data.plans.map((plan, i) => {
                                 const features = [
-                                    { text: jobsText(plan.job_posts), soon: false },
-                                    { text: chatsText(plan.new_chats), soon: false },
-                                    ...(plan.resume_downloads !== 0 ? [{ text: resumesText(plan.resume_downloads), soon: false }] : []),
-                                    ...(plan.ai_job_writer ? [{ text: t('featureAi'), soon: true }] : []),
+                                    { text: jobsText(plan.job_posts), soon: false, Icon: BriefcaseIcon },
+                                    { text: chatsText(plan.new_chats), soon: false, Icon: ChatsCircleIcon },
+                                    ...(plan.resume_downloads !== 0 ? [{ text: resumesText(plan.resume_downloads), soon: false, Icon: FileTextIcon }] : []),
+                                    ...(plan.ai_job_writer ? [{ text: t('featureAi'), soon: true, Icon: PenNibIcon }] : []),
                                 ];
                                 return (
-                                    <li key={plan.id} className="flex flex-col bg-km-surface-card border border-km-border rounded-2xl p-5">
+                                    <li key={plan.id} className="relative flex flex-col overflow-hidden bg-km-surface-card border border-km-border rounded-2xl p-5 pt-6">
+                                        <span className={cx('absolute inset-x-0 top-0 h-1.5', PLAN_BAR[i % PLAN_BAR.length])} aria-hidden="true" />
                                         <h3 className="text-base font-semibold text-km-heading">{plan.name}</h3>
                                         {plan.description && <p className="mt-1 text-sm text-km-text-secondary">{plan.description}</p>}
-                                        <p className="mt-4">
+                                        <p className="mt-4 pb-4 border-b border-km-border-subtle">
                                             <span className="text-3xl font-bold text-km-heading font-inter tabular-nums">{inr(plan.price)}</span>
                                             <span className="ml-1.5 text-sm text-km-text-secondary">{t('forDays', { days: plan.period_days })}</span>
                                         </p>
                                         <ul className="mt-4 space-y-2 flex-1">
                                             {features.map((f) => (
                                                 <li key={f.text} className="flex items-start gap-2 text-sm text-km-text-primary">
-                                                    <CheckIcon size={16} weight="bold" className="mt-0.5 shrink-0 text-km-link" aria-hidden="true" />
+                                                    <f.Icon size={18} weight="duotone" className="shrink-0 text-km-link" aria-hidden="true" />
                                                     <span>
                                                         {f.text}
                                                         {f.soon && <span className="ml-1.5 text-xs text-km-text-secondary">{t('soon')}</span>}
