@@ -3,6 +3,7 @@ package interview
 import (
 	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
+	"km-backend/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -54,16 +55,14 @@ func (c *InterviewController) UpdateInterviewStatus(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	// Auth check missing for brevity but required
 	userID, ok := ctx.Locals("user_id").(string)
 	if !ok {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	_ = userID
 
-	interview, err := c.service.UpdateInterviewStatus(ctx.Context(), id, req.Status)
+	interview, err := c.service.UpdateInterviewStatus(ctx.Context(), id, req.Status, userID, middleware.HasRole(ctx, "admin"))
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return apperr.Respond(ctx, err)
 	}
 	return ctx.JSON(interview)
 }
