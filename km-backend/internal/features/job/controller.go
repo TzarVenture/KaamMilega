@@ -40,7 +40,7 @@ func (c *JobController) CreateJob(ctx *fiber.Ctx) error {
 		if apperr.CodeOf(err) == "PLAN_JOB_POSTS_USED_UP" {
 			return ctx.Status(fiber.StatusPaymentRequired).JSON(apperr.Body(err))
 		}
-		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return apperr.Respond(ctx, err)
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(job)
@@ -197,9 +197,12 @@ func (c *JobController) UpdateJob(ctx *fiber.Ctx) error {
 		}
 	}
 
+	// The company name follows the employer's profile; an edit can't rename it
+	req.Company = ""
+
 	job, err := c.service.UpdateJob(ctx.Context(), id, &req)
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return apperr.Respond(ctx, err)
 	}
 	return ctx.JSON(job)
 }

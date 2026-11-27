@@ -3,6 +3,7 @@ package job
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"km-backend/internal/features/city"
 
@@ -17,6 +18,7 @@ type ApplicationCounter interface {
 type Employer struct {
 	Verified bool
 	Logo     string
+	Company  string // the company name on the employer's profile
 }
 
 // EmployerLookup reads the posting accounts for a set of jobs in one query
@@ -81,20 +83,25 @@ func (s *JobService) CreateJob(ctx context.Context, req *CreateJobRequest, recru
 	if err != nil {
 		return nil, err
 	}
+	if err := validateCreate(req); err != nil {
+		return nil, err
+	}
 
-	// Validate City
 	var cityID primitive.ObjectID
 	var cityName string
-	if req.CityID != "" {
-		c, err := s.cityRepo.FindByID(ctx, req.CityID)
-		if err != nil {
-			return nil, fmt.Errorf("invalid city: %w", err)
+	c, cerr := s.cityRepo.FindByID(ctx, req.CityID)
+	if cerr != nil || c == nil {
+		return nil, ErrCityInvalid
+	}
+	cityID, cityName = c.ID, c.Name
+
+	// The job is posted under the company on the employer's profile, never a typed-in name
+	if s.employers != nil {
+		if found, err := s.employers.Employers(ctx, []primitive.ObjectID{rid}); err == nil {
+			if e, ok := found[rid]; ok && strings.TrimSpace(e.Company) != "" {
+				req.Company = strings.TrimSpace(e.Company)
+			}
 		}
-		if c == nil {
-			return nil, fmt.Errorf("city not found")
-		}
-		cityID = c.ID
-		cityName = c.Name
 	}
 
 	job := &Job{
@@ -182,6 +189,9 @@ func (s *JobService) UpdateJob(ctx context.Context, id string, req *UpdateJobReq
 	if existingJob == nil {
 		return nil, nil // Not found
 	}
+	if err := validateUpdate(req); err != nil {
+		return nil, err
+	}
 
 	// update fields if provided
 	if req.Title != "" {
@@ -199,12 +209,11 @@ func (s *JobService) UpdateJob(ctx context.Context, id string, req *UpdateJobReq
 
 	if req.CityID != "" {
 		c, err := s.cityRepo.FindByID(ctx, req.CityID)
-		if err != nil {
-			// log error? or fail?
-		} else if c != nil {
-			existingJob.CityID = c.ID
-			existingJob.CityName = c.Name
+		if err != nil || c == nil {
+			return nil, ErrCityInvalid
 		}
+		existingJob.CityID = c.ID
+		existingJob.CityName = c.Name
 	}
 
 	if req.SalaryMin != nil {
@@ -241,6 +250,9 @@ func (s *JobService) UpdateJob(ctx context.Context, id string, req *UpdateJobReq
 		existingJob.ExperienceMax = *req.ExperienceMax
 	}
 	existingJob.Experience = fmt.Sprintf("%d-%d Years", existingJob.ExperienceMin, existingJob.ExperienceMax)
+	if err := validateMerged(existingJob); err != nil {
+		return nil, err
+	}
 
 	return s.repo.Update(ctx, id, existingJob)
 }
