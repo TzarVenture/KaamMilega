@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import HeroGlobe from '@/components/home/HeroGlobe';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -69,7 +70,7 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
     ];
 
     return (
-        <section className="relative overflow-hidden bg-linear-to-b from-[#EAF1FA] to-[#F4F7FB] pt-4 pb-6 sm:pt-10 sm:pb-12 lg:pt-12 lg:pb-14 border-b border-km-border-subtle font-sans dark:from-km-surface dark:to-km-surface">
+        <section className="relative overflow-x-clip bg-linear-to-b from-[#EAF1FA] to-[#F4F7FB] pt-4 pb-6 sm:pt-10 sm:pb-12 lg:pt-12 lg:pb-14 border-b border-km-border-subtle font-sans dark:from-km-surface dark:to-km-surface">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 lg:gap-6 items-center">
 
@@ -219,9 +220,11 @@ export default function HeroSection({ cities = [], stats }: HeroSectionProps) {
 
                     {/* Right: person with the KaamMilega K art */}
                     <div className="lg:col-span-5 relative flex items-end justify-center min-h-52 sm:min-h-75 lg:min-h-115">
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-x-clip select-none">
                             <div className="relative w-[52%] sm:w-[80%] lg:w-[95%] aspect-square max-w-120 translate-x-2 sm:translate-x-4 opacity-90">
-                                <Image src="/kaammilega-logo-icon.png" alt="" fill priority className="object-contain" />
+                                <Image src="/kaammilega-logo-icon-no-dot.png" alt="" fill priority className="object-contain" />
+                                {/* The K's dot, as a turning globe: placed over where the dot sits in the logo image */}
+                                <HeroGlobe className="absolute left-[10.71%] top-[0.52%] w-[29.36%] aspect-square" />
                             </div>
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-100/30 rounded-full blur-3xl pointer-events-none" />
                         </div>

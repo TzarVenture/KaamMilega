@@ -4,6 +4,7 @@ import (
 	"errors"
 	"km-backend/internal/common/apperr"
 	"km-backend/internal/config"
+	"km-backend/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -99,11 +100,9 @@ func (c *ApplicationController) GetJobApplications(ctx *fiber.Ctx) error {
 	if !ok {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	_ = userID
-
-	apps, err := c.service.GetRecruiterApplicationsDetailed(ctx.Context(), ApplicationFilter{JobID: jobID})
+	apps, err := c.service.GetJobApplicationsForOwner(ctx.Context(), jobID, userID, middleware.HasRole(ctx, "admin"))
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return apperr.Respond(ctx, err)
 	}
 
 	return ctx.JSON(apps)
@@ -120,11 +119,9 @@ func (c *ApplicationController) UpdateApplicationStatus(ctx *fiber.Ctx) error {
 	if !ok {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Unauthorized"})
 	}
-	_ = userID
-
-	app, err := c.service.UpdateApplicationStatus(ctx.Context(), id, req.Status)
+	app, err := c.service.UpdateApplicationStatus(ctx.Context(), id, req.Status, userID, middleware.HasRole(ctx, "admin"))
 	if err != nil {
-		return ctx.Status(fiber.StatusInternalServerError).JSON(apperr.Body(err))
+		return apperr.Respond(ctx, err)
 	}
 	return ctx.JSON(app)
 }

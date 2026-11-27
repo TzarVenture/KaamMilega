@@ -279,7 +279,59 @@ func (s *ApplicationService) GetRecruiterApplicationsDetailed(ctx context.Contex
 	return details, nil
 }
 
-func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id string, status string) (*Application, error) {
+// ownsJob reports whether userID posted the job (admins may act on any job)
+func (s *ApplicationService) ownsJob(ctx context.Context, jobID, userID string, isAdmin bool) error {
+	if _, err := primitive.ObjectIDFromHex(jobID); err != nil {
+		return ErrJobNotFound
+	}
+	j, err := s.jobRepo.FindByID(ctx, jobID)
+	if err != nil {
+		return err
+	}
+	if j == nil {
+		return ErrJobNotFound
+	}
+	if !isAdmin && j.RecruiterID.Hex() != userID {
+		return ErrApplicationForbidden
+	}
+	return nil
+}
+
+// GetJobApplicationsForOwner lists a job's applicants for the employer who posted it
+func (s *ApplicationService) GetJobApplicationsForOwner(ctx context.Context, jobID, userID string, isAdmin bool) ([]ApplicationDetail, error) {
+	if err := s.ownsJob(ctx, jobID, userID, isAdmin); err != nil {
+		return nil, err
+	}
+	return s.GetRecruiterApplicationsDetailed(ctx, ApplicationFilter{JobID: jobID})
+}
+
+// UpdateApplicationStatus moves an application to another stage. Only the job's employer (or an
+// admin) may do it, only to a known stage, and a move to the stage it is already in changes nothing
+// (so the candidate isn't emailed twice).
+func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id, status, userID string, isAdmin bool) (*Application, error) {
+	status = CanonicalStatus(status)
+	if status == "" {
+		return nil, ErrInvalidStatus
+	}
+	if _, err := primitive.ObjectIDFromHex(id); err != nil {
+		return nil, ErrApplicationNotFound
+	}
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if existing == nil {
+		return nil, ErrApplicationNotFound
+	}
+	// A removed job falls back to the employer stamped on the application
+	if err := s.ownsJob(ctx, existing.JobID.Hex(), userID, isAdmin); err != nil &&
+		!(err == ErrJobNotFound && existing.RecruiterID.Hex() == userID) {
+		return nil, err
+	}
+	if existing.Status == status {
+		return existing, nil
+	}
+
 	// 1. Update the status
 	updated, err := s.repo.UpdateStatus(ctx, id, status)
 	if err != nil {

@@ -7,12 +7,14 @@ import (
 	"log"
 	"strings"
 
+	"km-backend/internal/common/apperr"
 	"km-backend/internal/features/application"
 	"km-backend/internal/features/job"
 	"km-backend/internal/features/notification"
 	"km-backend/internal/features/user"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type InterviewService struct {
@@ -69,8 +71,10 @@ func (s *InterviewService) ScheduleInterview(ctx context.Context, req *ScheduleI
 		Status:        "Scheduled",
 	}
 
-	// Promote application to 'Interviewing'
-	_, _ = s.appRepo.UpdateStatus(ctx, req.ApplicationID, "Interviewing")
+	// Promote an open application to 'Interviewing' (a Hired or Rejected one keeps its stage)
+	if app.Status == "Applied" || app.Status == "Shortlisted" || app.Status == "" {
+		_, _ = s.appRepo.UpdateStatus(ctx, req.ApplicationID, "Interviewing")
+	}
 
 	created, err := s.repo.Create(ctx, interview)
 	if err != nil {
@@ -244,8 +248,38 @@ func (s *InterviewService) GetMyInterviews(ctx context.Context, userID string) (
 	return details, nil
 }
 
-func (s *InterviewService) UpdateInterviewStatus(ctx context.Context, id string, status string) (*Interview, error) {
-	return s.repo.UpdateStatus(ctx, id, status)
+var (
+	ErrInterviewNotFound  = apperr.New("INTERVIEW_NOT_FOUND", "interview not found")
+	ErrInterviewForbidden = apperr.New("INTERVIEW_FORBIDDEN", "only the employer who scheduled this interview can change it")
+	ErrInvalidStatus      = apperr.New("INVALID_STATUS", "status must be Scheduled, Completed or Cancelled")
+)
+
+// UpdateInterviewStatus lets the employer who scheduled the interview (or an admin) mark it
+// Scheduled, Completed or Cancelled
+func (s *InterviewService) UpdateInterviewStatus(ctx context.Context, id, status, userID string, isAdmin bool) (*Interview, error) {
+	canonical := ""
+	for _, st := range []string{"Scheduled", "Completed", "Cancelled"} {
+		if strings.EqualFold(strings.TrimSpace(status), st) {
+			canonical = st
+		}
+	}
+	if canonical == "" {
+		return nil, ErrInvalidStatus
+	}
+	if _, err := primitive.ObjectIDFromHex(id); err != nil {
+		return nil, ErrInterviewNotFound
+	}
+	existing, err := s.repo.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	if existing == nil {
+		return nil, ErrInterviewNotFound
+	}
+	if !isAdmin && existing.RecruiterID.Hex() != userID {
+		return nil, ErrInterviewForbidden
+	}
+	return s.repo.UpdateStatus(ctx, id, canonical)
 }
 
 func (s *InterviewService) UpdateInterview(ctx context.Context, id string, req *UpdateInterviewRequest, userID string) (*Interview, error) {
