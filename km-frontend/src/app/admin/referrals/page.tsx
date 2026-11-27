@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useCallback, useEffect, useState } from 'react';
-import { CircleNotchIcon, HandCoinsIcon, UsersThreeIcon } from '@phosphor-icons/react';
+import { CheckCircleIcon, CircleNotchIcon, ClockCountdownIcon, HandCoinsIcon, UsersThreeIcon } from '@phosphor-icons/react';
 import {
-    AdminModal, AdminPageHeader, AdminPanel, EmptyState, FilterTabs, SkeletonRows, StatusBadge,
+    AdminModal, AdminPageHeader, AdminPanel, EmptyState, FilterTabs, SkeletonRows, StatCard, StatusBadge,
     btn, cx, field, table, type BadgeTone,
 } from '@/components/admin/ui';
 import { Toggle } from '@/components/settings/SettingsPrimitives';
@@ -32,11 +32,85 @@ const STATUS: Record<ReferralStatus, { label: string; tone: BadgeTone }> = {
 /** first_payment is "order:<id>" (paid online) or "wallet:<id>" (spent from the wallet) */
 const paidBy = (ref?: string) => (ref?.startsWith('wallet:') ? 'From wallet' : 'Online');
 
+/** Avatar tiles: one of the service colours, picked from the name */
+const AVATAR = ['bg-[#0B5ED7]', 'bg-[#FF6B00]', 'bg-[#16A34A]', 'bg-[#7C3AED]', 'bg-[#0F9D8A]', 'bg-[#F59E0B]'];
+function avatarColour(name: string) {
+    let h = 0;
+    for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+    return AVATAR[h % AVATAR.length];
+}
+
 function Person({ name, mobile }: { name?: string; mobile?: string }) {
+    const shown = name || 'Unknown';
     return (
-        <div className="min-w-0">
-            <p className="font-medium text-km-heading truncate">{name || 'Unknown'}</p>
-            {mobile && <p className="text-xs text-km-text-secondary font-inter">{mobile}</p>}
+        <div className="flex items-center gap-3 min-w-0">
+            <span className={cx('w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0', avatarColour(shown))} aria-hidden="true">
+                {shown.charAt(0).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+                <p className="font-medium text-km-heading truncate">{shown}</p>
+                {mobile && <p className="text-xs text-km-text-secondary font-inter">{mobile}</p>}
+            </div>
+        </div>
+    );
+}
+
+type Totals = Record<ReferralStatus, number> & { cashOwed: number; aggregators: number };
+
+const STAGES: { key: ReferralStatus; label: string; colour: string }[] = [
+    { key: 'pending', label: 'Joined, not paid', colour: 'bg-[#94A3B8]' },
+    { key: 'paid', label: 'Paid, waiting', colour: 'bg-[#F59E0B]' },
+    { key: 'released', label: 'Counted', colour: 'bg-[#16A34A]' },
+    { key: 'cancelled', label: 'Cancelled', colour: 'bg-[#EF4444]' },
+];
+
+/** Headline numbers and one bar showing where every referral stands */
+function Summary({ refreshKey }: { refreshKey: number }) {
+    const [totals, setTotals] = useState<Totals | null>(null);
+
+    useEffect(() => {
+        const count = (status: ReferralStatus) => referralsApi.list(status, 1).then((r) => r.total).catch(() => 0);
+        Promise.all([
+            count('pending'), count('paid'), count('released'), count('cancelled'),
+            referralsApi.aggregators().then((r) => r.items ?? []).catch(() => [] as ReferralAggregator[]),
+        ]).then(([pending, paid, released, cancelled, aggs]) => setTotals({
+            pending, paid, released, cancelled,
+            cashOwed: aggs.reduce((sum, a) => sum + a.cash_owed, 0),
+            aggregators: aggs.filter((a) => a.active).length,
+        }));
+    }, [refreshKey]);
+
+    const all = totals ? totals.pending + totals.paid + totals.released + totals.cancelled : 0;
+    const v = (n: number | string) => (totals ? n : '–');
+
+    return (
+        <div className="space-y-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard label="All referrals" value={v(all)} icon={UsersThreeIcon} hint={totals ? `${totals.aggregators} active ${totals.aggregators === 1 ? "aggregator" : "aggregators"}` : undefined} />
+                <StatCard label="Paid, waiting" value={v(totals?.paid ?? 0)} icon={ClockCountdownIcon} iconClassName="text-amber-600" />
+                <StatCard label="Counted" value={v(totals?.released ?? 0)} icon={CheckCircleIcon} iconClassName="text-[#16A34A]" />
+                <StatCard label="Cash owed" value={v(inr(totals?.cashOwed ?? 0))} icon={HandCoinsIcon} iconClassName="text-km-accent" hint="To aggregators" />
+            </div>
+            {totals && all > 0 && (
+                <div className="bg-km-surface-card border border-km-border rounded-2xl p-5">
+                    <p className="text-sm font-semibold text-km-heading">Where referrals stand</p>
+                    <div className="mt-3 flex h-3 rounded-full overflow-hidden bg-km-surface" role="img"
+                        aria-label={STAGES.map((st) => `${st.label}: ${totals[st.key]}`).join(', ')}>
+                        {STAGES.map((st) => totals[st.key] > 0 && (
+                            <span key={st.key} className={st.colour} style={{ width: `${(totals[st.key] / all) * 100}%` }} />
+                        ))}
+                    </div>
+                    <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                        {STAGES.map((st) => (
+                            <li key={st.key} className="flex items-center gap-2 text-km-text-secondary">
+                                <span className={cx('w-2.5 h-2.5 rounded-full', st.colour)} aria-hidden="true" />
+                                {st.label}
+                                <span className="font-semibold font-inter tabular-nums text-km-heading">{totals[st.key]}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
         </div>
     );
 }
@@ -389,6 +463,7 @@ export default function ReferralsAdminPage() {
         <div className="space-y-6">
             <AdminPageHeader title="Referrals"
                 description="A referral counts once the new member's first real payment is a set number of days old and wasn't refunded. The checks run every 10 minutes." />
+            <Summary refreshKey={payoutsKey} />
             <SettingsPanel />
             <AggregatorsPanel onChange={() => setPayoutsKey((k) => k + 1)} />
             <PayoutsPanel refreshKey={payoutsKey} />

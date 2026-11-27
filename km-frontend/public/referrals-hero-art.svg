@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="36 48 548 372" role="img" aria-label="A phone sharing an invite with three friends">
+  <defs>
+    <clipPath id="a1"><circle cx="96" cy="150" r="44"/></clipPath>
+    <clipPath id="a2"><circle cx="120" cy="320" r="40"/></clipPath>
+    <clipPath id="a3"><circle cx="512" cy="250" r="46"/></clipPath>
+    <clipPath id="screen"><rect x="222" y="84" width="156" height="360" rx="20"/></clipPath>
+  </defs>
+
+  <!-- Backdrop shapes, solid navy tints -->
+  <circle cx="300" cy="300" r="210" fill="#0E2766"/>
+  <circle cx="300" cy="300" r="150" fill="#12317D"/>
+
+  <!-- Connectors from the phone to each friend -->
+  <g fill="none" stroke="#5B86E5" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round">
+    <path d="M214 190 C170 170 160 160 142 156"/>
+    <path d="M214 290 C190 300 180 310 162 316"/>
+    <path d="M386 230 C420 236 440 244 464 248"/>
+  </g>
+
+  <!-- Phone -->
+  <rect x="208" y="70" width="184" height="390" rx="32" fill="#0B1F52"/>
+  <rect x="214" y="76" width="172" height="380" rx="27" fill="#1E3A8A"/>
+  <rect x="222" y="84" width="156" height="360" rx="20" fill="#FFFFFF"/>
+  <g clip-path="url(#screen)">
+    <!-- Header band -->
+    <rect x="222" y="84" width="156" height="118" fill="#FF6B00"/>
+    <rect x="276" y="92" width="48" height="8" rx="4" fill="#0B1F52"/>
+    <!-- Gift on the header -->
+    <rect x="276" y="122" width="48" height="40" rx="5" fill="#FFFFFF"/>
+    <rect x="270" y="112" width="60" height="16" rx="4" fill="#FFE1CC"/>
+    <rect x="296" y="112" width="8" height="50" fill="#071A4D"/>
+    <path d="M300 112 C288 96 270 100 278 110 C282 114 292 114 300 112 Z" fill="#071A4D"/>
+    <path d="M300 112 C312 96 330 100 322 110 C318 114 308 114 300 112 Z" fill="#071A4D"/>
+    <rect x="252" y="176" width="96" height="10" rx="5" fill="#FFFFFF"/>
+    <!-- Invite code ticket -->
+    <rect x="238" y="220" width="124" height="56" rx="10" fill="#F4F7FB" stroke="#0B5ED7" stroke-width="2" stroke-dasharray="6 5"/>
+    <circle cx="238" cy="248" r="7" fill="#FFFFFF"/>
+    <circle cx="362" cy="248" r="7" fill="#FFFFFF"/>
+    <rect x="258" y="234" width="60" height="7" rx="3.5" fill="#B9C6DC"/>
+    <rect x="258" y="250" width="84" height="12" rx="6" fill="#071A4D"/>
+    <!-- Lines and share button -->
+    <rect x="238" y="292" width="124" height="7" rx="3.5" fill="#D9E0EA"/>
+    <rect x="238" y="306" width="92" height="7" rx="3.5" fill="#D9E0EA"/>
+    <rect x="238" y="330" width="124" height="34" rx="10" fill="#071A4D"/>
+    <path d="M292 347 l-8 -6 v4 h-10 v4 h10 v4 z" fill="#FFFFFF"/>
+    <rect x="300" y="343" width="36" height="8" rx="4" fill="#FFFFFF"/>
+    <!-- Friend rows -->
+    <circle cx="248" cy="390" r="10" fill="#DBEAFE"/>
+    <rect x="264" y="384" width="56" height="6" rx="3" fill="#D9E0EA"/>
+    <rect x="264" y="394" width="34" height="5" rx="2.5" fill="#E7ECF3"/>
+    <circle cx="350" cy="390" r="8" fill="#16A34A"/>
+    <path d="M346 390 l3 3 l5 -6" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="248" cy="420" r="10" fill="#FFE1CC"/>
+    <rect x="264" y="414" width="56" height="6" rx="3" fill="#D9E0EA"/>
+  </g>
+
+  <!-- Friend 1: woman, blue -->
+  <circle cx="96" cy="150" r="48" fill="#FFFFFF"/>
+  <g clip-path="url(#a1)">
+    <rect x="40" y="100" width="120" height="110" fill="#DBEAFE"/>
+    <path d="M66 205 C66 176 80 168 96 168 C112 168 126 176 126 205 Z" fill="#0B5ED7"/>
+    <path d="M74 150 C70 118 84 108 96 108 C110 108 124 118 120 152 C118 170 112 170 110 160 L82 160 C80 170 74 170 74 150 Z" fill="#2B1B14"/>
+    <circle cx="96" cy="140" r="17" fill="#C68B59"/>
+    <path d="M79 136 C80 120 94 116 112 128 C108 122 98 118 90 121 C84 124 80 130 79 136 Z" fill="#2B1B14"/>
+  </g>
+  <circle cx="132" cy="114" r="13" fill="#16A34A" stroke="#FFFFFF" stroke-width="3"/>
+  <path d="M126 114 l4 4 l7 -8" fill="none" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Friend 2: man, orange -->
+  <circle cx="120" cy="320" r="44" fill="#FFFFFF"/>
+  <g clip-path="url(#a2)">
+    <rect x="70" y="270" width="100" height="100" fill="#FFE8D6"/>
+    <path d="M90 372 C90 344 104 336 120 336 C136 336 150 344 150 372 Z" fill="#FF6B00"/>
+    <rect x="114" y="324" width="12" height="14" fill="#B57A4C"/>
+    <circle cx="120" cy="310" r="16" fill="#B57A4C"/>
+    <path d="M103 307 C102 292 112 286 121 286 C132 286 139 293 137 306 C132 298 122 296 112 299 C108 300 105 303 103 307 Z" fill="#1F1F1F"/>
+  </g>
+
+  <!-- Friend 3: man, green -->
+  <circle cx="512" cy="250" r="50" fill="#FFFFFF"/>
+  <g clip-path="url(#a3)">
+    <rect x="460" y="200" width="110" height="110" fill="#D1FAE5"/>
+    <path d="M480 302 C480 272 494 264 512 264 C530 264 544 272 544 302 Z" fill="#16A34A"/>
+    <path d="M504 262 L512 276 L520 262 Z" fill="#FFFFFF"/>
+    <rect x="506" y="250" width="12" height="14" fill="#E0A877"/>
+    <circle cx="512" cy="236" r="17" fill="#E0A877"/>
+    <path d="M495 233 C494 216 506 210 514 210 C526 210 532 218 530 232 C524 222 514 221 504 224 C500 226 497 229 495 233 Z" fill="#3A2A20"/>
+    <rect x="500" y="232" width="10" height="7" rx="3" fill="none" stroke="#071A4D" stroke-width="2"/>
+    <rect x="514" y="232" width="10" height="7" rx="3" fill="none" stroke="#071A4D" stroke-width="2"/>
+  </g>
+
+  <!-- Rupee coins -->
+  <g>
+    <circle cx="470" cy="128" r="30" fill="#E66000"/>
+    <circle cx="466" cy="124" r="30" fill="#FF8A00"/>
+    <circle cx="466" cy="124" r="22" fill="none" stroke="#FFD2A8" stroke-width="2.5"/>
+    <text x="466" y="134" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700" fill="#FFFFFF">₹</text>
+  </g>
+  <g>
+    <circle cx="548" cy="176" r="18" fill="#E66000"/>
+    <circle cx="545" cy="173" r="18" fill="#FF8A00"/>
+    <text x="545" y="180" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700" fill="#FFFFFF">₹</text>
+  </g>
+
+  <!-- Small accents -->
+  <circle cx="176" cy="74" r="6" fill="#FF6B00"/>
+  <circle cx="420" cy="62" r="4" fill="#93C5FD"/>
+  <circle cx="60" cy="250" r="4" fill="#93C5FD"/>
+</svg>
