@@ -28,6 +28,31 @@ var (
 // Statuses are the pipeline stages an employer can move an application to
 var Statuses = []string{"Applied", "Shortlisted", "Interviewing", "Hired", "Rejected"}
 
+// StatusWithdrawn is set only by the candidate. Employers see it but can't move anyone into or out of it.
+const StatusWithdrawn = "Withdrawn"
+
+var (
+	ErrCannotWithdraw       = apperr.New("APPLICATION_NOT_WITHDRAWABLE", "this application can no longer be withdrawn")
+	ErrApplicationWithdrawn = apperr.New("APPLICATION_WITHDRAWN", "the candidate withdrew this application")
+)
+
+// knownStatus is CanonicalStatus plus Withdrawn: every status an application can be shown with
+func knownStatus(s string) string {
+	if strings.EqualFold(strings.TrimSpace(s), StatusWithdrawn) {
+		return StatusWithdrawn
+	}
+	return CanonicalStatus(s)
+}
+
+// CanWithdraw reports whether the candidate may still withdraw from this stage
+func CanWithdraw(status string) bool {
+	switch knownStatus(status) {
+	case "", "Applied", "Shortlisted", "Interviewing":
+		return true
+	}
+	return false
+}
+
 // CanonicalStatus returns the stage named by s (any letter case), or "" if s is not a stage
 func CanonicalStatus(s string) string {
 	for _, st := range Statuses {

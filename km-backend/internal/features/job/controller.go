@@ -13,10 +13,11 @@ import (
 type JobController struct {
 	service *JobService
 	config  *config.Config
+	views   *ViewStore
 }
 
-func NewJobController(service *JobService, config *config.Config) *JobController {
-	return &JobController{service: service, config: config}
+func NewJobController(service *JobService, config *config.Config, views *ViewStore) *JobController {
+	return &JobController{service: service, config: config, views: views}
 }
 
 func (c *JobController) CreateJob(ctx *fiber.Ctx) error {

@@ -7,6 +7,7 @@ import {
     ArrowRightIcon,
     BriefcaseIcon,
     BuildingsIcon,
+    EyeIcon,
     CalendarCheckIcon,
     ChatsCircleIcon,
     CheckCircleIcon,
@@ -40,6 +41,7 @@ interface Job {
     city_name?: string;
     applicant_count?: number;
     created_at?: string;
+    views?: { total: number };
 }
 
 interface Application {
@@ -226,7 +228,10 @@ export default function RecruiterDashboard() {
             today: upcoming.filter((iv) => new Date(iv.scheduled_at).getTime() <= endOfToday.getTime()),
             byStage,
             rejected: stages?.Rejected ?? 0,
-            appsTotal: stages ? Object.values(stages).reduce((n, c) => n + c, 0) : 0,
+            // Everyone still in the running: withdrawn applicants left out
+            appsTotal: STAGES.reduce((n, s) => n + (stages?.[s.key] ?? 0), 0),
+            jobViews: openJobs.reduce((n, j) => n + (j.views?.total ?? 0), 0),
+            jobApplicants: openJobs.reduce((n, j) => n + (j.applicant_count ?? 0), 0),
             toReview: byStage.Applied,
             newest: (appsPage?.items ?? []) as unknown as Application[],
             quietJobs: openJobs.filter((j) => !j.applicant_count),
@@ -458,7 +463,22 @@ export default function RecruiterDashboard() {
                             {view.openCount === 0 ? (
                                 <p className="px-5 py-8 text-sm text-km-text-secondary">{t("jobs.empty")}</p>
                             ) : (
-                                <ul className="divide-y divide-km-border/70">
+                                <>
+                                {/* Reach of the open jobs: how many people looked, and how many applied */}
+                                <dl className="grid grid-cols-3 gap-3 px-5 pt-4">
+                                    {[
+                                        [t("jobs.viewsLabel"), format.number(view.jobViews)],
+                                        [t("jobs.applicantsLabel"), format.number(view.jobApplicants)],
+                                        [t("jobs.applyRate"), view.jobViews > 0 ? `${Math.min(100, Math.round((view.jobApplicants / view.jobViews) * 1000) / 10)}%` : "–"],
+                                    ].map(([label, value]) => (
+                                        <div key={label} className="rounded-xl bg-km-surface px-3 py-2.5">
+                                            <dt className="text-xs text-km-text-secondary">{label}</dt>
+                                            <dd className="mt-0.5 text-lg font-bold tabular-nums text-km-heading">{value}</dd>
+                                        </div>
+                                    ))}
+                                </dl>
+                                <p className="px-5 pt-2 text-xs text-km-text-secondary">{t("jobs.viewsHint")}</p>
+                                <ul className="mt-2 divide-y divide-km-border/70">
                                     {view.openJobs.slice(0, 5).map((j) => (
                                         <li key={jobId(j)}>
                                             <Link href={`/recruiter/jobs/${jobId(j)}`} className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-km-surface">
@@ -471,7 +491,13 @@ export default function RecruiterDashboard() {
                                                         {[j.city_name, j.created_at ? t("jobs.posted", { when: ago(j.created_at) }) : ""].filter(Boolean).join(" · ")}
                                                     </span>
                                                 </span>
-                                                <span className="text-right shrink-0">
+                                                <span className="text-right shrink-0 w-14">
+                                                    <span className="flex items-center justify-end gap-1 text-lg font-bold tabular-nums text-km-heading">
+                                                        <EyeIcon size={14} className="text-km-text-secondary" aria-hidden="true" />{j.views?.total ?? 0}
+                                                    </span>
+                                                    <span className="block text-[11px] text-km-text-secondary">{t("jobs.views")}</span>
+                                                </span>
+                                                <span className="text-right shrink-0 w-16">
                                                     <span className="block text-lg font-bold tabular-nums text-km-heading">{j.applicant_count || 0}</span>
                                                     <span className="block text-[11px] text-km-text-secondary">{t("jobs.applicants")}</span>
                                                 </span>
@@ -479,6 +505,7 @@ export default function RecruiterDashboard() {
                                         </li>
                                     ))}
                                 </ul>
+                                </>
                             )}
                         </Panel>
 

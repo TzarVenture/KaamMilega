@@ -370,7 +370,12 @@
     "size": "કંપનીનું કદ",
     "sizeValue": "{size} કર્મચારીઓ",
     "aboutEmpty": "ઉમેદવારોને જણાવો કે તમારી કંપની શું કરે છે.",
-    "editPage": "કંપની પેજ બદલો"
+    "editPage": "કંપની પેજ બદલો",
+    "tabPosts": "પોસ્ટ",
+    "noPosts": "હજી કોઈ પોસ્ટ નથી",
+    "noPostsText": "આ કંપનીના ભરતીના સમાચાર અને અપડેટ અહીં દેખાશે.",
+    "loadMore": "વધુ પોસ્ટ જુઓ",
+    "loadingMore": "લોડ થઈ રહ્યું છે…"
   },
   "profileCriteria": {
     "name": {
@@ -2162,7 +2167,12 @@
       "heading": "ખુલ્લી નોકરીઓ",
       "empty": "અત્યારે કોઈ ખુલ્લી નોકરી નથી.",
       "applicants": "અરજદારો",
-      "posted": "{when} પોસ્ટ કરી"
+      "posted": "{when} પોસ્ટ કરી",
+      "views": "વ્યૂ",
+      "viewsLabel": "વ્યૂ",
+      "applicantsLabel": "અરજદારો",
+      "applyRate": "અરજી દર",
+      "viewsHint": "તમારી ખુલ્લી નોકરીઓ માટે. દરેક વ્યક્તિ દરેક નોકરી પર દિવસમાં એક વાર ગણાય છે."
     },
     "plan": {
       "heading": "તમારો ભરતી પ્લાન",
@@ -2201,7 +2211,8 @@
       "Shortlisted": "શોર્ટલિસ્ટ",
       "Interviewing": "ઇન્ટરવ્યૂ",
       "Hired": "નિમણૂક",
-      "Rejected": "પસંદ નથી"
+      "Rejected": "પસંદ નથી",
+      "Withdrawn": "પાછી ખેંચી"
     },
     "tabs": {
       "all": "બધી",
@@ -2305,6 +2316,18 @@
       "noApplicantsHint": "વધુ લોકો સુધી પહોંચવા જોબ લિંક શેર કરો.",
       "noApplicantsHidden": "જોબ અટકાવેલી કે બંધ હોય ત્યારે જોબ શોધનારા અરજી કરી શકતા નથી.",
       "candidate": "ઉમેદવાર"
+    },
+    "reach": {
+      "title": "પહોંચ",
+      "hint": "દરેક વ્યક્તિ દિવસમાં એક વાર ગણાય છે. તમારી પોતાની મુલાકાત ગણાતી નથી.",
+      "views": "વ્યૂ",
+      "lastWeek": "વ્યૂ, છેલ્લા 7 દિવસ",
+      "applicants": "અરજદારો",
+      "applyRate": "અરજી દર",
+      "chartLabel": "છેલ્લા 14 દિવસમાં રોજના વ્યૂ",
+      "dayViews": "{date}: {count, plural, one {# વ્યૂ} other {# વ્યૂ}}",
+      "today": "આજે",
+      "viewCount": "{count, plural, one {# વ્યૂ} other {# વ્યૂ}}"
     }
   },
   "recruiterApplicants": {
@@ -2316,7 +2339,8 @@
       "Shortlisted": "શોર્ટલિસ્ટ",
       "Interviewing": "ઇન્ટરવ્યૂ",
       "Hired": "નિમણૂક",
-      "Rejected": "પસંદ નથી"
+      "Rejected": "પસંદ નથી",
+      "Withdrawn": "પાછી ખેંચી"
     },
     "jobStatus": {
       "Open": "ચાલુ",
@@ -2396,7 +2420,8 @@
       "movedTo": "{stage} માં મોકલ્યા",
       "applied": "અરજી કરી",
       "pickTitle": "અરજદાર પસંદ કરો",
-      "pickBody": "વિગતો જોવા માટે યાદીમાંથી કોઈને પસંદ કરો."
+      "pickBody": "વિગતો જોવા માટે યાદીમાંથી કોઈને પસંદ કરો.",
+      "withdrawnNote": "આ ઉમેદવારે તેમની અરજી પાછી ખેંચી છે. તમે હજી પણ તેમને મેસેજ કરી શકો છો અથવા પ્રોફાઇલ જોઈ શકો છો."
     },
     "paging": {
       "prev": "પાછલું",
@@ -2514,7 +2539,21 @@
     "resume": "રિઝ્યુમ",
     "downloading": "ખુલી રહ્યું છે…",
     "resumeHint": "રિઝ્યુમ ખોલવાથી તમારા હાયરિંગ પ્લાનમાંથી એક ડાઉનલોડ વપરાય છે.",
-    "resumeFailed": "રિઝ્યુમ ખોલી શકાયું નહીં"
+    "resumeFailed": "રિઝ્યુમ ખોલી શકાયું નહીં",
+    "viewLabel": "કોને બતાવવા",
+    "viewAll": "બધા નોકરી શોધનારા",
+    "viewSaved": "સેવ કરેલા",
+    "viewSavedCount": "સેવ કરેલા ({count})",
+    "savedCount": "{count, plural, one {# વ્યક્તિ સેવ કરેલ} other {# લોકો સેવ કરેલા}}",
+    "noSaved": "હજી કોઈને સેવ કર્યા નથી",
+    "noSavedHint": "પછી માટે રાખવા, શોધમાં કોઈ પર પણ બુકમાર્ક દબાવો.",
+    "save": "સેવ કરો",
+    "unsave": "સેવમાંથી દૂર કરો",
+    "saveLabel": "{name}ને સેવ કરો",
+    "unsaveLabel": "{name}ને સેવમાંથી દૂર કરો",
+    "saved": "{name} સેવ થયા",
+    "unsaved": "{name} સેવમાંથી દૂર થયા",
+    "saveFailed": "સેવ કરેલી યાદી અપડેટ ન થઈ શકી"
   },
   "recruiterJobForm": {
     "backToJobs": "જોબ્સ પર પાછા જાઓ",

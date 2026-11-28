@@ -41,7 +41,7 @@ export function useJobActions(job: MyJob | null, { onUpdated, onDeleted }: {
         try {
             const updated = await recruiterApi.setJobStatus(job.id, status);
             // Keep the counts we already have when the response leaves them out
-            onUpdated?.({ ...job, ...(updated || {}), status: updated?.status || status, stage_counts: updated?.stage_counts ?? job.stage_counts, applicant_count: updated?.applicant_count ?? job.applicant_count });
+            onUpdated?.({ ...job, ...(updated || {}), status: updated?.status || status, stage_counts: updated?.stage_counts ?? job.stage_counts, applicant_count: updated?.applicant_count ?? job.applicant_count, views: updated?.views ?? job.views });
             notify.success(t(`done.${status}`));
             setPending(null);
         } catch (err) {

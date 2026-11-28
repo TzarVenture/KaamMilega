@@ -39,6 +39,9 @@ type Job struct {
 	ApplicantCount int       `bson:"-" json:"applicant_count"`
 	// Applicants per pipeline stage, filled for the employer's own views
 	StageCounts map[string]int `bson:"-" json:"stage_counts,omitempty"`
+	// How many people opened the job (each once a day); only the employer sees it, as Views
+	ViewCount int64     `bson:"view_count,omitempty" json:"-"`
+	Views     *JobViews `bson:"-" json:"views,omitempty"`
 
 	// Filled from the recruiter's account when jobs are read, never stored on the job
 	EmployerVerified bool   `bson:"-" json:"employer_verified"`

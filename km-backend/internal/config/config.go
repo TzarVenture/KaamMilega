@@ -20,6 +20,9 @@ type Config struct {
 	// JobAlertsEnabled turns on the daily job-alert emails (JOB_ALERTS_ENABLED=true). Off by
 	// default so a dev or staging server never emails real users by accident.
 	JobAlertsEnabled bool
+	// RecruiterDigestEnabled turns on the employers' daily summary email
+	// (RECRUITER_DIGEST_ENABLED=true). Off by default for the same reason.
+	RecruiterDigestEnabled bool
 	FSURL            string // URL path prefix for file access
 	// Media storage: STORAGE_DRIVER=r2 keeps uploads on Cloudflare R2, anything else on local disk
 	StorageDriver         string
@@ -64,6 +67,7 @@ func LoadConfig() (*Config, error) {
 		DBName:                  getEnv("DB_NAME", "km-backend"),
 		Environment:             getEnv("ENVIRONMENT", "development"),
 		JobAlertsEnabled:        getEnv("JOB_ALERTS_ENABLED", "false") == "true",
+		RecruiterDigestEnabled:  getEnv("RECRUITER_DIGEST_ENABLED", "false") == "true",
 		FSPath:                  getEnv("FS_PATH", "./static/uploads"),
 		FSURL:                   getEnv("FS_URL", "/api/files/uploads"),
 		Host:                    getEnv("HOST", ""),

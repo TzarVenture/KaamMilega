@@ -60,16 +60,19 @@ type TalentPage struct {
 }
 
 type TalentApi struct {
-	coll *mongo.Collection
-	cfg  *config.Config
+	coll  *mongo.Collection
+	saved *mongo.Collection
+	cfg   *config.Config
 }
 
 func NewTalentApi(db *database.MongodbDB, cfg *config.Config) api.Route {
-	return &TalentApi{coll: db.DB.Collection("users"), cfg: cfg}
+	return &TalentApi{coll: db.DB.Collection("users"), saved: db.DB.Collection("saved_candidates"), cfg: cfg}
 }
 
 func (a *TalentApi) Setup(app *fiber.App) {
-	app.Get("/api/recruiter/talent", middleware.AuthMiddleware(a.cfg.JWTSecret), middleware.RequireRole(RoleRecruiter, RoleAdmin), a.search)
+	auth, employer := middleware.AuthMiddleware(a.cfg.JWTSecret), middleware.RequireRole(RoleRecruiter, RoleAdmin)
+	app.Get("/api/recruiter/talent", auth, employer, a.search)
+	a.setupSaved(app, auth, employer)
 }
 
 // talentQuery builds the database filter (kept separate so tests can check it)

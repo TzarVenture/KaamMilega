@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { BriefcaseIcon, ChatCircleTextIcon, CheckCircleIcon, DownloadSimpleIcon, MapPinIcon, SealCheckIcon, UserIcon } from '@phosphor-icons/react';
+import { BookmarkSimpleIcon, BriefcaseIcon, ChatCircleTextIcon, CheckCircleIcon, DownloadSimpleIcon, MapPinIcon, SealCheckIcon, UserIcon } from '@phosphor-icons/react';
 import { btn, cx } from '@/components/admin/ui';
 import UserAvatar from '@/components/ui/UserAvatar';
 import api from '@/lib/axios';
@@ -13,7 +13,14 @@ import type { TalentCard } from '@/lib/api/recruiter';
 
 const MAX_SKILLS = 5;
 
-export default function TalentCardItem({ person }: { person: TalentCard }) {
+type Props = {
+    person: TalentCard;
+    /** Whether the employer saved this person; leave out onToggleSave to hide the button */
+    saved?: boolean;
+    onToggleSave?: (person: TalentCard) => void;
+};
+
+export default function TalentCardItem({ person, saved, onToggleSave }: Props) {
     const t = useTranslations('recruiterTalent');
     const [downloading, setDownloading] = useState(false);
     const name = person.name || t('member');
@@ -65,6 +72,23 @@ export default function TalentCardItem({ person }: { person: TalentCard }) {
                         </p>
                     )}
                 </div>
+                {onToggleSave && (
+                    <button
+                        type="button"
+                        onClick={() => onToggleSave(person)}
+                        aria-pressed={!!saved}
+                        aria-label={saved ? t('unsaveLabel', { name }) : t('saveLabel', { name })}
+                        title={saved ? t('unsave') : t('save')}
+                        className={cx(
+                            'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border transition-colors',
+                            saved
+                                ? 'border-[#0B5ED7] bg-[#F4F7FB] text-[#0B5ED7] dark:border-[#93C5FD] dark:bg-[#0B1F52] dark:text-[#93C5FD]'
+                                : 'border-km-border text-km-text-secondary hover:text-km-heading',
+                        )}
+                    >
+                        <BookmarkSimpleIcon size={18} weight={saved ? 'fill' : 'regular'} aria-hidden="true" />
+                    </button>
+                )}
             </div>
 
             {person.open_to_work && (

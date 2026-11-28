@@ -3,14 +3,17 @@ import api from '@/lib/axios';
 /** Pipeline stages, in order. Rejected is shown as "Not selected". */
 export const STAGES = ['Applied', 'Shortlisted', 'Interviewing', 'Hired', 'Rejected'] as const;
 export type Stage = (typeof STAGES)[number];
+/** A stage, or Withdrawn: set only by the candidate, never a move the employer can make */
+export type AppStatus = Stage | 'Withdrawn';
 
 /** Each stage's colour across the employer portal (service colours) */
-export const STAGE_COLOR: Record<Stage, { dot: string; bar: string; chip: string }> = {
+export const STAGE_COLOR: Record<AppStatus, { dot: string; bar: string; chip: string }> = {
     Applied: { dot: 'bg-[#0B5ED7]', bar: 'bg-[#0B5ED7]', chip: 'bg-blue-50 text-blue-700 dark:bg-[#14357F] dark:text-[#93C5FD]' },
     Shortlisted: { dot: 'bg-[#7C3AED]', bar: 'bg-[#7C3AED]', chip: 'bg-violet-50 text-violet-700 dark:bg-[#24164A] dark:text-[#C4B5FD]' },
     Interviewing: { dot: 'bg-[#FF6B00]', bar: 'bg-[#FF6B00]', chip: 'bg-orange-50 text-orange-700 dark:bg-[#3A1F0B] dark:text-[#FDBA74]' },
     Hired: { dot: 'bg-[#16A34A]', bar: 'bg-[#16A34A]', chip: 'bg-emerald-50 text-emerald-700 dark:bg-[#0B2E22] dark:text-emerald-300' },
     Rejected: { dot: 'bg-slate-400', bar: 'bg-slate-400', chip: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' },
+    Withdrawn: { dot: 'bg-slate-300', bar: 'bg-slate-300', chip: 'bg-km-surface text-km-text-secondary border border-km-border' },
 };
 
 export type JobStatus = 'Open' | 'Paused' | 'Closed';
@@ -45,6 +48,14 @@ export interface MyJob {
     updated_at?: string;
     applicant_count: number;
     stage_counts?: Partial<Record<Stage, number>>;
+    /** Only on the employer's own jobs; the daily chart only for one job */
+    views?: JobViews;
+}
+
+export interface JobViews {
+    total: number;
+    last_7_days: number;
+    daily?: { date: string; count: number }[];
 }
 
 export interface MyJobsPage {
@@ -71,12 +82,12 @@ export interface Applicant {
     id: string;
     job_id: string;
     candidate_id: string;
-    status: Stage;
+    status: AppStatus;
     cover_letter?: string;
     resume_url?: string;
     rating?: number;
     note?: string;
-    history?: { status: Stage; at: string }[];
+    history?: { status: AppStatus; at: string }[];
     created_at: string;
     updated_at?: string;
     candidate?: Candidate;
@@ -88,7 +99,7 @@ export interface ApplicantsPage {
     total: number;
     page: number;
     limit: number;
-    stages: Record<Stage, number>;
+    stages: Record<Stage, number> & { Withdrawn?: number };
 }
 
 export interface TalentCard {
@@ -147,6 +158,10 @@ export const recruiterApi = {
 
     talent: (p: { search?: string; city?: string; skill?: string; open_to_work?: boolean; has_resume?: boolean; page?: number; limit?: number }) =>
         api.get<unknown, TalentPage>('/recruiter/talent', { params: clean(p) }),
+    saved: (p: { page?: number; limit?: number }) => api.get<unknown, TalentPage>('/recruiter/saved', { params: clean(p) }),
+    savedIds: () => api.get<unknown, { ids: string[] }>('/recruiter/saved/ids'),
+    save: (id: string) => api.put(`/recruiter/saved/${id}`),
+    unsave: (id: string) => api.delete(`/recruiter/saved/${id}`),
 
     interviews: () => api.get<unknown, Interview[]>('/interviews/my'),
     setInterviewStatus: (id: string, status: 'Scheduled' | 'Completed' | 'Cancelled') => api.patch(`/interviews/${id}/status`, { status }),

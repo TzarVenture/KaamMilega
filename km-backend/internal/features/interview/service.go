@@ -248,6 +248,8 @@ func (s *InterviewService) tellCandidate(iv *Interview, kind string) {
 			if err := s.mailer.SendInterviewInvite(notification.InterviewInviteParams{
 				ToEmail: candidate.Email, CandidateName: name, JobTitle: jobTitle, CompanyName: company,
 				InterviewType: iv.Type, ScheduledAt: iv.ScheduledAt, Location: iv.Location, Notes: iv.Notes, Kind: kind,
+				// A calendar invite; the send time as its version keeps every change newer than the last
+				InterviewID: iv.ID.Hex(), Version: time.Now().Unix(),
 			}); err != nil {
 				log.Printf("[InterviewNotification] %s email to %s failed: %v", kind, candidate.Email, err)
 			}

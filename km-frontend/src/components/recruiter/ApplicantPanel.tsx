@@ -137,8 +137,14 @@ export default function ApplicantPanel({ applicant: a, onBack, onPrev, onNext, o
                 </div>
             )}
 
+            {a.status === 'Withdrawn' && (
+                <p className="mx-5 mb-3 rounded-xl border border-km-border bg-km-surface px-4 py-3 text-sm text-km-text-secondary" role="status">
+                    {t('panel.withdrawnNote')}
+                </p>
+            )}
             {/* Actions */}
             <div className="px-5 pb-4 flex flex-wrap gap-2">
+                {a.status !== 'Withdrawn' && (<>
                 <label className="sr-only" htmlFor={`move-${a.id}`}>{t('panel.moveTo')}</label>
                 <select
                     id={`move-${a.id}`}
@@ -154,6 +160,7 @@ export default function ApplicantPanel({ applicant: a, onBack, onPrev, onNext, o
                 <button type="button" onClick={onSchedule} className={btn.accent}>
                     <CalendarBlankIcon size={18} aria-hidden="true" />{t('panel.schedule')}
                 </button>
+                </>)}
                 <Link href={`/chat?userId=${cid}`} className={btn.secondary}>
                     <ChatCircleIcon size={18} aria-hidden="true" />{t('panel.message')}
                 </Link>

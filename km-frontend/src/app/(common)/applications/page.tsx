@@ -5,7 +5,7 @@ import api from "@/lib/axios";
 import Link from "next/link";
 import { ArrowSquareOutIcon, BriefcaseIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, CircleNotchIcon, ClockIcon, LightningIcon, PhoneCallIcon, StarIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { cn } from "@/lib/utils";
-import { errorText } from "@/lib/notify";
+import { errorText, notify } from "@/lib/notify";
 
 type JobInfo = {
     id: string;
@@ -69,7 +69,8 @@ function getStatusDisplay(status: string) {
         "Shortlisted": "Resume shortlisted",
         "Interviewing": "Interviewing",
         "Rejected": "Rejected",
-        "Hired": "Hired"
+        "Hired": "Hired",
+        "Withdrawn": "Withdrawn"
     };
     return map[status] || status;
 }
@@ -88,6 +89,8 @@ function getStatusBadgeClass(status: string) {
             return "bg-emerald-50 text-emerald-700 border-emerald-200";
         case "Rejected":
             return "bg-rose-50 text-rose-700 border-rose-200";
+        case "Withdrawn":
+            return "bg-slate-100 text-slate-700 border-slate-200";
         default:
             return "bg-km-surface text-km-text-primary border-km-border";
     }
@@ -98,6 +101,23 @@ export default function ApplicationsPage() {
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    // Withdrawing asks once more before it happens
+    const [confirmWithdraw, setConfirmWithdraw] = useState<string | null>(null);
+    const [withdrawing, setWithdrawing] = useState(false);
+
+    const withdraw = async (id: string) => {
+        setWithdrawing(true);
+        try {
+            const updated = await api.post(`/applications/${id}/withdraw`) as { status?: string; updated_at?: string };
+            setApplications((list) => list.map((a) => a.id === id ? { ...a, status: updated?.status || "Withdrawn", updated_at: updated?.updated_at || new Date().toISOString() } : a));
+            notify.success("Application withdrawn. The employer has been told.");
+        } catch (err) {
+            notify.error(err, "Could not withdraw the application");
+        } finally {
+            setWithdrawing(false);
+            setConfirmWithdraw(null);
+        }
+    };
 
     useEffect(() => {
         const load = async () => {
@@ -303,7 +323,8 @@ export default function ApplicationsPage() {
                                                 "Shortlisted": 2,
                                                 "Interviewing": 3,
                                                 "Hired": 4,
-                                                "Rejected": -1
+                                                "Rejected": -1,
+                                                "Withdrawn": -1
                                             };
                                             const currentIndex = statusMap[selectedApp.status] ?? 0;
                                             const progressWidth = currentIndex >= 0 ? (currentIndex / (STEPS.length - 1)) * 90 : 0;
@@ -342,6 +363,35 @@ export default function ApplicationsPage() {
                                         })()}
                                     </div>
                                 </div>
+
+                                {["Applied", "Viewed", "Shortlisted", "Interviewing"].includes(selectedApp.status) && (
+                                    <div className="flex flex-col gap-3 rounded-2xl border border-km-border bg-km-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+                                        <p className="text-sm text-km-text-secondary">
+                                            {confirmWithdraw === selectedApp.id
+                                                ? "Withdraw this application? The employer will be told, and any upcoming interview for this job will be cancelled. You can't apply to this job again."
+                                                : "No longer interested? You can withdraw your application."}
+                                        </p>
+                                        {confirmWithdraw === selectedApp.id ? (
+                                            <div className="flex shrink-0 gap-2">
+                                                <button type="button" onClick={() => setConfirmWithdraw(null)} disabled={withdrawing} className="rounded-xl border border-km-border bg-km-surface-card px-4 py-2 text-sm font-semibold text-km-text-primary hover:bg-km-surface">
+                                                    Keep it
+                                                </button>
+                                                <button type="button" onClick={() => withdraw(selectedApp.id)} disabled={withdrawing} className="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60">
+                                                    {withdrawing ? "Withdrawing…" : "Yes, withdraw"}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <button type="button" onClick={() => setConfirmWithdraw(selectedApp.id)} className="shrink-0 rounded-xl border border-km-border bg-km-surface-card px-4 py-2 text-sm font-semibold text-km-text-primary hover:border-rose-300 hover:text-rose-700">
+                                                Withdraw application
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                {selectedApp.status === "Withdrawn" && (
+                                    <p className="rounded-2xl border border-km-border bg-km-surface p-4 text-sm text-km-text-secondary">
+                                        You withdrew this application. The employer can no longer move it forward.
+                                    </p>
+                                )}
 
                                 <div className="h-px bg-km-surface w-full" />
 

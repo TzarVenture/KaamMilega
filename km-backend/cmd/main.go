@@ -36,6 +36,7 @@ import (
 	"km-backend/internal/features/file"
 	"km-backend/internal/features/job"
 	"km-backend/internal/features/jobalert"
+	"km-backend/internal/features/recruiterdigest"
 	"km-backend/internal/features/payment"
 	"km-backend/internal/features/question"
 	"km-backend/internal/features/reminder"
@@ -280,6 +281,7 @@ func appOptions() fx.Option {
 			newJobPlanQuota,
 			newChatPlanQuota,
 			jobalert.NewService,
+			recruiterdigest.NewService,
 			reminder.NewService,
 			feed.NewFeedService,
 			analytics.NewService,
@@ -295,6 +297,7 @@ func appOptions() fx.Option {
 			wallet.NewWalletController,
 			skill.NewSkillController,
 			job.NewJobController,
+			job.NewViewStore,
 			application.NewApplicationController,
 			interview.NewInterviewController,
 			city.NewCityController,
@@ -373,6 +376,7 @@ func appOptions() fx.Option {
 			mentorship.RegisterReleaseWorker,
 			// Daily job-alert emails (settings.email_job_alerts)
 			jobalert.RegisterWorker,
+			recruiterdigest.RegisterWorker,
 			// Session, event and pass reminders
 			reminder.RegisterWorker,
 			// Register Routes & Start

@@ -21,6 +21,7 @@ import JobStatusChip from "@/components/recruiter/JobStatusChip";
 import StageBar from "@/components/recruiter/StageBar";
 import JobActionsMenu, { useJobActions } from "@/components/recruiter/JobActionsMenu";
 import { salaryRange } from "@/components/recruiter/jobFormat";
+import JobReach from "@/components/recruiter/JobReach";
 
 type LoadState = "loading" | "ok" | "notfound" | "error";
 
@@ -160,7 +161,7 @@ export default function JobHubPage() {
                 </div>
                 <StageBar counts={job.stage_counts} stages={[...STAGES]} />
             </div>
-
+            <JobReach views={job.views} applicants={job.applicant_count || stageTotal} />
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Details */}
                 <AdminPanel title={t("hub.details")} className="lg:col-span-2 min-w-0" bodyClassName="p-5 space-y-5 text-sm">
@@ -217,7 +218,7 @@ export default function JobHubPage() {
                                                 </span>
                                             </span>
                                             <span className={cx("px-2 py-0.5 rounded-md text-xs font-medium whitespace-nowrap", STAGE_COLOR[a.status]?.chip)}>
-                                                {STAGES.includes(a.status) ? t(`stages.${a.status}`) : a.status}
+                                                {(STAGES as readonly string[]).includes(a.status) ? t(`stages.${a.status}`) : a.status === "Withdrawn" ? t("stages.Withdrawn") : a.status}
                                             </span>
                                         </Link>
                                     </li>

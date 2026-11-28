@@ -345,6 +345,9 @@ func (s *ApplicationService) UpdateApplicationStatus(ctx context.Context, id, st
 	if existing.Status == status {
 		return existing, nil
 	}
+	if knownStatus(existing.Status) == StatusWithdrawn {
+		return nil, ErrApplicationWithdrawn
+	}
 
 	// 1. Update the status
 	updated, err := s.repo.UpdateStatus(ctx, id, status)

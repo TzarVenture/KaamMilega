@@ -101,6 +101,9 @@ func (r *ApplicationRepositoryImpl) Pipeline(ctx context.Context, f PipelineFilt
 	listMatch := bson.M{}
 	if f.Status != "" {
 		listMatch["status"] = primitive.Regex{Pattern: "^" + regexp.QuoteMeta(f.Status) + "$", Options: "i"}
+	} else {
+		// "All" means everyone still in the running; withdrawn applicants have their own filter
+		listMatch["status"] = bson.M{"$not": primitive.Regex{Pattern: "^" + StatusWithdrawn + "$", Options: "i"}}
 	}
 	items := bson.A{
 		bson.M{"$match": listMatch},
@@ -144,6 +147,7 @@ func (r *ApplicationRepositoryImpl) Pipeline(ctx context.Context, f PipelineFilt
 	for _, s := range Statuses {
 		page.Stages[s] = 0
 	}
+	page.Stages[StatusWithdrawn] = 0
 	if len(out) == 0 {
 		return page, nil
 	}
@@ -151,7 +155,7 @@ func (r *ApplicationRepositoryImpl) Pipeline(ctx context.Context, f PipelineFilt
 		page.Total = out[0].Total[0].N
 	}
 	for _, s := range out[0].Stages {
-		if c := CanonicalStatus(s.Status); c != "" {
+		if c := knownStatus(s.Status); c != "" {
 			page.Stages[c] += s.N
 		} else {
 			page.Stages["Applied"] += s.N
@@ -174,7 +178,7 @@ func (r *ApplicationRepositoryImpl) Pipeline(ctx context.Context, f PipelineFilt
 
 // detailOf copies an application's own fields into its API shape
 func detailOf(a *Application) ApplicationDetail {
-	status := CanonicalStatus(a.Status)
+	status := knownStatus(a.Status)
 	if status == "" {
 		status = "Applied"
 	}
@@ -215,9 +219,13 @@ func (r *ApplicationRepositoryImpl) StageCountsByJobs(ctx context.Context, jobID
 			m = map[string]int{}
 			out[row.Key.Job] = m
 		}
-		s := CanonicalStatus(row.Key.Status)
+		s := knownStatus(row.Key.Status)
 		if s == "" {
 			s = "Applied"
+		}
+		// Withdrawn applicants are not part of the job's funnel
+		if s == StatusWithdrawn {
+			continue
 		}
 		m[s] += row.N
 	}
@@ -265,7 +273,7 @@ func (s *ApplicationService) Pipeline(ctx context.Context, userID string, f Pipe
 		f.JobID, _ = primitive.ObjectIDFromHex(jobID)
 	}
 	if f.Status != "" {
-		if f.Status = CanonicalStatus(f.Status); f.Status == "" {
+		if f.Status = knownStatus(f.Status); f.Status == "" {
 			return nil, ErrInvalidStatus
 		}
 	}

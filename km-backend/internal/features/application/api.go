@@ -38,4 +38,7 @@ func (api *ApplicationApi) Setup(app *fiber.App) {
 
 	// Recruiter updates application status
 	protected.Patch("/:id/status", api.controller.UpdateApplicationStatus)
+
+	// Candidate withdraws their application (the employer is told)
+	protected.Post("/:id/withdraw", api.controller.Withdraw)
 }

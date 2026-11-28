@@ -2,6 +2,7 @@ package job
 
 import (
 	"km-backend/internal/common/api"
+	"km-backend/internal/features/analytics"
 	"km-backend/internal/middleware"
 
 	"github.com/gofiber/fiber/v2"
@@ -37,6 +38,9 @@ func (api *JobApi) Setup(app *fiber.App) {
 	protected.Post("/:id/duplicate", jwtAuth, middleware.RequireRole("recruiter", "expert", "admin"), api.controller.DuplicateMyJob)
 	protected.Patch("/:id", jwtAuth, api.controller.UpdateJob)
 	protected.Delete("/:id", jwtAuth, api.controller.DeleteJob)
+	// The job page reports a view once it is on screen (members and cookie-holding guests count once a day)
+	protected.Post("/:id/view", middleware.OptionalAuthMiddleware(api.controller.config.JWTSecret),
+		analytics.VisitorCookieMiddleware(api.controller.config.Environment == "production"), api.controller.RecordView)
 
 	// Public job detail view
 	app.Get("/api/jobs/:id", api.controller.GetJob)

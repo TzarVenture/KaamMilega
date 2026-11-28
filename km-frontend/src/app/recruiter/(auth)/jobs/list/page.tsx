@@ -176,10 +176,11 @@ function JobsList() {
                                     <div className="col-span-2 md:col-span-1 md:col-start-3 md:row-start-1 flex items-center">
                                         <StageBar counts={job.stage_counts} className="w-full" />
                                     </div>
-                                    <div className="col-span-2 md:col-span-1 md:col-start-4 md:row-start-1 flex md:justify-end items-center">
+                                    <div className="col-span-2 md:col-span-1 md:col-start-4 md:row-start-1 flex flex-wrap md:flex-col md:items-end md:justify-center items-center gap-x-3">
                                         <Link href={`/recruiter/applications?job_id=${job.id}`} className="text-sm font-medium text-km-link hover:underline whitespace-nowrap">
                                             {t("applicants", { count: job.applicant_count || 0 })}
                                         </Link>
+                                        <span className="text-xs text-km-text-secondary whitespace-nowrap">{t("reach.viewCount", { count: job.views?.total ?? 0 })}</span>
                                     </div>
                                 </li>
                             );

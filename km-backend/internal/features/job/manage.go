@@ -166,6 +166,7 @@ func (c *JobController) ListMyJobs(ctx *fiber.Ctx) error {
 	if err != nil {
 		return apperr.Respond(ctx, err)
 	}
+	c.withViews(ctx.Context(), page.Jobs, false)
 	return ctx.JSON(page)
 }
 
@@ -175,7 +176,9 @@ func (c *JobController) GetMyJob(ctx *fiber.Ctx) error {
 	if err != nil {
 		return apperr.Respond(ctx, err)
 	}
-	return ctx.JSON(j)
+	one := []Job{*j}
+	c.withViews(ctx.Context(), one, true)
+	return ctx.JSON(one[0])
 }
 
 func (c *JobController) SetMyJobStatus(ctx *fiber.Ctx) error {

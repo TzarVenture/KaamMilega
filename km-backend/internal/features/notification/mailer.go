@@ -33,6 +33,12 @@ type Mailer interface {
 	// SendNewApplication tells an employer that someone applied to one of their jobs.
 	SendNewApplication(p NewApplicationParams) error
 
+	// SendApplicationWithdrawn tells an employer that a candidate withdrew their application.
+	SendApplicationWithdrawn(p ApplicationWithdrawnParams) error
+
+	// SendRecruiterDigest is the employer's daily summary: new applicants and today's interviews.
+	SendRecruiterDigest(p RecruiterDigestParams) error
+
 	// SendTransactionReceipt sends a detailed receipt after a financial transaction.
 	SendTransactionReceipt(p TransactionReceiptParams) error
 
@@ -65,6 +71,10 @@ type InterviewInviteParams struct {
 	Location      string // Meeting link or physical address
 	Notes         string
 	Kind          string // InterviewScheduled (default), InterviewRescheduled or InterviewCancelled
+	// InterviewID and Version (the interview's last change, e.g. updated_at in unix seconds) add a
+	// calendar invite; without an ID the email goes without one
+	InterviewID string
+	Version     int64
 }
 
 // Interview email kinds
@@ -83,6 +93,39 @@ type NewApplicationParams struct {
 	City          string
 	JobTitle      string
 	ActionURL     string // Deep-link to the applicant in the employer portal
+}
+
+// ApplicationWithdrawnParams carries data for the employer's "application withdrawn" email.
+type ApplicationWithdrawnParams struct {
+	ToEmail       string
+	RecruiterName string
+	CandidateName string
+	JobTitle      string
+	ActionURL     string
+}
+
+// RecruiterDigestParams is one employer's daily summary
+type RecruiterDigestParams struct {
+	ToEmail       string
+	RecruiterName string
+	// New applicants since the last summary, per job (most first)
+	NewByJob []DigestJob
+	// Interviews today, in time order
+	Interviews []DigestInterview
+	ActionURL  string
+}
+
+// DigestJob is one job's new applicants
+type DigestJob struct {
+	Title string
+	Count int
+}
+
+// DigestInterview is one of today's interviews
+type DigestInterview struct {
+	At            time.Time
+	CandidateName string
+	JobTitle      string
 }
 
 // ApplicationUpdateParams carries data for an application status change notification.
@@ -220,7 +263,13 @@ func (m *smtpMailer) SendInterviewInvite(p InterviewInviteParams) error {
 	if err != nil {
 		return fmt.Errorf("notification: render interview invite: %w", err)
 	}
-	return m.SendRaw(p.ToEmail, subject, body)
+	if p.InterviewID == "" {
+		return m.SendRaw(p.ToEmail, subject, body)
+	}
+	if p.ToEmail == "" {
+		return fmt.Errorf("notification: empty recipient address")
+	}
+	return sendCalendar(m.cfg, p.ToEmail, subject, body, interviewEvent(p, m.cfg.SMTPFromEmail, m.siteURL("/interviews")))
 }
 
 func (m *smtpMailer) SendApplicationUpdate(p ApplicationUpdateParams) error {
@@ -279,6 +328,71 @@ func (m *smtpMailer) SendNewApplication(p NewApplicationParams) error {
 		return fmt.Errorf("notification: render new application: %w", err)
 	}
 	return m.SendRaw(p.ToEmail, fmt.Sprintf("New applicant for %s — %s", p.JobTitle, p.CandidateName), body)
+}
+
+func (m *smtpMailer) SendApplicationWithdrawn(p ApplicationWithdrawnParams) error {
+	if p.RecruiterName == "" {
+		p.RecruiterName = "there"
+	}
+	if p.ActionURL == "" {
+		p.ActionURL = m.siteURL("/recruiter/applications")
+	}
+	body, err := renderTemplate(m.templates, "recruiter_notice", templateData{
+		RecipientName: p.RecruiterName,
+		Intro:         fmt.Sprintf("%s withdrew their application for %s. Any upcoming interview with them for this job has been cancelled.", p.CandidateName, p.JobTitle),
+		Rows:          []tableRow{{Label: "Candidate", Value: p.CandidateName, Bold: true}, {Label: "Job", Value: p.JobTitle}},
+		CTAURL:        p.ActionURL,
+		CTALabel:      "See applicants",
+	})
+	if err != nil {
+		return fmt.Errorf("notification: render application withdrawn: %w", err)
+	}
+	return m.SendRaw(p.ToEmail, fmt.Sprintf("%s withdrew their application for %s", p.CandidateName, p.JobTitle), body)
+}
+
+func (m *smtpMailer) SendRecruiterDigest(p RecruiterDigestParams) error {
+	if p.RecruiterName == "" {
+		p.RecruiterName = "there"
+	}
+	if p.ActionURL == "" {
+		p.ActionURL = m.siteURL("/recruiter")
+	}
+	total := 0
+	var rows []tableRow
+	for _, j := range p.NewByJob {
+		total += j.Count
+		rows = append(rows, tableRow{Label: j.Title, Value: plural(j.Count, "new applicant", "new applicants")})
+	}
+	for _, iv := range p.Interviews {
+		rows = append(rows, tableRow{Label: "Interview " + iv.At.In(istLocation()).Format("03:04 PM"), Value: iv.CandidateName + " · " + iv.JobTitle})
+	}
+	var parts []string
+	if total > 0 {
+		parts = append(parts, plural(total, "new applicant", "new applicants"))
+	}
+	if n := len(p.Interviews); n > 0 {
+		parts = append(parts, plural(n, "interview today", "interviews today"))
+	}
+	summary := strings.Join(parts, " and ")
+	body, err := renderTemplate(m.templates, "recruiter_notice", templateData{
+		RecipientName: p.RecruiterName,
+		Intro:         "Here is your hiring summary for today: " + summary + ".",
+		Rows:          rows,
+		CTAURL:        p.ActionURL,
+		CTALabel:      "Open your dashboard",
+	})
+	if err != nil {
+		return fmt.Errorf("notification: render recruiter digest: %w", err)
+	}
+	return m.SendRaw(p.ToEmail, "Your hiring summary: "+summary, body)
+}
+
+// plural is "1 thing" or "3 things"
+func plural(n int, one, many string) string {
+	if n == 1 {
+		return "1 " + one
+	}
+	return fmt.Sprintf("%d %s", n, many)
 }
 
 // siteURL is a full link to a page on the website (FRONTEND_URL, kaammilega.com by default)
@@ -500,6 +614,10 @@ type noopMailer struct{}
 func (n *noopMailer) SendInterviewInvite(_ InterviewInviteParams) error      { return nil }
 func (n *noopMailer) SendApplicationUpdate(_ ApplicationUpdateParams) error  { return nil }
 func (n *noopMailer) SendNewApplication(_ NewApplicationParams) error        { return nil }
+func (n *noopMailer) SendApplicationWithdrawn(_ ApplicationWithdrawnParams) error {
+	return nil
+}
+func (n *noopMailer) SendRecruiterDigest(_ RecruiterDigestParams) error { return nil }
 func (n *noopMailer) SendTransactionReceipt(_ TransactionReceiptParams) error { return nil }
 func (n *noopMailer) SendWithdrawalRequest(_ WithdrawalRequestParams) error  { return nil }
 func (n *noopMailer) SendEmailOTP(_ EmailOTPParams) error                    { return nil }
@@ -510,13 +628,17 @@ func (n *noopMailer) SendRaw(_, _, _ string) error                           { r
 // ─── SMTP Dial & Send ─────────────────────────────────────────────────────────
 
 func dialAndSend(cfg *config.Config, to, subject, htmlBody string) error {
-	addr := fmt.Sprintf("%s:%s", cfg.SMTPHost, cfg.SMTPPort)
-	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost)
-
 	header := fmt.Sprintf(
 		"From: %s <%s>\r\nTo: %s\r\nSubject: %s\r\nMIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n",
 		cfg.SMTPFromName, cfg.SMTPFromEmail, to, subject,
 	)
+	return deliver(cfg, to, header+htmlBody)
+}
+
+// deliver sends a complete message (headers and body) over SMTP
+func deliver(cfg *config.Config, to, message string) error {
+	addr := fmt.Sprintf("%s:%s", cfg.SMTPHost, cfg.SMTPPort)
+	auth := smtp.PlainAuth("", cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPHost)
 
 	client, err := smtp.Dial(addr)
 	if err != nil {
@@ -540,7 +662,7 @@ func dialAndSend(cfg *config.Config, to, subject, htmlBody string) error {
 	if err != nil {
 		return fmt.Errorf("notification: smtp data: %w", err)
 	}
-	if _, err = fmt.Fprint(w, header+htmlBody); err != nil {
+	if _, err = fmt.Fprint(w, message); err != nil {
 		return fmt.Errorf("notification: smtp write: %w", err)
 	}
 	if err = w.Close(); err != nil {
