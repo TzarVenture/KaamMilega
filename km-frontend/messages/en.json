@@ -370,7 +370,12 @@
     "size": "Company size",
     "sizeValue": "{size} employees",
     "aboutEmpty": "Tell candidates what your company does.",
-    "editPage": "Edit company page"
+    "editPage": "Edit company page",
+    "tabPosts": "Posts",
+    "noPosts": "No posts yet",
+    "noPostsText": "Hiring news and updates from this company will show here.",
+    "loadMore": "Show more posts",
+    "loadingMore": "Loading…"
   },
   "profileCriteria": {
     "name": {
@@ -2162,7 +2167,12 @@
       "heading": "Open jobs",
       "empty": "No open jobs right now.",
       "applicants": "applicants",
-      "posted": "posted {when}"
+      "posted": "posted {when}",
+      "views": "views",
+      "viewsLabel": "Views",
+      "applicantsLabel": "Applicants",
+      "applyRate": "Apply rate",
+      "viewsHint": "For your open jobs. Each person counts once a day per job."
     },
     "plan": {
       "heading": "Your hiring plan",
@@ -2194,7 +2204,8 @@
       "Shortlisted": "Shortlisted",
       "Interviewing": "Interview",
       "Hired": "Hired",
-      "Rejected": "Not selected"
+      "Rejected": "Not selected",
+      "Withdrawn": "Withdrawn"
     },
     "jobStatus": {
       "Open": "Open",
@@ -2274,7 +2285,8 @@
       "movedTo": "Moved to {stage}",
       "applied": "Applied",
       "pickTitle": "Pick an applicant",
-      "pickBody": "Select someone from the list to see their details."
+      "pickBody": "Select someone from the list to see their details.",
+      "withdrawnNote": "This candidate withdrew their application. You can still message them or view their profile."
     },
     "paging": {
       "prev": "Previous",
@@ -2369,7 +2381,8 @@
       "Shortlisted": "Shortlisted",
       "Interviewing": "Interview",
       "Hired": "Hired",
-      "Rejected": "Not selected"
+      "Rejected": "Not selected",
+      "Withdrawn": "Withdrawn"
     },
     "tabs": {
       "all": "All",
@@ -2473,6 +2486,18 @@
       "noApplicantsHint": "Share the job link to reach more people.",
       "noApplicantsHidden": "Job seekers can't apply while this job is paused or closed.",
       "candidate": "Candidate"
+    },
+    "reach": {
+      "title": "Reach",
+      "hint": "Each person counts once a day. Your own visits are not counted.",
+      "views": "Views",
+      "lastWeek": "Views, last 7 days",
+      "applicants": "Applicants",
+      "applyRate": "Apply rate",
+      "chartLabel": "Views per day for the last 14 days",
+      "dayViews": "{date}: {count, plural, one {# view} other {# views}}",
+      "today": "Today",
+      "viewCount": "{count, plural, one {# view} other {# views}}"
     }
   },
   "recruiterTalent": {
@@ -2514,7 +2539,21 @@
     "resume": "Resume",
     "downloading": "Opening…",
     "resumeHint": "Opening a resume uses one download from your hiring plan.",
-    "resumeFailed": "Could not open the resume"
+    "resumeFailed": "Could not open the resume",
+    "viewLabel": "Which people to show",
+    "viewAll": "All job seekers",
+    "viewSaved": "Saved",
+    "viewSavedCount": "Saved ({count})",
+    "savedCount": "{count, plural, one {# saved person} other {# saved people}}",
+    "noSaved": "No one saved yet",
+    "noSavedHint": "Tap the bookmark on anyone in search to keep them here for later.",
+    "save": "Save",
+    "unsave": "Remove from saved",
+    "saveLabel": "Save {name}",
+    "unsaveLabel": "Remove {name} from saved",
+    "saved": "{name} saved",
+    "unsaved": "{name} removed from saved",
+    "saveFailed": "Could not update your saved list"
   },
   "recruiterJobForm": {
     "backToJobs": "Back to jobs",

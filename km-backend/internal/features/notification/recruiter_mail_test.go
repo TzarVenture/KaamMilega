@@ -71,3 +71,29 @@ func TestNewApplicantEmailToEmployer(t *testing.T) {
 		t.Errorf("unexpected email: %q", got.subject)
 	}
 }
+
+func TestWithdrawnAndDigestEmails(t *testing.T) {
+	got := render(t, func(m *smtpMailer) error {
+		return m.SendApplicationWithdrawn(ApplicationWithdrawnParams{ToEmail: "r@x.test", RecruiterName: "Anand", CandidateName: "Asha", JobTitle: "Driver"})
+	})
+	if !strings.Contains(got.subject, "Asha withdrew") || !strings.Contains(got.body, "withdrew their application for Driver") {
+		t.Errorf("withdrawn email: %q", got.subject)
+	}
+
+	at := time.Date(2026, 12, 1, 5, 30, 0, 0, time.UTC) // 11:00 AM in India
+	got = render(t, func(m *smtpMailer) error {
+		return m.SendRecruiterDigest(RecruiterDigestParams{
+			ToEmail: "r@x.test", RecruiterName: "Anand",
+			NewByJob:   []DigestJob{{Title: "Driver", Count: 3}, {Title: "Cook", Count: 1}},
+			Interviews: []DigestInterview{{At: at, CandidateName: "Asha", JobTitle: "Driver"}},
+		})
+	})
+	if got.subject != "Your hiring summary: 4 new applicants and 1 interview today" {
+		t.Errorf("digest subject: %q", got.subject)
+	}
+	for _, want := range []string{"3 new applicants", "1 new applicant", "Interview 11:00 AM", "Asha · Driver"} {
+		if !strings.Contains(got.body, want) {
+			t.Errorf("digest body lacks %q", want)
+		}
+	}
+}

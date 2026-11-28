@@ -17,6 +17,7 @@ type templateData struct {
 	StatusColor   string // Hex color string, e.g. "#0B5ED7"
 	Rows          []tableRow
 	Note          string
+	Intro         string // the opening sentence, for templates that take one
 	CTAURL        string
 	CTALabel      string
 }
@@ -40,6 +41,7 @@ type templateRegistry struct {
 	accountNotice      *template.Template
 	jobAlert           *template.Template
 	newApplication     *template.Template
+	recruiterNotice    *template.Template
 }
 
 // mustParseTemplates builds isolated template trees for every transactional email type.
@@ -53,6 +55,7 @@ func mustParseTemplates() *templateRegistry {
 		emailOTP:           template.Must(template.New("email_otp").Parse(baseLayout + emailOTPTmpl)),
 		accountNotice:      template.Must(template.New("account_notice").Parse(baseLayout + accountNoticeTmpl)),
 		newApplication:     template.Must(template.New("new_application").Parse(baseLayout + newApplicationTmpl)),
+		recruiterNotice:    template.Must(template.New("recruiter_notice").Parse(baseLayout + recruiterNoticeTmpl)),
 		jobAlert:           template.Must(template.New("job_alert").Funcs(jobAlertFuncs).Parse(baseLayout + jobAlertTmpl)),
 	}
 }
@@ -77,6 +80,8 @@ func renderTemplate(reg *templateRegistry, name string, data templateData) (stri
 		t = reg.jobAlert
 	case "new_application":
 		t = reg.newApplication
+	case "recruiter_notice":
+		t = reg.recruiterNotice
 	default:
 		return "", fmt.Errorf("notification: unknown template %q", name)
 	}
@@ -282,6 +287,18 @@ const newApplicationTmpl = `
 <p style="margin:0 0 12px;color:#374151;font-size:15px;line-height:1.65;">
   Someone new applied for <strong>{{.JobTitle}}</strong>. Review them while they are still looking.
 </p>
+{{template "detail_table" .}}
+{{template "cta_button" .}}
+{{template "settings_note" .}}
+{{end}}
+`
+
+// recruiterNoticeTmpl is a plain employer email: an opening sentence, a table and a button
+// (a withdrawn application, the daily summary)
+const recruiterNoticeTmpl = `
+{{define "content"}}
+{{template "greeting" .}}
+<p style="margin:0 0 12px;color:#374151;font-size:15px;line-height:1.65;">{{.Intro}}</p>
 {{template "detail_table" .}}
 {{template "cta_button" .}}
 {{template "settings_note" .}}

@@ -121,6 +121,11 @@ const JobDetailPage = () => {
         if (jobId) fetchData();
     }, [jobId, router]);
 
+    // Counts toward the employer's job views (once a day per person; the employer's own visits don't count)
+    useEffect(() => {
+        if (jobId) api.post(`/jobs/${jobId}/view`).catch(() => {});
+    }, [jobId]);
+
     const handleApplyClick = async () => {
         if (!user) {
             notify.info('Please login to apply');

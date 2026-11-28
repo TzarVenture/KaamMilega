@@ -3,9 +3,9 @@
 import { useFormatter, useTranslations } from 'next-intl';
 import { StarIcon } from '@phosphor-icons/react';
 import { cx, LogoTile } from '@/components/admin/ui';
-import { STAGE_COLOR, type Applicant, type Stage } from '@/lib/api/recruiter';
+import { STAGE_COLOR, type Applicant, type AppStatus } from '@/lib/api/recruiter';
 
-export function StageChip({ stage }: { stage: Stage }) {
+export function StageChip({ stage }: { stage: AppStatus }) {
     const t = useTranslations('recruiterApplicants');
     const c = STAGE_COLOR[stage] ?? STAGE_COLOR.Applied;
     return (

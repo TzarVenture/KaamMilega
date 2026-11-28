@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { ArrowsDownUpIcon, BriefcaseIcon, CaretLeftIcon, CaretRightIcon, UsersThreeIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { btn, cx, EmptyState, SearchInput, SkeletonRows } from "@/components/admin/ui";
 import { notify } from "@/lib/notify";
-import { STAGES, jobStatus, recruiterApi, type Applicant, type ApplicantsPage, type MyJob, type Stage } from "@/lib/api/recruiter";
+import { STAGES, jobStatus, recruiterApi, type Applicant, type ApplicantsPage, type AppStatus, type MyJob, type Stage } from "@/lib/api/recruiter";
 import ApplicantList from "@/components/recruiter/ApplicantList";
 import ApplicantPanel from "@/components/recruiter/ApplicantPanel";
 import StageMoveDialog from "@/components/recruiter/StageMoveDialog";
@@ -32,7 +32,7 @@ function ApplicationsContent() {
 
     const jobId = params.get("job_id") || params.get("jobId") || "";
     const rawStatus = params.get("status") || "";
-    const status = (STAGES as readonly string[]).includes(rawStatus) ? (rawStatus as Stage) : "";
+    const status: AppStatus | "" = rawStatus === "Withdrawn" || (STAGES as readonly string[]).includes(rawStatus) ? (rawStatus as AppStatus) : "";
     const search = params.get("search") || "";
     const rawSort = params.get("sort") || "";
     const sort = (SORTS as readonly string[]).includes(rawSort) ? rawSort : "newest";
@@ -167,9 +167,11 @@ function ApplicationsContent() {
         setPending(null);
     };
 
-    const tabs: { value: Stage | ""; label: string; count?: number }[] = [
+    const tabs: { value: AppStatus | ""; label: string; count?: number }[] = [
         { value: "", label: t("tabs.all"), count: allCount },
         ...STAGES.map((s) => ({ value: s, label: t(`stage.${s}`), count: stages?.[s] })),
+        // Candidates who withdrew get a tab only once there are some
+        ...((stages?.Withdrawn ?? 0) > 0 || status === "Withdrawn" ? [{ value: "Withdrawn" as const, label: t("stage.Withdrawn"), count: stages?.Withdrawn }] : []),
     ];
 
     const checkedOnPage = items.filter((a) => checked.has(a.id)).map((a) => a.id);

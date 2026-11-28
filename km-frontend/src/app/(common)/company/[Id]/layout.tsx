@@ -47,6 +47,7 @@ function CompanyLayoutContent({ children }: { children: React.ReactNode }) {
     const tabs = [
         { href: base, label: t('tabAbout') },
         { href: `${base}/jobs`, label: t('tabJobs') },
+        { href: `${base}/posts`, label: t('tabPosts') },
         { href: `${base}/people`, label: t('tabPeople') },
     ];
     const website = websiteHref(company.website);

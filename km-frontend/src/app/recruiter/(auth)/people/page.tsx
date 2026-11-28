@@ -7,7 +7,8 @@ import { CaretLeftIcon, CaretRightIcon, CheckCircleIcon, FileTextIcon, Magnifyin
 import RecruiterBanner, { HeroAccent } from "@/components/km/RecruiterBanner";
 import { btn, cx, EmptyState, field } from "@/components/admin/ui";
 import TalentCardItem from "@/components/recruiter/TalentCardItem";
-import { recruiterApi, type TalentPage } from "@/lib/api/recruiter";
+import { recruiterApi, type TalentCard, type TalentPage } from "@/lib/api/recruiter";
+import { notify } from "@/lib/notify";
 
 const LIMIT = 20;
 
@@ -42,7 +43,8 @@ function TalentView() {
     const openToWork = params.get("otw") === "1";
     const hasResume = params.get("resume") === "1";
     const page = Math.max(1, Number(params.get("page")) || 1);
-    const key = JSON.stringify([q, city, skill, openToWork, hasResume, page]);
+    const savedView = params.get("view") === "saved";
+    const key = JSON.stringify([savedView, q, city, skill, openToWork, hasResume, page]);
     const anyFilter = !!(q || city || skill || openToWork || hasResume);
 
     const [draft, setDraft] = useState({ q, city, skill });
@@ -76,11 +78,46 @@ function TalentView() {
 
     useEffect(() => {
         let alive = true;
-        recruiterApi.talent({ search: q, city, skill, open_to_work: openToWork, has_resume: hasResume, page, limit: LIMIT })
+        const load = savedView
+            ? recruiterApi.saved({ page, limit: LIMIT })
+            : recruiterApi.talent({ search: q, city, skill, open_to_work: openToWork, has_resume: hasResume, page, limit: LIMIT });
+        load
             .then((data) => { if (alive) setResult({ key, data }); })
             .catch(() => { if (alive) setResult({ key, failed: true }); });
         return () => { alive = false; };
-    }, [key, q, city, skill, openToWork, hasResume, page, attempt]);
+    }, [key, savedView, q, city, skill, openToWork, hasResume, page, attempt]);
+
+    // Who the employer saved, so every card shows it
+    const [savedIds, setSavedIds] = useState<Set<string> | null>(null);
+    useEffect(() => {
+        let alive = true;
+        recruiterApi.savedIds()
+            .then((r) => { if (alive) setSavedIds(new Set(r?.ids ?? [])); })
+            .catch(() => { if (alive) setSavedIds(new Set()); });
+        return () => { alive = false; };
+    }, []);
+
+    const toggleSave = async (person: TalentCard) => {
+        const was = savedIds?.has(person.id) ?? false;
+        const flip = (on: boolean) => setSavedIds((prev) => {
+            const next = new Set(prev ?? []);
+            if (on) next.add(person.id); else next.delete(person.id);
+            return next;
+        });
+        flip(!was);
+        try {
+            if (was) await recruiterApi.unsave(person.id);
+            else await recruiterApi.save(person.id);
+            notify.success(was ? t("unsaved", { name: person.name }) : t("saved", { name: person.name }));
+            // On the Saved list, someone removed leaves it
+            if (was && savedView) {
+                setResult((r) => (r?.data ? { ...r, data: { ...r.data, items: r.data.items.filter((p) => p.id !== person.id), total: Math.max(0, r.data.total - 1) } } : r));
+            }
+        } catch (err) {
+            flip(was);
+            notify.error(err, t("saveFailed"));
+        }
+    };
 
     const current = result && result.key === key ? result : null;
     const loading = !current;
@@ -130,6 +167,28 @@ function TalentView() {
                 </label>
             </RecruiterBanner>
 
+            <div role="tablist" aria-label={t("viewLabel")} className="inline-flex rounded-xl border border-km-border bg-km-surface-card p-1">
+                {([["all", t("viewAll")], ["saved", savedIds ? t("viewSavedCount", { count: savedIds.size }) : t("viewSaved")]] as const).map(([v, label]) => {
+                    const on = (v === "saved") === savedView;
+                    return (
+                        <button
+                            key={v}
+                            type="button"
+                            role="tab"
+                            aria-selected={on}
+                            onClick={() => { if (!on) router.replace(v === "saved" ? `${pathname}?view=saved` : pathname, { scroll: false }); }}
+                            className={cx(
+                                "h-9 rounded-lg px-4 text-sm font-semibold transition-colors",
+                                on ? "bg-[#0B5ED7] text-white" : "text-km-text-secondary hover:text-km-heading",
+                            )}
+                        >
+                            {label}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {!savedView && (
             <div className="flex flex-col gap-3 rounded-2xl border border-km-border bg-km-surface-card p-4 md:flex-row md:flex-wrap md:items-end">
                 <label className="block md:w-56">
                     <span className={field.label}>{t("city")}</span>
@@ -153,6 +212,7 @@ function TalentView() {
                     <button type="button" onClick={clearAll} className={cx(btn.ghost, "md:ml-auto")}>{t("clearFilters")}</button>
                 )}
             </div>
+            )}
 
             {current?.failed ? (
                 <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 dark:border-red-900/50 dark:bg-[#2A1215] dark:text-red-300">
@@ -165,13 +225,16 @@ function TalentView() {
             ) : (
                 <>
                     <p className="text-sm text-km-text-secondary" aria-live="polite">
-                        {loading ? t("searching") : anyFilter ? t("resultCount", { count: total }) : t("defaultCount", { count: total })}
+                        {loading ? t("searching") : savedView ? t("savedCount", { count: total }) : anyFilter ? t("resultCount", { count: total }) : t("defaultCount", { count: total })}
                     </p>
                     {loading ? (
                         <ul className="grid gap-4 md:grid-cols-2">{Array.from({ length: 6 }, (_, i) => <CardSkeleton key={i} />)}</ul>
                     ) : items.length === 0 ? (
                         <div className="rounded-2xl border border-km-border bg-km-surface-card">
-                            {anyFilter ? (
+                            {savedView ? (
+                                <EmptyState icon={UsersThreeIcon} title={t("noSaved")} description={t("noSavedHint")}
+                                    action={<button type="button" onClick={() => router.replace(pathname, { scroll: false })} className={btn.secondary}>{t("viewAll")}</button>} />
+                            ) : anyFilter ? (
                                 <EmptyState icon={MagnifyingGlassIcon} title={t("noResults")} description={t("noResultsHint")}
                                     action={<button type="button" onClick={clearAll} className={btn.secondary}>{t("clearFilters")}</button>} />
                             ) : (
@@ -179,7 +242,7 @@ function TalentView() {
                             )}
                         </div>
                     ) : (
-                        <ul className="grid gap-4 md:grid-cols-2">{items.map((p) => <TalentCardItem key={p.id} person={p} />)}</ul>
+                        <ul className="grid gap-4 md:grid-cols-2">{items.map((p) => <TalentCardItem key={p.id} person={p} saved={savedIds?.has(p.id)} onToggleSave={savedIds ? toggleSave : undefined} />)}</ul>
                     )}
                     {!loading && pages > 1 && (
                         <nav className="flex items-center justify-center gap-3" aria-label={t("pagination")}>
