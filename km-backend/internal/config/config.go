@@ -23,6 +23,9 @@ type Config struct {
 	// RecruiterDigestEnabled turns on the employers' daily summary email
 	// (RECRUITER_DIGEST_ENABLED=true). Off by default for the same reason.
 	RecruiterDigestEnabled bool
+	// JobStaleEnabled turns on asking employers about jobs open 30+ days and pausing them a
+	// week later if they don't answer (JOB_STALE_ENABLED=true). Off by default for the same reason.
+	JobStaleEnabled bool
 	FSURL            string // URL path prefix for file access
 	// Media storage: STORAGE_DRIVER=r2 keeps uploads on Cloudflare R2, anything else on local disk
 	StorageDriver         string
@@ -68,6 +71,7 @@ func LoadConfig() (*Config, error) {
 		Environment:             getEnv("ENVIRONMENT", "development"),
 		JobAlertsEnabled:        getEnv("JOB_ALERTS_ENABLED", "false") == "true",
 		RecruiterDigestEnabled:  getEnv("RECRUITER_DIGEST_ENABLED", "false") == "true",
+		JobStaleEnabled:         getEnv("JOB_STALE_ENABLED", "false") == "true",
 		FSPath:                  getEnv("FS_PATH", "./static/uploads"),
 		FSURL:                   getEnv("FS_URL", "/api/files/uploads"),
 		Host:                    getEnv("HOST", ""),

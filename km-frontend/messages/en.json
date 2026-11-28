@@ -2241,7 +2241,8 @@
       "clear": "Clear",
       "done": "{count, plural, one {# applicant moved to {stage}} other {# applicants moved to {stage}}}",
       "partial": "{moved} moved, {failed} could not be moved",
-      "otherPages": "{count, plural, one {# applicant selected on other pages} other {# applicants selected on other pages}}"
+      "otherPages": "{count, plural, one {# applicant selected on other pages} other {# applicants selected on other pages}}",
+      "message": "Send message"
     },
     "move": {
       "title": "{count, plural, one {Move to {stage}?} other {Move # applicants to {stage}?}}",
@@ -2286,7 +2287,8 @@
       "applied": "Applied",
       "pickTitle": "Pick an applicant",
       "pickBody": "Select someone from the list to see their details.",
-      "withdrawnNote": "This candidate withdrew their application. You can still message them or view their profile."
+      "withdrawnNote": "This candidate withdrew their application. You can still message them or view their profile.",
+      "quickReply": "Quick reply"
     },
     "paging": {
       "prev": "Previous",
@@ -2310,6 +2312,12 @@
       "loadTitle": "Applicants could not be loaded.",
       "retry": "Retry",
       "move": "Could not move the applicant"
+    },
+    "export": {
+      "button": "Download Excel",
+      "working": "Preparing…",
+      "failed": "Could not download the file. If there are more than 5000 applicants, pick one job or stage.",
+      "hint": "Download the applicants shown, with the filters you picked"
     }
   },
   "recruiterInterviews": {
@@ -2485,7 +2493,14 @@
       "noApplicants": "No applicants yet",
       "noApplicantsHint": "Share the job link to reach more people.",
       "noApplicantsHidden": "Job seekers can't apply while this job is paused or closed.",
-      "candidate": "Candidate"
+      "candidate": "Candidate",
+      "staleBanner": "This job has been open for over a month. Still hiring? Keep it open, or it will be paused in 7 days.",
+      "keepOpen": "Keep it open",
+      "keeping": "Saving…",
+      "stalePause": "Pause it",
+      "keptOpen": "Job kept open for another 30 days",
+      "keepOpenFailed": "Could not update the job",
+      "stalePausedBanner": "We paused this job because it was open for a long time and we did not hear back. Job seekers can not see it. Resume it if you are still hiring."
     },
     "reach": {
       "title": "Reach",
@@ -2498,6 +2513,15 @@
       "dayViews": "{date}: {count, plural, one {# view} other {# views}}",
       "today": "Today",
       "viewCount": "{count, plural, one {# view} other {# views}}"
+    },
+    "suggested": {
+      "title": "Suggested candidates",
+      "hint": "Job seekers whose skills match this job, people in its city first",
+      "searchAll": "Find more",
+      "failed": "Could not load suggestions",
+      "retry": "Try again",
+      "noneTitle": "No matches yet",
+      "noneHint": "Add skills to the requirements so we can find people who fit."
     }
   },
   "recruiterTalent": {
@@ -2686,5 +2710,116 @@
     "seeFeed": "See the feed",
     "loadMore": "Show more posts",
     "loading": "Loading…"
+  },
+  "myApplications": {
+    "loading": "Loading your applications…",
+    "loadFailed": "Could not load your applications",
+    "errorTitle": "Something went wrong",
+    "tryAgain": "Try again",
+    "emptyTitle": "No applications yet",
+    "emptyText": "Apply to jobs and you can follow each application here.",
+    "exploreJobs": "Find jobs",
+    "filterRecruiterAction": "Recruiter action",
+    "filterApplied": "Applied on KaamMilega",
+    "jobRemoved": "Job removed",
+    "removed": "Removed",
+    "closed": "Closed",
+    "listingArchived": "Listing archived",
+    "archived": "Archived",
+    "employer": "Employer",
+    "removedNote": "The employer removed this job. Your application record is kept below.",
+    "closedNote": "This job is closed to new applicants. Your application is still being reviewed.",
+    "similarJobs": "See similar jobs",
+    "statusTitle": "Application status",
+    "status": {
+      "Applied": "Applied",
+      "Viewed": "Resume viewed",
+      "Shortlisted": "Shortlisted",
+      "Interviewing": "Interviewing",
+      "Rejected": "Not selected",
+      "Hired": "Hired",
+      "Withdrawn": "Withdrawn"
+    },
+    "steps": {
+      "Applied": "Applied",
+      "Viewed": "Application viewed",
+      "Shortlisted": "Resume viewed",
+      "Interviewing": "Waiting for recruiter",
+      "Hired": "Connected"
+    },
+    "withdrawPrompt": "No longer interested? You can withdraw your application.",
+    "withdrawConfirm": "Withdraw this application? The employer will be told, and any upcoming interview for this job will be cancelled. You can't apply to this job again.",
+    "keepIt": "Keep it",
+    "withdrawYes": "Yes, withdraw",
+    "withdrawing": "Withdrawing…",
+    "withdraw": "Withdraw application",
+    "withdrawDone": "Application withdrawn. The employer has been told.",
+    "withdrawFailed": "Could not withdraw the application",
+    "withdrawnNote": "You withdrew this application. The employer can no longer move it forward.",
+    "matchTitle": "What may work for you?",
+    "matchText": "How well you match this job.",
+    "match": {
+      "early": "Early applicant",
+      "skills": "Key skills",
+      "location": "Location",
+      "experience": "Work experience",
+      "industry": "Industry",
+      "department": "Department"
+    },
+    "noLocation": "Location not given",
+    "chatHr": "Chat with HR",
+    "connect": "Connect",
+    "selectTitle": "Pick an application",
+    "selectText": "Choose an application on the left to see its status and next steps."
+  },
+  "recruiterMessages": {
+    "titleOne": "Message {name}",
+    "titleMany": "Message {count} people",
+    "templates": "Templates",
+    "newTemplate": "New template",
+    "templateTitle": "Template name",
+    "templateTitlePlaceholder": "For example: Shortlisted",
+    "templateBody": "Message",
+    "bodyPlaceholder": "Hi {name}, thanks for applying for {job}…",
+    "placeholdersHint": "{name} and {job} are filled in for each person.",
+    "saveTemplate": "Save template",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "templateSaved": "Template saved",
+    "templateSaveFailed": "Could not save the template",
+    "templateDeleteFailed": "Could not delete the template",
+    "editTemplate": "Edit {title}",
+    "deleteTemplate": "Delete {title}",
+    "noTemplates": "No templates yet. Save messages you send often, like \"Shortlisted\" or \"Not selected\".",
+    "message": "Message",
+    "previewFor": "How {name} will see it",
+    "chatNote": "{count, plural, one {It goes to their KaamMilega chat.} other {Each person gets it in their own KaamMilega chat.}}",
+    "send": "{count, plural, one {Send} other {Send to #}}",
+    "sending": "Sending {done} of {count}…",
+    "sent": "{count, plural, one {Message sent} other {Message sent to # people}}",
+    "sentPartial": "Sent to {sent}. {failed} could not be sent.",
+    "sendFailed": "Could not send the message",
+    "tooMany": "You can message up to {max} people at once. Untick some and send the rest after."
+  },
+  "recruiterFeedback": {
+    "title": "Interviews",
+    "howItWent": "How did it go?",
+    "private": "Only you can see this. The candidate never does.",
+    "outcome": {
+      "good": "Good",
+      "okay": "Okay",
+      "poor": "Not a fit",
+      "no_show": "Did not come"
+    },
+    "note": "Feedback note",
+    "notePlaceholder": "A short note (optional)",
+    "save": "Save feedback",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "saved": "Feedback saved",
+    "saveFailed": "Could not save the feedback",
+    "cancelled": "Cancelled",
+    "afterInterview": "You can give feedback after the interview."
   }
 }

@@ -86,7 +86,6 @@ func (s *InterviewService) ScheduleInterview(ctx context.Context, req *ScheduleI
 
 	return created, nil
 }
-	
 
 func (s *InterviewService) GetMyInterviews(ctx context.Context, userID string) ([]InterviewDetail, error) {
 	interviews, err := s.repo.FindByParticipant(ctx, userID)
@@ -108,6 +107,10 @@ func (s *InterviewService) GetMyInterviews(ctx context.Context, userID string) (
 			Notes:         in.Notes,
 			CreatedAt:     in.CreatedAt,
 			UpdatedAt:     in.UpdatedAt,
+		}
+		// Feedback is the employer's own; the candidate never sees it
+		if in.RecruiterID.Hex() == userID {
+			detail.Feedback = in.Feedback
 		}
 
 		// Fetch Job Info

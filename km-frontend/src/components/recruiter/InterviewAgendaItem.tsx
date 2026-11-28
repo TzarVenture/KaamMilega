@@ -16,6 +16,7 @@ import {
 import { btn, cx, StatusBadge } from '@/components/admin/ui';
 import UserAvatar from '@/components/ui/UserAvatar';
 import type { Interview } from '@/lib/api/recruiter';
+import InterviewFeedbackForm, { canGiveFeedback } from './InterviewFeedbackForm';
 
 const TZ = 'Asia/Kolkata';
 
@@ -35,16 +36,20 @@ function TypeGlyph({ type }: { type: string }) {
 }
 
 
-export default function InterviewAgendaItem({ item, overdue, busy, onEdit, onComplete, onCancel, onDelete }: {
+export default function InterviewAgendaItem({ item, overdue, busy, now, onEdit, onComplete, onCancel, onDelete, onFeedbackSaved }: {
     item: Interview;
     overdue?: boolean;
     busy?: boolean;
+    /** The time the list was loaded; feedback is offered once the interview time has passed */
+    now?: number;
     onEdit: () => void;
     onComplete: () => void;
     onCancel: () => void;
     onDelete: () => void;
+    onFeedbackSaved?: (iv: Interview) => void;
 }) {
     const t = useTranslations('recruiterInterviews');
+    const tf = useTranslations('recruiterFeedback');
     const format = useFormatter();
     const when = new Date(item.scheduled_at);
     const candidateId = item.candidate?.id || item.candidate_id;
@@ -102,6 +107,13 @@ export default function InterviewAgendaItem({ item, overdue, busy, onEdit, onCom
                     {link && !scheduled && <span className="min-w-0 truncate">{link}</span>}
                 </div>
                 {item.notes && <p className="mt-2 line-clamp-2 text-sm text-km-text-secondary">{item.notes}</p>}
+
+                {onFeedbackSaved && now !== undefined && canGiveFeedback(item, now) && (
+                    <div className="mt-3 rounded-xl border border-km-border-subtle bg-km-surface px-3 py-2.5">
+                        <p className="mb-1.5 text-xs font-semibold text-km-heading">{tf('howItWent')}</p>
+                        <InterviewFeedbackForm interview={item} onSaved={onFeedbackSaved} compact />
+                    </div>
+                )}
 
                 <div className="mt-3 flex flex-wrap gap-2">
                     {candidateId && (

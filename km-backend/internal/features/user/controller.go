@@ -1212,4 +1212,3 @@ func (ctrl *UserController) GlobalSearch(c *fiber.Ctx) error {
 	}
 	return c.JSON(res)
 }
-

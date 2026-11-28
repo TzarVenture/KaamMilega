@@ -36,6 +36,7 @@ import (
 	"km-backend/internal/features/file"
 	"km-backend/internal/features/job"
 	"km-backend/internal/features/jobalert"
+	"km-backend/internal/features/jobstale"
 	"km-backend/internal/features/recruiterdigest"
 	"km-backend/internal/features/payment"
 	"km-backend/internal/features/question"
@@ -282,6 +283,7 @@ func appOptions() fx.Option {
 			newChatPlanQuota,
 			jobalert.NewService,
 			recruiterdigest.NewService,
+			jobstale.NewService,
 			reminder.NewService,
 			feed.NewFeedService,
 			analytics.NewService,
@@ -334,6 +336,7 @@ func appOptions() fx.Option {
 			AsRoute(job.NewJobApi),
 			AsRoute(application.NewApplicationApi),
 			AsRoute(interview.NewInterviewApi),
+			AsRoute(jobstale.NewApi),
 			AsRoute(city.NewCityApi),
 			AsRoute(company.NewCompanyApi),
 			AsRoute(question.NewQuestionApi),
@@ -377,6 +380,7 @@ func appOptions() fx.Option {
 			// Daily job-alert emails (settings.email_job_alerts)
 			jobalert.RegisterWorker,
 			recruiterdigest.RegisterWorker,
+			jobstale.RegisterWorker,
 			// Session, event and pass reminders
 			reminder.RegisterWorker,
 			// Register Routes & Start

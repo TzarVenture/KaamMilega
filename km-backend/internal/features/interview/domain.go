@@ -16,8 +16,10 @@ type Interview struct {
 	Location      string             `bson:"location" json:"location"` // Address or Link
 	Status        string             `bson:"status" json:"status"`     // Scheduled, Completed, Cancelled
 	Notes         string             `bson:"notes" json:"notes"`
-	CreatedAt     time.Time          `bson:"created_at" json:"created_at"`
-	UpdatedAt     time.Time          `bson:"updated_at" json:"updated_at"`
+	// Feedback: the employer's private notes on how it went (never shown to the candidate)
+	Feedback  *Feedback `bson:"feedback,omitempty" json:"feedback,omitempty"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }
 
 type ScheduleInterviewRequest struct {
@@ -37,7 +39,7 @@ type UpdateInterviewRequest struct {
 	Type        string     `json:"type"`     // Video, Phone, In-person
 	Location    string     `json:"location"` // URL or address
 	Notes       string     `json:"notes"`
-	Status      string     `json:"status"`   // Scheduled, Completed, Cancelled
+	Status      string     `json:"status"` // Scheduled, Completed, Cancelled
 }
 
 type InterviewDetail struct {
@@ -50,6 +52,7 @@ type InterviewDetail struct {
 	Location      string             `json:"location"`
 	Status        string             `json:"status"`
 	Notes         string             `json:"notes"`
+	Feedback      *Feedback          `json:"feedback,omitempty"`
 	CreatedAt     time.Time          `json:"created_at"`
 	UpdatedAt     time.Time          `json:"updated_at"`
 	Job           *InterviewJobInfo  `json:"job"`

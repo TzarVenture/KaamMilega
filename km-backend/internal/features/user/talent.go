@@ -60,19 +60,26 @@ type TalentPage struct {
 }
 
 type TalentApi struct {
-	coll  *mongo.Collection
-	saved *mongo.Collection
-	cfg   *config.Config
+	coll         *mongo.Collection
+	saved        *mongo.Collection
+	templates    *mongo.Collection
+	jobs         *mongo.Collection
+	applications *mongo.Collection
+	cfg          *config.Config
 }
 
 func NewTalentApi(db *database.MongodbDB, cfg *config.Config) api.Route {
-	return &TalentApi{coll: db.DB.Collection("users"), saved: db.DB.Collection("saved_candidates"), cfg: cfg}
+	return &TalentApi{coll: db.DB.Collection("users"), saved: db.DB.Collection("saved_candidates"),
+		templates: db.DB.Collection("reply_templates"), jobs: db.DB.Collection("jobs"),
+		applications: db.DB.Collection("applications"), cfg: cfg}
 }
 
 func (a *TalentApi) Setup(app *fiber.App) {
 	auth, employer := middleware.AuthMiddleware(a.cfg.JWTSecret), middleware.RequireRole(RoleRecruiter, RoleAdmin)
 	app.Get("/api/recruiter/talent", auth, employer, a.search)
 	a.setupSaved(app, auth, employer)
+	a.setupTemplates(app, auth, employer)
+	app.Get("/api/recruiter/jobs/:id/suggested", auth, employer, a.suggested)
 }
 
 // talentQuery builds the database filter (kept separate so tests can check it)

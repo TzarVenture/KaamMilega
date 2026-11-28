@@ -1,17 +1,18 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowsDownUpIcon, BriefcaseIcon, CaretLeftIcon, CaretRightIcon, UsersThreeIcon, WarningCircleIcon } from "@phosphor-icons/react";
+import { ArrowsDownUpIcon, BriefcaseIcon, ChatCircleTextIcon, DownloadSimpleIcon, CaretLeftIcon, CaretRightIcon, UsersThreeIcon, WarningCircleIcon } from "@phosphor-icons/react";
 import { btn, cx, EmptyState, SearchInput, SkeletonRows } from "@/components/admin/ui";
 import { notify } from "@/lib/notify";
-import { STAGES, jobStatus, recruiterApi, type Applicant, type ApplicantsPage, type AppStatus, type MyJob, type Stage } from "@/lib/api/recruiter";
+import { STAGES, jobStatus, recruiterApi, type Applicant, type ApplicantsPage, type AppStatus, type Interview, type MyJob, type Stage } from "@/lib/api/recruiter";
 import ApplicantList from "@/components/recruiter/ApplicantList";
 import ApplicantPanel from "@/components/recruiter/ApplicantPanel";
 import StageMoveDialog from "@/components/recruiter/StageMoveDialog";
 import ScheduleInterviewModal from "@/components/recruiter/ScheduleInterviewModal";
+import MessageDialog, { type Recipient } from "@/components/recruiter/MessageDialog";
 
 const LIMIT = 25;
 const SORTS = ["newest", "oldest", "rating"] as const;
@@ -51,6 +52,12 @@ function ApplicationsContent() {
     const [pending, setPending] = useState<PendingMove | null>(null);
     const [moving, setMoving] = useState(false);
     const [scheduleId, setScheduleId] = useState<string | null>(null);
+    const [interviews, setInterviews] = useState<Interview[]>([]);
+    const [ivReload, setIvReload] = useState(0);
+    const [messaging, setMessaging] = useState<Recipient[] | null>(null);
+    const [exporting, setExporting] = useState(false);
+    // Applicants seen on any page, so people ticked on other pages can still be messaged
+    const seen = useRef(new Map<string, Applicant>());
 
     const setParams = useCallback((patch: Record<string, string | number | null>) => {
         const next = new URLSearchParams(params.toString());
@@ -73,6 +80,15 @@ function ApplicationsContent() {
             .catch(() => setJobs([]));
     }, []);
 
+    // Interviews, to show and give feedback on in each applicant's panel
+    useEffect(() => {
+        let alive = true;
+        recruiterApi.interviews()
+            .then((list) => { if (alive) setInterviews(list || []); })
+            .catch(() => undefined);
+        return () => { alive = false; };
+    }, [ivReload]);
+
     // The current page of applicants
     useEffect(() => {
         let alive = true;
@@ -80,6 +96,7 @@ function ApplicationsContent() {
         recruiterApi.applicants({ job_id: j, status: s, search: q, sort: so, page: p, limit: LIMIT })
             .then((data) => {
                 if (!alive) return;
+                (data.items || []).forEach((a) => seen.current.set(a.id, a));
                 setLoaded({ key, data: { ...data, items: data.items || [] } });
                 setError(null);
                 setNow(Date.now());
@@ -121,6 +138,38 @@ function ApplicationsContent() {
     }, [jobId, search]);
 
     const openApplicant = (id: string | null) => setParams({ a: id });
+
+    const recipientOf = (a: Applicant): Recipient => ({ candidateId: a.candidate?.id || a.candidate_id, name: a.candidate?.name || t("list.unnamed"), job: a.job?.title });
+    const messageChecked = () => {
+        const list = [...checked].map((id) => seen.current.get(id)).filter((a): a is Applicant => !!a).map(recipientOf);
+        // One message per person, even if they applied to several of the jobs ticked
+        setMessaging(list.filter((r, i) => list.findIndex((x) => x.candidateId === r.candidateId) === i));
+    };
+    const saveInterview = (iv: Interview) => setInterviews((list) => list.map((x) => (x.id === iv.id ? { ...x, ...iv } : x)));
+    const selectedInterviews = useMemo(
+        () => interviews.filter((iv) => iv.application_id === openId).sort((x, y) => new Date(y.scheduled_at).getTime() - new Date(x.scheduled_at).getTime()),
+        [interviews, openId],
+    );
+
+    const exportFile = async () => {
+        if (exporting) return;
+        setExporting(true);
+        try {
+            const blob = await recruiterApi.exportApplicants({ job_id: jobId, status, search });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `applicants-${new Date().toISOString().slice(0, 10)}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+        } catch (err) {
+            notify.error(err, t("export.failed"));
+        } finally {
+            setExporting(false);
+        }
+    };
 
     const toggle = (id: string) => setChecked((prev) => {
         const next = new Set(prev);
@@ -185,9 +234,14 @@ function ApplicationsContent() {
                     <h1 className="text-2xl font-bold text-km-heading tracking-tight">{t("title")}</h1>
                     <p className="mt-1 text-sm text-km-text-secondary">{t("description")}</p>
                 </div>
-                <Link href="/recruiter/jobs/create" className={cx(btn.accent, "self-start sm:self-auto")}>
-                    <BriefcaseIcon size={18} aria-hidden="true" />{t("postJob")}
-                </Link>
+                <div className="flex flex-wrap gap-2 self-start sm:self-auto">
+                    <button type="button" onClick={exportFile} disabled={exporting || !total} className={btn.secondary} title={t("export.hint")}>
+                        <DownloadSimpleIcon size={18} aria-hidden="true" />{exporting ? t("export.working") : t("export.button")}
+                    </button>
+                    <Link href="/recruiter/jobs/create" className={btn.accent}>
+                        <BriefcaseIcon size={18} aria-hidden="true" />{t("postJob")}
+                    </Link>
+                </div>
             </div>
 
             {/* Filters */}
@@ -265,6 +319,9 @@ function ApplicationsContent() {
                         <option value="">{t("bulk.moveTo")}</option>
                         {STAGES.map((s) => <option key={s} value={s}>{t(`stage.${s}`)}</option>)}
                     </select>
+                    <button type="button" onClick={messageChecked} className="h-9 px-3 rounded-lg bg-white text-[#071A4D] text-sm font-semibold cursor-pointer inline-flex items-center gap-1.5">
+                        <ChatCircleTextIcon size={16} aria-hidden="true" />{t("bulk.message")}
+                    </button>
                     <button type="button" onClick={() => setChecked(new Set())} className="ml-auto h-9 px-3 rounded-lg text-sm font-semibold hover:bg-[#0B1F52] cursor-pointer">
                         {t("bulk.clear")}
                     </button>
@@ -358,6 +415,9 @@ function ApplicationsContent() {
                             onRequestMove={(stage) => setPending({ ids: [selected.id], stage, name: selected.candidate?.name })}
                             onSchedule={() => setScheduleId(selected.id)}
                             onPatch={patchItem}
+                            interviews={selectedInterviews}
+                            onInterviewSaved={saveInterview}
+                            onQuickReply={() => setMessaging([recipientOf(selected)])}
                         />
                     ) : data && items.length > 0 ? (
                         <div className="hidden lg:block bg-km-surface-card border border-km-border rounded-2xl">
@@ -381,8 +441,12 @@ function ApplicationsContent() {
                     isOpen
                     applicationId={scheduleId}
                     onClose={() => setScheduleId(null)}
-                    onSuccess={() => { setReload((n) => n + 1); }}
+                    onSuccess={() => { setReload((n) => n + 1); setIvReload((n) => n + 1); }}
                 />
+            )}
+
+            {messaging && messaging.length > 0 && (
+                <MessageDialog recipients={messaging} onClose={() => setMessaging(null)} onSent={() => setChecked(new Set())} />
             )}
         </div>
     );

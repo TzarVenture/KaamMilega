@@ -119,10 +119,10 @@ func NewUserService(repo UserRepository, smsService sms.SMSService, skillRepo sk
 }
 
 const (
-	otpResendCooldown  = 30 * time.Second
+	otpResendCooldown = 30 * time.Second
 	// minPasswordLength applies to new passwords only (NIST SP 800-63B minimum);
 	// existing shorter passwords still sign in
-	minPasswordLength = 8
+	minPasswordLength  = 8
 	otpMaxSendsPerHour = 5
 	otpMaxAttempts     = 5
 )
@@ -1908,4 +1908,3 @@ func (s *UserServiceImpl) ExportRevenueCSV(ctx context.Context, status string) (
 func (s *UserServiceImpl) GlobalSearch(ctx context.Context, query string) (*GlobalSearchResponse, error) {
 	return s.repo.GlobalSearch(ctx, query)
 }
-

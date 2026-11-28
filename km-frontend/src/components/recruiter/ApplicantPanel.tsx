@@ -5,13 +5,14 @@ import Link from 'next/link';
 import { useFormatter, useTranslations } from 'next-intl';
 import {
     ArrowLeftIcon, CalendarBlankIcon, CaretLeftIcon, CaretRightIcon, ChatCircleIcon, EnvelopeSimpleIcon,
-    FileTextIcon, LockSimpleIcon, MapPinIcon, PhoneIcon, StarIcon, UserIcon,
+    FileTextIcon, LightningIcon, LockSimpleIcon, MapPinIcon, PhoneIcon, StarIcon, UserIcon,
 } from '@phosphor-icons/react';
 import { btn, cx, field, LogoTile } from '@/components/admin/ui';
-import { STAGES, STAGE_COLOR, recruiterApi, type Applicant, type Stage } from '@/lib/api/recruiter';
+import { STAGES, STAGE_COLOR, recruiterApi, type Applicant, type Interview, type Stage } from '@/lib/api/recruiter';
 import { openFile } from '@/lib/upload';
 import { notify } from '@/lib/notify';
 import { StageChip } from './ApplicantList';
+import InterviewFeedbackForm, { canGiveFeedback } from './InterviewFeedbackForm';
 
 const TZ = 'Asia/Kolkata';
 
@@ -28,17 +29,23 @@ function Section({ title, children, aside }: { title: string; children: React.Re
 }
 
 /** One applicant's details and actions. Remount (key) per applicant so local edits reset. */
-export default function ApplicantPanel({ applicant: a, onBack, onPrev, onNext, onRequestMove, onSchedule, onPatch }: {
+export default function ApplicantPanel({ applicant: a, interviews = [], onBack, onPrev, onNext, onRequestMove, onSchedule, onPatch, onQuickReply, onInterviewSaved }: {
     applicant: Applicant;
+    /** This application's interviews, newest first */
+    interviews?: Interview[];
     onBack: () => void;
     onPrev?: () => void;
     onNext?: () => void;
     onRequestMove: (stage: Stage) => void;
     onSchedule: () => void;
     onPatch: (id: string, patch: Partial<Applicant>) => void;
+    onQuickReply?: () => void;
+    onInterviewSaved?: (iv: Interview) => void;
 }) {
     const t = useTranslations('recruiterApplicants');
+    const tf = useTranslations('recruiterFeedback');
     const format = useFormatter();
+    const [now] = useState(() => Date.now());
     const name = a.candidate?.name || t('list.unnamed');
     const [note, setNote] = useState(a.note || '');
     const [savedNote, setSavedNote] = useState(a.note || '');
@@ -161,6 +168,11 @@ export default function ApplicantPanel({ applicant: a, onBack, onPrev, onNext, o
                     <CalendarBlankIcon size={18} aria-hidden="true" />{t('panel.schedule')}
                 </button>
                 </>)}
+                {onQuickReply && (
+                    <button type="button" onClick={onQuickReply} className={btn.secondary}>
+                        <LightningIcon size={18} aria-hidden="true" />{t('panel.quickReply')}
+                    </button>
+                )}
                 <Link href={`/chat?userId=${cid}`} className={btn.secondary}>
                     <ChatCircleIcon size={18} aria-hidden="true" />{t('panel.message')}
                 </Link>
@@ -173,6 +185,26 @@ export default function ApplicantPanel({ applicant: a, onBack, onPrev, onNext, o
                     </button>
                 )}
             </div>
+
+            {interviews.length > 0 && (
+                <Section title={tf('title')}>
+                    <ul className="space-y-4">
+                        {interviews.map((iv) => (
+                            <li key={iv.id} className="space-y-2">
+                                <p className="text-sm text-km-heading">
+                                    {dateTime(iv.scheduled_at)}
+                                    <span className="text-km-text-secondary"> · {iv.type}{iv.status === 'Cancelled' ? ` · ${tf('cancelled')}` : ''}</span>
+                                </p>
+                                {canGiveFeedback(iv, now) ? (
+                                    <InterviewFeedbackForm interview={iv} onSaved={(saved) => onInterviewSaved?.(saved)} />
+                                ) : iv.status !== 'Cancelled' ? (
+                                    <p className="text-xs text-km-text-secondary">{tf('afterInterview')}</p>
+                                ) : null}
+                            </li>
+                        ))}
+                    </ul>
+                </Section>
+            )}
 
             <Section
                 title={t('panel.rating')}

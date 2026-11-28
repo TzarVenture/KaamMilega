@@ -39,6 +39,9 @@ type Mailer interface {
 	// SendRecruiterDigest is the employer's daily summary: new applicants and today's interviews.
 	SendRecruiterDigest(p RecruiterDigestParams) error
 
+	// SendStaleJob tells an employer a job has been open a long time (or was paused for it).
+	SendStaleJob(p StaleJobParams) error
+
 	// SendTransactionReceipt sends a detailed receipt after a financial transaction.
 	SendTransactionReceipt(p TransactionReceiptParams) error
 
@@ -66,7 +69,7 @@ type InterviewInviteParams struct {
 	CandidateName string
 	JobTitle      string
 	CompanyName   string
-	InterviewType string    // e.g. "Video Call", "In-Person", "Phone Screen"
+	InterviewType string // e.g. "Video Call", "In-Person", "Phone Screen"
 	ScheduledAt   time.Time
 	Location      string // Meeting link or physical address
 	Notes         string
@@ -153,15 +156,15 @@ type TransactionReceiptParams struct {
 
 // WithdrawalRequestParams carries data for expert payout request emails.
 type WithdrawalRequestParams struct {
-	AdminEmail    string
-	ExpertEmail   string
-	ExpertName    string
-	Amount        float64
-	ReferenceID   string
-	PayoutMethod  string // "upi" | "bank"
-	Destination   string // masked account or UPI ID
-	Remaining     float64
-	PhoneNumber   string
+	AdminEmail   string
+	ExpertEmail  string
+	ExpertName   string
+	Amount       float64
+	ReferenceID  string
+	PayoutMethod string // "upi" | "bank"
+	Destination  string // masked account or UPI ID
+	Remaining    float64
+	PhoneNumber  string
 }
 
 // EmailOTPParams carries data for authentication & verification OTP emails.
@@ -611,19 +614,20 @@ var sendRaw = dialAndSend
 // It silently discards all emails and never returns an error.
 type noopMailer struct{}
 
-func (n *noopMailer) SendInterviewInvite(_ InterviewInviteParams) error      { return nil }
-func (n *noopMailer) SendApplicationUpdate(_ ApplicationUpdateParams) error  { return nil }
-func (n *noopMailer) SendNewApplication(_ NewApplicationParams) error        { return nil }
+func (n *noopMailer) SendInterviewInvite(_ InterviewInviteParams) error     { return nil }
+func (n *noopMailer) SendApplicationUpdate(_ ApplicationUpdateParams) error { return nil }
+func (n *noopMailer) SendNewApplication(_ NewApplicationParams) error       { return nil }
 func (n *noopMailer) SendApplicationWithdrawn(_ ApplicationWithdrawnParams) error {
 	return nil
 }
-func (n *noopMailer) SendRecruiterDigest(_ RecruiterDigestParams) error { return nil }
+func (n *noopMailer) SendRecruiterDigest(_ RecruiterDigestParams) error       { return nil }
+func (n *noopMailer) SendStaleJob(_ StaleJobParams) error                     { return nil }
 func (n *noopMailer) SendTransactionReceipt(_ TransactionReceiptParams) error { return nil }
-func (n *noopMailer) SendWithdrawalRequest(_ WithdrawalRequestParams) error  { return nil }
-func (n *noopMailer) SendEmailOTP(_ EmailOTPParams) error                    { return nil }
-func (n *noopMailer) SendAccountNotice(_ AccountNoticeParams) error          { return nil }
-func (n *noopMailer) SendJobAlert(_ JobAlertParams) error                    { return nil }
-func (n *noopMailer) SendRaw(_, _, _ string) error                           { return nil }
+func (n *noopMailer) SendWithdrawalRequest(_ WithdrawalRequestParams) error   { return nil }
+func (n *noopMailer) SendEmailOTP(_ EmailOTPParams) error                     { return nil }
+func (n *noopMailer) SendAccountNotice(_ AccountNoticeParams) error           { return nil }
+func (n *noopMailer) SendJobAlert(_ JobAlertParams) error                     { return nil }
+func (n *noopMailer) SendRaw(_, _, _ string) error                            { return nil }
 
 // ─── SMTP Dial & Send ─────────────────────────────────────────────────────────
 

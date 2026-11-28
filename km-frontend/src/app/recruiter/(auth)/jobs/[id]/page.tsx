@@ -8,6 +8,7 @@ import {
     ArrowLeftIcon,
     ArrowRightIcon,
     BriefcaseIcon,
+    ClockCountdownIcon,
     EyeSlashIcon,
     PencilSimpleIcon,
     ShareNetworkIcon,
@@ -22,6 +23,7 @@ import StageBar from "@/components/recruiter/StageBar";
 import JobActionsMenu, { useJobActions } from "@/components/recruiter/JobActionsMenu";
 import { salaryRange } from "@/components/recruiter/jobFormat";
 import JobReach from "@/components/recruiter/JobReach";
+import SuggestedCandidates from "@/components/recruiter/SuggestedCandidates";
 
 type LoadState = "loading" | "ok" | "notfound" | "error";
 
@@ -55,6 +57,21 @@ export default function JobHubPage() {
     const retry = () => { setState("loading"); setLatest(null); setReload((n) => n + 1); };
     const onDeleted = useCallback(() => router.replace("/recruiter/jobs/list"), [router]);
     const { run, dialog, busy } = useJobActions(job, { onUpdated: setJob, onDeleted });
+
+    const [keeping, setKeeping] = useState(false);
+    const keepOpen = async () => {
+        if (!job || keeping) return;
+        setKeeping(true);
+        try {
+            await recruiterApi.keepOpen(job.id);
+            setJob({ ...job, status: "Open", stale_reminded_at: undefined });
+            notify.success(t("hub.keptOpen"));
+        } catch (err) {
+            notify.error(err, t("hub.keepOpenFailed"));
+        } finally {
+            setKeeping(false);
+        }
+    };
 
     const share = async () => {
         const url = `${window.location.origin}/jobs/${id}`;
@@ -131,10 +148,21 @@ export default function JobHubPage() {
             {status !== "Open" && (
                 <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200" role="status">
                     <EyeSlashIcon size={22} weight="duotone" className="shrink-0" aria-hidden="true" />
-                    <p className="text-sm flex-1">{t(status === "Paused" ? "hub.pausedBanner" : "hub.closedBanner")}</p>
+                    <p className="text-sm flex-1">{t(status === "Paused" ? (job.stale_paused_at ? "hub.stalePausedBanner" : "hub.pausedBanner") : "hub.closedBanner")}</p>
                     <button type="button" disabled={busy} onClick={() => run(status === "Paused" ? "resume" : "reopen")} className={cx(btn.secondary, "shrink-0")}>
                         {t(status === "Paused" ? "actions.resume" : "actions.reopen")}
                     </button>
+                </div>
+            )}
+
+            {status === "Open" && job.stale_reminded_at && (
+                <div className="mb-6 flex flex-col sm:flex-row sm:items-center gap-3 rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-900 dark:border-blue-900 dark:bg-[#0F2552] dark:text-blue-100" role="status">
+                    <ClockCountdownIcon size={22} weight="duotone" className="shrink-0" aria-hidden="true" />
+                    <p className="text-sm flex-1">{t("hub.staleBanner")}</p>
+                    <div className="flex gap-2 shrink-0">
+                        <button type="button" disabled={busy || keeping} onClick={() => run("pause")} className={btn.secondary}>{t("hub.stalePause")}</button>
+                        <button type="button" disabled={keeping} onClick={keepOpen} className={btn.primary}>{keeping ? t("hub.keeping") : t("hub.keepOpen")}</button>
+                    </div>
                 </div>
             )}
 
@@ -228,6 +256,8 @@ export default function JobHubPage() {
                     )}
                 </AdminPanel>
             </div>
+
+            {status === "Open" && <SuggestedCandidates jobId={job.id} />}
 
             {dialog}
         </div>

@@ -187,6 +187,8 @@ function InterviewsView() {
             onComplete={() => void setStatus(i, "Completed")}
             onCancel={() => setConfirm({ kind: "cancel", item: i })}
             onDelete={() => setConfirm({ kind: "delete", item: i })}
+            now={now || undefined}
+            onFeedbackSaved={(iv) => setItems((list) => list.map((x) => (x.id === iv.id ? { ...x, ...iv } : x)))}
         />
     );
 

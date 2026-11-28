@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowSquareOutIcon, BriefcaseIcon, CaretRightIcon, ChatIcon, CheckCircleIcon, CircleNotchIcon, ClockIcon, LightningIcon, PhoneCallIcon, StarIcon, WarningCircleIcon } from '@phosphor-icons/react';
 import { cn } from "@/lib/utils";
 import { errorText, notify } from "@/lib/notify";
+import { useFormatter, useTranslations } from "next-intl";
 
 type JobInfo = {
     id: string;
@@ -35,45 +36,8 @@ type ApplicationDetail = {
     job?: JobInfo | null;
 };
 
-const STEPS = [
-    { label: "Applied", key: "Applied" },
-    { label: "Application Viewed", key: "Viewed" },
-    { label: "Resume View", key: "Shortlisted" },
-    { label: "Awaiting Recruiter Response", key: "Interviewing" },
-    { label: "Connect", key: "Hired" },
-];
-
-function formatTimeAgo(dateString: string) {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const now = new Date();
-    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-
-    if (seconds < 60) return "just now";
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
-    const days = Math.floor(hours / 24);
-    if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
-    const weeks = Math.floor(days / 7);
-    if (weeks < 4) return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
-    const months = Math.floor(days / 30);
-    return `${months} month${months > 1 ? 's' : ''} ago`;
-}
-
-function getStatusDisplay(status: string) {
-    const map: Record<string, string> = {
-        "Applied": "Applied",
-        "Viewed": "Resume viewed",
-        "Shortlisted": "Resume shortlisted",
-        "Interviewing": "Interviewing",
-        "Rejected": "Rejected",
-        "Hired": "Hired",
-        "Withdrawn": "Withdrawn"
-    };
-    return map[status] || status;
-}
+const STEPS = ["Applied", "Viewed", "Shortlisted", "Interviewing", "Hired"] as const;
+const STATUSES = ["Applied", "Viewed", "Shortlisted", "Interviewing", "Rejected", "Hired", "Withdrawn"];
 
 function getStatusBadgeClass(status: string) {
     switch (status) {
@@ -97,6 +61,10 @@ function getStatusBadgeClass(status: string) {
 }
 
 export default function ApplicationsPage() {
+    const t = useTranslations("myApplications");
+    const format = useFormatter();
+    const statusText = (status: string) => (STATUSES.includes(status) ? t(`status.${status}`) : status);
+    const ago = (d: string) => (d ? format.relativeTime(new Date(d), new Date()) : "");
     const [applications, setApplications] = useState<ApplicationDetail[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -110,9 +78,9 @@ export default function ApplicationsPage() {
         try {
             const updated = await api.post(`/applications/${id}/withdraw`) as { status?: string; updated_at?: string };
             setApplications((list) => list.map((a) => a.id === id ? { ...a, status: updated?.status || "Withdrawn", updated_at: updated?.updated_at || new Date().toISOString() } : a));
-            notify.success("Application withdrawn. The employer has been told.");
+            notify.success(t("withdrawDone"));
         } catch (err) {
-            notify.error(err, "Could not withdraw the application");
+            notify.error(err, t("withdrawFailed"));
         } finally {
             setWithdrawing(false);
             setConfirmWithdraw(null);
@@ -128,13 +96,13 @@ export default function ApplicationsPage() {
                     setSelectedId(data[0].id);
                 }
             } catch (err: any) {
-                setError(errorText(err, "Failed to load applications"));
+                setError(errorText(err, t("loadFailed")));
             } finally {
                 setLoading(false);
             }
         };
         load();
-    }, []);
+    }, [t]);
 
     const selectedApp = useMemo(() =>
         applications.find(a => a.id === selectedId),
@@ -145,7 +113,7 @@ export default function ApplicationsPage() {
             <div className="flex h-[80vh] items-center justify-center">
                 <div className="text-center space-y-4">
                     <CircleNotchIcon className="w-10 h-10 animate-spin text-km-heading mx-auto" />
-                    <p className="text-km-text-secondary font-medium">Crunching your career moves...</p>
+                    <p className="text-km-text-secondary font-medium">{t("loading")}</p>
                 </div>
             </div>
         );
@@ -155,13 +123,13 @@ export default function ApplicationsPage() {
         return (
             <div className="max-w-4xl mx-auto mt-20 p-8 bg-red-50 border border-red-100 rounded-3xl text-center">
                 <WarningCircleIcon className="w-12 h-12 text-red-500 mx-auto mb-4 dark:text-red-400" />
-                <h2 className="text-xl font-bold text-red-900 mb-2">Oops! Something went wrong</h2>
+                <h2 className="text-xl font-bold text-red-900 mb-2">{t("errorTitle")}</h2>
                 <p className="text-red-700">{error}</p>
                 <button
                     onClick={() => window.location.reload()}
                     className="mt-6 px-6 py-2 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition"
                 >
-                    Try Again
+                    {t("tryAgain")}
                 </button>
             </div>
         );
@@ -171,15 +139,15 @@ export default function ApplicationsPage() {
         return (
             <div className="max-w-4xl mx-auto mt-20 p-12 bg-km-surface-card border border-km-border rounded-3xl text-center shadow-sm">
                 <BriefcaseIcon size={48} weight="duotone" className="text-km-text-muted mx-auto mb-6" aria-hidden="true" />
-                <h2 className="text-2xl font-bold text-km-text-primary mb-2">No Applications Yet</h2>
+                <h2 className="text-2xl font-bold text-km-text-primary mb-2">{t("emptyTitle")}</h2>
                 <p className="text-km-text-secondary max-w-md mx-auto mb-8">
-                    Your dream job is waiting! Start applying to see your application journey reflected here.
+                    {t("emptyText")}
                 </p>
                 <a
                     href="/jobs"
                     className="inline-flex items-center gap-2 px-8 py-3 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-lg shadow-blue-900/10"
                 >
-                    Explore Jobs
+                    {t("exploreJobs")}
                     <CaretRightIcon weight="bold" className="w-4 h-4" />
                 </a>
             </div>
@@ -194,10 +162,10 @@ export default function ApplicationsPage() {
                     <div className="w-full lg:w-100 shrink-0 space-y-6">
                         <div className="flex gap-2">
                             <button className="px-4 py-2 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-secondary hover:border-km-primary hover:text-km-heading transition">
-                                Recruiter Action (7)
+                                {t("filterRecruiterAction")}
                             </button>
                             <button className="px-4 py-2 bg-km-surface-card border border-km-border rounded-xl text-sm font-medium text-km-text-secondary hover:border-km-primary hover:text-km-heading transition">
-                                Applied On KM (12)
+                                {t("filterApplied")}
                             </button>
                         </div>
 
@@ -219,20 +187,20 @@ export default function ApplicationsPage() {
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <h3 className="font-bold text-km-text-primary truncate text-[17px]">
-                                                {app?.job?.title || "Position Closed / Removed"}
+                                                {app?.job?.title || t("jobRemoved")}
                                             </h3>
                                             {isJobDeleted ? (
                                                 <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-km-surface text-km-text-secondary font-medium">
-                                                    Removed
+                                                    {t("removed")}
                                                 </span>
                                             ) : isJobClosed ? (
                                                 <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200/80 font-medium">
-                                                    Closed
+                                                    {t("closed")}
                                                 </span>
                                             ) : null}
                                         </div>
                                         <div className="flex items-center gap-2 mt-1 text-sm text-km-text-secondary">
-                                            <span>{app?.job?.company || "Listing archived"}</span>
+                                            <span>{app?.job?.company || t("listingArchived")}</span>
                                             {app?.job?.rating ? (
                                                 <>
                                                     <div className="flex items-center gap-0.5 text-amber-500 font-medium dark:text-amber-400">
@@ -248,10 +216,10 @@ export default function ApplicationsPage() {
                                         <div className="mt-4 flex items-center justify-between">
                                             <div className={cn("flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border", getStatusBadgeClass(app.status))}>
                                                 <CheckCircleIcon weight="bold" className="w-3 h-3" />
-                                                {getStatusDisplay(app.status)} {formatTimeAgo(app.updated_at)}
+                                                {statusText(app.status)} {ago(app.updated_at)}
                                             </div>
                                             <span className="text-[11px] text-km-text-secondary font-medium">
-                                                {app?.job?.last_active || (isJobDeleted ? "Archived" : "")}
+                                                {app?.job?.last_active || (isJobDeleted ? t("archived") : "")}
                                             </span>
                                         </div>
                                     </button>
@@ -267,26 +235,26 @@ export default function ApplicationsPage() {
                                 {/* Job Header */}
                                 <div className="space-y-3">
                                     <h1 className="text-2xl sm:text-3xl font-bold text-km-text-primary">
-                                        {selectedApp?.job?.title || "Position Closed / Removed"}
+                                        {selectedApp?.job?.title || t("jobRemoved")}
                                         {selectedApp?.job?.location ? ` | ${selectedApp.job.location}` : ""}
                                     </h1>
 
                                     {(!selectedApp.job || selectedApp.job.status === "Deleted") && (
                                         <div className="p-3 rounded-xl bg-km-surface border border-km-border text-xs text-km-text-secondary flex items-center gap-2">
                                             <WarningCircleIcon size={16} weight="regular" className="text-km-text-secondary shrink-0" aria-hidden="true" />
-                                            <span>This opening was removed by the employer. Your past application record remains securely preserved below.</span>
+                                            <span>{t("removedNote")}</span>
                                         </div>
                                     )}
 
                                     {selectedApp.job && selectedApp.job.status === "Closed" && (
                                         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
                                             <WarningCircleIcon size={16} weight="regular" className="text-amber-600 shrink-0" aria-hidden="true" />
-                                            <span>This opening is closed to new applicants. Your application is under review.</span>
+                                            <span>{t("closedNote")}</span>
                                         </div>
                                     )}
 
                                     <div className="flex items-center gap-3 text-km-text-secondary font-medium">
-                                        <span className="text-km-text-primary font-bold">{selectedApp?.job?.company || "Employer"}</span>
+                                        <span className="text-km-text-primary font-bold">{selectedApp?.job?.company || t("employer")}</span>
                                         {selectedApp?.job?.rating ? (
                                             <>
                                                 <div className="flex items-center gap-1 text-amber-500 dark:text-amber-400">
@@ -302,7 +270,7 @@ export default function ApplicationsPage() {
                                         href={`/jobs${selectedApp?.job?.title ? `?search=${encodeURIComponent(selectedApp.job.title)}` : ""}`}
                                         className="mt-2 text-km-heading font-bold text-sm hover:underline inline-flex items-center gap-1"
                                     >
-                                        <span>View Similar Jobs</span>
+                                        <span>{t("similarJobs")}</span>
                                         <ArrowSquareOutIcon weight="bold" className="w-3.5 h-3.5" aria-hidden="true" />
                                     </Link>
                                 </div>
@@ -311,7 +279,7 @@ export default function ApplicationsPage() {
 
                                 {/* Status Stepper */}
                                 <div className="space-y-8">
-                                    <h2 className="text-xl font-bold text-km-text-primary">Application Status</h2>
+                                    <h2 className="text-xl font-bold text-km-text-primary">{t("statusTitle")}</h2>
                                     <div className="relative pt-4 px-4">
                                         {/* Background Trace */}
                                         <div className="absolute top-4.5 left-[5%] right-[5%] h-1 bg-km-surface rounded-full" />
@@ -341,7 +309,7 @@ export default function ApplicationsPage() {
                                                         {STEPS.map((step, idx) => {
                                                             const isActive = currentIndex >= idx;
                                                             return (
-                                                                <div key={step.key} className="flex flex-col items-center group w-1/5">
+                                                                <div key={step} className="flex flex-col items-center group w-1/5">
                                                                     <div className={cn(
                                                                         "w-4 h-4 rounded-full border-4 z-10 transition-all duration-300 ring-4",
                                                                         isActive
@@ -352,7 +320,7 @@ export default function ApplicationsPage() {
                                                                         "mt-4 text-[11px] font-bold text-center max-w-25",
                                                                         isActive ? "text-km-heading font-bold" : "text-km-text-secondary"
                                                                     )}>
-                                                                        {step.label}
+                                                                        {t(`steps.${step}`)}
                                                                     </span>
                                                                 </div>
                                                             );
@@ -368,28 +336,28 @@ export default function ApplicationsPage() {
                                     <div className="flex flex-col gap-3 rounded-2xl border border-km-border bg-km-surface p-4 sm:flex-row sm:items-center sm:justify-between">
                                         <p className="text-sm text-km-text-secondary">
                                             {confirmWithdraw === selectedApp.id
-                                                ? "Withdraw this application? The employer will be told, and any upcoming interview for this job will be cancelled. You can't apply to this job again."
-                                                : "No longer interested? You can withdraw your application."}
+                                                ? t("withdrawConfirm")
+                                                : t("withdrawPrompt")}
                                         </p>
                                         {confirmWithdraw === selectedApp.id ? (
                                             <div className="flex shrink-0 gap-2">
                                                 <button type="button" onClick={() => setConfirmWithdraw(null)} disabled={withdrawing} className="rounded-xl border border-km-border bg-km-surface-card px-4 py-2 text-sm font-semibold text-km-text-primary hover:bg-km-surface">
-                                                    Keep it
+                                                    {t("keepIt")}
                                                 </button>
                                                 <button type="button" onClick={() => withdraw(selectedApp.id)} disabled={withdrawing} className="rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white hover:bg-rose-700 disabled:opacity-60">
-                                                    {withdrawing ? "Withdrawing…" : "Yes, withdraw"}
+                                                    {withdrawing ? t("withdrawing") : t("withdrawYes")}
                                                 </button>
                                             </div>
                                         ) : (
                                             <button type="button" onClick={() => setConfirmWithdraw(selectedApp.id)} className="shrink-0 rounded-xl border border-km-border bg-km-surface-card px-4 py-2 text-sm font-semibold text-km-text-primary hover:border-rose-300 hover:text-rose-700">
-                                                Withdraw application
+                                                {t("withdraw")}
                                             </button>
                                         )}
                                     </div>
                                 )}
                                 {selectedApp.status === "Withdrawn" && (
                                     <p className="rounded-2xl border border-km-border bg-km-surface p-4 text-sm text-km-text-secondary">
-                                        You withdrew this application. The employer can no longer move it forward.
+                                        {t("withdrawnNote")}
                                     </p>
                                 )}
 
@@ -398,17 +366,17 @@ export default function ApplicationsPage() {
                                 {/* Matching Criteria */}
                                 <div className="space-y-6">
                                     <div className="space-y-1">
-                                        <h2 className="text-xl font-bold text-km-text-primary">What may work for you?</h2>
-                                        <p className="text-km-text-secondary font-medium">Following criteria suggests how well you match with the job.</p>
+                                        <h2 className="text-xl font-bold text-km-text-primary">{t("matchTitle")}</h2>
+                                        <p className="text-km-text-secondary font-medium">{t("matchText")}</p>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4">
                                         {[
-                                            { label: "Early Applicant", match: true },
-                                            { label: "Keyskills", match: false },
-                                            { label: "Location", match: false },
-                                            { label: "Work Experience", match: false },
-                                            { label: "Industry", match: false },
-                                            { label: "Department", match: true },
+                                            { label: t("match.early"), match: true },
+                                            { label: t("match.skills"), match: false },
+                                            { label: t("match.location"), match: false },
+                                            { label: t("match.experience"), match: false },
+                                            { label: t("match.industry"), match: false },
+                                            { label: t("match.department"), match: true },
                                         ].map((item, idx) => (
                                             <div key={idx} className="flex items-center gap-3">
                                                 <div className={cn(
@@ -439,10 +407,10 @@ export default function ApplicationsPage() {
                                             </div>
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-km-text-primary text-lg">{selectedApp?.job?.company || "Employer"}</h3>
-                                            <p className="text-km-text-secondary text-sm font-medium">{selectedApp?.job?.city_name || selectedApp?.job?.location || "Location not specified"}</p>
+                                            <h3 className="font-bold text-km-text-primary text-lg">{selectedApp?.job?.company || t("employer")}</h3>
+                                            <p className="text-km-text-secondary text-sm font-medium">{selectedApp?.job?.city_name || selectedApp?.job?.location || t("noLocation")}</p>
                                             <p className="text-[11px] text-km-text-secondary mt-1 font-bold italic">
-                                                {getStatusDisplay(selectedApp.status)} {formatTimeAgo(selectedApp.updated_at)}
+                                                {statusText(selectedApp.status)} {ago(selectedApp.updated_at)}
                                             </p>
                                         </div>
                                     </div>
@@ -452,10 +420,10 @@ export default function ApplicationsPage() {
                                         </button>
                                         <button className="px-6 py-2.5 bg-km-surface-card border border-km-border rounded-xl font-bold text-km-text-primary hover:border-km-primary hover:text-km-heading transition flex items-center gap-2 text-sm">
                                             <ChatIcon weight="bold" className="w-4 h-4" />
-                                            Chat With HR
+                                            {t("chatHr")}
                                         </button>
                                         <button className="px-8 py-2.5 bg-km-primary text-white rounded-xl font-bold hover:bg-km-primary-dark transition shadow-sm text-sm">
-                                            Connect
+                                            {t("connect")}
                                         </button>
                                     </div>
                                 </div>
@@ -463,8 +431,8 @@ export default function ApplicationsPage() {
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-center space-y-4">
                                 <ClockIcon size={48} weight="duotone" className="text-km-text-muted" aria-hidden="true" />
-                                <h3 className="text-xl font-bold text-km-text-primary">Select an application</h3>
-                                <p className="text-km-text-secondary max-w-62.5">Choose an application from the left to see its detailed status and next steps.</p>
+                                <h3 className="text-xl font-bold text-km-text-primary">{t("selectTitle")}</h3>
+                                <p className="text-km-text-secondary max-w-62.5">{t("selectText")}</p>
                             </div>
                         )}
                     </div>

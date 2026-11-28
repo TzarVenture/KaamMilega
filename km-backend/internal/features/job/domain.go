@@ -42,6 +42,10 @@ type Job struct {
 	// How many people opened the job (each once a day); only the employer sees it, as Views
 	ViewCount int64     `bson:"view_count,omitempty" json:"-"`
 	Views     *JobViews `bson:"-" json:"views,omitempty"`
+	// Set when the employer was asked whether this long-open job is still hiring (jobstale)
+	StaleRemindedAt *time.Time `bson:"stale_reminded_at,omitempty" json:"stale_reminded_at,omitempty"`
+	// Set when the job was paused because nobody answered that reminder
+	StalePausedAt *time.Time `bson:"stale_paused_at,omitempty" json:"stale_paused_at,omitempty"`
 
 	// Filled from the recruiter's account when jobs are read, never stored on the job
 	EmployerVerified bool   `bson:"-" json:"employer_verified"`

@@ -33,6 +33,7 @@ func (api *ApplicationApi) Setup(app *fiber.App) {
 	protected.Get("/recruiter/all", api.controller.GetRecruiterApplications) // New route
 	// Employer portal: paged, searchable applicant list with stage counts; bulk moves; private review
 	protected.Get("/recruiter/pipeline", middleware.RequireRole("recruiter", "expert", "admin"), api.controller.Pipeline)
+	protected.Get("/recruiter/export", middleware.RequireRole("recruiter", "expert", "admin"), api.controller.Export)
 	protected.Post("/recruiter/bulk-status", middleware.RequireRole("recruiter", "expert", "admin"), api.controller.BulkStatus)
 	protected.Patch("/:id/review", middleware.RequireRole("recruiter", "expert", "admin"), api.controller.Review)
 

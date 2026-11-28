@@ -50,6 +50,10 @@ export interface MyJob {
     stage_counts?: Partial<Record<Stage, number>>;
     /** Only on the employer's own jobs; the daily chart only for one job */
     views?: JobViews;
+    /** Set when the employer was asked if this long-open job is still hiring */
+    stale_reminded_at?: string;
+    /** Set when the job was paused because nobody answered that reminder */
+    stale_paused_at?: string;
 }
 
 export interface JobViews {
@@ -134,9 +138,33 @@ export interface Interview {
     location?: string;
     status: 'Scheduled' | 'Completed' | 'Cancelled' | string;
     notes?: string;
+    /** The employer's private record of how it went */
+    feedback?: InterviewFeedback;
     created_at?: string;
     job?: { id?: string; title?: string; company?: string };
     candidate?: { id?: string; name?: string; email?: string; mobile?: string; headline?: string; profile_image?: string; username?: string };
+}
+
+export type FeedbackOutcome = 'good' | 'okay' | 'poor' | 'no_show';
+export const FEEDBACK_OUTCOMES: FeedbackOutcome[] = ['good', 'okay', 'poor', 'no_show'];
+
+export interface InterviewFeedback {
+    outcome: FeedbackOutcome;
+    note?: string;
+    at: string;
+}
+
+export interface ReplyTemplate {
+    id: string;
+    title: string;
+    body: string;
+    created_at?: string;
+    updated_at?: string;
+}
+
+/** Fills {name} and {job} in a template for one applicant */
+export function fillTemplate(body: string, v: { name?: string; job?: string }) {
+    return body.replace(/\{name\}/gi, v.name || '').replace(/\{job\}/gi, v.job || '').replace(/[ \t]{2,}/g, ' ').trim();
 }
 
 const clean = (p: Record<string, unknown>) => Object.fromEntries(Object.entries(p).filter(([, v]) => v !== '' && v !== undefined && v !== null && v !== false));
@@ -163,6 +191,20 @@ export const recruiterApi = {
     save: (id: string) => api.put(`/recruiter/saved/${id}`),
     unsave: (id: string) => api.delete(`/recruiter/saved/${id}`),
 
+    templates: () => api.get<unknown, ReplyTemplate[]>('/recruiter/templates'),
+    createTemplate: (b: { title: string; body: string }) => api.post<unknown, ReplyTemplate>('/recruiter/templates', b),
+    updateTemplate: (id: string, b: { title: string; body: string }) => api.put<unknown, ReplyTemplate>(`/recruiter/templates/${id}`, b),
+    deleteTemplate: (id: string) => api.delete(`/recruiter/templates/${id}`),
+    /** Sends one chat message (chats with people who applied don't use the plan) */
+    sendMessage: (receiverId: string, content: string) => api.post('/chats', { receiver_id: receiverId, content }),
+
+    suggested: (jobId: string) => api.get<unknown, TalentPage>(`/recruiter/jobs/${jobId}/suggested`),
+    keepOpen: (jobId: string) => api.post(`/jobs/${jobId}/keep-open`),
+    /** The applicants matching these filters as an Excel file */
+    exportApplicants: (p: { job_id?: string; status?: string; search?: string }) =>
+        api.get<unknown, Blob>('/applications/recruiter/export', { params: clean(p), responseType: 'blob' }),
+
+    saveFeedback: (id: string, b: { outcome: FeedbackOutcome; note?: string }) => api.patch<unknown, Interview>(`/interviews/${id}/feedback`, b),
     interviews: () => api.get<unknown, Interview[]>('/interviews/my'),
     setInterviewStatus: (id: string, status: 'Scheduled' | 'Completed' | 'Cancelled') => api.patch(`/interviews/${id}/status`, { status }),
 };
