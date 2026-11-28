@@ -28,9 +28,14 @@ export interface FeedAuthor {
 }
 
 export interface FeedMedia {
+  /** Missing on older posts, which are photos */
+  type?: 'image' | 'video';
   url: string;
   width?: number;
   height?: number;
+  /** Video only: the still shown before it plays, and its length in seconds */
+  poster_url?: string;
+  duration?: number;
 }
 
 export interface FeedPost {

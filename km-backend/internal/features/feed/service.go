@@ -193,20 +193,16 @@ func (s *feedService) DeletePost(ctx context.Context, userID primitive.ObjectID,
 		s.forgetTrending()
 	}
 	if len(post.Media) > 0 {
-		ids := make([]primitive.ObjectID, 0, len(post.Media))
-		for _, m := range post.Media {
-			ids = append(ids, m.FileID)
-		}
-		keys, err := s.repo.ReleaseMedia(ctx, ids)
+		keys, err := s.repo.ReleaseMedia(ctx, fileIDs(post.Media))
 		if err != nil {
-			log.Printf("feed: post %s deleted but its photo records were not: %v", postID.Hex(), err)
+			log.Printf("feed: post %s deleted but its media records were not: %v", postID.Hex(), err)
 		}
 		s.deleteObjects(keys)
 	}
 	return nil
 }
 
-// deleteObjects removes photos from storage after the response; a failure only leaves an
+// deleteObjects removes photos and videos from storage after the response; a failure only leaves an
 // unreachable object behind, so it is logged rather than returned
 func (s *feedService) deleteObjects(keys []string) {
 	if s.store == nil || len(keys) == 0 {
@@ -217,7 +213,7 @@ func (s *feedService) deleteObjects(keys []string) {
 		defer cancel()
 		for _, k := range keys {
 			if err := s.store.Delete(ctx, storage.Public, k); err != nil {
-				log.Printf("feed: could not delete photo %s: %v", k, err)
+				log.Printf("feed: could not delete media %s: %v", k, err)
 			}
 		}
 	}()
@@ -875,10 +871,7 @@ func (s *feedService) moderationPosts(ctx context.Context, posts map[primitive.O
 		if a, ok := authors[p.AuthorID]; ok {
 			author = &a
 		}
-		media := p.Media
-		if media == nil {
-			media = []Media{}
-		}
+		media := mediaOut(p.Media)
 		out[id] = ModerationPost{
 			ID: id.Hex(), Author: author, Content: p.Content, Category: p.Category, Media: media,
 			Status: p.Status, ReactionsTotal: max(p.ReactionsTotal, 0), CommentsCount: max(p.CommentsCount, 0),
@@ -958,10 +951,7 @@ func (s *feedService) responses(ctx context.Context, viewer *primitive.ObjectID,
 		if !ok {
 			continue
 		}
-		media := p.Media
-		if media == nil {
-			media = []Media{}
-		}
+		media := mediaOut(p.Media)
 		owner := viewer != nil && *viewer == p.AuthorID
 		var impressions *int
 		if owner {

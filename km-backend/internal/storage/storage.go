@@ -47,6 +47,8 @@ type Storage interface {
 	SignedURL(ctx context.Context, key, downloadName string, download bool, ttl time.Duration) (string, error)
 	// Driver names the backend ("r2" or "local") for logs and health checks
 	Driver() string
+	// Large files (videos) are uploaded in parts
+	Multipart
 }
 
 // disposition: "attachment" makes the browser save the file, "inline" opens it

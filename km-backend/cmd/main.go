@@ -291,6 +291,7 @@ func appOptions() fx.Option {
 
 			// controllers
 			file.NewFileController,
+			file.NewChunkedUploads,
 			sms.NewSMSController,
 			setting.NewSettingController,
 			user.NewUserController,
@@ -379,6 +380,8 @@ func appOptions() fx.Option {
 			recruiterdigest.RegisterWorker,
 			// Session, event and pass reminders
 			reminder.RegisterWorker,
+			// Clears video uploads that were started but never finished
+			file.RegisterUploadSweeper,
 			// Register Routes & Start
 			RegisterAllRoutesWithAnnotation,
 			StartServer,

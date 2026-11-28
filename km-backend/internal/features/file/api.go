@@ -12,12 +12,14 @@ import (
 
 type FileApi struct {
 	controller *FileController
+	chunked    *ChunkedUploads
 	config     *config.Config
 }
 
-func NewFileApi(controller *FileController, config *config.Config) *FileApi {
+func NewFileApi(controller *FileController, chunked *ChunkedUploads, config *config.Config) *FileApi {
 	return &FileApi{
 		controller: controller,
+		chunked:    chunked,
 		config:     config,
 	}
 }
@@ -45,4 +47,10 @@ func (h *FileApi) Setup(app *fiber.App) {
 	auth := middleware.AuthMiddleware(h.config.JWTSecret)
 	app.Post("/api/files/upload", auth, h.controller.UploadFile)
 	app.Get("/api/files/:id/link", auth, h.controller.FileLink)
+
+	// Large files (videos) in parts
+	app.Post("/api/files/multipart", auth, h.chunked.StartHandler)
+	app.Put("/api/files/multipart/:id/parts/:n", auth, h.chunked.PutPartHandler)
+	app.Post("/api/files/multipart/:id/complete", auth, h.chunked.CompleteHandler)
+	app.Delete("/api/files/multipart/:id", auth, h.chunked.CancelHandler)
 }

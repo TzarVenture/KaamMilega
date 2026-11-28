@@ -89,6 +89,10 @@ func (ctrl *FileController) UploadFile(c *fiber.Ctx) error {
 	if kind.AdminOnly && !hasRole(c, "admin") {
 		return c.Status(fiber.StatusForbidden).JSON(apperr.Body(errKindAdminOnly))
 	}
+	// Videos go up in parts (/api/files/multipart), which checks them more closely
+	if kind.Chunked {
+		return c.Status(fiber.StatusBadRequest).JSON(apperr.Body(errChunkedOnly))
+	}
 	if err := kind.check(ext, fh.Size); err != nil {
 		status := fiber.StatusUnsupportedMediaType
 		if err == errKindTooLarge {

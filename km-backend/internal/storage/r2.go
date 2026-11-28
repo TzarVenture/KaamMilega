@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"mime"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ type r2Storage struct {
 	publicBucket  string
 	privateBucket string
 	publicBaseURL string
+	purger        *cachePurger
 }
 
 func newR2(cfg *config.Config) (*r2Storage, error) {
@@ -52,6 +54,7 @@ func newR2(cfg *config.Config) (*r2Storage, error) {
 		publicBucket:  cfg.R2PublicBucket,
 		privateBucket: cfg.R2PrivateBucket,
 		publicBaseURL: strings.TrimRight(cfg.R2PublicBaseURL, "/"),
+		purger:        newCachePurger(cfg.CloudflareZoneID, cfg.CloudflarePurgeToken),
 	}, nil
 }
 
@@ -81,10 +84,17 @@ func (s *r2Storage) Put(ctx context.Context, vis Visibility, obj Object) error {
 func (s *r2Storage) Delete(ctx context.Context, vis Visibility, key string) error {
 	_, err := s.client.DeleteObject(ctx, &s3.DeleteObjectInput{Bucket: aws.String(s.bucket(vis)), Key: aws.String(key)})
 	var nf interface{ ErrorCode() string }
-	if errors.As(err, &nf) && nf.ErrorCode() == "NoSuchKey" {
-		return nil
+	if err != nil && !(errors.As(err, &nf) && nf.ErrorCode() == "NoSuchKey") {
+		return err
 	}
-	return err
+	if vis == Public {
+		// The file is gone from R2; the CDN must stop serving its cached copy too. A failure is
+		// logged, not returned: the delete itself worked.
+		if err := s.purger.purge(ctx, []string{s.PublicURL(key)}); err != nil {
+			log.Printf("storage: deleted %s but could not clear it from the CDN cache: %v", key, err)
+		}
+	}
+	return nil
 }
 
 func (s *r2Storage) PublicURL(key string) string {
